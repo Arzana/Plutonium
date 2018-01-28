@@ -91,7 +91,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/LIBPATH %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -109,7 +108,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/LIBPATH %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -129,7 +127,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/LIBPATH %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -153,7 +150,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/LIBPATH %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -171,6 +167,29 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c" />
+    <ClCompile Include="..\..\src\Core\Logging.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Box.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Matrix.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
+    <ClInclude Include="..\..\include\Core\Events\EventBus.h" />
+    <ClInclude Include="..\..\include\Core\Events\EventSubscriber.h" />
+    <ClInclude Include="..\..\include\Core\Logging.h" />
+    <ClInclude Include="..\..\include\Core\Math\Basics.h" />
+    <ClInclude Include="..\..\include\Core\Math\Box.h" />
+    <ClInclude Include="..\..\include\Core\Math\Constants.h" />
+    <ClInclude Include="..\..\include\Core\Math\Interpolation.h" />
+    <ClInclude Include="..\..\include\Core\Math\Matrix.h" />
+    <ClInclude Include="..\..\include\Core\Math\Rectangle.h" />
+    <ClInclude Include="..\..\include\Core\Math\Vector2.h" />
+    <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
+    <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
+    <ClInclude Include="..\..\include\Core\SafeMemory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

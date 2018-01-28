@@ -12,10 +12,90 @@
     <Filter Include="Third Party Files">
       <UniqueIdentifier>{a5b0963b-3e6d-46de-817e-cde052661479}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{6c52ec83-6c28-45f7-b088-dbe0c9a9f6ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Math">
+      <UniqueIdentifier>{cddedd21-27e0-4a0c-b4c2-0c1ad6d24a78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{f118ce40-898e-4a7f-8746-281842846226}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Math">
+      <UniqueIdentifier>{c1fb7d90-45c5-4300-b778-cf6f71f9f977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Events">
+      <UniqueIdentifier>{85db7559-62b4-4c2d-8d80-ac433edd5cb8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
       <Filter>Third Party Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Vector3.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Vector4.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Matrix.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Rectangle.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Box.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Logging.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\Core\Math\Basics.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Constants.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Interpolation.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Vector2.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Vector3.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Vector4.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Matrix.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Rectangle.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Box.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Events\EventSubscriber.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\SafeMemory.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Logging.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Events\EventBus.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
