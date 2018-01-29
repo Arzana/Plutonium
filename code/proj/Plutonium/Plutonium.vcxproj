@@ -174,9 +174,12 @@
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
+    <ClInclude Include="..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\include\Core\Events\EventBus.h" />
     <ClInclude Include="..\..\include\Core\Events\EventSubscriber.h" />
     <ClInclude Include="..\..\include\Core\Logging.h" />
@@ -190,6 +193,10 @@
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
     <ClInclude Include="..\..\include\Core\SafeMemory.h" />
+    <ClInclude Include="..\..\include\Graphics\Monitor.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\Window.h" />
+    <ClInclude Include="..\..\include\Graphics\WindowModes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

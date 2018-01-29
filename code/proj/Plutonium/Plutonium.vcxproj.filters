@@ -27,6 +27,18 @@
     <Filter Include="Header Files\Core\Events">
       <UniqueIdentifier>{85db7559-62b4-4c2d-8d80-ac433edd5cb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{adcab37a-4382-47ff-9b52-0eb58cdda651}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Native">
+      <UniqueIdentifier>{3f2d0c8c-ab41-48cc-94c9-15194f9df7c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{47ad77fc-e6ef-4ddf-a1b3-5497528a0a55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Native">
+      <UniqueIdentifier>{992dbeac-cd8f-4218-aca6-bb089eb7fa07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
@@ -52,6 +64,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Core\Logging.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp">
+      <Filter>Source Files\Graphics\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Window.cpp">
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +114,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Events\EventBus.h">
       <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\WindowModes.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Window.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Events\EventArgs.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Monitor.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
