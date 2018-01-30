@@ -177,6 +177,7 @@
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Window.cpp" />
+    <ClCompile Include="..\..\src\Input\Cursor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Window.h" />
     <ClInclude Include="..\..\include\Graphics\WindowModes.h" />
+    <ClInclude Include="..\..\include\Input\Cursor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

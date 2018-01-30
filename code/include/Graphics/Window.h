@@ -30,6 +30,16 @@ namespace Plutonium
 
 		_Check_return_ Window& operator =(_In_ const Window &other) = delete;
 		_Check_return_ Window& operator =(_In_ Window &&other) = delete;
+		/* Checks whether two windows are equal. */
+		_Check_return_ inline bool operator ==(_In_ const Window &other) const
+		{
+			return hndlr == other.hndlr;
+		}
+		/* Checks whether two window differ. */
+		_Check_return_ inline bool operator !=(_In_ const Window &other) const
+		{
+			return hndlr != other.hndlr;
+		}
 
 		/* Gets the display title of the window. */
 		_Check_return_ inline const char* GetTitle(void) const
@@ -84,6 +94,7 @@ namespace Plutonium
 		friend struct Game;
 		friend struct Keyboard;
 		friend struct Cursor;
+		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
 		friend Window* GetWndFromHndlr(GLFWwindow*);
 		friend void GlfwFocusChangedEventHandler(GLFWwindow*, int);
 

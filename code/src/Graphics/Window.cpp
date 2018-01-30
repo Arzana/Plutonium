@@ -1,46 +1,54 @@
 #include "Graphics\Window.h"
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
-#include "glfw3.h"
+#include <glfw3.h>
+
 using namespace Plutonium;
 
 std::vector<Window*> activeWnds;
 Window * Plutonium::GetWndFromHndlr(GLFWwindow *hndlr)
 {
+	/* Attempt to find the propper window. */
 	for (size_t i = 0; i < activeWnds.size(); i++)
 	{
 		Window *cur = activeWnds.at(i);
 		if (cur->hndlr == hndlr) return cur;
 	}
 
+	/* Should never occur. */
 	LOG_WAR("Unknown window requested!");
 	return nullptr;
 }
 
 void GlfwSizeChangedEventHandler(GLFWwindow *hndlr, int w, int h)
 {
+	/* Get window ascociated with handler and call resize. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd) wnd->Resize(Vector2(static_cast<float>(w), static_cast<float>(h)));
 }
 
 void GlfwPositionChangedEventHandler(GLFWwindow *hndlr, int x, int y)
 {
+	/* Get window ascociated and call move. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd) wnd->Move(Vector2(static_cast<float>(x), static_cast<float>(y)));
 }
 
 void Plutonium::GlfwFocusChangedEventHandler(GLFWwindow *hndlr, int gainedFocus)
 {
+	/* Get window ascociated. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd)
 	{
 		if (gainedFocus == GLFW_TRUE)
 		{
+			/* Apply focus gain. */
 			wnd->focused = true;
 			wnd->GainedFocus.Post(wnd, EventArgs());
 		}
 		else
 		{
+			/* Apply focus loss. */
 			wnd->focused = false;
 			wnd->LostFocus.Post(wnd, EventArgs());
 		}

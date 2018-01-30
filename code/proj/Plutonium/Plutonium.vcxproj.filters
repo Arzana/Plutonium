@@ -39,6 +39,12 @@
     <Filter Include="Source Files\Graphics\Native">
       <UniqueIdentifier>{992dbeac-cd8f-4218-aca6-bb089eb7fa07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{fe868ac1-d660-4e5e-a5da-63ec366921e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{028a5b4d-2e28-4b66-802e-ac01461f5099}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
@@ -73,6 +79,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Input\Cursor.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +141,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h">
       <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Input\Cursor.h">
+      <Filter>Header Files\Input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
