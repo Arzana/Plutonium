@@ -1,8 +1,7 @@
 #include "Graphics\Window.h"
 #include "Graphics\Native\OpenGL.h"
+#include "Graphics\Native\Monitor.h"
 #include "glfw3.h"
-#include <vector>
-
 using namespace Plutonium;
 
 std::vector<Window*> activeWnds;
@@ -81,7 +80,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 
 Plutonium::Window::Window(const char * title, Vector2 size)
 	: title(title), wndBounds(size), vpBounds(size), focused(false), mode(WindowMode::Windowed),
-	SizeChanged("WindowSizeChanged"), GainedFocus("WindowGainedFocus"), LostFocus("WindowLostFocus"),
+	SizeChanged("WindowSizeChanged"), PositionChanged("WindowPositionChanged"), GainedFocus("WindowGainedFocus"), LostFocus("WindowLostFocus"),
 	operational(false)
 {
 	/* Create underlying window. */
@@ -121,6 +120,10 @@ void Plutonium::Window::Show(void) const
 	if (focused) return;
 	focused = true;
 
+#if defined(DEBUG)
+	_CrtDbgMoveTerminal(hndlr);
+#endif
+
 	glfwShowWindow(hndlr);
 }
 
@@ -147,34 +150,15 @@ void Plutonium::Window::Resize(Vector2 size)
 		return;
 	}
 
-	/* Check if input isn't equal to the current size. */
-	if (size.X != vpBounds.GetWidth() && size.Y != vpBounds.GetHeight())
-	{
-		SetBounds(vpBounds.Position, size);
-		LOG("Window '%s' resized to %dx%d.", title, static_cast<int>(size.X), static_cast<int>(size.Y));
-		SizeChanged.Post(this, EventArgs());
-	}
+	SetBounds(wndBounds.Position, size);
 }
 
 void Plutonium::Window::Move(Vector2 position)
 {
-	/* Check if input isn't equal to the current position. */
-	if (position == wndBounds.Position) return;
-
-	/* Get all displays. */
-	int displayCnt = 0;
-	GLFWmonitor **displays = glfwGetMonitors(&displayCnt);
-
-	/* Create valid area bounds. */
-	Rectangle bounds = Rectangle();
-	for (size_t i = 0; i < displayCnt; i++)
-	{
-		int x = 0, y = 0, w = 0, h = 0;
-		glfwGetMonitorPos(displays[i], &x, &y);
-		glfwGetMonitorPhysicalSize(displays[i], &w, &h);
-		Rectangle cur = Rectangle(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
-		bounds = Rectangle::Merge(bounds, cur);
-	}
+	/* Calculate full display bounds. */
+	Rectangle bounds;
+	std::vector<MonitorInfo> displays = MonitorInfo::GetAll();
+	for (size_t i = 0; i < displays.size(); i++) bounds = Rectangle::Merge(bounds, displays.at(i).GetWindowBounds());
 
 	/* Check if position is within the display bounds. */
 	if (!bounds.Contains(position))
@@ -185,7 +169,6 @@ void Plutonium::Window::Move(Vector2 position)
 
 	/* Set new position. */
 	SetBounds(position, vpBounds.Size);
-	LOG("Window '%s' moved to %dx%d.", title, static_cast<int>(position.X), static_cast<int>(position.Y));
 }
 
 void Plutonium::Window::SetMode(WindowMode mode)
@@ -193,5 +176,74 @@ void Plutonium::Window::SetMode(WindowMode mode)
 	/* Check if input isn't equal to the current mode. */
 	if (this->mode == mode) return;
 
+	/* Get current display. */
+	MonitorInfo display = MonitorInfo::FromWindow(hndlr);
+	if (!display.IsValid)
+	{
+		LOG_WAR("Could not get display ascociated with window '%s'!", title);
+		return;
+	}
 
+	/* Get current window attributes. */
+	int x = static_cast<int>(vpBounds.Size.X);
+	int y = static_cast<int>(vpBounds.Size.Y);
+	int w = static_cast<int>(vpBounds.GetWidth());
+	int h = static_cast<int>(vpBounds.GetHeight());
+
+	switch (mode)
+	{
+		case Plutonium::WindowMode::Windowed:
+			/* Just set the monitor to NULL and keep everything else the same. */
+			glfwSetWindowMonitor(hndlr, nullptr, x, y, w, h, display.RefreshRate);
+			break;
+		case Plutonium::WindowMode::BorderlessFullscreen:
+			/* Set the monitor to the specified current monitor and resize the window. */
+			glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, display.ClientWidth, display.ClientHeight, display.RefreshRate);
+			SetBounds(Vector2::Zero, display.GetClientSize());
+			break;
+		case Plutonium::WindowMode::Fullscreen:
+			/* Set the monitor to the specified current monitor. */
+			glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, w, h, display.RefreshRate);
+			SetBounds(Vector2::Zero, vpBounds.Size);
+			break;
+		default:
+			LOG_WAR("Attempted to set unsupported window mode!");
+			return;
+	}
+
+	/* Reset swap interval is needed for fullscreen window modes. */
+	glfwSwapInterval(1);
+	this->mode = mode;
+}
+
+bool Plutonium::Window::Update(void)
+{
+	/* Make sure events are updated (mouse, keyboard, etc.) and return whether the window should be finalized. */
+	glfwPollEvents();
+	return glfwWindowShouldClose(hndlr);
+}
+
+void Plutonium::Window::SetBounds(Vector2 pos, Vector2 size)
+{
+	/* Check if window was moved. */
+	if (pos != wndBounds.Position)
+	{
+		wndBounds.Position = pos;
+		PositionChanged.Post(this, EventArgs());
+		LOG("Window '%s' moved to (%dx%d).", title, static_cast<int>(pos.X), static_cast<int>(pos.Y));
+	}
+
+	/* Check if window was resized. */
+	if (size != vpBounds.Size)
+	{
+		vpBounds.Size = size;
+
+		/* Check if viewport needs to be updated. */
+		int l = 0, r = 0, t = 0, b = 0;
+		glfwGetWindowFrameSize(hndlr, &l, &t, &r, &b);
+		wndBounds.Size = vpBounds.Size + Vector2(static_cast<float>(l + r), static_cast<float>(t + b));
+
+		SizeChanged.Post(this, EventArgs());
+		LOG("Window '%s' resized to %dx%d.", title, static_cast<int>(size.X), static_cast<int>(size.Y));
+	}
 }

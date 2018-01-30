@@ -1,8 +1,8 @@
 #include "Graphics\Native\OpenGL.h"
+#include "Graphics\Native\Monitor.h"
+#include "Core\Logging.h"
 #include <glad\glad.h>
 #include <glfw3.h>
-#include "Core\Math\Rectangle.h"
-#include "Core\Logging.h"
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -88,46 +88,38 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 
 void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 {
-	LOG("Attempting to move console to better location.");
-
-	/* Get available displays. */
-	int displayCnt = 0;
-	GLFWmonitor **displays = glfwGetMonitors(&displayCnt);
-
-	/* Get windows specific terminal handle. */
-#if defined(_WIN32)
-	HWND hndlr = GetConsoleWindow();
-	if (!hndlr)
-	{
-		LOG_WAR("No console window found!");
-		return;
-	}
-#else
-	LOG_WAR("Moving the terminal is not yet supported on this platform!");
-	return;
-#endif
+	LOG("Attempting to move terminal to better location.");
 
 	/* Get window position attribute. */
-	int wx = 0, wy = 0;
-	glfwGetWindowPos(gameWindow, &wx, &wy);
-	Vector2 gwp = Vector2(static_cast<float>(wx), static_cast<float>(wy));
+	int x = 0, y = 0;
+	glfwGetWindowPos(gameWindow, &x, &y);
+	Vector2 pos = Vector2(static_cast<float>(x), static_cast<float>(y));
 
-	/* Get new window position. */
-	for (int i = 0; i < displayCnt; i++)
+	/* Get available displays. */
+	std::vector<MonitorInfo> displays = MonitorInfo::GetAll();
+	for (size_t i = 0; i < displays.size(); i++)
 	{
-		/* Get monitor bounds. */
-		int x = 0, y = 0, w = 0, h = 0;
-		glfwGetMonitorPos(displays[i], &x, &y);
-		glfwGetMonitorPhysicalSize(displays[i], &w, &h);
-		Rectangle bounds = Rectangle(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
+		MonitorInfo cur = displays.at(i);
 
-		/* Attempt to move terminal. */
-		if (!bounds.Contains(gwp))
+		/* Check if monitor doesn't contain window. */
+		if (!cur.GetWindowBounds().Contains(pos))
 		{
 #if defined(_WIN32)
-			SetWindowPos(hndlr, HWND_TOP, x, 0, 0, 0, SWP_NOSIZE);
-			return;
+			/* Get windows specific terminal handle. */
+			HWND terminalHndlr = GetConsoleWindow();
+			if (!terminalHndlr)
+			{
+				LOG_WAR("Could not get windows terminal handler!");
+				return;
+			}
+
+			/* Move terminal on windows. */
+			SetWindowPos(terminalHndlr, HWND_TOP, cur.X, 0, 0, 0, SWP_NOSIZE);
+			LOG("Moved terminal to '%s'.", cur.Name);
+#else
+			LOG_WAR("Moving the terminal is not yet supported on this platform!");
 #endif
+			return;
 		}
 	}
 

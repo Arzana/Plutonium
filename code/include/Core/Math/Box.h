@@ -82,13 +82,13 @@ namespace Plutonium
 		/* Gets the topmost face of the box. */
 		_Check_return_ inline float GetTop(void) const
 		{
-			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
+			return Size.Y > 0.0f ? Position.Y : (Position.Y + Size.Y);
 		}
 
 		/* Gets the bottommost face of the box. */
 		_Check_return_ inline float GetBottom(void) const
 		{
-			return Size.Y > 0.0f ? Position.Y : (Position.Y + Size.Y);
+			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
 		}
 
 		/* Gets the frontmost face of the box. */

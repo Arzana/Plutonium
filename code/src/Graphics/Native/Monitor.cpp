@@ -9,14 +9,24 @@ Vector2 Plutonium::MonitorInfo::GetPosition(void) const
 	return Vector2(static_cast<float>(X), static_cast<float>(Y));
 }
 
-Vector2 Plutonium::MonitorInfo::GetSize(void) const
+Vector2 Plutonium::MonitorInfo::GetWindowSize(void) const
 {
-	return Vector2(static_cast<float>(Width), static_cast<float>(Height));
+	return Vector2(static_cast<float>(WindowWidth), static_cast<float>(WindowHeight));
 }
 
-Rectangle Plutonium::MonitorInfo::GetBounds(void) const
+Vector2 Plutonium::MonitorInfo::GetClientSize(void) const
 {
-	return Rectangle(GetPosition(), GetSize());
+	return Vector2(static_cast<float>(ClientWidth), static_cast<float>(ClientHeight));
+}
+
+Rectangle Plutonium::MonitorInfo::GetWindowBounds(void) const
+{
+	return Rectangle(GetPosition(), GetWindowSize());
+}
+
+Rectangle Plutonium::MonitorInfo::GetClientBounds(void) const
+{
+	return Rectangle(GetPosition(), GetClientSize());
 }
 
 MonitorInfo Plutonium::MonitorInfo::GetPrimary(void)
@@ -52,17 +62,34 @@ MonitorInfo Plutonium::MonitorInfo::FromWindow(GLFWwindow * hndlr)
 	for (size_t i = 0; i < monitors.size(); i++)
 	{
 		const MonitorInfo cur = monitors.at(i);
-		if (cur.GetBounds().Contains(pos)) return cur;
+		if (cur.GetWindowBounds().Contains(pos)) return cur;
 	}
 
 	/* If no monitor was found or window is outside of the monitor bounds return the primary instead. */
-	LOG_WAR("Cannot get monitor for window at position (%d, %d), returning primary monitor!", x, y);
+	LOG_WAR("Cannot get monitor for window at position (%dx%d), returning primary monitor!", x, y);
 	return GetPrimary();
 }
 
 Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
-	: Name(glfwGetMonitorName(info))
+	: Name(""), X(0), Y(0), WindowWidth(0), WindowHeight(0),
+	ClientWidth(0), ClientHeight(0), Red(0), Green(0), Blue(0), RefreshRate(0),
+	Handle(info), IsValid(info != nullptr)
 {
-	glfwGetMonitorPos(info, &X, &Y);
-	glfwGetMonitorPhysicalSize(info, &Width, &Height);
+	/* Set values to default to make sure we don't crash if no info is supplied. */
+	if (info)
+	{
+		/* Set basic info. */
+		Name = glfwGetMonitorName(info);
+		glfwGetMonitorPos(info, &X, &Y);
+		glfwGetMonitorPhysicalSize(info, &WindowWidth, &WindowHeight);
+
+		/* Set video specific info. */
+		GLFWvidmode mode = *glfwGetVideoMode(info);
+		ClientWidth = mode.width;
+		ClientHeight = mode.height;
+		Red = mode.redBits;
+		Green = mode.greenBits;
+		Blue = mode.blueBits;
+		RefreshRate = mode.refreshRate;
+	}
 }

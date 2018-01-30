@@ -1,5 +1,5 @@
 #pragma once
-#include "Core\Math\Rectangle.h"
+#include "Graphics\Native\Monitor.h"
 #include "Core\Events\EventBus.h"
 #include "Core\Events\EventArgs.h"
 #include "WindowModes.h"
@@ -14,6 +14,8 @@ namespace Plutonium
 	public:
 		/* Occures when the window is resized. */
 		EventBus<Window, EventArgs> SizeChanged;
+		/* Occures when the window is moved. */
+		EventBus<Window, EventArgs> PositionChanged;
 		/* Occures when the window gains focus. */
 		EventBus<Window, EventArgs> GainedFocus;
 		/* Occures when the window loses focus. */
@@ -45,6 +47,12 @@ namespace Plutonium
 		_Check_return_ inline const Rectangle& GetWinowBounds(void) const
 		{
 			return wndBounds;
+		}
+
+		/* Gets the ascociated graphics device. */
+		_Check_return_ inline MonitorInfo GetGraphicsDevice(void) const
+		{
+			return MonitorInfo::FromWindow(hndlr);
 		}
 
 		/* Calculates the aspect ration of the windows viewport. */

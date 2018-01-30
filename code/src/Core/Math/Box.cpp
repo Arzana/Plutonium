@@ -7,11 +7,11 @@ Box Plutonium::Box::Merge(const Box & first, const Box & second)
 {
 	const float r = max(first.GetRight(), second.GetRight());
 	const float l = min(first.GetLeft(), second.GetLeft());
-	const float t = max(first.GetTop(), second.GetTop());
-	const float d = min(first.GetBottom(), second.GetBottom());
+	const float t = min(first.GetTop(), second.GetTop());
+	const float d = max(first.GetBottom(), second.GetBottom());
 	const float f = min(first.GetFront(), second.GetFront());
 	const float b = max(first.GetBack(), second.GetBack());
-	return Box(l, t, f, r - l, t - d, b - f);
+	return Box(l, t, f, r - l, d - t, b - f);
 }
 
 void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
@@ -57,21 +57,21 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 bool Plutonium::Box::Contains(Vector3 point) const
 {
 	return GetLeft() < point.X && GetRight() > point.X
-		&& GetTop() > point.Y && GetBottom() < point.Y
+		&& GetTop() < point.Y && GetBottom() > point.Y
 		&& GetFront() < point.Z && GetBack() > point.Z;
 }
 
 bool Plutonium::Box::Contains(const Box & b) const
 {
 	return GetLeft() < b.GetLeft() && GetRight() > b.GetRight()
-		&& GetTop() > b.GetTop() && GetBottom() < b.GetBottom()
+		&& GetTop() < b.GetTop() && GetBottom() > b.GetBottom()
 		&& GetFront() < b.GetFront() && GetBack() > b.GetBack();
 }
 
 bool Plutonium::Box::Overlaps(const Box & b) const
 {
 	return GetLeft() <= b.GetRight() && GetRight() >= b.GetLeft()
-		&& GetTop() >= b.GetBottom() && GetBottom() <= b.GetTop()
+		&& GetTop() <= b.GetBottom() && GetBottom() >= b.GetTop()
 		&& GetFront() <= b.GetBack() && GetBack() >= b.GetFront();
 }
 
@@ -89,5 +89,5 @@ Box Plutonium::Box::GetOverlap(const Box & b) const
 	const float zs = min(GetBack(), b.GetBack());
 	if (zs < zl) return Box();
 
-	return Box(xl, yl, zl, xs - xl, yl - ys, zs - zl);
+	return Box(xl, yl, zl, xs - xl, ys - yl, zs - zl);
 }

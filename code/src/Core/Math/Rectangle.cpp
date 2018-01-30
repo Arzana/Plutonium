@@ -7,9 +7,9 @@ Rectangle Plutonium::Rectangle::Merge(const Rectangle & first, const Rectangle &
 {
 	const float r = max(first.GetRight(), second.GetRight());
 	const float l = min(first.GetLeft(), second.GetLeft());
-	const float t = max(first.GetTop(), second.GetTop());
-	const float b = min(first.GetBottom(), second.GetBottom());
-	return Rectangle(l, t, r - l, t - b);
+	const float t = min(first.GetTop(), second.GetTop());
+	const float b = max(first.GetBottom(), second.GetBottom());
+	return Rectangle(l, t, r - l, b - t);
 }
 
 void Plutonium::Rectangle::Inflate(float horizontal, float vertical)
@@ -42,17 +42,17 @@ void Plutonium::Rectangle::Inflate(float horizontal, float vertical)
 
 bool Plutonium::Rectangle::Contains(Vector2 point) const
 {
-	return GetLeft() < point.X && GetRight() > point.X && GetTop() > point.Y && GetBottom() < point.Y;
+	return GetLeft() < point.X && GetRight() > point.X && GetTop() < point.Y && GetBottom() > point.Y;
 }
 
 bool Plutonium::Rectangle::Contains(const Rectangle & r) const
 {
-	return GetLeft() < r.GetLeft() && GetRight() > r.GetRight() && GetTop() > r.GetTop() && GetBottom() < r.GetBottom();
+	return GetLeft() < r.GetLeft() && GetRight() > r.GetRight() && GetTop() < r.GetTop() && GetBottom() > r.GetBottom();
 }
 
 bool Plutonium::Rectangle::Overlaps(const Rectangle & r) const
 {
-	return GetLeft() <= r.GetRight() && GetRight() >= r.GetLeft() && GetTop() >= r.GetBottom() && GetBottom() <= r.GetTop();
+	return GetLeft() <= r.GetRight() && GetRight() >= r.GetLeft() && GetTop() <= r.GetBottom() && GetBottom() >= r.GetTop();
 }
 
 Rectangle Plutonium::Rectangle::GetOverlap(const Rectangle & r) const
@@ -61,9 +61,9 @@ Rectangle Plutonium::Rectangle::GetOverlap(const Rectangle & r) const
 	const float xs = min(GetRight(), r.GetRight());
 	if (xs < xl) return Rectangle();
 
-	const float yl = min(GetTop(), r.GetTop());
-	const float ys = max(GetBottom(), r.GetBottom());
+	const float yl = max(GetTop(), r.GetTop());
+	const float ys = min(GetBottom(), r.GetBottom());
 	if (ys < yl) return Rectangle();
 
-	return Rectangle(xl, yl, xs - xl, yl - ys);
+	return Rectangle(xl, yl, xs - xl, ys - yl);
 }

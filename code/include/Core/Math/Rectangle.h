@@ -76,13 +76,13 @@ namespace Plutonium
 		/* Gets the topmost edge of the rectangle. */
 		_Check_return_ inline float GetTop(void) const
 		{
-			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
+			return Size.Y > 0.0f ? Position.Y : (Position.Y + Size.Y);
 		}
 
 		/* Gets the bottommost edge of the rectangle. */
 		_Check_return_ inline float GetBottom(void) const
 		{
-			return Size.Y > 0.0f ? Position.Y : (Position.Y + Size.Y);
+			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
 		}
 
 		/* Gets the center point of the rectangle. */
