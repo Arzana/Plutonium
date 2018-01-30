@@ -174,6 +174,7 @@
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Window.cpp" />
   </ItemGroup>
@@ -193,7 +194,7 @@
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
     <ClInclude Include="..\..\include\Core\SafeMemory.h" />
-    <ClInclude Include="..\..\include\Graphics\Monitor.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Window.h" />
     <ClInclude Include="..\..\include\Graphics\WindowModes.h" />

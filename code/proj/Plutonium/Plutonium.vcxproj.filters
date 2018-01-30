@@ -71,6 +71,9 @@
     <ClCompile Include="..\..\src\Graphics\Window.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp">
+      <Filter>Source Files\Graphics\Native</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -127,8 +130,8 @@
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Monitor.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="..\..\include\Graphics\Native\Monitor.h">
+      <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
