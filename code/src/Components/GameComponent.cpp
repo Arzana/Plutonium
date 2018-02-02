@@ -1,4 +1,4 @@
-#include "GameComponent.h"
+#include "Components\GameComponent.h"
 #include "Core\Logging.h"
 
 Plutonium::GameComponent::GameComponent(Game * game)
@@ -27,6 +27,9 @@ void Plutonium::GameComponent::Initialize(void)
 {
 	initialized = true;
 }
+
+void Plutonium::GameComponent::Render(float dt)
+{}
 
 void Plutonium::GameComponent::Finalize(void)
 {

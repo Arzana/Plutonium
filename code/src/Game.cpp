@@ -209,9 +209,12 @@ void Plutonium::Game::BeginRender(void)
 
 void Plutonium::Game::DoRender(float dt)
 {
-	/* Renders the game specific graphics to the game screen. */
 	BeginRender();
+
+	/* Renders the game specific graphics to the game screen. */
+	for (size_t i = 0; i < components.size(); i++) components.at(i)->Render(dt);
 	Render(dt);
+
 	EndRender();
 }
 

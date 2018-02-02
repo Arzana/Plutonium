@@ -6,7 +6,7 @@ namespace Plutonium
 {
 	struct Game;
 
-	/* Defines a basic game component that needs to be updated. */
+	/* Defines a basic game component that needs to be updated and can be rendered. */
 	struct GameComponent
 	{
 	public:
@@ -33,7 +33,9 @@ namespace Plutonium
 		/* Initializes the game component. */
 		virtual void Initialize(void);
 		/* Updates the game component. */
-		virtual void Update(float dt) = 0;
+		virtual void Update(_In_ float dt) = 0;
+		/* Renders the game component. */
+		virtual void Render(_In_ float dt);
 		/* Finalizes the game component. */
 		virtual void Finalize(void);
 
