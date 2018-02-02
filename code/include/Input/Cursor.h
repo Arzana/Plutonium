@@ -1,6 +1,7 @@
 #pragma once
 #include "Core\Math\Vector2.h"
 #include "Core\Events\EventBus.h"
+#include "ButtonEventArgs.h"
 
 struct GLFWwindow;
 
@@ -29,6 +30,8 @@ namespace Plutonium
 		EventBus<Window, const Cursor*> EnterWindow;
 		/* Occures when the cursor leaves the window bounds. */
 		EventBus<Window, const Cursor*> LeaveWindow;
+		/* Occurs when the state of a special button is changed. */
+		EventBus<Window, const Cursor*, const ButtonEventArgs> SpecialButtonPress;
 
 		/* Releases the resources allocated by the cursor. */
 		~Cursor(void);
@@ -39,15 +42,16 @@ namespace Plutonium
 		void SetPosition(_In_ Vector2 position);
 		/* Disables the cursor, disabling it from moving and causing events. */
 		void Disable(void);
-		/* Hides the cursor, rending it invisible when it's over the ascociated window. */
+		/* Hides the cursor, rending it invisible when it's over the associated window. */
 		void Hide(void);
 		/* Shows the curson in the normal mode. */
 		void Show(void);
 
 	private:
 		friend struct Game;
-		friend Cursor* GetCursorFromHndlr(GLFWwindow *);
+		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
 		friend void GlfwCursorFocusEventHandler(GLFWwindow*, int);
+		friend void GlfwCursorButtonEventHandler(GLFWwindow *, int, int, int);
 
 		const Window *wnd;
 

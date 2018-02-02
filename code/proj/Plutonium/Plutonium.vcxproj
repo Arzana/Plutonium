@@ -174,10 +174,13 @@
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+    <ClCompile Include="..\..\src\Game.cpp" />
+    <ClCompile Include="..\..\src\GameComponent.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Window.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
+    <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
@@ -195,11 +198,19 @@
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
     <ClInclude Include="..\..\include\Core\SafeMemory.h" />
+    <ClInclude Include="..\..\include\Core\Stopwatch.h" />
+    <ClInclude Include="..\..\include\Game.h" />
+    <ClInclude Include="..\..\include\GameComponent.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Window.h" />
     <ClInclude Include="..\..\include\Graphics\WindowModes.h" />
+    <ClInclude Include="..\..\include\Input\ButtonEventArgs.h" />
     <ClInclude Include="..\..\include\Input\Cursor.h" />
+    <ClInclude Include="..\..\include\Input\Keyboard.h" />
+    <ClInclude Include="..\..\include\Input\KeyEventArgs.h" />
+    <ClInclude Include="..\..\include\Input\Keys.h" />
+    <ClInclude Include="..\..\include\Input\KeyState.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

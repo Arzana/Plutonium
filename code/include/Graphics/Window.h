@@ -59,7 +59,7 @@ namespace Plutonium
 			return wndBounds;
 		}
 
-		/* Gets the ascociated graphics device. */
+		/* Gets the associated graphics device. */
 		_Check_return_ inline MonitorInfo GetGraphicsDevice(void) const
 		{
 			return MonitorInfo::FromWindow(hndlr);
@@ -95,6 +95,7 @@ namespace Plutonium
 		friend struct Keyboard;
 		friend struct Cursor;
 		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
+		friend Keyboard* GetKeyboardFromHndlr(GLFWwindow*);
 		friend Window* GetWndFromHndlr(GLFWwindow*);
 		friend void GlfwFocusChangedEventHandler(GLFWwindow*, int);
 

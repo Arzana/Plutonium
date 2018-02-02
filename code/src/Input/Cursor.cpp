@@ -8,7 +8,7 @@ using namespace Plutonium;
 std::vector<Cursor*> activeCursors;
 Cursor * Plutonium::GetCursorFromHndlr(GLFWwindow *hndlr)
 {
-	/* Get cursor ascociated with handle. */
+	/* Get cursor associated with handle. */
 	for (size_t i = 0; i < activeCursors.size(); i++)
 	{
 		Cursor *cur = activeCursors.at(i);
@@ -22,7 +22,7 @@ Cursor * Plutonium::GetCursorFromHndlr(GLFWwindow *hndlr)
 
 void Plutonium::GlfwCursorFocusEventHandler(GLFWwindow *hndlr, int entered)
 {
-	/* Get cursor ascociated with handle. */
+	/* Get cursor associated with handle. */
 	Cursor *cursor = GetCursorFromHndlr(hndlr);
 	if (cursor)
 	{
@@ -32,20 +32,9 @@ void Plutonium::GlfwCursorFocusEventHandler(GLFWwindow *hndlr, int entered)
 	}
 }
 
-void GlfwCursorMoveEventHandler(GLFWwindow *hndlr, double x, double y)
+void Plutonium::GlfwCursorButtonEventHandler(GLFWwindow *hndlr, int btn, int action, int mods)
 {
-	/* Get cursor ascociated with handle and change cursor position. */
-	Cursor *cursor = GetCursorFromHndlr(hndlr);
-	if (cursor)
-	{
-		cursor->X = static_cast<int>(x);
-		cursor->Y = static_cast<int>(y);
-	}
-}
-
-void GlfwCursorButtonEventHandler(GLFWwindow *hndlr, int btn, int action, int mods)
-{
-	/* Get cursor ascociated with handle. */
+	/* Get cursor associated with handle. */
 	Cursor *cursor = GetCursorFromHndlr(hndlr);
 	if (cursor)
 	{
@@ -62,15 +51,27 @@ void GlfwCursorButtonEventHandler(GLFWwindow *hndlr, int btn, int action, int mo
 				cursor->MiddleButton = action == GLFW_PRESS;
 				break;
 			default:
-				LOG_WAR("Cannot handle button %d at this point!\nEvent:\n- Button: %d\n- Action: %d\n- Mods: %d", btn, btn, action, mods);
+				/* On unhandled key we call the event and let the user do the work. */
+				cursor->SpecialButtonPress.Post(cursor->wnd, cursor, ButtonEventArgs(btn, action == GLFW_PRESS, mods));
 				break;
 		}
 	}
 }
 
+void GlfwCursorMoveEventHandler(GLFWwindow *hndlr, double x, double y)
+{
+	/* Get cursor associated with handle and change cursor position. */
+	Cursor *cursor = GetCursorFromHndlr(hndlr);
+	if (cursor)
+	{
+		cursor->X = static_cast<int>(x);
+		cursor->Y = static_cast<int>(y);
+	}
+}
+
 void GlfwCursorScrollEventHandler(GLFWwindow *hndlr, double x, double y)
 {
-	/* Get cursor ascociated with handle. */
+	/* Get cursor associated with handle. */
 	Cursor *cursor = GetCursorFromHndlr(hndlr);
 	if (cursor)
 	{
@@ -118,7 +119,7 @@ void Plutonium::Cursor::Show(void)
 }
 
 Plutonium::Cursor::Cursor(const Window * wnd)
-	: wnd(wnd), EnterWindow("CursorEnterWindow"), LeaveWindow("CursorLeaveWindow"),
+	: wnd(wnd), EnterWindow("CursorEnterWindow"), LeaveWindow("CursorLeaveWindow"), SpecialButtonPress("CursorSpecialButtonPress"),
 	X(0), Y(0), ScrollWheel(), LeftButton(false), RightButton(false), MiddleButton(false)
 {
 	activeCursors.push_back(this);

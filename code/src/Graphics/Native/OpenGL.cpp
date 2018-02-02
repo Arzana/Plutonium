@@ -161,7 +161,9 @@ int Plutonium::_CrtInitGlad(void)
 	}
 
 	/* Set error callback to make sure we log OpenGL errors. */
+#if defined(DEBUG)
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
+#endif
 
 	/* Log results. */
 	activatedGlad = true;

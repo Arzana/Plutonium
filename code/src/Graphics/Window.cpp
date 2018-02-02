@@ -22,21 +22,21 @@ Window * Plutonium::GetWndFromHndlr(GLFWwindow *hndlr)
 
 void GlfwSizeChangedEventHandler(GLFWwindow *hndlr, int w, int h)
 {
-	/* Get window ascociated with handler and call resize. */
+	/* Get window associated with handler and call resize. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd) wnd->Resize(Vector2(static_cast<float>(w), static_cast<float>(h)));
 }
 
 void GlfwPositionChangedEventHandler(GLFWwindow *hndlr, int x, int y)
 {
-	/* Get window ascociated and call move. */
+	/* Get window associated and call move. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd) wnd->Move(Vector2(static_cast<float>(x), static_cast<float>(y)));
 }
 
 void Plutonium::GlfwFocusChangedEventHandler(GLFWwindow *hndlr, int gainedFocus)
 {
-	/* Get window ascociated. */
+	/* Get window associated. */
 	Window *wnd = GetWndFromHndlr(hndlr);
 	if (wnd)
 	{
@@ -188,7 +188,7 @@ void Plutonium::Window::SetMode(WindowMode mode)
 	MonitorInfo display = MonitorInfo::FromWindow(hndlr);
 	if (!display.IsValid)
 	{
-		LOG_WAR("Could not get display ascociated with window '%s'!", title);
+		LOG_WAR("Could not get display associated with window '%s'!", title);
 		return;
 	}
 
