@@ -18,7 +18,7 @@ namespace Plutonium
 		Game(_In_ const Game &value) = delete;
 		Game(_In_ Game &&value) = delete;
 		/* Releases the resources allocated by the game object. */
-		~Game(void);
+		~Game(void) noexcept;
 
 		_Check_return_ Game& operator =(_In_ const Game &other) = delete;
 		_Check_return_ Game& operator =(_In_ Game &&other) = delete;

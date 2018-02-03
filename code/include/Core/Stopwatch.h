@@ -14,7 +14,7 @@ namespace Plutonium
 		{}
 
 		/* Gets an already started stopwatch. */
-		_Check_return_ inline static Stopwatch& StartNew(void)
+		_Check_return_ inline static Stopwatch StartNew(void)
 		{
 			Stopwatch result = Stopwatch();
 			result.Start();

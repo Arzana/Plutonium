@@ -1,9 +1,12 @@
 #pragma once
 #include <cstdlib>
+#include <malloc.h>
 #include "Logging.h"
 
 /* Allocates C-style memory on the heap. */
 #define malloc_s(type, size)			reinterpret_cast<type*>(malloc((size) * sizeof(type)))
+/* Allocates C-style memory on the stack. */
+#define malloca_s(type, size)			reinterpret_cast<type*>(_malloca((size) * sizeof(type)))
 /* Re-allocates C-style memory on the heap. */
 #define realloc_s(type, block, size)	reinterpret_cast<type*>(realloc((block), (size) * sizeof(type)))
 /* Allocates a C-style array. */
@@ -30,4 +33,4 @@
 #endif
 
 /* Deletes a const C-style string (sets to NULL on debug mode). */
-#define free_cstr_s(str)				free_c_s(str, char)				
+#define free_cstr_s(str)				free_c_s(str, char)		

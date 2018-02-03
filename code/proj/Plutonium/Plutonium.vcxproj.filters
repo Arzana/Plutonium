@@ -51,6 +51,12 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{5034508d-82b1-4ef2-a3dd-d0cec4331081}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Streams">
+      <UniqueIdentifier>{0e076cee-d8d9-4b8e-86af-58f8d30e1d07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Streams">
+      <UniqueIdentifier>{329d6597-552d-44b9-85bb-1454b27b959b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
@@ -100,6 +106,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\StringFunctions.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Streams\FileReader.cpp">
+      <Filter>Source Files\Streams</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +201,18 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Components\FpsCounter.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\StringFunctions.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Streams\FileReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Streams\SeekOrigin.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Streams\StreamReader.h">
+      <Filter>Header Files\Streams</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

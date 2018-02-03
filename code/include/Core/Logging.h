@@ -36,6 +36,15 @@ namespace Plutonium
 	void _CrtLogThrow(_In_ const char *msg, _In_ const char *file, _In_ const char *func, _In_ int line, _In_ const char *desc, ...);
 }
 
+#define LOG_MSG(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Info, (msg), ##__VA_ARGS__)
+#define LOG_MSG_IF(condition, msg, ...)			{ if (condition) LOG_MSG((msg), ##__VA_ARGS__); }
+
+#define LOG_WAR(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Warning, (msg), ##__VA_ARGS__)
+#define LOG_WAR_IF(condition, msg, ...)			{ if (condition) LOG_WAR((msg), ##__VA_ARGS__); }
+
+#define LOG_THROW(msg, ...)						Plutonium::_CrtLogThrow("An unhandled exception occured!", __FILE__, __FUNCTION__, __LINE__, (msg), ##__VA_ARGS__)
+#define LOG_THROW_IF(condition, msg, ...)		{ if (condition) LOG_THROW((msg), ##__VA_ARGS__); }
+
 #if defined(DEBUG)
 #define LOG(msg, ...)							Plutonium::_CrtLog(Plutonium::LogType::Debug, (msg), ##__VA_ARGS__)
 #define LOG_IF(condition, msg, ...)				{ if (condition) LOG((msg), ##__VA_ARGS__); }
@@ -49,12 +58,3 @@ namespace Plutonium
 #define ASSERT(...)
 #define ASSERT_IF(...)
 #endif
-
-#define LOG_MSG(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Info, (msg), ##__VA_ARGS__)
-#define LOG_MSG_IF(condition, msg, ...)			{ if (condition) LOG_MSG((msg), ##__VA_ARGS__); }
-
-#define LOG_WAR(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Warning, (msg), ##__VA_ARGS__)
-#define LOG_WAR_IF(condition, msg, ...)			{ if (condition) LOG_WAR((msg), ##__VA_ARGS__); }
-
-#define LOG_ERR(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Error, (msg), ##__VA_ARGS__)
-#define LOG_ERR_IF(condition, msg, ...)			{ if (condition) LOG_ERR((msg), ##__VA_ARGS__); }

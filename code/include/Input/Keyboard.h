@@ -18,7 +18,7 @@ namespace Plutonium
 		EventBus<Window, uint32> CharInput;
 
 		/* Releases the resources allocated by the keyboard. */
-		~Keyboard(void);
+		~Keyboard(void) noexcept;
 
 		/* Checks whether a specified key is pressed or repeated. */
 		_Check_return_ bool IsKeyDown(_In_ Keys key) const;

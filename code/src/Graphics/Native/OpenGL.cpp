@@ -12,7 +12,7 @@ bool glfwState = false;
 
 void GlfwErrorEventHandler(int code, const char *descr)
 {
-	LOG_ERR("GLFW has encounterred erro %d (%s)!", code, descr);
+	LOG_THROW("GLFW has encounterred erro %d (%s)!", code, descr);
 }
 
 void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei len, const GLchar *msg, const void *userParam)
@@ -83,7 +83,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	}
 
 	/* Log human readable error. */
-	LOG_ERR("%s caused %s severity %s exception: %s", caller, level, error, msg);
+	LOG_THROW("%s caused %s severity %s exception: %s", caller, level, error, msg);
 }
 
 void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
@@ -134,7 +134,7 @@ int Plutonium::_CrtInitGLFW(void)
 	/* Initialize GLFW. */
 	if (glfwInit() != GLFW_TRUE)
 	{
-		LOG_ERR("Failed to initialize GLFW!");
+		LOG_THROW("Failed to initialize GLFW!");
 		return GLFW_FALSE;
 	}
 
@@ -156,7 +156,7 @@ int Plutonium::_CrtInitGlad(void)
 	/* Initialize Glad. */
 	if (!gladLoadGLLoader(GLADloadproc(glfwGetProcAddress)))
 	{
-		LOG_ERR("Failed to initialize Glad!");
+		LOG_THROW("Failed to initialize Glad!");
 		return GLFW_FALSE;
 	}
 

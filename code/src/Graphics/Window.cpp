@@ -70,7 +70,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 	*hndlr = glfwCreateWindow(w, h, title, nullptr, nullptr);
 	if (!*hndlr)
 	{
-		LOG_ERR("Failed to create new window '%s'!", title);
+		LOG_THROW("Failed to create new window '%s'!", title);
 		return GLFW_FALSE;
 	}
 

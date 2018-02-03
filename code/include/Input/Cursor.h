@@ -34,7 +34,7 @@ namespace Plutonium
 		EventBus<Window, const Cursor*, const ButtonEventArgs> SpecialButtonPress;
 
 		/* Releases the resources allocated by the cursor. */
-		~Cursor(void);
+		~Cursor(void) noexcept;
 
 		/* Gets the current position of the cursor. */
 		_Check_return_ Vector2 GetPosition(void) const;

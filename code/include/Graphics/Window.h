@@ -26,7 +26,7 @@ namespace Plutonium
 		Window(_In_ const Window &value) = delete;
 		Window(_In_ Window &&value) = delete;
 		/* Releases the resources allocated by the window. */
-		~Window(void);
+		~Window(void) noexcept;
 
 		_Check_return_ Window& operator =(_In_ const Window &other) = delete;
 		_Check_return_ Window& operator =(_In_ Window &&other) = delete;
