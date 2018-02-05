@@ -61,7 +61,12 @@ namespace Plutonium
 		Reads a specified amount of bytes from the file.
 		Returns the amount of bytes read.
 		*/
-		_Check_return_ virtual size_t Read(_Out_ char *buffer, _In_ size_t offset, _In_ size_t amount) override;
+		_Check_return_ virtual size_t Read(_Out_ byte *buffer, _In_ size_t offset, _In_ size_t amount) override;
+		/*
+		Reads the remainder of the content of the file.
+		Requires free!
+		*/
+		_Check_return_ const char* ReadToEnd(void);
 		/*
 		Reads the next byte from the file without increasing the read position.
 		Returns -1 when no more bytes could be read.
@@ -71,11 +76,15 @@ namespace Plutonium
 		Reads a specified amount of bytes from the file without increasing the read position.
 		Returns the actual amount of bytes peeked.
 		*/
-		_Check_return_ virtual size_t Peek(_Out_ char *buffer, _In_ size_t offset, _In_ size_t amount) override;
+		_Check_return_ virtual size_t Peek(_Out_ byte *buffer, _In_ size_t offset, _In_ size_t amount) override;
 		/*
 		Seeks the file, increasing it's read position by a sepcified amount.
 		*/
 		virtual void Seek(_In_ SeekOrigin from, _In_ int64 amount) override;
+
+	protected:
+		/* Gets the current read position of the stream. */
+		_Check_return_ int64 GetPosition(void) const;
 
 	private:
 		const char *fpath, *fname, *fext, *fdir;

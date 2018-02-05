@@ -1,6 +1,6 @@
 #pragma warning(disable:4996)
 
-#include "Core\Logging.h"
+#include "Core\Diagnostics\Logging.h"
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
@@ -101,7 +101,7 @@ void Plutonium::_CrtLog(LogType type, const char * format, ...)
 
 void Plutonium::_CrtLogExc(const char * sender, const char * file, const char * func, int line)
 {
-	_CrtLogNoNewLine(LogType::Error, "\n%s threw an exception!\nFILE:		%s.\nFUNCTION:	%s.\nLINE:		%d.\nMESSAGE:	",
+	_CrtLogNoNewLine(LogType::Error, "%s threw an exception!\nFILE:		%s.\nFUNCTION:	%s.\nLINE:		%d.\nMESSAGE:	",
 						sender ? sender : "Undefined caller", file, func, line);
 }
 

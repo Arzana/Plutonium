@@ -19,4 +19,6 @@ namespace Plutonium
 	void mrgstr(_In_ char **values, _In_ size_t argc, _Out_ char *result, char seperator);
 	/* Copies a string to the heap. */
 	_Check_return_ char* heapstr(_In_ const char *src);
+	/* Replaces a specified character in the string with another character. Retuns the new length of the string. */
+	_Check_return_ size_t replstr(_Inout_ char *src, _In_ char delimiter, _In_ char replacement);
 }

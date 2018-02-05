@@ -57,6 +57,12 @@
     <Filter Include="Source Files\Streams">
       <UniqueIdentifier>{329d6597-552d-44b9-85bb-1454b27b959b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Diagnostics">
+      <UniqueIdentifier>{658b3863-84be-4789-8ae3-e2867fe9a49c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Diagnostics">
+      <UniqueIdentifier>{12b5c68d-6f31-433a-9f17-12e2643a8fcd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
@@ -79,9 +85,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Core\Math\Box.cpp">
       <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Core\Logging.cpp">
-      <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
@@ -112,6 +115,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Streams\FileReader.cpp">
       <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +158,6 @@
       <Filter>Header Files\Core\Events</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Core\SafeMemory.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Core\Logging.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Events\EventBus.h">
@@ -213,6 +219,15 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Streams\StreamReader.h">
       <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\VSyncModes.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

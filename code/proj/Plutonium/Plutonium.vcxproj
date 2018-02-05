@@ -93,7 +93,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -110,7 +110,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -133,7 +133,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -156,7 +156,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -169,7 +169,8 @@
     <ClCompile Include="..\..\deps\glad\src\glad.c" />
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
-    <ClCompile Include="..\..\src\Core\Logging.cpp" />
+    <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
+    <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Box.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Matrix.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Rectangle.cpp" />
@@ -188,11 +189,12 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
+    <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
+    <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
     <ClInclude Include="..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\include\Core\Events\EventBus.h" />
     <ClInclude Include="..\..\include\Core\Events\EventSubscriber.h" />
-    <ClInclude Include="..\..\include\Core\Logging.h" />
     <ClInclude Include="..\..\include\Core\Math\Basics.h" />
     <ClInclude Include="..\..\include\Core\Math\Box.h" />
     <ClInclude Include="..\..\include\Core\Math\Constants.h" />
@@ -208,6 +210,7 @@
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Window.h" />
     <ClInclude Include="..\..\include\Graphics\WindowModes.h" />
     <ClInclude Include="..\..\include\Input\ButtonEventArgs.h" />

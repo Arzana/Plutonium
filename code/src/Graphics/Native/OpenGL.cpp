@@ -1,18 +1,75 @@
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
-#include "Core\Logging.h"
+#include "Core\Diagnostics\StackTrace.h"
+#include "Core\Diagnostics\Logging.h"
 #include <glad\glad.h>
 #include <glfw3.h>
 
 #if defined(_WIN32)
 #include <Windows.h>
+
+/* Defines function signatures for Windows OS specific extensions. */
+typedef const char *(WINAPI * PfnWglGetExtensionsStringExtProc)(void);
+typedef bool (WINAPI * PfnWglSwapIntervalExtProc)(int);
 #endif
 
+using namespace Plutonium;
+
+/* Whether GLFW has been initialized yet. */
 bool glfwState = false;
 
 void GlfwErrorEventHandler(int code, const char *descr)
 {
-	LOG_THROW("GLFW has encounterred erro %d (%s)!", code, descr);
+	/* Get human readable exception. */
+	const char *error;
+	switch (code)
+	{
+		case (GLFW_NOT_INITIALIZED):
+			error = "a not initialized";
+			break;
+		case (GLFW_NO_CURRENT_CONTEXT):
+			error = "a no current context";
+			break;
+		case (GLFW_INVALID_ENUM):
+			error = "a invalid enum";
+			break;
+		case (GLFW_INVALID_VALUE):
+			error = "a invalid value";
+			break;
+		case (GLFW_OUT_OF_MEMORY):
+			error = "a out of memory";
+			break;
+		case (GLFW_API_UNAVAILABLE):
+			error = "a API unavailable";
+			break;
+		case (GLFW_VERSION_UNAVAILABLE):
+			error = "a version unavailable";
+			break;
+		case (GLFW_PLATFORM_ERROR):
+			error = "a platform";
+			break;
+		case (GLFW_FORMAT_UNAVAILABLE):
+			error = "a format unavailable";
+			break;
+		default:
+			error = "an unknown";
+			break;
+	}
+
+	/*
+	Get the caller information if possible.
+	We skip the first four frames, these are:
+	- GetCallerInfo								(Because this is just to get the caller information.)
+	- GlfwErrorEventHandler						(Because this is the handler for a GLFW exception in this framework.)
+	- _glfwInputError							(Because this is GLFW's handler for a exception.)
+	- <Whatever function caused the exception>	(Because we can't get the file information from this.)
+	*/
+	const StackFrame frame = _CrtGetCallerInfo(4);
+
+	/* Throw exception. */
+	_CrtLogExc("GLFW", frame.FileName, frame.FunctionName, frame.Line);
+	_CrtLog(LogType::Error, "Encountered %s exception (%d)!\nDESCRIPTION:	%s.", error, code, descr);
+	throw;
 }
 
 void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei len, const GLchar *msg, const void *userParam)
@@ -82,9 +139,31 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 			break;
 	}
 
-	/* Log human readable error. */
-	LOG_THROW("%s caused %s severity %s exception: %s", caller, level, error, msg);
+	/*
+	Get the caller information if possible.
+	We skip the first two frames, these are:
+	- GetCallerInfo								(Because this is just to get the caller information.)
+	- GladErrorEventHandler						(Because this is the handler for a OpenGL exception in this framework.)
+	*/
+	const StackFrame frame = _CrtGetCallerInfo(2);
+
+	/* Throw exception. */
+	_CrtLogExc("OpenGL", frame.FileName, frame.FunctionName, frame.Line);
+	_CrtLog(LogType::Error, "%s caused %s severity %s exception: %s", caller, level, error, msg);
+	throw;
 }
+
+#if defined(_WIN32)
+/* Checks whether a Windows extension is supported. */
+bool IsWGLExtensionSupported(const char *extension)
+{
+	/* Gets the function needed for getting extension settings. */
+	PfnWglGetExtensionsStringExtProc wglGetExtensionStringExt = (PfnWglGetExtensionsStringExtProc)wglGetProcAddress("wglGetExtensionsStringEXT");
+
+	/* Checks whether the settings contains the extension. */
+	return strstr(wglGetExtensionStringExt(), extension) != nullptr;
+}
+#endif
 
 void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 {
@@ -124,6 +203,17 @@ void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 	}
 
 	LOG_WAR("No improved terminal position found!");
+}
+
+void Plutonium::_CrtSetSwapIntervalExt(int interval)
+{
+#if defined(_WIN32)
+	LOG_WAR_IF(!IsWGLExtensionSupported("WGL_EXT_swap_control"), "Cannot set Windows specific swap interal!");
+	PfnWglSwapIntervalExtProc wglSwapIntervalExt = (PfnWglSwapIntervalExtProc)wglGetProcAddress("wglSwapIntervalEXT");
+	wglSwapIntervalExt(interval);
+#else
+	LOG_WAR("Cannot set OS specific swap interval on this platform!");
+#endif
 }
 
 int Plutonium::_CrtInitGLFW(void)

@@ -1,5 +1,5 @@
 #include "Components\GameComponent.h"
-#include "Core\Logging.h"
+#include "Core\Diagnostics\Logging.h"
 
 Plutonium::GameComponent::GameComponent(Game * game)
 	: game(game), initialized(false), enabled(true), place(-1), StateChanged("GameComponentStateChanged")

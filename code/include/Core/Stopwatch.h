@@ -1,6 +1,6 @@
 #pragma once
 #include <ctime>
-#include "Logging.h"
+#include "Core\Diagnostics\Logging.h"
 
 namespace Plutonium
 {

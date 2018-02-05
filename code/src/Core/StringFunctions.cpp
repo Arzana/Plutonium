@@ -122,3 +122,27 @@ char * Plutonium::heapstr(const char * src)
 	result[len] = '\0';
 	return result;
 }
+
+size_t Plutonium::replstr(char * src, char delimiter, char replacement)
+{
+	/* Loop through desired part of the string. */
+	size_t i = 0, j = 0, end = strlen(src);
+	for (char cur = src[j]; j < end && cur != '\0'; cur = src[++j], ++i)
+	{
+		/* Check if current char is the deliminter. */
+		if (cur == delimiter)
+		{
+			/* If char needs to be removed push the string forward else simply replace character. */
+			if (replacement == '\0') src[i] = (++j < end ? src[j] : '\0');
+			else src[i] = replacement;
+		}
+		else src[i] = src[j];
+	}
+
+	/* If the last character was the delimter we need to remove one from the length. */
+	if (j > end) --i;
+
+	/* Add null terminator and return new length. */
+	src[i] = '\0';
+	return i;
+}

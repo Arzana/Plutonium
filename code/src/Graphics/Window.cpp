@@ -74,9 +74,9 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 		return GLFW_FALSE;
 	}
 
-	/* Set GLFW specific event handlers. */
 	glfwMakeContextCurrent(*hndlr);
-	glfwSwapInterval(1);
+
+	/* Set GLFW specific event handlers. */
 	glfwSetWindowSizeCallback(*hndlr, GlfwSizeChangedEventHandler);
 	glfwSetWindowPosCallback(*hndlr, GlfwPositionChangedEventHandler);
 	glfwSetWindowFocusCallback(*hndlr, Plutonium::GlfwFocusChangedEventHandler);
@@ -87,7 +87,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 }
 
 Plutonium::Window::Window(const char * title, Vector2 size)
-	: title(title), wndBounds(size), vpBounds(size), focused(false), mode(WindowMode::Windowed),
+	: title(title), wndBounds(size), vpBounds(size), focused(false), wndMode(WindowMode::Windowed), swapMode(VSyncMode::Enabled),
 	SizeChanged("WindowSizeChanged"), PositionChanged("WindowPositionChanged"), GainedFocus("WindowGainedFocus"), LostFocus("WindowLostFocus"),
 	operational(false)
 {
@@ -182,7 +182,7 @@ void Plutonium::Window::Move(Vector2 position)
 void Plutonium::Window::SetMode(WindowMode mode)
 {
 	/* Check if input isn't equal to the current mode. */
-	if (this->mode == mode) return;
+	if (wndMode == mode) return;
 
 	/* Get current display. */
 	MonitorInfo display = MonitorInfo::FromWindow(hndlr);
@@ -220,8 +220,37 @@ void Plutonium::Window::SetMode(WindowMode mode)
 	}
 
 	/* Reset swap interval is needed for fullscreen window modes. */
-	glfwSwapInterval(1);
-	this->mode = mode;
+	SetVerticalRetrace(swapMode);
+	wndMode = mode;
+}
+
+void Plutonium::Window::SetMode(VSyncMode mode)
+{
+	/* Check if input isn't equal to the current mode. */
+	if (swapMode == mode) return;
+
+	/* Update window setting. */
+	SetVerticalRetrace(mode);
+	swapMode = mode;
+}
+
+void Plutonium::Window::SetVerticalRetrace(VSyncMode mode)
+{
+	switch (mode)
+	{
+		case Plutonium::VSyncMode::Enabled:
+			glfwSwapInterval(1);
+			break;
+		case Plutonium::VSyncMode::Disable:
+			glfwSwapInterval(0);
+			break;
+		case Plutonium::VSyncMode::DisableForce:
+			_CrtSetSwapIntervalExt(0);
+			break;
+		default:
+			LOG_WAR("Attempted to set unsupported vertical retrace mode!");
+			return;
+	}
 }
 
 bool Plutonium::Window::Update(void)

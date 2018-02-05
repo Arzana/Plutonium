@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdlib>
 #include <malloc.h>
-#include "Logging.h"
+#include "Core\Diagnostics\Logging.h"
 
 /* Allocates C-style memory on the heap. */
 #define malloc_s(type, size)			reinterpret_cast<type*>(malloc((size) * sizeof(type)))
@@ -20,7 +20,7 @@
 /* Deletes a C-style memory block and sets it to NULL. */
 #define free_s(block)					{ if ((block) != nullptr) { free(block); (block) = nullptr; } else ASSERT("Attempting to free nullptr!", "Cannot free nullptr!"); }
 /* Deletes a const C-style memory block and sets it to NULL. */
-#define free_c_s(block, type)			{ if ((block) != nullptr) { free(const_cast<type*>(block); (block) = nullptr; } else ASSERT("Attempting to free nullptr!", "Cannot free nullptr!"); }
+#define free_c_s(block, type)			{ if ((block) != nullptr) { free(const_cast<type*>(block)); (block) = nullptr; } else ASSERT("Attempting to free nullptr!", "Cannot free nullptr!"); }
 /* Deletes a pointer and sets it to NULL. */
 #define delete_s(block)					{ if ((block) != nullptr) { delete (block); (block) = nullptr; } else ASSERT("Attempting to delete nullptr!", "Cannot delete nullptr!"); }
 #else
@@ -33,4 +33,4 @@
 #endif
 
 /* Deletes a const C-style string (sets to NULL on debug mode). */
-#define free_cstr_s(str)				free_c_s(str, char)		
+#define free_cstr_s(str)				free_c_s((str), char)		

@@ -1,5 +1,5 @@
 #include "Graphics\Native\Monitor.h"
-#include "Core\Logging.h"
+#include "Core\Diagnostics\Logging.h"
 #include <glfw3.h>
 
 using namespace Plutonium;

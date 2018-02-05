@@ -44,13 +44,13 @@ int32 Plutonium::FileReader::Read(void)
 	return fgetc(hndlr);
 }
 
-size_t Plutonium::FileReader::Read(char * buffer, size_t offset, size_t amount)
+size_t Plutonium::FileReader::Read(byte * buffer, size_t offset, size_t amount)
 {
 	/* On debug check if file is open. */
 	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
 
 	/* Try read from file. */
-	if (!fgets(buffer + offset, static_cast<int32>(amount), hndlr))
+	if (!fgets(reinterpret_cast<char*>(buffer + offset), static_cast<int32>(amount), hndlr))
 	{
 		/* See if failed because of an error. */
 		int err = ferror(hndlr);
@@ -73,8 +73,8 @@ size_t Plutonium::FileReader::Read(char * buffer, size_t offset, size_t amount)
 	}
 
 	/* Handle case for newline. */
-	size_t len = strlen(buffer);
-	if ((buffer[len - 1] == '\n' || len == 0) && amount > 0)
+	size_t len = strlen(reinterpret_cast<char*>(buffer));
+	if ((buffer[len - 1] == '\n' || buffer[len - 1] == '\r' || len == 0) && amount > 0)
 	{
 		size_t result = Read(buffer, len, amount - len + offset);
 		return result ? result : len;
@@ -83,19 +83,39 @@ size_t Plutonium::FileReader::Read(char * buffer, size_t offset, size_t amount)
 	return len;
 }
 
+const char * Plutonium::FileReader::ReadToEnd(void)
+{
+	/* On debug check if file is open. */
+	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
+
+	/* Get the remaining length of the file. */
+	int64 pos = GetPosition();
+	Seek(SeekOrigin::End, 0);
+	int64 len = GetPosition();
+	Seek(SeekOrigin::Begin, pos);
+
+	/* Allocate space for string and populate it. */
+	char *result = malloc_s(char, len);
+	size_t checkLen = Read(reinterpret_cast<byte*>(result), 0, len);
+
+	/* Check for errors. */
+	LOG_THROW_IF(static_cast<int64>(checkLen) > len, "Expected length of string doesn't match actual length!");
+	return result;
+}
+
 int32 Plutonium::FileReader::Peek(void)
 {
 	/* Get current read position, read char and set read position back. */
-	int64 pos = ftell(hndlr);
+	int64 pos = GetPosition();
 	int32 result = Read();
 	Seek(SeekOrigin::Begin, pos);
 	return result;
 }
 
-size_t Plutonium::FileReader::Peek(char * buffer, size_t offset, size_t amount)
+size_t Plutonium::FileReader::Peek(byte * buffer, size_t offset, size_t amount)
 {
 	/* Get current read position, read buffer and set read position back. */
-	int64 pos = ftell(hndlr);
+	int64 pos = GetPosition();
 	size_t result = Read(buffer, offset, amount);
 	Seek(SeekOrigin::Begin, pos);
 	return result;
@@ -103,7 +123,12 @@ size_t Plutonium::FileReader::Peek(char * buffer, size_t offset, size_t amount)
 
 void Plutonium::FileReader::Seek(SeekOrigin from, int64 amount)
 {
-	if (fseek(hndlr, amount, static_cast<int>(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
+	if (fseek(hndlr, static_cast<long>(amount), static_cast<int>(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
+}
+
+int64 Plutonium::FileReader::GetPosition(void) const
+{
+	return ftell(hndlr);
 }
 
 void Plutonium::FileReader::Open(void)
@@ -145,7 +170,7 @@ void Plutonium::FileReader::InitFileArgs(void)
 
 	/* Get the file directory. */
 	char mrgbuf[FILENAME_MAX];
-	mrgstr(buffer, len - 1, mrgbuf, '/');
+	mrgstr(buffer, len - 1, mrgbuf, '\\');
 	fdir = heapstr(mrgbuf);
 
 	/* Split the name into the file name and extension. */

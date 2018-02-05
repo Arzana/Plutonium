@@ -3,6 +3,7 @@
 #include "Core\Events\EventBus.h"
 #include "Core\Events\EventArgs.h"
 #include "WindowModes.h"
+#include "VSyncModes.h"
 
 struct GLFWwindow;
 
@@ -89,6 +90,8 @@ namespace Plutonium
 		void Move(_In_ Vector2 position);
 		/* Alters the display mode of the window. */
 		void SetMode(_In_ WindowMode mode);
+		/* Alters the swap interval of the window. */
+		void SetMode(_In_ VSyncMode mode);
 
 	private:
 		friend struct Game;
@@ -99,6 +102,7 @@ namespace Plutonium
 		friend Window* GetWndFromHndlr(GLFWwindow*);
 		friend void GlfwFocusChangedEventHandler(GLFWwindow*, int);
 
+		void SetVerticalRetrace(VSyncMode mode);
 		bool Update(void);
 		void SetBounds(Vector2 pos, Vector2 size);
 
@@ -106,8 +110,8 @@ namespace Plutonium
 		Rectangle wndBounds, vpBounds;
 		GLFWwindow *hndlr;
 		bool operational;
-		WindowMode mode;
-		bool allowResizing;
+		WindowMode wndMode;
+		VSyncMode swapMode;
 		mutable bool focused;
 
 	} *WindowHandler;
