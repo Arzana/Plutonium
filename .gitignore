@@ -13,10 +13,9 @@
 # Build results
 [Dd]ebug[Pp]ublic/
 [Rr]eleases/
-x64/
-x86/
 bld/
 [Bb]in/
+[Tt]mp/
 [Oo]bj/
 [Ll]og/
 

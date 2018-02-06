@@ -1,10 +1,13 @@
 #include <Game.h>
 #include <Components\FpsCounter.h>
+#include <Core\Math\Vector3.h>
+
+using namespace Plutonium;
 
 struct TestGame
-	: public Plutonium::Game
+	: public Game
 {
-	Plutonium::FpsCounter *fps;
+	FpsCounter *fps;
 
 	TestGame(void)
 		: Game("TestGame")
@@ -12,7 +15,7 @@ struct TestGame
 
 	virtual void Initialize(void)
 	{
-		AddComponent(fps = new Plutonium::FpsCounter(this));
+		AddComponent(fps = new FpsCounter(this));
 	}
 
 	virtual void LoadContent(void)
@@ -20,7 +23,7 @@ struct TestGame
 
 	virtual void UnLoadContent(void)
 	{}
-	
+
 	virtual void Finalize(void)
 	{}
 
@@ -31,7 +34,7 @@ struct TestGame
 	{
 		LOG("\n- Ups (cur): %f.\n- Fps (cur): %f.\n- Fps (avg): %f.", fps->GetUps(), fps->GetCurFps(), fps->GetAvrgFps());
 	}
-	
+
 	virtual void RenderLoad(_In_ float dt, _In_ int percentage)
 	{}
 };
