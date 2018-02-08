@@ -90,7 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -107,7 +107,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -126,7 +126,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -149,7 +149,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -179,6 +179,7 @@
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Window.cpp" />
@@ -208,6 +209,7 @@
     <ClInclude Include="..\..\include\Core\Stopwatch.h" />
     <ClInclude Include="..\..\include\Core\StringFunctions.h" />
     <ClInclude Include="..\..\include\Game.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\VSyncModes.h" />

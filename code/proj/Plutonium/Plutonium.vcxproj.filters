@@ -63,6 +63,12 @@
     <Filter Include="Source Files\Core\Diagnostics">
       <UniqueIdentifier>{12b5c68d-6f31-433a-9f17-12e2643a8fcd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Models">
+      <UniqueIdentifier>{65b20bb5-9beb-4e11-b83c-4e637853fe10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Models">
+      <UniqueIdentifier>{3eaf42f8-42d1-4fd7-933e-e61ddd098a9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\src\glad.c">
@@ -121,6 +127,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\VSyncModes.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h">
+      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

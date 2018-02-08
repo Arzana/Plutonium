@@ -100,6 +100,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 
 	/* Get a human readable severity. */
 	const char *level;
+	bool suppressThrow = false;
 	switch (severity)
 	{
 		case (GL_DEBUG_SEVERITY_HIGH):
@@ -113,6 +114,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 			break;
 		default:
 			level = "an insignificant";
+			suppressThrow = true;
 			break;
 	}
 
@@ -144,13 +146,16 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	We skip the first two frames, these are:
 	- GetCallerInfo								(Because this is just to get the caller information.)
 	- GladErrorEventHandler						(Because this is the handler for a OpenGL exception in this framework.)
+	
+	Cannot get caller information at this point because the error is begin raised on the OpenGL driver thread instead of the main thread.
+	With NVidia drivers (tested with those) the symbols for the nvoglv64.dll cannot be loaded and thusly I cannot get any more information.
 	*/
 	const StackFrame frame = _CrtGetCallerInfo(2);
 
 	/* Throw exception. */
 	_CrtLogExc("OpenGL", frame.FileName, frame.FunctionName, frame.Line);
-	_CrtLog(LogType::Error, "%s caused %s severity %s exception: %s", caller, level, error, msg);
-	throw;
+	_CrtLog(suppressThrow ? LogType::Warning : LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
+	if (!suppressThrow) throw;
 }
 
 #if defined(_WIN32)
@@ -252,6 +257,7 @@ int Plutonium::_CrtInitGlad(void)
 
 	/* Set error callback to make sure we log OpenGL errors. */
 #if defined(DEBUG)
+	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
 #endif
 
