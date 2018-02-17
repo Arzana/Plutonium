@@ -146,3 +146,20 @@ size_t Plutonium::replstr(char * src, char delimiter, char replacement)
 	src[i] = '\0';
 	return i;
 }
+
+size_t Plutonium::cntchar(const char * src, char delimiter)
+{
+	/* Default to zero. */
+	size_t result = 0;
+
+	/* Loop through string. */
+	char c = *src;
+	for (size_t i = 0; c != '\0'; i++, c = src[i])
+	{
+		/* If cur is delimiter add one to result. */
+		if (c == delimiter) result++;
+	}
+
+	/* Return result. */
+	return result;
+}

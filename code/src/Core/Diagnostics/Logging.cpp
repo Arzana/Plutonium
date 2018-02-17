@@ -128,3 +128,22 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 	_CrtDbgBreak();
 #endif
 }
+
+bool Plutonium::_CrtLogBacktrack(size_t amnt)
+{
+#if defined(_WIN32)
+	/* Get console handle. */
+	HANDLE hndlr = GetStdHandle(STD_OUTPUT_HANDLE);
+	/* Get current position. */
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	if (!GetConsoleScreenBufferInfo(hndlr, &csbi)) return false;
+
+	/* Alter position. */
+	csbi.dwCursorPosition.X -= static_cast<SHORT>(amnt);
+	SetConsoleCursorPosition(hndlr, csbi.dwCursorPosition);
+	return true;
+#else
+	LOG_WAR("Backtracking the output is not supported on this platform!");
+	return false;
+#endif
+}

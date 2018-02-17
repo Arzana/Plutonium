@@ -10,7 +10,7 @@
 /* Re-allocates C-style memory on the heap. */
 #define realloc_s(type, block, size)	reinterpret_cast<type*>(realloc((block), (size) * sizeof(type)))
 /* Allocates a C-style array. */
-#define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size), sizeof(type))
+#define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size), sizeof(type)))
 /* Converts the specified pointer to a void pointer. */
 #define void_ptr(ptr)					reinterpret_cast<const void*>(ptr)
 /* Gets the byte offset to the specified member in the specified type as a void pointer. */

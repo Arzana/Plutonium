@@ -90,7 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -107,7 +107,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -126,7 +126,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -149,7 +149,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -166,7 +166,9 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\deps\glad\src\glad.c" />
+    <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c" />
+    <ClCompile Include="..\..\deps\glad\Release\src\glad_release.c" />
+    <ClCompile Include="..\..\src\Components\ContentLoader.cpp" />
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
@@ -177,17 +179,29 @@
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+    <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Text\DebugTextRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Window.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\Components\ContentLoader.h" />
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
@@ -207,11 +221,26 @@
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
     <ClInclude Include="..\..\include\Core\SafeMemory.h" />
     <ClInclude Include="..\..\include\Core\Stopwatch.h" />
+    <ClInclude Include="..\..\include\Core\String.h" />
     <ClInclude Include="..\..\include\Core\StringFunctions.h" />
     <ClInclude Include="..\..\include\Game.h" />
+    <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\Mesh.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
+    <ClInclude Include="..\..\include\Graphics\Text\Character.h" />
+    <ClInclude Include="..\..\include\Graphics\Text\DebugTextRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
+    <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Window.h" />
     <ClInclude Include="..\..\include\Graphics\WindowModes.h" />

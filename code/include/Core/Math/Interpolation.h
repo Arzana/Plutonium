@@ -24,7 +24,7 @@ namespace Plutonium
 	/* Performs cubic hermite spline interpolation with specified bounds and derivatives. */
 	_Check_return_ inline float hermite(_In_ float a, _In_ float ad, _In_ float b, _In_ float bd, _In_ float v)
 	{
-		return a + (2.0f * a - 2.0f * b + bd + ad) * cube(v) + (3.0f * b - 3.0f * a - 2.0f * ad - bd) * sqr(v) ad * v;
+		return a + (2.0f * a - 2.0f * b + bd + ad) * cube(v) + (3.0f * b - 3.0f * a - 2.0f * ad - bd) * sqr(v) + ad * v;
 	}
 
 	/* Performs cubic hermite spline interpolation with zero for derivatives. */

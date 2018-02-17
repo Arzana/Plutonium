@@ -1,6 +1,7 @@
 #include <Game.h>
 #include <Components\FpsCounter.h>
-#include <Core\Math\Vector3.h>
+#include <Graphics\Text\DebugTextRenderer.h>
+#include <Core\String.h>
 
 using namespace Plutonium;
 
@@ -8,6 +9,7 @@ struct TestGame
 	: public Game
 {
 	FpsCounter *fps;
+	DebugFontRenderer *fontRenderer;
 
 	TestGame(void)
 		: Game("TestGame")
@@ -16,6 +18,7 @@ struct TestGame
 	virtual void Initialize(void)
 	{
 		AddComponent(fps = new FpsCounter(this));
+		fontRenderer = new DebugFontRenderer(GetWindow(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
 	}
 
 	virtual void LoadContent(void)
@@ -25,17 +28,34 @@ struct TestGame
 	{}
 
 	virtual void Finalize(void)
-	{}
-
-	virtual void Update(_In_ float dt)
-	{}
-
-	virtual void Render(_In_ float dt)
 	{
-		LOG("\n- Ups (cur): %f.\n- Fps (cur): %f.\n- Fps (avg): %f.", fps->GetUps(), fps->GetCurFps(), fps->GetAvrgFps());
+		delete_s(fontRenderer);
 	}
 
-	virtual void RenderLoad(_In_ float dt, _In_ int percentage)
+	virtual void Update(float dt)
+	{}
+
+	virtual void Render(float dt)
+	{
+		/* Render current UPS. */
+		String upsStr = "Ups (cur): ";
+		upsStr += int(fps->GetUps());
+		fontRenderer->AddDebugString(upsStr);
+
+		/* Render current FPS. */
+		String fpscStr = "Fps (cur): ";
+		fpscStr += int(fps->GetCurFps());
+		fontRenderer->AddDebugString(fpscStr);
+
+		/* Render average FPS. */
+		String fpsaStr = "Fps (avg): ";
+		fpsaStr += int(fps->GetAvrgFps());
+		fontRenderer->AddDebugString(fpsaStr);
+
+		fontRenderer->Render();
+	}
+
+	virtual void RenderLoad(float dt, int percentage)
 	{}
 };
 

@@ -21,4 +21,6 @@ namespace Plutonium
 	_Check_return_ char* heapstr(_In_ const char *src);
 	/* Replaces a specified character in the string with another character. Retuns the new length of the string. */
 	_Check_return_ size_t replstr(_Inout_ char *src, _In_ char delimiter, _In_ char replacement);
+	/* Counts how many times a specified character apears in a string. */
+	_Check_return_ size_t cntchar(_In_ const char *src, _In_ char delimiter);
 }

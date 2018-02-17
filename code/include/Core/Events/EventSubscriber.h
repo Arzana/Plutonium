@@ -44,13 +44,13 @@ namespace Plutonium
 		_Check_return_ EventSubscriber& operator =(_In_ EventSubscriber &&other) = delete;
 
 		/* Checks whether the subscriber has the same ID. */
-		_Check_return_ inline bool operator ==(int64 id) const
+		_Check_return_ inline bool operator ==(_In_ int64 id) const
 		{
 			return this->id == id;
 		}
 
 		/* Checks whether the subscriber has a different ID. */
-		_Check_return_ inline bool operator !=(int64 id) const
+		_Check_return_ inline bool operator !=(_In_ int64 id) const
 		{
 			return this->id != id;
 		}

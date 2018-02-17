@@ -48,39 +48,7 @@ size_t Plutonium::FileReader::Read(byte * buffer, size_t offset, size_t amount)
 {
 	/* On debug check if file is open. */
 	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
-
-	/* Try read from file. */
-	if (!fgets(reinterpret_cast<char*>(buffer + offset), static_cast<int32>(amount), hndlr))
-	{
-		/* See if failed because of an error. */
-		int err = ferror(hndlr);
-		if (err)
-		{
-			LOG_THROW("Could not read from file, error code: %d!", err);
-			return 0;
-		}
-
-		/* Check if the end of the file has been reached. */
-		if (feof(hndlr))
-		{
-			LOG_THROW("Framework doesn't allow reading past the buffer size!");
-			return 0;
-		}
-
-		/* Something went horribly wrong! */
-		LOG_THROW("Unknown exception occured whilst reading from file '%s'!", fname);
-		return 0;
-	}
-
-	/* Handle case for newline. */
-	size_t len = strlen(reinterpret_cast<char*>(buffer));
-	if ((buffer[len - 1] == '\n' || buffer[len - 1] == '\r' || len == 0) && amount > 0)
-	{
-		size_t result = Read(buffer, len, amount - len + offset);
-		return result ? result : len;
-	}
-
-	return len;
+	return fread(buffer + offset, 1, amount, hndlr);
 }
 
 const char * Plutonium::FileReader::ReadToEnd(void)
@@ -95,8 +63,9 @@ const char * Plutonium::FileReader::ReadToEnd(void)
 	Seek(SeekOrigin::Begin, pos);
 
 	/* Allocate space for string and populate it. */
-	char *result = malloc_s(char, len);
+	char *result = malloc_s(char, len + 1);
 	size_t checkLen = Read(reinterpret_cast<byte*>(result), 0, len);
+	result[len] = '\0';
 
 	/* Check for errors. */
 	LOG_THROW_IF(static_cast<int64>(checkLen) > len, "Expected length of string doesn't match actual length!");

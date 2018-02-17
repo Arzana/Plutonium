@@ -63,7 +63,7 @@ namespace Plutonium
 		/* Unregisters an event handler from this event. */
 		void Remove(_In_ HandlerFuncType func) const
 		{
-			int64 id = SubscriberType::DelegateFuncType::CreateComparableID(func);
+			int64 id = SubscriberType::CreateComparableID(func);
 			size_t result = UnRegisterCallback(id);
 			LOG("Unregistered %zu, callback(s)(%llx) from event %s.", result, id, name);
 		}
@@ -72,7 +72,7 @@ namespace Plutonium
 		template <typename _CTy>
 		void Remove(_In_ _CTy *obj, _In_ HandlerMethodType<_CTy> func) const
 		{
-			int64 id = SubscriberType::DelegateFuncType::CreateComparableID(obj, func);
+			int64 id = SubscriberType::CreateComparableID(obj, func);
 			size_t result = UnRegisterCallback(id);
 			LOG("Unregistered %zu, callback(s)(%llx) from event %s.", result, id, name);
 		}
@@ -99,7 +99,7 @@ namespace Plutonium
 			for (size_t i = 0; i < callbacks.size(); i++)
 			{
 				SubscriberType *cur = callbacks.at(i);
-				if (cur == id)
+				if (*cur == id)
 				{
 					delete_s(cur);
 					callbacks.erase(callbacks.begin() + i);

@@ -59,7 +59,7 @@ void GlfwErrorEventHandler(int code, const char *descr)
 	/*
 	Get the caller information if possible.
 	We skip the first four frames, these are:
-	- GetCallerInfo								(Because this is just to get the caller information.)
+	- _CrtGetCallerInfo							(Because this is just to get the caller information.)
 	- GlfwErrorEventHandler						(Because this is the handler for a GLFW exception in this framework.)
 	- _glfwInputError							(Because this is GLFW's handler for a exception.)
 	- <Whatever function caused the exception>	(Because we can't get the file information from this.)
@@ -71,6 +71,17 @@ void GlfwErrorEventHandler(int code, const char *descr)
 	_CrtLog(LogType::Error, "Encountered %s exception (%d)!\nDESCRIPTION:	%s.", error, code, descr);
 	throw;
 }
+
+#if defined(DEBUG)
+uint64 lastGladFramePtr = 0;
+const char *lastGladFuncName = "";
+
+void GladPreGLCallEventHandler(const char *name, void *, int, ...)
+{
+	lastGladFramePtr = Plutonium::_CrtGetCallerPtr(3);
+	lastGladFuncName = name;
+}
+#endif
 
 void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei len, const GLchar *msg, const void *userParam)
 {
@@ -141,21 +152,30 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 			break;
 	}
 
-	/*
-	Get the caller information if possible.
-	We skip the first two frames, these are:
-	- GetCallerInfo								(Because this is just to get the caller information.)
-	- GladErrorEventHandler						(Because this is the handler for a OpenGL exception in this framework.)
-	
-	Cannot get caller information at this point because the error is begin raised on the OpenGL driver thread instead of the main thread.
-	With NVidia drivers (tested with those) the symbols for the nvoglv64.dll cannot be loaded and thusly I cannot get any more information.
-	*/
-	const StackFrame frame = _CrtGetCallerInfo(2);
+	/* Log exception. */
+	if (suppressThrow) LOG_WAR("%s caused %s severity %s warning: %s", caller, level, error, msg);
+	else
+	{
+#if defined(DEBUG)
+		/*
+		Because the OpenGl calls are handled by the graphics device driver we must get the last stackframe from glad itself.
+		On debug mode we save the last stack frame before every glad call. This is very performance intensive but will help with debugging.
+		This excludes the top 3 stackframes these are:
+		- _CrtGetCallerPtr							(Because this is just to get the caller information.)
+		- GladPreGLCallEventHandler					(Because this is the handler for a glad exception in this framework.)
+		- <Whatever function caused the exception>	(Because we can't get the file information from this.)
+		*/
+		const StackFrame frame = _CrtGetCallerInfoFromPtr(lastGladFramePtr);
 
-	/* Throw exception. */
-	_CrtLogExc("OpenGL", frame.FileName, frame.FunctionName, frame.Line);
-	_CrtLog(suppressThrow ? LogType::Warning : LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
-	if (!suppressThrow) throw;
+		LOG_WAR("The file and function information that is displayed is for the last OpenGL call; not necessarily the one causing the exception!");
+		_CrtLogExc("OpenGL", frame.FileName, frame.FunctionName, frame.Line);
+		_CrtLog(LogType::Error, "%s(%s) caused %s severity %s exception!\nDESCRIPTION:	%s", caller, lastGladFuncName, level, error, msg);
+#else
+		_CrtLogExc("OpenGL", "UNKNOWN", "UNKNOWN", 0);
+		_CrtLog(LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
+#endif
+		throw;
+	}
 }
 
 #if defined(_WIN32)
@@ -197,9 +217,14 @@ void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 				return;
 			}
 
-			/* Move terminal on windows. */
+			/* Get current terminal size. */
+			RECT bounds;
+			GetWindowRect(terminalHndlr, &bounds);
+
+			/* Move and resize terminal. */
 			SetWindowPos(terminalHndlr, HWND_TOP, cur.X, 0, 0, 0, SWP_NOSIZE);
-			LOG("Moved terminal to '%s'.", cur.Name);
+			SetWindowPos(terminalHndlr, HWND_TOP, 0, 0, cur.ClientWidth, bounds.bottom, SWP_NOMOVE);
+			LOG("Moved terminal to '%s' and resized it to (%dx%d).", cur.Name, cur.ClientWidth, bounds.bottom);
 #else
 			LOG_WAR("Moving the terminal is not yet supported on this platform!");
 #endif
@@ -257,7 +282,9 @@ int Plutonium::_CrtInitGlad(void)
 
 	/* Set error callback to make sure we log OpenGL errors. */
 #if defined(DEBUG)
+	LOG_WAR("Debug mode is enabled! This has a significant performance cost, switch to release mode for optimization.");
 	glEnable(GL_DEBUG_OUTPUT);
+	glad_set_pre_callback(GLADcallback(GladPreGLCallEventHandler));
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
 #endif
 

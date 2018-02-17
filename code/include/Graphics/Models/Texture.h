@@ -1,0 +1,57 @@
+#pragma once
+#include "Core\Math\Constants.h"
+#include "Core\Math\Rectangle.h"
+
+namespace Plutonium
+{
+	/* Defines a basic 2D texture used in rendering. */
+	struct Texture
+	{
+		/* The width of the texture. */
+		const int32 Width;
+		/* The height of the texture. */
+		const int32 Height;
+		/* The levels of mipmapping used in this texture. */
+		const int32 MipMapLevels;
+
+		/* Initializes a new instance of an empty 2D texture. */
+		Texture(_In_ int32 width, _In_ int32 height, _In_ int32 mipMapLevels = 4);
+		Texture(_In_ const Texture &value) = delete;
+		Texture(_In_ Texture &&value) = delete;
+		/* Releases the resources allocated for the texture. */
+		~Texture(void);
+
+		_Check_return_ Texture& operator =(_In_ const Texture &other) = delete;
+		_Check_return_ Texture& operator =(_In_ Texture &&other) = delete;
+
+		/* Loads a specified texture from a file (requires delete!). */
+		_Check_return_ static Texture* FromFile(_In_ const char *path);
+
+		/* Gets the name assigned to the texture. */
+		_Check_return_ inline const char* GetName(void) const
+		{
+			return name;
+		}
+
+		/* Gets the full bounds of the texture. */
+		_Check_return_ inline Rectangle GetBounds(void) const
+		{
+			return Rectangle(0.0f, 0.0f, static_cast<float>(Width), static_cast<float>(Height));
+		}
+
+		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
+		void SetData(_In_ byte *data);
+		/* Gets a copy of the data specified for the texture (requires free!). */
+		_Check_return_ byte* GetData(void) const;
+
+	private:
+		friend struct Uniform;
+
+		const char *name;
+		uint32 ptr, channels;
+
+		static int32 GetMaxMipMapLevel(int32 w, int32 h);
+		void Dispose(void);
+		void GenerateTexture(const void *data);
+	};
+}
