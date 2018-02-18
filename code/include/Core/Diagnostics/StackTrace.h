@@ -29,6 +29,10 @@ namespace Plutonium
 
 	/* Gets the platform specific last error in human readable format (Requires free!). */
 	_Check_return_ const char* _CrtGetErrorString(void);
+#if defined(_WIN32)
+	/* Finalizes the processes that have been initialized. */
+	void _CrtFinalizeWinProcess(void);
+#endif
 	/* Gets the specified stack frame pointer from logging purposes. */
 	_Check_return_ uint64 _CrtGetCallerPtr(_In_ int framesToSkip);
 	/* Attempts to get the function information from the specified function address. */

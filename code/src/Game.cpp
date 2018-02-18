@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Core\Stopwatch.h"
+#include "Core\Diagnostics\StackTrace.h"
 #include <glad\glad.h>
 #include <glfw3.h>
 #include <algorithm>
@@ -181,6 +182,11 @@ void Plutonium::Game::DoFinalize(void)
 		cur->Finalize();
 		LOG_WAR_IF(cur->initialized, "Camponent at place %d failed to finalize!", cur->place);
 	}
+
+	/* Make sure the debugging symbols are freed. */
+#if defined(_WIN32)
+	_CrtFinalizeWinProcess();
+#endif
 }
 
 void Plutonium::Game::DoUpdate(float dt)

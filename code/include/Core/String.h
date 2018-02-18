@@ -12,9 +12,13 @@ namespace Plutonium
 		String(void);
 		/* Initializes a new instance of a string from a premade C-style string. */
 		String(_In_ const char *value);
+		/* Moves the string to a new memory location. */
+		String(_In_ String &&value);
 		/* Releases the resources allocated by the string. */
 		~String(void);
 
+		/* Moves the string to a new memory location. */
+		_Check_return_ String& operator =(_In_ String &&other);
 		/* Initializes a new instance of a string from a premade C-style string. */
 		_Check_return_ String operator =(_In_ const char *value);
 		/* Gets the underlying string. */
@@ -51,6 +55,7 @@ namespace Plutonium
 	private:
 		char *str;
 		size_t len;
+		bool heap;
 
 		void MrgInto(const char *value);
 	};

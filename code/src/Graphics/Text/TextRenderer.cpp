@@ -27,6 +27,10 @@ Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, cons
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+
+#if defined(DEBUG)
+	LOG_WAR("FontRenderer is leaking memory on debug mode!");
+#endif
 }
 
 Plutonium::FontRenderer::~FontRenderer(void)
@@ -141,13 +145,13 @@ void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, Eve
 void Plutonium::FontRenderer::ClearBuffer(void)
 {
 	/* Make sure we free the copies to the strings. */
-	for (size_t i = 0; i < strs.size(); i++)
+	while (strs.size() > 0)
 	{
-		const char *cur = strs.at(i);
+		const char *cur = strs.back();
 		free_cstr_s(cur);
+		strs.pop_back();
 	}
 
-	strs.clear();
 	vrtxs.clear();
 }
 

@@ -2,6 +2,7 @@
 #include "Core\Math\Constants.h"
 #include "Core\StringFunctions.h"
 #include "Core\SafeMemory.h"
+#include <vector>
 
 #if defined(_WIN32)
 /* Include windows specific debug headers. */
@@ -57,6 +58,35 @@ void _CrtLogSymbolLoadException(uint64 address, const char *msg)
 	free_cstr_s(error);
 }
 
+#if defined (_WIN32)
+std::vector<HANDLE> initializedProcesses;
+
+void InitializeProcess(HANDLE process)
+{
+	/* Check if process has already been initialized. */
+	for (size_t i = 0; i < initializedProcesses.size(); i++)
+	{
+		if (initializedProcesses.at(i) == process) return;
+	}
+
+	/* Initialize process and add it to the list. */
+	initializedProcesses.push_back(process);
+	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
+	else LOG("Initialized debug symbols for process %lu.", GetProcessId(process));
+}
+
+void Plutonium::_CrtFinalizeWinProcess(void)
+{
+	LOG("Finalizing debug symbols for %u processes.", initializedProcesses.size());
+	while (initializedProcesses.size() > 0)
+	{
+		SymCleanup(initializedProcesses.back());
+		initializedProcesses.pop_back();
+	}
+}
+#endif
+
 uint64 Plutonium::_CrtGetCallerPtr(int framesToSkip)
 {
 	/* Reset loading exception handler and create default result. */
@@ -67,17 +97,13 @@ uint64 Plutonium::_CrtGetCallerPtr(int framesToSkip)
 	/* Get caller info on windows systems. */
 
 	/* Get current process handle. */
-	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE process = GetCurrentProcess();
-	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
+	InitializeProcess(process);
 
 	/* Get required stack frame. */
 	void *frames[1];
 	uint16 frameCnt = CaptureStackBackTrace(framesToSkip, 1, frames, nullptr);
 	result = reinterpret_cast<uint64>(frames[0]);
-
-	/* Deallocate symbol memory and return result. */
-	SymCleanup(process);
 #else
 	LOG_WAR("Cannot get caller address on this platform!");
 #endif
@@ -97,9 +123,8 @@ const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 	/* Get caller info on windows systems. */
 
 	/* Get current process handle. */
-	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE process = GetCurrentProcess();
-	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
+	InitializeProcess(process);
 
 	/* Initialize symbol info. */
 	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
@@ -124,9 +149,6 @@ const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 		result.FileName = heapstr(infoFile->FileName);
 		result.Line = infoFile->LineNumber;
 	}
-
-	/* Deallocate symbol memory and return result. */
-	SymCleanup(process);
 #else
 LOG_WAR("Cannot get caller information on this platform!");
 #endif
@@ -146,9 +168,8 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 	/* Get caller info on windows systems. */
 
 	/* Get current process handle. */
-	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
 	HANDLE process = GetCurrentProcess();
-	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
+	InitializeProcess(process);
 
 	/* Initialize symbol info. */
 	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
@@ -195,9 +216,6 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 			}
 		}
 	}
-
-	/* Deallocate symbol memory and return result. */
-	SymCleanup(process);
 #else
 	LOG_WAR("Cannot get caller information on this platform!");
 #endif

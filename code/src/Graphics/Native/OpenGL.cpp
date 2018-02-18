@@ -153,7 +153,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	}
 
 	/* Log exception. */
-	if (suppressThrow) LOG_WAR("%s caused %s severity %s warning: %s", caller, level, error, msg);
+	if (suppressThrow) LOG_WAR("%s caused %s severity %s warning!\nDESCRIPTION:	%s", caller, level, error, msg);
 	else
 	{
 #if defined(DEBUG)
