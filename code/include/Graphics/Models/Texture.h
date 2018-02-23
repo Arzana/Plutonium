@@ -39,6 +39,9 @@ namespace Plutonium
 			return Rectangle(0.0f, 0.0f, static_cast<float>(Width), static_cast<float>(Height));
 		}
 
+		/* Get the amount of channels stored in the texture. */
+		_Check_return_ int32 GetChannels(void) const;
+
 		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
 		void SetData(_In_ byte *data);
 		/* Gets a copy of the data specified for the texture (requires free!). */
@@ -48,10 +51,13 @@ namespace Plutonium
 		friend struct Uniform;
 
 		const char *name;
-		uint32 ptr, channels;
+		uint32 ptr;
+		int32 frmt, ifrmt;
 
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
+
 		void Dispose(void);
+		void SetFormat(uint32 channels);
 		void GenerateTexture(const void *data);
 	};
 }

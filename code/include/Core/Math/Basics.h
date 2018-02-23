@@ -165,4 +165,10 @@ namespace Plutonium
 	{
 		return 1.0f / v;
 	}
+
+	/* Modifies the input radians to be clamped from 0 to Tau. */
+	_Check_return_ inline float modrads(_In_ float rads)
+	{
+		return fmodf(rads, TAU);
+	}
 }

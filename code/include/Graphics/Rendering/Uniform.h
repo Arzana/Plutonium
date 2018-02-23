@@ -41,7 +41,7 @@ namespace Plutonium
 			Set(value.ToVector4());
 		}
 		/* Attempts to set the uniform to a specified texture value. */
-		void Set(_In_ const Texture &value);
+		void Set(_In_ const Texture *value);
 
 	protected:
 		/* Returns whether this field is a attribute or a uniform. */

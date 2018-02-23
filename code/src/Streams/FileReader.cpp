@@ -110,7 +110,7 @@ void Plutonium::FileReader::Open(void)
 			open = true;
 			LOG("Successfully opened file '%s'.", fname);
 		}
-		else LOG_THROW("Failed to open file '%s'!", fname);
+		else ASSERT("Failed to open file '%s'!", fname);
 	}
 	else LOG_WAR("Cannot open already opened file '%s'!", fname);
 }
@@ -139,7 +139,10 @@ void Plutonium::FileReader::InitFileArgs(void)
 
 	/* Get the file directory. */
 	char mrgbuf[FILENAME_MAX];
-	mrgstr(buffer, len - 1, mrgbuf, '\\');
+	mrgstr(buffer, len - 1, mrgbuf, '/');
+	len = strlen(mrgbuf);
+	mrgbuf[len] = '/';
+	mrgbuf[len + 1] = '\0';
 	fdir = heapstr(mrgbuf);
 
 	/* Split the name into the file name and extension. */

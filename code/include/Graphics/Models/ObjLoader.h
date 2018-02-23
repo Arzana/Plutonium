@@ -20,4 +20,7 @@ namespace Plutonium
 
 	/* Loads a .obj file and it's associated .mtl files (requires delete!). */
 	_Check_return_ const LoaderResult* _CrtLoadObjMtl(_In_ const char *path);
+
+	/* Gets the default material properties. */
+	_Check_return_ tinyobj::material_t _CrtGetDefMtl(void);
 }

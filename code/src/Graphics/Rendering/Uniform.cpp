@@ -70,10 +70,10 @@ void Plutonium::Uniform::Set(const Matrix & value)
 	glUniformMatrix4fv(ptr, 1, false, value.GetComponents());
 }
 
-void Plutonium::Uniform::Set(const Texture & value)
+void Plutonium::Uniform::Set(const Texture * value)
 {
 	DBG_CHECK(FieldType::Texture);
 	glActiveTexture(GL_TEXTURE0 + sampler);
-	glBindTexture(GL_TEXTURE_2D, value.ptr);
+	glBindTexture(GL_TEXTURE_2D, value->ptr);
 	glUniform1i(ptr, sampler);
 }

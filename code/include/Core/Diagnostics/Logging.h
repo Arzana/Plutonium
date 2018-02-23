@@ -51,8 +51,8 @@ namespace Plutonium
 #define LOG(msg, ...)							Plutonium::_CrtLog(Plutonium::LogType::Debug, (msg), ##__VA_ARGS__)
 #define LOG_IF(condition, msg, ...)				{ if (condition) LOG((msg), ##__VA_ARGS__); }
 
-#define ASSERT(exc, descr, ...)					Plutonium::_CrtLogThrow((exc), __FILE__, __FUNCTION__, __LINE__, (descr), ##__VA_ARGS__)
-#define ASSERT_IF(condition, exc, descr, ...)	{ if (condition) ASSERT((exc), (descr), ##__VA_ARGS__); }
+#define ASSERT(msg, ...)						LOG_THROW((msg), ##__VA_ARGS__)
+#define ASSERT_IF(condition, msg, ...)			LOG_THROW_IF((condition), (msg), ##__VA_ARGS__)
 #else
 #define LOG(...)
 #define LOG_IF(...)

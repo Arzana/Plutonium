@@ -81,6 +81,9 @@
     <Filter Include="Source Files\Graphics\Text">
       <UniqueIdentifier>{87b8904e-2348-454a-9bfa-eb6f17fddc58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GameLogic">
+      <UniqueIdentifier>{a3f731af-c396-4dc3-b95b-01548888980a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -181,6 +184,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Core\String.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Models\Model.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\Renderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Components\Camera.cpp">
+      <Filter>Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -339,6 +351,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\String.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Models\Model.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Models\Shape.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\GameLogic\WorldObject.h">
+      <Filter>Header Files\GameLogic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\Renderer.h">
+      <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Components\Camera.h">
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -12,7 +12,6 @@ void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offs
 	/* On debug check if attribute is valid. */
 #if defined(DEBUG)
 	LOG_THROW_IF(ptr == -1, "Attempting to initialize a invalid attribute!");
-	LOG_WAR_IF(initialized, "Re-initializing attribute %s, is this intended?", name);
 #endif
 
 	/* Convert the frameworks types to OpenGL types and correct the size for the vector types. */
@@ -29,7 +28,6 @@ void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offs
 		case (FieldType::Double):
 			/* Double needs to be passed using the long pointer function. */
 			glVertexAttribLPointer(ptr, 1, GL_DOUBLE, stride, offset);
-			initialized = true;
 			return;
 		case (FieldType::Vect2):
 			/* Correct the type and size to a 2D float. */
@@ -55,7 +53,6 @@ void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offs
 
 	/* Provide info to OpenGL. */
 	glVertexAttribPointer(ptr, openGlSize, openGLType, norm, stride, offset);
-	initialized = true;
 }
 
 void Plutonium::Attribute::Enable(void)
@@ -63,7 +60,6 @@ void Plutonium::Attribute::Enable(void)
 	/* On debug check if attribute is valid. */
 #if defined(DEBUG)
 	LOG_THROW_IF(ptr == -1, "Attempting to enable a invalid attribute!");
-	LOG_THROW_IF(!initialized, "Attempting to enable not-initialized attribute %s!", name);
 #endif
 
 	/* Enable the buffer. */
@@ -80,7 +76,6 @@ void Plutonium::Attribute::Disable(void)
 	/* On debug check if attribute is valid. */
 #if defined(DEBUG)
 	LOG_THROW_IF(ptr == -1, "Attempting to disable a invalid attribute!");
-	LOG_THROW_IF(!initialized, "Attempting to disable non-initialized attribute %s!", name);
 #endif
 
 	/* Disable buffer. */
@@ -89,13 +84,13 @@ void Plutonium::Attribute::Disable(void)
 		glDisableVertexAttribArray(ptr);
 		enabled = false;
 	}
-	else LOG_WAR("Attempting to disable disabled sttribute %s!", name);
+	else LOG_WAR("Attempting to disable disabled attribute %s!", name);
 }
 
 Plutonium::Attribute::Attribute(void)
-	: Field(), initialized(false), enabled(false)
+	: Field(), enabled(false)
 {}
 
 Plutonium::Attribute::Attribute(int32 ptr, const char * name, uint32 type)
-	: Field(ptr, name, type), initialized(false), enabled(false)
+	: Field(ptr, name, type), enabled(false)
 {}

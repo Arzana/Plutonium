@@ -1,17 +1,20 @@
 #include "Graphics\Models\Mesh.h"
 #include "Graphics\Models\ObjLoader.h"
 #include "Core\SafeMemory.h"
+#include "Core\StringFunctions.h"
 #include <glad\glad.h>
 
 using namespace Plutonium;
 using namespace tinyobj;
 
 Plutonium::Mesh::Mesh(const char * name)
-	: Name(name), vertices(nullptr), indices(nullptr), vrtxCnt(0), ptrs{ 0, 0 }
+	: Name(heapstr(name)), vertices(nullptr), indices(nullptr), vrtxCnt(0), ptrs{ 0, 0 }
 {}
 
 Plutonium::Mesh::~Mesh(void) noexcept
 {
+	free_cstr_s(Name);
+
 	/* Releases the buffers if they are created. */
 	if (ptrs[0] != 0) glDeleteBuffers(1, ptrs);
 	if (ptrs[1] != 0) glDeleteBuffers(1, (ptrs + 1));
@@ -44,7 +47,7 @@ void Plutonium::Mesh::Finalize(void)
 	indices = nullptr;
 }
 
-inline uint32 Plutonium::Mesh::GetVertexBuffer(void) const
+uint32 Plutonium::Mesh::GetVertexBuffer(void) const
 {
 	/* On debug check if the buffer has been created. */
 #if defined(DEBUG)
@@ -54,7 +57,7 @@ inline uint32 Plutonium::Mesh::GetVertexBuffer(void) const
 	return ptrs[0];
 }
 
-inline uint32 Plutonium::Mesh::GetIndicesBuffer(void) const
+uint32 Plutonium::Mesh::GetIndicesBuffer(void) const
 {
 	/* On debug check if the buffer has been created. */
 #if defined(DEBUG)

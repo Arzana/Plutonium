@@ -36,7 +36,7 @@ namespace Plutonium
 	private:
 		friend struct Shader;
 
-		bool initialized, enabled;
+		bool enabled;
 
 		Attribute(void);
 		Attribute(int32 ptr, const char *name, uint32 type);

@@ -42,7 +42,7 @@ namespace Plutonium
 		WindowHandler wnd;
 
 	private:
-		uint32 vao, vbo;
+		uint32 vbo;
 
 		Shader *shdr;
 		Uniform *clr;

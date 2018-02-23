@@ -4,13 +4,12 @@
 Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, const char * vrtxShdr, const char * fragShdr)
 	: wnd(wnd)
 {
-	/* Load shader and fields form files. */
+	/* Load shader and fields from files. */
 	shdr = Shader::FromFile(vrtxShdr, fragShdr);
 	clr = shdr->GetUniform("u_color");
 	tex = shdr->GetUniform("u_texture");
 	wvp = shdr->GetUniform("u_wvp");
 	pos = shdr->GetAttribute("a_position");
-	pos->Initialize(false, sizeof(Vector2), offset_ptr(Vector2, X));
 
 	/* Load font from file. */
 	this->font = Font::FromFile(font, 24.0f);
@@ -20,13 +19,9 @@ Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, cons
 	wnd->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Create buffers for the character vertices. */
-	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
-	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 
 #if defined(DEBUG)
 	LOG_WAR("FontRenderer is leaking memory on debug mode!");
@@ -41,7 +36,6 @@ Plutonium::FontRenderer::~FontRenderer(void)
 	delete_s(shdr);
 	delete_s(font);
 	/* Delete buffers. */
-	glDeleteBuffers(1, &vao);
 	glDeleteBuffers(1, &vbo);
 }
 
@@ -99,7 +93,7 @@ void Plutonium::FontRenderer::RenderString(const char * string, Vector2 pos, Col
 		/* For character that don't define a texture (space, etc.) we skip the render stage. */
 		if (ch->Texture)
 		{
-			tex->Set(*ch->Texture);
+			tex->Set(ch->Texture);
 
 			/* Defines components of the position vertices. */
 			float x = pos.X + ch->Bearing.X;
@@ -121,6 +115,7 @@ void Plutonium::FontRenderer::RenderString(const char * string, Vector2 pos, Col
 			/* Bind buffers and draw character. */
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), void_ptr(vertices));
+			this->pos->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 

@@ -10,7 +10,8 @@
 using namespace Plutonium;
 
 Plutonium::Texture::Texture(int32 width, int32 height, int32 mipMaplevels)
-	: Width(width), Height(height), MipMapLevels(mipMaplevels), channels(4), name("")
+	: Width(width), Height(height), MipMapLevels(mipMaplevels), name(""),
+	frmt(GL_RGBA), ifrmt(GL_RGBA8)
 {
 	/* On debug mode check if the mipmap level requested is valid. */
 #if defined(DEBUG)
@@ -29,21 +30,35 @@ Plutonium::Texture::~Texture(void)
 
 Texture * Plutonium::Texture::FromFile(const char * path)
 {
-	/* Attempt to load texture with desired 4 mip maps. */
+	/* Attempt to load texture. */
 	int32 w, h, m;
-	byte *data = stbi_load(path, &w, &h, &m, 4);
+	stbi_set_flip_vertically_on_load(true);
+	byte *data = stbi_load(path, &w, &h, &m, 0);
 
 	/* Throw is loading failed. */
-	LOG_THROW_IF(!data, "Unable to load texture: %s!", path);
+	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", path, stbi_failure_reason());
 
 	/* Set texture information. */
-	Texture *result = new Texture(w, h, max(4, GetMaxMipMapLevel(w, h)));
-	result->channels = m;
+	Texture *result = new Texture(w, h, clamp(GetMaxMipMapLevel(w, h), 0, 4));
+	result->SetFormat(m);
 	result->name = FileReader(path).GetFileName();
 
 	/* Load data into texture and return result. */
 	result->GenerateTexture(void_ptr(data));
 	return result;
+}
+
+int32 Plutonium::Texture::GetChannels(void) const
+{
+	switch (frmt)
+	{
+	case(GL_RGB):
+		return 3;
+	case(GL_RGBA):
+		return 4;
+	default:
+		return -1;
+	}
 }
 
 void Plutonium::Texture::SetData(byte * data)
@@ -62,11 +77,11 @@ byte * Plutonium::Texture::GetData(void) const
 #endif
 
 	/* Initialize buffer result. */
-	byte *result = malloc_s(byte, Width * Height * channels);
+	byte *result = malloc_s(byte, Width * Height * GetChannels());
 
 	/* Request data from GPU. */
 	glBindTexture(GL_TEXTURE_2D, ptr);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, result);
+	glGetTexImage(GL_TEXTURE_2D, 0, frmt, GL_UNSIGNED_BYTE, result);
 
 	/* Return supplied data. */
 	return result;
@@ -88,6 +103,24 @@ void Plutonium::Texture::Dispose(void)
 	else LOG_WAR("Attempting to dispose of not-loaded texture!");
 }
 
+void Plutonium::Texture::SetFormat(uint32 channels)
+{
+	switch (channels)
+	{
+	case(3):
+		frmt = GL_RGB;
+		ifrmt = GL_RGB8;
+		break;
+	case(4):
+		frmt = GL_RGBA;
+		ifrmt = GL_RGBA8;
+		break;
+	default:
+		LOG_THROW("Texture doesn't support %d channels!", channels);
+		break;
+	}
+}
+
 void Plutonium::Texture::GenerateTexture(const void * data)
 {
 	/* Generate storage and bind texture. */
@@ -95,8 +128,8 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	glBindTexture(GL_TEXTURE_2D, ptr);
 
 	/* Generate mip map storage and load base texture. */
-	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), GL_RGBA8, Width, Height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, data);
 
 	/* Generate desired mip maps. */
 	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);
