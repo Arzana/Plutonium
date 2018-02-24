@@ -45,6 +45,8 @@ Texture * Plutonium::Texture::FromFile(const char * path)
 
 	/* Load data into texture and return result. */
 	result->GenerateTexture(void_ptr(data));
+	stbi_image_free(data);
+
 	return result;
 }
 

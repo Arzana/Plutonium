@@ -51,7 +51,7 @@ void Plutonium::Renderer::Render(const Model * model)
 		Shape *cur = model->shapes.at(i);
 		texture->Set(cur->Material);
 
-		/* Set current mesh and render. */
+		/* Set current mesh. */
 		glBindBuffer(GL_ARRAY_BUFFER, cur->Mesh->GetVertexBuffer());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cur->Mesh->GetIndicesBuffer());
 
@@ -60,6 +60,7 @@ void Plutonium::Renderer::Render(const Model * model)
 		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
+		/* Render current shape. */
 		glDrawElements(GL_TRIANGLES, cur->Mesh->GetVertexCount(), GL_UNSIGNED_SHORT, nullptr);
 	}
 }
