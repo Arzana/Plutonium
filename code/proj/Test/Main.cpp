@@ -1,22 +1,29 @@
 #include <Game.h>
-#include <Components\FpsCounter.h>
 #include <Graphics\Text\DebugTextRenderer.h>
-#include <Core\String.h>
 #include <Graphics\Rendering\Renderer.h>
-#include "Components\Camera.h"
-#include "Core\Math\Basics.h"
+#include <Components\Camera.h>
+#include <Components\MemoryCounter.h>
+#include <Components\FpsCounter.h>
+#include <Core\Math\Basics.h>
+#include <Core\String.h>
 
 using namespace Plutonium;
 
 struct TestGame
 	: public Game
 {
-	FpsCounter *fps;
-	Camera *cam;
+	/* Renderers. */
 	DebugFontRenderer *fontRenderer;
 	Renderer *renderer;
+	Camera *cam;
+
+	/* Scene */
 	Model *heart, *heart2;
 	Vector3 light = Vector3::Zero;
+
+	/* Diagnostics. */
+	FpsCounter *fps;
+	MemoryCounter *mem;
 
 	TestGame(void)
 		: Game("TestGame")
@@ -25,6 +32,8 @@ struct TestGame
 	virtual void Initialize(void)
 	{
 		AddComponent(fps = new FpsCounter(this));
+		AddComponent(mem = new MemoryCounter(this));
+
 		fontRenderer = new DebugFontRenderer(GetWindow(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
 		renderer = new Renderer("./assets/shaders/Basic3D.vsh", "./assets/shaders/Basic3D.fsh");
 	}
@@ -72,21 +81,19 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
-		/* Render current UPS. */
-		String upsStr = "Ups (cur): ";
-		fontRenderer->AddDebugString(upsStr += ipart(fps->GetUps()));
-
-		/* Render current FPS. */
-		String fpscStr = "Fps (cur): ";
-		fontRenderer->AddDebugString(fpscStr += ipart(fps->GetCurFps()));
-
 		/* Render average FPS. */
 		String fpsaStr = "Fps (avg): ";
-		fontRenderer->AddDebugString(fpsaStr += ipart(fps->GetAvrgFps()));
+		fontRenderer->AddDebugString(fpsaStr += ipart(fps->GetAvrgHz()));
+
+		/* Render average VRAM. */
+		String vramStr = "VRAM: ";
+		(vramStr += b2mb(mem->GetAvrgVRamUsage())) += " / ";
+		(vramStr += b2mb(mem->GetOSVRamBudget())) += " MB";
+		fontRenderer->AddDebugString(vramStr);
 
 		/* Render models. */
 		renderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		renderer->Render(heart);
+		//renderer->Render(heart);
 		renderer->Render(heart2);
 		renderer->End();
 

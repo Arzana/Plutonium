@@ -194,6 +194,12 @@
     <ClCompile Include="..\..\src\Components\Camera.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Components\MemoryCounter.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -365,6 +371,12 @@
       <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Components\Camera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Components\MemoryCounter.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>

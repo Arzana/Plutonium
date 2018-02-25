@@ -172,7 +172,9 @@
     <ClCompile Include="..\..\src\Components\ContentLoader.cpp" />
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
+    <ClCompile Include="..\..\src\Components\MemoryCounter.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
+    <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Box.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Matrix.cpp" />
@@ -208,7 +210,9 @@
     <ClInclude Include="..\..\include\Components\ContentLoader.h" />
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
+    <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
+    <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
     <ClInclude Include="..\..\include\Core\Events\EventArgs.h" />

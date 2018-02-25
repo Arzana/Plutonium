@@ -171,4 +171,22 @@ namespace Plutonium
 	{
 		return fmodf(rads, TAU);
 	}
+
+	/* Converts bytes to kilobytes. */
+	_Check_return_ inline int32 b2kb(_In_ uint64 bytes)
+	{
+		return static_cast<int>(bytes / 1024UL);
+	}
+
+	/* Converts bytes to megabytes. */
+	_Check_return_ inline int32 b2mb(_In_ uint64 bytes)
+	{
+		return static_cast<int>(bytes / 1048576UL);
+	}
+
+	/* Converts bytes to gigabytes. */
+	_Check_return_ inline int32 b2gb(_In_ uint64 bytes)
+	{
+		return static_cast<int>(bytes / 1073741824UL);
+	}
 }

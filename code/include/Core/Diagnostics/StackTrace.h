@@ -4,7 +4,7 @@
 
 namespace Plutonium
 {
-	/* Defines the information given for loggin purposes. */
+	/* Defines the stack information given for loggin purposes. */
 	struct StackFrame
 	{
 	public:

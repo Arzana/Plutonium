@@ -33,7 +33,7 @@ namespace Plutonium
 		/* Initializes the game component. */
 		virtual void Initialize(void);
 		/* Updates the game component. */
-		virtual void Update(_In_ float dt) = 0;
+		virtual void Update(_In_ float dt);
 		/* Renders the game component. */
 		virtual void Render(_In_ float dt);
 		/* Finalizes the game component. */

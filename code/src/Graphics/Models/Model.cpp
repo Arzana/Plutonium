@@ -47,7 +47,7 @@ Model * Plutonium::Model::FromFile(const char * path)
 
 		/* Get correct material. */
 		tinyobj::material_t mtl = shape.mesh.material_ids.size() > 0 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
-		char *mtlPath = malloca_s(char, FILENAME_MAX);
+		char mtlPath[FILENAME_MAX];
 		mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
 		Texture *texture = Texture::FromFile(mtlPath);
 

@@ -25,9 +25,9 @@ void Plutonium::Camera::Update(float dt, const Matrix & obj2Follow)
 	desiredPos = obj2Follow * offset;
 
 	/* Update follow position. */
-	actualPos.X = smoothstep(actualPos.X, desiredPos.X, dt);
-	actualPos.Y = smoothstep(actualPos.Y, desiredPos.Y, dt);
-	actualPos.Z = smoothstep(actualPos.Z, desiredPos.Z, dt);
+	actualPos.X = smoothstep(actualPos.X, desiredPos.X, 0.15f);
+	actualPos.Y = smoothstep(actualPos.Y, desiredPos.Y, 0.15f);
+	actualPos.Z = smoothstep(actualPos.Z, desiredPos.Z, 0.15f);
 
 	/* Update view. */
 	view = Matrix::CreateLookAt(actualPos, target, orien.GetUp());

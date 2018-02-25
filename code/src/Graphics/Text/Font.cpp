@@ -63,32 +63,17 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 
 	/* Initialize final character buffer. */
 	result->cnt = info.numGlyphs;
-	result->chars = malloc_s(Character, result->cnt);
+	result->chars = malloc_s(Character, __min(UCHAR_MAX, result->cnt));
 
 	/* Log start and start stopwatch. */
-	LOG("Generating %d character textures.", result->cnt);
+	LOG("Generating %d character textures.", __min(UCHAR_MAX, result->cnt));
 	Stopwatch sw = Stopwatch::StartNew();
 
-	/* On debug mode get the locale code for unicode. */
-#if defined(DEBUG)
-	std::locale unicode("C");
-	_CrtLogNoNewLine(LogType::Debug, "Current character: ");
-#endif
-
 	/* Loop through character defines by the font. */
-	for (int32 c = 0; c < result->cnt; c++)
+	for (int32 c = 0; c < result->cnt && c < UCHAR_MAX; c++)
 	{
 		/* Get current character from buffer. */
 		Character *cur = result->chars + c;
-		
-#if defined(DEBUG)
-		/* On debug show the current processed character. */
-		if (!std::iscntrl(c, unicode))
-		{
-			_CrtLogNoNewLine(LogType::Debug, "%c", static_cast<char>(c));
-			_CrtLogBacktrack(1);
-		}
-#endif
 
 		/* Get character specific info. */
 		int32 advance, lsb, x0, y0, x1, y1;
@@ -148,13 +133,8 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 		free_s(data);
 	}
 
-	/* Make sure a new line is started for the logging. */
-#if defined(DEBUG)
-	_CrtLogNoNewLine(LogType::Debug, "\n");
-#endif
-
 	/* Free file data and return result. */
-	LOG("Finished generating %d character textures, took %Lf seconds.", result->cnt, sw.Seconds());
+	LOG("Finished initializing %d characters, took %Lf seconds.", result->cnt, sw.Seconds());
 	free_s(ttf_buffer);
 	return result;
 }

@@ -14,45 +14,8 @@ void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offs
 	LOG_THROW_IF(ptr == -1, "Attempting to initialize a invalid attribute!");
 #endif
 
-	/* Convert the frameworks types to OpenGL types and correct the size for the vector types. */
-	int32 openGLType;
-	int32 openGlSize;
-	switch (type)
-	{
-		case (FieldType::Invalid):
-		case (FieldType::Matrix):
-		case (FieldType::Texture):
-			/* These values cannot (or should not) be passed as attributes. */
-			LOG_THROW("Cannot pass %s as a shader attribute!", _CrtGetFieldVisualType(type));
-			return;
-		case (FieldType::Double):
-			/* Double needs to be passed using the long pointer function. */
-			glVertexAttribLPointer(ptr, 1, GL_DOUBLE, stride, offset);
-			return;
-		case (FieldType::Vect2):
-			/* Correct the type and size to a 2D float. */
-			openGlSize = 2;
-			openGLType = GL_FLOAT;
-			break;
-		case (FieldType::Vect3):
-			/* Correct the type and size to a 3D float. */
-			openGlSize = 3;
-			openGLType = GL_FLOAT;
-			break;
-		case (FieldType::Vect4):
-			/* Correct the type and size to a 4D float. */
-			openGlSize = 4;
-			openGLType = GL_FLOAT;
-			break;
-		default:
-			/* Size is default and type can be copied over. */
-			openGlSize = 1;
-			openGLType = static_cast<int32>(type);
-			break;
-	}
-
-	/* Provide info to OpenGL. */
-	glVertexAttribPointer(ptr, openGlSize, openGLType, norm, stride, offset);
+	if (type == FieldType::Double) glVertexAttribLPointer(ptr, initSize, initType, stride, offset);
+	else glVertexAttribPointer(ptr, initSize, initType, norm, stride, offset);
 }
 
 void Plutonium::Attribute::Enable(void)
@@ -88,9 +51,39 @@ void Plutonium::Attribute::Disable(void)
 }
 
 Plutonium::Attribute::Attribute(void)
-	: Field(), enabled(false)
+	: Field(), enabled(false), initType(-1), initSize(-1)
 {}
 
 Plutonium::Attribute::Attribute(int32 ptr, const char * name, uint32 type)
 	: Field(ptr, name, type), enabled(false)
-{}
+{
+	switch (this->type)
+	{
+	case (FieldType::Invalid):
+	case (FieldType::Matrix):
+	case (FieldType::Texture):
+		/* These values cannot (or should not) be passed as attributes. */
+		LOG_THROW("Cannot pass %s as a shader attribute!", _CrtGetFieldVisualType(this->type));
+		return;
+	case (FieldType::Vect2):
+		/* Correct the type and size to a 2D float. */
+		initSize = 2;
+		initType = GL_FLOAT;
+		break;
+	case (FieldType::Vect3):
+		/* Correct the type and size to a 3D float. */
+		initSize = 3;
+		initType = GL_FLOAT;
+		break;
+	case (FieldType::Vect4):
+		/* Correct the type and size to a 4D float. */
+		initSize = 4;
+		initType = GL_FLOAT;
+		break;
+	default:
+		/* Size is default and type can be copied over. */
+		initSize = 1;
+		initType = static_cast<int32>(type);
+		break;
+	}
+}

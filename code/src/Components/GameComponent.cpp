@@ -28,6 +28,9 @@ void Plutonium::GameComponent::Initialize(void)
 	initialized = true;
 }
 
+void Plutonium::GameComponent::Update(float dt)
+{}
+
 void Plutonium::GameComponent::Render(float dt)
 {}
 
