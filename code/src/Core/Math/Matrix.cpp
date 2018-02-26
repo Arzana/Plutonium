@@ -157,12 +157,12 @@ Matrix Plutonium::Matrix::GetTranspose(void) const
 
 void Plutonium::Matrix::SetOrientation(float yaw, float pitch, float roll)
 {
-	const float cx = cosf(pitch);
-	const float sx = sinf(pitch);
+	const float cz = cosf(pitch);
+	const float sz = sinf(pitch);
 	const float cy = cosf(yaw);
 	const float sy = sinf(yaw);
-	const float cz = cosf(roll);
-	const float sz = sinf(roll);
+	const float cx = cosf(roll);
+	const float sx = sinf(roll);
 
 	const float a = cx * cy;
 	const float b = cx * sy * sz - sx * cz;

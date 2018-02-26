@@ -69,14 +69,11 @@ struct TestGame
 		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
 
 		/* Update camera. */
-		cam->Update(dt, heart->GetWorld());
+		cam->Update(dt, GetKeyboard(), this->GetCursor());
+		//cam->Update(dt, heart->GetWorld());
 
 		/* Update input. */
-		KeyHandler keyboard = GetKeyboard();
-		if (keyboard->IsKeyDown(Keys::W)) heart->Move(Vector3::Forward * dt);
-		if (keyboard->IsKeyDown(Keys::A)) heart->Move(Vector3::Left * dt);
-		if (keyboard->IsKeyDown(Keys::S)) heart->Move(Vector3::Backward * dt);
-		if (keyboard->IsKeyDown(Keys::D)) heart->Move(Vector3::Right * dt);
+		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 	}
 
 	virtual void Render(float dt)

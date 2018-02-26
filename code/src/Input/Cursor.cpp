@@ -58,14 +58,27 @@ void Plutonium::GlfwCursorButtonEventHandler(GLFWwindow *hndlr, int btn, int act
 	}
 }
 
-void GlfwCursorMoveEventHandler(GLFWwindow *hndlr, double x, double y)
+void Plutonium::GlfwCursorMoveEventHandler(GLFWwindow *hndlr, double x, double y)
 {
 	/* Get cursor associated with handle and change cursor position. */
 	Cursor *cursor = GetCursorFromHndlr(hndlr);
+	int ix = static_cast<int>(x);
+	int iy = static_cast<int>(y);
+
 	if (cursor)
 	{
-		cursor->X = static_cast<int>(x);
-		cursor->Y = static_cast<int>(y);
+		/* Make sure we don't update the delta position on the first move. */
+		if (cursor->firstMovement) cursor->firstMovement = false;
+		else
+		{
+			/* Update delta movement. */
+			cursor->DX += ix - cursor->X;
+			cursor->DY += iy - cursor->Y;
+		}
+
+		/* Update to new position. */
+		cursor->X = ix;
+		cursor->Y = iy;
 	}
 }
 
@@ -120,7 +133,7 @@ void Plutonium::Cursor::Show(void)
 
 Plutonium::Cursor::Cursor(const Window * wnd)
 	: wnd(wnd), EnterWindow("CursorEnterWindow"), LeaveWindow("CursorLeaveWindow"), SpecialButtonPress("CursorSpecialButtonPress"),
-	X(0), Y(0), ScrollWheel(), LeftButton(false), RightButton(false), MiddleButton(false)
+	X(0), Y(0), DX(0), DY(0), ScrollWheel(), LeftButton(false), RightButton(false), MiddleButton(false), firstMovement(true)
 {
 	activeCursors.push_back(this);
 
@@ -133,6 +146,8 @@ Plutonium::Cursor::Cursor(const Window * wnd)
 
 void Plutonium::Cursor::Update(void)
 {
-	/* Reset scrollwheel delta. */
+	/* Reset scrollwheel delta and movement. */
 	ScrollWheel = Vector2::Zero;
+	DX = 0;
+	DY = 0;
 }

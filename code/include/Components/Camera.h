@@ -1,5 +1,6 @@
 #pragma once
 #include "Input\Keyboard.h"
+#include "Input\Cursor.h"
 #include "Core\Math\Matrix.h"
 #include "Graphics\Window.h"
 
@@ -26,7 +27,7 @@ namespace Plutonium
 		/* Updates the camera as a 3rd person follow camera. */
 		void Update(_In_ float dt, _In_ const Matrix &obj2Follow);
 		/* Updates the camera as a free camera. */
-		void Update(_In_ float dt, _In_ KeyHandler keys);
+		void Update(_In_ float dt, _In_ KeyHandler keys, _In_ CursorHandler cursor);
 
 		/* Gets the current view matrix. */
 		_Check_return_ inline const Matrix& GetView(void) const
@@ -45,6 +46,8 @@ namespace Plutonium
 		Matrix view, proj, orien;
 		WindowHandler wnd;
 
+		void UpdatePosition(void);
+		void UpdateView(void);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 	};
 }

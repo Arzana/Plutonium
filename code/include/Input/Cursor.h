@@ -17,6 +17,10 @@ namespace Plutonium
 		int X;
 		/* The vertical component of the cursor position. */
 		int Y;
+		/* The horizontal movement from the previous frame. */
+		int DX;
+		/* The vertical movement from the previous frame. */
+		int DY;
 		/* The movement since the last frame of the scroll wheel or track pad. */
 		Vector2 ScrollWheel;
 		/* Whether the left button is down. */
@@ -51,9 +55,11 @@ namespace Plutonium
 		friend struct Game;
 		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
 		friend void GlfwCursorFocusEventHandler(GLFWwindow*, int);
-		friend void GlfwCursorButtonEventHandler(GLFWwindow *, int, int, int);
+		friend void GlfwCursorButtonEventHandler(GLFWwindow*, int, int, int);
+		friend void GlfwCursorMoveEventHandler(GLFWwindow*, double, double);
 
 		const Window *wnd;
+		bool firstMovement;
 
 		Cursor(const Window *wnd);
 

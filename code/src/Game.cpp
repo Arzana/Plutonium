@@ -193,8 +193,12 @@ void Plutonium::Game::DoUpdate(float dt)
 {
 	/* Update all defined components. */
 	for (size_t i = 0; i < components.size(); i++) components.at(i)->Update(dt);
+
 	/* Update game specific code. */
 	Update(dt);
+
+	/* Make sure the cursor delta's are reset. */
+	cursor->Update();
 }
 
 void Plutonium::Game::BeginRender(void)
@@ -219,6 +223,8 @@ void Plutonium::Game::DoRender(float dt)
 
 	/* Renders the game specific graphics to the game screen. */
 	for (size_t i = 0; i < components.size(); i++) components.at(i)->Render(dt);
+
+	/* Render game specific code. */
 	Render(dt);
 
 	EndRender();
