@@ -166,6 +166,24 @@ namespace Plutonium
 			return X != v.X || Y != v.Y || Z != v.Z;
 		}
 
+		/* Creates a directional vector from an angle around the Y axis. */
+		_Check_return_ static inline Vector3 FromYaw(_In_ float theta)
+		{
+			return Vector3(cosf(theta), 0.0f, sinf(theta));
+		}
+
+		/* Creates a directional vector from an angle around the X axis. */
+		_Check_return_ static inline Vector3 FromPitch(_In_ float theta)
+		{
+			return Vector3(0.0f, cosf(theta), sinf(theta));
+		}
+
+		/* Creates a directional vector from an angle around the Z axis. */
+		_Check_return_ static inline Vector3 FromRoll(_In_ float theta)
+		{
+			return Vector3(cosf(theta), sinf(theta), 0.0f);
+		}
+
 		/* Gets the magnetude of the vector squared. */
 		_Check_return_ inline float LengthSquared(void) const
 		{

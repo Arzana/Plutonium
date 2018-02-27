@@ -61,6 +61,10 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 	stbtt_InitFont(&info, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
 	float scale = stbtt_ScaleForPixelHeight(&info, size);
 
+	/* Get global rendering info. */
+	int32 ascent, descent, lineGap;
+	stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
+
 	/* Initialize final character buffer. */
 	result->cnt = info.numGlyphs;
 	result->chars = malloc_s(Character, __min(UCHAR_MAX, result->cnt));
@@ -79,13 +83,15 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 		int32 advance, lsb, x0, y0, x1, y1;
 		stbtt_GetCodepointHMetrics(&info, c, &advance, &lsb);
 		stbtt_GetCodepointBitmapBoxSubpixel(&info, c, scale, scale, 0, 0, &x0, &y0, &x1, &y1);
+
+		/* Compute character boundsing box. */
 		int32 w = x1 - x0, h = y1 - y0;
 
 		/* Save known character details. */
 		cur->Key = static_cast<char>(c);
-		cur->Advance = static_cast<int32>(advance * scale);
 		cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
-		cur->Bearing = Vector2(static_cast<float>(lsb >> 6), static_cast<float>(y0));
+		cur->Advance = static_cast<int32>(x0 + advance * scale);
+		cur->Bearing = Vector2(static_cast<float>(lsb * scale), static_cast<float>(y0));
 		if (h > result->lineSpace) result->lineSpace = h;
 
 		/* Early out if the texture of the character would become to small. */
@@ -132,6 +138,9 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 		free_s(alphaBuffer);
 		free_s(data);
 	}
+
+	/* Add linegap to the required space. */
+	result->lineSpace += lineGap;
 
 	/* Free file data and return result. */
 	LOG("Finished initializing %d characters, took %Lf seconds.", result->cnt, sw.Seconds());

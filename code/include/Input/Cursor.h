@@ -18,9 +18,9 @@ namespace Plutonium
 		/* The vertical component of the cursor position. */
 		int Y;
 		/* The horizontal movement from the previous frame. */
-		int DX;
+		int DeltaX;
 		/* The vertical movement from the previous frame. */
-		int DY;
+		int DeltaY;
 		/* The movement since the last frame of the scroll wheel or track pad. */
 		Vector2 ScrollWheel;
 		/* Whether the left button is down. */

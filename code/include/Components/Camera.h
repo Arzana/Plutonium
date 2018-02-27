@@ -17,7 +17,9 @@ namespace Plutonium
 		/* Rhe roll that the camera should have. */
 		float Roll;
 		/* The movement speed modifier of the camera. */
-		float Speed;
+		float MoveSpeed;
+		/* The viewing speed modifier of the camera. */
+		float LookSpeed;
 
 		/* Initializes a new instance of a camera. */
 		Camera(_In_ WindowHandler wnd);

@@ -3,8 +3,9 @@
 
 Plutonium::Camera::Camera(WindowHandler wnd)
 	: wnd(wnd), actualPos(0.0f, 0.0f, 50.0f), 
-	target(), offset(0.0f, 0.0f, 5.0f),
-	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), Speed(10.0f),
+	target(), offset(0.0f, 0.0f, 0.5f),
+	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), 
+	MoveSpeed(100.0f), LookSpeed(10.0f),
 	orien()
 {
 	desiredPos = actualPos;
@@ -31,14 +32,14 @@ void Plutonium::Camera::Update(float dt, const Matrix & obj2Follow)
 void Plutonium::Camera::Update(float dt, KeyHandler keys, CursorHandler cursor)
 {
 	/* Update orientation. */
-	Yaw -= cursor->DX * DEG2RAD * dt * Speed;
-	Pitch -= cursor->DY * DEG2RAD * dt * Speed;
+	Yaw -= cursor->DeltaX * DEG2RAD * dt * LookSpeed;
+	Pitch -= cursor->DeltaY * DEG2RAD * dt * LookSpeed;
 
 	/* Update desired position. */
-	if (keys->IsKeyDown(Keys::W)) desiredPos += orien.GetForward() * dt * Speed;
-	if (keys->IsKeyDown(Keys::A)) desiredPos += orien.GetLeft() * dt * Speed;
-	if (keys->IsKeyDown(Keys::S)) desiredPos += orien.GetBackward() * dt * Speed;
-	if (keys->IsKeyDown(Keys::D)) desiredPos += orien.GetRight() * dt * Speed;
+	if (keys->IsKeyDown(Keys::W)) desiredPos += orien.GetForward() * dt * MoveSpeed;
+	if (keys->IsKeyDown(Keys::A)) desiredPos += orien.GetLeft() * dt * MoveSpeed;
+	if (keys->IsKeyDown(Keys::S)) desiredPos += orien.GetBackward() * dt * MoveSpeed;
+	if (keys->IsKeyDown(Keys::D)) desiredPos += orien.GetRight() * dt * MoveSpeed;
 
 	/* Update position and target. */
 	UpdatePosition();

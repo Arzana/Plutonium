@@ -100,6 +100,7 @@ Plutonium::Window::Window(const char * title, Vector2 size)
 
 	/* Initialize properties and show window. */
 	SetBounds(Vector2::Zero, size);
+	SetVerticalRetrace(VSyncMode::Enabled);
 	Show();
 	operational = true;
 }
@@ -245,6 +246,7 @@ void Plutonium::Window::SetVerticalRetrace(VSyncMode mode)
 			glfwSwapInterval(0);
 			break;
 		case Plutonium::VSyncMode::DisableForce:
+			glfwSwapInterval(0);
 			_CrtSetSwapIntervalExt(0);
 			break;
 		default:

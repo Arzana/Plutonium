@@ -18,7 +18,7 @@ struct TestGame
 	Camera *cam;
 
 	/* Scene */
-	Model *heart, *heart2;
+	Model *heart;
 	Vector3 light = Vector3::Zero;
 
 	/* Diagnostics. */
@@ -41,16 +41,15 @@ struct TestGame
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetWindow());
+
 		heart = Model::FromFile("./assets/models/Heart/Heart.obj");
-		heart2 = Model::FromFile("./assets/models/Heart/Heart.obj");
-		heart2->SetScale(10.0f);
+		heart->SetScale(10.0f);
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
 		delete_s(heart);
-		delete_s(heart2);
 	}
 
 	virtual void Finalize(void)
@@ -64,13 +63,12 @@ struct TestGame
 		/* Update rotating light. */
 		static float theta = 0.0f;
 		theta = modrads(theta += DEG2RAD * dt * 100);
-		light = Vector3(cosf(theta), 0.0f, sinf(theta));
+		light = Vector3::FromYaw(theta);
 		String lightStr = "Light ";
 		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
 
 		/* Update camera. */
-		cam->Update(dt, GetKeyboard(), this->GetCursor());
-		//cam->Update(dt, heart->GetWorld());
+		cam->Update(dt, heart->GetWorld());
 
 		/* Update input. */
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
@@ -90,8 +88,7 @@ struct TestGame
 
 		/* Render models. */
 		renderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		//renderer->Render(heart);
-		renderer->Render(heart2);
+		renderer->Render(heart);
 		renderer->End();
 
 		/* Render text. */

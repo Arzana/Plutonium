@@ -72,8 +72,8 @@ void Plutonium::GlfwCursorMoveEventHandler(GLFWwindow *hndlr, double x, double y
 		else
 		{
 			/* Update delta movement. */
-			cursor->DX += ix - cursor->X;
-			cursor->DY += iy - cursor->Y;
+			cursor->DeltaX += ix - cursor->X;
+			cursor->DeltaY += iy - cursor->Y;
 		}
 
 		/* Update to new position. */
@@ -133,9 +133,10 @@ void Plutonium::Cursor::Show(void)
 
 Plutonium::Cursor::Cursor(const Window * wnd)
 	: wnd(wnd), EnterWindow("CursorEnterWindow"), LeaveWindow("CursorLeaveWindow"), SpecialButtonPress("CursorSpecialButtonPress"),
-	X(0), Y(0), DX(0), DY(0), ScrollWheel(), LeftButton(false), RightButton(false), MiddleButton(false), firstMovement(true)
+	X(0), Y(0), LeftButton(false), RightButton(false), MiddleButton(false), firstMovement(true)
 {
 	activeCursors.push_back(this);
+	Update();
 
 	/* Set GLFW specific event handlers. */
 	glfwSetCursorPosCallback(wnd->hndlr, GlfwCursorMoveEventHandler);
@@ -148,6 +149,6 @@ void Plutonium::Cursor::Update(void)
 {
 	/* Reset scrollwheel delta and movement. */
 	ScrollWheel = Vector2::Zero;
-	DX = 0;
-	DY = 0;
+	DeltaX = 0;
+	DeltaY = 0;
 }

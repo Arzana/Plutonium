@@ -10,7 +10,7 @@ namespace Plutonium
 		char Key;
 		/* The texture associated with this character. */
 		Texture *Texture;
-		/* The basic size of the character. */
+		/* The size of the character. */
 		Vector2 Size;
 		/* The offset from the render position. */
 		Vector2 Bearing;
@@ -19,7 +19,7 @@ namespace Plutonium
 
 		/* Initializes a new empty instance a character. */
 		Character(void)
-			: Key('\0'), Texture(nullptr), Bearing(), Advance(0)
+			: Key('\0'), Texture(nullptr), Size(), Bearing(), Advance(0)
 		{}
 	};
 }
