@@ -379,5 +379,8 @@
     <ClInclude Include="..\..\include\Components\MemoryCounter.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

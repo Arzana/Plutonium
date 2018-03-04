@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\include\Graphics\Models\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Model.h" />
