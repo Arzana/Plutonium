@@ -1,6 +1,6 @@
 #pragma once
 #include "MeshVertexFormat.h"
-#include "Core\Math\Constants.h"
+#include "Graphics\Native\Buffer.h"
 #include <vector>
 
 namespace Plutonium
@@ -28,7 +28,10 @@ namespace Plutonium
 		void Finalize(void);
 
 		/* Gets the ID for the vertex array buffer. */
-		_Check_return_ uint32 GetVertexBuffer(void) const;
+		_Check_return_ inline Buffer* GetVertexBuffer(void) const
+		{
+			return buffer;
+		}
 		/* Gets a vertex at a specified position. */
 		_Check_return_ VertexFormat& GetVertexAt(_In_ size_t idx) const;
 		/* Gets the amount of vertices stored by the mesh. */
@@ -42,7 +45,7 @@ namespace Plutonium
 
 		VertexFormat *vertices;
 		size_t vrtxCnt;
-		uint32 ptr;
+		Buffer *buffer;
 
 		static Mesh* FromFile(const LoaderResult *buffer, size_t idx);
 	};

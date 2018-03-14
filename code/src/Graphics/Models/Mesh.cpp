@@ -8,54 +8,39 @@ using namespace Plutonium;
 using namespace tinyobj;
 
 Plutonium::Mesh::Mesh(const char * name)
-	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), ptr(0)
+	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), buffer(nullptr)
 {}
 
 Plutonium::Mesh::~Mesh(void) noexcept
 {
 	free_cstr_s(Name);
 
-	/* Releases the buffers if they are created. */
-	if (ptr != 0) glDeleteBuffers(1, &ptr);
-
-	/* Releases the CPU buffers if they still excist. */
+	/* Release the GPU buffer if it has been created. */
+	if (buffer) delete_s(buffer);
+	/* Releases the CPU buffer if it still excist. */
 	if (vertices) free_s(vertices);
 }
 
 void Plutonium::Mesh::Finalize(void)
 {
 	/* Make sure we don't allocate buffers twice. */
-	LOG_THROW_IF(ptr != 0, "Cannot call Finalize a second time!");
+	LOG_THROW_IF(buffer, "Cannot call finalize a second time!");
 
-	/* Allocated vertex and index buffers on the GPU. */
-	glGenBuffers(1, &ptr);
-
-	/* Copy vertices to the GPU. */
-	glBindBuffer(GL_ARRAY_BUFFER, ptr);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexFormat) * vrtxCnt, void_ptr(vertices), GL_STATIC_DRAW);
+	/* Create GPU buffer. */
+	buffer = new Buffer();
+	buffer->Bind(BindTarget::Array);
+	buffer->SetData(BufferUsage::StaticDraw, vertices, vrtxCnt);
 
 	/* Release CPU memory. */
 	free_s(vertices);
 	vertices = nullptr;
 }
 
-uint32 Plutonium::Mesh::GetVertexBuffer(void) const
-{
-	/* On debug check if the buffer has been created. */
-#if defined(DEBUG)
-	LOG_THROW_IF(ptr == 0, "Attempting to get vertex buffer before Finalize is called!");
-#endif
-
-	return ptr;
-}
-
 VertexFormat & Plutonium::Mesh::GetVertexAt(size_t idx) const
 {
 	/* Performs a range check on debug mode and checks if the buffers are still on the CPU. */
-#if defined(DEBUG)
-	LOG_THROW_IF(idx > vrtxCnt, "Attempting to retrieve vertex with out of bounds index!");
-	LOG_THROW_IF(ptr == 0, "Attempting to retrieve vertex after Finalize has been called!");
-#endif
+	ASSERT_IF(idx > vrtxCnt, "Attempting to retrieve vertex with out of bounds index!");
+	ASSERT_IF(buffer, "Attempting to retrieve vertex after Finalize has been called!");
 
 	return vertices[idx];
 }

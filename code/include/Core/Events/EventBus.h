@@ -57,7 +57,7 @@ namespace Plutonium
 		{
 			SubscriberType *sub = new SubscriberType(obj, func);
 			callbacks.push_back(sub);
-			LOG("registered callback(%llx) to event %s.", sub->GetID(), name);
+			LOG("Registered callback(%llx) to event %s.", sub->GetID(), name);
 		}
 
 		/* Unregisters an event handler from this event. */

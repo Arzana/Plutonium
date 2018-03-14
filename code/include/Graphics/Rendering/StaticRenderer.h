@@ -6,18 +6,18 @@
 namespace Plutonium
 {
 	/* Defines a very basic model renderer. */
-	struct Renderer
+	struct StaticRenderer
 	{
 	public:
 		/* Initializes a new instance of a basic model renderer. */
-		Renderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr);
-		Renderer(_In_ const Renderer &value) = delete;
-		Renderer(_In_ Renderer &&value) = delete;
+		StaticRenderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr);
+		StaticRenderer(_In_ const StaticRenderer &value) = delete;
+		StaticRenderer(_In_ StaticRenderer &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
-		~Renderer(void);
+		~StaticRenderer(void);
 
-		_Check_return_ Renderer& operator =(_In_ const Renderer &other) = delete;
-		_Check_return_ Renderer& operator =(_In_ Renderer &&other) = delete;
+		_Check_return_ StaticRenderer& operator =(_In_ const StaticRenderer &other) = delete;
+		_Check_return_ StaticRenderer& operator =(_In_ StaticRenderer &&other) = delete;
 
 		/* Starts rendering the specified scene. */
 		void Begin(_In_ const Matrix &view, const Matrix &proj, _In_ Vector3 lightDir);

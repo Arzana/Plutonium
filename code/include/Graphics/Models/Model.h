@@ -20,7 +20,7 @@ namespace Plutonium
 		_Check_return_ static Model* FromFile(_In_ const char *path);
 
 	private:
-		friend struct Renderer;
+		friend struct StaticRenderer;
 
 		Model(void)
 			: WorldObject()

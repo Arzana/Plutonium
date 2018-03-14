@@ -188,9 +188,6 @@
     <ClCompile Include="..\..\src\Graphics\Models\Model.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Rendering\Renderer.cpp">
-      <Filter>Source Files\Graphics\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Components\Camera.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -199,6 +196,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Components\MemoryCounter.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp">
+      <Filter>Source Files\Graphics\Native</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -367,9 +370,6 @@
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Rendering\Renderer.h">
-      <Filter>Header Files\Graphics\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Components\Camera.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -381,6 +381,18 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h">
       <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h">
+      <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\Buffer.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\BindTargets.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\BufferUsage.h">
+      <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

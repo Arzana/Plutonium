@@ -2,6 +2,7 @@
 #include "Graphics\Rendering\Shader.h"
 #include "Graphics\Window.h"
 #include "Font.h"
+#include "Graphics\Native\Buffer.h"
 #include <vector>
 
 namespace Plutonium
@@ -42,7 +43,7 @@ namespace Plutonium
 		WindowHandler wnd;
 
 	private:
-		uint32 vbo;
+		Buffer *vbo;
 
 		Shader *shdr;
 		Uniform *clr;

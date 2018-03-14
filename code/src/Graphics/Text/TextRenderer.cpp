@@ -19,9 +19,9 @@ Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, cons
 	wnd->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Create buffers for the character vertices. */
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+	vbo = new Buffer();
+	vbo->Bind(BindTarget::Array);
+	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, 6);
 
 #if defined(DEBUG)
 	LOG_WAR("FontRenderer is leaking memory on debug mode!");
@@ -32,11 +32,11 @@ Plutonium::FontRenderer::~FontRenderer(void)
 {
 	/* Remove event handler. */
 	wnd->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
+
 	/* Delete shader and font. */
 	delete_s(shdr);
 	delete_s(font);
-	/* Delete buffers. */
-	glDeleteBuffers(1, &vbo);
+	delete_s(vbo);
 }
 
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str)
@@ -113,10 +113,11 @@ void Plutonium::FontRenderer::RenderString(const char * string, Vector2 pos, Col
 			};
 
 			/* Bind buffers and draw character. */
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), void_ptr(vertices));
+			vbo->Bind();
+			vbo->SetData(vertices);
 			this->pos->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
 		}
 
 		/* Update draw position. */

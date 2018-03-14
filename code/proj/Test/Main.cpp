@@ -1,6 +1,6 @@
 #include <Game.h>
 #include <Graphics\Text\DebugTextRenderer.h>
-#include <Graphics\Rendering\Renderer.h>
+#include <Graphics\Rendering\StaticRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
@@ -14,7 +14,7 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *fontRenderer;
-	Renderer *renderer;
+	StaticRenderer *renderer;
 	Camera *cam;
 
 	/* Scene */
@@ -35,7 +35,7 @@ struct TestGame
 		AddComponent(mem = new MemoryCounter(this));
 
 		fontRenderer = new DebugFontRenderer(GetWindow(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
-		renderer = new Renderer("./assets/shaders/Basic3D.vsh", "./assets/shaders/Basic3D.fsh");
+		renderer = new StaticRenderer("./assets/shaders/Basic3D.vsh", "./assets/shaders/Basic3D.fsh");
 	}
 
 	virtual void LoadContent(void)
