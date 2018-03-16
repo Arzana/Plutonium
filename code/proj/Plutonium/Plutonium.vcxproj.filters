@@ -107,9 +107,6 @@
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Window.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
     </ClCompile>
@@ -212,6 +209,12 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\Window.cpp">
+      <Filter>Source Files\Graphics\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -252,12 +255,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Events\EventBus.h">
       <Filter>Header Files\Core\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\WindowModes.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Window.h">
-      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Events\EventArgs.h">
       <Filter>Header Files\Core\Events</Filter>
@@ -315,9 +312,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\VSyncModes.h">
-      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h">
       <Filter>Header Files\Graphics\Models</Filter>
@@ -414,6 +408,27 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\Window.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\BlendState.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\BlendType.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\DepthState.h">
+      <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

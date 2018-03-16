@@ -1,8 +1,8 @@
 #include "Graphics\Text\DebugTextRenderer.h"
 #include "Core\StringFunctions.h"
 
-Plutonium::DebugFontRenderer::DebugFontRenderer(WindowHandler wnd, const char * font, const char * vrtxShdr, const char * fragShdr)
-	: FontRenderer(wnd, font, vrtxShdr, fragShdr)
+Plutonium::DebugFontRenderer::DebugFontRenderer(GraphicsAdapter *device, const char * font, const char * vrtxShdr, const char * fragShdr)
+	: FontRenderer(device, font, vrtxShdr, fragShdr)
 {}
 
 void Plutonium::DebugFontRenderer::AddDebugString(const char * str)
@@ -17,5 +17,5 @@ void Plutonium::DebugFontRenderer::Render(void)
 	FontRenderer::Render();
 
 	/* Reset frame draw position. */
-	defPos = Vector2(0.0f, wnd->GetClientBounds().GetHeight() - font->GetLineSpace());
+	defPos = Vector2(0.0f, device->GetWindow()->GetClientBounds().GetHeight() - font->GetLineSpace());
 }

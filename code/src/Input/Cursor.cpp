@@ -1,5 +1,5 @@
 #include "Input\Cursor.h"
-#include "Graphics\Window.h"
+#include "Graphics\Native\Window.h"
 #include <glfw3.h>
 #include <vector>
 

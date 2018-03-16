@@ -74,9 +74,7 @@ void Plutonium::Texture::SetData(byte * data)
 byte * Plutonium::Texture::GetData(void) const
 {
 	/* On debug mode crash if no texture is specified. */
-#if defined (DEBUG)
-	LOG_THROW_IF(!ptr, "Cannot get data from not-loaded texture!");
-#endif
+	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
 
 	/* Initialize buffer result. */
 	byte *result = malloc_s(byte, Width * Height * GetChannels());

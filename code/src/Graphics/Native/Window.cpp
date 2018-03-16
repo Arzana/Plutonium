@@ -1,4 +1,4 @@
-#include "Graphics\Window.h"
+#include "Graphics\Native\Window.h"
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
 #include <glfw3.h>

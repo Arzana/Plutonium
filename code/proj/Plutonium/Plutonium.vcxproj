@@ -186,6 +186,7 @@
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Mesh.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
@@ -204,7 +206,6 @@
     <ClCompile Include="..\..\src\Graphics\Text\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Window.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
@@ -248,10 +250,16 @@
     <ClInclude Include="..\..\include\Graphics\Models\Shape.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BindTargets.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\BlendState.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\BlendType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Buffer.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BufferUsage.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\DepthState.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\Window.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
@@ -264,9 +272,6 @@
     <ClInclude Include="..\..\include\Graphics\Text\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\VSyncModes.h" />
-    <ClInclude Include="..\..\include\Graphics\Window.h" />
-    <ClInclude Include="..\..\include\Graphics\WindowModes.h" />
     <ClInclude Include="..\..\include\Input\ButtonEventArgs.h" />
     <ClInclude Include="..\..\include\Input\Cursor.h" />
     <ClInclude Include="..\..\include\Input\Keyboard.h" />

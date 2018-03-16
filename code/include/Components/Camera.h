@@ -2,7 +2,7 @@
 #include "Input\Keyboard.h"
 #include "Input\Cursor.h"
 #include "Core\Math\Matrix.h"
-#include "Graphics\Window.h"
+#include "Graphics\Native\Window.h"
 
 namespace Plutonium
 {

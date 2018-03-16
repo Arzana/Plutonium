@@ -16,15 +16,17 @@ bool Plutonium::ComponentSortPredicate(GameComponent *a, GameComponent *b)
 }
 
 Plutonium::Game::Game(const char * name)
-	: wnd(nullptr), cursor(nullptr), keyboard(nullptr),					// Default state for helper objects.
+	: device(nullptr), cursor(nullptr), keyboard(nullptr),				// Default state for helper objects.
 	FixedTimeStep(true), suppressRender(false),							// Enable fixed time step and allow first render.
 	targetElapTimeFocused(0.0166667f), targetElapTimeNoFocus(0.05f),	// Normal: 60 FPS, Out of focus: 20 FPS.
 	accumElapTime(0), maxElapTime(5), loadPercentage(-1)				// Set buffer time objects.
 {
 	/* Get new window and set helper objects. */
-	wnd = new Window(name, Vector2(800.0f, 600.0f));
+	Window *wnd = new Window(name, Vector2(800.0f, 600.0f));
 	ASSERT_IF(!wnd->operational, "Could not create new window!", "Window initialization failed!");
 
+	/* Create device handles. */
+	device = new GraphicsAdapter(wnd);
 	cursor = new Cursor(wnd);
 	keyboard = new Keyboard(wnd);
 }
@@ -32,7 +34,7 @@ Plutonium::Game::Game(const char * name)
 Plutonium::Game::~Game(void)
 {
 	/* Release basic helpers. */
-	delete_s(wnd);
+	delete_s(device);
 	delete_s(cursor);
 	delete_s(keyboard);
 
@@ -69,6 +71,8 @@ void Plutonium::Game::SetLoadPercentage(int value)
 
 void Plutonium::Game::Run(void)
 {
+	Window *wnd = device->GetWindow();
+
 	/* Initialize game. */
 	LOG("Initializing '%s'.", wnd->title);
 	prevTime = glfwGetTime();
@@ -83,7 +87,7 @@ void Plutonium::Game::Run(void)
 	/* Excecute game loop. */
 	while (!wnd->Update())
 	{
-		while (!Tick());
+		while (!Tick(wnd->HasFocus()));
 	}
 
 	/* Finalize game. */
@@ -110,18 +114,18 @@ void Plutonium::Game::AddComponent(GameComponent * component)
 void Plutonium::Game::Exit(void)
 {
 	/* Request a close from the window and suppress the render to speed up the closing process. */
-	wnd->Close();
+	device->GetWindow()->Close();
 	suppressRender = true;
 }
 
-bool Plutonium::Game::Tick(void)
+bool Plutonium::Game::Tick(bool focused)
 {
 	/* Update timers. */
 	double curTime = glfwGetTime();
 	accumElapTime += static_cast<float>(curTime - prevTime);
 	prevTime = curTime;
 
-	float targetElapTime = wnd->HasFocus() ? targetElapTimeFocused : targetElapTimeNoFocus;
+	float targetElapTime = focused ? targetElapTimeFocused : targetElapTimeNoFocus;
 
 	/* If the update rate is fixed and we're below the threshold we halt the threads execution. */
 	if (FixedTimeStep && accumElapTime < targetElapTime)
@@ -206,13 +210,12 @@ void Plutonium::Game::DoUpdate(float dt)
 void Plutonium::Game::BeginRender(void)
 {
 	/* Set window specific viewport. */
-	const Rectangle vp = wnd->GetClientBounds();
+	const Rectangle vp = device->GetWindow()->GetClientBounds();
 	glViewport(static_cast<int>(vp.Position.X), static_cast<int>(vp.Position.Y), static_cast<int>(vp.GetWidth()), static_cast<int>(vp.GetHeight()));
 
 	/* Disable alpha blending and enable culling. */
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	device->SetAlphaBlendFunction(BlendState::None);
+	device->SetDepthTest(DepthState::LessOrEqual);
 
 	/* Set clear color and clear window. */
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -235,5 +238,5 @@ void Plutonium::Game::DoRender(float dt)
 void Plutonium::Game::EndRender(void)
 {
 	/* Swap render targets. */
-	glfwSwapBuffers(wnd->hndlr);
+	glfwSwapBuffers(device->GetWindow()->hndlr);
 }

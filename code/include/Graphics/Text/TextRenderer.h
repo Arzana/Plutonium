@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics\Rendering\Shader.h"
-#include "Graphics\Window.h"
+#include "Graphics\GraphicsAdapter.h"
 #include "Font.h"
 #include "Graphics\Native\Buffer.h"
 #include <vector>
@@ -12,7 +12,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a font renderer. */
-		FontRenderer(_In_ WindowHandler wnd, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
+		FontRenderer(_In_ GraphicsAdapter *device, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
 		FontRenderer(_In_ const FontRenderer &value) = delete;
 		FontRenderer(_In_ FontRenderer &&value) = delete;
 		/* Releases the resources allocated by the font renderer. */
@@ -40,7 +40,7 @@ namespace Plutonium
 		/* A buffer for storing the position of the strings. */
 		std::vector<Vector2> vrtxs;
 		/* The window associated with the renderer. */
-		WindowHandler wnd;
+		GraphicsAdapter *device;
 
 	private:
 		Buffer *vbo;
@@ -56,6 +56,5 @@ namespace Plutonium
 		void AddSingleString(Vector2 pos, const char *str);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void ClearBuffer(void);
-		void EnableBlending(void);
 	};
 }

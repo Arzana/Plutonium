@@ -32,7 +32,7 @@ struct TestGame
 	TestGame(void)
 		: Game("TestGame")
 	{
-		GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
+		GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 		GetCursor()->Disable();
 	}
 
@@ -41,14 +41,14 @@ struct TestGame
 		AddComponent(fps = new FpsCounter(this));
 		AddComponent(mem = new MemoryCounter(this));
 
-		fontRenderer = new DebugFontRenderer(GetWindow(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
+		fontRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
 	}
 
 	virtual void LoadContent(void)
 	{
-		cam = new Camera(GetWindow());
+		cam = new Camera(GetGraphics()->GetWindow());
 
 		heart = StaticModel::FromFile("./assets/models/Heart/Heart.obj");
 		heart->SetScale(10.0f);

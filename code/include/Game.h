@@ -1,7 +1,7 @@
 #pragma once
-#include "Graphics\Window.h"
 #include "Input\Cursor.h"
 #include "Input\Keyboard.h"
+#include "Graphics\GraphicsAdapter.h"
 #include "Components\GameComponent.h"
 
 namespace Plutonium
@@ -39,10 +39,10 @@ namespace Plutonium
 		void LoadNew(void);
 
 	protected:
-		/* Gets the game window associated with this game. */
-		_Check_return_ inline Window* GetWindow(void) const
+		/* Gets the game graphics adapter associated with this game. */
+		_Check_return_ inline GraphicsAdapter* GetGraphics(void) const
 		{
-			return wnd;
+			return device;
 		}
 
 		/* Gets the cursor helper object for this game. */
@@ -91,12 +91,12 @@ namespace Plutonium
 		float maxElapTime;
 		int loadPercentage;
 
-		Window *wnd;
+		GraphicsAdapter *device;
 		Cursor *cursor;
 		Keyboard *keyboard;
 		std::vector<GameComponent*> components;
 
-		bool Tick(void);
+		bool Tick(bool focused);
 		void DoInitialize(void);
 		void DoFinalize(void);
 		void DoUpdate(float dt);

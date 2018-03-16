@@ -8,7 +8,7 @@ namespace Plutonium
 		: public FontRenderer
 	{
 		/* Initializes a new instance of a debug font renderer. */
-		DebugFontRenderer(_In_ WindowHandler wnd, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
+		DebugFontRenderer(_In_ GraphicsAdapter *device, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
 		DebugFontRenderer(_In_ const DebugFontRenderer &value) = delete;
 		DebugFontRenderer(_In_ DebugFontRenderer &&value) = delete;
 

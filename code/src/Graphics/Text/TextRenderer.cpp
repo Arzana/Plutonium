@@ -1,8 +1,8 @@
 #include "Graphics\Text\TextRenderer.h"
 #include "Core\StringFunctions.h"
 
-Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, const char * vrtxShdr, const char * fragShdr)
-	: wnd(wnd)
+Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font, const char * vrtxShdr, const char * fragShdr)
+	: device(device)
 {
 	/* Load shader and fields from files. */
 	shdr = Shader::FromFile(vrtxShdr, fragShdr);
@@ -15,8 +15,8 @@ Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, cons
 	this->font = Font::FromFile(font, 24.0f);
 
 	/* Make sure projection matrix is updated on window resize. */
-	WindowResizeEventHandler(wnd, EventArgs());
-	wnd->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
+	WindowResizeEventHandler(device->GetWindow(), EventArgs());
+	device->GetWindow()->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Create buffers for the character vertices. */
 	vbo = new Buffer();
@@ -31,7 +31,7 @@ Plutonium::FontRenderer::FontRenderer(WindowHandler wnd, const char * font, cons
 Plutonium::FontRenderer::~FontRenderer(void)
 {
 	/* Remove event handler. */
-	wnd->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
+	device->GetWindow()->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Delete shader and font. */
 	delete_s(shdr);
@@ -64,7 +64,7 @@ void Plutonium::FontRenderer::Render(void)
 		wvp->Set(proj);
 
 		/* Make sure blending is enabled. */
-		EnableBlending();
+		device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
 
 		/* Render all stored strings. */
 		for (size_t i = 0; i < strs.size(); i++)
@@ -149,10 +149,4 @@ void Plutonium::FontRenderer::ClearBuffer(void)
 	}
 
 	vrtxs.clear();
-}
-
-void Plutonium::FontRenderer::EnableBlending(void)
-{
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
