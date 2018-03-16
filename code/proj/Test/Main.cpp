@@ -54,7 +54,7 @@ struct TestGame
 		heart->SetScale(10.0f);
 
 		knight = DynamicModel::FromFile("./assets/models/Knight/knight.md2", "knight.bmp");
-		knight->SetOrientation(0.0f, -PI2, 0.0f);
+		knight->SetOrientation(-PI2, -PI2, 0.0f);
 		knight->Initialize(InitKnight);
 		knight->PlayAnimation("stand");
 	}
@@ -106,7 +106,7 @@ struct TestGame
 
 		/* Render static models. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		srenderer->Render(heart);
+		//srenderer->Render(heart);
 		srenderer->End();
 
 		/* Render dynamic models. */

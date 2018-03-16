@@ -12,6 +12,7 @@ Plutonium::DynamicRenderer::DynamicRenderer(const char * vrtxShdr, const char * 
 	matProj = shdr->GetUniform("u_projection");
 	texture = shdr->GetUniform("u_texture");
 	lightDir = shdr->GetUniform("u_light_direction");
+	ambient = shdr->GetUniform("u_ambient");
 	time = shdr->GetUniform("u_time");
 
 	/* Get attributes. */
@@ -39,6 +40,7 @@ void Plutonium::DynamicRenderer::Begin(const Matrix & view, const Matrix & proj,
 		/* Set constant uniforms. */
 		matView->Set(view);
 		matProj->Set(proj);
+		ambient->Set(0.5f);
 		this->lightDir->Set(lightDir);
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");

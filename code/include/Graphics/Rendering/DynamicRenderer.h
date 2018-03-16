@@ -27,7 +27,7 @@ namespace Plutonium
 
 	private:
 		Shader *shdr;
-		Uniform *matMdl, *matView, *matProj, *texture, *lightDir, *time;
+		Uniform *matMdl, *matView, *matProj, *texture, *lightDir, *ambient, *time;
 		Attribute *pos1, *pos2, *norm1, *norm2, *uv;
 		bool beginCalled;
 	};

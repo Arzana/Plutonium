@@ -118,11 +118,10 @@ bool Plutonium::Game::Tick(void)
 {
 	/* Update timers. */
 	double curTime = glfwGetTime();
-	float deltaTime = static_cast<float>(curTime - prevTime);
-	float targetElapTime = wnd->HasFocus() ? targetElapTimeFocused : targetElapTimeNoFocus;
-
-	accumElapTime += deltaTime;
+	accumElapTime += static_cast<float>(curTime - prevTime);
 	prevTime = curTime;
+
+	float targetElapTime = wnd->HasFocus() ? targetElapTimeFocused : targetElapTimeNoFocus;
 
 	/* If the update rate is fixed and we're below the threshold we halt the threads execution. */
 	if (FixedTimeStep && accumElapTime < targetElapTime)
@@ -132,27 +131,30 @@ bool Plutonium::Game::Tick(void)
 		return false;
 	}
 
+	/* Make sure we don't update to much. */
+	if (accumElapTime > maxElapTime) accumElapTime = maxElapTime;
+	float dt = 0.0f;
+
 	/* Catch up on game updates. */
 	if (FixedTimeStep)
 	{
-		/* Make sure we don't update to much. */
-		if (accumElapTime > maxElapTime) accumElapTime = maxElapTime;
-		/* Make sure the delta time for the render function is still correct. */
-		deltaTime = accumElapTime;
-
 		/* Do updates. */
-		for (; accumElapTime >= targetElapTime; accumElapTime -= targetElapTime) DoUpdate(deltaTime);
+		for (; accumElapTime >= targetElapTime; accumElapTime -= targetElapTime)
+		{
+			dt += targetElapTime;
+			DoUpdate(targetElapTime);
+		}
 	}
 	else
 	{
 		/* Do update. */
-		accumElapTime = 0;
-		DoUpdate(deltaTime);
+		dt = accumElapTime;
+		DoUpdate(dt);
 	}
 
 	/* Do frame render. */
 	if (suppressRender) suppressRender = false;
-	else DoRender(deltaTime);
+	else DoRender(dt);
 	return true;
 }
 
