@@ -207,14 +207,14 @@ void Plutonium::Game::BeginRender(void)
 	const Rectangle vp = wnd->GetClientBounds();
 	glViewport(static_cast<int>(vp.Position.X), static_cast<int>(vp.Position.Y), static_cast<int>(vp.GetWidth()), static_cast<int>(vp.GetHeight()));
 
-	/* Set clear color and clear window. */
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	/* Disable alpha blending and enable culling. */
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	glDepthFunc(GL_LEQUAL);
+
+	/* Set clear color and clear window. */
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Plutonium::Game::DoRender(float dt)

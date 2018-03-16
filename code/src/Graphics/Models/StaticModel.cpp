@@ -1,4 +1,4 @@
-#include "Graphics\Models\Model.h"
+#include "Graphics\Models\StaticModel.h"
 #include "Graphics\Models\ObjLoader.h"
 #include "Streams\FileReader.h"
 #include "Core\SafeMemory.h"
@@ -6,7 +6,7 @@
 
 using namespace Plutonium;
 
-Plutonium::Model::~Model(void)
+Plutonium::StaticModel::~StaticModel(void)
 {
 	/* Free underlying shapes. */
 	while (shapes.size() > 0)
@@ -19,11 +19,11 @@ Plutonium::Model::~Model(void)
 	}
 }
 
-Model * Plutonium::Model::FromFile(const char * path)
+StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 {
 	/* Load raw data. */
 	FileReader reader(path);
-	const LoaderResult *raw = _CrtLoadObjMtl(path);
+	const ObjLoaderResult *raw = _CrtLoadObjMtl(path);
 
 	/* Check if file load has been successful. */
 	if (!raw->Successful)
@@ -34,7 +34,7 @@ Model * Plutonium::Model::FromFile(const char * path)
 		return nullptr;
 	}
 
-	Model *result = new Model();
+	StaticModel *result = new StaticModel();
 
 	/* Load individual shapes. */
 	for (size_t i = 0; i < raw->Shapes.size(); i++)
@@ -43,7 +43,6 @@ Model * Plutonium::Model::FromFile(const char * path)
 
 		/* Load mesh. */
 		Mesh *mesh = Mesh::FromFile(raw, i);
-		mesh->Finalize();	// TEMPORARY
 
 		/* Get correct material. */
 		tinyobj::material_t mtl = shape.mesh.material_ids.size() > 0 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
@@ -55,6 +54,16 @@ Model * Plutonium::Model::FromFile(const char * path)
 		result->shapes.push_back(new Shape(mesh, texture));
 	}
 
+	result->Finalize();	//TODO: Remove!
+
 	delete_s(raw);
 	return result;
+}
+
+void Plutonium::StaticModel::Finalize(void)
+{
+	for (size_t i = 0; i < shapes.size(); i++)
+	{
+		shapes.at(i)->Mesh->Finalize();
+	}
 }

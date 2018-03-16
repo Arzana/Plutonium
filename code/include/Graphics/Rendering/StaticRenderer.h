@@ -1,7 +1,6 @@
 #pragma once
 #include "Graphics\Rendering\Shader.h"
-#include "Graphics\Window.h"
-#include "Graphics\Models\Model.h"
+#include "Graphics\Models\StaticModel.h"
 
 namespace Plutonium
 {
@@ -20,9 +19,9 @@ namespace Plutonium
 		_Check_return_ StaticRenderer& operator =(_In_ StaticRenderer &&other) = delete;
 
 		/* Starts rendering the specified scene. */
-		void Begin(_In_ const Matrix &view, const Matrix &proj, _In_ Vector3 lightDir);
+		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 lightDir);
 		/* Renders the specified model. */
-		void Render(_In_ const Model *model);
+		void Render(_In_ const StaticModel *model);
 		/* Stops rendering the specified scene. */
 		void End(void);
 

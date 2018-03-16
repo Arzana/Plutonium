@@ -1,11 +1,13 @@
 #include <Game.h>
 #include <Graphics\Text\DebugTextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
+#include <Graphics\Rendering\DynamicRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
 #include <Core\String.h>
+#include "KnightInit.h"
 
 using namespace Plutonium;
 
@@ -14,11 +16,13 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *fontRenderer;
-	StaticRenderer *renderer;
+	StaticRenderer *srenderer;
+	DynamicRenderer *drenderer;
 	Camera *cam;
 
 	/* Scene */
-	Model *heart;
+	StaticModel *heart;
+	DynamicModel *knight;
 	Vector3 light = Vector3::Zero;
 
 	/* Diagnostics. */
@@ -27,7 +31,10 @@ struct TestGame
 
 	TestGame(void)
 		: Game("TestGame")
-	{}
+	{
+		GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
+		GetCursor()->Disable();
+	}
 
 	virtual void Initialize(void)
 	{
@@ -35,27 +42,35 @@ struct TestGame
 		AddComponent(mem = new MemoryCounter(this));
 
 		fontRenderer = new DebugFontRenderer(GetWindow(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
-		renderer = new StaticRenderer("./assets/shaders/Basic3D.vsh", "./assets/shaders/Basic3D.fsh");
+		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
+		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
 	}
 
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetWindow());
 
-		heart = Model::FromFile("./assets/models/Heart/Heart.obj");
+		heart = StaticModel::FromFile("./assets/models/Heart/Heart.obj");
 		heart->SetScale(10.0f);
+
+		knight = DynamicModel::FromFile("./assets/models/Knight/knight.md2", "knight.bmp");
+		knight->SetOrientation(0.0f, -PI2, 0.0f);
+		knight->Initialize(InitKnight);
+		knight->PlayAnimation("stand");
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
 		delete_s(heart);
+		delete_s(knight);
 	}
 
 	virtual void Finalize(void)
 	{
 		delete_s(fontRenderer);
-		delete_s(renderer);
+		delete_s(srenderer);
+		delete_s(drenderer);
 	}
 
 	virtual void Update(float dt)
@@ -67,8 +82,11 @@ struct TestGame
 		String lightStr = "Light ";
 		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
 
+		/* Update scene. */
+		knight->Update(dt);
+
 		/* Update camera. */
-		cam->Update(dt, heart->GetWorld());
+		cam->Update(dt, GetKeyboard(), GetCursor());
 
 		/* Update input. */
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
@@ -86,10 +104,15 @@ struct TestGame
 		(vramStr += b2mb(mem->GetOSVRamBudget())) += " MB";
 		fontRenderer->AddDebugString(vramStr);
 
-		/* Render models. */
-		renderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		renderer->Render(heart);
-		renderer->End();
+		/* Render static models. */
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
+		srenderer->Render(heart);
+		srenderer->End();
+
+		/* Render dynamic models. */
+		drenderer->Begin(cam->GetView(), cam->GetProjection(), light);
+		drenderer->Render(knight);
+		drenderer->End();
 
 		/* Render text. */
 		fontRenderer->Render();

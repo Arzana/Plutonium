@@ -1,5 +1,6 @@
 #include "Graphics\Models\Mesh.h"
 #include "Graphics\Models\ObjLoader.h"
+#include "Graphics\Models\Md2Loader.h"
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
 #include <glad\glad.h>
@@ -45,7 +46,7 @@ VertexFormat & Plutonium::Mesh::GetVertexAt(size_t idx) const
 	return vertices[idx];
 }
 
-Mesh * Plutonium::Mesh::FromFile(const LoaderResult * buffer, size_t idx)
+Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 {
 	/* Get current shape. */
 	shape_t shape = buffer->Shapes.at(idx);
@@ -78,12 +79,45 @@ Mesh * Plutonium::Mesh::FromFile(const LoaderResult * buffer, size_t idx)
 			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
 			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
 
-			/* Push vertex and index to buffer  */
+			/* Push vertex to buffer  */
 			result->vertices[k] = format;
 		}
 
 		/* Add the offset to the start. */
 		start += verticesInFace;
+	}
+
+	return result;
+}
+
+Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx)
+{
+	/* Get specified frame. */
+	const md2_frame_t& frame = buffer->frames.at(idx);
+
+	/* Create result. */
+	Mesh *result = new Mesh(frame.name);
+	result->vrtxCnt = buffer->shapes.size() * 3;
+	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
+
+	/* Loop through all triangles. */
+	for (size_t i = 0, k = 0; i < buffer->shapes.size(); i++)
+	{
+		/* Loop through all vertices in triangle. */
+		const md2_triangle_t &trgl = buffer->shapes.at(i);
+		for (size_t j = 0; j < 3; j++)
+		{
+			/* Get current vertex. */
+			md2_vertex_t vrtx = frame.vertices.at(trgl.vertex_indices[j]);
+
+			/* Copy over current vertex. */
+			size_t test = k + j;
+			result->vertices[test].Position = frame.scale * vrtx.position + frame.translation;
+			result->vertices[test].Normal = Vector2(vrtx.normal.X, vrtx.normal.Y);
+			result->vertices[test].Texture = buffer->texcoords.at(trgl.texture_indices[j]);
+		}
+
+		k += 3;
 	}
 
 	return result;

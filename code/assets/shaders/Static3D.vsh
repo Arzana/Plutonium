@@ -1,28 +1,30 @@
 #version 430 core
 
-// Uniforms
-uniform mat4 u_projection;
-uniform mat4 u_view;
+// Uniforms.
 uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 uniform vec3 u_light_direction;
 
-// Vertex atributes
+// Attributes.
 in vec3 a_position;
 in vec2 a_normal;
-in vec2 a_texture;
+in vec2 a_uv;
 
-// Vertex shader outputs
-out vec2 v_texture;
-out float v_intensity;
+// Outputs.
+out vec2 a_texture;
+out float a_intensity;
 
 void main()
 {
+	// Construct normal and move it to model space.
 	float z = sqrt(1.0 - (a_normal.x * a_normal.x) - (a_normal.y * a_normal.y));
 	vec3 normal = normalize((u_model * vec4(a_normal.x, a_normal.y, z, 0.0)).xyz);
 	
-	vec3 light_dir = normalize(u_light_direction);
-	v_intensity = max(0.0, dot(normal, light_dir));
+	// Calculate light intensity.
+	a_intensity = max(0.0, dot(normal, u_light_direction));
 	
-	v_texture = a_texture;
+	// Set texture uv and vertex position.
+	a_texture = a_uv;
 	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
 }

@@ -39,7 +39,7 @@ void Plutonium::Buffer::BufferData(BufferUsage usage, size_t size, const void * 
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");
 	ASSERT_IF(!type, "Cannot set data for unbound buffer %zu!", hndlr);
 
-	LOG("%s Buffer allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), size);
+	LOG("%s Buffer 0x%04x allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), hndlr, size);
 	glBufferData(type, size, data, static_cast<GLenum>(usage));
 }
 

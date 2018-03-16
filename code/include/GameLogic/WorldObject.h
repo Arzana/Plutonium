@@ -24,6 +24,12 @@ namespace Plutonium
 			transform.SetScale(scale);
 		}
 
+		/* Sets the orientation of the object. */
+		void SetOrientation(_In_ float yaw, _In_ float pitch, _In_ float roll)
+		{
+			transform.SetOrientation(yaw, pitch, roll);
+		}
+
 		/* Teleports the object to a new position. */
 		void Teleport(_In_ Vector3 pos)
 		{

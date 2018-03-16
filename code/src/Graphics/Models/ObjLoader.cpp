@@ -8,10 +8,10 @@ using namespace Plutonium;
 using namespace tinyobj;
 using namespace std;
 
-const LoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
+const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 {
 	/* Create new result structure. */
-	LoaderResult *result = new LoaderResult();
+	ObjLoaderResult *result = new ObjLoaderResult();
 	FileReader reader(path);
 
 	/* Load .obj and .mtl files. */

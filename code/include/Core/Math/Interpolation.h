@@ -1,6 +1,14 @@
 #pragma once
 #include "Basics.h"
 
+#if defined(near)
+#undef near
+#endif
+
+#if defined(far)
+#undef far
+#endif
+
 namespace Plutonium
 {
 	/* Performs nearest-neighbor interpolation between two specified points with a specified amount. */

@@ -186,14 +186,17 @@
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Mesh.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Models\Model.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\StaticModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
@@ -235,10 +238,12 @@
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\include\Graphics\Models\MeshVertexFormat.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\Model.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\StaticModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Shape.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Texture.h" />
@@ -248,6 +253,7 @@
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h" />
@@ -268,6 +274,7 @@
     <ClInclude Include="..\..\include\Input\Keys.h" />
     <ClInclude Include="..\..\include\Input\KeyState.h" />
     <ClInclude Include="..\..\include\Streams\FileReader.h" />
+    <ClInclude Include="..\..\include\Streams\FileUtils.h" />
     <ClInclude Include="..\..\include\Streams\SeekOrigin.h" />
     <ClInclude Include="..\..\include\Streams\StreamReader.h" />
   </ItemGroup>

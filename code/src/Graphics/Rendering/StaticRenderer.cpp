@@ -16,7 +16,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
 	norm = shdr->GetAttribute("a_normal");
-	uv = shdr->GetAttribute("a_texture");
+	uv = shdr->GetAttribute("a_uv");
 }
 
 Plutonium::StaticRenderer::~StaticRenderer(void)
@@ -29,8 +29,11 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 	/* Make sure we don't call begin twice. */
 	if (!beginCalled)
 	{
+		/* Begin shader. */
 		beginCalled = true;
 		shdr->Begin();
+
+		/* Set constant uniforms. */
 		matView->Set(view);
 		matProj->Set(proj);
 		this->lightDir->Set(lightDir);
@@ -38,7 +41,7 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
-void Plutonium::StaticRenderer::Render(const Model * model)
+void Plutonium::StaticRenderer::Render(const StaticModel * model)
 {
 	/* Make sure begin is called and set the model matrix. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
@@ -58,7 +61,7 @@ void Plutonium::StaticRenderer::Render(const Model * model)
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexCount()));
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexBuffer()->GetElementCount()));
 	}
 }
 

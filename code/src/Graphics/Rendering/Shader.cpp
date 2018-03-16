@@ -82,7 +82,7 @@ Uniform * Plutonium::Shader::GetUniform(const char * name) const
 		if (!strcmp(cur->name, name)) return static_cast<Uniform*>(cur);
 	}
 
-	ASSERT("Cannot find uniform!", "Cannot find uniform %s!", name);
+	ASSERT("Cannot find uniform %s!", name);
 	return nullptr;
 }
 
@@ -96,16 +96,14 @@ Attribute * Plutonium::Shader::GetAttribute(const char * name) const
 		if (!strcmp(cur->name, name)) return static_cast<Attribute*>(cur);
 	}
 
-	ASSERT("Cannot find attribute!", "Cannot find attribute %s!", name);
+	ASSERT("Cannot find attribute %s!", name);
 	return nullptr;
 }
 
 void Plutonium::Shader::Begin(void)
 {
 	/* On debug check if the shader is propperly loaded. */
-#if defined(DEBUG)
-	LOG_THROW_IF(!loaded, "Cannot start failed shader program!");
-#endif
+	ASSERT_IF(!loaded, "Cannot start failed shader program!");
 
 	/* Start use of shader or log warning. */
 	if (!beginCalled)
@@ -127,9 +125,7 @@ void Plutonium::Shader::Begin(void)
 void Plutonium::Shader::End(void)
 {
 	/* On debug check if the shader is propperly loaded. */
-#if defined(DEBUG)
-	LOG_THROW_IF(!loaded, "Cannot end failed shader program!");
-#endif
+	ASSERT_IF(!loaded, "Cannot end failed shader program!");
 
 	/* End use of shader or log warning. */
 	if (beginCalled)
@@ -182,7 +178,7 @@ bool Plutonium::Shader::CompileShader(uint32 * shdr, ShaderType type, const char
 #endif
 
 		/* Throw exception with source. */
-		LOG_THROW("Failed to compile %s shader!\n- Source:\n%s", _CrtGetShaderVisualType(type), src);
+		LOG_THROW("Failed to compile %s shader!\nSOURCE:\n%s", _CrtGetShaderVisualType(type), src);
 		return false;
 	}
 
