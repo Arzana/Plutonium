@@ -4,13 +4,6 @@
 
 inline void InitKnight(const char *Name, Plutonium::PlayBackFlags &flags, float &fps)
 {
-	static bool logCullWar = true;
-	if (logCullWar)
-	{
-		logCullWar = false;
-		LOG_WAR("The knight model cannot work with face culling enabled!");
-	}
-
 	if (!strcmp(Name, "stand"))
 	{
 		flags = Plutonium::PlayBackFlags::DefaultLoop;

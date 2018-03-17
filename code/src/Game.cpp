@@ -153,6 +153,7 @@ bool Plutonium::Game::Tick(bool focused)
 	{
 		/* Do update. */
 		dt = accumElapTime;
+		accumElapTime = 0.0f;
 		DoUpdate(dt);
 	}
 

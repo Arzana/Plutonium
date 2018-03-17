@@ -1,6 +1,8 @@
 #include "Graphics\Text\TextRenderer.h"
 #include "Core\StringFunctions.h"
 
+constexpr Plutonium::int32 MAX_STRING_LENGTH = 64;
+
 Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font, const char * vrtxShdr, const char * fragShdr)
 	: device(device)
 {
@@ -18,14 +20,9 @@ Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font
 	WindowResizeEventHandler(device->GetWindow(), EventArgs());
 	device->GetWindow()->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
-	/* Create buffers for the character vertices. */
 	vbo = new Buffer();
 	vbo->Bind(BindTarget::Array);
-	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, 6);
-
-#if defined(DEBUG)
-	LOG_WAR("FontRenderer is leaking memory on debug mode!");
-#endif
+	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, MAX_STRING_LENGTH * 6);
 }
 
 Plutonium::FontRenderer::~FontRenderer(void)
@@ -34,9 +31,9 @@ Plutonium::FontRenderer::~FontRenderer(void)
 	device->GetWindow()->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Delete shader and font. */
+	delete_s(vbo);
 	delete_s(shdr);
 	delete_s(font);
-	delete_s(vbo);
 }
 
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str)
@@ -62,6 +59,7 @@ void Plutonium::FontRenderer::Render(void)
 		/* Begin shader and set current projection matrix. */
 		shdr->Begin();
 		wvp->Set(proj);
+		tex->Set(font->map);
 
 		/* Make sure blending is enabled. */
 		device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
@@ -80,53 +78,58 @@ void Plutonium::FontRenderer::Render(void)
 
 void Plutonium::FontRenderer::RenderString(const char * string, Vector2 pos, Color clr)
 {
-	/* Set color for string. */
-	this->clr->Set(clr);
+	/* Update buffer. */
+	UpdateVBO(pos, string);
 
-	/* Loop through string. */
-	char c = *string;
-	for (size_t i = 0; c != '\0'; i++, c = string[i])
+	/* Set color and position parameters. */
+	this->clr->Set(clr);
+	this->pos->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
+
+	/* Render line. */
+	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
+}
+
+void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char *str)
+{
+	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
+	size_t size = strlen(str) * 6;
+	Vector4 *vertices = malloc_s(Vector4, size);
+
+	for (size_t i = 0, j = 0; i < (size / 6); i++)
 	{
 		/* Get current character and set texture. */
-		Character *ch = font->GetCharOrDefault(c);
+		Character *ch = font->GetCharOrDefault(str[i]);
 
-		/* For character that don't define a texture (space, etc.) we skip the render stage. */
-		if (ch->Texture)
-		{
-			tex->Set(ch->Texture);
+		/* Defines components of the position vertices. */
+		float x = pos.X + ch->Bearing.X;
+		float y = pos.Y - (ch->Size.Y + ch->Bearing.Y);
+		float w = ch->Size.X;
+		float h = ch->Size.Y;
+		Vector2 tl = ch->Bounds.Position;
+		Vector2 br = ch->Bounds.Position + ch->Bounds.Size;
 
-			/* Defines components of the position vertices. */
-			float x = pos.X + ch->Bearing.X;
-			float y = pos.Y - (ch->Size.Y + ch->Bearing.Y);
-			float w = ch->Size.X;
-			float h = ch->Size.Y;
+		/* Populate buffer. */
+		vertices[j++] = Vector4(x, y + h, tl.X, tl.Y);
+		vertices[j++] = Vector4(x, y, tl.X, br.Y);
+		vertices[j++] = Vector4(x + w, y, br.X, br.Y);
+		vertices[j++] = Vector4(x, y + h, tl.X, tl.Y);
+		vertices[j++] = Vector4(x + w, y, br.X, br.Y);
+		vertices[j++] = Vector4(x + w, y + h, br.X, tl.Y);
 
-			/* Define vertices. */
-			float vertices[6][4] =
-			{
-				{ x, y + h, 0.0f, 0.0f },
-				{ x, y, 0.0f, 1.0f },
-				{ x + w, y, 1.0f, 1.0f },
-				{ x, y + h, 0.0f, 0.0f },
-				{ x + w, y, 1.0f, 1.0f },
-				{ x + w, y + h, 1.0f, 0.0f }
-			};
-
-			/* Bind buffers and draw character. */
-			vbo->Bind();
-			vbo->SetData(vertices);
-			this->pos->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
-
-			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
-		}
-
-		/* Update draw position. */
 		pos.X += ch->Advance;
 	}
+
+	/* Create GPU side buffer. */
+	vbo->Bind();
+	vbo->SetData(vertices, size);
+	free_s(vertices);
 }
 
 void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char * str)
 {
+	/* Make sure we check for the maximum string length. */
+	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
+
 	strs.push_back(heapstr(str));
 	vrtxs.push_back(pos);
 }

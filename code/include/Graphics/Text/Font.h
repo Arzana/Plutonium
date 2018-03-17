@@ -1,6 +1,8 @@
 #pragma once
 #include "Character.h"
 
+struct stbtt_fontinfo;
+
 namespace Plutonium
 {
 	/* Defines a font that can be used to render characters. */
@@ -34,6 +36,7 @@ namespace Plutonium
 	private:
 		friend struct FontRenderer;
 
+		Texture *map;
 		Character *chars;
 		size_t cnt, def;
 		int32 lineSpace;
@@ -41,6 +44,8 @@ namespace Plutonium
 
 		Font(void);
 
-		Character* GetCharOrDefault(char key) const;
+		void SetCharacterInfo(stbtt_fontinfo *info, float scale);
+		void PopulateTextureMap(stbtt_fontinfo *info, float scale);
+		Character* GetCharOrDefault(int32 key) const;
 	};
 }

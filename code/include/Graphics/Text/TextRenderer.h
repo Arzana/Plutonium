@@ -52,7 +52,8 @@ namespace Plutonium
 		Attribute *pos;
 		Matrix proj;
 
-		void RenderString(const char *string, Vector2 pos, Color clr);
+		void RenderString(const char * string, Vector2 pos, Color clr);
+		void UpdateVBO(Vector2 pos, const char *str);
 		void AddSingleString(Vector2 pos, const char *str);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void ClearBuffer(void);

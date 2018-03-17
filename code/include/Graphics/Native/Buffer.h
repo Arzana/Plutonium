@@ -33,6 +33,13 @@ namespace Plutonium
 		}
 		/* Updates the data for a specified buffer. */
 		template <typename _Ty>
+		inline void SetData(_In_ const _Ty *data, _In_ size_t count)
+		{
+			size = count;
+			BufferSubData(sizeof(_Ty) * count, void_ptr(data));
+		}
+		/* Updates the data for a specified buffer. */
+		template <typename _Ty>
 		inline void SetData(_In_ const _Ty *data)
 		{
 			BufferSubData(sizeof(_Ty) * size, void_ptr(data));

@@ -21,6 +21,7 @@ struct TestGame
 	Camera *cam;
 
 	/* Scene */
+	float theta;
 	StaticModel *heart;
 	DynamicModel *knight;
 	Vector3 light = Vector3::Zero;
@@ -30,10 +31,10 @@ struct TestGame
 	MemoryCounter *mem;
 
 	TestGame(void)
-		: Game("TestGame")
+		: Game("TestGame"), theta(0.0f)
 	{
-		GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
-		GetCursor()->Disable();
+		//GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
+		//GetCursor()->Disable();
 	}
 
 	virtual void Initialize(void)
@@ -76,11 +77,8 @@ struct TestGame
 	virtual void Update(float dt)
 	{
 		/* Update rotating light. */
-		static float theta = 0.0f;
 		theta = modrads(theta += DEG2RAD * dt * 100);
 		light = Vector3::FromYaw(theta);
-		String lightStr = "Light ";
-		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
 
 		/* Update scene. */
 		knight->Update(dt);
@@ -100,6 +98,10 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
+		/* Render light direction. */
+		String lightStr = "Light ";
+		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
+
 		/* Render average FPS. */
 		String fpsaStr = "Fps (avg): ";
 		fontRenderer->AddDebugString(fpsaStr += ipart(fps->GetAvrgHz()));

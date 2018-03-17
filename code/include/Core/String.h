@@ -1,9 +1,13 @@
 #pragma once
+#include <string.h>
 #include "Core\Math\Vector2.h"
 #include "Core\Math\Matrix.h"
 
 namespace Plutonium
 {
+	/*	==============================
+		Warning: leaks memory.
+		==============================	*/
 	/* Defines an ease of use string type. */
 	struct String
 	{
