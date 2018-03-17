@@ -3,6 +3,8 @@
 #include "Graphics\Native\Window.h"
 #include "Graphics\Native\BlendState.h"
 #include "Graphics\Native\BlendType.h"
+#include "Graphics\Native\FaceCullState.h"
+#include "Graphics\Native\FaceCullType.h"
 #include "Graphics\Native\DepthState.h"
 
 namespace Plutonium
@@ -31,6 +33,12 @@ namespace Plutonium
 		void SetColorSourceBlend(_In_ BlendType blend);
 		/* Sets the destination color blend type. */
 		void SetColorDestinationBlend(_In_ BlendType blend);
+
+		/* Sets the way faces should be culled. */
+		void SetFaceCull(_In_ FaceCullState cull);
+		/* Sets the way front facing faces are determined. */
+		void SetFrontFace(_In_ FaceCullType func);
+
 		/* Sets the depth testing. */
 		void SetDepthTest(_In_ DepthState func);
 

@@ -39,6 +39,21 @@ void Plutonium::GraphicsAdapter::SetColorDestinationBlend(BlendType blend)
 	glBlendFunc(GL_DST_COLOR, static_cast<GLenum>(blend));
 }
 
+void Plutonium::GraphicsAdapter::SetFaceCull(FaceCullState cull)
+{
+	if (cull == FaceCullState::None) glDisable(GL_CULL_FACE);
+	else
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(static_cast<GLenum>(cull));
+	}
+}
+
+void Plutonium::GraphicsAdapter::SetFrontFace(FaceCullType func)
+{
+	glFrontFace(static_cast<GLenum>(func));
+}
+
 void Plutonium::GraphicsAdapter::SetDepthTest(DepthState func)
 {
 	if (func == DepthState::None) glDisable(GL_BLEND);
@@ -50,9 +65,15 @@ void Plutonium::GraphicsAdapter::SetDepthTest(DepthState func)
 }
 
 Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
-	: window(window),								// Set window and depth.
-	cbf(BlendState::None), abf(BlendState::None)	// Set blend equations.
+	: window(window)
 {
+	/* Get default blend equations. */
+	GLint clrBlend, alphaBlend;
+	glGetIntegerv(GL_BLEND_EQUATION_RGB, &clrBlend);
+	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &alphaBlend);
+	cbf = static_cast<BlendState>(clrBlend);
+	abf = static_cast<BlendState>(alphaBlend);
+
 	/* Set defaults. */
 	UpdateBlendEq(BlendState::None);
 	SetDepthTest(DepthState::LessOrEqual);

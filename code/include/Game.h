@@ -77,10 +77,12 @@ namespace Plutonium
 		virtual void Finalize(void) = 0;
 		/* Updates the game. */
 		virtual void Update(_In_ float dt) = 0;
+		/* Called before every render call. */
+		virtual void PreRender(void) {}
 		/* Renders the game. */
 		virtual void Render(_In_ float dt) = 0;
 		/* Renders the loading screen when the percentage is updated. */
-		virtual void RenderLoad(_In_ float dt, _In_ int percentage) = 0;
+		virtual void RenderLoad(_In_ float dt, _In_ int percentage) {}
 
 	private:
 		bool suppressRender;

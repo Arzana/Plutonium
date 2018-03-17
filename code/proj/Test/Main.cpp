@@ -92,6 +92,12 @@ struct TestGame
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 	}
 
+	virtual void PreRender(void)
+	{
+		/* If the knight model is used face culling needs to be turned off. */
+		GetGraphics()->SetFaceCull(FaceCullState::None);
+	}
+
 	virtual void Render(float dt)
 	{
 		/* Render average FPS. */
@@ -117,9 +123,6 @@ struct TestGame
 		/* Render text. */
 		fontRenderer->Render();
 	}
-
-	virtual void RenderLoad(float dt, int percentage)
-	{}
 };
 
 int main(int argc, char **argv)
@@ -128,5 +131,6 @@ int main(int argc, char **argv)
 	game->Run();
 	delete_s(game);
 
+	_CrtPressAnyKeyToContinue();
 	return 0;
 }

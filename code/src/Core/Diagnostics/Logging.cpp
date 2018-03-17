@@ -6,7 +6,8 @@
 #include <crtdbg.h>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <Windows.h>	// Console colors.
+#include <conio.h>		// Press ANY key to continue.
 #endif
 
 using namespace Plutonium;
@@ -145,5 +146,16 @@ bool Plutonium::_CrtLogBacktrack(size_t amnt)
 #else
 	LOG_WAR("Backtracking the output is not supported on this platform!");
 	return false;
+#endif
+}
+
+void Plutonium::_CrtPressAnyKeyToContinue(void)
+{
+#if defined(_WIN32)
+	LOG_MSG("Press any key to continue...");
+	getch();
+#else
+	LOG_MSG("Press ENTER to continue...");
+	getchar();
 #endif
 }

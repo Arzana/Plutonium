@@ -430,5 +430,11 @@
     <ClInclude Include="..\..\include\Graphics\Native\DepthState.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\FaceCullState.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

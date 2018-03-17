@@ -255,6 +255,8 @@
     <ClInclude Include="..\..\include\Graphics\Native\Buffer.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BufferUsage.h" />
     <ClInclude Include="..\..\include\Graphics\Native\DepthState.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\FaceCullState.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />

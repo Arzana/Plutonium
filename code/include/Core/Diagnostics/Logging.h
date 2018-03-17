@@ -36,6 +36,8 @@ namespace Plutonium
 	void _CrtLogThrow(_In_ const char *msg, _In_ const char *file, _In_ const char *func, _In_ int line, _In_ const char *desc, ...);
 	/* Sets the render position of the output back a specified amount of places. */
 	_Check_return_ bool _CrtLogBacktrack(_In_ size_t amnt);
+	/* Waits for the user to press any key in the console. */
+	void _CrtPressAnyKeyToContinue(void);
 }
 
 #define LOG_MSG(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Info, (msg), ##__VA_ARGS__)
