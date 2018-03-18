@@ -1,6 +1,7 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 
 #include "Graphics\Text\Font.h"
+#include "Core\Math\Basics.h"
 #include "Core\SafeMemory.h"
 #include "Core\Stopwatch.h"
 #include <stb\stb_truetype.h>
@@ -112,7 +113,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 		cur->Key = static_cast<char>(c);
 		cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
 		cur->Bounds = Rectangle(curLineSize.X, finalMapSize.Y, static_cast<float>(w), static_cast<float>(h));
-		cur->Advance = static_cast<uint32>(__max(0, x0 + advance * scale));
+		cur->Advance = static_cast<uint32>(rectify(x0 + advance * scale));
 		cur->Bearing = Vector2(static_cast<float>(lsb * scale), static_cast<float>(y0));
 		if (h > lineSpace) lineSpace = h;
 
@@ -131,7 +132,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 		{
 			/* Update current line. */
 			curLineSize.X += w;
-			curLineSize.Y = __max(curLineSize.Y, h);
+			curLineSize.Y = max(curLineSize.Y, static_cast<float>(h));
 		}
 
 		/* Make sure we set the default to a recognisable character. */
@@ -139,7 +140,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 	}
 
 	/* Update to final map size. */
-	finalMapSize.X = __max(finalMapSize.X, curLineSize.X);
+	finalMapSize.X = max(finalMapSize.X, curLineSize.X);
 	finalMapSize.Y += curLineSize.Y;
 	lineSpace += lineGap;
 	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), 0);

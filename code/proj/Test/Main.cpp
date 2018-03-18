@@ -16,13 +16,11 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *fontRenderer;
-	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
-	StaticModel *heart;
 	DynamicModel *knight;
 	Vector3 light = Vector3::Zero;
 
@@ -43,16 +41,12 @@ struct TestGame
 		AddComponent(mem = new MemoryCounter(this));
 
 		fontRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
-		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
 	}
 
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
-
-		heart = StaticModel::FromFile("./assets/models/Heart/Heart.obj");
-		heart->SetScale(10.0f);
 
 		knight = DynamicModel::FromFile("./assets/models/Knight/knight.md2", "knight.bmp");
 		knight->SetOrientation(-PI2, -PI2, 0.0f);
@@ -63,14 +57,12 @@ struct TestGame
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-		delete_s(heart);
 		delete_s(knight);
 	}
 
 	virtual void Finalize(void)
 	{
 		delete_s(fontRenderer);
-		delete_s(srenderer);
 		delete_s(drenderer);
 	}
 
@@ -99,23 +91,20 @@ struct TestGame
 	virtual void Render(float dt)
 	{
 		/* Render light direction. */
-		String lightStr = "Light ";
-		fontRenderer->AddDebugString((lightStr += ipart(theta * RAD2DEG)) += "°");
+		std::string lightStr = "Light ";
+		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
+		fontRenderer->AddDebugString(lightStr);
 
 		/* Render average FPS. */
-		String fpsaStr = "Fps (avg): ";
-		fontRenderer->AddDebugString(fpsaStr += ipart(fps->GetAvrgHz()));
+		std::string fpsaStr = "Fps (avg): ";
+		fpsaStr += std::to_string(ipart(fps->GetAvrgHz()));
+		fontRenderer->AddDebugString(fpsaStr);
 
 		/* Render average VRAM. */
-		String vramStr = "VRAM: ";
-		(vramStr += b2mb(mem->GetAvrgVRamUsage())) += " / ";
-		(vramStr += b2mb(mem->GetOSVRamBudget())) += " MB";
+		std::string vramStr = "VRAM: ";
+		(vramStr += std::to_string(b2mb(mem->GetAvrgVRamUsage()))) += " / ";
+		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
 		fontRenderer->AddDebugString(vramStr);
-
-		/* Render static models. */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		//srenderer->Render(heart);
-		srenderer->End();
 
 		/* Render dynamic models. */
 		drenderer->Begin(cam->GetView(), cam->GetProjection(), light);

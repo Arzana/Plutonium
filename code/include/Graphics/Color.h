@@ -31,14 +31,14 @@ namespace Plutonium
 		{
 			struct
 			{
-				/* The red amount of this color. */
-				byte R;
-				/* The green amount of this color. */
-				byte G;
-				/* The blue amount of this color. */
-				byte B;
 				/* The alpha (transparency) of this color. */
 				byte A;
+				/* The blue amount of this color. */
+				byte B;
+				/* The green amount of this color. */
+				byte G;
+				/* The red amount of this color. */
+				byte R;
 			};
 
 			/* The color as a 32 bit unsigned int. */

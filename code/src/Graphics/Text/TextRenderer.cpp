@@ -36,7 +36,7 @@ Plutonium::FontRenderer::~FontRenderer(void)
 	delete_s(font);
 }
 
-void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str)
+void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr)
 {
 	/* Initialize newline split buffer. */
 	constexpr size_t BUFF_LEN = 16;
@@ -47,7 +47,7 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str)
 	size_t len = spltstr(str, '\n', buffer, 0);
 	for (size_t i = 0; i < len; i++)
 	{
-		AddSingleString(Vector2(pos.X, pos.Y - font->lineSpace * i), buffer[i]);
+		AddSingleString(Vector2(pos.X, pos.Y - font->lineSpace * i), buffer[i], clr);
 	}
 }
 
@@ -67,7 +67,7 @@ void Plutonium::FontRenderer::Render(void)
 		/* Render all stored strings. */
 		for (size_t i = 0; i < strs.size(); i++)
 		{
-			RenderString(strs.at(i), vrtxs.at(i), Color::White);
+			RenderString(strs.at(i));
 		}
 
 		/* End shader and clear buffers. */
@@ -76,13 +76,13 @@ void Plutonium::FontRenderer::Render(void)
 	}
 }
 
-void Plutonium::FontRenderer::RenderString(const char * string, Vector2 pos, Color clr)
+void Plutonium::FontRenderer::RenderString(LineInfo *info)
 {
 	/* Update buffer. */
-	UpdateVBO(pos, string);
+	UpdateVBO(info->Position, info->String);
 
 	/* Set color and position parameters. */
-	this->clr->Set(clr);
+	this->clr->Set(info->Color);
 	this->pos->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
 
 	/* Render line. */
@@ -125,13 +125,11 @@ void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char *str)
 	free_s(vertices);
 }
 
-void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char * str)
+void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char * str, Color clr)
 {
 	/* Make sure we check for the maximum string length. */
 	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
-
-	strs.push_back(heapstr(str));
-	vrtxs.push_back(pos);
+	strs.push_back(new LineInfo(str, pos, clr));
 }
 
 void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
@@ -144,12 +142,20 @@ void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, Eve
 void Plutonium::FontRenderer::ClearBuffer(void)
 {
 	/* Make sure we free the copies to the strings. */
-	while (strs.size() > 0)
+	for (size_t i = 0; i < strs.size(); i++)
 	{
-		const char *cur = strs.back();
-		free_cstr_s(cur);
-		strs.pop_back();
+		LineInfo *cur = strs.at(i);
+		delete_s(cur);
 	}
 
-	vrtxs.clear();
+	strs.clear();
+}
+
+Plutonium::FontRenderer::LineInfo::LineInfo(const char * string, Vector2 pos, Plutonium::Color clr)
+	: String(heapstr(string)), Position(pos), Color(clr)
+{}
+
+Plutonium::FontRenderer::LineInfo::~LineInfo(void) noexcept
+{
+	free_cstr_s(String);
 }

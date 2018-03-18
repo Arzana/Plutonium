@@ -16,7 +16,12 @@ namespace Plutonium
 		_Check_return_ DebugFontRenderer& operator =(_In_ DebugFontRenderer &&other) = delete;
 
 		/* Adds a string to the font renderer to be rendered in the next frame at the debug text position. */
-		void AddDebugString(_In_ const char *str);
+		inline void AddDebugString(_In_ const std::string &str, _In_ Color clr = Color::White)
+		{
+			AddDebugString(str.c_str(), clr);
+		}
+		/* Adds a string to the font renderer to be rendered in the next frame at the debug text position. */
+		void AddDebugString(_In_ const char *str, _In_ Color clr = Color::White);
 		/* Renders the strings specified throughout the frame. */
 		virtual void Render(void);
 

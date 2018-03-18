@@ -22,7 +22,7 @@ namespace Plutonium
 		_Check_return_ FontRenderer& operator =(_In_ FontRenderer &&other) = delete;
 
 		/* Adds a string to the font renderer to be rendered in the next frame. */
-		void AddString(_In_ Vector2 pos, const char *str);
+		void AddString(_In_ Vector2 pos, _In_ const char *str, _In_ Color clr = Color::White);
 		/* Renders the strings specified throughout the frame. */
 		virtual void Render(void);
 
@@ -33,12 +33,31 @@ namespace Plutonium
 		}
 
 	protected:
+		/* Defines the rendering attributes for a string. */
+		struct LineInfo
+		{
+			/* The string to render, */
+			const char *String;
+			/* Where to render the string(top-left). */
+			Vector2 Position;
+			/* The color of the string. */
+			Color Color;
+
+			/* Initializes a new instance. */
+			LineInfo(_In_ const char *string, _In_ Vector2 pos, _In_ Plutonium::Color clr);
+			LineInfo(_In_ const LineInfo &value) = delete;
+			LineInfo(_In_ LineInfo &&value) = delete;
+			/* Releases the underlying string. */
+			~LineInfo(void) noexcept;
+
+			_Check_return_ LineInfo& operator =(_In_ const LineInfo &other) = delete;
+			_Check_return_ LineInfo& operator =(_In_ LineInfo &&other) = delete;
+		};
+
 		/* The font used by the renderer. */
 		Font *font;
 		/* A buffer for storing the strings. */
-		std::vector<const char*> strs;
-		/* A buffer for storing the position of the strings. */
-		std::vector<Vector2> vrtxs;
+		std::vector<LineInfo*> strs;
 		/* The window associated with the renderer. */
 		GraphicsAdapter *device;
 
@@ -52,9 +71,9 @@ namespace Plutonium
 		Attribute *pos;
 		Matrix proj;
 
-		void RenderString(const char * string, Vector2 pos, Color clr);
+		void RenderString(LineInfo *info);
 		void UpdateVBO(Vector2 pos, const char *str);
-		void AddSingleString(Vector2 pos, const char *str);
+		void AddSingleString(Vector2 pos, const char *str, Color clr);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void ClearBuffer(void);
 	};

@@ -5,9 +5,9 @@ Plutonium::DebugFontRenderer::DebugFontRenderer(GraphicsAdapter *device, const c
 	: FontRenderer(device, font, vrtxShdr, fragShdr)
 {}
 
-void Plutonium::DebugFontRenderer::AddDebugString(const char * str)
+void Plutonium::DebugFontRenderer::AddDebugString(const char * str, Color clr)
 {
-	AddString(defPos, str);
+	AddString(defPos, str, clr);
 	defPos.Y -= font->GetLineSpace() * (1 + cntchar(str, '\n'));
 }
 

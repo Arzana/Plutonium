@@ -5,15 +5,20 @@
 
 using namespace Plutonium;
 
+constexpr int32 MASK_OPAQUE = 0x000000FF;
+constexpr int32 MASK_RED = 0xFF000000;
+constexpr int32 MASK_BLUE = 0x0000FF00;
+constexpr int32 MASK_GREEN = 0x00FF0000;
+
 const Color Color::Transparent =	Color();
-const Color Color::Black =			Color(0x000000FF);
-const Color Color::Red =			Color(0xFF0000FF);
-const Color Color::Green =			Color(0x00FF00FF);
-const Color Color::Blue =			Color(0x0000FFFF);
-const Color Color::Cyan =			Color(0x00FFFFFF);
-const Color Color::Magenta =		Color(0xFF00FFFF);
-const Color Color::Yellow =			Color(0xFFFF00FF);
-const Color Color::White =			Color(0xFFFFFFFF);
+const Color Color::Black =			Color(MASK_OPAQUE);
+const Color Color::Red =			Color(MASK_OPAQUE | MASK_RED);
+const Color Color::Green =			Color(MASK_OPAQUE | MASK_GREEN);
+const Color Color::Blue =			Color(MASK_OPAQUE | MASK_BLUE);
+const Color Color::Cyan =			Color(MASK_OPAQUE | MASK_BLUE | MASK_GREEN);
+const Color Color::Magenta =		Color(MASK_OPAQUE | MASK_RED | MASK_BLUE);
+const Color Color::Yellow =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN);
+const Color Color::White =			Color(MASK_OPAQUE | MASK_RED | MASK_BLUE | MASK_GREEN);
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {
