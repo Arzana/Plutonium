@@ -35,7 +35,7 @@ bool Plutonium::_CrtDirectoryExists(const char * directory)
 
 #else
 
-	LOG_WAR("Checking if a directory excists is not supported on this platform!");
+	LOG_WAR_ONCE("Checking if a directory excists is not supported on this platform!");
 	return false;
 
 #endif
@@ -51,7 +51,7 @@ void Plutonium::_CrtCreateDirectory(const char * directory)
 
 #else
 
-	LOG_WAR("Creating a directory is not supported on this platform!");
+	LOG_WAR_ONCE("Creating a directory is not supported on this platform!");
 
 #endif
 }

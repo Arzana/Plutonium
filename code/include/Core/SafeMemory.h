@@ -6,7 +6,7 @@
 /* Allocates C-style memory on the heap. */
 #define malloc_s(type, size)			reinterpret_cast<type*>(malloc((size) * sizeof(type)))
 /* Allocates C-style memory on the stack. */
-#define malloca_s(type, size)			reinterpret_cast<type*>(_malloca((size) * sizeof(type)))
+#define malloca_s(type, size)			reinterpret_cast<type*>(_alloca((size) * sizeof(type)))
 /* Re-allocates C-style memory on the heap. */
 #define realloc_s(type, block, size)	reinterpret_cast<type*>(realloc((block), (size) * sizeof(type)))
 /* Allocates a C-style array. */

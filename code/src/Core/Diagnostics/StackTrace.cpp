@@ -35,7 +35,7 @@ const char * Plutonium::_CrtGetErrorString(void)
 	LocalFree(msgBuffer);
 	return result;
 #else
-	LOG_WAR("Cannot get error string on this platform!");
+	LOG_WAR_ONCE("Cannot get error string on this platform!");
 	return "";
 #endif
 }
@@ -105,7 +105,7 @@ uint64 Plutonium::_CrtGetCallerPtr(int framesToSkip)
 	uint16 frameCnt = CaptureStackBackTrace(framesToSkip, 1, frames, nullptr);
 	result = reinterpret_cast<uint64>(frames[0]);
 #else
-	LOG_WAR("Cannot get caller address on this platform!");
+	LOG_WAR_ONCE("Cannot get caller address on this platform!");
 #endif
 
 	/* Reset loading exception handler and return result. */
@@ -150,7 +150,7 @@ const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 		result.Line = infoFile->LineNumber;
 	}
 #else
-LOG_WAR("Cannot get caller information on this platform!");
+	LOG_WAR_ONCE("Cannot get caller information on this platform!");
 #endif
 
 	/* Reset loading exception handler and return result. */
@@ -217,7 +217,7 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 		}
 	}
 #else
-	LOG_WAR("Cannot get caller information on this platform!");
+	LOG_WAR_ONCE("Cannot get caller information on this platform!");
 #endif
 
 	/* Reset loading exception handler and return result. */

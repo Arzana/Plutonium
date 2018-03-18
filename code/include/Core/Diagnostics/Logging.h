@@ -40,20 +40,32 @@ namespace Plutonium
 	void _CrtPressAnyKeyToContinue(void);
 }
 
+/* Loggs a message to the output. */
 #define LOG_MSG(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Info, (msg), ##__VA_ARGS__)
+/* Logs a message to the output if the condition is met. */
 #define LOG_MSG_IF(condition, msg, ...)			{ if (condition) LOG_MSG((msg), ##__VA_ARGS__); }
 
+/* Logs a warning to the output. */
 #define LOG_WAR(msg, ...)						Plutonium::_CrtLog(Plutonium::LogType::Warning, (msg), ##__VA_ARGS__)
+/* Logs a warning to the output is the condition is met. */
 #define LOG_WAR_IF(condition, msg, ...)			{ if (condition) LOG_WAR((msg), ##__VA_ARGS__); }
+/* Logs a warning to the output when this is reached for the first time. */
+#define LOG_WAR_ONCE(msg, ...)					{ static bool war_logged = false; if (!war_logged) { war_logged = true; LOG_WAR(msg, ##__VA_ARGS__); } }
 
+/* Logs an error to the output and throws an exception. */
 #define LOG_THROW(msg, ...)						Plutonium::_CrtLogThrow("An unhandled exception occured!", __FILE__, __FUNCTION__, __LINE__, (msg), ##__VA_ARGS__)
+/* Logs an error to the output and throws if the condition is met. */
 #define LOG_THROW_IF(condition, msg, ...)		{ if (condition) LOG_THROW((msg), ##__VA_ARGS__); }
 
 #if defined(DEBUG)
+/* Logs a message to the output (Debug only). */
 #define LOG(msg, ...)							Plutonium::_CrtLog(Plutonium::LogType::Debug, (msg), ##__VA_ARGS__)
+/* Logs a message to the output if the condition is met (Debug only). */
 #define LOG_IF(condition, msg, ...)				{ if (condition) LOG((msg), ##__VA_ARGS__); }
 
+/* Logs an error to the output and throws an exception (Debug only). */
 #define ASSERT(msg, ...)						LOG_THROW((msg), ##__VA_ARGS__)
+/* Logs an error to the output and throws if the condition is met (Debug only). */
 #define ASSERT_IF(condition, msg, ...)			LOG_THROW_IF((condition), (msg), ##__VA_ARGS__)
 #else
 #define LOG(...)

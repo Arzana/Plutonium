@@ -47,7 +47,7 @@ const MemoryFrame Plutonium::_CrtGetMemStats(void)
 	result.UsedRam = pmc.WorkingSetSize;
 
 #else
-	LOG_WAR("Cannot get memory statistics on this platform!");
+	LOG_WAR_ONCE("Cannot get memory statistics on this platform!");
 #endif
 
 	return result;
