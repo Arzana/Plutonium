@@ -111,21 +111,24 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 
 	/* Get a human readable severity. */
 	const char *level;
-	bool suppressThrow = false;
+	LogType howToLog;
 	switch (severity)
 	{
 		case (GL_DEBUG_SEVERITY_HIGH):
 			level = "a high";
+			howToLog = LogType::Error;
 			break;
 		case (GL_DEBUG_SEVERITY_MEDIUM):
 			level = "a medium";
+			howToLog = LogType::Warning;
 			break;
 		case (GL_DEBUG_SEVERITY_LOW):
 			level = "a low";
+			howToLog = LogType::Warning;
 			break;
 		default:
 			level = "an insignificant";
-			suppressThrow = true;
+			howToLog = LogType::Info;
 			break;
 	}
 
@@ -153,7 +156,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	}
 
 	/* Log exception. */
-	if (suppressThrow) LOG_WAR(msg);
+	if (howToLog != LogType::Error) _CrtLog(howToLog, msg);
 	else
 	{
 #if defined(DEBUG)

@@ -78,6 +78,12 @@ namespace Plutonium
 			return focused;
 		}
 
+		/* Gets the current window mode. */
+		_Check_return_ inline WindowMode GetWindowMode(void) const
+		{
+			return wndMode;
+		}
+
 		/* Displayes the window and gives it focus. */
 		void Show(void) const;
 		/* Hides the window and revokes its focus. */
