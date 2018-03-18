@@ -8,12 +8,12 @@
 
 using namespace Plutonium;
 
-Plutonium::FileReader::FileReader(const char * path)
+Plutonium::FileReader::FileReader(const char * path, bool suppressOpen)
 	: fpath(path), fname(""), fext(""), fdir(""), open(false)
 {
 	/* Initializes the file attributes and open the file. */
 	InitFileArgs();
-	Open();
+	if (!suppressOpen) Open();
 }
 
 Plutonium::FileReader::~FileReader(void) noexcept

@@ -1,11 +1,17 @@
+#pragma warning(disable:4996)
+
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "Graphics\Models\Texture.h"
 #include "Streams\FileReader.h"
+#include "Streams\FileUtils.h"
 #include "Core\Math\Basics.h"
 #include "Core\SafeMemory.h"
+#include "Core\Diagnostics\StackTrace.h"
 #include <glad\glad.h>
 #include <stb\stb_image.h>
+#include <stb\stb_image_write.h>
 
 using namespace Plutonium;
 
@@ -85,6 +91,23 @@ byte * Plutonium::Texture::GetData(void) const
 
 	/* Return supplied data. */
 	return result;
+}
+
+void Plutonium::Texture::SaveAsPng(const char * path)
+{
+	/* Get texture data. */
+	byte *data = GetData();
+
+	/* If the path doesn't fully excist create it. */
+	FileReader fr(path, true);
+	if (!_CrtDirectoryExists(fr.GetFileDirectory())) _CrtCreateDirectory(fr.GetFileDirectory());
+	
+	/* Attempt to save as PNG, no stride for full texture. */
+	int32 result = stbi_write_png(path, Width, Height, GetChannels(), void_ptr(data), 0);
+	free_s(data);
+
+	/* On debug throw is saving is not possible. */
+	ASSERT_IF(!result, "Unable to save texture(%s) as '%s', reason: %s!", name, path, _CrtGetErrorString());
 }
 
 int32 Plutonium::Texture::GetMaxMipMapLevel(int32 w, int32 h)

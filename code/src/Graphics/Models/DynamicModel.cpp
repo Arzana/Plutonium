@@ -49,7 +49,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, const char *
 	result->SplitFrames(meshes);
 
 	/* Construct texture path. */
-	FileReader reader(path);
+	FileReader reader(path, true);
 	char tex[FILENAME_MAX];
 	mrgstr(reader.GetFileDirectory(), texture ? texture : raw->textures.at(0), tex);
 

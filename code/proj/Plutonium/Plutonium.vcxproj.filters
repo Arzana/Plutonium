@@ -215,6 +215,9 @@
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Streams\FileUtils.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">

@@ -12,7 +12,7 @@ const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 {
 	/* Create new result structure. */
 	ObjLoaderResult *result = new ObjLoaderResult();
-	FileReader reader(path);
+	FileReader reader(path, true);
 
 	/* Load .obj and .mtl files. */
 	string err;

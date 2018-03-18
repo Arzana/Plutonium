@@ -11,7 +11,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new file reader from a specified path. */
-		FileReader(_In_ const char *path);
+		FileReader(_In_ const char *path, bool suppressOpen = false);
 		FileReader(_In_ const FileReader &value) = delete;
 		FileReader(_In_ FileReader &&value) = delete;
 		/* Closes the stream and releases the resources of the reader. */

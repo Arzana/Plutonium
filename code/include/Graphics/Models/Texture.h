@@ -41,11 +41,12 @@ namespace Plutonium
 
 		/* Get the amount of channels stored in the texture. */
 		_Check_return_ int32 GetChannels(void) const;
-
 		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
 		void SetData(_In_ byte *data);
 		/* Gets a copy of the data specified for the texture (requires free!). */
 		_Check_return_ byte* GetData(void) const;
+		/* Saves the tetxure as a specified file. */
+		void SaveAsPng(_In_ const char *path);
 
 	private:
 		friend struct Uniform;

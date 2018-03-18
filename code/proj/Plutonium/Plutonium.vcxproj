@@ -209,6 +209,7 @@
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
+    <ClCompile Include="..\..\src\Streams\FileUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Components\Camera.h" />
