@@ -84,6 +84,9 @@
     <Filter Include="Header Files\GameLogic">
       <UniqueIdentifier>{a3f731af-c396-4dc3-b95b-01548888980a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GameLogic\NonEuclidian">
+      <UniqueIdentifier>{0bd8ca3e-73c7-4371-b42f-0c824e4440be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -438,6 +441,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h">
       <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\GameLogic\NonEuclidian\EuclidianSpace.h">
+      <Filter>Header Files\GameLogic\NonEuclidian</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
