@@ -166,6 +166,12 @@ namespace Plutonium
 		return 1.0f / v;
 	}
 
+	/* Gets the sign of the input value. */
+	_Check_return_ constexpr inline float sign(_In_ float v)
+	{
+		return v > 0.0f ? 1.0f : (v < 0.0f ? -1.0f : 0.0f);
+	}
+
 	/* Modifies the input radians to be clamped from 0 to Tau. */
 	_Check_return_ inline float modrads(_In_ float rads)
 	{

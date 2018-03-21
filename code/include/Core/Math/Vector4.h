@@ -1,6 +1,5 @@
 #pragma once
-#include <cmath>
-#include <sal.h>
+#include "Vector3.h"
 
 namespace Plutonium
 {
@@ -51,6 +50,11 @@ namespace Plutonium
 		/* Initializes a new instance of a four dimentional vector with all components specified. */
 		Vector4(_In_ float x, _In_ float y, _In_ float z, _In_ float w)
 			: X(x), Y(y), Z(z), W(w)
+		{}
+
+		/* Initializes a new instance of a four dimentional vector with all components specified. */
+		Vector4(_In_ Vector3 v, _In_ float w)
+			: X(v.X), Y(v.Y), Z(v.Z), W(w)
 		{}
 
 		/* Negates the vector. */

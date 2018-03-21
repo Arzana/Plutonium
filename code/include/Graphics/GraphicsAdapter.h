@@ -6,6 +6,8 @@
 #include "Graphics\Native\FaceCullState.h"
 #include "Graphics\Native\FaceCullType.h"
 #include "Graphics\Native\DepthState.h"
+#include "Graphics\Native\StencilOperation.h"
+#include "Graphics\Native\ClearTargets.h"
 
 namespace Plutonium
 {
@@ -38,9 +40,27 @@ namespace Plutonium
 		void SetFaceCull(_In_ FaceCullState cull);
 		/* Sets the way front facing faces are determined. */
 		void SetFrontFace(_In_ FaceCullType func);
+		/* Sets the operation to perform if the stencil test fails. */
+		void SetStencilFailOperation(_In_ StencilOperation operation);
+		/* Sets the operation to perform if the stencil test passes but the depth test fails. */
+		void SetStencilPassDepthFailOperation(_In_ StencilOperation operation);
+		/* Sets the operation to perform if the stencil test passes and the depth test passes. */
+		void SetStencilPassDepthPassOperation(_In_ StencilOperation operation);
 
 		/* Sets the depth testing. */
 		void SetDepthTest(_In_ DepthState func);
+		/* Sets the stencil testing. */
+		void SetStencilTest(_In_ DepthState func, _In_ int32 value = 0, _In_ uint32 mask = 0xFF);
+
+		/* Sets whether output to the color buffer is enabled or disabled per component. */
+		void SetColorOutput(_In_ bool red, _In_ bool green, _In_ bool blue, _In_ bool alpha);
+		/* Sets whether output to the depth buffer is enabled or disabled. */
+		void SetDepthOuput(_In_ bool mask);
+		/* Sets the output mask for the stencil buffer. */
+		void SetStencilOuput(_In_ uint32 mask);
+
+		/* Clears the specified buffers. */
+		void Clear(_In_ ClearTarget target);
 
 		/* Gets the window associated with the context. */
 		_Check_return_ inline Window* GetWindow(void) const
@@ -53,9 +73,13 @@ namespace Plutonium
 
 		Window *window;
 		BlendState abf, cbf;
+		StencilOperation sf, df, dp;
 
 		GraphicsAdapter(Window *window);
 
+		void SetDefaultBlendEq(void);
+		void SetDefaultStencilOp(void);
 		void UpdateBlendEq(BlendState func);
+		void UpdateStencilOp(void);
 	};
 }

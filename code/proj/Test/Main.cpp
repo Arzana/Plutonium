@@ -8,6 +8,7 @@
 #include <Core\Math\Basics.h>
 #include <Core\String.h>
 #include "KnightInit.h"
+#include <Core\EnumUtils.h>
 
 using namespace Plutonium;
 

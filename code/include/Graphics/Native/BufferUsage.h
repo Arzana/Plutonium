@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines the way buffered data will be accessed */
-	enum class BufferUsage
+	enum class BufferUsage : GLenum
 	{
 #if defined(GL_STATIC_DRAW)
 		/* The buffer is used for drawing, will be created once and used many times. */

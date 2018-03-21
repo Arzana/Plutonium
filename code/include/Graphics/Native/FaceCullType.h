@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Determines which side is considered the front face. */
-	enum class FaceCullType
+	enum class FaceCullType : GLenum
 	{
 #if defined(GL_CW)
 		/* The front is determined by a clockwise algorithm. */

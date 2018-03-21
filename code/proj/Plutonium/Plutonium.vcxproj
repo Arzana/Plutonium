@@ -91,6 +91,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -108,6 +109,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -127,6 +129,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -150,6 +153,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -197,6 +201,8 @@
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Portals\Portal.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
@@ -220,6 +226,7 @@
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h" />
+    <ClInclude Include="..\..\include\Core\EnumUtils.h" />
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />
     <ClInclude Include="..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\include\Core\Events\EventBus.h" />
@@ -238,7 +245,6 @@
     <ClInclude Include="..\..\include\Core\String.h" />
     <ClInclude Include="..\..\include\Core\StringFunctions.h" />
     <ClInclude Include="..\..\include\Game.h" />
-    <ClInclude Include="..\..\include\GameLogic\NonEuclidian\EuclidianSpace.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
@@ -256,14 +262,18 @@
     <ClInclude Include="..\..\include\Graphics\Native\BlendType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Buffer.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BufferUsage.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\ClearTargets.h" />
     <ClInclude Include="..\..\include\Graphics\Native\DepthState.h" />
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullState.h" />
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />
     <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h" />
+    <ClInclude Include="..\..\include\Graphics\Portals\Portal.h" />
+    <ClInclude Include="..\..\include\Graphics\Portals\PortalRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />

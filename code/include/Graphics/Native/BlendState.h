@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines states of buffer blending.  */
-	enum class BlendState
+	enum class BlendState : GLenum
 	{
 		/* No blending is applied. */
 		None = 0,

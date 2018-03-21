@@ -6,6 +6,7 @@ namespace Plutonium
 	/* Defines a base for object that can be placed in the game world. */
 	struct WorldObject
 	{
+	public:
 		/* Gets the world position of this object. */
 		_Check_return_ inline Vector3 GetPosition(void) const
 		{

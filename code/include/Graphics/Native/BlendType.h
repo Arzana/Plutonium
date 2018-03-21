@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines the specific blend factors. */
-	enum class BlendType
+	enum class BlendType : GLenum
 	{
 #if defined(GL_ZERO)
 		/* Color is disabled. */

@@ -109,6 +109,20 @@ inline float det33(float a, float b, float c, float d, float e, float f, float g
 	return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 }
 
+Matrix Plutonium::Matrix::GetOrientation(void) const
+{
+	/* Get normalizes orientation columns. */
+	Vector3 rn = normalize(GetRight());
+	Vector3 un = normalize(GetUp());
+	Vector3 bn = normalize(GetBackward());
+
+	return Matrix(
+		rn.X, un.X, bn.X, 0.0f,
+		rn.Y, un.Y, bn.Y, 0.0f,
+		rn.Z, un.Z, bn.Z, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 float Plutonium::Matrix::GetDeterminant(void) const
 {
 	return

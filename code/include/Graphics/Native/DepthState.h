@@ -4,10 +4,18 @@
 namespace Plutonium
 {
 	/* Defines states of depth testing. */
-	enum class DepthState
+	enum class DepthState : GLenum
 	{
 		/* No depth testing. */
 		None = 0,
+#if defined(GL_NEVER)
+		/* The fragment never passes the test. */
+		Never = GL_NEVER,
+#endif
+#if defined (GL_ALWAYS)
+		/* The fragment always passes the test. */
+		Always = GL_ALWAYS,
+#endif
 #if defined(GL_LESS)
 		/* Passes if the fragment is less than the buffered value. */
 		Less = GL_LESS,

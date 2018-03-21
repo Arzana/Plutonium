@@ -37,6 +37,23 @@ void Plutonium::Mesh::Finalize(void)
 	vertices = nullptr;
 }
 
+void Plutonium::Mesh::SetBufferSize(size_t size)
+{
+	/* Check if mesh if still valid. */
+	ASSERT_IF(buffer, "Attempting to buffer vertex after Finalize has been called!");
+
+	/* Check if buffer size needs to increase. */
+	if (size > vrtxCnt)
+	{
+		/* Increase buffer. */
+		if (!vrtxCnt) vertices = malloc_s(VertexFormat, size);
+		else vertices = realloc_s(VertexFormat, vertices, size);
+
+		/* Set new size. */
+		vrtxCnt = size;
+	}
+}
+
 VertexFormat & Plutonium::Mesh::GetVertexAt(size_t idx) const
 {
 	/* Performs a range check on debug mode and checks if the buffers are still on the CPU. */

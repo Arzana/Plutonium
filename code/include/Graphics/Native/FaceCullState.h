@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines how faces should be culled. */
-	enum class FaceCullState
+	enum class FaceCullState : GLenum
 	{
 		/* No face culling. */
 		None = 0,

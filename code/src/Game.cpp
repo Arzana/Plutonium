@@ -221,7 +221,7 @@ void Plutonium::Game::BeginRender(void)
 
 	/* Set clear color and clear window. */
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	device->Clear(ClearTarget::Color | ClearTarget::Depth);
 
 	/* Call game specific code. */
 	PreRender();

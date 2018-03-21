@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines the platform specific buffer bind targets. */
-	enum class BindTarget
+	enum class BindTarget : GLenum
 	{
 		/* This should never be used! */
 		None = 0,

@@ -33,6 +33,8 @@ namespace Plutonium
 		{
 			return buffer;
 		}
+		/* Makes sure the vertex buffer is of a specified size. */
+		void SetBufferSize(_In_ size_t size);
 		/* Gets a vertex at a specified position. */
 		_Check_return_ VertexFormat& GetVertexAt(_In_ size_t idx) const;
 		/* Gets the amount of vertices stored by the mesh. */

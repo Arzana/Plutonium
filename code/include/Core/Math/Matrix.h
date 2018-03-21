@@ -156,6 +156,8 @@ namespace Plutonium
 			return f;
 		}
 
+		/* Calculates a matrix that defines the orientation of this matrix. */
+		_Check_return_ Matrix GetOrientation(void) const;
 		/* Calculates the determinant of the matrix. */
 		_Check_return_ float GetDeterminant(void) const;
 		/* Calculates the inverse of the matrix. */
@@ -179,6 +181,15 @@ namespace Plutonium
 		void SetScale(_In_ Vector3 v);
 
 	private:
+		template<size_t _Dim>
+		inline Vector4 _CrtGetColumn(const Matrix&);
+		template<size_t _Dim>
+		inline Vector4 _CrtSetColumn(Matrix&, Vector4);
+		template<size_t _Dim>
+		inline Vector4 _CrtGetRow(const Matrix&);
+		template<size_t _Dim>
+		inline Vector4 _CrtSetRow(Matrix&, Vector4);
+
 		union
 		{
 			float f[16];
@@ -200,4 +211,72 @@ namespace Plutonium
 			: c1(m00, m10, m20, m30), c2(m01, m11, m21, m31), c3(m02, m12, m22, m32), c4(m03, m13, m23, m33)
 		{}
 	};
+
+	/* Gets a specified column of a specified matrix. */
+	template<size_t _Dim>
+	_Check_return_ inline Vector4 _CrtGetColumn(_In_ const Matrix &m)
+	{
+		if constexpr (_Dim == 0) return m.c1;
+		else if constexpr (_Dim == 1) return m.c2;
+		else if constexpr (_Dim == 2) return m.c3;
+		else if constexpr (_Dim == 3) return m.c4;
+		else static_assert(true, "Matrix column index is out of range!");
+	}
+
+	/* Sets a specified column of a specified matrix. */
+	template<size_t _Dim>
+	_Check_return_ inline void _CrtSetColumn(_In_ Matrix &m, _In_ Vector4 v)
+	{
+		if constexpr (_Dim == 0) m.c1 = v;
+		else if constexpr (_Dim == 1) m.c2 = v;
+		else if constexpr (_Dim == 2) m.c3 = v;
+		else if constexpr (_Dim == 3) m.c4 = v;
+		else static_assert(true, "Matrix column index is out of range!");
+	}
+
+	/* Gets a specified row of a specified matrix. */
+	template<size_t _Dim>
+	_Check_return_ inline Vector4 _CrtGetRow(_In_ const Matrix &m)
+	{
+		if constexpr (_Dim == 0) return Vector4(m.c1.X, m.c2.X, m.c3.X, m.c4.X);
+		else if constexpr (_Dim == 1) return Vector4(m.c1.Y, m.c2.Y, m.c3.Y, m.c4.Y);
+		else if constexpr (_Dim == 2) return Vector4(m.c1.Z, m.c2.Z, m.c3.Z, m.c4.Z);
+		else if constexpr (_Dim == 3) return Vector4(m.c1.W, m.c2.W, m.c3.W, m.c4.W);
+		else static_assert(true, "Matrix row index is out of range!");
+	}
+
+	/* Sets a specified row of a specified matrix. */
+	template<size_t _Dim>
+	_Check_return_ inline void _CrtSetRow(_In_ Matrix &m, _In_ Vector4 v)
+	{
+		if constexpr (_Dim == 0)
+		{
+			m.c1.X = v.X;
+			m.c2.X = v.Y;
+			m.c3.X = v.Z;
+			m.c4.X = v.W;
+		}
+		else if constexpr (_Dim == 1)
+		{
+			m.c1.Y = v.X;
+			m.c2.Y = v.Y;
+			m.c3.Y = v.Z;
+			m.c4.Y = v.W;
+		}
+		else if constexpr (_Dim == 2)
+		{
+			m.c1.Z = v.X;
+			m.c2.Z = v.Y;
+			m.c3.Z = v.Z;
+			m.c4.Z = v.W;
+		}
+		else if constexpr (_Dim == 3)
+		{
+			m.c1.W = v.X;
+			m.c2.W = v.Y;
+			m.c3.W = v.Z;
+			m.c4.W = v.W;
+		}
+		else static_assert(true, "Matrix row index is out of range!");
+	}
 }
