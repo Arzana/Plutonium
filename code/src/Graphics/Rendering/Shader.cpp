@@ -2,17 +2,28 @@
 #include "Core\StringFunctions.h"
 #include "Streams\FileReader.h"
 #include "Core\SafeMemory.h"
+#include "Core\EnumUtils.h"
 
 using namespace Plutonium;
 
-Plutonium::Shader::Shader(const char * vertexShaderSource, const char * fragmentShaderSource)
+Plutonium::Shader::Shader(void)
 	: ptr(0), loaded(false), beginCalled(false)
+{}
+
+Plutonium::Shader::Shader(const char * vertexShaderSource)
+	: Shader()
+{
+	Initialize(vertexShaderSource, nullptr, nullptr);
+}
+
+Plutonium::Shader::Shader(const char * vertexShaderSource, const char * fragmentShaderSource)
+	: Shader()
 {
 	Initialize(vertexShaderSource, nullptr, fragmentShaderSource);
 }
 
 Plutonium::Shader::Shader(const char * vertexShaderSource, const char * geometryShaderSource, const char * fragmentShaderSource)
-	: ptr(0), loaded(false), beginCalled(false)
+	: Shader()
 {
 	Initialize(vertexShaderSource, geometryShaderSource, fragmentShaderSource);
 }
@@ -34,6 +45,21 @@ Plutonium::Shader::~Shader(void)
 		delete_s(cur);
 		fields.pop_back();
 	}
+}
+
+Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath)
+{
+	/* Get content of shader files. */
+	const char *vrtxShdr = FileReader(vertexShaderPath).ReadToEnd();
+
+	/* Create result. */
+	Shader *result = new Shader(vrtxShdr);
+
+	/* Release source strings. */
+	free_cstr_s(vrtxShdr);
+
+	/* Return shader. */
+	return result;
 }
 
 Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath, const char * fragmentShaderPath)
@@ -153,7 +179,7 @@ bool Plutonium::Shader::CompileShader(uint32 * shdr, ShaderType type, const char
 	}
 
 	/* Create and compile shader. */
-	*shdr = glCreateShader(static_cast<int32>(type));
+	*shdr = glCreateShader(_CrtEnum2Int(type));
 	glShaderSource(*shdr, 1, &src, nullptr);
 	glCompileShader(*shdr);
 
@@ -271,9 +297,12 @@ void Plutonium::Shader::Initialize(const char * vrtxShdr, const char * geomShdr,
 		if (CompileShader(&geomShdrPtr, ShaderType::Geometry, geomShdr)) AddShader(geomShdrPtr);
 	}
 
-	/* Compile fragment shader. */
-	uint32 fragShdrPtr;
-	if (CompileShader(&fragShdrPtr, ShaderType::Fragment, fragShdr)) AddShader(fragShdrPtr);
+	/* Compile fragment shader (if present). */
+	uint32 fragShdrPtr = 0;
+	if (fragShdr)
+	{
+		if (CompileShader(&fragShdrPtr, ShaderType::Fragment, fragShdr)) AddShader(fragShdrPtr);
+	}
 
 	/* Links to program to OpenGL. */
 	if (!LinkProgram())
@@ -281,7 +310,7 @@ void Plutonium::Shader::Initialize(const char * vrtxShdr, const char * geomShdr,
 		/* Delete temporary shaders. */
 		glDeleteShader(vrtxShdrPtr);
 		if (geomShdr) glDeleteShader(geomShdrPtr);
-		glDeleteShader(fragShdrPtr);
+		if (fragShdr) glDeleteShader(fragShdrPtr);
 
 		/* Link has failed, delete program. */
 		glDeleteProgram(ptr);
@@ -292,7 +321,7 @@ void Plutonium::Shader::Initialize(const char * vrtxShdr, const char * geomShdr,
 	/* Delete temporary shaders. */
 	glDeleteShader(vrtxShdrPtr);
 	if (geomShdr) glDeleteShader(geomShdrPtr);
-	glDeleteShader(fragShdrPtr);
+	if (fragShdr) glDeleteShader(fragShdrPtr);
 
 	/* Load the fields of the current shader. */
 	LoadFields();

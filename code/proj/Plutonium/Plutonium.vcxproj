@@ -223,8 +223,10 @@
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
     <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
+    <ClInclude Include="..\..\include\Core\Collections\Tree.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h" />
+    <ClInclude Include="..\..\include\Core\Diagnostics\ReflectNames.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\include\Core\EnumUtils.h" />
     <ClInclude Include="..\..\include\Core\Events\DelegateObservers.h" />

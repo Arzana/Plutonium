@@ -8,7 +8,6 @@
 #include <Core\Math\Basics.h>
 #include <Core\String.h>
 #include "KnightInit.h"
-#include <Core\EnumUtils.h>
 
 using namespace Plutonium;
 
@@ -41,7 +40,7 @@ struct TestGame
 		AddComponent(fps = new FpsCounter(this));
 		AddComponent(mem = new MemoryCounter(this));
 
-		fontRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Debug_Text.vsh", "./assets/shaders/Debug_Text.fsh");
+		fontRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
 	}
 

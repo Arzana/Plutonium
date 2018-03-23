@@ -10,7 +10,9 @@ namespace Plutonium
 	struct Shader
 	{
 	public:
-		/* Initializes a new instance of a shader with only a vertex and fragment shader. */
+		/* Initializes a new instance of a shader with only a vertex shader. */
+		Shader(_In_ const char *vertexShaderSource);
+		/* Initializes a new instance of a shader with a vertex and fragment shader. */
 		Shader(_In_ const char *vertexShaderSource, _In_ const char *fragmentShaderSource);
 		/* Initializes a new instance of a shader with all three types of shaders. */
 		Shader(_In_ const char *vertexShaderSource, _In_ const char *geometryShaderSource, _In_ const char *fragmentShaderSource);
@@ -22,9 +24,11 @@ namespace Plutonium
 		_Check_return_ Shader& operator =(_In_ const Shader &other) = delete;
 		_Check_return_ Shader& operator = (_In_ Shader &&other) = delete;
 
-		/* Initializes a new instance of a shader with only a vertex and fragment shaders from specified file sources. */
+		/* Initializes a new instance of a shader with only a vertex shader from the specified file source. */
+		_Check_return_ static Shader* FromFile(_In_ const char *vertexShaderPath);
+		/* Initializes a new instance of a shader with a vertex and fragment shaders from the specified file sources. */
 		_Check_return_ static Shader* FromFile(_In_ const char *vertexShaderPath, _In_ const char *fragmentShaderPath);
-		/* Initializes a new instance of a shader with all three types of shaders from specified file sources. */
+		/* Initializes a new instance of a shader with all three types of shaders from the specified file sources. */
 		_Check_return_ static Shader* FromFile(_In_ const char *vertexShaderPath, _In_ const char *geometryShaderPath, _In_ const char *fragmentShaderPath);
 
 		/* Gets a uniform defined by the shader, if non is found matching the name; return nullptr. */
@@ -46,6 +50,8 @@ namespace Plutonium
 		uint32 ptr;
 		bool loaded, beginCalled;
 		std::vector<Field*> fields;
+
+		Shader(void);
 
 		static bool CompileShader(uint32 *shdr, ShaderType type, const char *src);
 
