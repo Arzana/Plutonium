@@ -4,10 +4,10 @@
 namespace Plutonium
 {
 	/* Specifies the types of OpenGL shaders supported by this framework. */
-	enum class ShaderType
+	enum class ShaderType : GLenum
 	{
 		/* An invalid or unknown shader type. */
-		Invalid = -1,
+		Invalid = 0,
 		/* A vertex shader. */
 		Vertex = GL_VERTEX_SHADER,
 		/* A geometry shader. */

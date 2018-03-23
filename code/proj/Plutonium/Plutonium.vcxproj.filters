@@ -90,6 +90,9 @@
     <Filter Include="Source Files\Graphics\Portals">
       <UniqueIdentifier>{3b741d39-3ddf-42bc-b860-3bd6bcd0f94d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Collections">
+      <UniqueIdentifier>{5533fc3f-fd6d-4c79-b29d-929cc6f48065}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -465,6 +468,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\EnumUtils.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Collections\Tree.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Diagnostics\ReflectNames.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
