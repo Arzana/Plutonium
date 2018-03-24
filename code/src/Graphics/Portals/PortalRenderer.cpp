@@ -43,8 +43,9 @@ void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj,
 
 #if false
 	{
+		/* Save the stencil frame to a file for testing. */
 		int32 w, h;
-		byte *raw = device->GetStencilData(&w, &h);
+		byte *raw = device->GetFragmentData(PixelData::Stencil, &w, &h);
 
 		byte *data = malloc_s(byte, w * h * 4);
 		for (size_t i = 0, j = 0; i < w * h; i++)
@@ -119,9 +120,6 @@ void Plutonium::PortalRenderer::BeginStencil(void)
 	/* Start stencil shader. */
 	shdr->Begin();
 
-	/* Clean stencil from previous render. */
-	device->Clear(ClearTarget::Stencil);
-
 	/* Disable color and depth output. */
 	device->SetColorOutput(false, false, false, false);
 	device->SetDepthOuput(false);
@@ -129,6 +127,9 @@ void Plutonium::PortalRenderer::BeginStencil(void)
 	/* Set stencil to always fail and enable write. */
 	device->SetStencilOuput(0xFF);
 	device->SetStencilFailOperation(StencilOperation::Replace);
+
+	/* Clean stencil from previous render. */
+	device->Clear(ClearTarget::Stencil);
 }
 
 void Plutonium::PortalRenderer::RecursiveRenderPortals(Tree<PortalRenderArgs>* portals, Tree<SceneRenderArgs>* result)

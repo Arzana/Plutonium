@@ -112,7 +112,46 @@ void Plutonium::GraphicsAdapter::Clear(ClearTarget target)
 	glClear(_CrtEnum2Int(target));
 }
 
-Plutonium::byte * Plutonium::GraphicsAdapter::GetStencilData(int32 * w, int32 * h)
+Plutonium::byte * Plutonium::GraphicsAdapter::GetFragmentData(PixelData type, int32 * w, int32 * h)
+{
+	/* Calculate buffer size. */
+	const Rectangle vp = window->GetClientBounds();
+	int32 width = static_cast<int32>(vp.GetWidth());
+	int32 height = static_cast<int32>(vp.GetHeight());
+
+	/* Set size output is requested. */
+	if (w) *w = width;
+	if (h) *h = height;
+
+	/* Get the component count. */
+	int32 cc;
+	switch (type)
+	{
+	case Plutonium::PixelData::Red:
+	case Plutonium::PixelData::Green:
+	case Plutonium::PixelData::Blue:
+	case Plutonium::PixelData::Stencil:
+		cc = 1;
+		break;
+	case Plutonium::PixelData::RGB:
+		cc = 3;
+		break;
+	case Plutonium::PixelData::RGBA:
+		cc = 4;
+		break;
+	default:
+		LOG_THROW("Unknown pixel type specified!");
+		break;
+	}
+
+	/* Create and populate result. */
+	byte *data = malloc_s(byte, width * height * cc);
+	glReadPixels(0, 0, width, height, _CrtEnum2Int(type), GL_UNSIGNED_BYTE, data);
+
+	return data;
+}
+
+float * Plutonium::GraphicsAdapter::GetDepthData(int32 * w, int32 * h)
 {
 	/* Calculate buffer size. */
 	const Rectangle vp = window->GetClientBounds();
@@ -124,8 +163,8 @@ Plutonium::byte * Plutonium::GraphicsAdapter::GetStencilData(int32 * w, int32 * 
 	if (h) *h = height;
 
 	/* Create and populate result. */
-	byte *data = malloc_s(byte, width * height);
-	glReadPixels(0, 0, width, height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+	float *data = malloc_s(float, width * height);
+	glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 
 	return data;
 }

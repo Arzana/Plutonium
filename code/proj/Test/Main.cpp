@@ -33,6 +33,7 @@ struct TestGame
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f)
 	{
+		GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 		GetCursor()->Disable();
 	}
 
@@ -98,10 +99,6 @@ struct TestGame
 		drenderer->Begin(args.View, args.Projection, light);
 		drenderer->Render(knight);
 		drenderer->End();
-
-		std::string distStr = "Portal distance: ";
-		distStr += std::to_string(ipart(dist(cam->GetPosition(), args.View.GetTranslation())));
-		fRenderer->AddDebugString(distStr);
 	}
 
 	virtual void Render(float dt)

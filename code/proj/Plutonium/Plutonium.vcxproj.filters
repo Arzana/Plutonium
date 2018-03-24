@@ -478,5 +478,8 @@
     <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h">
       <Filter>Header Files\Graphics\Portals</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\PixelData.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
