@@ -75,7 +75,6 @@ void Plutonium::Game::Run(void)
 
 	/* Initialize game. */
 	LOG("Initializing '%s'.", wnd->title);
-	prevTime = glfwGetTime();
 	DoInitialize();
 
 	/* Load first level. */
@@ -85,6 +84,7 @@ void Plutonium::Game::Run(void)
 	LOG("Finished loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
 
 	/* Excecute game loop. */
+	prevTime = glfwGetTime();
 	while (!wnd->Update())
 	{
 		while (!Tick(wnd->HasFocus()));

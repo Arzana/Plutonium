@@ -149,7 +149,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 {
 	byte *data = malloc_s(byte, map->Width * map->Height * 4);
-	Vector2 b2uv = Vector2::One / Vector2(map->Width, map->Height);
+	Vector2 b2uv = Vector2::One / Vector2(static_cast<float>(map->Width), static_cast<float>(map->Height));
 
 	/* Loop through character defines by the font. */
 	int32 max = map->Width * map->Height;
