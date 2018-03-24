@@ -42,6 +42,12 @@ namespace Plutonium
 			return proj;
 		}
 
+		/* Gets the position of the camera. */
+		_Check_return_ inline Vector3 GetPosition(void) const
+		{
+			return actualPos;
+		}
+
 	private:
 		Vector3 actualPos, desiredPos;
 		Vector3 target, offset;

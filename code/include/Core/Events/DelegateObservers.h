@@ -22,10 +22,10 @@ namespace Plutonium
 	{
 	public:
 		/* Defines the type of handler this delegate can store. */
-		using HandlerFuncType = void(*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
+		using HandlerType = void(*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
 
 		/* Initializes a new instance of a function style generic delegate. */
-		DelegateFunc(_In_ HandlerFuncType func)
+		DelegateFunc(_In_ HandlerType func)
 			: DelegateBase(), hndlr(func)
 		{}
 
@@ -36,7 +36,7 @@ namespace Plutonium
 		}
 
 	private:
-		HandlerFuncType hndlr;
+		HandlerType hndlr;
 	};
 
 	/* provides a structure for a method style generic delegate. */
@@ -46,10 +46,10 @@ namespace Plutonium
 	{
 	public:
 		/* Defines the type of handler this delegate can store. */
-		using HandlerMethodType = void(_CTy::*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
+		using HandlerType = void(_CTy::*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
 
 		/* Initializes a new instance of a method style generic delegate. */
-		DelegateMethod(_In_ _CTy *cnt, HandlerMethodType func)
+		DelegateMethod(_In_ _CTy *cnt, HandlerType func)
 			: DelegateBase(), obj(cnt), hndlr(func)
 		{}
 
@@ -61,6 +61,6 @@ namespace Plutonium
 
 	private:
 		_CTy *obj;
-		HandlerMethodType hndlr;
+		HandlerType hndlr;
 	};
 }

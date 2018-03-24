@@ -62,6 +62,9 @@ namespace Plutonium
 		/* Clears the specified buffers. */
 		void Clear(_In_ ClearTarget target);
 
+		/* Gets the data currently specified in the stencil buffer (requires free!). */
+		_Check_return_ byte* GetStencilData(_Out_opt_ int32 *w, _Out_opt_ int32 *h);
+
 		/* Gets the window associated with the context. */
 		_Check_return_ inline Window* GetWindow(void) const
 		{

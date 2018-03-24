@@ -112,6 +112,24 @@ void Plutonium::GraphicsAdapter::Clear(ClearTarget target)
 	glClear(_CrtEnum2Int(target));
 }
 
+Plutonium::byte * Plutonium::GraphicsAdapter::GetStencilData(int32 * w, int32 * h)
+{
+	/* Calculate buffer size. */
+	const Rectangle vp = window->GetClientBounds();
+	int32 width = static_cast<int32>(vp.GetWidth());
+	int32 height = static_cast<int32>(vp.GetHeight());
+
+	/* Set size output is requested. */
+	if (w) *w = width;
+	if (h) *h = height;
+
+	/* Create and populate result. */
+	byte *data = malloc_s(byte, width * height);
+	glReadPixels(0, 0, width, height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+
+	return data;
+}
+
 Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 	: window(window)
 {

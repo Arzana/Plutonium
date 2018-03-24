@@ -1,12 +1,12 @@
+#include <string>
 #include <Game.h>
 #include <Graphics\Text\DebugTextRenderer.h>
-#include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
+#include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
-#include <Core\String.h>
 #include "KnightInit.h"
 
 using namespace Plutonium;
@@ -15,13 +15,15 @@ struct TestGame
 	: public Game
 {
 	/* Renderers. */
-	DebugFontRenderer *fontRenderer;
+	DebugFontRenderer *fRenderer;
 	DynamicRenderer *drenderer;
+	PortalRenderer *prenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
 	DynamicModel *knight;
+	Portal *portal;
 	Vector3 light = Vector3::Zero;
 
 	/* Diagnostics. */
@@ -31,7 +33,6 @@ struct TestGame
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f)
 	{
-		GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 		GetCursor()->Disable();
 	}
 
@@ -40,8 +41,10 @@ struct TestGame
 		AddComponent(fps = new FpsCounter(this));
 		AddComponent(mem = new MemoryCounter(this));
 
-		fontRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
+		fRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
+		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/StencilOnly3D.vsh");
+		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
 	}
 
 	virtual void LoadContent(void)
@@ -49,9 +52,14 @@ struct TestGame
 		cam = new Camera(GetGraphics()->GetWindow());
 
 		knight = DynamicModel::FromFile("./assets/models/Knight/knight.md2", "knight.bmp");
+		knight->Teleport(Vector3::Forward * 10.0f);
 		knight->SetOrientation(-PI2, -PI2, 0.0f);
 		knight->Initialize(InitKnight);
 		knight->PlayAnimation("stand");
+
+		portal = new Portal(Vector3::Zero);
+		portal->Destination = knight;
+		portal->SetScale(10.0f);
 	}
 
 	virtual void UnLoadContent(void)
@@ -62,8 +70,11 @@ struct TestGame
 
 	virtual void Finalize(void)
 	{
-		delete_s(fontRenderer);
+		prenderer->OnRoomRender.Remove(this, &TestGame::RenderScene);
+
+		delete_s(fRenderer);
 		delete_s(drenderer);
+		delete_s(prenderer);
 	}
 
 	virtual void Update(float dt)
@@ -82,37 +93,55 @@ struct TestGame
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 	}
 
-	virtual void PreRender(void)
+	void RenderScene(const PortalRenderer *sender, SceneRenderArgs args)
 	{
-		/* If the knight model is used face culling needs to be turned off. */
-		GetGraphics()->SetFaceCull(FaceCullState::None);
+		drenderer->Begin(args.View, args.Projection, light);
+		drenderer->Render(knight);
+		drenderer->End();
+
+		std::string distStr = "Portal distance: ";
+		distStr += std::to_string(ipart(dist(cam->GetPosition(), args.View.GetTranslation())));
+		fRenderer->AddDebugString(distStr);
 	}
 
 	virtual void Render(float dt)
 	{
 		/* Render light direction. */
-		std::string lightStr = "Light ";
+		std::string lightStr = "Light: ";
 		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
-		fontRenderer->AddDebugString(lightStr);
+		fRenderer->AddDebugString(lightStr);
+
+		/* Render distance to knight. */
+		std::string distStr = "Distance ";
+		distStr += std::to_string(ipart(dist(cam->GetPosition(), knight->GetPosition())));
+		fRenderer->AddDebugString(distStr);
 
 		/* Render average FPS. */
 		std::string fpsaStr = "Fps (avg): ";
 		fpsaStr += std::to_string(ipart(fps->GetAvrgHz()));
-		fontRenderer->AddDebugString(fpsaStr);
+		fRenderer->AddDebugString(fpsaStr);
 
 		/* Render average VRAM. */
 		std::string vramStr = "VRAM: ";
 		(vramStr += std::to_string(b2mb(mem->GetAvrgVRamUsage()))) += " / ";
 		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
-		fontRenderer->AddDebugString(vramStr);
+		fRenderer->AddDebugString(vramStr);
 
-		/* Render dynamic models. */
+		/* If the knight model is used face culling needs to be turned off. */
+		GetGraphics()->SetFaceCull(FaceCullState::None);
+
+		/* Render test current room. */
 		drenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		drenderer->Render(knight);
+		//drenderer->Render(knight);
 		drenderer->End();
 
+		/* Render scene. */
+		Tree<PortalRenderArgs> portals;
+		portals.Add({ 1, portal });
+		prenderer->Render(cam->GetView(), cam->GetProjection(), &portals);
+
 		/* Render text. */
-		fontRenderer->Render();
+		fRenderer->Render();
 	}
 };
 

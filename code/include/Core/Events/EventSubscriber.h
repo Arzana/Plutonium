@@ -11,7 +11,7 @@ namespace Plutonium
 	{
 	public:
 		/* Defines a function style delegate. */
-		using HandlerFuncType = void(*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
+		using HandlerFuncType = typename DelegateFunc<_STy, _ArgTy...>::HandlerType;
 		/* Defines a method style delegate. */
 		template <typename _CTy>
 		using HandlerMethodType = void(_CTy::*)(_In_ const _STy *sender, _In_ _ArgTy ... args);

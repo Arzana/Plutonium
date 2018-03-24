@@ -1,6 +1,10 @@
 #pragma once
 #include <vector>
 #include "EventSubscriber.h"
+#include "Core\Diagnostics\ReflectNames.h"
+
+/* Initializes an eventbus with it's own name as the debug display name. */
+#define INIT_BUS(bus)		bus(NAMEOF(bus))
 
 namespace Plutonium
 {
@@ -9,13 +13,13 @@ namespace Plutonium
 	struct EventBus
 	{
 	public:
+		/* The type of subscriber stored in this event. */
+		using SubscriberType = typename EventSubscriber<_STy, _ArgTy...>;
 		/* Defines a function style delegate. */
-		using HandlerFuncType = void(*)(const _STy *sender, _ArgTy ... args);
+		using HandlerFuncType = typename SubscriberType::HandlerFuncType;
 		/* Defines a method style delegate. */
 		template <typename _CTy>
 		using HandlerMethodType = void(_CTy::*)(const _STy *sender, _ArgTy ... args);
-		/* The type of subscriber stored in this event. */
-		using SubscriberType = typename EventSubscriber<_STy, _ArgTy...>;
 
 		/* Initializes a new instance of an event (name is only used on debug mode). */
 		EventBus(_In_ const char *name)

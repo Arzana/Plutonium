@@ -12,8 +12,9 @@ namespace Plutonium
 		/* Whether the portal can be used. */
 		bool Enabled;
 		/* The destination portal. */
-		Portal *Destination;
+		WorldObject *Destination;
 
+		Portal(_In_ Vector3 position);
 		Portal(_In_ const Portal &value) = delete;
 		Portal(_In_ Portal &&value) = delete;
 		/* Releases the resrouces allocated by the portal. */
@@ -26,8 +27,6 @@ namespace Plutonium
 		friend struct PortalRenderer;
 
 		Mesh *mesh;
-
-		Portal(_In_ Vector3 position);
 
 		Matrix GetInverseView(const Matrix &view);
 		Matrix GetClippedProjection(const Matrix &view, const Matrix &proj);

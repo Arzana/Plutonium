@@ -48,11 +48,13 @@ namespace Plutonium
 		/* Saves the tetxure as a specified file. */
 		void SaveAsPng(_In_ const char *path);
 
+	protected:
+		uint32 ptr;
+		const char *name;
+
 	private:
 		friend struct Uniform;
 
-		const char *name;
-		uint32 ptr;
 		int32 frmt, ifrmt;
 
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);

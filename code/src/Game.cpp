@@ -17,7 +17,7 @@ bool Plutonium::ComponentSortPredicate(GameComponent *a, GameComponent *b)
 
 Plutonium::Game::Game(const char * name)
 	: device(nullptr), cursor(nullptr), keyboard(nullptr),				// Default state for helper objects.
-	FixedTimeStep(true), suppressRender(false),							// Enable fixed time step and allow first render.
+	FixedTimeStep(true), suppressRender(true),							// Enable fixed time step and disable first render.
 	targetElapTimeFocused(0.0166667f), targetElapTimeNoFocus(0.05f),	// Normal: 60 FPS, Out of focus: 20 FPS.
 	accumElapTime(0), maxElapTime(5), loadPercentage(-1)				// Set buffer time objects.
 {

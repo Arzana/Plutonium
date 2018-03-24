@@ -1,12 +1,12 @@
 #pragma once
 #include <cstddef>
 
-/* Gets the size of a literal string. */
-#define _CRT_NAMEOF_LEN(x)	(sizeof(_CRT_NAMEOF_RAW(x)) / sizeof(char) - 1)
 /* Converts a literal to a string. */
 #define _CRT_NAMEOF_RAW(x)	(#x)
+/* Gets the size of a literal string. */
+#define _CRT_NAMEOF_LEN(x)	(sizeof(_CRT_NAMEOF_RAW(x)) / sizeof(char) - 1)
 /* Converts any variable, function, etc. to a string. */
-#define _CRT_NAMEOF(name)	Plutonium::_CrtNameOf<decltype(name)>(_CRT_NAMEOF_RAW(name), _CRT_NAMEOF_LEN(name))
+#define NAMEOF(name)	Plutonium::_CrtNameOf<decltype(name)>(_CRT_NAMEOF_RAW(name), _CRT_NAMEOF_LEN(name))
 
 namespace Plutonium
 {

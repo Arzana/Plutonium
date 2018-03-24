@@ -1,17 +1,18 @@
 #include "Graphics\Portals\PortalRenderer.h"
+#include "Core\Math\Interpolation.h"
 
-Plutonium::PortalRenderer::PortalRenderer(GraphicsAdapter * device, const char * vrtxShdr, const char * fragShdr)
-	: device(device), drawNonPortals(nullptr)
+Plutonium::PortalRenderer::PortalRenderer(GraphicsAdapter * device, const char * vrtxShdr)
+	: device(device), INIT_BUS(OnBeginRoomRender), INIT_BUS(OnRoomRender), INIT_BUS(OnEndRoomRender)
 {
-	/* Load shader and fields from files. */
-	shdr = Shader::FromFile(vrtxShdr, fragShdr);
+	/* Create shader. */
+	shdr = Shader::FromFile(vrtxShdr);
 
 	/* Get uniforms. */
 	matMdl = shdr->GetUniform("u_model");
 	matView = shdr->GetUniform("u_view");
 	matProj = shdr->GetUniform("u_projection");
 
-	/* Get attributes. */
+	/* Get attribute. */
 	pos = shdr->GetAttribute("a_position");
 }
 
@@ -20,117 +21,148 @@ Plutonium::PortalRenderer::~PortalRenderer(void)
 	delete_s(shdr);
 }
 
-void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj)
+void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj, Tree<PortalRenderArgs>* portals)
 {
-	Begin();
-	RenderPortals(view, proj, 0);
-	End();
+	/* Temporary argument buffer. */
+	Tree<SceneRenderArgs> result;
+	portals->CloneStructure(&result);
+
+	/* Navigate to the bottom of the tree. */
+	while (!portals->IsStump()) portals->ClimbDown();
+
+	/* Create view and projection matrices for all portals. */
+	RecursiveCreateMatrices(view, proj, portals, &result);
+
+	/* navigate to the top of the tree. */
+	while (portals->HasBranch()) portals->ClimbUp();
+
+	/* Stencil render the scene. */
+	BeginStencil();
+	RecursiveRenderPortals(portals, &result);
+	EndStencil();
+
+#if false
+	{
+		int32 w, h;
+		byte *raw = device->GetStencilData(&w, &h);
+
+		byte *data = malloc_s(byte, w * h * 4);
+		for (size_t i = 0, j = 0; i < w * h; i++)
+		{
+			data[j++] = static_cast<byte>(map(0.0f, 255.0f, raw[i], 0.0f, 2.0f));
+			data[j++] = 0;
+			data[j++] = 0;
+			data[j++] = 255;
+		}
+
+		Texture *frame = new Texture(w, h, 0);
+		frame->SetData(data);
+		frame->SaveAsPng("./screenshots/StencilFrameTest.png");
+
+		delete_s(frame);
+		free_s(data);
+		free_s(raw);
+	}
+#endif
+
+	/* Normal render the scene. */
+	OnBeginRoomRender.Post(this, EventArgs());
+	RecursiveRenderScene(&result);
+	OnEndRoomRender.Post(this, EventArgs());
+
+	/* Disable stencil.*/
+	device->SetStencilTest(DepthState::None);
 }
 
-void Plutonium::PortalRenderer::Begin(void)
+void Plutonium::PortalRenderer::RecursiveCreateMatrices(const Matrix & view, const Matrix & proj, Tree<PortalRenderArgs>* portals, Tree<SceneRenderArgs>* result)
 {
-	/* Begin shader and set light uniform. */
+	/* Get current values. */
+	PortalRenderArgs &portal = portals->Value();
+	SceneRenderArgs &scene = result->Value();
+
+	/* Populate result. */
+	scene.View = view;
+	scene.Projection = proj;
+	scene.SceneID = portal.SceneID;
+
+	/* if branch has children move up. */
+	if (portals->HasBranch())
+	{
+		portals->ClimbUp();
+		result->ClimbUp();
+
+		/* Create new matrices. */
+		Matrix newView = portal.Portal->GetInverseView(view);
+		Matrix newProj = portal.Portal->GetClippedProjection(view, proj);
+
+		/* Recursive up the tree. */
+		RecursiveCreateMatrices(newView, newProj, portals, result);
+	}
+
+	/* Run for all neighbors. */
+	while (portals->NextBranch())
+	{
+		result->NextBranch();
+		RecursiveCreateMatrices(view, proj, portals, result);
+	}
+
+	/* Make sure we move back one, once the tree limit is reached. */
+	if (!portals->IsStump())
+	{
+		portals->ClimbDown();
+		result->ClimbDown();
+	}
+}
+
+void Plutonium::PortalRenderer::BeginStencil(void)
+{
+	/* Start stencil shader. */
 	shdr->Begin();
 
+	/* Clean stencil from previous render. */
+	device->Clear(ClearTarget::Stencil);
+
 	/* Disable color and depth output. */
-	device->SetDepthTest(DepthState::None);
 	device->SetColorOutput(false, false, false, false);
 	device->SetDepthOuput(false);
 
-	/* Increase stencil on area of inner portal. */
+	/* Set stencil to always fail and enable write. */
 	device->SetStencilOuput(0xFF);
-	device->SetStencilFailOperation(StencilOperation::Increase);
+	device->SetStencilFailOperation(StencilOperation::Replace);
 }
 
-void Plutonium::PortalRenderer::RenderPortals(const Matrix & view, const Matrix & proj, int32 curRecusrionDepth)
+void Plutonium::PortalRenderer::RecursiveRenderPortals(Tree<PortalRenderArgs>* portals, Tree<SceneRenderArgs>* result)
 {
-	/* Set stencil depth func. */
-	device->SetStencilTest(DepthState::Differ, curRecusrionDepth);
+	/* Get current portal and render argument. */
+	PortalRenderArgs curPortal = portals->Value();
+	SceneRenderArgs curScene = result->Value();
 
-	for (size_t i = 0; i < portals.size(); i++)
+	/* Render portal frame. */
+	RenderPortalFrame(curScene.View, curScene.Projection, &curPortal);
+
+	/* Render neighbor is available. */
+	if (portals->NextBranch()) RecursiveRenderPortals(portals, result);
+
+	/* Render parent. */
+	if (!portals->IsStump())
 	{
-		/* Render the current portal. */
-		Portal *cur = portals.at(i);
-		RenderSinglePortal(cur, view, proj);
-
-		/* Get the new view and projection matrices. */
-		Matrix destView = cur->GetInverseView(view);
-		Matrix destProj = cur->GetClippedProjection(view, proj);
-
-		if (curRecusrionDepth >= maxRecursionDepth)
-		{
-			/* Enable color and depth output. */
-			device->SetDepthTest(DepthState::LessOrEqual);
-			device->SetColorOutput(true, true, true, true);
-			device->SetDepthOuput(true);
-
-			/* Clear depth buffer. */
-			device->Clear(ClearTarget::Depth);
-
-			/* Disable rendering to stencil buffer but enable test. */
-			device->SetStencilOuput(0x00);
-			device->SetStencilTest(DepthState::LessOrEqual, curRecusrionDepth + 1);
-
-			/* Render scene limited to the stencil buffer. */
-			if (drawNonPortals) drawNonPortals(destView, destProj);
-		}
-		else RenderPortals(destView, destProj, curRecusrionDepth + 1);
-
-		/* Disable color and depth output. */
-		device->SetColorOutput(false, false, false, false);
-		device->SetDepthOuput(false);
-
-		/* Enable stencil test and output. */
-		device->SetStencilOuput(0xFF);
-		device->SetStencilTest(DepthState::Differ, curRecusrionDepth + 1);
-		device->SetStencilFailOperation(StencilOperation::Decrease);
-
-		/* Render current portal. */
-		RenderSinglePortal(cur, view, proj);
+		portals->ClimbDown();
+		RecursiveRenderPortals(portals, result);
 	}
-
-	/* Disable stencil output. */
-	device->SetStencilTest(DepthState::None);
-	device->SetStencilOuput(0x00);
-
-	/* Disable color output. */
-	device->SetColorOutput(false, false, false, false);
-
-	/* Enable depth test. */
-	device->SetDepthOuput(true);
-	device->SetDepthTest(DepthState::Always);
-
-	/* Clear buffer. */
-	device->Clear(ClearTarget::Depth);
-
-	/* Render portals to depth buffer. */
-	for (size_t i = 0; i < portals.size(); i++)
-	{
-		RenderSinglePortal(portals.at(i), view, proj);
-	}
-
-	/* Enable stencil test. */
-	device->SetStencilTest(DepthState::LessOrEqual, curRecusrionDepth);
-	device->SetStencilOuput(0x00);
-
-	/* Enable depth and color output.. */
-	device->SetDepthTest(DepthState::LessOrEqual);
-	device->SetColorOutput(true, true, true, true);
-	device->SetDepthOuput(true);
-
-	/* Render scene normally. */
-	if (drawNonPortals) drawNonPortals(view, proj);
 }
 
-void Plutonium::PortalRenderer::RenderSinglePortal(Portal * portal, const Matrix & view, const Matrix & proj)
+void Plutonium::PortalRenderer::RenderPortalFrame(const Matrix & view, const Matrix & proj, PortalRenderArgs * portal)
 {
+	/* Update stencil refrence. */
+	device->SetStencilTest(DepthState::Never, portal->SceneID);
+
 	/* Set uniforms. */
-	matProj->Set(proj);
+	matMdl->Set(portal->Portal->GetWorld());
 	matView->Set(view);
-	matMdl->Set(portal->GetWorld());
+	matProj->Set(proj);
 
-	/* Bind buffer and set position attribute. */
-	Buffer *buffer = portal->mesh->GetVertexBuffer();
+	/* Set vertex attribute. */
+	Buffer *buffer = portal->Portal->mesh->GetVertexBuffer();
 	buffer->Bind();
 	pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 
@@ -138,16 +170,42 @@ void Plutonium::PortalRenderer::RenderSinglePortal(Portal * portal, const Matrix
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
 }
 
-void Plutonium::PortalRenderer::End(void)
+void Plutonium::PortalRenderer::RecursiveRenderScene(Tree<SceneRenderArgs>* portals)
 {
-	/* End shader. */
+	/* Render current scene. */
+	SceneRenderArgs &scene = portals->Value();
+	RenderScene(&scene);
+
+	/* Render childs. */
+	if (portals->HasBranch())
+	{
+		portals->ClimbUp();
+		RecursiveRenderScene(portals);
+	}
+
+	/* Render neighbors. */
+	while (portals->NextBranch()) RecursiveRenderScene(portals);
+
+	/* Make sure we move back one, once the tree limit is reached. */
+	if (!portals->IsStump()) portals->ClimbDown();
+}
+
+void Plutonium::PortalRenderer::RenderScene(SceneRenderArgs * scene)
+{
+	/* Update stencil refrence. */
+	device->SetStencilTest(DepthState::Equal, scene->SceneID);
+
+	/* Allow user to render the scene. */
+	OnRoomRender.Post(this, *scene);
+}
+
+void Plutonium::PortalRenderer::EndStencil(void)
+{
+	/* End stencil shader. */
 	shdr->End();
 
-	/* Re-enable color and depth output. */
+	/* Disable stencil output and enable color and depth output. */
+	device->SetStencilOuput(0x00);
 	device->SetColorOutput(true, true, true, true);
 	device->SetDepthOuput(true);
-
-	/* Disable stencil test. */
-	device->SetStencilOuput(0x00);
-	device->SetStencilTest(DepthState::None);
 }

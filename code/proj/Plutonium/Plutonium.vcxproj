@@ -276,6 +276,7 @@
     <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h" />
     <ClInclude Include="..\..\include\Graphics\Portals\Portal.h" />
     <ClInclude Include="..\..\include\Graphics\Portals\PortalRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />

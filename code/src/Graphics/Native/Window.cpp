@@ -88,7 +88,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 
 Plutonium::Window::Window(const char * title, Vector2 size)
 	: title(title), wndBounds(size), vpBounds(size), focused(false), wndMode(WindowMode::Windowed), swapMode(VSyncMode::Enabled),
-	SizeChanged("WindowSizeChanged"), PositionChanged("WindowPositionChanged"), GainedFocus("WindowGainedFocus"), LostFocus("WindowLostFocus"),
+	INIT_BUS(SizeChanged), INIT_BUS(PositionChanged), INIT_BUS(GainedFocus), INIT_BUS(LostFocus),
 	operational(false)
 {
 	/* Create underlying window. */

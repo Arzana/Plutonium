@@ -26,6 +26,21 @@ namespace Plutonium
 			}
 		}
 
+		/* Copies the structure of the current tree to a new tree of the specified type. */
+		template <typename _DestTy>
+		void CloneStructure(_Inout_ Tree<_DestTy> *result) const
+		{
+			/* Initialize result. */
+			result->EnsureCapacity(count);
+			result->count = count;
+
+			/* Copy internal structure. */
+			for (size_t i = 0; i < count; i++)
+			{
+				result->data[i].Init<_Ty>(data + i);
+			}
+		}
+
 		/* Gets whether the current branch has child branches. */
 		_Check_return_ bool HasBranch(void) const
 		{
@@ -33,10 +48,17 @@ namespace Plutonium
 			return data[branch].Childs.size() > 0;
 		}
 
+		/* Gets whether the current branch is the bottom most. */
+		_Check_return_ bool IsStump(void) const
+		{
+			ASSERT_IF(count <= 0, "Tree contains no branches!");
+			return branch == 0;
+		}
+
 		/* Moves down one parent in the tree. */
 		void ClimbDown(void)
 		{
-			ASSERT_IF(branch <= 0, "Cannot climb down tree any further!");
+			ASSERT_IF(IsStump(), "Cannot climb down tree any further!");
 			branch = data[branch].ParentIndex;
 		}
 
@@ -50,6 +72,9 @@ namespace Plutonium
 		/* Moves over to the next branch; returns false if unable. */
 		_Check_return_ bool NextBranch(void)
 		{
+			/* Stump never has neighbor branches. */
+			if (IsStump()) return false;
+
 			/* Save current child for later. */
 			size_t old = branch;
 			ClimbDown();
@@ -71,6 +96,7 @@ namespace Plutonium
 			}
 
 			LOG_THROW("Could not find old branch in tree, this should never occur!");
+			return false;
 		}
 
 		/* Adds a branch to the current branch or creates a stump when the tree is empty. */
@@ -83,7 +109,7 @@ namespace Plutonium
 		}
 
 		/* Gets the value of the current branch. */
-		_Check_return_ _Ty Value(void) const
+		_Check_return_ _Ty& Value(void) const
 		{
 			ASSERT_IF(count <= 0, "Tree is empty!");
 			return data[branch].Value;
@@ -102,6 +128,9 @@ namespace Plutonium
 		}
 
 	private:
+		template <typename>
+		friend struct Tree;
+
 		struct Branch
 		{
 		public:
@@ -113,7 +142,20 @@ namespace Plutonium
 			{
 				Value = value;
 				ParentIndex = parent;
+				ValidateVector();
+			}
 
+			template <typename _SrcTy>
+			void Init(const typename Tree<typename _SrcTy>::Branch *old)
+			{
+				ParentIndex = old->ParentIndex;
+				ValidateVector();
+				Childs = std::vector<size_t>(old->Childs);
+			}
+
+		private:
+			void ValidateVector(void)
+			{
 				/* Because we're allocaing the vector from random memory we have to make sure the iterator is default. */
 				Childs._Get_data()._Myproxy = nullptr;
 				Childs._Get_data()._Myfirst = nullptr;
@@ -130,6 +172,8 @@ namespace Plutonium
 
 		void EnsureCapacity(size_t required)
 		{
+			if (required <= size) return;
+
 			if (size == 0) data = malloc_s(Branch, required);
 			else data = realloc_s(Branch, data, required);
 

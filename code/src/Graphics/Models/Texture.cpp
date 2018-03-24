@@ -73,6 +73,7 @@ void Plutonium::Texture::SetData(byte * data)
 {
 	/* Delete old texture if needed. */
 	if (ptr) Dispose();
+
 	/* Generate new texture. */
 	GenerateTexture(void_ptr(data));
 }

@@ -475,5 +475,8 @@
     <ClInclude Include="..\..\include\Core\Diagnostics\ReflectNames.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h">
+      <Filter>Header Files\Graphics\Portals</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

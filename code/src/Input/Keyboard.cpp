@@ -62,7 +62,7 @@ KeyState Plutonium::Keyboard::GetKey(Keys key) const
 }
 
 Plutonium::Keyboard::Keyboard(const Window * wnd)
-	: wnd(wnd), KeyPress("KeyboardKeyPress"), CharInput("KeyboardCharInput")
+	: wnd(wnd), INIT_BUS(KeyPress), INIT_BUS(CharInput)
 {
 	activeKeyboards.push_back(this);
 
