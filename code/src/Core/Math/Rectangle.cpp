@@ -42,12 +42,12 @@ void Plutonium::Rectangle::Inflate(float horizontal, float vertical)
 
 bool Plutonium::Rectangle::Contains(Vector2 point) const
 {
-	return GetLeft() < point.X && GetRight() > point.X && GetTop() < point.Y && GetBottom() > point.Y;
+	return GetLeft() <= point.X && GetRight() >= point.X && GetTop() <= point.Y && GetBottom() >= point.Y;
 }
 
 bool Plutonium::Rectangle::Contains(const Rectangle & r) const
 {
-	return GetLeft() < r.GetLeft() && GetRight() > r.GetRight() && GetTop() < r.GetTop() && GetBottom() > r.GetBottom();
+	return GetLeft() <= r.GetLeft() && GetRight() >= r.GetRight() && GetTop() <= r.GetTop() && GetBottom() >= r.GetBottom();
 }
 
 bool Plutonium::Rectangle::Overlaps(const Rectangle & r) const

@@ -33,7 +33,10 @@ struct TestGame
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f)
 	{
-		GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
+		Window *wnd = GetGraphics()->GetWindow();
+		wnd->Move(Vector2::Zero);
+		wnd->Resize(wnd->GetGraphicsDevice().GetClientSize());
+
 		GetCursor()->Disable();
 	}
 

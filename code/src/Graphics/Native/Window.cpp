@@ -99,7 +99,9 @@ Plutonium::Window::Window(const char * title, Vector2 size)
 	if (_CrtInitGlad() != GLFW_TRUE) return;
 
 	/* Initialize properties and show window. */
-	SetBounds(Vector2::Zero, size);
+	int x, y;
+	glfwGetWindowPos(hndlr, &x, &y);
+	SetBounds(Vector2(static_cast<float>(x), static_cast<float>(y)), size);
 	SetVerticalRetrace(VSyncMode::Enabled);
 	Show();
 	operational = true;
@@ -268,6 +270,8 @@ void Plutonium::Window::SetBounds(Vector2 pos, Vector2 size)
 	if (pos != wndBounds.Position)
 	{
 		wndBounds.Position = pos;
+		glfwSetWindowPos(hndlr, static_cast<int>(pos.X), static_cast<int>(pos.Y));
+
 		PositionChanged.Post(this, EventArgs());
 		LOG("Window '%s' moved to (%dx%d).", title, static_cast<int>(pos.X), static_cast<int>(pos.Y));
 	}
@@ -276,6 +280,7 @@ void Plutonium::Window::SetBounds(Vector2 pos, Vector2 size)
 	if (size != vpBounds.Size)
 	{
 		vpBounds.Size = size;
+		glfwSetWindowSize(hndlr, static_cast<int>(size.X), static_cast<int>(size.Y));
 
 		/* Check if viewport needs to be updated. */
 		int l = 0, r = 0, t = 0, b = 0;
