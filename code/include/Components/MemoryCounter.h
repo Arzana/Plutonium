@@ -11,7 +11,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of an memory counter. */
-		MemoryCounter(_In_ Game *game, _In_ size_t bufferSize = 100);
+		MemoryCounter(_In_ Game *game, _In_opt_ size_t bufferSize = 100, _In_opt_ int32 rate = 60);
 		MemoryCounter(_In_ const MemoryCounter &value) = delete;
 		MemoryCounter(_In_ MemoryCounter &&value) = delete;
 
@@ -91,5 +91,6 @@ namespace Plutonium
 		std::deque<MemoryFrame> buffer;
 		uint64 avrg, worst, best;
 		uint64 vavrg, vworst, vbest;
+		float updIntrv, updElap;
 	};
 }

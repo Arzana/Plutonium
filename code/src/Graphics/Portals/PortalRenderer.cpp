@@ -1,5 +1,4 @@
 #include "Graphics\Portals\PortalRenderer.h"
-#include "Core\Math\Interpolation.h"
 
 Plutonium::PortalRenderer::PortalRenderer(GraphicsAdapter * device, const char * vrtxShdr)
 	: device(device), INIT_BUS(OnBeginRoomRender), INIT_BUS(OnRoomRender), INIT_BUS(OnEndRoomRender)
@@ -40,31 +39,6 @@ void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj,
 	BeginStencil();
 	RecursiveRenderPortals(portals, &result);
 	EndStencil();
-
-#if false
-	{
-		/* Save the stencil frame to a file for testing. */
-		int32 w, h;
-		byte *raw = device->GetFragmentData(PixelData::Stencil, &w, &h);
-
-		byte *data = malloc_s(byte, w * h * 4);
-		for (size_t i = 0, j = 0; i < w * h; i++)
-		{
-			data[j++] = static_cast<byte>(map(0.0f, 255.0f, raw[i], 0.0f, 2.0f));
-			data[j++] = 0;
-			data[j++] = 0;
-			data[j++] = 255;
-		}
-
-		Texture *frame = new Texture(w, h, 0);
-		frame->SetData(data);
-		frame->SaveAsPng("./screenshots/StencilFrameTest.png");
-
-		delete_s(frame);
-		free_s(data);
-		free_s(raw);
-	}
-#endif
 
 	/* Normal render the scene. */
 	OnBeginRoomRender.Post(this, EventArgs());
@@ -119,6 +93,9 @@ void Plutonium::PortalRenderer::BeginStencil(void)
 {
 	/* Start stencil shader. */
 	shdr->Begin();
+
+	/* Disable rendering back side of the portal. */
+	device->SetFaceCull(FaceCullState::Back);
 
 	/* Disable color and depth output. */
 	device->SetColorOutput(false, false, false, false);

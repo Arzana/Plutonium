@@ -10,7 +10,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of an fps counter. */
-		FpsCounter(_In_ Game *game, _In_ size_t bufferSize = 100);
+		FpsCounter(_In_ Game *game, _In_opt_ size_t bufferSize = 100, _In_opt_ int32 rate = 60);
 		FpsCounter(_In_ const FpsCounter &value) = delete;
 		FpsCounter(_In_ FpsCounter &&value) = delete;
 
@@ -74,5 +74,6 @@ namespace Plutonium
 		size_t maxSize;
 		std::deque<float> buffer;
 		float avrg, worst, best;
+		float updIntrv, updElap;
 	};
 }

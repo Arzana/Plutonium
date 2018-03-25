@@ -190,6 +190,7 @@
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
@@ -249,6 +250,8 @@
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\PixelData.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
@@ -270,7 +273,6 @@
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
-    <ClInclude Include="..\..\include\Graphics\Native\PixelData.h" />
     <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />

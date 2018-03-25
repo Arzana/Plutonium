@@ -93,6 +93,12 @@
     <Filter Include="Header Files\Core\Collections">
       <UniqueIdentifier>{5533fc3f-fd6d-4c79-b29d-929cc6f48065}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Diagnostics">
+      <UniqueIdentifier>{06f67d89-0a73-4b83-a98d-45adb0f64351}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Diagnostics">
+      <UniqueIdentifier>{6bbbca01-37c5-4070-abc8-11cab6e5b677}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -232,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp">
       <Filter>Source Files\Graphics\Portals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -478,8 +487,11 @@
     <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h">
       <Filter>Header Files\Graphics\Portals</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Native\PixelData.h">
-      <Filter>Header Files\Graphics\Native</Filter>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\PixelData.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

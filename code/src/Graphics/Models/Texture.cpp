@@ -104,6 +104,7 @@ void Plutonium::Texture::SaveAsPng(const char * path)
 	if (!_CrtDirectoryExists(fr.GetFileDirectory())) _CrtCreateDirectory(fr.GetFileDirectory());
 	
 	/* Attempt to save as PNG, no stride for full texture. */
+	stbi_flip_vertically_on_write(true);
 	int32 result = stbi_write_png(path, Width, Height, GetChannels(), void_ptr(data), 0);
 	free_s(data);
 

@@ -1,8 +1,9 @@
 #include "Components\FpsCounter.h"
 
-Plutonium::FpsCounter::FpsCounter(Game * game, size_t bufferSize)
-	: GameComponent(game), maxSize(bufferSize), 
-	avrg(0.0f), worst(0.0f), best(0.0f)
+Plutonium::FpsCounter::FpsCounter(Game * game, size_t bufferSize, int32 rate)
+	: GameComponent(game), maxSize(bufferSize),
+	avrg(0.0f), worst(0.0f), best(0.0f),
+	updElap(0.0f), updIntrv(1.0f / rate)
 {
 	buffer.resize(bufferSize);
 }
@@ -15,20 +16,26 @@ void Plutonium::FpsCounter::Render(float dt)
 	/* Make sure we don't store more than is requested. */
 	while (buffer.size() > maxSize) buffer.pop_front();
 
-	/* Reset general stats. */
-	avrg = 0.0f;
-	worst = FLT_MIN;
-	best = FLT_MAX;
-
-	/* Update general stats. */
-	for (size_t i = 0; i < buffer.size(); i++)
+	/* Make sure we don't update too much. */
+	if ((updElap += dt) >= updIntrv)
 	{
-		float cur = buffer.at(i);
+		updElap = 0.0f;
 
-		avrg += cur;
-		if (worst < cur) worst = cur;
-		if (best > cur) best = cur;
+		/* Reset general stats. */
+		avrg = 0.0f;
+		worst = minv<float>();
+		best = maxv<float>();
+
+		/* Update general stats. */
+		for (size_t i = 0; i < buffer.size(); i++)
+		{
+			float cur = buffer.at(i);
+
+			avrg += cur;
+			if (worst < cur) worst = cur;
+			if (best > cur) best = cur;
+		}
+
+		avrg /= buffer.size();
 	}
-
-	avrg /= buffer.size();
 }

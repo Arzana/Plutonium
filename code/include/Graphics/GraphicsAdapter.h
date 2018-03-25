@@ -8,7 +8,6 @@
 #include "Graphics\Native\DepthState.h"
 #include "Graphics\Native\StencilOperation.h"
 #include "Graphics\Native\ClearTargets.h"
-#include "Graphics\Native\PixelData.h"
 
 namespace Plutonium
 {
@@ -62,11 +61,6 @@ namespace Plutonium
 
 		/* Clears the specified buffers. */
 		void Clear(_In_ ClearTarget target);
-
-		/* Gets the specified current data from the specified buffer (requires free!). */
-		_Check_return_ byte* GetFragmentData(_In_ PixelData type, _Out_opt_ int32 *w, _Out_opt_ int32 *h);
-		/* Gets the current depth data from the specified buffer (requires free!). */
-		_Check_return_ float* GetDepthData(_Out_opt_ int32 *w, _Out_opt_ int32 *h);
 
 		/* Gets the window associated with the context. */
 		_Check_return_ inline Window* GetWindow(void) const

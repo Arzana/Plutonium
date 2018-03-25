@@ -1,0 +1,142 @@
+#include "Graphics\Diagnostics\FrameInfo.h"
+#include "Graphics\Diagnostics\PixelData.h"
+#include "Graphics\Models\Texture.h"
+#include "Core\Math\Interpolation.h"
+
+//Plutonium::byte * Plutonium::GraphicsAdapter::GetFragmentData(PixelData type, int32 * w, int32 * h)
+//{
+//	/* Calculate buffer size. */
+//	const Rectangle vp = window->GetClientBounds();
+//	int32 width = static_cast<int32>(vp.GetWidth());
+//	int32 height = static_cast<int32>(vp.GetHeight());
+//
+//	/* Set size output is requested. */
+//	if (w) *w = width;
+//	if (h) *h = height;
+//
+//	/* Get the component count. */
+//	int32 cc;
+//	switch (type)
+//	{
+//	case Plutonium::PixelData::Red:
+//	case Plutonium::PixelData::Green:
+//	case Plutonium::PixelData::Blue:
+//	case Plutonium::PixelData::Stencil:
+//		cc = 1;
+//		break;
+//	case Plutonium::PixelData::RGB:
+//		cc = 3;
+//		break;
+//	case Plutonium::PixelData::RGBA:
+//		cc = 4;
+//		break;
+//	default:
+//		LOG_THROW("Unknown pixel type specified!");
+//		break;
+//	}
+//
+//	/* Create and populate result. */
+//	byte *data = malloc_s(byte, width * height * cc);
+//	glReadPixels(0, 0, width, height, _CrtEnum2Int(type), GL_UNSIGNED_BYTE, data);
+//
+//	return data;
+//}
+
+/* Defines the output directory for all debug images. */
+#define OUTDIR(x)	"./debug/" x ".png"
+
+using namespace Plutonium;
+
+Texture* GenerateFrameTexture(GraphicsAdapter *device)
+{
+	/* Get the width and height of the frame buffer. */
+	const Plutonium::Rectangle vp = device->GetWindow()->GetClientBounds();
+	int32 w = ipart(vp.GetWidth()), h = ipart(vp.GetHeight());
+
+	/* Return frame texture. */
+	return new Texture(w, h, 0);
+}
+
+template <typename _Ty>
+void GetRange(_Ty *lowest, _Ty *highest, _Ty *buffer, size_t size)
+{
+	/* Set defaults. */
+	*lowest = maxv<_Ty>();
+	*highest = minv<_Ty>();
+
+	/* Get range. */
+	for (size_t i = 0; i < size; i++)
+	{
+		_Ty cur = buffer[i];
+		if (cur < *lowest) *lowest = cur;
+		if (cur > *highest) *highest = cur;
+	}
+}
+
+template <typename _Ty>
+void ToGreyscale(Texture *img, _Ty *rawData, bool invert)
+{
+	size_t size = img->Width * img->Height;
+
+	/* Get value range. */
+	_Ty lowest, highest;
+	GetRange(&lowest, &highest, rawData, size);
+
+	/* Convert to increase performance. */
+	float c = static_cast<float>(lowest), d = static_cast<float>(highest);
+	float a = (invert ? 255.0f : 0.0f), b = (invert ? 0.0f : 255.0f);
+
+	/* Convert raw data to greyscale (RGBA format). */
+	byte *imgData = malloc_s(byte, size * 4);
+	for (size_t i = 0, j = 0; i < size; i++)
+	{
+		/* Map raw data to byte range. */
+		byte value = static_cast<byte>(map(a, b, static_cast<float>(rawData[i]), c, d));
+
+		/* Convert mapped value to pre multiplied opaque color. */
+		imgData[j++] = value;
+		imgData[j++] = value;
+		imgData[j++] = value;
+		imgData[j++] = 255;
+	}
+
+	/* Send data to image and free temporary color buffer. */
+	img->SetData(imgData);
+	free_s(imgData);
+}
+
+void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
+{
+	/* Create texture buffer. */
+	Texture *img = GenerateFrameTexture(device);
+
+	/* Get raw depth data from the frame buffer. */
+	float *data = malloc_s(float, img->Width * img->Height);
+	glReadPixels(0, 0, img->Width, img->Height, GL_DEPTH_COMPONENT, GL_FLOAT, data);
+
+	/* Convert data to greyscale image. */
+	ToGreyscale(img, data, true);
+	img->SaveAsPng(OUTDIR("DepthInfo"));
+
+	/* Release temporary buffers. */
+	delete_s(img);
+	free_s(data);
+}
+
+void Plutonium::_CrtSaveStencilToFile(GraphicsAdapter * device)
+{
+	/* Create texture buffer. */
+	Texture *img = GenerateFrameTexture(device);
+
+	/* Get raw stencil data from the frame buffer. */
+	byte *data = malloc_s(byte, img->Width * img->Height);
+	glReadPixels(0, 0, img->Width, img->Height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
+
+	/* Convert data to greyscale image. */
+	ToGreyscale(img, data, false);
+	img->SaveAsPng(OUTDIR("StencilInfo"));
+
+	/* Release temporary buffers. */
+	delete_s(img);
+	free_s(data);
+}

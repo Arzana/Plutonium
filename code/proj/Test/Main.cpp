@@ -39,8 +39,8 @@ struct TestGame
 
 	virtual void Initialize(void)
 	{
-		AddComponent(fps = new FpsCounter(this));
-		AddComponent(mem = new MemoryCounter(this));
+		AddComponent(fps = new FpsCounter(this, 100, 1));
+		AddComponent(mem = new MemoryCounter(this, 100, 1));
 
 		fRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
@@ -60,7 +60,7 @@ struct TestGame
 
 		portal = new Portal(Vector3::Zero);
 		portal->Destination = knight;
-		portal->SetScale(10.0f);
+		portal->SetScale(25.0f);
 	}
 
 	virtual void UnLoadContent(void)
@@ -96,6 +96,9 @@ struct TestGame
 
 	void RenderScene(const PortalRenderer *sender, SceneRenderArgs args)
 	{
+		/* If the knight model is used face culling needs to be turned off. */
+		GetGraphics()->SetFaceCull(FaceCullState::None);
+
 		drenderer->Begin(args.View, args.Projection, light);
 		drenderer->Render(knight);
 		drenderer->End();
@@ -109,7 +112,7 @@ struct TestGame
 		fRenderer->AddDebugString(lightStr);
 
 		/* Render distance to knight. */
-		std::string distStr = "Distance ";
+		std::string distStr = "Distance: ";
 		distStr += std::to_string(ipart(dist(cam->GetPosition(), knight->GetPosition())));
 		fRenderer->AddDebugString(distStr);
 
@@ -123,9 +126,6 @@ struct TestGame
 		(vramStr += std::to_string(b2mb(mem->GetAvrgVRamUsage()))) += " / ";
 		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
 		fRenderer->AddDebugString(vramStr);
-
-		/* If the knight model is used face culling needs to be turned off. */
-		GetGraphics()->SetFaceCull(FaceCullState::None);
 
 		/* Render test current room. */
 		drenderer->Begin(cam->GetView(), cam->GetProjection(), light);
