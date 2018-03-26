@@ -8,6 +8,7 @@
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
 #include "KnightInit.h"
+#include <Graphics\Portals\PobjLoader.h>
 
 using namespace Plutonium;
 
@@ -64,6 +65,8 @@ struct TestGame
 		portal = new Portal(Vector3::Zero);
 		portal->Destination = knight;
 		portal->SetScale(25.0f);
+
+		auto test = _CrtLoadPobjMtl("./assets/models/Maps/dm_arena.pobj");
 	}
 
 	virtual void UnLoadContent(void)

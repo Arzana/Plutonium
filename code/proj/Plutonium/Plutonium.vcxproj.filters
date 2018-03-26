@@ -242,6 +242,9 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp">
+      <Filter>Source Files\Graphics\Portals</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -492,6 +495,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\PixelData.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Portals\PobjLoader.h">
+      <Filter>Header Files\Graphics\Portals</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

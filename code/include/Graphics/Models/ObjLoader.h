@@ -18,7 +18,7 @@ namespace Plutonium
 		const char *Log;
 	};
 
-	/* Loads a .obj file and it's associated .mtl files (requires delete!). */
+	/* Loads a .obj file and it's associated .mtl file(s) (requires delete!). */
 	_Check_return_ const ObjLoaderResult* _CrtLoadObjMtl(_In_ const char *path);
 
 	/* Gets the default material properties. */
