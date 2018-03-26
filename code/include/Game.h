@@ -57,6 +57,18 @@ namespace Plutonium
 			return keyboard;
 		}
 
+		/* Supresses the next successful ticks update call. */
+		inline void SuppressNextUpdate(void)
+		{
+			suppressUpdate = true;
+		}
+
+		/* Supresses the next successful ticks render call. */
+		inline void SupressNextRender(void)
+		{
+			suppressRender = true;
+		}
+
 		/* 
 		Adds a component to the game,
 		this component will be initialized after Initilaize is called but before LoadContent is called.
@@ -85,7 +97,7 @@ namespace Plutonium
 		virtual void RenderLoad(_In_ float dt, _In_ int percentage) {}
 
 	private:
-		bool suppressRender;
+		bool suppressUpdate, suppressRender;
 		double prevTime;
 		float targetElapTimeFocused;
 		float targetElapTimeNoFocus;

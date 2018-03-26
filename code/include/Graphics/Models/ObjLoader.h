@@ -16,6 +16,18 @@ namespace Plutonium
 		bool Successful;
 		/* Contains error and warning messages. */
 		const char *Log;
+
+		/* Initializes a new instance of a .obj loader result. */
+		ObjLoaderResult(void)
+			: Vertices(), Shapes(), Materials(),
+			Successful(false), Log(nullptr)
+		{}
+
+		ObjLoaderResult(_In_ const ObjLoaderResult &value) = delete;
+		ObjLoaderResult(_In_ ObjLoaderResult &&value) = delete;
+		
+		_Check_return_ ObjLoaderResult& operator =(_In_ const ObjLoaderResult &other) = delete;
+		_Check_return_ ObjLoaderResult& operator =(_In_ ObjLoaderResult &&other) = delete;
 	};
 
 	/* Loads a .obj file and it's associated .mtl file(s) (requires delete!). */

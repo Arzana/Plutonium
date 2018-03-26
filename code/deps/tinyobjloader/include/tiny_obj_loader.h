@@ -237,14 +237,18 @@ namespace tinyobj {
 		mesh_t mesh;
 	} shape_t;
 
-	typedef struct : shape_t {
-		int gravity;
-	} gshape_t;
-
 	typedef struct {
 		std::vector<int> vertices;
 		int destination;
 	} portal_t;
+
+	typedef struct {
+		int gravity;
+		std::string name;
+
+		std::vector<shape_t> shapes;
+		std::vector<portal_t> portals;
+	} room_t;
 
 	// Vertex attributes
 	typedef struct {
@@ -343,16 +347,16 @@ namespace tinyobj {
 
 	/// Loads .pobj from a file.
 	/// 'attrib', 'shapes' and 'materials' will be filled with parsed shape data
-	/// 'shapes' will be filled with parsed shape data
+	/// 'rooms' will be filled with parsed shape data
 	/// 'portals' will be filled with parsed portal data
 	/// Returns true when loading .pobj become success.
 	/// Returns warning and error message into `err`
 	/// 'mtl_basedir' is optional, and used for base directory for .mtl file.
 	/// In default(`NULL`), .mtl file is searched from an appication'sworking directory.
 	/// 'triangulate' is optional, and used whether triangulate polygon face in .obj or not.
-	bool LoadPobj(attrib_t *attrib, std::vector<gshape_t> *shapes,
-		std::vector<portal_t> *portals, std::vector<material_t> *materials,
-		std::string *err, const char *filename, const char *mtl_basedir = NULL,
+	bool LoadPobj(attrib_t *attrib, std::vector<room_t> *rooms,
+		std::vector<material_t> *materials, std::string *err, 
+		const char *filename, const char *mtl_basedir = NULL,
 		bool triangulate = true);
 
 	/// Loads .obj from a file with custom user callback.
@@ -379,8 +383,8 @@ namespace tinyobj {
 	/// std::istream for materials.
 	/// Returns true when loading .obj become success.
 	/// Returns warning and error message into `err`
-	bool LoadPobj(attrib_t *attrib, std::vector<gshape_t> *shapes,
-		std::vector<portal_t> *portals, std::vector<material_t> *materials, std::string *err,
+	bool LoadPobj(attrib_t *attrib, std::vector<room_t> *rooms,
+		std::vector<material_t> *materials, std::string *err,
 		std::istream *inStream, MaterialReader *readMatFn = NULL,
 		bool triangulate = true);
 
@@ -2107,17 +2111,16 @@ namespace tinyobj {
 		return true;
 	}
 
-	bool LoadPobj(attrib_t *attrib, std::vector<gshape_t> *shapes,
-		std::vector<portal_t> *portals, std::vector<material_t> *materials,
-		std::string *err, const char *filename, const char *mtl_basedir,
+	bool LoadPobj(attrib_t *attrib, std::vector<room_t> *rooms,
+		std::vector<material_t> *materials, std::string *err, 
+		const char *filename, const char *mtl_basedir,
 		bool triangulate) {
 
 		attrib->vertices.clear();
 		attrib->normals.clear();
 		attrib->texcoords.clear();
 		attrib->colors.clear();
-		shapes->clear();
-		portals->clear();
+		rooms->clear();
 
 		std::stringstream errss;
 
@@ -2136,12 +2139,12 @@ namespace tinyobj {
 		}
 		MaterialFileReader matFileReader(baseDir);
 
-		return LoadPobj(attrib, shapes, portals, materials, err, &ifs, &matFileReader,
+		return LoadPobj(attrib, rooms, materials, err, &ifs, &matFileReader,
 			triangulate);
 	}
 
-	bool LoadPobj(attrib_t *attrib, std::vector<gshape_t> *shapes,
-		std::vector<portal_t> *portals, std::vector<material_t> *materials, std::string *err,
+	bool LoadPobj(attrib_t *attrib, std::vector<room_t> *rooms,
+		std::vector<material_t> *materials, std::string *err,
 		std::istream *inStream, MaterialReader *readMatFn /*= NULL*/,
 		bool triangulate) {
 		std::stringstream errss;
@@ -2152,7 +2155,9 @@ namespace tinyobj {
 		std::vector<real_t> vc;
 		std::vector<tag_t> tags;
 		std::vector<face_t> faceGroup;
-		std::string name;
+		std::vector<shape_t> shapes;
+		std::vector<portal_t> portals;
+		std::string objName, roomName;
 		int g = -1;
 
 		// material
@@ -2163,7 +2168,7 @@ namespace tinyobj {
 		unsigned int current_smoothing_id =
 			0;  // Initial value. 0 means no smoothing.
 
-		gshape_t shape;
+		shape_t shape;
 
 		std::string linebuf;
 		while (inStream->peek() != -1) {
@@ -2281,7 +2286,7 @@ namespace tinyobj {
 					// Create per-face material. Thus we don't add `shape` to `shapes` at
 					// this time.
 					// just clear `faceGroup` after `exportFaceGroupToShape()` call.
-					exportFaceGroupToShape(&shape, faceGroup, tags, material, name,
+					exportFaceGroupToShape(&shape, faceGroup, tags, material, objName,
 						triangulate, v);
 					faceGroup.clear();
 					material = newMaterialId;
@@ -2337,15 +2342,15 @@ namespace tinyobj {
 			// group name
 			if (token[0] == 'g' && IS_SPACE((token[1]))) {
 				// flush previous face group.
-				bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, name,
+				bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, objName,
 					triangulate, v);
 				(void)ret;  // return value not used.
 
 				if (shape.mesh.indices.size() > 0) {
-					shapes->push_back(shape);
+					shapes.push_back(shape);
 				}
 
-				shape = gshape_t();
+				shape = shape_t();
 
 				// material = -1;
 				faceGroup.clear();
@@ -2363,10 +2368,10 @@ namespace tinyobj {
 
 				// names[0] must be 'g', so skip the 0th element.
 				if (names.size() > 1) {
-					name = names[1];
+					objName = names[1];
 				}
 				else {
-					name = "";
+					objName = "";
 				}
 
 				continue;
@@ -2375,22 +2380,21 @@ namespace tinyobj {
 			// object name
 			if (token[0] == 'o' && IS_SPACE((token[1]))) {
 				// flush previous face group.
-				bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, name,
+				bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, objName,
 					triangulate, v);
 				if (ret) {
-					shape.gravity = g;
-					shapes->push_back(shape);
+					shapes.push_back(shape);
 				}
 
 				// material = -1;
 				faceGroup.clear();
-				shape = gshape_t();
+				shape = shape_t();
 
 				// @todo { multiple object name? }
 				token += 2;
 				std::stringstream ss;
 				ss << token;
-				name = ss.str();
+				objName = ss.str();
 
 				continue;
 			}
@@ -2461,12 +2465,45 @@ namespace tinyobj {
 				continue;
 			}  // smoothing group id
 
+			// room name
+			if (token[0] == 'r' && IS_SPACE(token[1])) {
+				// skip indentifier and space.
+				token += 2;
+
+				// flush previous face group.
+				bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, objName,
+					triangulate, v);
+				if (ret) {
+					shapes.push_back(shape);
+				}
+				faceGroup.clear();
+
+				if (!roomName.empty()) {
+					room_t room;
+					room.gravity = g;
+					room.name = roomName;
+					room.portals = std::vector<portal_t>(portals);
+					room.shapes = std::vector<shape_t>(shapes);
+					rooms->push_back(room);
+
+					roomName = "";
+					portals.clear();
+					shapes.clear();
+				}
+
+				std::stringstream ss;
+				ss << token;
+				roomName = ss.str();
+
+				continue;
+			}
+
 			// gravity index.
 			if (token[0] == 'v' && token[1] == 'g' && IS_SPACE(token[2])) {
 				// skip indentifier and space
 				token += 3;
 
-				g = parseInt(&token);
+				g = parseInt(&token) - 1;
 
 				continue;
 			}
@@ -2479,30 +2516,44 @@ namespace tinyobj {
 				portal_t portal = portal_t();
 				int cnt = parseInt(&token);
 
-				for (size_t i = 0; i < cnt; i++)
+				for (size_t i = 0; i < cnt * 3; i++)
 				{
-					portal.vertices.push_back(parseInt(&token));
+					portal.vertices.push_back(parseInt(&token) - 1);
 				}
 
-				portal.destination = parseInt(&token);
+				portal.destination = parseInt(&token) - 1;
 
-				portals->push_back(portal);
+				portals.push_back(portal);
+
+				continue;
 			}
 
 			// Ignore unknown command.
 		}
 
-		bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, name,
+		bool ret = exportFaceGroupToShape(&shape, faceGroup, tags, material, objName,
 			triangulate, v);
 		// exportFaceGroupToShape return false when `usemtl` is called in the last
 		// line.
 		// we also add `shape` to `shapes` when `shape.mesh` has already some
 		// faces(indices)
 		if (ret || shape.mesh.indices.size()) {
-			shape.gravity = g;
-			shapes->push_back(shape);
+			shapes.push_back(shape);
 		}
 		faceGroup.clear();  // for safety
+
+		if (!roomName.empty()) {
+			room_t room;
+			room.gravity = g;
+			room.name = roomName;
+			room.portals = std::vector<portal_t>(portals);
+			room.shapes = std::vector<shape_t>(shapes);
+			rooms->push_back(room);
+
+			roomName = "";
+			portals.clear();
+			shapes.clear();
+		}
 
 		if (err) {
 			(*err) += errss.str();

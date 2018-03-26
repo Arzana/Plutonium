@@ -5,6 +5,7 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform vec3 u_light_direction;
+uniform float u_ambient;
 
 // Attributes.
 in vec3 a_position;
@@ -22,7 +23,7 @@ void main()
 	vec3 normal = normalize((u_model * vec4(a_normal.x, a_normal.y, z, 0.0)).xyz);
 	
 	// Calculate light intensity.
-	a_intensity = max(0.0, dot(normal, u_light_direction));
+	a_intensity = u_ambient + max(0.0, dot(normal, u_light_direction));
 	
 	// Set texture uv and vertex position.
 	a_texture = a_uv;

@@ -12,6 +12,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	matProj = shdr->GetUniform("u_projection");
 	texture = shdr->GetUniform("u_texture");
 	lightDir = shdr->GetUniform("u_light_direction");
+	ambient = shdr->GetUniform("u_ambient");
 
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
@@ -36,12 +37,37 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		/* Set constant uniforms. */
 		matView->Set(view);
 		matProj->Set(proj);
+		ambient->Set(0.5f);
 		this->lightDir->Set(lightDir);
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
 void Plutonium::StaticRenderer::Render(const StaticModel * model)
+{
+	/* Make sure begin is called and set the model matrix. */
+	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
+	matMdl->Set(model->GetWorld());
+
+	/* Render each shape. */
+	for (size_t i = 0; i < model->shapes.size(); i++)
+	{
+		/* Set current texture sampler. */
+		Shape *cur = model->shapes.at(i);
+		texture->Set(cur->Material);
+
+		/* Set mesh buffer attributes. */
+		cur->Mesh->GetVertexBuffer()->Bind();
+		pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+		/* Render current shape. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexBuffer()->GetElementCount()));
+	}
+}
+
+void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 {
 	/* Make sure begin is called and set the model matrix. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");

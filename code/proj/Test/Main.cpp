@@ -1,14 +1,14 @@
 #include <string>
 #include <Game.h>
+#include <Core\String.h>
 #include <Graphics\Text\DebugTextRenderer.h>
-#include <Graphics\Rendering\DynamicRenderer.h>
+#include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
-#include "KnightInit.h"
-#include <Graphics\Portals\PobjLoader.h>
+#include <Graphics\Diagnostics\FrameInfo.h>
 
 using namespace Plutonium;
 
@@ -17,15 +17,15 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *fRenderer;
-	DynamicRenderer *drenderer;
+	StaticRenderer *srenderer;
 	PortalRenderer *prenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
-	DynamicModel *knight;
-	Portal *portal;
+	std::vector<EuclidRoom*> Map;
 	Vector3 light = Vector3::Zero;
+	size_t curRoom = 0;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -47,7 +47,7 @@ struct TestGame
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
 
 		fRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
-		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vsh", "./assets/shaders/Static3D.fsh");
+		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/StencilOnly3D.vsh");
 		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
 	}
@@ -56,23 +56,20 @@ struct TestGame
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
 
-		knight = DynamicModel::FromFile("./assets/models/Knight/knight.md2", "knight.bmp");
-		knight->Teleport(Vector3::Forward * 10.0f);
-		knight->SetOrientation(-PI2, -PI2, 0.0f);
-		knight->Initialize(InitKnight);
-		knight->PlayAnimation("stand");
-
-		portal = new Portal(Vector3::Zero);
-		portal->Destination = knight;
-		portal->SetScale(25.0f);
-
-		auto test = _CrtLoadPobjMtl("./assets/models/Maps/dm_arena.pobj");
+		Map = EuclidRoom::FromFile("assets/models/Maps/dm_arena.pobj");
+		for (size_t i = 0; i < Map.size(); i++) Map.at(i)->SetScale(10.0f);
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-		delete_s(knight);
+
+		while (Map.size() > 0)
+		{
+			EuclidRoom *cur = Map.back();
+			delete_s(cur);
+			Map.pop_back();
+		}
 	}
 
 	virtual void Finalize(void)
@@ -80,7 +77,7 @@ struct TestGame
 		prenderer->OnRoomRender.Remove(this, &TestGame::RenderScene);
 
 		delete_s(fRenderer);
-		delete_s(drenderer);
+		delete_s(srenderer);
 		delete_s(prenderer);
 	}
 
@@ -90,9 +87,6 @@ struct TestGame
 		theta = modrads(theta += DEG2RAD * dt * 100);
 		light = Vector3::FromYaw(theta);
 
-		/* Update scene. */
-		knight->Update(dt);
-
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
 
@@ -100,14 +94,23 @@ struct TestGame
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 	}
 
-	void RenderScene(const PortalRenderer *sender, SceneRenderArgs args)
+	void RenderScene(const PortalRenderer*, SceneRenderArgs args)
 	{
-		/* If the knight model is used face culling needs to be turned off. */
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
-		drenderer->Begin(args.View, args.Projection, light);
-		drenderer->Render(knight);
-		drenderer->End();
+		size_t idx = -1;
+		for (size_t i = 0; i < Map.size(); i++) 
+		{
+			if (Map.at(i)->GetID() == args.SceneID)
+			{
+				idx = i;
+				break;
+			}
+		}
+
+		srenderer->Begin(args.View, args.Projection, light);
+		srenderer->Render(Map.at(idx));
+		srenderer->End();
 	}
 
 	virtual void Render(float dt)
@@ -116,11 +119,6 @@ struct TestGame
 		std::string lightStr = "Light: ";
 		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
 		fRenderer->AddDebugString(lightStr);
-
-		/* Render distance to knight. */
-		std::string distStr = "Distance: ";
-		distStr += std::to_string(ipart(dist(cam->GetPosition(), knight->GetPosition())));
-		fRenderer->AddDebugString(distStr);
 
 		/* Render average FPS. */
 		std::string fpsaStr = "Fps (avg): ";
@@ -133,15 +131,24 @@ struct TestGame
 		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
 		fRenderer->AddDebugString(vramStr);
 
-		/* Render test current room. */
-		drenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		//drenderer->Render(knight);
-		drenderer->End();
+		GetGraphics()->SetFaceCull(FaceCullState::None);
+
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
+		srenderer->Render(Map.at(curRoom));
+		srenderer->End();
 
 		/* Render scene. */
 		Tree<PortalRenderArgs> portals;
-		portals.Add({ 1, portal });
+		Map.at(curRoom)->AddPortals(&portals);
 		prenderer->Render(cam->GetView(), cam->GetProjection(), &portals);
+
+		/* TEMP TESTING */
+		if (GetKeyboard()->IsKeyDown(Keys::P))
+		{
+			_CrtSaveDepthToFile(GetGraphics());
+			_CrtSaveStencilToFile(GetGraphics());
+			SuppressNextUpdate();
+		}
 
 		/* Render text. */
 		fRenderer->Render();

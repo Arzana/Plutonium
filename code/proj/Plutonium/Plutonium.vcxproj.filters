@@ -99,6 +99,9 @@
     <Filter Include="Source Files\Graphics\Diagnostics">
       <UniqueIdentifier>{6bbbca01-37c5-4070-abc8-11cab6e5b677}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GameLogic">
+      <UniqueIdentifier>{9cd62c9c-b6e5-41d5-9f54-cd5abaa599f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -244,6 +247,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp">
       <Filter>Source Files\Graphics\Portals</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp">
+      <Filter>Source Files\GameLogic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -498,6 +504,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Portals\PobjLoader.h">
       <Filter>Header Files\Graphics\Portals</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h">
+      <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

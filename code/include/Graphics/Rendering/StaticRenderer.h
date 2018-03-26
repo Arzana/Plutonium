@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics\Rendering\Shader.h"
 #include "Graphics\Models\StaticModel.h"
+#include "GameLogic\EuclidRoom.h"
 
 namespace Plutonium
 {
@@ -22,12 +23,14 @@ namespace Plutonium
 		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 lightDir);
 		/* Renders the specified model. */
 		void Render(_In_ const StaticModel *model);
+		/* Renders the specified room. */
+		void Render(_In_ const EuclidRoom *model);
 		/* Stops rendering the specified scene. */
 		void End(void);
 
 	private:
 		Shader *shdr;
-		Uniform *matMdl, *matView, *matProj, *texture, *lightDir;
+		Uniform *matMdl, *matView, *matProj, *texture, *lightDir, *ambient;
 		Attribute *pos, *norm, *uv;
 		bool beginCalled;
 	};

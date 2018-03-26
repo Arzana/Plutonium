@@ -22,7 +22,7 @@ Plutonium::StaticModel::~StaticModel(void)
 StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 {
 	/* Load raw data. */
-	FileReader reader(path);
+	FileReader reader(path, true);
 	const ObjLoaderResult *raw = _CrtLoadObjMtl(path);
 
 	/* Check if file load has been successful. */
@@ -45,7 +45,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 		Mesh *mesh = Mesh::FromFile(raw, i);
 
 		/* Get correct material. */
-		tinyobj::material_t mtl = shape.mesh.material_ids.size() > 0 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
+		tinyobj::material_t mtl = shape.mesh.material_ids[0] != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
 		char mtlPath[FILENAME_MAX];
 		mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
 		Texture *texture = Texture::FromFile(mtlPath);

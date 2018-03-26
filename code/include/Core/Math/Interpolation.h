@@ -32,7 +32,7 @@ namespace Plutonium
 	/* Maps the input value (range: d-c) to the output specified range (b-a). */
 	_Check_return_ inline constexpr float map(_In_ float a, _In_ float b, _In_ float v, _In_ float c, _In_ float d)
 	{
-		return lerp(a, b, ilerp(c, d, v));
+		return sclamp(lerp(a, b, ilerp(c, d, v)), a, b);
 	}
 
 	/* Performs cubic hermite spline interpolation with specified bounds and derivatives. */

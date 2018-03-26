@@ -2,7 +2,7 @@
 
 Plutonium::FpsCounter::FpsCounter(Game * game, size_t bufferSize, int32 rate)
 	: GameComponent(game), maxSize(bufferSize),
-	avrg(0.0f), worst(0.0f), best(0.0f),
+	avrg(maxv<float>()), worst(maxv<float>()), best(maxv<float>()),
 	updElap(0.0f), updIntrv(1.0f / rate)
 {
 	buffer.resize(bufferSize);

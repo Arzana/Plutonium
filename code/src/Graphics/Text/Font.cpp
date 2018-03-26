@@ -67,7 +67,6 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 	result->chars = malloc_s(Character, result->cnt);
 
 	/* Log start and start stopwatch. */
-	LOG("Generating texture for %d characters.", result->cnt);
 	Stopwatch sw = Stopwatch::StartNew();
 
 	/* Create character info and texture map. */
@@ -75,7 +74,7 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 	result->PopulateTextureMap(&info, scale);
 
 	/* Free file data and return result. */
-	LOG("Finished initializing %d characters (%dx%d map), took %Lf seconds.", result->cnt, result->map->Width, result->map->Height, sw.Seconds());
+	LOG("Finished initializing %d characters, took %Lf seconds.", result->cnt, sw.Seconds());
 	free_s(ttf_buffer);
 	return result;
 }
@@ -143,7 +142,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 	finalMapSize.X = max(finalMapSize.X, curLineSize.X);
 	finalMapSize.Y += curLineSize.Y;
 	lineSpace += lineGap;
-	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), 0);
+	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), 0, "Fontmap");
 }
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)

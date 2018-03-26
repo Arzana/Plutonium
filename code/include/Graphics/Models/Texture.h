@@ -15,7 +15,7 @@ namespace Plutonium
 		const int32 MipMapLevels;
 
 		/* Initializes a new instance of an empty 2D texture. */
-		Texture(_In_ int32 width, _In_ int32 height, _In_ int32 mipMapLevels = 4);
+		Texture(_In_ int32 width, _In_ int32 height, _In_opt_ int32 mipMapLevels = 4, _In_opt_ const char *name = nullptr);
 		Texture(_In_ const Texture &value) = delete;
 		Texture(_In_ Texture &&value) = delete;
 		/* Releases the resources allocated for the texture. */

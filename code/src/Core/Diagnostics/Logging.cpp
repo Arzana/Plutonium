@@ -127,6 +127,8 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 #if defined(DEBUG)
 	_CrtDbgReport(_CRT_ERROR, file, line, nullptr, msg);
 	_CrtDbgBreak();
+#else
+	throw;
 #endif
 }
 

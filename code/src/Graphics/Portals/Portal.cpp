@@ -1,4 +1,5 @@
 #include "Graphics\Portals\Portal.h"
+#include "GameLogic\EuclidRoom.h"
 
 using namespace Plutonium;
 
@@ -7,20 +8,9 @@ Plutonium::Portal::~Portal(void)
 	delete_s(mesh);
 }
 
-Plutonium::Portal::Portal(Vector3 position)
-	: WorldObject()
+Plutonium::Portal::Portal(Mesh * mesh)
+	: WorldObject(), mesh(mesh)
 {
-	WorldObject::Teleport(position);
-
-	/* Create temporary frame. */
-	mesh = new Mesh("PortalFrame");
-	mesh->SetBufferSize(6);
-	mesh->GetVertexAt(0).Position = Vector3(-0.5f, -0.5f, 0.0f);
-	mesh->GetVertexAt(1).Position = Vector3(0.5f, -0.5f, 0.0f);
-	mesh->GetVertexAt(2).Position = Vector3(0.5f, 0.5f, 0.0f);
-	mesh->GetVertexAt(3).Position = Vector3(0.5f, 0.5f, 0.0f);
-	mesh->GetVertexAt(4).Position = Vector3(-0.5f, 0.5f, 0.0f);
-	mesh->GetVertexAt(5).Position = Vector3(-0.5f, -0.5f, 0.0f);
 	mesh->Finalize();
 }
 

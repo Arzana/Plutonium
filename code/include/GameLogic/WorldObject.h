@@ -20,25 +20,25 @@ namespace Plutonium
 		}
 
 		/* Sets the scale of the object. */
-		void SetScale(_In_ float scale)
+		virtual void SetScale(_In_ float scale)
 		{
 			transform.SetScale(scale);
 		}
 
 		/* Sets the orientation of the object. */
-		void SetOrientation(_In_ float yaw, _In_ float pitch, _In_ float roll)
+		virtual void SetOrientation(_In_ float yaw, _In_ float pitch, _In_ float roll)
 		{
 			transform.SetOrientation(yaw, pitch, roll);
 		}
 
 		/* Teleports the object to a new position. */
-		void Teleport(_In_ Vector3 pos)
+		virtual void Teleport(_In_ Vector3 pos)
 		{
 			transform.SetTranslation(pos);
 		}
 
 		/* Moves the object by a specified offset. */
-		void Move(_In_ Vector3 amnt)
+		virtual void Move(_In_ Vector3 amnt)
 		{
 			Teleport(GetPosition() + amnt);
 		}

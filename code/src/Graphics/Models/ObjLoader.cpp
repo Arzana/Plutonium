@@ -1,4 +1,6 @@
+#if !defined(TINYOBJLOADER_IMPLEMENTATION)
 #define TINYOBJLOADER_IMPLEMENTATION
+#endif
 
 #include "Graphics\Models\ObjLoader.h"
 #include "Core\Diagnostics\Logging.h"

@@ -47,18 +47,18 @@
 
 using namespace Plutonium;
 
-Texture* GenerateFrameTexture(GraphicsAdapter *device)
+Texture* GenerateFrameTexture(GraphicsAdapter *device, const char *name)
 {
 	/* Get the width and height of the frame buffer. */
 	const Plutonium::Rectangle vp = device->GetWindow()->GetClientBounds();
 	int32 w = ipart(vp.GetWidth()), h = ipart(vp.GetHeight());
 
 	/* Return frame texture. */
-	return new Texture(w, h, 0);
+	return new Texture(w, h, 0, name);
 }
 
 template <typename _Ty>
-void GetRange(_Ty *lowest, _Ty *highest, _Ty *buffer, size_t size)
+void GetRange(_Ty *lowest, _Ty *highest, _Ty *buffer, size_t size, _Ty defl, _Ty defh)
 {
 	/* Set defaults. */
 	*lowest = maxv<_Ty>();
@@ -68,23 +68,25 @@ void GetRange(_Ty *lowest, _Ty *highest, _Ty *buffer, size_t size)
 	for (size_t i = 0; i < size; i++)
 	{
 		_Ty cur = buffer[i];
-		if (cur < *lowest) *lowest = cur;
-		if (cur > *highest) *highest = cur;
+		if (cur != defl && cur < *lowest) *lowest = cur;
+		if (cur != defh && cur > *highest) *highest = cur;
 	}
 }
 
 template <typename _Ty>
-void ToGreyscale(Texture *img, _Ty *rawData, bool invert)
+void ToGreyscale(Texture *img, _Ty *rawData, bool invert, bool normalized)
 {
 	size_t size = img->Width * img->Height;
 
 	/* Get value range. */
 	_Ty lowest, highest;
-	GetRange(&lowest, &highest, rawData, size);
+	GetRange(&lowest, &highest, rawData, size, normalized ? static_cast<_Ty>(0) : maxv<_Ty>(), normalized ? static_cast<_Ty>(1) : minv<_Ty>());
 
 	/* Convert to increase performance. */
 	float c = static_cast<float>(lowest), d = static_cast<float>(highest);
 	float a = (invert ? 255.0f : 0.0f), b = (invert ? 0.0f : 255.0f);
+
+	LOG("Saved greyscale '%s' has range[%f-%f] -> [0-255].", img->GetName(), c, d);
 
 	/* Convert raw data to greyscale (RGBA format). */
 	byte *imgData = malloc_s(byte, size * 4);
@@ -108,14 +110,14 @@ void ToGreyscale(Texture *img, _Ty *rawData, bool invert)
 void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
 {
 	/* Create texture buffer. */
-	Texture *img = GenerateFrameTexture(device);
+	Texture *img = GenerateFrameTexture(device, "DepthInfo");
 
 	/* Get raw depth data from the frame buffer. */
 	float *data = malloc_s(float, img->Width * img->Height);
 	glReadPixels(0, 0, img->Width, img->Height, GL_DEPTH_COMPONENT, GL_FLOAT, data);
 
 	/* Convert data to greyscale image. */
-	ToGreyscale(img, data, true);
+	ToGreyscale(img, data, true, true);
 	img->SaveAsPng(OUTDIR("DepthInfo"));
 
 	/* Release temporary buffers. */
@@ -126,14 +128,14 @@ void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
 void Plutonium::_CrtSaveStencilToFile(GraphicsAdapter * device)
 {
 	/* Create texture buffer. */
-	Texture *img = GenerateFrameTexture(device);
+	Texture *img = GenerateFrameTexture(device, "StencilInfo");
 
 	/* Get raw stencil data from the frame buffer. */
 	byte *data = malloc_s(byte, img->Width * img->Height);
 	glReadPixels(0, 0, img->Width, img->Height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, data);
 
 	/* Convert data to greyscale image. */
-	ToGreyscale(img, data, false);
+	ToGreyscale(img, data, false, false);
 	img->SaveAsPng(OUTDIR("StencilInfo"));
 
 	/* Release temporary buffers. */

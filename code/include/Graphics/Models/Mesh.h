@@ -6,6 +6,7 @@
 namespace Plutonium
 {
 	struct ObjLoaderResult;
+	struct PobjLoaderResult;
 	struct Md2LoaderResult;
 
 	/* Defines a object for storing the vertex information for a single textured object. */
@@ -45,6 +46,7 @@ namespace Plutonium
 
 	private:
 		friend struct StaticModel;
+		friend struct EuclidRoom;
 		friend struct DynamicModel;
 
 		VertexFormat *vertices;
@@ -52,6 +54,8 @@ namespace Plutonium
 		Buffer *buffer;
 
 		static Mesh* FromFile(const ObjLoaderResult *buffer, size_t idx);
+		static Mesh* RFromFile(const PobjLoaderResult *buffer, size_t ridx, size_t sidx);
+		static Mesh* PFromFile(const PobjLoaderResult *buffer, size_t ridx, size_t pidx);
 		static Mesh* FromFile(const Md2LoaderResult *buffer, size_t idx);
 	};
 }

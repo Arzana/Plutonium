@@ -124,6 +124,30 @@ namespace Plutonium
 		return max(a, min(b, v));
 	}
 
+	/* Gets the input value restricted to the specified range. */
+	_Check_return_ constexpr inline int32 sclamp(_In_ int32 v, _In_ int32 a, _In_ int32 b)
+	{
+		return clamp(v, min(a, b), max(a, b));
+	}
+
+	/* Gets the input value restricted to the specified range. */
+	_Check_return_ constexpr inline int64 sclamp(_In_ int64 v, _In_ int64 a, _In_ int64 b)
+	{
+		return clamp(v, min(a, b), max(a, b));
+	}
+
+	/* Gets the input value restricted to the specified range. */
+	_Check_return_ constexpr inline float sclamp(_In_ float v, _In_ float a, _In_ float b)
+	{
+		return clamp(v, min(a, b), max(a, b));
+	}
+
+	/* Gets the input value restricted to the specified range. */
+	_Check_return_ constexpr inline double sclamp(_In_ double v, _In_ double a, _In_ double b)
+	{
+		return clamp(v, min(a, b), max(a, b));
+	}
+
 	/* Gets the input value clamped between zero and itself. */
 	_Check_return_ constexpr inline int32 rectify(_In_ int32 v)
 	{

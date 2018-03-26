@@ -1,5 +1,6 @@
 #include "Graphics\Models\Mesh.h"
 #include "Graphics\Models\ObjLoader.h"
+#include "Graphics\Portals\PobjLoader.h"
 #include "Graphics\Models\Md2Loader.h"
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
@@ -102,6 +103,82 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 
 		/* Add the offset to the start. */
 		start += verticesInFace;
+	}
+
+	return result;
+}
+
+Mesh * Plutonium::Mesh::RFromFile(const PobjLoaderResult * buffer, size_t ridx, size_t sidx)
+{
+	/* Get current shape. */
+	shape_t shape = buffer->Rooms.at(ridx).shapes.at(sidx);
+
+	/* Define result. */
+	Mesh *result = new Mesh(shape.name.c_str());
+
+	/* Allocate buffers. */
+	for (size_t i = 0; i < shape.mesh.num_face_vertices.size(); i++) result->vrtxCnt += shape.mesh.num_face_vertices.at(i);
+	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
+
+	/* Copy vertices to buffer. */
+	for (size_t i = 0, start = 0; i < shape.mesh.num_face_vertices.size(); i++)
+	{
+		size_t verticesInFace = shape.mesh.num_face_vertices.at(i);
+		
+		/* Loop through vertices in current face. */
+		for (size_t j = 0; j < verticesInFace; j++)
+		{
+			size_t k = start + j;
+			index_t idx = shape.mesh.indices.at(k);
+
+			/* Copy over current vertex. */
+			VertexFormat format;
+			format.Position.X = buffer->Vertices.vertices.at(3 * idx.vertex_index);
+			format.Position.Y = buffer->Vertices.vertices.at(3 * idx.vertex_index + 1);
+			format.Position.Z = buffer->Vertices.vertices.at(3 * idx.vertex_index + 2);
+			format.Normal.X = buffer->Vertices.normals.at(3 * idx.normal_index);
+			format.Normal.Y = buffer->Vertices.normals.at(3 * idx.normal_index + 1);
+			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
+			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
+
+			/* Push vertex to buffer  */
+			result->vertices[k] = format;
+		}
+
+		/* Add the offset to the start. */
+		start += verticesInFace;
+	}
+
+	return result;
+}
+
+Mesh * Plutonium::Mesh::PFromFile(const PobjLoaderResult * buffer, size_t ridx, size_t pidx)
+{
+	/* Get current portal shape. */
+	portal_t portal = buffer->Rooms.at(ridx).portals.at(pidx);
+
+	/* Define result. */
+	Mesh *result = new Mesh("Portal");
+
+	/* Allocate buffers. */
+	result->vrtxCnt = portal.vertices.size();
+	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
+
+	/* Copy vertices to buffer. */
+	for (size_t i = 0; i < portal.vertices.size();i++)
+	{
+		int idx = portal.vertices.at(i);
+
+		/* Copy over current vertex. */
+		VertexFormat format;
+		format.Position.X = buffer->Vertices.vertices.at(3 * idx);
+		format.Position.Y = buffer->Vertices.vertices.at(3 * idx + 1);
+		format.Position.Z = buffer->Vertices.vertices.at(3 * idx + 2);
+		format.Normal = Vector2::Zero;
+		format.Texture = Vector2::Zero;
+
+		/* Push vertex to buffer. */
+		result->vertices[i] = format;
 	}
 
 	return result;

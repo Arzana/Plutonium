@@ -15,8 +15,8 @@
 
 using namespace Plutonium;
 
-Plutonium::Texture::Texture(int32 width, int32 height, int32 mipMaplevels)
-	: Width(width), Height(height), MipMapLevels(mipMaplevels), name(""),
+Plutonium::Texture::Texture(int32 width, int32 height, int32 mipMaplevels, const char * name)
+	: Width(width), Height(height), MipMapLevels(mipMaplevels), name(name ? name : ""),
 	frmt(GL_RGBA), ifrmt(GL_RGBA8)
 {
 	/* On debug mode check if the mipmap level requested is valid. */
@@ -36,18 +36,20 @@ Plutonium::Texture::~Texture(void)
 
 Texture * Plutonium::Texture::FromFile(const char * path)
 {
+	FileReader reader(path, true);
+
 	/* Attempt to load texture. */
 	int32 w, h, m;
 	stbi_set_flip_vertically_on_load(true);
 	byte *data = stbi_load(path, &w, &h, &m, 0);
 
 	/* Throw is loading failed. */
-	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", path, stbi_failure_reason());
+	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
 
 	/* Set texture information. */
 	Texture *result = new Texture(w, h, clamp(GetMaxMipMapLevel(w, h), 0, 4));
 	result->SetFormat(m);
-	result->name = FileReader(path).GetFileName();
+	result->name = reader.GetFileName();
 
 	/* Load data into texture and return result. */
 	result->GenerateTexture(void_ptr(data));
@@ -164,4 +166,6 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+
+	LOG("Generated texture '%s'(%dx%d), %d mipmaps.", name, Width, Height, MipMapLevels);
 }

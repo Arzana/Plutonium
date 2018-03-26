@@ -4,6 +4,8 @@
 
 namespace Plutonium
 {
+	struct EuclidRoom;
+
 	/* Defines a portal to another sector. */
 	struct Portal
 		: public WorldObject
@@ -12,9 +14,8 @@ namespace Plutonium
 		/* Whether the portal can be used. */
 		bool Enabled;
 		/* The destination portal. */
-		WorldObject *Destination;
+		EuclidRoom *Destination;
 
-		Portal(_In_ Vector3 position);
 		Portal(_In_ const Portal &value) = delete;
 		Portal(_In_ Portal &&value) = delete;
 		/* Releases the resrouces allocated by the portal. */
@@ -25,6 +26,9 @@ namespace Plutonium
 
 	private:
 		friend struct PortalRenderer;
+		friend struct EuclidRoom;
+
+		Portal(Mesh *mesh);
 
 		Mesh *mesh;
 

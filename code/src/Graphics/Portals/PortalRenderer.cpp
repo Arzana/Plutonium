@@ -1,4 +1,5 @@
 #include "Graphics\Portals\PortalRenderer.h"
+#include "GameLogic\EuclidRoom.h"
 
 Plutonium::PortalRenderer::PortalRenderer(GraphicsAdapter * device, const char * vrtxShdr)
 	: device(device), INIT_BUS(OnBeginRoomRender), INIT_BUS(OnRoomRender), INIT_BUS(OnEndRoomRender)
@@ -58,7 +59,7 @@ void Plutonium::PortalRenderer::RecursiveCreateMatrices(const Matrix & view, con
 	/* Populate result. */
 	scene.View = view;
 	scene.Projection = proj;
-	scene.SceneID = portal.SceneID;
+	scene.SceneID = portal.Portal->Destination->GetID();
 
 	/* if branch has children move up. */
 	if (portals->HasBranch())
@@ -132,7 +133,7 @@ void Plutonium::PortalRenderer::RecursiveRenderPortals(Tree<PortalRenderArgs>* p
 void Plutonium::PortalRenderer::RenderPortalFrame(const Matrix & view, const Matrix & proj, PortalRenderArgs * portal)
 {
 	/* Update stencil refrence. */
-	device->SetStencilTest(DepthState::Never, portal->SceneID);
+	device->SetStencilTest(DepthState::Never, portal->Portal->Destination->GetID());
 
 	/* Set uniforms. */
 	matMdl->Set(portal->Portal->GetWorld());
@@ -186,4 +187,5 @@ void Plutonium::PortalRenderer::EndStencil(void)
 	device->SetStencilOuput(0x00);
 	device->SetColorOutput(true, true, true, true);
 	device->SetDepthOuput(true);
+	device->SetDepthTest(DepthState::Always);
 }
