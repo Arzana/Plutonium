@@ -33,10 +33,16 @@ namespace Plutonium
 			return name;
 		}
 
+		/* Gets the size of the texture as a vector. */
+		_Check_return_ inline Vector2 GetSize(void) const
+		{
+			return Vector2(static_cast<float>(Width), static_cast<float>(Height));
+		}
+
 		/* Gets the full bounds of the texture. */
 		_Check_return_ inline Rectangle GetBounds(void) const
 		{
-			return Rectangle(0.0f, 0.0f, static_cast<float>(Width), static_cast<float>(Height));
+			return Rectangle(GetSize());
 		}
 
 		/* Get the amount of channels stored in the texture. */

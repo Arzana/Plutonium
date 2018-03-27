@@ -1,46 +1,5 @@
 #include "Graphics\Diagnostics\FrameInfo.h"
-#include "Graphics\Diagnostics\PixelData.h"
-#include "Graphics\Models\Texture.h"
 #include "Core\Math\Interpolation.h"
-
-//Plutonium::byte * Plutonium::GraphicsAdapter::GetFragmentData(PixelData type, int32 * w, int32 * h)
-//{
-//	/* Calculate buffer size. */
-//	const Rectangle vp = window->GetClientBounds();
-//	int32 width = static_cast<int32>(vp.GetWidth());
-//	int32 height = static_cast<int32>(vp.GetHeight());
-//
-//	/* Set size output is requested. */
-//	if (w) *w = width;
-//	if (h) *h = height;
-//
-//	/* Get the component count. */
-//	int32 cc;
-//	switch (type)
-//	{
-//	case Plutonium::PixelData::Red:
-//	case Plutonium::PixelData::Green:
-//	case Plutonium::PixelData::Blue:
-//	case Plutonium::PixelData::Stencil:
-//		cc = 1;
-//		break;
-//	case Plutonium::PixelData::RGB:
-//		cc = 3;
-//		break;
-//	case Plutonium::PixelData::RGBA:
-//		cc = 4;
-//		break;
-//	default:
-//		LOG_THROW("Unknown pixel type specified!");
-//		break;
-//	}
-//
-//	/* Create and populate result. */
-//	byte *data = malloc_s(byte, width * height * cc);
-//	glReadPixels(0, 0, width, height, _CrtEnum2Int(type), GL_UNSIGNED_BYTE, data);
-//
-//	return data;
-//}
 
 /* Defines the output directory for all debug images. */
 #define OUTDIR(x)	"./debug/" x ".png"
@@ -107,7 +66,7 @@ void ToGreyscale(Texture *img, _Ty *rawData, bool invert, bool normalized)
 	free_s(imgData);
 }
 
-void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
+Texture * Plutonium::_CrtSaveDepthToTexture(GraphicsAdapter * device)
 {
 	/* Create texture buffer. */
 	Texture *img = GenerateFrameTexture(device, "DepthInfo");
@@ -118,14 +77,12 @@ void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
 
 	/* Convert data to greyscale image. */
 	ToGreyscale(img, data, true, true);
-	img->SaveAsPng(OUTDIR("DepthInfo"));
-
-	/* Release temporary buffers. */
-	delete_s(img);
 	free_s(data);
+
+	return img;
 }
 
-void Plutonium::_CrtSaveStencilToFile(GraphicsAdapter * device)
+Texture * Plutonium::_CrtSaveStencilToTexture(GraphicsAdapter * device)
 {
 	/* Create texture buffer. */
 	Texture *img = GenerateFrameTexture(device, "StencilInfo");
@@ -136,9 +93,23 @@ void Plutonium::_CrtSaveStencilToFile(GraphicsAdapter * device)
 
 	/* Convert data to greyscale image. */
 	ToGreyscale(img, data, false, false);
-	img->SaveAsPng(OUTDIR("StencilInfo"));
-
-	/* Release temporary buffers. */
-	delete_s(img);
 	free_s(data);
+	
+	return img;
+}
+
+void Plutonium::_CrtSaveDepthToFile(GraphicsAdapter * device)
+{
+	/* Get texture and save it to the debug output. */
+	Texture *img = _CrtSaveDepthToTexture(device);
+	img->SaveAsPng(OUTDIR("DepthInfo"));
+	delete_s(img);
+}
+
+void Plutonium::_CrtSaveStencilToFile(GraphicsAdapter * device)
+{
+	/* Get texture and save it to the debug output. */
+	Texture *img = _CrtSaveStencilToTexture(device);
+	img->SaveAsPng(OUTDIR("StencilInfo"));
+	delete_s(img);
 }

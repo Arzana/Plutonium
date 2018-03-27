@@ -1,7 +1,8 @@
 #include <string>
 #include <Game.h>
 #include <Core\String.h>
-#include <Graphics\Text\DebugTextRenderer.h>
+#include <Graphics\Diagnostics\DebugTextRenderer.h>
+#include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
@@ -16,7 +17,8 @@ struct TestGame
 	: public Game
 {
 	/* Renderers. */
-	DebugFontRenderer *fRenderer;
+	DebugFontRenderer *dfRenderer;
+	DebugSpriteRenderer *dsRenderer;
 	StaticRenderer *srenderer;
 	PortalRenderer *prenderer;
 	Camera *cam;
@@ -30,9 +32,10 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
+	Texture *depthSprite, *stencilSprite;
 
 	TestGame(void)
-		: Game("TestGame"), theta(0.0f)
+		: Game("TestGame"), theta(0.0f), depthSprite(nullptr), stencilSprite(nullptr)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -46,7 +49,8 @@ struct TestGame
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
 
-		fRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
+		dfRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
+		dsRenderer = new DebugSpriteRenderer(GetGraphics(), "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh");
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/StencilOnly3D.vsh");
 		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
@@ -76,9 +80,12 @@ struct TestGame
 	{
 		prenderer->OnRoomRender.Remove(this, &TestGame::RenderScene);
 
-		delete_s(fRenderer);
+		delete_s(dfRenderer);
+		delete_s(dsRenderer);
 		delete_s(srenderer);
 		delete_s(prenderer);
+		if (depthSprite) delete_s(depthSprite);
+		if (depthSprite) delete_s(stencilSprite);
 	}
 
 	virtual void Update(float dt)
@@ -99,7 +106,7 @@ struct TestGame
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
 		size_t idx = -1;
-		for (size_t i = 0; i < Map.size(); i++) 
+		for (size_t i = 0; i < Map.size(); i++)
 		{
 			if (Map.at(i)->GetID() == args.SceneID)
 			{
@@ -118,18 +125,18 @@ struct TestGame
 		/* Render light direction. */
 		std::string lightStr = "Light: ";
 		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
-		fRenderer->AddDebugString(lightStr);
+		dfRenderer->AddDebugString(lightStr);
 
 		/* Render average FPS. */
 		std::string fpsaStr = "Fps (avg): ";
 		fpsaStr += std::to_string(ipart(fps->GetAvrgHz()));
-		fRenderer->AddDebugString(fpsaStr);
+		dfRenderer->AddDebugString(fpsaStr);
 
 		/* Render average VRAM. */
 		std::string vramStr = "VRAM: ";
 		(vramStr += std::to_string(b2mb(mem->GetAvrgVRamUsage()))) += " / ";
 		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
-		fRenderer->AddDebugString(vramStr);
+		dfRenderer->AddDebugString(vramStr);
 
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
@@ -145,13 +152,23 @@ struct TestGame
 		/* TEMP TESTING */
 		if (GetKeyboard()->IsKeyDown(Keys::P))
 		{
-			_CrtSaveDepthToFile(GetGraphics());
-			_CrtSaveStencilToFile(GetGraphics());
+			if (depthSprite) delete_s(depthSprite);
+			depthSprite = _CrtSaveDepthToTexture(GetGraphics());
+
+			if (stencilSprite) delete_s(stencilSprite);
+			stencilSprite = _CrtSaveStencilToTexture(GetGraphics());
+
 			SuppressNextUpdate();
 		}
 
+		/* Render diagnostics. */
+		dsRenderer->Begin();
+		if (depthSprite) dsRenderer->RenderDebug(depthSprite, Color::White, Vector2(0.1f));
+		if (stencilSprite) dsRenderer->RenderDebug(stencilSprite, Color::White, Vector2(0.1f));
+		dsRenderer->End();
+
 		/* Render text. */
-		fRenderer->Render();
+		dfRenderer->Render();
 	}
 };
 

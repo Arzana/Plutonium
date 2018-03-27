@@ -47,7 +47,7 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 	size_t len = spltstr(str, '\n', buffer, 0);
 	for (size_t i = 0; i < len; i++)
 	{
-		AddSingleString(Vector2(pos.X, pos.Y - font->lineSpace * i), buffer[i], clr);
+		AddSingleString(device->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
 	}
 }
 

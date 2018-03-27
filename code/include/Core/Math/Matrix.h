@@ -2,6 +2,13 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+#if defined(near)
+#undef near
+#endif
+#if defined(far)
+#undef far
+#endif
+
 namespace Plutonium
 {
 	/* Defines a 4x4 square matrix. */

@@ -191,6 +191,8 @@
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
@@ -209,10 +211,10 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Text\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
@@ -253,8 +255,9 @@
     <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugSpriteRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\PixelData.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
@@ -288,12 +291,12 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\SpriteRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />
-    <ClInclude Include="..\..\include\Graphics\Text\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />
     <ClInclude Include="..\..\include\Input\ButtonEventArgs.h" />

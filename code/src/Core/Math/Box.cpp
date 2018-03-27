@@ -56,16 +56,16 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 
 bool Plutonium::Box::Contains(Vector3 point) const
 {
-	return GetLeft() < point.X && GetRight() > point.X
-		&& GetTop() < point.Y && GetBottom() > point.Y
-		&& GetFront() < point.Z && GetBack() > point.Z;
+	return GetLeft() <= point.X && GetRight() >= point.X
+		&& GetTop() <= point.Y && GetBottom() >= point.Y
+		&& GetFront() <= point.Z && GetBack() >= point.Z;
 }
 
 bool Plutonium::Box::Contains(const Box & b) const
 {
-	return GetLeft() < b.GetLeft() && GetRight() > b.GetRight()
-		&& GetTop() < b.GetTop() && GetBottom() > b.GetBottom()
-		&& GetFront() < b.GetFront() && GetBack() > b.GetBack();
+	return GetLeft() <= b.GetLeft() && GetRight() >= b.GetRight()
+		&& GetTop() <= b.GetTop() && GetBottom() >= b.GetBottom()
+		&& GetFront() <= b.GetFront() && GetBack() >= b.GetBack();
 }
 
 bool Plutonium::Box::Overlaps(const Box & b) const

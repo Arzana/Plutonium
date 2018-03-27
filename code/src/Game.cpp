@@ -75,13 +75,13 @@ void Plutonium::Game::Run(void)
 
 	/* Initialize game. */
 	LOG("Initializing '%s'.", wnd->title);
+	Stopwatch sw = Stopwatch::StartNew();
 	DoInitialize();
 
 	/* Load first level. */
-	Stopwatch sw = Stopwatch::StartNew();
 	SetLoadPercentage(loadPercentage = 0);
 	LoadContent();
-	LOG("Finished loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
+	LOG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
 
 	/* Excecute game loop. */
 	prevTime = glfwGetTime();

@@ -194,9 +194,6 @@
     <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Text\DebugTextRenderer.cpp">
-      <Filter>Source Files\Graphics\Text</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Core\String.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -250,6 +247,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp">
       <Filter>Source Files\GameLogic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -394,9 +400,6 @@
     <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Text\DebugTextRenderer.h">
-      <Filter>Header Files\Graphics\Text</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Core\String.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -499,14 +502,20 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\PixelData.h">
-      <Filter>Header Files\Graphics\Diagnostics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Portals\PobjLoader.h">
       <Filter>Header Files\Graphics\Portals</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h">
       <Filter>Header Files\GameLogic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\SpriteRenderer.h">
+      <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugSpriteRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

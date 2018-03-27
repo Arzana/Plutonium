@@ -3,7 +3,7 @@
 namespace Plutonium
 {
 	/* Defines the keys that can be handled by the keyboard. */
-	enum class Keys
+	enum class Keys : int
 	{
 #pragma region Unknow & space
 		Unknown = -1,

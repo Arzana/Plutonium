@@ -93,7 +93,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		}
 	}
 
-	LOG("Finished loading map: '%s'.", reader.GetFileName());
+	LOG("Finished loading map: '%s', %d rooms, %d portals.", reader.GetFileName(), result.size(), didx.size());
 	return result;
 }
 

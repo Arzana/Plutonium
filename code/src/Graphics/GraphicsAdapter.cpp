@@ -112,6 +112,11 @@ void Plutonium::GraphicsAdapter::Clear(ClearTarget target)
 	glClear(_CrtEnum2Int(target));
 }
 
+Plutonium::Vector2 Plutonium::GraphicsAdapter::ToOpenGL(Vector2 screenCoord)
+{
+	return Vector2(screenCoord.X, window->GetClientBounds().Size.Y - screenCoord.Y);
+}
+
 Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 	: window(window)
 {
