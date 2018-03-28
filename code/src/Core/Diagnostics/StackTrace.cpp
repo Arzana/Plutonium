@@ -78,7 +78,7 @@ void InitializeProcess(HANDLE process)
 
 void Plutonium::_CrtFinalizeWinProcess(void)
 {
-	LOG("Finalizing debug symbols for %u processes.", initializedProcesses.size());
+	LOG("Finalizing debug symbols for %u process(es).", initializedProcesses.size());
 	while (initializedProcesses.size() > 0)
 	{
 		SymCleanup(initializedProcesses.back());

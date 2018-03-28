@@ -95,14 +95,15 @@ void Plutonium::SpriteRenderer::WindowResizeEventHandler(WindowHandler sender, E
 
 void Plutonium::SpriteRenderer::UpdateVBO(Vector2 size)
 {
+	// Clockwise front face.
 	Vector4 vertices[6]
 	{
-		Vector4(0.0f, -size.Y, 0.0f, 0.0f),
-		Vector4(0.0f, 0.0f, 0.0f, 1.0f),
-		Vector4(size.X, 0.0f, 1.0f, 1.0f),
-		Vector4(0.0f, -size.Y, 0.0f, 0.0f),
-		Vector4(size.X, 0.0f, 1.0f, 1.0f),
-		Vector4(size.X, -size.Y, 1.0f, 0.0f)
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),		// bottom-left
+		Vector4(0.0f, -size.Y, 0.0f, 0.0f),		// top-left
+		Vector4(size.X, -size.Y, 1.0f, 0.0f),	// top-right
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),		// bottom-left
+		Vector4(size.X, -size.Y, 1.0f, 0.0f),	// top-right
+		Vector4(size.X, 0.0f, 1.0f, 1.0f)		// bottom-right
 	};
 
 	mesh->Bind();
