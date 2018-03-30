@@ -188,6 +188,7 @@
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
     <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
+    <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
@@ -251,6 +252,7 @@
     <ClInclude Include="..\..\include\Core\Stopwatch.h" />
     <ClInclude Include="..\..\include\Core\String.h" />
     <ClInclude Include="..\..\include\Core\StringFunctions.h" />
+    <ClInclude Include="..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />

@@ -102,6 +102,12 @@
     <Filter Include="Source Files\GameLogic">
       <UniqueIdentifier>{9cd62c9c-b6e5-41d5-9f54-cd5abaa599f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Threading">
+      <UniqueIdentifier>{8992b12d-5d72-4f9f-b2cb-33c34eddc563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Threading">
+      <UniqueIdentifier>{26fafd93-110e-41e5-8a5d-a69e096a20c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -256,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -516,6 +525,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugSpriteRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Threading\TickThread.h">
+      <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

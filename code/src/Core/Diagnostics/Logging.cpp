@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
+#include <mutex>
 
 #if defined(_WIN32)
 #include <Windows.h>	// Console colors.
@@ -15,6 +16,7 @@ using namespace Plutonium;
 bool shouldAddLinePrefix = true;
 LogType lastType = LogType::None;
 const char *typeStr;
+std::mutex printLock;
 
 void _CrtLogLinePrefix(LogType type)
 {
@@ -70,60 +72,92 @@ void _CrtLogLinePrefix(LogType type)
 
 void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 {
+	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(format);
 	if (len > 0)
 	{
+		/* Lock output. */
+		printLock.lock();
+
+		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = format[len - 1] == '\n';
 
+		/* Log to output. */
 		va_list args;
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
+
+		/* Unlock output. */
+		printLock.unlock();
 	}
 }
 
 void Plutonium::_CrtLog(LogType type, const char * format, ...)
 {
+	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(format);
 	if (len > 0)
 	{
+		/* Lock output. */
+		printLock.lock();
+
+		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = true;
 
+		/* Log to output. */
 		va_list args;
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
 
+		/* Add newline if needed. */
 		if (format[len - 1] != '\n') printf("\n");
+
+		/* Unlock output. */
+		printLock.unlock();
 	}
 }
 
 void Plutonium::_CrtLogExc(const char * sender, const char * file, const char * func, int line)
 {
+	/* Log error header. */
 	_CrtLogNoNewLine(LogType::Error, "%s threw an exception!\nFILE:		%s.\nFUNCTION:	%s.\nLINE:		%d.\nMESSAGE:	",
 						sender ? sender : "Undefined caller", file, func, line);
 }
 
 void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * func, int line, const char * desc, ...)
 {
+	/* log error header. */
 	_CrtLogExc(nullptr, file, func, line);
 	
+	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(desc);
 	if (len > 0)
 	{
+		/* Lock output. */
+		printLock.lock();
+
+		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(LogType::Error);
 		shouldAddLinePrefix = true;
 
+		/* Log to output. */
 		va_list args;
 		va_start(args, desc);
 		vprintf(desc, args);
 		va_end(args);
 
+		/* Add newline if needed. */
 		if (desc[len - 1] != '\n') printf("\n");
+
+		/* Unlock output. */
+		printLock.unlock();
 	}
 
+	/* On debug mode throw error window with info; on release just throw. */
 #if defined(DEBUG)
 	_CrtDbgReport(_CRT_ERROR, file, line, nullptr, msg);
 	_CrtDbgBreak();
@@ -143,7 +177,9 @@ bool Plutonium::_CrtLogBacktrack(size_t amnt)
 
 	/* Alter position. */
 	csbi.dwCursorPosition.X -= static_cast<SHORT>(amnt);
+	printLock.lock();
 	SetConsoleCursorPosition(hndlr, csbi.dwCursorPosition);
+	printLock.unlock();
 	return true;
 #else
 	LOG_WAR("Backtracking the output is not supported on this platform!");
