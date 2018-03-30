@@ -312,6 +312,15 @@
     <ClInclude Include="..\..\include\Streams\SeekOrigin.h" />
     <ClInclude Include="..\..\include\Streams\StreamReader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\visualizers\Box.natvis" />
+    <Natvis Include="..\..\visualizers\EventBus.natvis" />
+    <Natvis Include="..\..\visualizers\Matrix.natvis" />
+    <Natvis Include="..\..\visualizers\Rectangle.natvis" />
+    <Natvis Include="..\..\visualizers\Vector2.natvis" />
+    <Natvis Include="..\..\visualizers\Vector3.natvis" />
+    <Natvis Include="..\..\visualizers\Vector4.natvis" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

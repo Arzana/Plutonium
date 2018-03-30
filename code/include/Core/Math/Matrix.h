@@ -47,6 +47,17 @@ namespace Plutonium
 			return *this = *this * m;
 		}
 
+		/* Checks if two matrices are equal. */
+		_Check_return_ inline bool operator ==(_In_ const Matrix &m) const
+		{
+			return c1 == m.c1 && c2 == m.c2 && c3 == m.c3 && c4 == m.c4;
+		}
+		/* Checks if two matrices differ. */
+		_Check_return_ inline bool operator !=(_In_ const Matrix &m) const
+		{
+			return c1 != m.c1 || c2 != m.c2 || c3 != m.c3 || c4 != m.c4;
+		}
+
 		/* Creates a translation matrix from three individual components. */
 		_Check_return_ static inline Matrix CreateTranslation(_In_ float x, _In_ float y, _In_ float z)
 		{

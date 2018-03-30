@@ -108,6 +108,9 @@
     <Filter Include="Source Files\Core\Threading">
       <UniqueIdentifier>{26fafd93-110e-41e5-8a5d-a69e096a20c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visualizers">
+      <UniqueIdentifier>{48199cee-3802-46b0-b344-d74768e76b08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -529,5 +532,28 @@
     <ClInclude Include="..\..\include\Core\Threading\TickThread.h">
       <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\visualizers\Rectangle.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Vector2.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Vector3.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Vector4.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Box.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Matrix.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\EventBus.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>
