@@ -102,6 +102,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>$(ProjectDir)..\..\buildscripts\CF2UV_$(ProjectName).bat "$(VisualStudioDir)\Visualizers"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -120,6 +123,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>$(ProjectDir)..\..\buildscripts\CF2UV_$(ProjectName).bat "$(VisualStudioDir)\Visualizers"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -144,6 +150,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>$(ProjectDir)..\..\buildscripts\CF2UV_$(ProjectName).bat "$(VisualStudioDir)\Visualizers"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -168,6 +177,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>$(ProjectDir)..\..\buildscripts\CF2UV_$(ProjectName).bat "$(VisualStudioDir)\Visualizers"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c" />
@@ -317,9 +329,19 @@
     <Natvis Include="..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Rectangle.natvis" />
+    <Natvis Include="..\..\visualizers\Tree.natvis" />
     <Natvis Include="..\..\visualizers\Vector2.natvis" />
     <Natvis Include="..\..\visualizers\Vector3.natvis" />
     <Natvis Include="..\..\visualizers\Vector4.natvis" />
+    <Natvis Include="..\..\visualizers\Window.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\visualizers\PuStepFilters.natstepfilter">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

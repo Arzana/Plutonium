@@ -12,7 +12,7 @@ namespace Plutonium
 	public:
 		/* Whether or not the update rate is fixed. */
 		bool FixedTimeStep;
-
+		
 		/* Initializes a new instance of a game. */
 		Game(_In_ const char *name);
 		Game(_In_ const Game &value) = delete;

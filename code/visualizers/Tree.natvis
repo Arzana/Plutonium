@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Plutonium::Tree&lt;*&gt;">
+    <DisplayString>[size: {count}]</DisplayString>
+    <Expand>
+      <Item Name="capacity">size</Item>
+      <Item Name="count">count</Item>
+      <Item Name="current">data[branch].Value</Item>
+      <ArrayItems>
+        <Size>count</Size>
+        <ValuePointer>data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

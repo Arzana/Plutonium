@@ -555,5 +555,16 @@
     <Natvis Include="..\..\visualizers\EventBus.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
+    <Natvis Include="..\..\visualizers\Tree.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Window.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\visualizers\PuStepFilters.natstepfilter">
+      <Filter>Visualizers</Filter>
+    </None>
   </ItemGroup>
 </Project>

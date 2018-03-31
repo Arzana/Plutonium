@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-  <Type Name="Plutonium::EventBus&lt;*&gt;">
-    <DisplayString>{name, sb} {callbacks.size()} callbacks</DisplayString>
+  <Type Name="Plutonium::Window">
+    <DisplayString>[{wndMode, en} {title, sb}]</DisplayString>
   </Type>
 </AutoVisualizer>
