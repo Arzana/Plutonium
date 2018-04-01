@@ -26,11 +26,16 @@ std::map<uint64, const char*> threadNames;
 
 void _CrtLogLinePrefix(LogType type)
 {
+	/* Gets the current milliseconds. */
+	constexpr float nano2milli = 1.0f / 10000000.0f;
+	timespec ts;
+	timespec_get(&ts, TIME_UTC);
+	int32 millisec = static_cast<int32>(ts.tv_nsec * nano2milli);
+	
+	/* Attempt to get the current time. */
 	const time_t now = std::time(nullptr);
 	char buffer[100];
-
-	/* Attempt to get the current time. */
-	if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now)) == 0) return;
+	if (std::strftime(buffer, sizeof(buffer), "%H:%M:%S", std::localtime(&now)) == 0) return;
 
 	/* Update type prefix. */
 	if (type != lastType)
@@ -78,17 +83,19 @@ void _CrtLogLinePrefix(LogType type)
 	uint64 tid = _CrtGetCurrentThreadId();
 	if (threadNames.find(tid) == threadNames.end()) threadNames.insert(KvP(tid, _CrtGetThreadNameFromId(tid)));
 
-	printf("[%s][%s/%s][%s]: ", buffer, processNames.at(pid), threadNames.at(tid), typeStr);
-	suppressLogging = false;
+	printf("[%s:%02d][%s/%s][%s]: ", buffer, millisec, processNames.at(pid), threadNames.at(tid), typeStr);
+	suppressLogging = false; 
 }
 
 void Plutonium::_CrtFinalizeLog(void)
 {
+	/* Release process names. */
 	for (std::map<uint64, const char*>::iterator it = processNames.begin(); it != processNames.end(); it++)
 	{
 		free_cstr_s(it->second);
 	}
 
+	/* Release thread names. */
 	for (std::map<uint64, const char*>::iterator it = threadNames.begin(); it != threadNames.end(); it++)
 	{
 		free_cstr_s(it->second);
