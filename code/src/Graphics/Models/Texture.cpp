@@ -167,5 +167,5 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 
-	LOG("Generated texture '%s'(%dx%d), %d mipmaps.", name, Width, Height, MipMapLevels);
+	LOG("Created texture '%s'(%dx%d), %d mipmaps.", name, Width, Height, MipMapLevels);
 }

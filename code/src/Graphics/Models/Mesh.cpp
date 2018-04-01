@@ -11,7 +11,9 @@ using namespace tinyobj;
 
 Plutonium::Mesh::Mesh(const char * name)
 	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), buffer(nullptr)
-{}
+{
+	LOG("Creating mesh '%s'.", name);
+}
 
 Plutonium::Mesh::~Mesh(void) noexcept
 {

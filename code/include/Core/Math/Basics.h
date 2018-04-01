@@ -4,6 +4,7 @@
 
 namespace Plutonium
 {
+#pragma region square
 	/* Raises the input value to the power of two. */
 	_Check_return_ constexpr inline int32 sqr(_In_ int32 v)
 	{
@@ -27,7 +28,8 @@ namespace Plutonium
 	{
 		return v * v;
 	}
-
+#pragma endregion
+#pragma region cube
 	/* Raises the input value to the power of three. */
 	_Check_return_ constexpr inline int32 cube(_In_ int32 v)
 	{
@@ -51,7 +53,8 @@ namespace Plutonium
 	{
 		return v * v * v;
 	}
-
+#pragma endregion
+#pragma region max
 	/* Gets the highest of the two input values. */
 	_Check_return_ constexpr inline int32 max(_In_ int32 a, _In_ int32 b)
 	{
@@ -75,7 +78,8 @@ namespace Plutonium
 	{
 		return __max(a, b);
 	}
-
+#pragma endregion
+#pragma region min
 	/* Gets the lowest of the two input values. */
 	_Check_return_ constexpr inline int32 min(_In_ int32 a, _In_ int32 b)
 	{
@@ -99,7 +103,8 @@ namespace Plutonium
 	{
 		return __min(a, b);
 	}
-
+#pragma endregion
+#pragma region clamp
 	/* Gets the input value restricted to the specified range. */
 	_Check_return_ constexpr inline int32 clamp(_In_ int32 v, _In_ int32 a, _In_ int32 b)
 	{
@@ -123,7 +128,8 @@ namespace Plutonium
 	{
 		return max(a, min(b, v));
 	}
-
+#pragma endregion
+#pragma region safe clamp
 	/* Gets the input value restricted to the specified range. */
 	_Check_return_ constexpr inline int32 sclamp(_In_ int32 v, _In_ int32 a, _In_ int32 b)
 	{
@@ -147,7 +153,8 @@ namespace Plutonium
 	{
 		return clamp(v, min(a, b), max(a, b));
 	}
-
+#pragma endregion
+#pragma region rectify
 	/* Gets the input value clamped between zero and itself. */
 	_Check_return_ constexpr inline int32 rectify(_In_ int32 v)
 	{
@@ -171,7 +178,8 @@ namespace Plutonium
 	{
 		return max(0.0, v);
 	}
-
+#pragma endregion
+#pragma region miscellaneous float functions 
 	/* Gets the integer part of the input value. */
 	_Check_return_ inline int32 ipart(_In_ float v)
 	{
@@ -201,25 +209,48 @@ namespace Plutonium
 	{
 		return fmodf(rads, TAU);
 	}
+#pragma endregion
+#pragma region byte conversion
+	/* Converts kilobytes to bytes. */
+	_Check_return_ constexpr inline uint64 kb2b(_In_ int32 kilobytes)
+	{
+		constexpr float scalar = static_cast<float>(1 << 10);
+		return static_cast<uint64>(kilobytes * scalar);
+	}
+
+	/* Converts megabytes to bytes. */
+	_Check_return_ constexpr inline uint64 mb2b(_In_ int32 megabytes)
+	{
+		constexpr float scalar = static_cast<float>(1 << 20);
+		return static_cast<uint64>(megabytes * scalar);
+	}
+
+	/* Converts gigabytes to bytes. */
+	_Check_return_ constexpr inline uint64 gb2b(_In_ int32 gigabytes)
+	{
+		constexpr float scalar = static_cast<float>(1 << 30);
+		return static_cast<uint64>(gigabytes * scalar);
+	}
 
 	/* Converts bytes to kilobytes. */
 	_Check_return_ constexpr inline int32 b2kb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(1 << 10));
+		constexpr float denom = recip(static_cast<float>(kb2b(1)));
 		return static_cast<int32>(bytes * denom);
 	}
 
 	/* Converts bytes to megabytes. */
 	_Check_return_ constexpr inline int32 b2mb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(1 << 20));
+		constexpr float denom = recip(static_cast<float>(mb2b(1)));
 		return static_cast<int32>(bytes * denom);
 	}
 
 	/* Converts bytes to gigabytes. */
 	_Check_return_ constexpr inline int32 b2gb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(1 << 30));
+		constexpr float denom = recip(static_cast<float>(gb2b(1)));
 		return static_cast<int32>(bytes * denom);
 	}
+#pragma endregion
 }

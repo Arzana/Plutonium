@@ -173,10 +173,9 @@ struct TestGame
 		dfRenderer->AddDebugString(fpsaStr);
 
 		/* Render average VRAM. */
-		std::string vramStr = "VRAM: ";
-		(vramStr += std::to_string(b2mb(mem->GetAvrgVRamUsage()))) += " / ";
-		(vramStr += std::to_string(b2mb(mem->GetOSVRamBudget()))) += " MB";
-		dfRenderer->AddDebugString(vramStr);
+		std::string ramStr = "RAM: ";
+		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
+		dfRenderer->AddDebugString(ramStr);
 		dfRenderer->Render();
 	}
 };

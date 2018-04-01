@@ -2,6 +2,7 @@
 
 #include "Core\String.h"
 #include "Core\SafeMemory.h"
+#include "Core\Math\Basics.h"
 #include <cstring>
 #include <cstdio>
 
@@ -73,4 +74,13 @@ std::string Plutonium::to_string(const Matrix & value)
 
 	/* Return result as std string. */
 	return std::string(buffer);
+}
+
+std::string Plutonium::b2short_string(uint64 value, uint64 kbBoundry, uint64 mbBoundry, uint64 gbBoundry)
+{
+	/* Converts the bytes to the needed level and returns it as a string. */
+	if (value < kbBoundry) return std::to_string(value).append(" B");
+	else if (value < mbBoundry) return std::to_string(b2kb(value)).append(" KB");
+	else if (value < gbBoundry) return std::to_string(b2mb(value)).append(" MB");
+	else return std::to_string(b2gb(value)).append(" GB");
 }
