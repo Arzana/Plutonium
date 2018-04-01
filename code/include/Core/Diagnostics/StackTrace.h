@@ -8,6 +8,8 @@ namespace Plutonium
 	struct StackFrame
 	{
 	public:
+		/* The name of the containing module. */
+		const char *ModuleName;
 		/* The name of the file in which the function resides. */
 		const char *FileName;
 		/* The name of the function. */
@@ -19,11 +21,11 @@ namespace Plutonium
 		~StackFrame(void);
 
 	private:
-		friend const StackFrame _CrtGetCallerInfoFromPtr(uint64);
-		friend const StackFrame _CrtGetCallerInfo(int);
+		friend const StackFrame* _CrtGetCallerInfoFromPtr(uint64);
+		friend const StackFrame* _CrtGetCallerInfo(int);
 
 		StackFrame(void)
-			: FileName("Unknown"), FunctionName("Unknown"), Line(0)
+			: ModuleName("Unknown"), FileName("Unknown"), FunctionName("Unknown"), Line(0)
 		{}
 	};
 
@@ -35,8 +37,8 @@ namespace Plutonium
 #endif
 	/* Gets the specified stack frame pointer from logging purposes. */
 	_Check_return_ uint64 _CrtGetCallerPtr(_In_ int framesToSkip);
-	/* Attempts to get the function information from the specified function address. */
-	_Check_return_ const StackFrame _CrtGetCallerInfoFromPtr(_In_ uint64 ptr);
-	/* Gets the specified stack frame information for logging purposes. */
-	_Check_return_ const StackFrame _CrtGetCallerInfo(_In_ int framesToSkip);
+	/* Attempts to get the function information from the specified function address (requires delete). */
+	_Check_return_ const StackFrame* _CrtGetCallerInfoFromPtr(_In_ uint64 ptr);
+	/* Gets the specified stack frame information for logging purposes (requires delete). */
+	_Check_return_ const StackFrame* _CrtGetCallerInfo(_In_ int framesToSkip);
 }

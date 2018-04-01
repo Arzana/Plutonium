@@ -113,11 +113,11 @@ uint64 Plutonium::_CrtGetCallerPtr(int framesToSkip)
 	return result;
 }
 
-const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
+const StackFrame* Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 {
 	/* Reset loading exception handler and create default result. */
 	firstExc = true;
-	StackFrame result;
+	StackFrame *result = new StackFrame();
 
 #if defined(_WIN32)
 	/* Get caller info on windows systems. */
@@ -135,20 +135,32 @@ const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
 	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
+	/* Initialize the module info. */
+	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+
 	/* We don't use displacement but the function needs it. */
 	DWORD displ;
 
 	/* Attempt to get symbol information from address. */
 	if (!SymFromAddr(process, ptr, 0, infoSymbol)) _CrtLogSymbolLoadException(ptr, "Could not get function name for");
-	else result.FunctionName = heapstr(infoSymbol->Name);
+	else result->FunctionName = heapstr(infoSymbol->Name);
 
 	/* Attempt to get file information from address. */
 	if (!SymGetLineFromAddr64(process, ptr, &displ, infoFile)) _CrtLogSymbolLoadException(ptr, "Could not get file information for");
 	else
 	{
-		result.FileName = heapstr(infoFile->FileName);
-		result.Line = infoFile->LineNumber;
+		result->FileName = heapstr(infoFile->FileName);
+		result->Line = infoFile->LineNumber;
 	}
+
+	/* Attempt to get the module information from address. */
+	if (!SymGetModuleInfo64(process, ptr, infoModule)) _CrtLogSymbolLoadException(ptr, "Could not get module info for");
+	else result->ModuleName = heapstr(infoModule->ModuleName);
+
+	free_s(infoSymbol);
+	free_s(infoFile);
+	free_s(infoModule);
 #else
 	LOG_WAR_ONCE("Cannot get caller information on this platform!");
 #endif
@@ -158,11 +170,11 @@ const StackFrame Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 	return result;
 }
 
-const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
+const StackFrame* Plutonium::_CrtGetCallerInfo(int framesToSkip)
 {
 	/* Reset loading exception handler and create default result. */
 	firstExc = true;
-	StackFrame result;
+	StackFrame *result = new StackFrame();
 
 #if defined(_WIN32)
 	/* Get caller info on windows systems. */
@@ -180,19 +192,23 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
 	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
+	/* Initialize the module info. */
+	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+
 	/* We don't use displacement but the function needs it. */
 	DWORD displ;
 
 	/* Get required stack frame. */
 	void *frames[32];
-	uint16 frameCnt = CaptureStackBackTrace(framesToSkip, 32, frames, nullptr);
+	uint16 frameCnt = CaptureStackBackTrace(framesToSkip > 0 ? framesToSkip : 0, 32, frames, nullptr);
 
 	/* Loop through frames untill a valid frame is found. */
-	bool hasFunc = false, hasFile = false;
-	for (size_t i = 0; i < frameCnt && !(hasFunc || hasFile); i++)
+	bool hasFunc = false, hasFile = false, hasModule = false;
+	for (size_t i = framesToSkip >= 0 ? 0 : frameCnt + framesToSkip; i < frameCnt && !(hasFunc || hasFile || hasModule); i++)
 	{
 		uint64 address = reinterpret_cast<uint64>(frames[i]);
-
+		
 		/* Attempt to get symbol information from address. */
 		if (!hasFunc)
 		{
@@ -200,7 +216,7 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 			else
 			{
 				hasFunc = true;
-				result.FunctionName = heapstr(infoSymbol->Name);
+				result->FunctionName = heapstr(infoSymbol->Name);
 			}
 		}
 
@@ -211,11 +227,26 @@ const StackFrame Plutonium::_CrtGetCallerInfo(int framesToSkip)
 			else
 			{
 				hasFile = true;
-				result.FileName = heapstr(infoFile->FileName);
-				result.Line = infoFile->LineNumber;
+				result->FileName = heapstr(infoFile->FileName);
+				result->Line = infoFile->LineNumber;
+			}
+		}
+
+		/* Attempt to get the module information from address. */
+		if (!hasModule)
+		{
+			if (!SymGetModuleInfo64(process, address, infoModule)) _CrtLogSymbolLoadException(address, "Could not get module info for");
+			else
+			{
+				hasModule = true;
+				result->ModuleName = heapstr(infoModule->ModuleName);
 			}
 		}
 	}
+
+	free_s(infoSymbol);
+	free_s(infoFile);
+	free_s(infoModule);
 #else
 	LOG_WAR_ONCE("Cannot get caller information on this platform!");
 #endif
@@ -231,6 +262,7 @@ Plutonium::StackFrame::~StackFrame(void)
 	Because the strings within the symbols are only there we must copy them to the heap.
 	Thusly if they aren't their default value, free them.
 	*/
-	if (!strcmp(FunctionName, "UNKNOWN")) free_cstr_s(FunctionName);
-	if (!strcmp(FileName, "UNKNOWN")) free_cstr_s(FileName);
+	if (strcmp(FunctionName, "Unknown")) free_cstr_s(FunctionName);
+	if (strcmp(FileName, "Unknown")) free_cstr_s(FileName);
+	if (strcmp(ModuleName, "Unknown")) free_cstr_s(ModuleName);
 }

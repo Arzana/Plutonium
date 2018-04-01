@@ -1,10 +1,12 @@
 #pragma warning(disable:4996)
 
 #include "Core\Diagnostics\Logging.h"
+#include "Core\Threading\ThreadUtils.h"
+#include "Core\SafeMemory.h"
+#include <map>
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
-#include <mutex>
 
 #if defined(_WIN32)
 #include <Windows.h>	// Console colors.
@@ -13,10 +15,14 @@
 
 using namespace Plutonium;
 
+using KvP = std::pair<uint64, const char*>;
+
 bool shouldAddLinePrefix = true;
+bool suppressLogging = false;
 LogType lastType = LogType::None;
 const char *typeStr;
-std::mutex printLock;
+std::map<uint64, const char*> processNames;
+std::map<uint64, const char*> threadNames;
 
 void _CrtLogLinePrefix(LogType type)
 {
@@ -34,26 +40,26 @@ void _CrtLogLinePrefix(LogType type)
 
 		switch (type)
 		{
-			case (LogType::Debug):
-				typeStr = "Debug";
-				typeClr = 7;
-				break;
-			case (LogType::Info):
-				typeStr = "Info";
-				typeClr = 7;
-				break;
-			case (LogType::Warning):
-				typeStr = "Warning";
-				typeClr = 14;
-				break;
-			case (LogType::Error):
-				typeStr = "Error";
-				typeClr = 4;
-				break;
-			default:
-				typeStr = "NULL";
-				typeClr = 0;
-				break;
+		case (LogType::Debug):
+			typeStr = "Debug";
+			typeClr = 7;
+			break;
+		case (LogType::Info):
+			typeStr = "Info";
+			typeClr = 7;
+			break;
+		case (LogType::Warning):
+			typeStr = "Warning";
+			typeClr = 14;
+			break;
+		case (LogType::Error):
+			typeStr = "Error";
+			typeClr = 4;
+			break;
+		default:
+			typeStr = "NULL";
+			typeClr = 0;
+			break;
 		}
 
 #if defined(_WIN32)
@@ -61,24 +67,44 @@ void _CrtLogLinePrefix(LogType type)
 #endif
 	}
 
-#if defined(_WIN32)
-	unsigned long pid = GetCurrentProcessId();
-#else
-	unsigned long pid = 0;
-#endif
-	
-	printf("[%s][%lu/%lu][%s]: ", buffer, pid, _threadid, typeStr);
+	/* If any of the funtions in here start to log we end up in an endless loop. */
+	suppressLogging = true;
+
+	/* Get process id. */
+	uint64 pid = _CrtGetCurrentProcessId();
+	if (processNames.find(pid) == processNames.end()) processNames.insert(KvP(pid, _CrtGetProcessNameFromId(pid)));
+
+	/* Get thread id. */
+	uint64 tid = _CrtGetCurrentThreadId();
+	if (threadNames.find(tid) == threadNames.end()) threadNames.insert(KvP(tid, _CrtGetThreadNameFromId(tid)));
+
+	printf("[%s][%s/%s][%s]: ", buffer, processNames.at(pid), threadNames.at(tid), typeStr);
+	suppressLogging = false;
+}
+
+void Plutonium::_CrtFinalizeLog(void)
+{
+	for (std::map<uint64, const char*>::iterator it = processNames.begin(); it != processNames.end(); it++)
+	{
+		free_cstr_s(it->second);
+	}
+
+	for (std::map<uint64, const char*>::iterator it = threadNames.begin(); it != threadNames.end(); it++)
+	{
+		free_cstr_s(it->second);
+	}
+
+	processNames.clear();
+	threadNames.clear();
 }
 
 void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 {
+
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(format);
-	if (len > 0)
+	if (len > 0 && !suppressLogging)
 	{
-		/* Lock output. */
-		printLock.lock();
-
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = format[len - 1] == '\n';
@@ -88,9 +114,6 @@ void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
-
-		/* Unlock output. */
-		printLock.unlock();
 	}
 }
 
@@ -98,11 +121,8 @@ void Plutonium::_CrtLog(LogType type, const char * format, ...)
 {
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(format);
-	if (len > 0)
+	if (len > 0 && !suppressLogging)
 	{
-		/* Lock output. */
-		printLock.lock();
-
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = true;
@@ -115,9 +135,6 @@ void Plutonium::_CrtLog(LogType type, const char * format, ...)
 
 		/* Add newline if needed. */
 		if (format[len - 1] != '\n') printf("\n");
-
-		/* Unlock output. */
-		printLock.unlock();
 	}
 }
 
@@ -125,21 +142,18 @@ void Plutonium::_CrtLogExc(const char * sender, const char * file, const char * 
 {
 	/* Log error header. */
 	_CrtLogNoNewLine(LogType::Error, "%s threw an exception!\nFILE:		%s.\nFUNCTION:	%s.\nLINE:		%d.\nMESSAGE:	",
-						sender ? sender : "Undefined caller", file, func, line);
+		sender ? sender : "Undefined caller", file, func, line);
 }
 
 void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * func, int line, const char * desc, ...)
 {
 	/* log error header. */
 	_CrtLogExc(nullptr, file, func, line);
-	
+
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(desc);
-	if (len > 0)
+	if (len > 0 && !suppressLogging)
 	{
-		/* Lock output. */
-		printLock.lock();
-
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(LogType::Error);
 		shouldAddLinePrefix = true;
@@ -152,9 +166,6 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 
 		/* Add newline if needed. */
 		if (desc[len - 1] != '\n') printf("\n");
-
-		/* Unlock output. */
-		printLock.unlock();
 	}
 
 	/* On debug mode throw error window with info; on release just throw. */
@@ -177,9 +188,7 @@ bool Plutonium::_CrtLogBacktrack(size_t amnt)
 
 	/* Alter position. */
 	csbi.dwCursorPosition.X -= static_cast<SHORT>(amnt);
-	printLock.lock();
 	SetConsoleCursorPosition(hndlr, csbi.dwCursorPosition);
-	printLock.unlock();
 	return true;
 #else
 	LOG_WAR("Backtracking the output is not supported on this platform!");

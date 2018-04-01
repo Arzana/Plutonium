@@ -108,7 +108,7 @@ void Plutonium::mrgstr(char ** values, size_t argc, char * result, char seperato
 	}
 
 	/* Replace last seperator with a null terminator. */
-	result[len - 1] = '\0';
+	result[__max(0, len - 1)] = '\0';
 }
 
 char * Plutonium::heapstr(const char * src)

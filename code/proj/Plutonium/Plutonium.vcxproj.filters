@@ -269,6 +269,9 @@
     <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp">
       <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Core\Threading\ThreadUtils.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -530,6 +533,9 @@
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Threading\TickThread.h">
+      <Filter>Header Files\Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Threading\ThreadUtils.h">
       <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
   </ItemGroup>

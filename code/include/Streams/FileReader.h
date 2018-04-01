@@ -38,6 +38,12 @@ namespace Plutonium
 			return fname;
 		}
 
+		/* Gets the name of the underlying file (without extension). */
+		_Check_return_ inline const char* GetFileNameWithoutExtension(void) const
+		{
+			return fnamenoext;
+		}
+
 		/* Gets the type of the underlying file. */
 		_Check_return_ inline const char* GetFileExtension(void) const
 		{
@@ -87,7 +93,7 @@ namespace Plutonium
 		_Check_return_ int64 GetPosition(void) const;
 
 	private:
-		const char *fpath, *fname, *fext, *fdir;
+		const char *fpath, *fname, *fext, *fnamenoext, *fdir;
 		bool open;
 		_iobuf *hndlr;
 

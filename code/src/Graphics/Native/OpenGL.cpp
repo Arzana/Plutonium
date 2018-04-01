@@ -64,11 +64,13 @@ void GlfwErrorEventHandler(int code, const char *descr)
 	- _glfwInputError							(Because this is GLFW's handler for a exception.)
 	- <Whatever function caused the exception>	(Because we can't get the file information from this.)
 	*/
-	const StackFrame frame = _CrtGetCallerInfo(4);
+	const StackFrame *frame = _CrtGetCallerInfo(4);
 
 	/* Throw exception. */
-	_CrtLogExc("GLFW", frame.FileName, frame.FunctionName, frame.Line);
+	_CrtLogExc("GLFW", frame->FileName, frame->FunctionName, frame->Line);
 	_CrtLog(LogType::Error, "Encountered %s exception (%d)!\nDESCRIPTION:	%s.", error, code, descr);
+
+	delete frame;
 	throw;
 }
 
@@ -168,15 +170,17 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 		- GladPreGLCallEventHandler					(Because this is the handler for a glad exception in this framework.)
 		- <Whatever function caused the exception>	(Because we can't get the file information from this.)
 		*/
-		const StackFrame frame = _CrtGetCallerInfoFromPtr(lastGladFramePtr);
+		const StackFrame *frame = _CrtGetCallerInfoFromPtr(lastGladFramePtr);
 
 		LOG_WAR("The file and function information that is displayed is for the last OpenGL call; not necessarily the one causing the exception!");
-		_CrtLogExc("OpenGL", frame.FileName, frame.FunctionName, frame.Line);
+		_CrtLogExc("OpenGL", frame->FileName, frame->FunctionName, frame->Line);
 		_CrtLog(LogType::Error, "%s(%s) caused %s severity %s exception!\nDESCRIPTION:	%s", caller, lastGladFuncName, level, error, msg);
 #else
 		_CrtLogExc("OpenGL", "UNKNOWN", "UNKNOWN", 0);
 		_CrtLog(LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
 #endif
+
+		delete frame;
 		throw;
 	}
 }

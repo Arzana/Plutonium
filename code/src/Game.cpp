@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Core\Stopwatch.h"
 #include "Core\Diagnostics\StackTrace.h"
+#include "Core\Threading\ThreadUtils.h"
 #include <glad\glad.h>
 #include <glfw3.h>
 #include <algorithm>
@@ -21,6 +22,9 @@ Plutonium::Game::Game(const char * name)
 	targetElapTimeFocused(0.0166667f), targetElapTimeNoFocus(0.05f),	// Normal: 60 FPS, Out of focus: 20 FPS.
 	accumElapTime(0), maxElapTime(5), loadPercentage(-1)				// Set buffer time objects.
 {
+	/* Set the main thread name (I think game will always be made on the main thread). */
+	_CrtSetCurrentThreadName("main");
+
 	/* Get new window and set helper objects. */
 	Window *wnd = new Window(name, Vector2(800.0f, 600.0f));
 	ASSERT_IF(!wnd->operational, "Could not create new window!", "Window initialization failed!");
@@ -44,6 +48,9 @@ Plutonium::Game::~Game(void)
 		GameComponent *cur = components.at(i);
 		delete_s(cur);
 	}
+
+	/* Make sure we finalize the logging pipeline last. */
+	_CrtFinalizeLog();
 }
 
 void Plutonium::Game::SetTargetTimeStep(int value)

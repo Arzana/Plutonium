@@ -1,5 +1,6 @@
 #include "Core\Threading\TickThread.h"
 #include "Core\SafeMemory.h"
+#include "Core\Threading\ThreadUtils.h"
 #include <chrono>
 #include <vector>
 #include <mutex>
@@ -101,6 +102,11 @@ void Plutonium::TickThread::StopWait(void)
 
 void Plutonium::TickThread::Run(void)
 {
+	/* On debug mode set the thread name as its description. */
+#if defined(DEBUG)
+	_CrtSetCurrentThreadName(name);
+#endif
+
 	/* Initialize running thread. */
 	running.store(true);
 	LOG("Initializing thread: %s.", name);

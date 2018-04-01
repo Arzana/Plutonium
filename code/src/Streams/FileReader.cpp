@@ -9,7 +9,7 @@
 using namespace Plutonium;
 
 Plutonium::FileReader::FileReader(const char * path, bool suppressOpen)
-	: fpath(path), fname(""), fext(""), fdir(""), open(false)
+	: fpath(path), fname(nullptr), fext(nullptr), fnamenoext(nullptr), fdir(nullptr), open(false)
 {
 	/* Initializes the file attributes and open the file. */
 	InitFileArgs();
@@ -20,6 +20,12 @@ Plutonium::FileReader::~FileReader(void) noexcept
 {
 	/*  Closes the stream if it's still open. */
 	if (open) Close();
+
+	/* Release file info. */
+	if (fname) free_cstr_s(fname);
+	if (fext) free_cstr_s(fext);
+	if (fnamenoext) free_cstr_s(fnamenoext);
+	if (fdir) free_cstr_s(fdir);
 }
 
 void Plutonium::FileReader::Close(void)
@@ -138,12 +144,16 @@ void Plutonium::FileReader::InitFileArgs(void)
 	fname = heapstr(buffer[len - 1]);
 
 	/* Get the file directory. */
-	char mrgbuf[FILENAME_MAX];
-	mrgstr(buffer, len - 1, mrgbuf, '/');
-	len = strlen(mrgbuf);
-	mrgbuf[len] = '/';
-	mrgbuf[len + 1] = '\0';
-	fdir = heapstr(mrgbuf);
+	if (len > 1)
+	{
+		char mrgbuf[FILENAME_MAX];
+		mrgstr(buffer, len - 1, mrgbuf, '/');
+		len = strlen(mrgbuf);
+		mrgbuf[len] = '/';
+		mrgbuf[len + 1] = '\0';
+		fdir = heapstr(mrgbuf);
+	}
+	else fdir = heapstr("");
 
 	/* Split the name into the file name and extension. */
 	len = spltstr(fname, '.', buffer, 0);
@@ -155,6 +165,7 @@ void Plutonium::FileReader::InitFileArgs(void)
 		return;
 	}
 
-	/* Get file extension. */
+	/* Get raw file name and extension. */
+	fnamenoext = heapstr(buffer[0]);
 	fext = heapstr(buffer[len - 1]);
 }

@@ -26,6 +26,9 @@ namespace Plutonium
 		Error
 	};
 
+	/* Finalizes the logging pipeline. */
+	void _CrtFinalizeLog(void);
+
 	/* Logs a message to the output without adding a newline character at the end. */
 	void _CrtLogNoNewLine(_In_ LogType type, _In_ const char *format, ...);
 	/* Logs a message line to the output. */
