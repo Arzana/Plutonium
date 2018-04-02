@@ -52,18 +52,21 @@ void Plutonium::StaticRenderer::Render(const StaticModel * model)
 	/* Render each shape. */
 	for (size_t i = 0; i < model->shapes.size(); i++)
 	{
-		/* Set current texture sampler. */
+		/* Get current textured mesh. */
 		Shape *cur = model->shapes.at(i);
+		Buffer *buffer = cur->Mesh->GetVertexBuffer();
+
+		/* Set current texture sampler. */
 		texture->Set(cur->Material);
 
 		/* Set mesh buffer attributes. */
-		cur->Mesh->GetVertexBuffer()->Bind();
+		buffer->Bind();
 		pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexBuffer()->GetElementCount()));
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
 	}
 }
 

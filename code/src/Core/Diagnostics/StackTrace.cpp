@@ -19,7 +19,7 @@ const char * Plutonium::_CrtGetErrorString(void)
 
 	/* Get error underlying error code and early out if no error was raised. */
 	DWORD error = GetLastError();
-	if (error == NO_ERROR) return "";
+	if (error == NO_ERROR) return heapstr("");
 
 	/* Get human readable error from system. */
 	LPSTR msgBuffer = nullptr;
@@ -87,7 +87,7 @@ void Plutonium::_CrtFinalizeWinProcess(void)
 }
 #endif
 
-uint64 Plutonium::_CrtGetCallerPtr(int framesToSkip)
+uint64 Plutonium::_CrtGetCallerPtr(uint32 framesToSkip)
 {
 	/* Reset loading exception handler and create default result. */
 	firstExc = true;
@@ -170,7 +170,7 @@ const StackFrame* Plutonium::_CrtGetCallerInfoFromPtr(uint64 ptr)
 	return result;
 }
 
-const StackFrame* Plutonium::_CrtGetCallerInfo(int framesToSkip)
+const StackFrame* Plutonium::_CrtGetCallerInfo(int32 framesToSkip)
 {
 	/* Reset loading exception handler and create default result. */
 	firstExc = true;

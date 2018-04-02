@@ -9,7 +9,7 @@ namespace Plutonium
 	_Check_return_ const char* _CrtGetProcessNameFromId(_In_ uint64 id);
 	/* Gets the current thread ID. */
 	_Check_return_ uint64 _CrtGetCurrentThreadId(void);
-	/* Gets the description of the specified thread. */
+	/* Gets the description of the specified thread; if not description is set return the creators module name. */
 	_Check_return_ const char* _CrtGetThreadNameFromId(_In_ uint64 id);
 	/* Sets the current thread's description. */
 	void _CrtSetCurrentThreadName(_In_ const char *name);

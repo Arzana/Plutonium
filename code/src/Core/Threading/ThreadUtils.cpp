@@ -76,23 +76,27 @@ const char * Plutonium::_CrtGetThreadNameFromId(uint64 id)
 				CloseHandle(thndl);
 				return heapstr(b);
 			}
-			else
-			{
-				/* Description is empty so we need to get the module name of the thread creator; ignore the last 2 frames because those are the ones creating the thread. */
-				const StackFrame *frame = _CrtGetCallerInfo(-3);
-				const char *result = heapstr(frame->ModuleName);
-				delete_s(frame);
-				return result;
-			}
 		}
 	}
 
 	/* Could not open thread or get description; log error. */
 	CloseHandle(thndl);
 	const char *error = _CrtGetErrorString();
-	LOG_WAR("Could not get thread name, error: %s!", error);
+	if (strlen(error) > 0) LOG_WAR("Could not get thread name, error: %s!", error);
 	free_cstr_s(error);
-	return "";
+
+	/* 
+	Description is empty so we need to get the module name of the thread creator; 
+	ignore the last 2 frames because those are the ones creating the thread. 
+	- ...
+	- <the one we want>
+	- kernel32.dll
+	- ntdll.dll
+	*/
+	const StackFrame *frame = _CrtGetCallerInfo(-3);
+	const char *result = heapstr(frame->ModuleName);
+	delete_s(frame);
+	return result;
 
 #else
 	LOG_WAR_ONCE("Cannot get thread name on this platform!");

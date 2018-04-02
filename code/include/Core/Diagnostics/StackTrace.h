@@ -22,7 +22,7 @@ namespace Plutonium
 
 	private:
 		friend const StackFrame* _CrtGetCallerInfoFromPtr(uint64);
-		friend const StackFrame* _CrtGetCallerInfo(int);
+		friend const StackFrame* _CrtGetCallerInfo(int32);
 
 		StackFrame(void)
 			: ModuleName("Unknown"), FileName("Unknown"), FunctionName("Unknown"), Line(0)
@@ -35,10 +35,17 @@ namespace Plutonium
 	/* Finalizes the processes that have been initialized. */
 	void _CrtFinalizeWinProcess(void);
 #endif
-	/* Gets the specified stack frame pointer from logging purposes. */
-	_Check_return_ uint64 _CrtGetCallerPtr(_In_ int framesToSkip);
+	/* 
+	Gets the specified stack frame pointer from logging purposes.
+	framesToSkip defines how many frames should be skipped before the frame snapshot should be taken.
+	*/
+	_Check_return_ uint64 _CrtGetCallerPtr(_In_ uint32 framesToSkip);
 	/* Attempts to get the function information from the specified function address (requires delete). */
 	_Check_return_ const StackFrame* _CrtGetCallerInfoFromPtr(_In_ uint64 ptr);
-	/* Gets the specified stack frame information for logging purposes (requires delete). */
-	_Check_return_ const StackFrame* _CrtGetCallerInfo(_In_ int framesToSkip);
+	/* 
+	Gets the specified stack frame information for logging purposes (requires delete).
+	if framesToSkip is positive it defines how many frames should be skipped before the frame snapshot should be taken.
+	if framesToSkip is negative it defines how many frames should be skipped from the back before the frame snapshot should be taken.
+	*/
+	_Check_return_ const StackFrame* _CrtGetCallerInfo(_In_ int32 framesToSkip);
 }
