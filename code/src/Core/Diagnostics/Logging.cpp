@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
+#include <mutex>
 
 #if defined(_WIN32)
 #include <Windows.h>	// Console colors.
@@ -23,6 +24,7 @@ LogType lastType = LogType::None;
 const char *typeStr;
 std::map<uint64, const char*> processNames;
 std::map<uint64, const char*> threadNames;
+std::mutex printLock;
 
 void _CrtLogLinePrefix(LogType type)
 {
@@ -112,6 +114,9 @@ void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 	const size_t len = strlen(format);
 	if (len > 0 && !suppressLogging)
 	{
+		/* Lock logger. */
+		printLock.lock();
+
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = format[len - 1] == '\n';
@@ -121,6 +126,9 @@ void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
+
+		/* Unlock logger. */
+		printLock.unlock();
 	}
 }
 
@@ -130,6 +138,9 @@ void Plutonium::_CrtLog(LogType type, const char * format, ...)
 	const size_t len = strlen(format);
 	if (len > 0 && !suppressLogging)
 	{
+		/* Lock logger. */
+		printLock.lock();
+
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(type);
 		shouldAddLinePrefix = true;
@@ -142,6 +153,9 @@ void Plutonium::_CrtLog(LogType type, const char * format, ...)
 
 		/* Add newline if needed. */
 		if (format[len - 1] != '\n') printf("\n");
+
+		/* Unlock logger. */
+		printLock.unlock();
 	}
 }
 
@@ -161,6 +175,9 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 	const size_t len = strlen(desc);
 	if (len > 0 && !suppressLogging)
 	{
+		/* Lock logger. */
+		printLock.lock();
+
 		/* Check if new line needs to be added. */
 		if (shouldAddLinePrefix) _CrtLogLinePrefix(LogType::Error);
 		shouldAddLinePrefix = true;
@@ -173,6 +190,9 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 
 		/* Add newline if needed. */
 		if (desc[len - 1] != '\n') printf("\n");
+
+		/* Unlock logger. */
+		printLock.unlock();
 	}
 
 	/* On debug mode throw error window with info; on release just throw. */
@@ -195,7 +215,9 @@ bool Plutonium::_CrtLogBacktrack(size_t amnt)
 
 	/* Alter position. */
 	csbi.dwCursorPosition.X -= static_cast<SHORT>(amnt);
+	printLock.lock();
 	SetConsoleCursorPosition(hndlr, csbi.dwCursorPosition);
+	printLock.unlock();
 	return true;
 #else
 	LOG_WAR("Backtracking the output is not supported on this platform!");
