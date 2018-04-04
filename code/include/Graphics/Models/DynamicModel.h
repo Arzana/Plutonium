@@ -23,7 +23,7 @@ namespace Plutonium
 		_Check_return_ DynamicModel& operator =(_In_ DynamicModel &&other) = delete;
 
 		/* Loads a model from a specified .md2 file (requires delete!). */
-		_Check_return_ static DynamicModel* FromFile(_In_ const char *path, _In_ const char *texture = nullptr);
+		_Check_return_ static DynamicModel* FromFile(_In_ const char *path, _In_opt_ const char *texture = nullptr);
 
 		/* Plays a specified animation. */
 		void PlayAnimation(_In_ const char *name);

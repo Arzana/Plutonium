@@ -198,7 +198,7 @@ void Plutonium::Game::DoFinalize(void)
 	{
 		GameComponent *cur = components.at(i);
 		cur->Finalize();
-		LOG_WAR_IF(cur->initialized, "Camponent at place %d failed to finalize!", cur->place);
+		LOG_WAR_IF(cur->initialized, "Component at place %d failed to finalize!", cur->place);
 	}
 
 	/* Make sure the debugging symbols are freed. */
@@ -242,11 +242,11 @@ void Plutonium::Game::DoRender(float dt)
 {
 	BeginRender();
 
-	/* Renders the game specific graphics to the game screen. */
-	for (size_t i = 0; i < components.size(); i++) components.at(i)->Render(dt);
-
 	/* Render game specific code. */
 	Render(dt);
+
+	/* Renders the game specific graphics to the game screen. */
+	for (size_t i = 0; i < components.size(); i++) components.at(i)->Render(dt);
 
 	EndRender();
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <sal.h>
 #include "Graphics\Models\Mesh.h"
+#include "Core\EnumUtils.h"
 
 namespace Plutonium
 {
@@ -34,13 +35,13 @@ namespace Plutonium
 	/* Gets whether the playback flags contain the ToAndFro flag. */
 	_Check_return_ inline bool _CrtGetPlaybackShouldAlter(_In_ PlayBackFlags flags)
 	{
-		return (static_cast<int32>(flags) & static_cast<int32>(PlayBackFlags::ToAndFro)) != 0;
+		return _CrtEnumCheckFlag(flags, PlayBackFlags::ToAndFro);
 	}
 
 	/* Gets whether the playback flags contain the TimeBases flag. */
 	_Check_return_ inline bool _CrtGetPlaybackShouldInterpolate(_In_ PlayBackFlags flags)
 	{
-		return (static_cast<int32>(flags) & static_cast<int32>(PlayBackFlags::TimeBased)) != 0;
+		return _CrtEnumCheckFlag(flags, PlayBackFlags::TimeBased);
 	}
 
 	/* Defines per animation information. */

@@ -1,14 +1,20 @@
 #pragma once
-#include "Graphics\Rendering\SpriteRenderer.h"
+#include <queue>
+#include "Graphics\Color.h"
+#include "Graphics\Models\Texture.h"
+#include "Graphics\Diagnostics\DebugRenderer.h"
 
 namespace Plutonium
 {
+	struct SpriteRenderer;
+
+	/* Provides ease of use debug sprite functionality. */
 	struct DebugSpriteRenderer
-		: SpriteRenderer
+		: DebugRenderer
 	{
 	public:
-		/* Initializes a new instance of a debug font renderer. */
-		DebugSpriteRenderer(_In_ GraphicsAdapter *device, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_opt_ Vector2 resetPos = Vector2::Zero);
+		/* Initializes a new instance of a debug sprite renderer. */
+		DebugSpriteRenderer(_In_ Game *game, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_opt_ Vector2 resetPos = Vector2(0.0f, 100.0f), _In_opt_ Vector2 moveMod = Vector2::UnitY);
 		DebugSpriteRenderer(_In_ const DebugSpriteRenderer &value) = delete;
 		DebugSpriteRenderer(_In_ DebugSpriteRenderer &&value) = delete;
 
@@ -16,13 +22,25 @@ namespace Plutonium
 		_Check_return_ DebugSpriteRenderer& operator =(_In_ DebugSpriteRenderer &&other) = delete;
 
 		/* Renders a debug sprite at the debug sprite position. */
-		void RenderDebug(_In_ const Texture *sprite, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f);
-		/* Stops rendering the specified scene. */
-		void End(void);
+		void AddDebugTexture(_In_ const Texture *sprite, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f);
+
+	protected:
+		SpriteRenderer * renderer;
+
+		virtual void Render(_In_ float dt) override;
+		virtual void Finalize(void) override;
 
 	private:
-		const float spacing;
-		const Vector2 reset;
-		Vector2 defPos;
+		struct SpriteRenderArgs
+		{
+			const Texture *sprite;
+			Vector2 pos;
+			Color clr;
+			Vector2 scale;
+			float theta;
+		};
+
+		const Vector2 spacing;
+		std::queue<SpriteRenderArgs> queue;
 	};
 }

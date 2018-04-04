@@ -256,6 +256,73 @@ const StackFrame* Plutonium::_CrtGetCallerInfo(int32 framesToSkip)
 	return result;
 }
 
+std::vector<const StackFrame*> Plutonium::_CrtGetStackTrace(uint32 framesToSkip)
+{
+	/* Reset loading exception handler and create default result. */
+	firstExc = true;
+	std::vector<const StackFrame*> result;
+
+#if defined(_WIN32)
+	/* Get the stack trace on windows systems. */
+
+	/* Get current process handle. */
+	HANDLE process = GetCurrentProcess();
+	InitializeProcess(process);
+
+	/* Initialize symbol info. */
+	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
+	infoSymbol->MaxNameLen = MAX_SYM_NAME;
+	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+	/* Initialize file info. */
+	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
+	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+	/* Initialize the module info. */
+	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+
+	/* We don't use displacement but the function needs it. */
+	DWORD displ;
+
+	/* Get required stack frame. */
+	void *frames[32];
+	uint16 frameCnt = CaptureStackBackTrace(framesToSkip, 32, frames, nullptr);
+
+	/* Add information to all frames. */
+	for (size_t i = 0; i < frameCnt; i++)
+	{
+		uint64 address = reinterpret_cast<uint64>(frames[i]);
+		StackFrame *cur = new StackFrame();
+
+		/* Attempt to get symbol information from address. */
+		if (SymFromAddr(process, address, 0, infoSymbol)) cur->FunctionName = heapstr(infoSymbol->Name);
+
+		/* Attempt to get file information from address. */
+		if (SymGetLineFromAddr64(process, address, &displ, infoFile))
+		{
+			cur->FileName = heapstr(infoFile->FileName);
+			cur->Line = infoFile->LineNumber;
+		}
+
+		/* Attempt to get the module information from address. */
+		if (SymGetModuleInfo64(process, address, infoModule)) cur->ModuleName = heapstr(infoModule->ModuleName);
+
+		result.push_back(cur);
+	}
+
+	free_s(infoSymbol);
+	free_s(infoFile);
+	free_s(infoModule);
+#else
+	LOG_WAR_ONCE("Cannot get stack trace on this platform!");
+#endif
+
+	/* Reset loading exception handler and return result. */
+	firstExc = true;
+	return result;
+}
+
 Plutonium::StackFrame::~StackFrame(void)
 {
 	/* 

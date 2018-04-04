@@ -20,6 +20,8 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 {
 	/* Initialize result and allocate required temporary storage. */
 	Vector2 result = Vector2(0.0f, FLT_MIN);
+	int32 nlCnt = 0;
+
 	char c = *str;
 	Character *ch = chars + def;
 
@@ -30,11 +32,16 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 
 		/* Update height if needed. */
 		if (ch->Size.Y > result.Y) result.Y = ch->Size.Y;
+		if (ch->Key == '\n') ++nlCnt;
+
+		/* Update width. */
 		result.X += (ch->Size.X - ch->Bearing.X) + ch->Advance;
 	}
 
-	/* Remove the last advance and return final measurement. */
+	/* Remove the last advance and add the newlines. */
 	result.X -= ch->Advance;
+	result.Y += static_cast<float>(nlCnt * lineSpace);
+
 	return result;
 }
 

@@ -271,6 +271,7 @@
     <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugSpriteRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />

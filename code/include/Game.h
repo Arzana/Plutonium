@@ -38,7 +38,6 @@ namespace Plutonium
 		/* Loads a new level for the game. */
 		void LoadNew(void);
 
-	protected:
 		/* Gets the game graphics adapter associated with this game. */
 		_Check_return_ inline GraphicsAdapter* GetGraphics(void) const
 		{
@@ -57,6 +56,7 @@ namespace Plutonium
 			return keyboard;
 		}
 
+	protected:
 		/* Supresses the next successful ticks update call. */
 		inline void SuppressNextUpdate(void)
 		{

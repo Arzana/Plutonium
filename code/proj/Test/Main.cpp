@@ -48,9 +48,9 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
+		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh"));
+		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
-		dfRenderer = new DebugFontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh");
-		dsRenderer = new DebugSpriteRenderer(GetGraphics(), "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh", Vector2(0.0f, 100.0f));
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/StencilOnly3D.vsh");
 		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
@@ -82,8 +82,6 @@ struct TestGame
 		prenderer->OnRoomRender.Remove(this, &TestGame::RenderScene);
 		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
 
-		delete_s(dfRenderer);
-		delete_s(dsRenderer);
 		delete_s(srenderer);
 		delete_s(prenderer);
 		if (depthSprite) delete_s(depthSprite);
@@ -156,27 +154,24 @@ struct TestGame
 		Map.at(curRoom)->AddPortals(&portals);
 		prenderer->Render(cam->GetView(), cam->GetProjection(), &portals);
 
-		/* Render frame buffer diagnostics. */
-		dsRenderer->Begin();
-		if (depthSprite) dsRenderer->RenderDebug(depthSprite, Color::White, Vector2(0.1f));
-		if (stencilSprite) dsRenderer->RenderDebug(stencilSprite, Color::White, Vector2(0.1f));
-		dsRenderer->End();
-
-		/* Render light direction. */
+		/* Add debug light direction. */
 		std::string lightStr = "Light: ";
 		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
 		dfRenderer->AddDebugString(lightStr);
 
-		/* Render average FPS. */
+		/* Add debug average FPS. */
 		std::string fpsaStr = "Fps (avg): ";
 		fpsaStr += std::to_string(ipart(fps->GetAvrgHz()));
 		dfRenderer->AddDebugString(fpsaStr);
 
-		/* Render average VRAM. */
+		/* Add debug average VRAM. */
 		std::string ramStr = "RAM: ";
 		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
 		dfRenderer->AddDebugString(ramStr);
-		dfRenderer->Render();
+
+		/* Add debug frame buffer diagnostics. */
+		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));
+		if (stencilSprite) dsRenderer->AddDebugTexture(stencilSprite, Color::White, Vector2(0.1f));
 	}
 };
 

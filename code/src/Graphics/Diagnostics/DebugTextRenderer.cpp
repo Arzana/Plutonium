@@ -1,21 +1,27 @@
 #include "Graphics\Diagnostics\DebugTextRenderer.h"
-#include "Core\StringFunctions.h"
+#include "Graphics\Text\TextRenderer.h"
+#include "Game.h"
 
-Plutonium::DebugFontRenderer::DebugFontRenderer(GraphicsAdapter * device, const char * font, const char * vrtxShdr, const char * fragShdr, Vector2 resetPos)
-	: FontRenderer(device, font, vrtxShdr, fragShdr), reset(resetPos), defPos(resetPos)
-{}
+Plutonium::DebugFontRenderer::DebugFontRenderer(Game * game, const char * font, const char * vrtxShdr, const char * fragShdr, Vector2 resetPos, Vector2 moveMod)
+	: DebugRenderer(game, resetPos, moveMod)
+{
+	renderer = new FontRenderer(game->GetGraphics(), font, vrtxShdr, fragShdr);
+}
 
 void Plutonium::DebugFontRenderer::AddDebugString(const char * str, Color clr)
 {
-	AddString(defPos, str, clr);
-	defPos.Y += font->GetLineSpace() * (1 + cntchar(str, '\n'));
+	renderer->AddString(GetDrawPos(), str, clr);
+	UpdateDrawPos(renderer->GetFont()->MeasureString(str));
 }
 
-void Plutonium::DebugFontRenderer::Render(void)
+void Plutonium::DebugFontRenderer::Render(float dt)
 {
-	/* Render actual text. */
-	FontRenderer::Render();
+	renderer->Render();
+	Reset();
+}
 
-	/* Reset frame draw position. */
-	defPos = reset;
+void Plutonium::DebugFontRenderer::Finalize(void)
+{
+	DebugRenderer::Finalize();
+	delete_s(renderer);
 }

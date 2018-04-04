@@ -5,12 +5,6 @@
 #include "Core\Math\Interpolation.h"
 #include <cstring>
 
-#define enum2int(x)			static_cast<int32>(x)
-#define int2enum(t, x)		static_cast<t>(x)
-#define removelerp(x)		int2enum(PlayBackFlags, enum2int(x) & ~enum2int(PlayBackFlags::TimeBased))
-#define enumor(t, x, y)		int2enum(t, (enum2int(x) | enum2int(y)))
-#define enumor2(t, x, y, z) int2enum(t, (enum2int(x) | enum2int(y) | enum2int(z)))
-
 using namespace Plutonium;
 
 Plutonium::DynamicModel::DynamicModel(void)
@@ -131,9 +125,9 @@ void Plutonium::DynamicModel::MoveFrame(void)
 	AnimationInfo *info = animations.at(curAnim);
 
 	/* Get the flags without the lerping flag. */
-	switch (removelerp(info->Flags))
+	switch (_CrtEnumRemoveFlag(info->Flags, PlayBackFlags::TimeBased))
 	{
-	case (int2enum(PlayBackFlags, 0)):
+	case (_CrtInt2Enum<PlayBackFlags>(0)):
 		/* Increase next frame untill end is reached. */
 		if ((nextFrame += frameMoveMod) >= info->Frames.size())
 		{
@@ -169,7 +163,7 @@ void Plutonium::DynamicModel::MoveFrame(void)
 		}
 		else curFrame += frameMoveMod;
 		break;
-	case (enumor(PlayBackFlags, PlayBackFlags::ToAndFro, PlayBackFlags::Reverse)):
+	case (_CrtEnumBitOr(PlayBackFlags::ToAndFro, PlayBackFlags::Reverse)):
 		/* Apply frame movement. */
 		nextFrame += frameMoveMod;
 
@@ -192,13 +186,13 @@ void Plutonium::DynamicModel::MoveFrame(void)
 		curFrame = (curFrame + frameMoveMod) % info->Frames.size();
 		nextFrame = (nextFrame + frameMoveMod) % info->Frames.size();
 		break;
-	case (enumor(PlayBackFlags, PlayBackFlags::Reverse, PlayBackFlags::Loop)):
+	case (_CrtEnumBitOr(PlayBackFlags::Reverse, PlayBackFlags::Loop)):
 		/* Decrease frames. */
 		if ((curFrame += frameMoveMod) <= 0) curFrame = info->Frames.size() - 1;
 		if ((nextFrame += frameMoveMod) <= 0) nextFrame = info->Frames.size() - 1;
 		break;
-	case (enumor(PlayBackFlags, PlayBackFlags::Loop, PlayBackFlags::ToAndFro)):
-	case (enumor2(PlayBackFlags, PlayBackFlags::Reverse, PlayBackFlags::Loop, PlayBackFlags::ToAndFro)):
+	case (_CrtEnumBitOr(PlayBackFlags::Loop, PlayBackFlags::ToAndFro)):
+	case (_CrtEnumBitOr(PlayBackFlags::Reverse, _CrtEnumBitOr(PlayBackFlags::Loop, PlayBackFlags::ToAndFro))):
 		/* Apply frame movement. */
 		nextFrame += frameMoveMod;
 

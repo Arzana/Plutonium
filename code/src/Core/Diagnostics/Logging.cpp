@@ -1,6 +1,7 @@
 #pragma warning(disable:4996)
 
 #include "Core\Diagnostics\Logging.h"
+#include "Core\Diagnostics\StackTrace.h"
 #include "Core\Threading\ThreadUtils.h"
 #include "Core\SafeMemory.h"
 #include <map>
@@ -33,7 +34,7 @@ void _CrtLogLinePrefix(LogType type)
 	timespec ts;
 	timespec_get(&ts, TIME_UTC);
 	int32 millisec = static_cast<int32>(ts.tv_nsec * nano2milli);
-	
+
 	/* Attempt to get the current time. */
 	const time_t now = std::time(nullptr);
 	char buffer[100];
@@ -86,7 +87,7 @@ void _CrtLogLinePrefix(LogType type)
 	if (threadNames.find(tid) == threadNames.end()) threadNames.insert(KvP(tid, _CrtGetThreadNameFromId(tid)));
 
 	printf("[%s:%02d][%s/%s][%s]: ", buffer, millisec, processNames.at(pid), threadNames.at(tid), typeStr);
-	suppressLogging = false; 
+	suppressLogging = false;
 }
 
 void Plutonium::_CrtFinalizeLog(void)
@@ -166,6 +167,32 @@ void Plutonium::_CrtLogExc(const char * sender, const char * file, const char * 
 		sender ? sender : "Undefined caller", file, func, line);
 }
 
+void Plutonium::_CrtLogExc(unsigned int framesToSkip)
+{
+	std::vector<const StackFrame*> callStack = _CrtGetStackTrace(framesToSkip);
+
+	/* Lock logger. */
+	printLock.lock();
+
+	/* Log table header. */
+	printf("STACKTRACE:\n");
+	printf("		                        FUNCTION                                       LINE          MODULE                               FILE\n");
+	
+	/* Log stack trace. */
+	for (size_t i = 0; i < callStack.size(); i++)
+	{
+		const StackFrame *cur = callStack.at(i);
+		printf("		at %-64s ", cur->FunctionName);
+		printf(cur->Line ? "| %-7d " : "| Unknown ", cur->Line);
+		printf("| %-16s", cur->ModuleName);
+		printf("| %-64s |\n", cur->FileName);
+		delete_s(cur);
+	}
+
+	/* Unlock logger. */
+	printLock.unlock();
+}
+
 void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * func, int line, const char * desc, ...)
 {
 	/* log error header. */
@@ -194,6 +221,15 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 		/* Unlock logger. */
 		printLock.unlock();
 	}
+
+	/*
+	Log error footer.
+	Skip last three frames:
+	- _CrtGetStackTrace
+	- _CrtLogExc
+	- _CrtLogThrow
+	*/
+	_CrtLogExc(3);
 
 	/* On debug mode throw error window with info; on release just throw. */
 #if defined(DEBUG)

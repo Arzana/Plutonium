@@ -3,6 +3,7 @@
 
 namespace Plutonium
 {
+#pragma region conversion
 	/* Converts an enum to its underlying integer based type. */
 	template <typename _EnumTy>
 	_Check_return_ inline constexpr typename std::underlying_type<_EnumTy>::type _CrtEnum2Int(_In_ _EnumTy e)
@@ -18,7 +19,8 @@ namespace Plutonium
 		static_assert(std::is_enum<_EnumTy>::value, "Type is not a valid enum!");
 		return static_cast<_EnumTy>(i);
 	}
-
+#pragma endregion
+#pragma region bitwise operators
 	/* Performs a bitwise or operation on the specified enum values. */
 	template <typename _EnumTy>
 	_Check_return_ inline constexpr _EnumTy _CrtEnumBitOr(_In_ _EnumTy first, _In_ _EnumTy second)
@@ -32,4 +34,27 @@ namespace Plutonium
 	{
 		return _CrtInt2Enum<_EnumTy>(_CrtEnum2Int(first) & _CrtEnum2Int(second));
 	}
+
+	/* Performs a bitwise not operation on the specified enum value. */
+	template <typename _EnumTy>
+	_Check_return_ inline constexpr _EnumTy _CrtEnumBitNot(_In_ _EnumTy e)
+	{
+		return _CrtInt2Enum<_EnumTy>(~_CrtEnum2Int(e));
+	}
+#pragma endregion
+#pragma region utilities
+	/* Returns whether the specified enum contains the specified flag. */
+	template <typename _EnumTy>
+	_Check_return_ inline constexpr bool _CrtEnumCheckFlag(_In_ _EnumTy e, _In_ _EnumTy flag)
+	{
+		return _CrtEnum2Int(_CrtEnumBitAnd(e, flag)) != 0;
+	}
+
+	/* Removes a specified flag from the specified enum value. */
+	template <typename _EnumTy>
+	_Check_return_ inline constexpr _EnumTy _CrtEnumRemoveFlag(_In_ _EnumTy e, _In_ _EnumTy flag)
+	{
+		return _CrtEnumBitAnd(e, _CrtEnumBitNot(flag));
+	}
+#pragma endregion
 }

@@ -69,6 +69,7 @@ void GlfwErrorEventHandler(int code, const char *descr)
 	/* Throw exception. */
 	_CrtLogExc("GLFW", frame->FileName, frame->FunctionName, frame->Line);
 	_CrtLog(LogType::Error, "Encountered %s exception (%d)!\nDESCRIPTION:	%s.", error, code, descr);
+	_CrtLogExc(4);
 
 	delete frame;
 	throw;
@@ -175,6 +176,7 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 		LOG_WAR("The file and function information that is displayed is for the last OpenGL call; not necessarily the one causing the exception!");
 		_CrtLogExc("OpenGL", frame->FileName, frame->FunctionName, frame->Line);
 		_CrtLog(LogType::Error, "%s(%s) caused %s severity %s exception!\nDESCRIPTION:	%s", caller, lastGladFuncName, level, error, msg);
+		_CrtLogExc(3);
 #else
 		_CrtLogExc("OpenGL", "UNKNOWN", "UNKNOWN", 0);
 		_CrtLog(LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);

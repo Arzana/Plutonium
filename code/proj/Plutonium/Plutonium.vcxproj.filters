@@ -538,6 +538,9 @@
     <ClInclude Include="..\..\include\Core\Threading\ThreadUtils.h">
       <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">
