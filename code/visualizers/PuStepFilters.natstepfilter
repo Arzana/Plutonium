@@ -58,4 +58,12 @@
     <Name>std::vector.*</Name>
     <Action>NoStepInto</Action>
   </Function>
+  <Function>
+    <Name>std::string.*</Name>
+    <Action>NoStepInto</Action>
+  </Function>
+  <Function>
+    <Name>std::map.*</Name>
+    <Action>NoStepInto</Action>
+  </Function>
 </StepFilter>
