@@ -1,13 +1,13 @@
 #pragma once
 #include "Core\Events\EventBus.h"
 #include "Core\Events\EventArgs.h"
-#include <thread>
-#include <atomic>
+#include "PuThread.h"
 
 namespace Plutonium
 {
 	/* Defines a continually ticking thread. */
 	typedef const struct TickThread
+		: PuThread
 	{
 	public:
 		/* Occurs before the tick routine is started. */
@@ -27,23 +27,21 @@ namespace Plutonium
 		_Check_return_ TickThread& operator =(_In_ const TickThread &other) = delete;
 		_Check_return_ TickThread& operator =(_In_ TickThread &&other) = delete;
 
-		/* Starts the thread. */
-		void Start(void);
 		/* Requests the thread to stop excecution. */
 		void Stop(void) const;
 		/* Requests the thread to stop excecution and waits for the thread to terminate. */
-		void StopWait(void);
+		bool StopWait(void);
+
+	protected:
+		/* Entry point for the thread. */
+		inline virtual void _CrtPuThreadMain(void) override
+		{
+			Run();
+		}
 
 	private:
-		friend void ThreadMain(uint32);
-
-		std::thread *thread;
-		std::atomic_bool running, started;
 		mutable std::atomic_bool allow;
-		const uint32 id, cooldown;
-#if defined(DEBUG)
-		const char *name;
-#endif
+		const uint32 cooldown;
 
 		void Run(void);
 	} *TickThreadHandler;

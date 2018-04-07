@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics\GraphicsAdapter.h"
-#include "Graphics\Models\Texture.h"
+#include "Graphics\Texture.h"
 
 namespace Plutonium
 {

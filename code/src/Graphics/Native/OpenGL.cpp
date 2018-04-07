@@ -24,36 +24,36 @@ void GlfwErrorEventHandler(int code, const char *descr)
 	const char *error;
 	switch (code)
 	{
-		case (GLFW_NOT_INITIALIZED):
-			error = "a not initialized";
-			break;
-		case (GLFW_NO_CURRENT_CONTEXT):
-			error = "a no current context";
-			break;
-		case (GLFW_INVALID_ENUM):
-			error = "a invalid enum";
-			break;
-		case (GLFW_INVALID_VALUE):
-			error = "a invalid value";
-			break;
-		case (GLFW_OUT_OF_MEMORY):
-			error = "a out of memory";
-			break;
-		case (GLFW_API_UNAVAILABLE):
-			error = "a API unavailable";
-			break;
-		case (GLFW_VERSION_UNAVAILABLE):
-			error = "a version unavailable";
-			break;
-		case (GLFW_PLATFORM_ERROR):
-			error = "a platform";
-			break;
-		case (GLFW_FORMAT_UNAVAILABLE):
-			error = "a format unavailable";
-			break;
-		default:
-			error = "an unknown";
-			break;
+	case (GLFW_NOT_INITIALIZED):
+		error = "a not initialized";
+		break;
+	case (GLFW_NO_CURRENT_CONTEXT):
+		error = "a no current context";
+		break;
+	case (GLFW_INVALID_ENUM):
+		error = "a invalid enum";
+		break;
+	case (GLFW_INVALID_VALUE):
+		error = "a invalid value";
+		break;
+	case (GLFW_OUT_OF_MEMORY):
+		error = "a out of memory";
+		break;
+	case (GLFW_API_UNAVAILABLE):
+		error = "a API unavailable";
+		break;
+	case (GLFW_VERSION_UNAVAILABLE):
+		error = "a version unavailable";
+		break;
+	case (GLFW_PLATFORM_ERROR):
+		error = "a platform";
+		break;
+	case (GLFW_FORMAT_UNAVAILABLE):
+		error = "a format unavailable";
+		break;
+	default:
+		error = "an unknown";
+		break;
 	}
 
 	/*
@@ -92,24 +92,24 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	const char *caller;
 	switch (src)
 	{
-		case (GL_DEBUG_SOURCE_API):
-			caller = "The basic API";
-			break;
-		case (GL_DEBUG_SOURCE_WINDOW_SYSTEM):
-			caller = "The window API";
-			break;
-		case (GL_DEBUG_SOURCE_SHADER_COMPILER):
-			caller = "The shader compiler";
-			break;
-		case (GL_DEBUG_SOURCE_THIRD_PARTY):
-			caller = "A third party";
-			break;
-		case (GL_DEBUG_SOURCE_APPLICATION):
-			caller = "The user";
-			break;
-		default:
-			caller = "An unknown source";
-			break;
+	case (GL_DEBUG_SOURCE_API):
+		caller = "The basic API";
+		break;
+	case (GL_DEBUG_SOURCE_WINDOW_SYSTEM):
+		caller = "The window API";
+		break;
+	case (GL_DEBUG_SOURCE_SHADER_COMPILER):
+		caller = "The shader compiler";
+		break;
+	case (GL_DEBUG_SOURCE_THIRD_PARTY):
+		caller = "A third party";
+		break;
+	case (GL_DEBUG_SOURCE_APPLICATION):
+		caller = "The user";
+		break;
+	default:
+		caller = "An unknown source";
+		break;
 	}
 
 	/* Get a human readable severity. */
@@ -117,45 +117,45 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	LogType howToLog;
 	switch (severity)
 	{
-		case (GL_DEBUG_SEVERITY_HIGH):
-			level = "a high";
-			howToLog = LogType::Error;
-			break;
-		case (GL_DEBUG_SEVERITY_MEDIUM):
-			level = "a medium";
-			howToLog = LogType::Warning;
-			break;
-		case (GL_DEBUG_SEVERITY_LOW):
-			level = "a low";
-			howToLog = LogType::Warning;
-			break;
-		default:
-			level = "an insignificant";
-			howToLog = LogType::Info;
-			break;
+	case (GL_DEBUG_SEVERITY_HIGH):
+		level = "a high";
+		howToLog = LogType::Error;
+		break;
+	case (GL_DEBUG_SEVERITY_MEDIUM):
+		level = "a medium";
+		howToLog = LogType::Warning;
+		break;
+	case (GL_DEBUG_SEVERITY_LOW):
+		level = "a low";
+		howToLog = LogType::Warning;
+		break;
+	default:
+		level = "an insignificant";
+		howToLog = LogType::Info;
+		break;
 	}
 
 	const char *error;
 	switch (type)
 	{
-		case (GL_DEBUG_TYPE_ERROR):
-			error = "basic";
-			break;
-		case (GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR):
-			error = "deprecation";
-			break;
-		case (GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR):
-			error = "undefined behaviour";
-			break;
-		case (GL_DEBUG_TYPE_PORTABILITY):
-			error = "cannot port";
-			break;
-		case (GL_DEBUG_TYPE_PERFORMANCE):
-			error = "performance";
-			break;
-		default:
-			error = "unknown";
-			break;
+	case (GL_DEBUG_TYPE_ERROR):
+		error = "basic";
+		break;
+	case (GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR):
+		error = "deprecation";
+		break;
+	case (GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR):
+		error = "undefined behaviour";
+		break;
+	case (GL_DEBUG_TYPE_PORTABILITY):
+		error = "cannot port";
+		break;
+	case (GL_DEBUG_TYPE_PERFORMANCE):
+		error = "performance";
+		break;
+	default:
+		error = "unknown";
+		break;
 	}
 
 	/* Log exception. */
@@ -176,14 +176,14 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 		LOG_WAR("The file and function information that is displayed is for the last OpenGL call; not necessarily the one causing the exception!");
 		_CrtLogExc("OpenGL", frame->FileName, frame->FunctionName, frame->Line);
 		_CrtLog(LogType::Error, "%s(%s) caused %s severity %s exception!\nDESCRIPTION:	%s", caller, lastGladFuncName, level, error, msg);
-		_CrtLogExc(3);
-#else
-		_CrtLogExc("OpenGL", "UNKNOWN", "UNKNOWN", 0);
-		_CrtLog(LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
-#endif
 
 		delete frame;
 		throw;
+#else
+		_CrtLogExc("OpenGL", "UNKNOWN", "UNKNOWN", 0);
+		_CrtLog(LogType::Error, "%s caused %s severity %s exception!\nDESCRIPTION:	%s", caller, level, error, msg);
+		throw;
+#endif
 	}
 }
 
@@ -234,6 +234,9 @@ void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 			SetWindowPos(terminalHndlr, HWND_TOP, cur.X, 0, 0, 0, SWP_NOSIZE);
 			SetWindowPos(terminalHndlr, HWND_TOP, 0, 0, cur.ClientWidth, bounds.bottom, SWP_NOMOVE);
 			LOG("Moved terminal to '%s' and resized it to (%dx%d).", cur.Name, cur.ClientWidth, bounds.bottom);
+
+			/* Increase terminal buffer size. */
+			SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), { 1024, 1024 });
 #else
 			LOG_WAR("Moving the terminal is not yet supported on this platform!");
 #endif

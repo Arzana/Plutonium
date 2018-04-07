@@ -176,16 +176,27 @@ void Plutonium::_CrtLogExc(unsigned int framesToSkip)
 
 	/* Log table header. */
 	printf("STACKTRACE:\n");
-	printf("		                        FUNCTION                                       LINE          MODULE                               FILE\n");
-	
-	/* Log stack trace. */
+	printf("		%38s FUNCTION %46s LINE %8s MODULE %16s FILE\n", "", "", "", "");
+
+	bool suppressLog = false;
 	for (size_t i = 0; i < callStack.size(); i++)
 	{
 		const StackFrame *cur = callStack.at(i);
-		printf("		at %-64s ", cur->FunctionName);
-		printf(cur->Line ? "| %-7d " : "| Unknown ", cur->Line);
-		printf("| %-16s", cur->ModuleName);
-		printf("| %-64s |\n", cur->FileName);
+
+		if (!suppressLog)
+		{
+			/* Log stack trace. */
+			printf("		at %-86s ", cur->FunctionName);
+			printf(cur->Line ? "| %-10d " : "| Unknown ", cur->Line);
+			printf("| %-16s", cur->ModuleName);
+			printf("| %-64s\n", cur->FileName);
+			
+			/* Stop stacktrace log after either a thread start has been found or main has been found. */
+			if (strstr(cur->FunctionName, "_CrtPuThreadStart")) suppressLog = true;
+			if (!strcmp(cur->FunctionName, "main")) suppressLog = true;
+			if (suppressLog) printf("		[External Code]\n");
+		}
+
 		delete_s(cur);
 	}
 
@@ -231,13 +242,8 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 	*/
 	_CrtLogExc(3);
 
-	/* On debug mode throw error window with info; on release just throw. */
-#if defined(DEBUG)
-	_CrtDbgReport(_CRT_ERROR, file, line, nullptr, msg);
-	_CrtDbgBreak();
-#else
+	/* Make sure we halt excecution for all threads. */
 	throw;
-#endif
 }
 
 bool Plutonium::_CrtLogBacktrack(size_t amnt)

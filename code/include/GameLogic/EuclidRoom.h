@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\Models\Shape.h"
+#include "Graphics\Shape.h"
 #include "Core\Collections\Tree.h"
 #include "Graphics\Portals\Portal.h"
 #include "Graphics\Portals\SceneRenderArgs.h"

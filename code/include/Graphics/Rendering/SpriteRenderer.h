@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics\Rendering\Shader.h"
-#include "Graphics\Models\Texture.h"
 #include "Graphics\GraphicsAdapter.h"
+#include "Graphics\Texture.h"
 
 namespace Plutonium
 {

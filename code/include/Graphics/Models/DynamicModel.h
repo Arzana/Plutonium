@@ -1,6 +1,6 @@
 #pragma once
-#include "Mesh.h"
-#include "Texture.h"
+#include "Graphics\Mesh.h"
+#include "Graphics\Texture.h"
 #include "AnimationInfo.h"
 #include "GameLogic\WorldObject.h"
 

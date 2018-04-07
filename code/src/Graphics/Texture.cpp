@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#include "Graphics\Models\Texture.h"
+#include "Graphics\Texture.h"
 #include "Streams\FileReader.h"
 #include "Streams\FileUtils.h"
 #include "Core\Math\Basics.h"

@@ -1,4 +1,4 @@
-#include "Graphics\Models\Mesh.h"
+#include "Graphics\Mesh.h"
 #include "Graphics\Models\ObjLoader.h"
 #include "Graphics\Portals\PobjLoader.h"
 #include "Graphics\Models\Md2Loader.h"

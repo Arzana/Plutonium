@@ -200,6 +200,7 @@
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
     <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
+    <ClCompile Include="..\..\src\Core\Threading\PuThread.cpp" />
     <ClCompile Include="..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
@@ -209,12 +210,11 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\StaticModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Models\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
@@ -229,6 +229,7 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="..\..\include\Core\Stopwatch.h" />
     <ClInclude Include="..\..\include\Core\String.h" />
     <ClInclude Include="..\..\include\Core\StringFunctions.h" />
+    <ClInclude Include="..\..\include\Core\Threading\PuThread.h" />
     <ClInclude Include="..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\include\Game.h" />
@@ -276,15 +278,13 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
+    <ClInclude Include="..\..\include\Graphics\Mesh.h" />
+    <ClInclude Include="..\..\include\Graphics\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\Mesh.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\StaticModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\Shape.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BindTargets.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BlendState.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BlendType.h" />
@@ -313,6 +313,8 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
+    <ClInclude Include="..\..\include\Graphics\Shape.h" />
+    <ClInclude Include="..\..\include\Graphics\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />

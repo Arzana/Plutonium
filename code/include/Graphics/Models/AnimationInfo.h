@@ -1,6 +1,6 @@
 #pragma once
 #include <sal.h>
-#include "Graphics\Models\Mesh.h"
+#include "Graphics\Mesh.h"
 #include "Core\EnumUtils.h"
 
 namespace Plutonium

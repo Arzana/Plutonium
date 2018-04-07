@@ -45,11 +45,11 @@ const char * Plutonium::_CrtGetProcessNameFromId(uint64 id)
 	const char *error = _CrtGetErrorString();
 	LOG_WAR("Could not get process name, error: %s!", error);
 	free_cstr_s(error);
-	return "";
+	return heapstr("");
 
 #else
 	LOG_WAR_ONCE("Cannot get process name on this platform!");
-	return "";
+	return heapstr("");
 #endif
 }
 
@@ -100,7 +100,7 @@ const char * Plutonium::_CrtGetThreadNameFromId(uint64 id)
 
 #else
 	LOG_WAR_ONCE("Cannot get thread name on this platform!");
-	return "";
+	return heapstr("");
 #endif
 }
 

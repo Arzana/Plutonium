@@ -167,9 +167,6 @@
     <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Models\Mesh.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Components\ContentLoader.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -193,9 +190,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Models\Texture.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
@@ -270,6 +264,15 @@
       <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Core\Threading\ThreadUtils.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Mesh.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Texture.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Threading\PuThread.cpp">
       <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
   </ItemGroup>
@@ -373,12 +376,6 @@
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Models\Mesh.h">
-      <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Models\MeshVertexFormat.h">
-      <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Components\ContentLoader.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -403,9 +400,6 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Models\Texture.h">
-      <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Text\Character.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
@@ -417,9 +411,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\String.h">
       <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Models\Shape.h">
-      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h">
       <Filter>Header Files\GameLogic</Filter>
@@ -540,6 +531,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Shape.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Texture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\MeshVertexFormat.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Threading\PuThread.h">
+      <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

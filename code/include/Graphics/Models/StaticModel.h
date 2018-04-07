@@ -1,6 +1,6 @@
 #pragma once
 #include "GameLogic\WorldObject.h"
-#include "Shape.h"
+#include "Graphics\Shape.h"
 
 namespace Plutonium
 {

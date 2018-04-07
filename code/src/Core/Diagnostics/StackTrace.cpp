@@ -71,7 +71,7 @@ void InitializeProcess(HANDLE process)
 
 	/* Initialize process and add it to the list. */
 	initializedProcesses.push_back(process);
-	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES);
+	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
 	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
 	else LOG("Initialized debug symbols for process %lu.", GetProcessId(process));
 }

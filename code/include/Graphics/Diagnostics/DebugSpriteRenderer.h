@@ -1,7 +1,7 @@
 #pragma once
 #include <queue>
 #include "Graphics\Color.h"
-#include "Graphics\Models\Texture.h"
+#include "Graphics\Texture.h"
 #include "Graphics\Diagnostics\DebugRenderer.h"
 
 namespace Plutonium

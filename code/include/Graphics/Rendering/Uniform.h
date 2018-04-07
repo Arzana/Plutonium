@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\Models\Texture.h"
+#include "Graphics\Texture.h"
 #include "Core\Math\Matrix.h"
 #include "Graphics\Color.h"
 #include "Field.h"
