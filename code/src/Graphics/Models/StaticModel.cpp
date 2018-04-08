@@ -45,13 +45,17 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 		Mesh *mesh = Mesh::FromFile(raw, i);
 
 		/* Get correct material. */
-		tinyobj::material_t mtl = shape.mesh.material_ids[0] != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
-		char mtlPath[FILENAME_MAX];
-		mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
-		Texture *texture = Texture::FromFile(mtlPath);
+		tinyobj::material_t mtl = shape.mesh.material_ids.at(0) != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
+		if (mtl.diffuse_texname.length())
+		{
+			char mtlPath[FILENAME_MAX];
+			mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
+			Texture *texture = Texture::FromFile(mtlPath);
 
-		/* Add shape to the model. */
-		result->shapes.push_back(new Shape(mesh, texture));
+			/* Add shape to the model. */
+			result->shapes.push_back(new Shape(mesh, texture));
+		}
+		else LOG_WAR("Skipping material '%s'(%zu), diffuse texture not specified!", mtl.name.c_str(), shape.mesh.material_ids.at(0));
 	}
 
 	result->Finalize();	//TODO: Remove!

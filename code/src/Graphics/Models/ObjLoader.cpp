@@ -19,7 +19,7 @@ const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 	/* Load .obj and .mtl files. */
 	string err;
 	result->Successful = LoadObj(&result->Vertices, &result->Shapes, &result->Materials, &err, path, reader.GetFileDirectory());
-	LOG_WAR_IF(result->Successful && !err.empty(), "TinyObj loader warnings:\n%s", err.c_str());
+	LOG_WAR_IF(result->Successful && !err.empty(), "TinyObj loader warnings for obj '%s':\n%s", reader.GetFileNameWithoutExtension(), err.c_str());
 
 	/* Convert error to log and return result. */
 	result->Log = err.c_str();

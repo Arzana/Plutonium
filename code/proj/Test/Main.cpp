@@ -4,7 +4,6 @@
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
-#include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
@@ -20,14 +19,12 @@ struct TestGame
 	DebugFontRenderer *dfRenderer;
 	DebugSpriteRenderer *dsRenderer;
 	StaticRenderer *srenderer;
-	PortalRenderer *prenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
-	std::vector<EuclidRoom*> Map;
-	Vector3 light = Vector3::Zero;
-	size_t curRoom = 0;
+	Vector3 light;
+	StaticModel *sponza;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -52,8 +49,6 @@ struct TestGame
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
-		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/PortalFrame3D.vsh");
-		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
 	}
 
@@ -61,28 +56,21 @@ struct TestGame
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
 
-		Map = EuclidRoom::FromFile("assets/models/Maps/dm_arena.pobj");
-		for (size_t i = 0; i < Map.size(); i++) Map.at(i)->SetScale(10.0f);
+		sponza = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
+		sponza->SetScale(0.05f);
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-
-		while (Map.size() > 0)
-		{
-			delete_s(Map.back());
-			Map.pop_back();
-		}
+		delete_s(sponza);
 	}
 
 	virtual void Finalize(void)
 	{
-		prenderer->OnRoomRender.Remove(this, &TestGame::RenderScene);
 		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
 
 		delete_s(srenderer);
-		delete_s(prenderer);
 		if (depthSprite) delete_s(depthSprite);
 		if (depthSprite) delete_s(stencilSprite);
 	}
@@ -120,38 +108,11 @@ struct TestGame
 #endif
 	}
 
-	void RenderScene(const PortalRenderer*, SceneRenderArgs args)
-	{
-		/* Left wall of blue room is broken so we need to disable face culling. */
-		GetGraphics()->SetFaceCull(FaceCullState::None);
-
-		size_t idx = -1;
-		for (size_t i = 0; i < Map.size(); i++)
-		{
-			if (Map.at(i)->GetID() == args.SceneID)
-			{
-				idx = i;
-				break;
-			}
-		}
-
-		srenderer->Begin(args.View, args.Projection, light);
-		srenderer->Render(Map.at(idx));
-		srenderer->End();
-	}
-
 	virtual void Render(float dt)
 	{
-		GetGraphics()->SetFaceCull(FaceCullState::None);
-
-		/* Render portals. */
-		Tree<PortalRenderArgs> portals;
-		Map.at(curRoom)->AddPortals(&portals);
-		prenderer->Render(cam->GetView(), cam->GetProjection(), &portals);
-
 		/* Render current room last. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		srenderer->Render(Map.at(curRoom));
+		srenderer->Render(sponza);
 		srenderer->End();
 
 		/* Add debug light direction. */
