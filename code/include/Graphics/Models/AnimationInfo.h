@@ -67,13 +67,9 @@ namespace Plutonium
 		/* Releases the resources allocated by the animation. */
 		~AnimationInfo(void)
 		{
-			free_cstr_s(Name);
+			free_s(Name);
 
-			for (size_t i = 0; i < Frames.size(); i++)
-			{
-				Mesh *frame = Frames.at(i);
-				delete_s(frame);
-			}
+			for (size_t i = 0; i < Frames.size(); i++) delete_s(Frames.at(i));
 			Frames.clear();
 		}
 

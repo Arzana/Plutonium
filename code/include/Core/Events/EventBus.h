@@ -35,12 +35,7 @@ namespace Plutonium
 		/* Releases the resources of this event. */
 		~EventBus(void) noexcept
 		{
-			for (size_t i = 0; i < callbacks.size(); i++)
-			{
-				SubscriberType *cur = callbacks.at(i);
-				delete_s(cur);
-			}
-
+			for (size_t i = 0; i < callbacks.size(); i++) delete_s(callbacks.at(i));
 			callbacks.clear();
 		}
 

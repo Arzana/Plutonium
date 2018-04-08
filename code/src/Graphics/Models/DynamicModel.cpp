@@ -15,12 +15,7 @@ Plutonium::DynamicModel::DynamicModel(void)
 Plutonium::DynamicModel::~DynamicModel(void)
 {
 	/* Release animation information. */
-	for (size_t i = 0; i < animations.size(); i++)
-	{
-		AnimationInfo *cur = animations.at(i);
-		delete_s(cur);
-	}
-
+	for (size_t i = 0; i < animations.size(); i++) delete_s(animations.at(i));
 	animations.clear();
 
 	/* Release skin. */

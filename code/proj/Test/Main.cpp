@@ -71,8 +71,7 @@ struct TestGame
 
 		while (Map.size() > 0)
 		{
-			EuclidRoom *cur = Map.back();
-			delete_s(cur);
+			delete_s(Map.back());
 			Map.pop_back();
 		}
 	}

@@ -175,7 +175,7 @@ namespace Plutonium
 			if (required <= size) return;
 
 			if (size == 0) data = malloc_s(Branch, required);
-			else data = realloc_s(Branch, data, required);
+			else realloc_s(Branch, data, required);
 
 			size = required;
 		}

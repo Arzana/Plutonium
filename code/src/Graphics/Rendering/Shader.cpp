@@ -41,7 +41,7 @@ Plutonium::Shader::~Shader(void)
 	while (fields.size() > 0)
 	{
 		Field *cur = fields.back();
-		free_cstr_s(cur->name);
+		free_s(cur->name);
 		delete_s(cur);
 		fields.pop_back();
 	}
@@ -56,7 +56,7 @@ Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath)
 	Shader *result = new Shader(vrtxShdr);
 
 	/* Release source strings. */
-	free_cstr_s(vrtxShdr);
+	free_s(vrtxShdr);
 
 	/* Return shader. */
 	return result;
@@ -72,8 +72,8 @@ Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath, const char *
 	Shader *result = new Shader(vrtxShdr, fragShdr);
 
 	/* Release source strings. */
-	free_cstr_s(vrtxShdr);
-	free_cstr_s(fragShdr);
+	free_s(vrtxShdr);
+	free_s(fragShdr);
 
 	/* Return shader. */
 	return result;
@@ -90,9 +90,9 @@ Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath, const char *
 	Shader *result = new Shader(vrtxShdr, geomShdr, fragShdr);
 
 	/* Release source strings. */
-	free_cstr_s(vrtxShdr);
-	free_cstr_s(geomShdr);
-	free_cstr_s(fragShdr);
+	free_s(vrtxShdr);
+	free_s(geomShdr);
+	free_s(fragShdr);
 
 	/* Return shader. */
 	return result;
@@ -249,6 +249,8 @@ void Plutonium::Shader::LoadUniforms(void)
 		int32 curSampler = type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE ? samplerCnt++ : 0;
 		fields.push_back(new Uniform(glGetUniformLocation(ptr, name), name, type, curSampler));
 	}
+
+	freea_s(buffer);
 }
 
 void Plutonium::Shader::LoadAttributes(void)
@@ -279,6 +281,8 @@ void Plutonium::Shader::LoadAttributes(void)
 		/* Add attribute to the field list. */
 		fields.push_back(new Attribute(glGetAttribLocation(ptr, name), name, type));
 	}
+
+	freea_s(buffer);
 }
 
 void Plutonium::Shader::Initialize(const char * vrtxShdr, const char * geomShdr, const char * fragShdr)

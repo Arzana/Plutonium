@@ -43,11 +43,8 @@ Plutonium::Game::~Game(void)
 	delete_s(keyboard);
 
 	/* Delete all components. */
-	for (size_t i = 0; i < components.size(); i++)
-	{
-		GameComponent *cur = components.at(i);
-		delete_s(cur);
-	}
+	for (size_t i = 0; i < components.size(); i++) delete_s(components.at(i));
+	components.clear();
 
 	/* Make sure we finalize the logging pipeline last. */
 	_CrtFinalizeLog();

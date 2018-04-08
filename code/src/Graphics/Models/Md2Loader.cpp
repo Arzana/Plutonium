@@ -383,9 +383,5 @@ const Plutonium::Md2LoaderResult * Plutonium::_CrtLoadMd2(const char * path)
 Plutonium::Md2LoaderResult::~Md2LoaderResult(void)
 {
 	/* Make sure we remove the heap refrence. */
-	for (size_t i = 0; i < textures.size(); i++)
-	{
-		const char *cur = textures.at(i);
-		free_cstr_s(cur);
-	}
+	for (size_t i = 0; i < textures.size(); i++) free_s(textures.at(i));
 }

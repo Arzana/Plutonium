@@ -22,10 +22,10 @@ Plutonium::FileReader::~FileReader(void) noexcept
 	if (open) Close();
 
 	/* Release file info. */
-	if (fname) free_cstr_s(fname);
-	if (fext) free_cstr_s(fext);
-	if (fnamenoext) free_cstr_s(fnamenoext);
-	if (fdir) free_cstr_s(fdir);
+	if (fname) free_s(fname);
+	if (fext) free_s(fext);
+	if (fnamenoext) free_s(fnamenoext);
+	if (fdir) free_s(fdir);
 }
 
 void Plutonium::FileReader::Close(void)
@@ -168,4 +168,7 @@ void Plutonium::FileReader::InitFileArgs(void)
 	/* Get raw file name and extension. */
 	fnamenoext = heapstr(buffer[0]);
 	fext = heapstr(buffer[len - 1]);
+
+	/* Free buffers. */
+	for (size_t i = 0; i < BUFFER_LEN; i++) freea_s(buffer[i]);
 }

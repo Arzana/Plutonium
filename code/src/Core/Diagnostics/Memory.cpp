@@ -25,7 +25,7 @@ const MemoryFrame Plutonium::_CrtGetMemStats(void)
 	{
 		const char *error = _CrtGetErrorString();
 		LOG_WAR("Unable to get global memory statistics: %s!", error);
-		free_cstr_s(error);
+		free_s(error);
 		return result;
 	}
 
@@ -34,7 +34,7 @@ const MemoryFrame Plutonium::_CrtGetMemStats(void)
 	{
 		const char *error = _CrtGetErrorString();
 		LOG_WAR("Unable to get process memory statistics: %s!", error);
-		free_cstr_s(error);
+		free_s(error);
 		return result;
 	}
 

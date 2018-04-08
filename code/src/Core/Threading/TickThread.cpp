@@ -46,5 +46,5 @@ void Plutonium::TickThread::Run(void)
 	LOG("Terminating thread: %s.", name);
 	Terminate.Post(this, EventArgs());
 
-	free_cstr_s(name);
+	free_s(name);
 }

@@ -17,7 +17,7 @@ Plutonium::Mesh::Mesh(const char * name)
 
 Plutonium::Mesh::~Mesh(void) noexcept
 {
-	free_cstr_s(Name);
+	free_s(Name);
 
 	/* Release the GPU buffer if it has been created. */
 	if (buffer) delete_s(buffer);
@@ -50,7 +50,7 @@ void Plutonium::Mesh::SetBufferSize(size_t size)
 	{
 		/* Increase buffer. */
 		if (!vrtxCnt) vertices = malloc_s(VertexFormat, size);
-		else vertices = realloc_s(VertexFormat, vertices, size);
+		else realloc_s(VertexFormat, vertices, size);
 
 		/* Set new size. */
 		vrtxCnt = size;

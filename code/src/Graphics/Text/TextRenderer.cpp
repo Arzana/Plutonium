@@ -49,6 +49,8 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 	{
 		AddSingleString(device->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
 	}
+
+	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
 }
 
 void Plutonium::FontRenderer::Render(void)
@@ -142,12 +144,7 @@ void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, Eve
 void Plutonium::FontRenderer::ClearBuffer(void)
 {
 	/* Make sure we free the copies to the strings. */
-	for (size_t i = 0; i < strs.size(); i++)
-	{
-		LineInfo *cur = strs.at(i);
-		delete_s(cur);
-	}
-
+	for (size_t i = 0; i < strs.size(); i++) delete_s(strs.at(i));
 	strs.clear();
 }
 
@@ -157,5 +154,5 @@ Plutonium::FontRenderer::LineInfo::LineInfo(const char * string, Vector2 pos, Pl
 
 Plutonium::FontRenderer::LineInfo::~LineInfo(void) noexcept
 {
-	free_cstr_s(String);
+	free_s(String);
 }

@@ -95,13 +95,13 @@ void Plutonium::_CrtFinalizeLog(void)
 	/* Release process names. */
 	for (std::map<uint64, const char*>::iterator it = processNames.begin(); it != processNames.end(); it++)
 	{
-		free_cstr_s(it->second);
+		free_s(it->second);
 	}
 
 	/* Release thread names. */
 	for (std::map<uint64, const char*>::iterator it = threadNames.begin(); it != threadNames.end(); it++)
 	{
-		free_cstr_s(it->second);
+		free_s(it->second);
 	}
 
 	processNames.clear();

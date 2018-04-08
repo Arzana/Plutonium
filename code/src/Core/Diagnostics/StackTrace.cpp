@@ -55,7 +55,7 @@ void _CrtLogSymbolLoadException(uint64 address, const char *msg)
 	const char *error = _CrtGetErrorString();
 	if (address) LOG_WAR("- %s %#016x: %s", msg, address, error);
 	else LOG_WAR("- %s: %s", msg, error);
-	free_cstr_s(error);
+	free_s(error);
 }
 
 #if defined (_WIN32)
@@ -329,7 +329,7 @@ Plutonium::StackFrame::~StackFrame(void)
 	Because the strings within the symbols are only there we must copy them to the heap.
 	Thusly if they aren't their default value, free them.
 	*/
-	if (strcmp(FunctionName, "Unknown")) free_cstr_s(FunctionName);
-	if (strcmp(FileName, "Unknown")) free_cstr_s(FileName);
-	if (strcmp(ModuleName, "Unknown")) free_cstr_s(ModuleName);
+	if (strcmp(FunctionName, "Unknown")) free_s(FunctionName);
+	if (strcmp(FileName, "Unknown")) free_s(FileName);
+	if (strcmp(ModuleName, "Unknown")) free_s(ModuleName);
 }

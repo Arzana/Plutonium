@@ -44,7 +44,7 @@ const char * Plutonium::_CrtGetProcessNameFromId(uint64 id)
 	CloseHandle(phndl);
 	const char *error = _CrtGetErrorString();
 	LOG_WAR("Could not get process name, error: %s!", error);
-	free_cstr_s(error);
+	free_s(error);
 	return heapstr("");
 
 #else
@@ -83,7 +83,7 @@ const char * Plutonium::_CrtGetThreadNameFromId(uint64 id)
 	CloseHandle(thndl);
 	const char *error = _CrtGetErrorString();
 	if (strlen(error) > 0) LOG_WAR("Could not get thread name, error: %s!", error);
-	free_cstr_s(error);
+	free_s(error);
 
 	/* 
 	Description is empty so we need to get the module name of the thread creator; 
@@ -119,7 +119,7 @@ void Plutonium::_CrtSetCurrentThreadName(const char * name)
 	CloseHandle(thndl);
 	const char *error = _CrtGetErrorString();
 	LOG_WAR("Could not set thread name, error: %s!", error);
-	free_cstr_s(error);
+	free_s(error);
 
 #else
 	LOG_WAR_ONCE("Cannot set thread name on this platform!");
