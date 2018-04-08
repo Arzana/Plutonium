@@ -234,12 +234,11 @@ void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 			SetWindowPos(terminalHndlr, HWND_TOP, cur.X, 0, 0, 0, SWP_NOSIZE);
 			SetWindowPos(terminalHndlr, HWND_TOP, 0, 0, cur.ClientWidth, bounds.bottom, SWP_NOMOVE);
 			LOG("Moved terminal to '%s' and resized it to (%dx%d).", cur.Name, cur.ClientWidth, bounds.bottom);
-
-			/* Increase terminal buffer size. */
-			SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), { 1024, 1024 });
 #else
 			LOG_WAR("Moving the terminal is not yet supported on this platform!");
 #endif
+			/* Resize the console's buffer width. */
+			_CrtResizeConsoleIfNeeded(1024);
 			return;
 		}
 	}

@@ -52,7 +52,7 @@ struct TestGame
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
-		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/StencilOnly3D.vsh");
+		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/PortalFrame3D.vsh");
 		prenderer->OnRoomRender.Add(this, &TestGame::RenderScene);
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
 	}
@@ -145,14 +145,15 @@ struct TestGame
 	{
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		srenderer->Render(Map.at(curRoom));
-		srenderer->End();
-
-		/* Render scene. */
+		/* Render portals. */
 		Tree<PortalRenderArgs> portals;
 		Map.at(curRoom)->AddPortals(&portals);
 		prenderer->Render(cam->GetView(), cam->GetProjection(), &portals);
+
+		/* Render current room last. */
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
+		srenderer->Render(Map.at(curRoom));
+		srenderer->End();
 
 		/* Add debug light direction. */
 		std::string lightStr = "Light: ";

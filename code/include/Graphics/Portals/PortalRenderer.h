@@ -11,12 +11,8 @@ namespace Plutonium
 	/* Defines a basic recursive portal renderer. */
 	struct PortalRenderer
 	{
-		/* Occurs once before the rooms need to be rendered. */
-		EventBus<PortalRenderer, EventArgs> OnBeginRoomRender;
 		/* Occures when a room needs to be rendered. */
 		EventBus<PortalRenderer, SceneRenderArgs> OnRoomRender;
-		/*Occurs once after the rooms have been rendered. */
-		EventBus<PortalRenderer, EventArgs> OnEndRoomRender;
 
 		/* Initializes a new instance of a basic model renderer. */
 		PortalRenderer(_In_ GraphicsAdapter *device, _In_ const char *vrtxShdr);
@@ -39,8 +35,10 @@ namespace Plutonium
 
 		void RecursiveCreateMatrices(const Matrix &view, const Matrix &proj, Tree<PortalRenderArgs> *portals, Tree<SceneRenderArgs> *result);
 		void BeginStencil(void);
-		void RecursiveRenderPortals(Tree<PortalRenderArgs> *portals, Tree<SceneRenderArgs> *result);
-		void RenderPortalFrame(const Matrix &view, const Matrix &proj, PortalRenderArgs *portal);
+		void RecursiveRenderPortals(Tree<SceneRenderArgs> *result);
+		void RenderPortalFrameStencil(SceneRenderArgs *scene);
+		void RenderPortalFrameDepth(SceneRenderArgs *scene);
+		void RenderPortalFrame(const Matrix &view, const Matrix &proj, Portal *portal);
 		void RecursiveRenderScene(Tree<SceneRenderArgs> *portals);
 		void RenderScene(SceneRenderArgs *scene);
 		void EndStencil(void);

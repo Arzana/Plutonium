@@ -108,6 +108,28 @@ void Plutonium::_CrtFinalizeLog(void)
 	threadNames.clear();
 }
 
+void Plutonium::_CrtResizeConsoleIfNeeded(size_t width)
+{
+#if defined(_WIN32)
+	/* Get terminal handle. */
+	HANDLE terminalHndl = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	/* Get current buffer info. */
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	if (!GetConsoleScreenBufferInfo(terminalHndl, &info)) return;
+
+	/* Calculate required width. */
+	SHORT x = info.dwCursorPosition.X + static_cast<SHORT>(width);
+	if (x > info.dwSize.X)
+	{
+		/* Increase terminal buffer size. */
+		SetConsoleScreenBufferSize(terminalHndl, { x, info.dwSize.Y });
+	}
+#else
+	LOG_WAR_ONCE("Cannot resize console buffer on this platform!");
+#endif
+}
+
 void Plutonium::_CrtLogNoNewLine(LogType type, const char * format, ...)
 {
 

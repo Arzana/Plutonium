@@ -12,6 +12,8 @@ namespace Plutonium
 		Matrix View;
 		/* The projection matrix that should be used to render the scene. */
 		Matrix Projection;
+		/* The portal to the destination scene. */
+		Portal *Portal;
 	};
 
 	/* Defines the argument for a portal addition to a portal renderer. */

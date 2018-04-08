@@ -69,7 +69,7 @@ namespace Plutonium
 		{
 			int64 id = SubscriberType::CreateComparableID(func);
 			size_t result = UnRegisterCallback(id);
-			LOG("Unregistered %zu, callback(s)(%llx) from event %s.", result, id, name);
+			LOG("Unregistered %zu callback(s)(%llx) from event %s.", result, id, name);
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -78,7 +78,7 @@ namespace Plutonium
 		{
 			int64 id = SubscriberType::CreateComparableID(obj, func);
 			size_t result = UnRegisterCallback(id);
-			LOG("Unregistered %zu, callback(s)(%llx) from event %s.", result, id, name);
+			LOG("Unregistered %zu callback(s)(%llx) from event %s.", result, id, name);
 		}
 
 		/* Posts an event to all registered subscribers. */

@@ -28,6 +28,8 @@ namespace Plutonium
 
 	/* Finalizes the logging pipeline. */
 	void _CrtFinalizeLog(void);
+	/* Makes sure the output buffer is large enough to fix strings with the specified length. */
+	void _CrtResizeConsoleIfNeeded(size_t width);
 
 	/* Logs a message to the output without adding a newline character at the end. */
 	void _CrtLogNoNewLine(_In_ LogType type, _In_ const char *format, ...);
@@ -39,6 +41,7 @@ namespace Plutonium
 	void _CrtLogExc(_In_ unsigned int framesToSkip);
 	/* Logs a fatal error to the output and break excecution on debug mode. */
 	void _CrtLogThrow(_In_ const char *msg, _In_ const char *file, _In_ const char *func, _In_ int line, _In_ const char *desc, ...);
+
 	/* Sets the render position of the output back a specified amount of places. */
 	_Check_return_ bool _CrtLogBacktrack(_In_ size_t amnt);
 	/* Waits for the user to press any key in the console. */
