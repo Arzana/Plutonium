@@ -1,0 +1,8 @@
+newmtl mat_floor
+map_Kd floor.tga
+
+newmtl mat_ceiling
+map_Kd ceiling.tga
+
+newmtl mat_wall
+map_Kd wall.tga

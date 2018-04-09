@@ -1,0 +1,167 @@
+# Created by hand (kill me)
+
+mtllib dm_warehouse.mtl
+
+# Bottom room
+v 0 0 0
+v 0 0 10
+v 18 0 10
+v 18 0 0
+v 0 4 0
+v 0 4 10
+v 18 4 10
+v 18 4 0
+
+# Bottom room crates
+v 9 0 2
+v 9 0 3
+v 11 0 3
+v 11 0 1
+v 10 0 1
+v 10 0 2
+v 9 2 2
+v 9 2 3
+v 11 2 3
+v 11 2 1
+v 10 2 1
+v 10 2 2
+
+# Bottom room normal wall
+v 2 0 5
+v 2 0 6
+v 7 0 6
+v 7 0 5
+v 2 4 5
+v 2 4 6
+v 7 4 6
+v 7 4 5
+
+# Bottom room portal wall
+v 14 0 6
+v 14 0 10
+v 15 0 10
+v 15 0 6
+v 14 4 6
+v 14 4 10
+v 15 4 10
+v 15 4 6
+
+# Top room
+v 0 0 24
+v 0 0 34
+v 18 0 34
+v 18 0 24
+v 0 4 24
+v 0 4 34
+v 18 4 34
+v 18 4 24
+
+# Top room crates
+v 6 0 31
+v 6 0 33
+v 7 0 33
+v 7 0 32
+v 8 0 32
+v 8 0 31
+v 6 2 31
+v 6 2 33
+v 7 2 33
+v 7 2 32
+v 8 2 32
+v 8 2 31
+
+# Top room normal wall
+v 11 0 28
+v 11 0 29
+v 16 0 29
+v 16 0 28
+v 11 4 28
+v 11 4 29
+v 16 4 29
+v 16 4 28
+
+# Top room portal wall
+v 3 0 24
+v 3 0 28
+v 4 0 28
+v 4 0 24
+v 3 4 24
+v 3 4 28
+v 4 4 28
+v 4 4 24
+
+# Middle room
+v 4 0 6
+v 4 0 28
+v 14 0 28
+v 14 0 6
+v 4 4 6
+v 4 4 28
+v 14 4 28
+v 14 4 6
+
+# Hallway Middle to Bottom
+v 0 0 7
+v 0 0 18
+v 4 0 18
+v 4 0 16
+v 2 0 16
+v 2 0 9
+v 15 0 9
+v 15 0 7
+v 0 4 7
+v 0 4 18
+v 4 4 18
+v 4 4 16
+v 2 4 16
+v 2 4 9
+v 15 4 9
+v 15 4 7
+
+# Hallway Middle to Top
+v 3 0 25
+v 3 0 27
+v 18 0 27
+v 18 0 16
+v 14 0 16
+v 14 0 18
+v 16 0 18
+v 16 0 25
+v 3 4 25
+v 3 4 27
+v 18 4 27
+v 18 4 16
+v 14 4 16
+v 14 4 18
+v 16 4 18
+v 16 4 25
+
+# Usable texture uv's
+vt 0 0
+vt 1 0
+vt 0 1
+vt 1 1
+
+# face normals (left, right, forward, backward, up, down)
+vn -1 0 0
+vn 1 0 0
+vn 0 0 1
+vn 0 0 -1
+vn 0 1 0
+vn 0 -1 0
+
+# Bottom room
+r bottom
+vg 6
+o bottom_room_floor
+usemtl mat_floor
+f 1/1/5 2/3/5 3/4/5
+f 1/1/5 3/4/5 4/2/5
+o bottom_room_ceiling
+usemtl mat_ceiling
+f 5/1/6 6/3/6 7/4/6
+f 5/1/6 7/4/6 8/2/6
+o bottom_room_walls
+usemtl mat_wall
+f 1/1/1 5/3/1 6/4/1
+f 1/1/1 6/4/1 2/2/1 

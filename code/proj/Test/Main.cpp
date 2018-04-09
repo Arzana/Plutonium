@@ -24,7 +24,7 @@ struct TestGame
 	/* Scene */
 	float theta;
 	Vector3 light;
-	StaticModel *sponza;
+	std::vector<EuclidRoom*> map;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -56,14 +56,15 @@ struct TestGame
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
 
-		sponza = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
-		sponza->SetScale(0.05f);
+		map = EuclidRoom::FromFile("assets/models/Maps/Deathmatch/Warehouse/dm_warehouse.pobj");
+		//StaticModel::FromFile("assets/models/Sponza/sponza.obj");
+		//map->SetScale(0.05f); // If map is sponza
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-		delete_s(sponza);
+		for (size_t i = 0; i < map.size(); i++) delete_s(map.at(i));
 	}
 
 	virtual void Finalize(void)
@@ -111,8 +112,9 @@ struct TestGame
 	virtual void Render(float dt)
 	{
 		/* Render current room last. */
+		GetGraphics()->SetFaceCull(FaceCullState::None);
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		srenderer->Render(sponza);
+		for (size_t i = 0; i < map.size(); i++) srenderer->Render(map.at(i));
 		srenderer->End();
 
 		/* Add debug light direction. */

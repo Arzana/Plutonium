@@ -61,13 +61,17 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 			Mesh *mesh = Mesh::RFromFile(raw, i, j);
 
 			/* Get correct material. */
-			tinyobj::material_t mtl = shape.mesh.material_ids[0] != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
-			char mtlPath[FILENAME_MAX];
-			mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
-			Texture *texture = Texture::FromFile(mtlPath);
+			tinyobj::material_t mtl = shape.mesh.material_ids.at(0) != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
+			if (mtl.diffuse_texname.length())
+			{
+				char mtlPath[FILENAME_MAX];
+				mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
+				Texture *texture = Texture::FromFile(mtlPath);
 
-			/* Add shape to the model. */
-			cur->shapes.push_back(new Shape(mesh, texture));
+				/* Add shape to the model. */
+				cur->shapes.push_back(new Shape(mesh, texture));
+			}
+			else LOG_WAR("Skipping mesh '%s', material '%s'(%zu), diffuse texture not specified!", mesh->Name, mtl.name.c_str(), shape.mesh.material_ids.at(0));
 		}
 
 		/* Load portals. */

@@ -111,7 +111,7 @@ void Plutonium::PortalRenderer::BeginStencil(void)
 
 void Plutonium::PortalRenderer::RecursiveRenderPortals(Tree<SceneRenderArgs>* result)
 {
-	/* Get current portal and render argument. */
+	/* Get current render argument. */
 	SceneRenderArgs curScene = result->Value();
 
 	/* Render portal frame. */
@@ -165,7 +165,7 @@ void Plutonium::PortalRenderer::RenderPortalFrame(const Matrix & view, const Mat
 	buffer->Bind();
 	pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 
-	/* Render portal frame to stencil buffer. */
+	/* Render portal frame. */
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
 }
 
