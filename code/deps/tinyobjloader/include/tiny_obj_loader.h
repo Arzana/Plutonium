@@ -248,6 +248,7 @@ namespace tinyobj {
 
 		std::vector<shape_t> shapes;
 		std::vector<portal_t> portals;
+		std::map<int, std::vector<int>> visiblePortals;
 	} room_t;
 
 	// Vertex attributes
@@ -2159,6 +2160,7 @@ namespace tinyobj {
 		std::vector<portal_t> portals;
 		std::string objName, roomName;
 		int g = -1;
+		std::map<int, std::vector<int>> t;
 
 		// material
 		std::map<std::string, int> material_map;
@@ -2481,6 +2483,7 @@ namespace tinyobj {
 				if (!roomName.empty()) {
 					room_t room;
 					room.gravity = g;
+					room.visiblePortals = t;
 					room.name = roomName;
 					room.portals = std::vector<portal_t>(portals);
 					room.shapes = std::vector<shape_t>(shapes);
@@ -2528,6 +2531,29 @@ namespace tinyobj {
 				continue;
 			}
 
+			// visible portals tree
+			if (token[0] == 't' && token[1] == 'r' && IS_SPACE(token[2])) {
+				// skip indentifier and space
+				token += 3;
+
+				t = std::map<int, std::vector<int>>();
+				int cnt = parseInt(&token);
+
+				for (size_t i = 0; i < cnt; i++)
+				{
+					int id = parseInt(&token);
+					int cnt2 = parseInt(&token);
+
+					std::vector<int> ids;
+					for (size_t i = 0; i < cnt2; i++)
+					{
+						ids.push_back(parseInt(&token));
+					}
+
+					t.emplace(std::pair<int, std::vector<int>>( id, ids ));
+				}
+			}
+
 			// Ignore unknown command.
 		}
 
@@ -2545,6 +2571,7 @@ namespace tinyobj {
 		if (!roomName.empty()) {
 			room_t room;
 			room.gravity = g;
+			room.visiblePortals = t;
 			room.name = roomName;
 			room.portals = std::vector<portal_t>(portals);
 			room.shapes = std::vector<shape_t>(shapes);

@@ -21,6 +21,8 @@ Plutonium::PortalRenderer::~PortalRenderer(void)
 	delete_s(shdr);
 }
 
+#include "Graphics\Diagnostics\FrameInfo.h"
+
 void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj, Tree<PortalRenderArgs>* portals)
 {
 	/* Temporary argument buffer. */
@@ -34,6 +36,7 @@ void Plutonium::PortalRenderer::Render(const Matrix & view, const Matrix & proj,
 	RecursiveCreateMatrices(view, proj, portals, &result);
 
 	/* Navigate to the top of the tree. */
+	while (!result.IsStump()) result.ClimbDown();
 	while (result.HasBranch()) result.ClimbUp();
 
 	/* Stencil render the scene. */

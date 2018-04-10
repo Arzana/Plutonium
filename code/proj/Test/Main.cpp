@@ -4,6 +4,7 @@
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
+#include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
@@ -19,13 +20,14 @@ struct TestGame
 	DebugFontRenderer *dfRenderer;
 	DebugSpriteRenderer *dsRenderer;
 	StaticRenderer *srenderer;
+	PortalRenderer *prenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
 	Vector3 light;
 	std::vector<EuclidRoom*> map;
-	size_t curRoom = 2;
+	size_t curRoom = 0;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -49,13 +51,18 @@ struct TestGame
 		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh"));
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
+		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/PortalFrame3D.vsh");
+		prenderer->OnRoomRender.Add(this, &TestGame::RoomThroughPortalRender);
+
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
+
 	}
 
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
+		cam->Move(Vector3(20, 5, 10));
 
 		map = EuclidRoom::FromFile("assets/models/Maps/Deathmatch/Warehouse/dm_warehouse.pobj");
 		for (size_t i = 0; i < map.size(); i++) map.at(i)->SetScale(2.0f);	// If map is warehouse
@@ -72,6 +79,7 @@ struct TestGame
 	virtual void Finalize(void)
 	{
 		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
+		prenderer->OnRoomRender.Remove(this, &TestGame::RoomThroughPortalRender);
 
 		delete_s(srenderer);
 		if (depthSprite) delete_s(depthSprite);
@@ -111,9 +119,35 @@ struct TestGame
 #endif
 	}
 
+	void RoomThroughPortalRender(const PortalRenderer*, SceneRenderArgs args)
+	{
+		GetGraphics()->SetFaceCull(FaceCullState::None);
+
+		srenderer->Begin(args.View, args.Projection, light);
+
+		for (size_t i = 0; i < map.size(); i++)
+		{
+			EuclidRoom *cur = map.at(i);
+			if (args.SceneID == cur->GetID())
+			{
+				srenderer->Render(cur);
+				break;
+			}
+		}
+
+		srenderer->End();
+	}
+
 	virtual void Render(float dt)
 	{
 		GetGraphics()->SetFaceCull(FaceCullState::None);
+
+		/* Render portals. */
+		const std::vector<Tree<PortalRenderArgs>*> *portals = map.at(curRoom)->GetPortals();
+		for (size_t i = 0; i < portals->size(); i++)
+		{
+			prenderer->Render(cam->GetView(), cam->GetProjection(), portals->at(i));
+		}
 
 		/* Render current room last. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);

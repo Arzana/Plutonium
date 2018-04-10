@@ -23,7 +23,10 @@ namespace Plutonium
 		_Check_return_ static std::vector<EuclidRoom*> FromFile(_In_ const char *path);
 
 		/* Adds the portal argument from this room to the render list. */
-		void AddPortals(_In_ Tree<PortalRenderArgs> *portals) const;
+		_Check_return_ inline const std::vector<Tree<PortalRenderArgs>*>* GetPortals(void) const
+		{
+			return &visiblePortals;
+		}
 
 		/* Gets the active gravitational force of the room. */
 		_Check_return_ inline Vector3 GetRoomGravity(void) const
@@ -55,5 +58,6 @@ namespace Plutonium
 		Vector3 gravityForce;
 		std::vector<Portal*> portals;
 		std::vector<Shape*> shapes;
+		std::vector<Tree<PortalRenderArgs>*> visiblePortals;
 	};
 }

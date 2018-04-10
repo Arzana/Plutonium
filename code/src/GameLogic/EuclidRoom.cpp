@@ -19,6 +19,12 @@ Plutonium::EuclidRoom::~EuclidRoom(void)
 		delete_s(cur);
 		shapes.pop_back();
 	}
+
+	while (visiblePortals.size())
+	{
+		delete_s(visiblePortals.back());
+		visiblePortals.pop_back();
+	}
 }
 
 std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
@@ -40,6 +46,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 
 	/* Load individual rooms. */
 	std::vector<int> didx;
+	std::vector<Portal*> pidx;
 	for (size_t i = 0; i < raw->Rooms.size(); i++)
 	{
 		tinyobj::room_t room = raw->Rooms.at(i);
@@ -79,6 +86,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		{
 			Portal *portal = new Portal(Mesh::PFromFile(raw, i, j));
 			cur->portals.push_back(portal);
+			pidx.push_back(portal);
 			didx.push_back(room.portals.at(j).destination);
 		}
 
@@ -97,16 +105,34 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		}
 	}
 
+	for (size_t i = 0; i < result.size(); i++)
+	{
+		EuclidRoom *room = result.at(i);
+		tinyobj::room_t rroom = raw->Rooms.at(i);
+
+		/* Load visiblilty tree. */
+		for (std::map<int, std::vector<int>>::iterator j = rroom.visiblePortals.begin(); j != rroom.visiblePortals.end(); j++)
+		{
+			/* Add stump. */
+			Tree<PortalRenderArgs> *portals = new Tree<PortalRenderArgs>();
+			Portal *portal = pidx.at(j->first - 1);
+			portals->Add({ portal->Destination->GetID(), portal });
+
+			/* Add childs. */
+			std::vector<int> childs = j->second;
+			for (size_t k = 0; k < childs.size(); k++)
+			{
+				portal = pidx.at(childs.at(k)- 1);
+				portals->Add({ portal->Destination->GetID(), portal });
+			}
+
+			/* Push to result. */
+			room->visiblePortals.push_back(portals);
+		}
+	}
+
 	LOG("Finished loading map: '%s', %d rooms, %d portals.", reader.GetFileName(), result.size(), didx.size());
 	return result;
-}
-
-void Plutonium::EuclidRoom::AddPortals(Tree<PortalRenderArgs>* portals) const
-{
-	for (size_t i = 0; i < this->portals.size(); i++)
-	{
-		portals->Add({ id, this->portals.at(i) });
-	}
 }
 
 void Plutonium::EuclidRoom::SetScale(float scale)

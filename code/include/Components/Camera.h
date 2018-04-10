@@ -30,6 +30,11 @@ namespace Plutonium
 		void Update(_In_ float dt, _In_ const Matrix &obj2Follow);
 		/* Updates the camera as a free camera. */
 		void Update(_In_ float dt, _In_ KeyHandler keys, _In_ CursorHandler cursor);
+		/* Teleports the camera to a specified position. */
+		inline void Move(_In_ Vector3 position)
+		{
+			desiredPos = position;
+		}
 
 		/* Gets the current view matrix. */
 		_Check_return_ inline const Matrix& GetView(void) const
