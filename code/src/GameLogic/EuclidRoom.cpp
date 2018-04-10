@@ -82,13 +82,13 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 			didx.push_back(room.portals.at(j).destination);
 		}
 
-		cur->Finalize();	// TODO: remove bullshit
 		result.push_back(cur);
 	}
 
 	for (size_t i = 0, k = 0; i < result.size(); i++)
 	{
 		EuclidRoom *room = result.at(i);
+		room->Finalize();	// TODO: remove bullshit
 
 		/* Set portal destinations. */
 		for (size_t j = 0; j < room->portals.size(); j++, k++)

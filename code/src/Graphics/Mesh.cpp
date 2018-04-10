@@ -96,6 +96,7 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 			format.Position.Z = buffer->Vertices.vertices.at(3 * idx.vertex_index + 2);
 			format.Normal.X = buffer->Vertices.normals.at(3 * idx.normal_index);
 			format.Normal.Y = buffer->Vertices.normals.at(3 * idx.normal_index + 1);
+			format.Normal.Z = buffer->Vertices.normals.at(3 * idx.normal_index + 2);
 			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
 			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
 
@@ -140,6 +141,7 @@ Mesh * Plutonium::Mesh::RFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 			format.Position.Z = buffer->Vertices.vertices.at(3 * idx.vertex_index + 2);
 			format.Normal.X = buffer->Vertices.normals.at(3 * idx.normal_index);
 			format.Normal.Y = buffer->Vertices.normals.at(3 * idx.normal_index + 1);
+			format.Normal.Z = buffer->Vertices.normals.at(3 * idx.normal_index + 2);
 			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
 			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
 
@@ -176,7 +178,7 @@ Mesh * Plutonium::Mesh::PFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 		format.Position.X = buffer->Vertices.vertices.at(3 * idx);
 		format.Position.Y = buffer->Vertices.vertices.at(3 * idx + 1);
 		format.Position.Z = buffer->Vertices.vertices.at(3 * idx + 2);
-		format.Normal = Vector2::Zero;
+		format.Normal = Vector3::Zero;
 		format.Texture = Vector2::Zero;
 
 		/* Push vertex to buffer. */
@@ -209,7 +211,7 @@ Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx)
 			/* Copy over current vertex. */
 			size_t test = k + j;
 			result->vertices[test].Position = frame.scale * vrtx.position + frame.translation;
-			result->vertices[test].Normal = Vector2(vrtx.normal.X, vrtx.normal.Y);
+			result->vertices[test].Normal = Vector3(vrtx.normal.X, vrtx.normal.Y, vrtx.normal.Z);
 			result->vertices[test].Texture = buffer->texcoords.at(trgl.texture_indices[j]);
 		}
 
