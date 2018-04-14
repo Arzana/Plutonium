@@ -9,6 +9,7 @@
 #include "Core\Math\Basics.h"
 #include "Core\SafeMemory.h"
 #include "Core\Diagnostics\StackTrace.h"
+#include "Graphics\Diagnostics\DeviceInfo.h"
 #include <glad\glad.h>
 #include <stb\stb_image.h>
 #include <stb\stb_image_write.h>
@@ -125,6 +126,7 @@ void Plutonium::Texture::Dispose(void)
 	if (ptr)
 	{
 		glDeleteTextures(1, &ptr);
+		_CrtUpdateUsedGPUMemory(-static_cast<int64>(Width * Height));
 		ptr = 0;
 	}
 	else LOG_WAR("Attempting to dispose of not-loaded texture!");
@@ -157,6 +159,7 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	/* Generate mip map storage and load base texture. */
 	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, data);
+	_CrtUpdateUsedGPUMemory(static_cast<int64>(Width * Height));
 
 	/* Generate desired mip maps. */
 	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);

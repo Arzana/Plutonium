@@ -1,5 +1,6 @@
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
+#include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Core\Diagnostics\StackTrace.h"
 #include "Core\Diagnostics\Logging.h"
 #include <glad\glad.h>
@@ -301,9 +302,12 @@ int Plutonium::_CrtInitGlad(void)
 
 	/* Log results. */
 	activatedGlad = true;
-	const char *version = (const char*)glGetString(GL_VERSION);
+
+	const DeviceInfo *device = _CrtGetDeviceInfo();
 	LOG("Initialized Glad.");
-	LOG_MSG("Using OpenGL version: %s.", version);
+	LOG_MSG("Using OpenGL driver %s(%s).", device->DriverVersion, device->DeviceConfig);
+
+	delete device;
 	return GLFW_TRUE;
 }
 

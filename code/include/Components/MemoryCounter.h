@@ -21,15 +21,22 @@ namespace Plutonium
 		/* Gets the current virtual memory usage. */
 		_Check_return_ uint64 GetCurVRamUsage(void) const
 		{
-			ASSERT_IF(buffer.size() < 1, "Buffer empty!", "Cannot get current used bytes when no frame has been updated yet!");
-			return buffer.at(buffer.size() - 1).UsedVRam;
+			ASSERT_IF(cpuBuffer.size() < 1, "Cannot get current used bytes when no frame has been updated yet!");
+			return cpuBuffer.at(cpuBuffer.size() - 1).UsedVRam;
 		}
 
 		/* Gets the current physical memory usage. */
 		_Check_return_ uint64 GetCurRamUsage(void) const
 		{
-			ASSERT_IF(buffer.size() < 1, "Buffer empty!", "Cannot get current used bytes when no frame has been updated yet!");
-			return buffer.at(buffer.size() - 1).UsedRam;
+			ASSERT_IF(cpuBuffer.size() < 1, "Cannot get current used bytes when no frame has been updated yet!");
+			return cpuBuffer.at(cpuBuffer.size() - 1).UsedRam;
+		}
+
+		/* Gets the current GPU memory usage. */
+		_Check_return_ uint64 GetCurGPURamUsage(void) const
+		{
+			ASSERT_IF(gpuBuffer.size() < 1, "Cannot get current used bytes when no frame has been updated yet!");
+			return gpuBuffer.at(gpuBuffer.size() - 1);
 		}
 
 		/* Gets the worst virtual memory usage. */
@@ -44,6 +51,12 @@ namespace Plutonium
 			return worst;
 		}
 
+		/* Gets the worst GPU memory usage. */
+		_Check_return_ uint64 GetWorstGPURamUsage(void) const
+		{
+			return gpuworst;
+		}
+
 		/* Gets the best virtual memory usage. */
 		_Check_return_ uint64 GetBestVRamUsage(void) const
 		{
@@ -54,6 +67,12 @@ namespace Plutonium
 		_Check_return_ uint64 GetBestRamUsage(void) const
 		{
 			return best;
+		}
+
+		/* Gets the best GPU memory usage. */
+		_Check_return_ uint64 GetBestGPURamUsage(void) const
+		{
+			return gpubest;
 		}
 
 		/* Gets the average virtual memory usage. */
@@ -68,18 +87,24 @@ namespace Plutonium
 			return avrg;
 		}
 
+		/* Gets the average GPU memory usage. */
+		_Check_return_ uint64 GetAvrgGPURamUsage(void) const
+		{
+			return gpuavrg;
+		}
+
 		/* Gets the total virtual memory from the OS. */
 		_Check_return_ uint64 GetOSVRamBudget(void) const
 		{
-			ASSERT_IF(buffer.size() < 1, "Buffer empty!", "Cannot get total bytes when no frame has been updated yet!");
-			return buffer.at(buffer.size() - 1).TotalVRam;
+			ASSERT_IF(cpuBuffer.size() < 1, "Buffer empty!", "Cannot get total bytes when no frame has been updated yet!");
+			return cpuBuffer.at(cpuBuffer.size() - 1).TotalVRam;
 		}
 
 		/* Gets the total physical memory from the OS. */
 		_Check_return_ uint64 GetOSRamBudget(void) const
 		{
-			ASSERT_IF(buffer.size() < 1, "Buffer empty!", "Cannot get total bytes when no frame has been updated yet!");
-			return buffer.at(buffer.size() - 1).TotalRam;
+			ASSERT_IF(cpuBuffer.size() < 1, "Buffer empty!", "Cannot get total bytes when no frame has been updated yet!");
+			return cpuBuffer.at(cpuBuffer.size() - 1).TotalRam;
 		}
 
 	protected:
@@ -88,9 +113,11 @@ namespace Plutonium
 
 	private:
 		size_t maxSize;
-		std::deque<MemoryFrame> buffer;
+		std::deque<MemoryFrame> cpuBuffer;
+		std::deque<uint64> gpuBuffer;
 		uint64 avrg, worst, best;
 		uint64 vavrg, vworst, vbest;
+		uint64 gpuavrg, gpuworst, gpubest;
 		float updIntrv, updElap;
 	};
 }

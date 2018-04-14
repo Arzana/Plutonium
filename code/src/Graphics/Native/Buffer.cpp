@@ -1,4 +1,5 @@
 #include "Graphics\Native\Buffer.h"
+#include "Graphics\Diagnostics\DeviceInfo.h"
 
 Plutonium::Buffer::Buffer(void)
 	: hndlr(0), size(0), type(0)
@@ -14,6 +15,7 @@ Plutonium::Buffer::~Buffer(void) noexcept
 	{
 		hndlr = 0;
 		glDeleteBuffers(1, &hndlr);
+		_CrtUpdateUsedGPUMemory(-bsize);
 	}
 }
 
@@ -41,13 +43,21 @@ void Plutonium::Buffer::BufferData(BufferUsage usage, size_t size, const void * 
 
 	LOG("%s Buffer 0x%04x allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), hndlr, size);
 	glBufferData(type, size, data, static_cast<GLenum>(usage));
+	_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(size));
 }
 
-void Plutonium::Buffer::BufferSubData(size_t size, const void * data)
+void Plutonium::Buffer::BufferSubData(size_t size, const void * data, bool sizeUpdated)
 {
 	/* Error check for invalid handler and not bound buffer. */
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");
 	ASSERT_IF(!type, "Cannot set data for unbound buffer %zu!", hndlr);
 
 	glBufferSubData(type, 0, size, data);
+
+	/* Update GPU diag if needed. */
+	if (sizeUpdated)
+	{
+		_CrtUpdateUsedGPUMemory(-bsize);
+		_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(size));
+	}
 }

@@ -26,8 +26,7 @@ struct TestGame
 	/* Scene */
 	float theta;
 	Vector3 light;
-	std::vector<EuclidRoom*> map;
-	size_t curRoom = 0;
+	StaticModel *map;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -52,7 +51,6 @@ struct TestGame
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
 		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/PortalFrame3D.vsh");
-		prenderer->OnRoomRender.Add(this, &TestGame::RoomThroughPortalRender);
 
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
@@ -64,22 +62,19 @@ struct TestGame
 		cam = new Camera(GetGraphics()->GetWindow());
 		cam->Move(Vector3(20, 5, 10));
 
-		map = EuclidRoom::FromFile("assets/models/Maps/Deathmatch/Warehouse/dm_warehouse.pobj");
-		for (size_t i = 0; i < map.size(); i++) map.at(i)->SetScale(2.0f);	// If map is warehouse
-		//map = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
-		//map->SetScale(0.05f); // If map is sponza
+		map = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
+		map->SetScale(0.05f); // If map is sponza
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-		for (size_t i = 0; i < map.size(); i++) delete_s(map.at(i));
+		delete_s(map);
 	}
 
 	virtual void Finalize(void)
 	{
 		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
-		prenderer->OnRoomRender.Remove(this, &TestGame::RoomThroughPortalRender);
 
 		delete_s(srenderer);
 		if (depthSprite) delete_s(depthSprite);
@@ -119,35 +114,13 @@ struct TestGame
 #endif
 	}
 
-	void RoomThroughPortalRender(const PortalRenderer*, SceneRenderArgs args)
-	{
-		GetGraphics()->SetFaceCull(FaceCullState::None);
-
-		srenderer->Begin(args.View, args.Projection, light);
-
-		for (size_t i = 0; i < map.size(); i++)
-		{
-			EuclidRoom *cur = map.at(i);
-			if (args.SceneID == cur->GetID())
-			{
-				srenderer->Render(cur);
-				break;
-			}
-		}
-
-		srenderer->End();
-	}
-
 	virtual void Render(float dt)
 	{
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
-		/* Render portals. */
-		prenderer->Render(cam->GetView(), cam->GetProjection(), map.at(curRoom)->GetPortals());
-
 		/* Render current room last. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
-		srenderer->Render(map.at(curRoom));
+		srenderer->Render(map);
 		srenderer->End();
 
 		/* Add debug light direction. */
@@ -164,6 +137,11 @@ struct TestGame
 		std::string ramStr = "RAM: ";
 		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
 		dfRenderer->AddDebugString(ramStr);
+
+		/* Add debug average GRAM. */
+		std::string gpuStr = "GPU: ";
+		gpuStr += b2short_string(mem->GetAvrgGPURamUsage());
+		dfRenderer->AddDebugString(gpuStr);
 
 		/* Add debug frame buffer diagnostics. */
 		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));

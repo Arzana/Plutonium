@@ -36,13 +36,13 @@ namespace Plutonium
 		inline void SetData(_In_ const _Ty *data, _In_ size_t count)
 		{
 			size = count;
-			BufferSubData(sizeof(_Ty) * count, void_ptr(data));
+			BufferSubData(sizeof(_Ty) * count, void_ptr(data), true);
 		}
 		/* Updates the data for a specified buffer. */
 		template <typename _Ty>
 		inline void SetData(_In_ const _Ty *data)
 		{
-			BufferSubData(sizeof(_Ty) * size, void_ptr(data));
+			BufferSubData(sizeof(_Ty) * size, void_ptr(data), false);
 		}
 
 		/* Gets the amount of elements stored by this buffer. */
@@ -59,9 +59,10 @@ namespace Plutonium
 	private:
 		uint32 hndlr;
 		size_t size;
+		int64 bsize;
 		GLenum type;
 
 		void BufferData(BufferUsage usage, size_t size, const void *data);
-		void BufferSubData(size_t size, const void *data);
+		void BufferSubData(size_t size, const void *data, bool sizeUpdated);
 	};
 }

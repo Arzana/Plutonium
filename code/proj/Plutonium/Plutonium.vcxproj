@@ -208,6 +208,7 @@
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
@@ -276,6 +277,7 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugSpriteRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Mesh.h" />

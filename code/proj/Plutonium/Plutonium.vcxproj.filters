@@ -275,6 +275,9 @@
     <ClCompile Include="..\..\src\Core\Threading\PuThread.cpp">
       <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -546,6 +549,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Threading\PuThread.h">
       <Filter>Header Files\Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
