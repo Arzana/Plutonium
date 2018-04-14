@@ -143,11 +143,7 @@ struct TestGame
 		GetGraphics()->SetFaceCull(FaceCullState::None);
 
 		/* Render portals. */
-		const std::vector<Tree<PortalRenderArgs>*> *portals = map.at(curRoom)->GetPortals();
-		for (size_t i = 0; i < portals->size(); i++)
-		{
-			prenderer->Render(cam->GetView(), cam->GetProjection(), portals->at(i));
-		}
+		prenderer->Render(cam->GetView(), cam->GetProjection(), map.at(curRoom)->GetPortals());
 
 		/* Render current room last. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
@@ -168,6 +164,9 @@ struct TestGame
 		std::string ramStr = "RAM: ";
 		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
 		dfRenderer->AddDebugString(ramStr);
+
+		/* Add camera view matrix. */
+		dfRenderer->AddDebugString(to_string(cam->GetView()));
 
 		/* Add debug frame buffer diagnostics. */
 		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));

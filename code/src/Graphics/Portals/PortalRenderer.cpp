@@ -78,9 +78,9 @@ void Plutonium::PortalRenderer::RecursiveCreateMatrices(const Matrix & view, con
 	}
 
 	/* Run for all neighbors. */
-	while (portals->NextBranch())
+	if (portals->NextBranch())
 	{
-		result->NextBranch();
+		LOG_THROW_IF(!result->NextBranch(), "Tree's don't match, this should never occur!");
 		RecursiveCreateMatrices(view, proj, portals, result);
 	}
 

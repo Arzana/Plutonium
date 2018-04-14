@@ -31,6 +31,7 @@ namespace Plutonium
 		Portal(Mesh *mesh);
 
 		Mesh *mesh;
+		Vector3 center;
 
 		Matrix GetInverseView(const Matrix &view);
 		Matrix GetClippedProjection(const Matrix &view, const Matrix &proj);

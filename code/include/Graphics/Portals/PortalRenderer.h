@@ -26,6 +26,11 @@ namespace Plutonium
 
 		/* Renders the scene with the specified portals. */
 		void Render(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Tree<PortalRenderArgs> *portals);
+		/* Renders the specified scenes with the specified portals. */
+		inline void Render(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ const std::vector<Tree<PortalRenderArgs>*> *portals)
+		{
+			for (size_t i = 0; i < portals->size(); i++) Render(view, proj, portals->at(i));
+		}
 
 	private:
 		GraphicsAdapter *device;

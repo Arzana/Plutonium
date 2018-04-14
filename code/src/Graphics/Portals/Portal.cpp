@@ -9,15 +9,19 @@ Plutonium::Portal::~Portal(void)
 }
 
 Plutonium::Portal::Portal(Mesh * mesh)
-	: WorldObject(), mesh(mesh)
+	: WorldObject(), mesh(mesh), center()
 {
+	/* Calculate portal center. */
+	for (size_t i = 0; i < mesh->GetVertexCount(); i++) center += mesh->GetVertexAt(i).Position;
+	center /= mesh->GetVertexCount();
+
 	mesh->Finalize();
 }
 
 Matrix Plutonium::Portal::GetInverseView(const Matrix & view)
 {
 	const Matrix &model = GetWorld();
-	return view * model * Matrix::CreateRotationY(PI) * model.GetOrientation() * Destination->GetWorld().GetInverse();
+	return view * model * Matrix::CreateRotation(PI, normalize(model.GetUp())) * Destination->GetWorld().GetInverse();
 }
 
 /*
@@ -27,16 +31,30 @@ http://www.terathon.com/code/oblique.html
 */
 Matrix Plutonium::Portal::GetClippedProjection(const Matrix & view, const Matrix & proj)
 {
-	float distance = GetPosition().Length();
-	Vector4 clipPlane = Vector4(GetWorld().GetOrientation() * Vector3::Forward, distance);
+	/* Calculate the required clipping plane. */
+	float distance = center.Length();
+	Vector4 clipPlane = Vector4(normalize(GetWorld().GetForward()), distance);
 	clipPlane = view.GetTranspose().GetInverse() * clipPlane;
 
+	/* If the camera is on the positive side of the plane, we don't need to do anything. */
 	if (clipPlane.W > 0.0f) return proj;
 
-	Vector4 q = proj.GetInverse() * Vector4(sign(clipPlane.X), sign(clipPlane.Y), 1.0f, 1.0f);
-	Vector4 c = clipPlane * (2.0f / dot(clipPlane, q));
-	Matrix result = proj;
+	/* The the underlying matrix values for fast conversion. */
+	const float *matrix = proj.GetComponents();
 
-	_CrtSetRow<2>(result, c - _CrtGetRow<3>(result));
+	/* Calculate the clip-space corner point opposite the clipping plane. */
+	Vector4 q(
+		(sign(clipPlane.X) + matrix[8]) / matrix[0],
+		(sign(clipPlane.Y) + matrix[9]) / matrix[5],
+		-1.0f,
+		(1.0f + matrix[10]) / matrix[14]);
+
+	/* Calculate the scaled plane vector. */
+	Vector4 c = clipPlane * (2.0f / dot(clipPlane, q));
+	c.Z += 1.0f;
+
+	/* Replacethe third row of te projection matrix. */
+	Matrix result = proj;
+	_CrtSetRow<2>(result, c);
 	return result;
 }

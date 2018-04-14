@@ -157,7 +157,9 @@ namespace Plutonium
 			void ValidateVector(void)
 			{
 				/* Because we're allocaing the vector from random memory we have to make sure the iterator is default. */
+#if defined(DEBUG)
 				Childs._Get_data()._Myproxy = nullptr;
+#endif
 				Childs._Get_data()._Myfirst = nullptr;
 				Childs._Get_data()._Mylast = nullptr;
 				Childs._Get_data()._Myend = nullptr;

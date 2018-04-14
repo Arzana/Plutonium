@@ -19,7 +19,7 @@
 #define freea_s(block)					Plutonium::_CrtFreeS(&block)
 #define delete_s(block)					Plutonium::_CrtDelete(&block)
 #else
-#define free_s(block)					free(const_cast<void*>(void_ptr(block))
+#define free_s(block)					free(const_cast<void*>(void_ptr(block)))
 #define freea_s(block)					_freea(block)
 #define delete_s(block)					delete block
 #endif	

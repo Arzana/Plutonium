@@ -11,7 +11,7 @@ Plutonium::DebugFontRenderer::DebugFontRenderer(Game * game, const char * font, 
 void Plutonium::DebugFontRenderer::AddDebugString(const char * str, Color clr)
 {
 	renderer->AddString(GetDrawPos(), str, clr);
-	UpdateDrawPos(renderer->GetFont()->MeasureString(str));
+	UpdateDrawPos(renderer->GetFont()->MeasureString(str) + Vector2(5.0f));
 }
 
 void Plutonium::DebugFontRenderer::Render(float dt)
