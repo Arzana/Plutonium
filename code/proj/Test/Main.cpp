@@ -165,9 +165,6 @@ struct TestGame
 		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
 		dfRenderer->AddDebugString(ramStr);
 
-		/* Add camera view matrix. */
-		dfRenderer->AddDebugString(to_string(cam->GetView()));
-
 		/* Add debug frame buffer diagnostics. */
 		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));
 		if (stencilSprite) dsRenderer->AddDebugTexture(stencilSprite, Color::White, Vector2(0.1f));

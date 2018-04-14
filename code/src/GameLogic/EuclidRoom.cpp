@@ -105,7 +105,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		}
 	}
 
-	for (size_t i = 0; i < result.size() && i < 4; i++)
+	for (size_t i = 0; i < result.size(); i++)
 	{
 		EuclidRoom *room = result.at(i);
 		tinyobj::room_t rroom = raw->Rooms.at(i);
@@ -131,6 +131,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		}
 	}
 
+	delete_s(raw);
 	LOG("Finished loading map: '%s', %d rooms, %d portals.", reader.GetFileName(), result.size(), didx.size());
 	return result;
 }

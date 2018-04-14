@@ -11,6 +11,7 @@ The .pobj file specifies some extra tokens within a normal .obj file.
 - Room name (r <string>):										This fimply specifies the name of the following euclid room.
 - Gravity (vg <normal index):									This defines the gravity direction within the specified room.
 - Portal (p <length> <vertex indices...> <destination index>):	This defines a portal, starting with the frame mesh and ending with the destination room index.
+- Tree (tr <count> <portal ids...> <child count> <childs...>):	This defines the portals visible from the current room.
 */
 
 const PobjLoaderResult * Plutonium::_CrtLoadPobjMtl(const char * path)

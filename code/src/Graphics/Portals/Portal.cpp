@@ -13,7 +13,7 @@ Plutonium::Portal::Portal(Mesh * mesh)
 {
 	/* Calculate portal center. */
 	for (size_t i = 0; i < mesh->GetVertexCount(); i++) center += mesh->GetVertexAt(i).Position;
-	center /= mesh->GetVertexCount();
+	center /= static_cast<float>(mesh->GetVertexCount());
 
 	mesh->Finalize();
 }

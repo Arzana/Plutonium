@@ -576,6 +576,9 @@
     <Natvis Include="..\..\visualizers\Window.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
+    <Natvis Include="..\..\visualizers\Mesh.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\visualizers\PuStepFilters.natstepfilter">
