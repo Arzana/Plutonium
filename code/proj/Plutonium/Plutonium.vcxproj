@@ -188,7 +188,7 @@
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
     <ClCompile Include="..\..\src\Components\MemoryCounter.cpp" />
-    <ClCompile Include="..\..\src\Content\ObjLoader.cpp" />
+    <ClCompile Include="..\..\src\Content\ObjLoader2.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp" />
@@ -237,13 +237,14 @@
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
     <ClCompile Include="..\..\src\Streams\FileUtils.cpp" />
+    <ClCompile Include="..\..\src\Streams\StringParsing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Components\Camera.h" />
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
     <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
-    <ClInclude Include="..\..\include\Content\ObjLoader.h" />
+    <ClInclude Include="..\..\include\Content\ObjLoader2.h" />
     <ClInclude Include="..\..\include\Core\Collections\Tree.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h" />
@@ -330,11 +331,14 @@
     <ClInclude Include="..\..\include\Streams\FileUtils.h" />
     <ClInclude Include="..\..\include\Streams\SeekOrigin.h" />
     <ClInclude Include="..\..\include\Streams\StreamReader.h" />
+    <ClInclude Include="..\..\include\Streams\StringParsing.h" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Box.natvis" />
+    <Natvis Include="..\..\visualizers\Color.natvis" />
     <Natvis Include="..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\visualizers\EventSubscriber.natvis" />
+    <Natvis Include="..\..\visualizers\FileReader.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />
     <Natvis Include="..\..\visualizers\Rectangle.natvis" />

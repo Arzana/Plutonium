@@ -62,29 +62,38 @@ const char * Plutonium::FileReader::ReadLine(void)
 	/* On debug check if file is open. */
 	ASSERT_IF(!open, "File isn't open!");
 
-	/* Setup seeking. */
-	int32 c;
+	/* Get the current position and set the newline length to a default of one. */
+	size_t len = 0, nll = 1;
 	int64 pos = GetPosition();
-	size_t len = 0;
 
-	/* Find end of the line. */
-	do
+	/* Read characters until some end specifier is found. */
+	for (int32 c;; ++len)
 	{
-		c = Read();
-		++len;
-	} while (c != EOF && c != '\n' && c != '\r');
-	if (Peek() == '\n') c = Read();
+		c = fgetc(hndlr);
 
-	/* Revert back to old position. */
+		/* Newline and end of file can break right away. */
+		if (c == '\n' || c == EOF) break;
+
+		/* For carriage return, check if a second control character is used.  */
+		if (c == '\r')
+		{
+			/* Increase newline length if needed. */
+			if (Peek() == '\n') ++nll;
+			break;
+		}
+	}
+
+	/* If actual line is empty just return empty string, else seek back to the old position. */
+	if (len < 1) return calloc_s(char, 1);
 	Seek(SeekOrigin::Begin, pos);
 
-	/* Allocate space for line and populate it. */
-	char *result = malloc_s(char, len + 1);
-	size_t checkLen = Read(reinterpret_cast<byte*>(result), 0, len);
+	/* Create and populate result buffer. */
+	char *result = malloc_s(char, len + nll);
+	size_t checkLen = Read(reinterpret_cast<byte*>(result), 0, len + nll);
 	result[len] = '\0';
 
-	/* Check for errors. */
-	LOG_THROW_IF(checkLen != len, "Expected length of string doesn't match actual length!");
+	/* Check for reading errors. */
+	LOG_THROW_IF(checkLen != (len + nll), "Expected length of string doesn't match actual length, this should never occur!");
 	return result;
 }
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010"> 
+  <Type Name="Plutonium::Color">
+    <DisplayString Condition="Packed == 0x00000000">Transparent</DisplayString>
+    <DisplayString Condition="Packed == 0x000000FF">Black</DisplayString>
+    <DisplayString Condition="Packed == 0xFF0000FF">Red</DisplayString>
+    <DisplayString Condition="Packed == 0x00FF00FF">Green</DisplayString>
+    <DisplayString Condition="Packed == 0x0000FFFF">Blue</DisplayString>
+    <DisplayString Condition="Packed == 0x00FFFFFF">Cyan</DisplayString>
+    <DisplayString Condition="Packed == 0xFF00FFFF">Magenta</DisplayString>
+    <DisplayString Condition="Packed == 0xFFFF00FF">Yellow</DisplayString>
+    <DisplayString Condition="Packed == 0xFFFFFFFF">White</DisplayString>
+    <DisplayString>[Hex: {Packed, X}]</DisplayString>
+  </Type>
+</AutoVisualizer>

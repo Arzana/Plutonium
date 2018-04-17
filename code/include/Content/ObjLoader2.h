@@ -2,6 +2,7 @@
 #include <vector>
 #include "Core\Math\Constants.h"
 #include "Graphics\Color.h"
+#include "Core\Math\Vector2.h"
 
 namespace Plutonium
 {
@@ -64,12 +65,12 @@ namespace Plutonium
 	{
 		/* The name of the shape. */
 		const char *Name;
+		/* The material associated with the mesh. */
+		int64 Material;
 		/* The indices of the vertices. */
 		std::vector<ObjLoaderVertex> Indices;
 		/* The amount of vertices per face. */
 		std::vector<size_t> VerticesPerFace;
-		/* The materials associated with the faces. */
-		std::vector<int64> Materials;
 		/* The smoothing group associated with the faces. */
 		std::vector<uint64> SmoothingGroups;
 
@@ -154,26 +155,28 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader material. */
 		ObjLoaderMaterial(void);
+
+		// Add destructor. 
 	};
 
 	/* Defines the intermediate result of the obj load process. */
-	struct ObjLoaderResult
+	struct ObjLoaderResult2
 	{
 		/* Contains all vertices defined within the obj model. */
 		std::vector<Vector3> Vertices;
 		/* Contains all the normals defined within the obj model. */
 		std::vector<Vector3> Normals;
 		/* Contains all the texture coordinates defined within the obj model. */
-		std::vector<Vector3> TexCoords;
+		std::vector<Vector2> TexCoords;
 		/* Contains all meshes defined within the obj model. */
 		std::vector<ObjLoaderMesh> Shapes;
 		/* Contains all materials defined within the obj model. */
 		std::vector<ObjLoaderMaterial> Materials;
 
 		/* Initializes a new instance of an obj loader result. */
-		ObjLoaderResult(void);
+		ObjLoaderResult2(void);
 	};
 
 	/* Loads an obj file and it's associated mtl file(s) (requires delete!). */
-	_Check_return_ const ObjLoaderResult* _CrtLoadObjMtl(_In_ const char *path);
+	_Check_return_ const ObjLoaderResult2* _CrtLoadObjMtl2(_In_ const char *path);
 }

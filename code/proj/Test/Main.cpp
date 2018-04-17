@@ -9,6 +9,7 @@
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
+#include <Content\ObjLoader2.h>
 
 using namespace Plutonium;
 
@@ -56,7 +57,9 @@ struct TestGame
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
 
-		map = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
+		auto temp = _CrtLoadObjMtl2("./assets/models/Sponza/sponza.obj");
+
+		map = StaticModel::FromFile("./assets/models/Sponza/sponza.obj");
 		map->SetScale(0.05f); // If map is sponza
 	}
 

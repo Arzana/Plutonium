@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Plutonium::FileReader">
+    <DisplayString Condition="open">{fname, sb} (Opened)</DisplayString>
+    <DisplayString>{fname, sb} (Closed)</DisplayString>
+    <Expand>
+      <Item Name="Path">fpath, sb</Item>
+      <Item Name="Name">fnamenoext, sb</Item>
+      <Item Name="Type">fext, sb</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

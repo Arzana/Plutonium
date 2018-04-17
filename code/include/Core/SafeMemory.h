@@ -22,7 +22,7 @@
 #define malloc_s(type, size)			reinterpret_cast<type*>(malloc((size) * sizeof(type)))
 #define malloca_s(type, size)			reinterpret_cast<type*>(_malloca((size) * sizeof(type)))
 #define realloc_s(type, block, size)	(block = reinterpret_cast<type*>(realloc(block, (size) * sizeof(type))))
-#define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size) * sizeof(type)))
+#define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size), sizeof(type)))
 
 #define free_s(block)					free(const_cast<void*>(void_ptr(block)))
 #define freea_s(block)					_freea(block)
@@ -97,7 +97,7 @@ namespace Plutonium
 		LOG_THROW_IF(size < 1, "cannot allocate %zu objects (byte size %zu)!", amount, size);
 
 		/* Allocate memory and check for insufficient memory. */
-		void *result = calloc(size);
+		void *result = calloc(amount, sizeof(_Ty));
 		LOG_THROW_IF(result == nullptr, "cannot allocate %zu objects (insufficient memory)!", amount);
 
 		/* Return type safe pointer. */

@@ -46,12 +46,12 @@ Color Plutonium::Color::Lerp(Color a, Color b, float v)
 
 Color Plutonium::Color::operator+(Color other) const
 {
-	return Color(R + other.R, G + other.G, B + other.B, A + other.A);
+	return Color(static_cast<byte>(R + other.R), static_cast<byte>(G + other.G), static_cast<byte>(B + other.B), static_cast<byte>(A + other.A));
 }
 
 Color Plutonium::Color::operator-(Color other) const
 {
-	return Color(R - other.R, G - other.G, B - other.B, A - other.A);
+	return Color(static_cast<byte>(R - other.R), static_cast<byte>(G - other.G), static_cast<byte>(B - other.B), static_cast<byte>(A - other.A));
 }
 
 Color Plutonium::Color::operator*(float scalar) const

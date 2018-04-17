@@ -51,18 +51,28 @@ namespace Plutonium
 		{}
 
 		/* Initializes a new instance of a color from a specified packed value. */
-		Color(uint32 packed)
+		Color(_In_ uint32 packed)
 			: Packed(packed)
 		{}
 
 		/* Initializes a new instance of a opaque color. */
-		Color(byte r, byte g, byte b)
+		Color(_In_ byte r, _In_ byte g, _In_ byte b)
 			: R(r), G(g), B(b), A(255)
 		{}
 
 		/* Initializes a new instance of a specific color. */
-		Color(byte r, byte g, byte b, byte a)
+		Color(_In_ byte r, _In_ byte g, _In_ byte b, _In_ byte a)
 			: R(r), G(g), B(b), A(a)
+		{}
+
+		/* Initializes a new instance of a specified color. */
+		Color(_In_ float r, _In_ float g, _In_ float b)
+			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(255)
+		{}
+
+		/* Initializes a new instance of a specified color. */
+		Color(_In_ float r, _In_ float g, _In_ float b, _In_ float a)
+			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(static_cast<byte>(a * 255.0f))
 		{}
 
 		/* Creates a color from a non premultiplied alpha value. */
