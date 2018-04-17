@@ -46,21 +46,52 @@ void Plutonium::FileReader::Close(void)
 int32 Plutonium::FileReader::Read(void)
 {
 	/* On debug check if file is open, and read from handler. */
-	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
+	ASSERT_IF(!open, "File isn't open!");
 	return fgetc(hndlr);
 }
 
 size_t Plutonium::FileReader::Read(byte * buffer, size_t offset, size_t amount)
 {
 	/* On debug check if file is open. */
-	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
+	ASSERT_IF(!open, "File isn't open!");
 	return fread(buffer + offset, 1, amount, hndlr);
+}
+
+const char * Plutonium::FileReader::ReadLine(void)
+{
+	/* On debug check if file is open. */
+	ASSERT_IF(!open, "File isn't open!");
+
+	/* Setup seeking. */
+	int32 c;
+	int64 pos = GetPosition();
+	size_t len = 0;
+
+	/* Find end of the line. */
+	do
+	{
+		c = Read();
+		++len;
+	} while (c != EOF && c != '\n' && c != '\r');
+	if (Peek() == '\n') c = Read();
+
+	/* Revert back to old position. */
+	Seek(SeekOrigin::Begin, pos);
+
+	/* Allocate space for line and populate it. */
+	char *result = malloc_s(char, len + 1);
+	size_t checkLen = Read(reinterpret_cast<byte*>(result), 0, len);
+	result[len] = '\0';
+
+	/* Check for errors. */
+	LOG_THROW_IF(checkLen != len, "Expected length of string doesn't match actual length!");
+	return result;
 }
 
 const char * Plutonium::FileReader::ReadToEnd(void)
 {
 	/* On debug check if file is open. */
-	ASSERT_IF(!open, "Cannot read byte from file!", "File isn't open!");
+	ASSERT_IF(!open, "File isn't open!");
 
 	/* Get the remaining length of the file. */
 	int64 pos = GetPosition();

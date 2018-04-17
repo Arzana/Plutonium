@@ -209,7 +209,7 @@ bool Plutonium::Shader::CompileShader(uint32 * shdr, ShaderType type, const char
 	}
 
 	/* On debug log shader compile success. */
-	LOG("Successfuly compile %s shader.", _CrtGetShaderVisualType(type));
+	LOG("Successfuly compiled %s shader.", _CrtGetShaderVisualType(type));
 	return true;
 }
 

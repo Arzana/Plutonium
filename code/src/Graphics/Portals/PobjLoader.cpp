@@ -19,6 +19,7 @@ const PobjLoaderResult * Plutonium::_CrtLoadPobjMtl(const char * path)
 	/* Create new result structure. */
 	PobjLoaderResult *result = new PobjLoaderResult();
 	FileReader reader(path, true);
+	LOG("TinyObj loading pobj '%s'...", reader.GetFileNameWithoutExtension());
 
 	/* Load .pobj and .mtl files. */
 	string err;

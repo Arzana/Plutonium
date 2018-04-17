@@ -75,7 +75,7 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 	Mesh *result = new Mesh(shape.name.c_str());
 
 	/* Allocate buffers. */
-	for (size_t i = 0; i < shape.mesh.num_face_vertices.size(); i++) result->vrtxCnt += shape.mesh.num_face_vertices.at(i);
+	result->vrtxCnt = shape.mesh.indices.size();
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
 	/* Copy vertices to buffer. */

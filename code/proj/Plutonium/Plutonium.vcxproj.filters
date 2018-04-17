@@ -111,6 +111,12 @@
     <Filter Include="Visualizers">
       <UniqueIdentifier>{48199cee-3802-46b0-b344-d74768e76b08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Content">
+      <UniqueIdentifier>{1219252f-d834-4429-bda2-06050e09e5b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Content">
+      <UniqueIdentifier>{691b447b-97b1-4055-a9ae-edbbb0e3fc8b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -166,9 +172,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Components\ContentLoader.cpp">
-      <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c">
       <Filter>Third Party Files</Filter>
@@ -278,6 +281,9 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Content\ObjLoader.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -378,9 +384,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h">
       <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Components\ContentLoader.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Color.h">
       <Filter>Header Files\Graphics</Filter>
@@ -553,6 +556,9 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Content\ObjLoader.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">
@@ -583,6 +589,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\visualizers\Mesh.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\EventSubscriber.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

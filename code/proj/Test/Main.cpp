@@ -1,15 +1,14 @@
-#include <string>
 #include <Game.h>
 #include <Core\String.h>
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
+#include <Graphics\Diagnostics\FrameInfo.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Basics.h>
-#include <Graphics\Diagnostics\FrameInfo.h>
 
 using namespace Plutonium;
 
@@ -20,7 +19,6 @@ struct TestGame
 	DebugFontRenderer *dfRenderer;
 	DebugSpriteRenderer *dsRenderer;
 	StaticRenderer *srenderer;
-	PortalRenderer *prenderer;
 	Camera *cam;
 
 	/* Scene */
@@ -31,10 +29,10 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
-	Texture *depthSprite, *stencilSprite;
+	Texture *depthSprite;
 
 	TestGame(void)
-		: Game("TestGame"), theta(0.0f), depthSprite(nullptr), stencilSprite(nullptr)
+		: Game("TestGame"), theta(0.0f), depthSprite(nullptr)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -50,17 +48,13 @@ struct TestGame
 		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh"));
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
 
-		prenderer = new PortalRenderer(GetGraphics(), "./assets/shaders/PortalFrame3D.vsh");
-
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
-
 	}
 
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
-		cam->Move(Vector3(20, 5, 10));
 
 		map = StaticModel::FromFile("assets/models/Sponza/sponza.obj");
 		map->SetScale(0.05f); // If map is sponza
@@ -78,7 +72,6 @@ struct TestGame
 
 		delete_s(srenderer);
 		if (depthSprite) delete_s(depthSprite);
-		if (depthSprite) delete_s(stencilSprite);
 	}
 
 	virtual void Update(float dt)
@@ -103,10 +96,6 @@ struct TestGame
 			/* Create new texture from depth and delete old texture if needed. */
 			if (depthSprite) delete_s(depthSprite);
 			depthSprite = _CrtSaveDepthToTexture(GetGraphics());
-
-			/* Create new texture from stencil and delete old texture is needed. */
-			if (stencilSprite) delete_s(stencilSprite);
-			stencilSprite = _CrtSaveStencilToTexture(GetGraphics());
 
 			/* Operation will take a long time, so make sure it doesn't affect next frames delta. */
 			SuppressNextUpdate();
@@ -145,7 +134,6 @@ struct TestGame
 
 		/* Add debug frame buffer diagnostics. */
 		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));
-		if (stencilSprite) dsRenderer->AddDebugTexture(stencilSprite, Color::White, Vector2(0.1f));
 	}
 };
 

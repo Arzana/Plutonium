@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <mutex>
 #include "EventSubscriber.h"
 #include "Core\Diagnostics\ReflectNames.h"
 
@@ -35,8 +36,10 @@ namespace Plutonium
 		/* Releases the resources of this event. */
 		~EventBus(void) noexcept
 		{
+			lock.lock();
 			for (size_t i = 0; i < callbacks.size(); i++) delete_s(callbacks.at(i));
 			callbacks.clear();
+			lock.unlock();
 		}
 
 		_Check_return_ EventBus& operator =(_In_ const EventBus &other) = delete;
@@ -46,8 +49,10 @@ namespace Plutonium
 		void Add(_In_ HandlerFuncType func) const
 		{
 			SubscriberType *sub = new SubscriberType(func);
+			lock.lock();
 			callbacks.push_back(sub);
-			LOG("Registered callback(%llx) to event %s.", sub->GetID(), name);
+			lock.unlock();
+			LOG("Registered callback(%llX) to event %s.", sub->GetID(), name);
 		}
 
 		/* Registers an event handler to this event. */
@@ -55,8 +60,10 @@ namespace Plutonium
 		void Add(_In_ _CTy *obj, _In_ HandlerMethodType<_CTy> func) const
 		{
 			SubscriberType *sub = new SubscriberType(obj, func);
+			lock.lock();
 			callbacks.push_back(sub);
-			LOG("Registered callback(%llx) to event %s.", sub->GetID(), name);
+			lock.unlock();
+			LOG("Registered callback(%llX) to event %s.", sub->GetID(), name);
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -64,7 +71,7 @@ namespace Plutonium
 		{
 			int64 id = SubscriberType::CreateComparableID(func);
 			size_t result = UnRegisterCallback(id);
-			LOG("Unregistered %zu callback(s)(%llx) from event %s.", result, id, name);
+			LOG("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -73,20 +80,20 @@ namespace Plutonium
 		{
 			int64 id = SubscriberType::CreateComparableID(obj, func);
 			size_t result = UnRegisterCallback(id);
-			LOG("Unregistered %zu callback(s)(%llx) from event %s.", result, id, name);
+			LOG("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 
 		/* Posts an event to all registered subscribers. */
 		void Post(_In_ const _STy *sender, _In_ _ArgTy ... args)
 		{
-			for (size_t i = 0; i < callbacks.size(); i++)
-			{
-				callbacks.at(i)->HandlePost(sender, args...);
-			}
+			lock.lock();
+			for (size_t i = 0; i < callbacks.size(); i++) callbacks.at(i)->HandlePost(sender, args...);
+			lock.unlock();
 		}
 
 	private:
 		mutable std::vector<SubscriberType*> callbacks;
+		mutable std::mutex lock;
 #if defined(DEBUG)
 		const char *name;
 #endif
@@ -95,6 +102,7 @@ namespace Plutonium
 		{
 			size_t result = 0;
 
+			lock.lock();
 			for (size_t i = 0; i < callbacks.size(); i++)
 			{
 				SubscriberType *cur = callbacks.at(i);
@@ -108,6 +116,7 @@ namespace Plutonium
 				}
 			}
 
+			lock.unlock();
 			return result;
 		}
 	};

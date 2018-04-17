@@ -69,6 +69,11 @@ namespace Plutonium
 		*/
 		_Check_return_ virtual size_t Read(_Out_ byte *buffer, _In_ size_t offset, _In_ size_t amount) override;
 		/*
+		Reads untill the end of the current line/
+		Requires free!
+		*/
+		_Check_return_ const char* ReadLine(void);
+		/*
 		Reads the remainder of the content of the file.
 		Requires free!
 		*/

@@ -159,7 +159,7 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	/* Generate mip map storage and load base texture. */
 	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, data);
-	_CrtUpdateUsedGPUMemory(static_cast<int64>(Width * Height));
+	_CrtUpdateUsedGPUMemory(Width * Height * GetChannels());
 
 	/* Generate desired mip maps. */
 	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);

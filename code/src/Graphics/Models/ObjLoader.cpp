@@ -15,6 +15,7 @@ const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 	/* Create new result structure. */
 	ObjLoaderResult *result = new ObjLoaderResult();
 	FileReader reader(path, true);
+	LOG("TinyObj loading obj '%s'...", reader.GetFileNameWithoutExtension());
 
 	/* Load .obj and .mtl files. */
 	string err;
