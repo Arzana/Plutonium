@@ -73,7 +73,7 @@ bool ParseOnOff(const char **line, bool def = true)
 	else if (!strncmp(*line, "off", 3)) result = false;
 
 	/* Increase line position and return result. */ 
-	(*line) = end;
+	*line = end;
 	return result;
 }
 
@@ -94,7 +94,7 @@ ObjLoaderMapType ParseMapType(const char **line, ObjLoaderMapType def = ObjLoade
 	else if (!strncmp(*line, "cube_bottom", 11)) result = ObjLoaderMapType::CubeBottom;
 
 	/* Increase line position and return result. */
-	(*line) = end;
+	*line = end;
 	return result;
 }
 
@@ -109,7 +109,21 @@ ObjLoaderChannel ParseChannel(const char **line, ObjLoaderChannel def = ObjLoade
 	if ((end - *line) == 1) result = _CrtInt2Enum<ObjLoaderChannel>(**line);
 
 	/* Increase line position and return result. */
-	(*line) = end;
+	*line = end;
+	return result;
+}
+
+int ParseInt(const char **line)
+{
+	/* get begin and final read point. */
+	SkipUseless(line);
+	const char *end = (*line) + strcspn(*line, " \t\r");
+
+	/* Parse value. */
+	int result = atoi(*line);
+
+	/* Increase line position and return result. */
+	*line = end;
 	return result;
 }
 
@@ -117,14 +131,14 @@ float ParseFloat(const char **line, float def = 0.0f)
 {
 	/* Get begin and final read point. */
 	SkipUseless(line);
-	const char *end = (*line) + strcspn((*line), " \t\r");
+	const char *end = (*line) + strcspn(*line, " \t\r");
 
 	/* Parse value. */
 	float result = def;
 	tryParseFloat(*line, end, &result);
 
 	/* Increase line position and return result. */
-	(*line) = end;
+	*line = end;
 	return result;
 }
 
@@ -251,7 +265,8 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoader
 	const size_t vtSize = result->TexCoords.size() / 2;
 
 	/* Read untill no more faces are found. */
-	while (!IS_NEWLINE(line[0]))
+	size_t cnt = 0;
+	for(; !IS_NEWLINE(line[0]); cnt++)
 	{
 		/* Try parse the value and throw is failed (file corrupt). */
 		ObjLoaderVertex vi;
@@ -262,7 +277,9 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoader
 		line += strspn(line, " \t\r");
 	}
 
-	// Add vertices per face?
+	/* Push vertex count to mesh. */
+	LOG_WAR_IF(cnt != 3 && cnt != 4, "Only triangles and quads are supported within this obj loader!");
+	curMesh->VerticesPerFace.push_back(cnt);
 }
 
 /* Handles the use material line. */
@@ -300,6 +317,68 @@ inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderR
 	{
 		LoadMaterialLibraryFromFile(dir, buffer[i], result);
 		freea_s(buffer[i]);
+	}
+}
+
+/* Handles the group name line. */
+void HandleGroupNameLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh)
+{
+	/* Add old shape if needed. */
+	if (strlen(curMesh->Name) > 0)
+	{
+		result->Shapes.push_back(*curMesh);
+		*curMesh = ObjLoaderMesh();
+	}
+
+	/* Make sure we skip leading spaces. */
+	SkipUseless(&line);
+
+	/* Set mesh name. */
+	curMesh->Name = heapstr(line);
+}
+
+/* Handles the object name line. */
+void HandleObjectNameLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh)
+{
+	/* Add old shape if needed. */
+	if (strlen(curMesh->Name) > 0)
+	{
+		result->Shapes.push_back(*curMesh);
+		*curMesh = ObjLoaderMesh();
+	}
+
+	/* Make sure we skip leading spaces. */
+	SkipUseless(&line);
+
+	/* Set mesh name. */
+	curMesh->Name = heapstr(line);
+}
+
+/* Handles the smoothing group line. */
+void HandleSmoothingGroupLine(const char *line, uint64 *smoothingGroup)
+{
+	/* Skip leading spaces. */
+	SkipUseless(&line);
+
+	/* Skip empty lines. */
+	if (IS_NEWLINE(line[0])) return;
+
+	/* Set smoothing group to zero is 'off' is specified. */
+	if (strlen(line) >= 3)
+	{
+		if (line[0] == 'o' && line[1] == 'f' && line[2] == 'f') *smoothingGroup = 0;
+	}
+	else
+	{
+		/* Try parse the group. */
+		int group = ParseInt(&line);
+		if (group < 0)
+		{
+			/* Invalid value or parsing error. */
+			LOG_WAR("Invalid smoothing group (%d) specified, defaulting to zero!", group);
+			*smoothingGroup = 0;
+		}
+		else *smoothingGroup = static_cast<int64>(group);
 	}
 }
 
@@ -354,8 +433,26 @@ void HandleObjLine(const char *line, const char *dir, ObjLoaderResult2 *result, 
 		return;
 	}
 
-	// Add group names, obj names, etc.
+	/* Check if line is group name line. */
+	if (line[0] == 'g' && IS_SPACE(line[1]))
+	{
+		HandleGroupNameLine(line + 2, result, curMesh);
+		return;
+	}
 
+	/* Check if line is object name. */
+	if (line[0] == 'o' && IS_SPACE(line[1]))
+	{
+		HandleObjectNameLine(line + 2, result, curMesh);
+		return;
+	}
+
+	/* Check if line is smoothing group. */
+	if (line[0] == 's' && IS_SPACE(line[1]))
+	{
+		HandleSmoothingGroupLine(line + 2, smoothingGroup);
+		return;
+	}
 
 	LOG_WAR("Unknown token on line: '%s'!", line);
 }
