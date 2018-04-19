@@ -22,7 +22,7 @@ Plutonium::ObjLoaderVertex::ObjLoaderVertex(void)
 {}
 
 Plutonium::ObjLoaderMesh::ObjLoaderMesh(void)
-	: Name(""), Indices(), VerticesPerFace(), Material(-1), SmoothingGroups()
+	: Name(""), Indices(), Material(-1), SmoothingGroups()
 {}
 
 Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(bool isBump)
@@ -229,6 +229,58 @@ bool TryParseTriple(const char **line, size_t vSize, size_t vnSize, size_t vtSiz
 
 	return true;
 }
+
+void TriangulateQuad(ObjLoaderResult2 *result, std::vector<ObjLoaderVertex> *vertices)
+{
+	/* On debug mode check for valid inputs. */
+#if defined (DEBUG)
+	LOG_THROW_IF(vertices->size() != 4, "Input is not a valid quad, %zu vertices!", vertices->size());
+	for (size_t i = 0; i < vertices->size(); i++) LOG_THROW_IF(vertices->at(i).Vertex >= result->Vertices.size(), "Input vertex is not defined!");
+#endif
+
+	/* Get indices. */
+	ObjLoaderVertex v1 = vertices->at(0);
+	ObjLoaderVertex v2 = vertices->at(1);
+	ObjLoaderVertex v3 = vertices->at(2);
+	ObjLoaderVertex v4 = vertices->at(3);
+
+	/* Get positions associated with indices. */
+	Vector3 p1 = result->Vertices.at(v1.Vertex);
+	Vector3 p2 = result->Vertices.at(v2.Vertex);
+	Vector3 p3 = result->Vertices.at(v3.Vertex);
+	Vector3 p4 = result->Vertices.at(v4.Vertex);
+
+	/* Clear old values. */
+	vertices->clear();
+	vertices->reserve(6);
+
+	/* Calculate shortest distance. */
+	float d1 = dist(p1, p3);
+	float d2 = dist(p2, p4);
+
+	/* Split along b-d axis. */
+	if (d1 > d2)
+	{
+		vertices->push_back(v1);
+		vertices->push_back(v2);
+		vertices->push_back(v4);
+
+		vertices->push_back(v2);
+		vertices->push_back(v3);
+		vertices->push_back(v4);
+	}
+	/* Split along a-c axis. */
+	else
+	{
+		vertices->push_back(v1);
+		vertices->push_back(v2);
+		vertices->push_back(v3);
+
+		vertices->push_back(v1);
+		vertices->push_back(v3);
+		vertices->push_back(v4);
+	}
+}
 #pragma endregion
 
 #pragma region Obj Line handling
@@ -265,21 +317,30 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoader
 	const size_t vtSize = result->TexCoords.size() / 2;
 
 	/* Read untill no more faces are found. */
-	size_t cnt = 0;
-	for(; !IS_NEWLINE(line[0]); cnt++)
+	std::vector<ObjLoaderVertex> face;
+	while(!IS_NEWLINE(line[0]))
 	{
 		/* Try parse the value and throw is failed (file corrupt). */
 		ObjLoaderVertex vi;
 		if (!TryParseTriple(&line, vSize, vnSize, vtSize, &vi)) LOG_THROW("Failed to parse face!\nLINE:		%s", line);
 
 		/* Add face to mesh. */
-		curMesh->Indices.push_back(vi);
+		face.push_back(vi);
 		line += strspn(line, " \t\r");
 	}
 
+	/* Check if we can triangulate the shape. */
+	LOG_THROW_IF(face.size() < 3 || face.size() > 4, "Cannot convert face with %zu vertices into triangles!", face.size());
+
+	/* If shape is a quad, triangulate it and make sure to add the smoothing group for the new triangle. */
+	if (face.size() == 4)
+	{
+		TriangulateQuad(result, &face);
+		curMesh->SmoothingGroups.push_back(smoothingGroup);
+	}
+
 	/* Push vertex count to mesh. */
-	LOG_WAR_IF(cnt != 3 && cnt != 4, "Only triangles and quads are supported within this obj loader!");
-	curMesh->VerticesPerFace.push_back(cnt);
+	curMesh->Indices.insert(curMesh->Indices.end(), face.begin(), face.end());
 }
 
 /* Handles the use material line. */

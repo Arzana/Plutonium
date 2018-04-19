@@ -69,8 +69,6 @@ namespace Plutonium
 		int64 Material;
 		/* The indices of the vertices. */
 		std::vector<ObjLoaderVertex> Indices;
-		/* The amount of vertices per face. */
-		std::vector<size_t> VerticesPerFace;
 		/* The smoothing group associated with the faces. */
 		std::vector<uint64> SmoothingGroups;
 
@@ -155,8 +153,6 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader material. */
 		ObjLoaderMaterial(void);
-
-		// Add destructor. 
 	};
 
 	/* Defines the intermediate result of the obj load process. */
