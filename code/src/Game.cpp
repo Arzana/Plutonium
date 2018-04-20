@@ -85,7 +85,7 @@ void Plutonium::Game::Run(void)
 	/* Load first level. */
 	SetLoadPercentage(loadPercentage = 0);
 	LoadContent();
-	LOG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
+	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
 
 	/* Excecute game loop. */
 	prevTime = glfwGetTime();

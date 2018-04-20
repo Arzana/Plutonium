@@ -26,10 +26,12 @@ namespace Plutonium
 	private:
 		friend struct StaticRenderer;
 
+		std::vector<Shape*> shapes;
+
 		StaticModel(void)
 			: WorldObject()
 		{}
 
-		std::vector<Shape*> shapes;
+		int64 ContainsMaterial(const char *name);
 	};
 }

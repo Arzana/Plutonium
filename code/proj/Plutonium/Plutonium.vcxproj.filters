@@ -170,9 +170,6 @@
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c">
       <Filter>Third Party Files</Filter>
     </ClCompile>
@@ -281,11 +278,11 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Content\ObjLoader2.cpp">
-      <Filter>Source Files\Content</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Streams\StringParsing.cpp">
       <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Content\ObjLoader.cpp">
+      <Filter>Source Files\Content</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -384,9 +381,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Diagnostics\StackTrace.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h">
-      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Color.h">
       <Filter>Header Files\Graphics</Filter>
@@ -559,11 +553,14 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Content\ObjLoader2.h">
-      <Filter>Header Files\Content</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Streams\StringParsing.h">
       <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\TextureOptions.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Content\ObjLoader.h">
+      <Filter>Header Files\Content</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

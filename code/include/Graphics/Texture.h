@@ -1,6 +1,7 @@
 #pragma once
 #include "Core\Math\Constants.h"
 #include "Core\Math\Rectangle.h"
+#include "Graphics\TextureOptions.h"
 
 namespace Plutonium
 {
@@ -25,7 +26,7 @@ namespace Plutonium
 		_Check_return_ Texture& operator =(_In_ Texture &&other) = delete;
 
 		/* Loads a specified texture from a file (requires delete!). */
-		_Check_return_ static Texture* FromFile(_In_ const char *path);
+		_Check_return_ static Texture* FromFile(_In_ const char *path, _In_opt_ TextureCreationOptions *config = nullptr);
 
 		/* Gets the name assigned to the texture. */
 		_Check_return_ inline const char* GetName(void) const
@@ -48,7 +49,7 @@ namespace Plutonium
 		/* Get the amount of channels stored in the texture. */
 		_Check_return_ int32 GetChannels(void) const;
 		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
-		void SetData(_In_ byte *data);
+		void SetData(_In_ byte *data, _In_opt_ TextureCreationOptions *config = nullptr);
 		/* Gets a copy of the data specified for the texture (requires free!). */
 		_Check_return_ byte* GetData(void) const;
 		/* Saves the tetxure as a specified file. */
@@ -67,6 +68,6 @@ namespace Plutonium
 
 		void Dispose(void);
 		void SetFormat(uint32 channels);
-		void GenerateTexture(const void *data);
+		void GenerateTexture(const void *data, TextureCreationOptions *config);
 	};
 }

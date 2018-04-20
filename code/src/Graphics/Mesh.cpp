@@ -1,5 +1,5 @@
 #include "Graphics\Mesh.h"
-#include "Graphics\Models\ObjLoader.h"
+#include "Content\ObjLoader.h"
 #include "Graphics\Portals\PobjLoader.h"
 #include "Graphics\Models\Md2Loader.h"
 #include "Core\SafeMemory.h"
@@ -66,46 +66,38 @@ VertexFormat & Plutonium::Mesh::GetVertexAt(size_t idx) const
 	return vertices[idx];
 }
 
+void Plutonium::Mesh::Append(Mesh * other)
+{
+	/* Check for correct use. */
+	ASSERT_IF(buffer, "Attempting to append to finalized mesh!");
+	ASSERT_IF(other->buffer, "Cannot append finalized mesh into mesh!");
+
+	/* Ensure buffer size. */
+	size_t start = vrtxCnt;
+	SetBufferSize(vrtxCnt + other->vrtxCnt);
+
+	/* Copy over vertices. */
+	for (size_t i = 0, j = start; i < other->vrtxCnt; i++, j++) vertices[j] = other->vertices[i];
+}
+
 Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 {
-	/* Get current shape. */
-	shape_t shape = buffer->Shapes.at(idx);
+	/* Get desired shape. */
+	const ObjLoaderMesh &mesh = buffer->Shapes.at(idx);
 
-	/* Define result. */
-	Mesh *result = new Mesh(shape.name.c_str());
-
-	/* Allocate buffers. */
-	result->vrtxCnt = shape.mesh.indices.size();
+	/* Create result and allocate memory. */
+	Mesh *result = new Mesh(mesh.Name);
+	result->vrtxCnt = mesh.Indices.size();
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
-	/* Copy vertices to buffer. */
-	for (size_t i = 0, start = 0; i < shape.mesh.num_face_vertices.size(); i++)
+	/* Copy vertices. */
+	for (size_t i = 0; i < mesh.Indices.size(); i++)
 	{
-		size_t verticesInFace = shape.mesh.num_face_vertices.at(i);
+		const ObjLoaderVertex &idx = mesh.Indices.at(i);
 
-		/* Loop through vertices in current face. */
-		for (size_t j = 0; j < verticesInFace; j++)
-		{
-			size_t k = start + j;
-			index_t idx = shape.mesh.indices.at(k);
-
-			/* Copy over current vertex. */
-			VertexFormat format;
-			format.Position.X = buffer->Vertices.vertices.at(3 * idx.vertex_index);
-			format.Position.Y = buffer->Vertices.vertices.at(3 * idx.vertex_index + 1);
-			format.Position.Z = buffer->Vertices.vertices.at(3 * idx.vertex_index + 2);
-			format.Normal.X = buffer->Vertices.normals.at(3 * idx.normal_index);
-			format.Normal.Y = buffer->Vertices.normals.at(3 * idx.normal_index + 1);
-			format.Normal.Z = buffer->Vertices.normals.at(3 * idx.normal_index + 2);
-			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
-			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
-
-			/* Push vertex to buffer  */
-			result->vertices[k] = format;
-		}
-
-		/* Add the offset to the start. */
-		start += verticesInFace;
+		result->vertices[i].Position = buffer->Vertices.at(idx.Vertex);
+		result->vertices[i].Normal = buffer->Normals.at(idx.Normal);
+		result->vertices[i].Texture = buffer->TexCoords.at(idx.TexCoord);
 	}
 
 	return result;
@@ -127,7 +119,7 @@ Mesh * Plutonium::Mesh::RFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 	for (size_t i = 0, start = 0; i < shape.mesh.num_face_vertices.size(); i++)
 	{
 		size_t verticesInFace = shape.mesh.num_face_vertices.at(i);
-		
+
 		/* Loop through vertices in current face. */
 		for (size_t j = 0; j < verticesInFace; j++)
 		{
@@ -169,7 +161,7 @@ Mesh * Plutonium::Mesh::PFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
 	/* Copy vertices to buffer. */
-	for (size_t i = 0; i < portal.vertices.size();i++)
+	for (size_t i = 0; i < portal.vertices.size(); i++)
 	{
 		int idx = portal.vertices.at(i);
 

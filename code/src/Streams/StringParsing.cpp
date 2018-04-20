@@ -62,7 +62,7 @@ bool Plutonium::tryParseFloat(const char * string, const char * stringEnd, float
 			constexpr float pow_lut[] = { 1.0f, 0.1f, 0.01f, 0.001f, 0.0001f, 0.00001f, 0.000001f, 0.0000001f };
 			constexpr size_t lut_entries = sizeof(pow_lut) / sizeof(float);
 
-			mantissa += static_cast<int32>(*cur - 0x30) * (read < lut_entries ? pow_lut[read] : powf(10.0f, -read));
+			mantissa += static_cast<int32>(*cur - 0x30) * (read < lut_entries ? pow_lut[read] : powf(10.0f, -static_cast<float>(read)));
 		}
 	}
 
@@ -95,6 +95,6 @@ bool Plutonium::tryParseFloat(const char * string, const char * stringEnd, float
 	}
 
 	/* Assemble result. */
-	*result = (sign == '+' ? 1.0f : -1.0f) * (exponent ? ldexpf(mantissa * powf(5.0f, exponent), exponent) : mantissa);
+	*result = (sign == '+' ? 1.0f : -1.0f) * (exponent ? ldexpf(mantissa * powf(5.0f, exponent), static_cast<int>(exponent)) : mantissa);
 	return true;
 }

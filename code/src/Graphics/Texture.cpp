@@ -9,6 +9,7 @@
 #include "Core\Math\Basics.h"
 #include "Core\SafeMemory.h"
 #include "Core\Diagnostics\StackTrace.h"
+#include "Core\EnumUtils.h"
 #include "Graphics\Diagnostics\DeviceInfo.h"
 #include <glad\glad.h>
 #include <stb\stb_image.h>
@@ -35,7 +36,7 @@ Plutonium::Texture::~Texture(void)
 	if (ptr) Dispose();
 }
 
-Texture * Plutonium::Texture::FromFile(const char * path)
+Texture * Plutonium::Texture::FromFile(const char * path, TextureCreationOptions * config)
 {
 	FileReader reader(path, true);
 
@@ -53,7 +54,7 @@ Texture * Plutonium::Texture::FromFile(const char * path)
 	result->name = reader.GetFileName();
 
 	/* Load data into texture and return result. */
-	result->GenerateTexture(void_ptr(data));
+	result->GenerateTexture(void_ptr(data), config);
 	stbi_image_free(data);
 
 	return result;
@@ -72,13 +73,13 @@ int32 Plutonium::Texture::GetChannels(void) const
 	}
 }
 
-void Plutonium::Texture::SetData(byte * data)
+void Plutonium::Texture::SetData(byte * data, TextureCreationOptions * config)
 {
 	/* Delete old texture if needed. */
 	if (ptr) Dispose();
 
 	/* Generate new texture. */
-	GenerateTexture(void_ptr(data));
+	GenerateTexture(void_ptr(data), config);
 }
 
 byte * Plutonium::Texture::GetData(void) const
@@ -150,8 +151,15 @@ void Plutonium::Texture::SetFormat(uint32 channels)
 	}
 }
 
-void Plutonium::Texture::GenerateTexture(const void * data)
+void Plutonium::Texture::GenerateTexture(const void * data, TextureCreationOptions *config)
 {
+	/* Set options to default options if needed. */
+	if (!config)
+	{
+		TextureCreationOptions defaultOpt;
+		config = &defaultOpt;
+	}
+
 	/* Generate storage and bind texture. */
 	glGenTextures(1, &ptr);
 	glBindTexture(GL_TEXTURE_2D, ptr);
@@ -165,8 +173,8 @@ void Plutonium::Texture::GenerateTexture(const void * data)
 	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);
 
 	/* Set texture use parameters. */
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _CrtEnum2Int(config->HorizontalWrap));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _CrtEnum2Int(config->VerticalWrap));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 

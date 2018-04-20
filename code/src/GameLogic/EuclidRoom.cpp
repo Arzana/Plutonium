@@ -1,6 +1,5 @@
 #include "GameLogic\EuclidRoom.h"
 #include "Streams\FileReader.h"
-#include "Graphics\Models\ObjLoader.h"
 #include "Graphics\Portals\PobjLoader.h"
 #include "Core\StringFunctions.h"
 
@@ -14,6 +13,7 @@ Plutonium::EuclidRoom::~EuclidRoom(void)
 	while (shapes.size() > 0)
 	{
 		Shape *cur = shapes.back();
+		delete_s(cur->MaterialName);
 		delete_s(cur->Mesh);
 		delete_s(cur->Material);
 		delete_s(cur);
@@ -68,7 +68,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 			Mesh *mesh = Mesh::RFromFile(raw, i, j);
 
 			/* Get correct material. */
-			tinyobj::material_t mtl = shape.mesh.material_ids.at(0) != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
+			tinyobj::material_t mtl = shape.mesh.material_ids.at(0) != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : tinyobj::material_t();
 			if (mtl.diffuse_texname.length())
 			{
 				char mtlPath[FILENAME_MAX];
@@ -76,7 +76,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 				Texture *texture = Texture::FromFile(mtlPath);
 
 				/* Add shape to the model. */
-				cur->shapes.push_back(new Shape(mesh, texture));
+				cur->shapes.push_back(new Shape(mtl.name.c_str(), mesh, texture));
 			}
 			else LOG_WAR("Skipping mesh '%s', material '%s'(%zu), diffuse texture not specified!", mesh->Name, mtl.name.c_str(), shape.mesh.material_ids.at(0));
 		}

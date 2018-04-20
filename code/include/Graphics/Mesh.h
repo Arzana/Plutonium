@@ -34,15 +34,17 @@ namespace Plutonium
 		{
 			return buffer;
 		}
-		/* Makes sure the vertex buffer is of a specified size. */
-		void SetBufferSize(_In_ size_t size);
-		/* Gets a vertex at a specified position. */
-		_Check_return_ VertexFormat& GetVertexAt(_In_ size_t idx) const;
 		/* Gets the amount of vertices stored by the mesh. */
 		_Check_return_ inline size_t GetVertexCount(void) const
 		{
 			return vrtxCnt;
 		}
+		/* Makes sure the vertex buffer is of a specified size. */
+		void SetBufferSize(_In_ size_t size);
+		/* Gets a vertex at a specified position. */
+		_Check_return_ VertexFormat& GetVertexAt(_In_ size_t idx) const;
+		/* Merges a second mesh into this mesh. */
+		void Append(_In_ Mesh *other);
 
 	private:
 		friend struct StaticModel;

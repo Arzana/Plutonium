@@ -1,4 +1,4 @@
-#include "Content\ObjLoader2.h"
+#include "Content\ObjLoader.h"
 #include "Streams\FileReader.h"
 #include "Streams\StringParsing.h"
 #include "Core\SafeMemory.h"
@@ -14,7 +14,7 @@ https://github.com/syoyo/tinyobjloader
 using namespace Plutonium;
 using namespace std;
 
-void LoadMaterialLibraryFromFile(const char*, const char*, ObjLoaderResult2*);
+void LoadMaterialLibraryFromFile(const char*, const char*, ObjLoaderResult*);
 
 #pragma region Constructors
 Plutonium::ObjLoaderVertex::ObjLoaderVertex(void)
@@ -25,6 +25,73 @@ Plutonium::ObjLoaderMesh::ObjLoaderMesh(void)
 	: Name(""), Indices(), Material(-1), SmoothingGroups()
 {}
 
+Plutonium::ObjLoaderMesh::ObjLoaderMesh(const ObjLoaderMesh & value)
+	: Name(""), Indices(), Material(value.Material), SmoothingGroups()
+{
+	if (strlen(value.Name) > 0) Name = heapstr(value.Name);
+
+	Indices = std::vector<ObjLoaderVertex>(value.Indices);
+	SmoothingGroups = std::vector<uint64>(value.SmoothingGroups);
+}
+
+Plutonium::ObjLoaderMesh::ObjLoaderMesh(ObjLoaderMesh && value)
+{
+	Name = value.Name;
+	Indices = std::move(value.Indices);
+	Material = value.Material;
+	SmoothingGroups = std::move(value.SmoothingGroups);
+
+	value.Name = "";
+	value.Indices = std::vector<ObjLoaderVertex>();
+	value.Material = -1;
+	value.SmoothingGroups = std::vector<uint64>();
+}
+
+Plutonium::ObjLoaderMesh::~ObjLoaderMesh(void)
+{
+	if (strlen(Name) > 0) free_s(Name);
+}
+
+ObjLoaderMesh & Plutonium::ObjLoaderMesh::operator=(const ObjLoaderMesh & other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Name) > 0) free_s(Name);
+
+		/* Copy over data. */
+		if (strlen(other.Name)) Name = heapstr(other.Name);
+		Indices = std::vector<ObjLoaderVertex>(other.Indices);
+		Material = other.Material;
+		SmoothingGroups = std::vector<uint64>(other.SmoothingGroups);
+	}
+
+	return *this;
+}
+
+ObjLoaderMesh & Plutonium::ObjLoaderMesh::operator=(ObjLoaderMesh && other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Name) > 0) free_s(Name);
+
+		/* Move over data. */
+		Name = other.Name;
+		Indices = std::move(other.Indices);
+		Material = other.Material;
+		SmoothingGroups = std::move(other.SmoothingGroups);
+
+		/* Clear moved data. */
+		other.Name = "";
+		other.Indices = std::vector<ObjLoaderVertex>();
+		other.Material = -1;
+		other.SmoothingGroups = std::vector<uint64>();
+	}
+
+	return *this;
+}
+
 Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(bool isBump)
 	: Path(""), Type(ObjLoaderMapType::None),
 	Sharpness(1.0f), Brightness(0.0f), Contrast(1.0f),
@@ -32,6 +99,116 @@ Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(bool isBump)
 	BlendH(true), BlendV(true),
 	ScalarOrBumpChannel(isBump ? ObjLoaderChannel::Luminance : ObjLoaderChannel::Matte), BumpMod(1.0f)
 {}
+
+Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(const ObjLoaderTextureMap & value)
+	: Path(""), Type(value.Type),
+	Sharpness(value.Sharpness), Brightness(value.Brightness), Contrast(value.Contrast),
+	Origin(value.Origin), Scale(value.Scale), Turbulence(value.Turbulence), ClampedCoords(value.ClampedCoords),
+	BlendH(value.BlendH), BlendV(value.BlendV), ScalarOrBumpChannel(value.ScalarOrBumpChannel)
+{
+	if (strlen(value.Path) > 0) Path = heapstr(value.Path);
+}
+
+Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(ObjLoaderTextureMap && value)
+{
+	Path = value.Path;
+	Type = value.Type;
+	Sharpness = value.Sharpness;
+	Brightness = value.Brightness;
+	Contrast = value.Contrast;
+	Origin = value.Origin;
+	Scale = value.Scale;
+	Turbulence = value.Turbulence;
+	ClampedCoords = value.ClampedCoords;
+	BlendH = value.BlendH;
+	BlendV = value.BlendV;
+	ScalarOrBumpChannel = value.ScalarOrBumpChannel;
+	BumpMod = value.BumpMod;
+
+	value.Path = "";
+	value.Type = ObjLoaderMapType::None;
+	value.Sharpness = 1.0f;
+	value.Brightness = 0.0f;
+	value.Contrast = 1.0f;
+	value.Origin = Vector3::Zero;
+	value.Scale = Vector3::One;
+	value.ClampedCoords = false;
+	value.BlendH = true;
+	value.BlendV = true;
+	value.ScalarOrBumpChannel = ObjLoaderChannel::Matte;
+	value.BumpMod = 1.0f;
+}
+
+Plutonium::ObjLoaderTextureMap::~ObjLoaderTextureMap(void)
+{
+	if (strlen(Path) > 0) free_s(Path);
+}
+
+ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(const ObjLoaderTextureMap & other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Path) > 0) free_s(Path);
+
+		/* Copy over new data. */
+		Path = strlen(other.Path) > 0 ? heapstr(other.Path) : "";
+		Type = other.Type;
+		Sharpness = other.Sharpness;
+		Brightness = other.Brightness;
+		Contrast = other.Contrast;
+		Origin = other.Origin;
+		Scale = other.Scale;
+		Turbulence = other.Turbulence;
+		ClampedCoords = other.ClampedCoords;
+		BlendH = other.BlendH;
+		BlendV = other.BlendV;
+		ScalarOrBumpChannel = other.ScalarOrBumpChannel;
+		BumpMod = other.BumpMod;
+	}
+
+	return *this;
+}
+
+ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(ObjLoaderTextureMap && other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Path) > 0) free_s(Path);
+
+		/* Move over data. */
+		Path = other.Path;
+		Type = other.Type;
+		Sharpness = other.Sharpness;
+		Brightness = other.Brightness;
+		Contrast = other.Contrast;
+		Origin = other.Origin;
+		Scale = other.Scale;
+		Turbulence = other.Turbulence;
+		ClampedCoords = other.ClampedCoords;
+		BlendH = other.BlendH;
+		BlendV = other.BlendV;
+		ScalarOrBumpChannel = other.ScalarOrBumpChannel;
+		BumpMod = other.BumpMod;
+
+		/* Reset old data. */
+		other.Path = "";
+		other.Type = ObjLoaderMapType::None;
+		other.Sharpness = 1.0f;
+		other.Brightness = 0.0f;
+		other.Contrast = 1.0f;
+		other.Origin = Vector3::Zero;
+		other.Scale = Vector3::One;
+		other.ClampedCoords = false;
+		other.BlendH = true;
+		other.BlendV = true;
+		other.ScalarOrBumpChannel = ObjLoaderChannel::Matte;
+		other.BumpMod = 1.0f;
+	}
+
+	return *this;
+}
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	: Name(""),
@@ -41,7 +218,123 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
 {}
 
-Plutonium::ObjLoaderResult2::ObjLoaderResult2(void)
+Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(const ObjLoaderMaterial & value)
+	: Name(""),
+	Ambient(value.Ambient), Diffuse(value.Diffuse), Specular(value.Specular),
+	Transmittance(value.Transmittance), HighlightExponent(value.HighlightExponent), OpticalDensity(value.OpticalDensity), Dissolve(value.Dissolve),
+	AmbientMap(value.AmbientMap), DiffuseMap(value.DiffuseMap), SpecularMap(value.SpecularMap), HighlightMap(value.HighlightMap),
+	BumpMap(value.BumpMap), DisplacementMap(value.DisplacementMap), AlphaMap(value.AlphaMap), ReflectionMap(value.ReflectionMap)
+{
+	if (strlen(value.Name) > 0) Name = heapstr(value.Name);
+}
+
+Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
+	: AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
+	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
+{
+	/* Move over data. */
+	Name = value.Name;
+	Ambient = value.Ambient;
+	Diffuse = value.Diffuse;
+	Specular = value.Specular;
+	Transmittance = value.Transmittance;
+	HighlightExponent = value.HighlightExponent;
+	OpticalDensity = value.OpticalDensity;
+	Dissolve = value.Dissolve;
+	AmbientMap = std::move(value.AmbientMap);
+	DiffuseMap = std::move(value.DiffuseMap);
+	SpecularMap = std::move(value.SpecularMap);
+	HighlightMap = std::move(value.HighlightMap);
+	BumpMap = std::move(value.BumpMap);
+	DisplacementMap = std::move(value.DisplacementMap);
+	AlphaMap = std::move(value.AlphaMap);
+	ReflectionMap = std::move(value.ReflectionMap);
+
+	/* Reset old data. */
+	value.Name = "";
+	value.Ambient = Color::Black;
+	value.Diffuse = Color::Black;
+	value.Specular = Color::Black;
+	value.Transmittance = Color::Black;
+	value.HighlightExponent = 1.0f;
+	value.OpticalDensity = 1.0f;
+	value.Dissolve = 1.0f;
+}
+
+Plutonium::ObjLoaderMaterial::~ObjLoaderMaterial(void)
+{
+	if (strlen(Name) > 0) free_s(Name);
+}
+
+ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(const ObjLoaderMaterial & other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Name) > 0) free_s(Name);
+
+		/* Copy over new data. */
+		Name = strlen(other.Name) > 0 ? heapstr(other.Name) : "";
+		Ambient = other.Ambient;
+		Diffuse = other.Diffuse;
+		Specular = other.Specular;
+		Transmittance = other.Transmittance;
+		HighlightExponent = other.HighlightExponent;
+		OpticalDensity = other.OpticalDensity;
+		Dissolve = other.Dissolve;
+		AmbientMap = other.AmbientMap;
+		DiffuseMap = other.DiffuseMap;
+		SpecularMap = other.SpecularMap;
+		HighlightMap = other.HighlightMap;
+		BumpMap = other.BumpMap;
+		DisplacementMap = other.DisplacementMap;
+		AlphaMap = other.AlphaMap;
+		ReflectionMap = other.ReflectionMap;
+	}
+
+	return *this;
+}
+
+ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial && other)
+{
+	if (this != &other)
+	{
+		/* Release old data. */
+		if (strlen(Name) > 0) free_s(Name);
+
+		/* Move over new data. */
+		Name = other.Name;
+		Ambient = other.Ambient;
+		Diffuse = other.Diffuse;
+		Specular = other.Specular;
+		Transmittance = other.Transmittance;
+		HighlightExponent = other.HighlightExponent;
+		OpticalDensity = other.OpticalDensity;
+		Dissolve = other.Dissolve;
+		AmbientMap = std::move(other.AmbientMap);
+		DiffuseMap = std::move(other.DiffuseMap);
+		SpecularMap = std::move(other.SpecularMap);
+		HighlightMap = std::move(other.HighlightMap);
+		BumpMap = std::move(other.BumpMap);
+		DisplacementMap = std::move(other.DisplacementMap);
+		AlphaMap = std::move(other.AlphaMap);
+		ReflectionMap = std::move(other.ReflectionMap);
+
+		/* Reset old data. */
+		other.Name = "";
+		other.Ambient = Color::Black;
+		other.Diffuse = Color::Black;
+		other.Specular = Color::Black;
+		other.Transmittance = Color::Black;
+		other.HighlightExponent = 1.0f;
+		other.OpticalDensity = 1.0f;
+		other.Dissolve = 1.0f;
+	}
+
+	return *this;
+}
+
+Plutonium::ObjLoaderResult::ObjLoaderResult(void)
 	: Vertices(), Normals(), TexCoords(), Shapes(), Materials()
 {}
 #pragma endregion
@@ -72,7 +365,7 @@ bool ParseOnOff(const char **line, bool def = true)
 	if (!strncmp(*line, "on", 2)) result = true;
 	else if (!strncmp(*line, "off", 3)) result = false;
 
-	/* Increase line position and return result. */ 
+	/* Increase line position and return result. */
 	*line = end;
 	return result;
 }
@@ -230,12 +523,16 @@ bool TryParseTriple(const char **line, size_t vSize, size_t vnSize, size_t vtSiz
 	return true;
 }
 
-void TriangulateQuad(ObjLoaderResult2 *result, std::vector<ObjLoaderVertex> *vertices)
+void TriangulateQuad(ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vertices)
 {
 	/* On debug mode check for valid inputs. */
 #if defined (DEBUG)
 	LOG_THROW_IF(vertices->size() != 4, "Input is not a valid quad, %zu vertices!", vertices->size());
-	for (size_t i = 0; i < vertices->size(); i++) LOG_THROW_IF(vertices->at(i).Vertex >= result->Vertices.size(), "Input vertex is not defined!");
+	for (size_t i = 0; i < vertices->size(); i++)
+	{
+		int64 j = vertices->at(i).Vertex;
+		LOG_THROW_IF(j == -1 || static_cast<size_t>(j) >= result->Vertices.size(), "Input vertex index (%d) is not defined!", j);
+	}
 #endif
 
 	/* Get indices. */
@@ -285,25 +582,25 @@ void TriangulateQuad(ObjLoaderResult2 *result, std::vector<ObjLoaderVertex> *ver
 
 #pragma region Obj Line handling
 /* Handles the vertex line. */
-inline void HandleVertexLine(const char *line, ObjLoaderResult2 *result)
+inline void HandleVertexLine(const char *line, ObjLoaderResult *result)
 {
 	result->Vertices.push_back(ParseFloat3(&line));
 }
 
 /* Handles the normal line. */
-inline void HandleNormalLine(const char *line, ObjLoaderResult2 *result)
+inline void HandleNormalLine(const char *line, ObjLoaderResult *result)
 {
 	result->Normals.push_back(ParseFloat3(&line));
 }
 
 /* Handles the texture coordinate line. */
-inline void HandleTexCoordLine(const char *line, ObjLoaderResult2 *result)
+inline void HandleTexCoordLine(const char *line, ObjLoaderResult *result)
 {
 	result->TexCoords.push_back(ParseFloat2(&line));
 }
 
 /* Handles the face line. */
-inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh, uint64 smoothingGroup)
+inline void HandleFaceLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh, uint64 smoothingGroup)
 {
 	/* Skip leading spaces. */
 	SkipUseless(&line);
@@ -318,7 +615,7 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoader
 
 	/* Read untill no more faces are found. */
 	std::vector<ObjLoaderVertex> face;
-	while(!IS_NEWLINE(line[0]))
+	while (!IS_NEWLINE(line[0]))
 	{
 		/* Try parse the value and throw is failed (file corrupt). */
 		ObjLoaderVertex vi;
@@ -344,7 +641,7 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult2 *result, ObjLoader
 }
 
 /* Handles the use material line. */
-inline void HandleUseMaterialLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh)
+inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh)
 {
 	/* Search for the material in the defined list. */
 	for (size_t i = 0; i < result->Materials.size(); i++)
@@ -362,7 +659,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult2 *result, Ob
 }
 
 /* Handles the load material line. */
-inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderResult2 *result)
+inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderResult *result)
 {
 	/* Create buffer space for a maximum of 16 files. */
 	constexpr size_t BUFFER_LEN = 16;
@@ -382,7 +679,7 @@ inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderR
 }
 
 /* Handles the group name line. */
-void HandleGroupNameLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh)
+void HandleGroupNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh)
 {
 	/* Add old shape if needed. */
 	if (strlen(curMesh->Name) > 0)
@@ -399,7 +696,7 @@ void HandleGroupNameLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMe
 }
 
 /* Handles the object name line. */
-void HandleObjectNameLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh)
+void HandleObjectNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh)
 {
 	/* Add old shape if needed. */
 	if (strlen(curMesh->Name) > 0)
@@ -444,7 +741,7 @@ void HandleSmoothingGroupLine(const char *line, uint64 *smoothingGroup)
 }
 
 /* Handles the raw line within an obj file. */
-void HandleObjLine(const char *line, const char *dir, ObjLoaderResult2 *result, ObjLoaderMesh *curMesh, uint64 *smoothingGroup)
+void HandleObjLine(const char *line, const char *dir, ObjLoaderResult *result, ObjLoaderMesh *curMesh, uint64 *smoothingGroup)
 {
 	/* Skip leading spaces. */
 	SkipUseless(&line);
@@ -521,7 +818,7 @@ void HandleObjLine(const char *line, const char *dir, ObjLoaderResult2 *result, 
 
 #pragma region Mtl Line handling
 /* Handles the new material line. */
-inline void HandleNewMaterialLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMaterial *curMaterial)
+inline void HandleNewMaterialLine(const char *line, ObjLoaderResult *result, ObjLoaderMaterial *curMaterial)
 {
 	/* Push old material if needed. */
 	if (strlen(curMaterial->Name) > 0)
@@ -583,7 +880,7 @@ inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial *curMa
 }
 
 /* Handles the ambient texture line. */
-inline void HandleTextureLine(const char *line, ObjLoaderTextureMap *curTexture, bool isBump)
+inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextureMap *curTexture, bool isBump)
 {
 	/* Reset texture map values. */
 	*curTexture = ObjLoaderTextureMap(isBump);
@@ -684,15 +981,16 @@ inline void HandleTextureLine(const char *line, ObjLoaderTextureMap *curTexture,
 		}
 
 		/* Assume texture path. */
-		curTexture->Path = heapstr(line);
-		line += strlen(curTexture->Path);
+		curTexture->Path = malloc_s(char, FILENAME_MAX);
+		mrgstr(dir, line, const_cast<char*>(curTexture->Path));
+		line += strlen(line);
 	}
 
 	LOG_THROW_IF(strlen(curTexture->Path) < 1, "Texture defines no path!");
 }
 
 /* Handles the raw line of a mtl file. */
-void HandleMtlLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMaterial *curMaterial, bool *hasd, bool *hastr)
+void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, ObjLoaderMaterial *curMaterial, bool *hasd, bool *hastr)
 {
 	/* Skip leading spaces. */
 	SkipUseless(&line);
@@ -762,7 +1060,7 @@ void HandleMtlLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMaterial
 	}
 
 	/* Check if line is inverse dissolve. */
-	if (line[0] == 'T' && line[1] == 'r' && IS_SPACE(line[2])) 
+	if (line[0] == 'T' && line[1] == 'r' && IS_SPACE(line[2]))
 	{
 		if (*hasd) LOG_WAR("Both 'd' and 'Tr' are defined withing material '%s', using value of 'd' for dissolve!", curMaterial->Name);
 		else
@@ -777,63 +1075,63 @@ void HandleMtlLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMaterial
 	/* Check if line is ambient tex line. */
 	if (!strncmp(line, "map_Ka", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 7, &curMaterial->AmbientMap, false);
+		HandleTextureLine(line + 7, dir, &curMaterial->AmbientMap, false);
 		return;
 	}
 
 	/* Check if line is diffuse tex line. */
 	if (!strncmp(line, "map_Kd", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 7, &curMaterial->DiffuseMap, false);
+		HandleTextureLine(line + 7, dir, &curMaterial->DiffuseMap, false);
 		return;
 	}
 
 	/* Check if line is specular tex line. */
 	if (!strncmp(line, "map_Ks", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 7, &curMaterial->SpecularMap, false);
+		HandleTextureLine(line + 7, dir, &curMaterial->SpecularMap, false);
 		return;
 	}
 
 	/* Check if line is specular highlight tex line. */
 	if (!strncmp(line, "map_Ns", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 7, &curMaterial->HighlightMap, false);
+		HandleTextureLine(line + 7, dir, &curMaterial->HighlightMap, false);
 		return;
 	}
 
 	/* Check if line is bump tex line. */
 	if ((!strncmp(line, "map_Bump", 8) || !strncmp(line, "map_bump", 8)) && IS_SPACE(line[8]))
 	{
-		HandleTextureLine(line + 9, &curMaterial->BumpMap, true);
+		HandleTextureLine(line + 9, dir, &curMaterial->BumpMap, true);
 		return;
 	}
 
 	/* Check if line is bump tex line. */
 	if (!strncmp(line, "bump", 4) && IS_SPACE(line[4]))
 	{
-		HandleTextureLine(line + 5, &curMaterial->BumpMap, true);
+		HandleTextureLine(line + 5, dir, &curMaterial->BumpMap, true);
 		return;
 	}
 
 	/* Check if line is alpha tex line. */
 	if (!strncmp(line, "map_d", 5) && IS_SPACE(line[5]))
 	{
-		HandleTextureLine(line + 6, &curMaterial->AlphaMap, true);
+		HandleTextureLine(line + 6, dir, &curMaterial->AlphaMap, true);
 		return;
 	}
 
 	/* Check if line is displacement tex line. */
 	if (!strncmp(line, "disp", 4) && IS_SPACE(line[4]))
 	{
-		HandleTextureLine(line + 5, &curMaterial->DisplacementMap, true);
+		HandleTextureLine(line + 5, dir, &curMaterial->DisplacementMap, true);
 		return;
 	}
 
 	/* Check if line is reflection tex line. */
 	if (!strncmp(line, "refl", 4) && IS_SPACE(line[4]))
 	{
-		HandleTextureLine(line + 5, &curMaterial->ReflectionMap, true);
+		HandleTextureLine(line + 5, dir, &curMaterial->ReflectionMap, true);
 		return;
 	}
 
@@ -842,7 +1140,7 @@ void HandleMtlLine(const char *line, ObjLoaderResult2 *result, ObjLoaderMaterial
 #pragma endregion
 
 #pragma region Loading
-void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderResult2 *result)
+void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderResult *result)
 {
 	/* Create reader to the file. */
 	char *path = malloca_s(char, FILENAME_MAX);
@@ -859,7 +1157,7 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 		const char *line = reader.ReadLine();
 
 		/* Only handle line if it's not an empty line. */
-		if (strlen(line) > 0) HandleMtlLine(line, result, &material, &hasd, &hastr);
+		if (strlen(line) > 0) HandleMtlLine(line, dir, result, &material, &hasd, &hastr);
 		free_s(line);
 	}
 
@@ -868,10 +1166,10 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 	freea_s(path);
 }
 
-const ObjLoaderResult2 * Plutonium::_CrtLoadObjMtl2(const char * path)
+const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 {
 	/* Setup input and open obj file. */
-	ObjLoaderResult2 *result = new ObjLoaderResult2();
+	ObjLoaderResult *result = new ObjLoaderResult();
 	FileReader reader(path);
 
 	/* Defines current mesh and smoothing group. */

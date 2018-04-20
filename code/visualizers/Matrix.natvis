@@ -5,16 +5,16 @@
     <DisplayString>[{c1} {c2} {c3} {c4}]</DisplayString>
     <Expand>
       <Synthetic Name=" ">
-        <DisplayString>| {(int)c1.X}.{((int)(c1.X * 10.0f)) % 10}{((int)(c1.X * 100.0f)) % 10}{((int)(c1.X * 1000.0f)) % 10}, {(int)c2.X}.{((int)(c2.X * 10.0f)) % 10}{((int)(c2.X * 100.0f)) % 10}{((int)(c2.X * 1000.0f)) % 10}, {(int)c3.X}.{((int)(c3.X * 10.0f)) % 10}{((int)(c3.X * 100.0f)) % 10}{((int)(c3.X * 1000.0f)) % 10}, {(int)c4.X}.{((int)(c4.X * 10.0f)) % 10}{((int)(c4.X * 100.0f)) % 10}{((int)(c4.X * 1000.0f)) % 10} |</DisplayString>
+        <DisplayString>| {c1.X}, {c2.X}, {c3.X}, {c4.X} |</DisplayString>
       </Synthetic>
       <Synthetic Name=" ">
-        <DisplayString>| {(int)c1.Y}.{((int)(c1.Y * 10.0f)) % 10}{((int)(c1.Y * 100.0f)) % 10}{((int)(c1.Y * 1000.0f)) % 10}, {(int)c2.Y}.{((int)(c2.Y * 10.0f)) % 10}{((int)(c2.Y * 100.0f)) % 10}{((int)(c2.Y * 1000.0f)) % 10}, {(int)c3.Y}.{((int)(c3.Y * 10.0f)) % 10}{((int)(c3.Y * 100.0f)) % 10}{((int)(c3.Y * 1000.0f)) % 10}, {(int)c4.Y}.{((int)(c4.Y * 10.0f)) % 10}{((int)(c4.Y * 100.0f)) % 10}{((int)(c4.Y * 1000.0f)) % 10} |</DisplayString>
+        <DisplayString>| {c1.Y}, {c2.Y}, {c3.Y}, {c4.Y} |</DisplayString>
       </Synthetic>
       <Synthetic Name=" ">
-        <DisplayString>| {(int)c1.Z}.{((int)(c1.Z * 10.0f)) % 10}{((int)(c1.Z * 100.0f)) % 10}{((int)(c1.Z * 1000.0f)) % 10}, {(int)c2.Z}.{((int)(c2.Z * 10.0f)) % 10}{((int)(c2.Z * 100.0f)) % 10}{((int)(c2.Z * 1000.0f)) % 10}, {(int)c3.Z}.{((int)(c3.Z * 10.0f)) % 10}{((int)(c3.Z * 100.0f)) % 10}{((int)(c3.Z * 1000.0f)) % 10}, {(int)c4.Z}.{((int)(c4.Z * 10.0f)) % 10}{((int)(c4.Z * 100.0f)) % 10}{((int)(c4.Z * 1000.0f)) % 10} |</DisplayString>
+        <DisplayString>| {c1.Z}, {c2.Z}, {c3.Z}, {c4.Z} |</DisplayString>
       </Synthetic>
       <Synthetic Name=" ">
-        <DisplayString>| {(int)c1.W}.{((int)(c1.W * 10.0f)) % 10}{((int)(c1.W * 100.0f)) % 10}{((int)(c1.W * 1000.0f)) % 10}, {(int)c2.W}.{((int)(c2.W * 10.0f)) % 10}{((int)(c2.W * 100.0f)) % 10}{((int)(c2.W * 1000.0f)) % 10}, {(int)c3.W}.{((int)(c3.W * 10.0f)) % 10}{((int)(c3.W * 100.0f)) % 10}{((int)(c3.W * 1000.0f)) % 10}, {(int)c4.W}.{((int)(c4.W * 10.0f)) % 10}{((int)(c4.W * 100.0f)) % 10}{((int)(c4.W * 1000.0f)) % 10} |</DisplayString>
+        <DisplayString>| {c1.W}, {c2.W}, {c3.W}, {c4.W} |</DisplayString>
       </Synthetic>
     </Expand>
   </Type>

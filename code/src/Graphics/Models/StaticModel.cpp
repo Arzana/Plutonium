@@ -1,5 +1,5 @@
 #include "Graphics\Models\StaticModel.h"
-#include "Graphics\Models\ObjLoader.h"
+#include "Content\ObjLoader.h"
 #include "Streams\FileReader.h"
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
@@ -12,6 +12,7 @@ Plutonium::StaticModel::~StaticModel(void)
 	while (shapes.size() > 0)
 	{
 		Shape *cur = shapes.back();
+		delete_s(cur->MaterialName);
 		delete_s(cur->Mesh);
 		delete_s(cur->Material);
 		delete_s(cur);
@@ -25,41 +26,37 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 	FileReader reader(path, true);
 	const ObjLoaderResult *raw = _CrtLoadObjMtl(path);
 
-	/* Check if file load has been successful. */
-	if (!raw->Successful)
-	{
-		LOG_WAR("TinyObj loading log:\n%s", raw->Log);
-		LOG_THROW("Unable to load model '%s'!", reader.GetFileName());
-		delete_s(raw);
-		return nullptr;
-	}
-
-	StaticModel *result = new StaticModel();
-
 	/* Load individual shapes. */
+	StaticModel *result = new StaticModel();
 	for (size_t i = 0; i < raw->Shapes.size(); i++)
 	{
-		tinyobj::shape_t shape = raw->Shapes.at(i);
+		/* Get current mesh and associated material. */
+		const ObjLoaderMesh &shape = raw->Shapes.at(i);
+		const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
 
-		/* Load mesh. */
-		Mesh *mesh = Mesh::FromFile(raw, i);
-
-		/* Get correct material. */
-		tinyobj::material_t mtl = shape.mesh.material_ids.at(0) != -1 ? raw->Materials.at(static_cast<size_t>(shape.mesh.material_ids.at(0))) : _CrtGetDefMtl();
-		if (mtl.diffuse_texname.length())
+		/* Create final mesh and texture if able to. */
+		if (strlen(material.DiffuseMap.Path) > 0)
 		{
-			char mtlPath[FILENAME_MAX];
-			mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
-			Texture *texture = Texture::FromFile(mtlPath);
+			Mesh *mesh = Mesh::FromFile(raw, i);
 
-			/* Add shape to the model. */
-			result->shapes.push_back(new Shape(mesh, texture));
+			/* Check if we can merge the mesh into another one to have on draw calls. */
+			int64 j = result->ContainsMaterial(material.Name);
+			if (j != -1)
+			{
+				result->shapes.at(j)->Mesh->Append(mesh);
+				delete_s(mesh);
+			}
+			else
+			{
+				Texture *texture = Texture::FromFile(material.DiffuseMap.Path);
+				result->shapes.push_back(new Shape(material.Name, mesh, texture));
+			}
 		}
-		else LOG_WAR("Skipping material '%s'(%zu), diffuse texture not specified!", mtl.name.c_str(), shape.mesh.material_ids.at(0));
+		else LOG_WAR("Skipping material '%s'(%zu), diffuse texture not specified!", material.Name, shape.Material);
 	}
 
-	result->Finalize();	//TODO: Remove!
-
+	/* Finalize loading. */
+	result->Finalize();
 	delete_s(raw);
 	return result;
 }
@@ -70,4 +67,15 @@ void Plutonium::StaticModel::Finalize(void)
 	{
 		shapes.at(i)->Mesh->Finalize();
 	}
+}
+
+int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
+{
+	for (size_t i = 0; i < shapes.size(); i++)
+	{
+		Shape *cur = shapes.at(i);
+		if (!strcmp(cur->MaterialName, name)) return i;
+	}
+
+	return -1;
 }

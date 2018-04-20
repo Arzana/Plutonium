@@ -90,7 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\stb;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
@@ -111,7 +111,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\stb;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
@@ -134,7 +134,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\stb;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -161,7 +161,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\tinyobjloader\include;$(SolutionDir)..\deps\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\deps\glfw\include;$(SolutionDir)..\deps\glad\$(Configuration)\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\stb;$(SolutionDir)..\deps\tinyobjloader\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -188,7 +188,7 @@
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
     <ClCompile Include="..\..\src\Components\MemoryCounter.cpp" />
-    <ClCompile Include="..\..\src\Content\ObjLoader2.cpp" />
+    <ClCompile Include="..\..\src\Content\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp" />
@@ -215,7 +215,6 @@
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\StaticModel.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Models\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
@@ -244,7 +243,7 @@
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
     <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
-    <ClInclude Include="..\..\include\Content\ObjLoader2.h" />
+    <ClInclude Include="..\..\include\Content\ObjLoader.h" />
     <ClInclude Include="..\..\include\Core\Collections\Tree.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h" />
@@ -287,7 +286,6 @@
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
     <ClInclude Include="..\..\include\Graphics\Models\StaticModel.h" />
-    <ClInclude Include="..\..\include\Graphics\Models\ObjLoader.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BindTargets.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BlendState.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BlendType.h" />
@@ -318,6 +316,7 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
     <ClInclude Include="..\..\include\Graphics\Shape.h" />
     <ClInclude Include="..\..\include\Graphics\Texture.h" />
+    <ClInclude Include="..\..\include\Graphics\TextureOptions.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />

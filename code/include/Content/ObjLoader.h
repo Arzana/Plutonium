@@ -74,6 +74,17 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader mesh. */
 		ObjLoaderMesh(void);
+		/* Copies a previous instance of an obj loader mesh. */
+		ObjLoaderMesh(_In_ const ObjLoaderMesh &value);
+		/* Moves a previous instance of an obj loader mesh. */
+		ObjLoaderMesh(_In_ ObjLoaderMesh &&value);
+		/* Releases the resources allocated by the mesh. */
+		~ObjLoaderMesh(void);
+
+		/* Copies a previous instance of an obj loader mesh. */
+		_Check_return_ ObjLoaderMesh& operator =(_In_ const ObjLoaderMesh &other);
+		/* Moves a previous instance of an obj loader mesh. */
+		_Check_return_ ObjLoaderMesh& operator =(_In_ ObjLoaderMesh &&other);
 	};
 
 	struct ObjLoaderTextureMap
@@ -111,6 +122,17 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader texture map. */
 		ObjLoaderTextureMap(_In_ bool isBump);
+		/* Copies a previous instance of an obj loader texture map. */
+		ObjLoaderTextureMap(_In_ const ObjLoaderTextureMap &value);
+		/* Moves a previous instance of an obj loader texture map. */
+		ObjLoaderTextureMap(_In_ ObjLoaderTextureMap &&value);
+		/* Releases the resources allocated by the obj loader texture map. */
+		~ObjLoaderTextureMap(void);
+
+		/* Copies a previous instance of an obj loader texture map. */
+		_Check_return_ ObjLoaderTextureMap& operator =(_In_ const ObjLoaderTextureMap &other);
+		/* Moves a previous instance of an obj loader texture map. */
+		_Check_return_ ObjLoaderTextureMap& operator =(_In_ ObjLoaderTextureMap &&other);
 	};
 
 	/* Defines the material information of a specified object. */
@@ -153,10 +175,21 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader material. */
 		ObjLoaderMaterial(void);
+		/* Copies a previous instance of an obj loader material. */
+		ObjLoaderMaterial(_In_ const ObjLoaderMaterial &value);
+		/* Moves a previous instance of an obj loader material. */
+		ObjLoaderMaterial(_In_ ObjLoaderMaterial &&value);
+		/* Releases the resources allocated by the obj loader material. */
+		~ObjLoaderMaterial(void);
+
+		/* Copies a previous instance of an obj loader material. */
+		_Check_return_ ObjLoaderMaterial& operator =(_In_ const ObjLoaderMaterial &other);
+		/* Moves a previous instance of an obj loader material. */
+		_Check_return_ ObjLoaderMaterial& operator =(_In_ ObjLoaderMaterial &&other);
 	};
 
 	/* Defines the intermediate result of the obj load process. */
-	struct ObjLoaderResult2
+	struct ObjLoaderResult
 	{
 		/* Contains all vertices defined within the obj model. */
 		std::vector<Vector3> Vertices;
@@ -170,9 +203,9 @@ namespace Plutonium
 		std::vector<ObjLoaderMaterial> Materials;
 
 		/* Initializes a new instance of an obj loader result. */
-		ObjLoaderResult2(void);
+		ObjLoaderResult(void);
 	};
 
 	/* Loads an obj file and it's associated mtl file(s) (requires delete!). */
-	_Check_return_ const ObjLoaderResult2* _CrtLoadObjMtl2(_In_ const char *path);
+	_Check_return_ const ObjLoaderResult* _CrtLoadObjMtl(_In_ const char *path);
 }
