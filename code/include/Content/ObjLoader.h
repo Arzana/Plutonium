@@ -155,6 +155,8 @@ namespace Plutonium
 		float OpticalDensity;
 		/* Defines the dissolve factor (transparency) of this material. */
 		float Dissolve;
+		/* Defines the illumination model. */
+		int IlluminationModel;
 
 		/* Defines the ambient texture map associated with the material. */
 		ObjLoaderTextureMap AmbientMap;

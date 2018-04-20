@@ -211,7 +211,7 @@ ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(ObjLoaderTexture
 }
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
-	: Name(""),
+	: Name(""), IlluminationModel(0),
 	Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
 	Transmittance(Color::Black), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
 	AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
@@ -219,7 +219,7 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 {}
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(const ObjLoaderMaterial & value)
-	: Name(""),
+	: Name(""), IlluminationModel(value.IlluminationModel),
 	Ambient(value.Ambient), Diffuse(value.Diffuse), Specular(value.Specular),
 	Transmittance(value.Transmittance), HighlightExponent(value.HighlightExponent), OpticalDensity(value.OpticalDensity), Dissolve(value.Dissolve),
 	AmbientMap(value.AmbientMap), DiffuseMap(value.DiffuseMap), SpecularMap(value.SpecularMap), HighlightMap(value.HighlightMap),
@@ -241,6 +241,7 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
 	HighlightExponent = value.HighlightExponent;
 	OpticalDensity = value.OpticalDensity;
 	Dissolve = value.Dissolve;
+	IlluminationModel = value.IlluminationModel;
 	AmbientMap = std::move(value.AmbientMap);
 	DiffuseMap = std::move(value.DiffuseMap);
 	SpecularMap = std::move(value.SpecularMap);
@@ -259,6 +260,7 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
 	value.HighlightExponent = 1.0f;
 	value.OpticalDensity = 1.0f;
 	value.Dissolve = 1.0f;
+	value.IlluminationModel = 0;
 }
 
 Plutonium::ObjLoaderMaterial::~ObjLoaderMaterial(void)
@@ -282,6 +284,7 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(const ObjLoaderMater
 		HighlightExponent = other.HighlightExponent;
 		OpticalDensity = other.OpticalDensity;
 		Dissolve = other.Dissolve;
+		IlluminationModel = other.IlluminationModel;
 		AmbientMap = other.AmbientMap;
 		DiffuseMap = other.DiffuseMap;
 		SpecularMap = other.SpecularMap;
@@ -311,6 +314,7 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 		HighlightExponent = other.HighlightExponent;
 		OpticalDensity = other.OpticalDensity;
 		Dissolve = other.Dissolve;
+		IlluminationModel = other.IlluminationModel;
 		AmbientMap = std::move(other.AmbientMap);
 		DiffuseMap = std::move(other.DiffuseMap);
 		SpecularMap = std::move(other.SpecularMap);
@@ -329,6 +333,7 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 		other.HighlightExponent = 1.0f;
 		other.OpticalDensity = 1.0f;
 		other.Dissolve = 1.0f;
+		other.IlluminationModel = 0;
 	}
 
 	return *this;
@@ -347,9 +352,27 @@ Plutonium::ObjLoaderResult::ObjLoaderResult(void)
 #define IS_NEWLINE(x)	((x) == '\n' || (x) == '\r' || (x) == '\0')
 
 /* Skips leading spaces and tabs. */
-void SkipUseless(const char **line)
+inline void SkipUseless(const char **line)
 {
 	while (IS_SPACE(*line[0])) ++(*line);
+}
+
+/* Pushes the old mesh to the result and resets the current mesh. */
+inline void PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, bool keepName)
+{
+	const char *name = heapstr(curMesh->Name);
+
+	/* Check if current mesh has data. */
+	if (strlen(name) > 0)
+	{
+		/* Push old mesh. */
+		result->Shapes.push_back(*curMesh);
+		*curMesh = ObjLoaderMesh();
+
+		/* Keep the old name if requested. */
+		if (keepName) curMesh->Name = name;
+	}
+	else free_s(name);
 }
 #pragma endregion
 
@@ -648,7 +671,14 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 	{
 		if (!strcmp(result->Materials.at(i).Name, line))
 		{
-			LOG_WAR_IF(curMesh->Material != -1, "Redefining material for shape %s (%s -> %s)!", curMesh->Name, result->Materials.at(curMesh->Material).Name, line);
+			/* Check if the material is already defined. */
+			if (curMesh->Material != -1)
+			{
+				/* Push the old shape to the result and log the creation of a new shape. */
+				LOG_WAR("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh->Name, result->Materials.at(curMesh->Material).Name, line);
+				PushShapeIfNeeded(result, curMesh, true);
+			}
+			/* Set the material Id to the correct material. */
 			curMesh->Material = i;
 			return;
 		}
@@ -682,11 +712,7 @@ inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderR
 void HandleGroupNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh)
 {
 	/* Add old shape if needed. */
-	if (strlen(curMesh->Name) > 0)
-	{
-		result->Shapes.push_back(*curMesh);
-		*curMesh = ObjLoaderMesh();
-	}
+	PushShapeIfNeeded(result, curMesh, false);
 
 	/* Make sure we skip leading spaces. */
 	SkipUseless(&line);
@@ -699,11 +725,7 @@ void HandleGroupNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMes
 void HandleObjectNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMesh *curMesh)
 {
 	/* Add old shape if needed. */
-	if (strlen(curMesh->Name) > 0)
-	{
-		result->Shapes.push_back(*curMesh);
-		*curMesh = ObjLoaderMesh();
-	}
+	PushShapeIfNeeded(result, curMesh, false);
 
 	/* Make sure we skip leading spaces. */
 	SkipUseless(&line);
@@ -867,6 +889,12 @@ inline void HandleShininessLine(const char *line, ObjLoaderMaterial *curMaterial
 	curMaterial->HighlightExponent = ParseFloat(&line);
 }
 
+/* Handles the illumination model line. */
+inline void HandleIllumModelLine(const char *line, ObjLoaderMaterial *curMaterial)
+{
+	curMaterial->IlluminationModel = ParseInt(&line);
+}
+
 /* Handles the dissolve line. */
 inline void HandleDissolveLine(const char *line, ObjLoaderMaterial *curMaterial)
 {
@@ -883,6 +911,7 @@ inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial *curMa
 inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextureMap *curTexture, bool isBump)
 {
 	/* Reset texture map values. */
+	LOG_WAR_IF(strlen(curTexture->Path) > 0, "Texture map is defined multiple times, replacing old texture map '%s'.", curTexture->Path);
 	*curTexture = ObjLoaderTextureMap(isBump);
 
 	/* Handle all options. */
@@ -1047,6 +1076,13 @@ void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, O
 	if (line[0] == 'N' && line[1] == 's' && IS_SPACE(line[2]))
 	{
 		HandleShininessLine(line + 2, curMaterial);
+		return;
+	}
+
+	/* Check if line is illumination model. */
+	if (!strncmp(line, "illum", 5) && IS_SPACE(line[5]))
+	{
+		HandleIllumModelLine(line + 5, curMaterial);
 		return;
 	}
 
