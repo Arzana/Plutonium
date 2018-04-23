@@ -73,7 +73,11 @@ void Plutonium::Uniform::Set(const Matrix & value)
 void Plutonium::Uniform::Set(const Texture * value)
 {
 	DBG_CHECK(FieldType::Texture);
-	glActiveTexture(GL_TEXTURE0 + sampler);
-	glBindTexture(GL_TEXTURE_2D, value->ptr);
-	glUniform1i(ptr, sampler);
+
+	if (value)
+	{
+		glActiveTexture(GL_TEXTURE0 + sampler);
+		glBindTexture(GL_TEXTURE_2D, value->ptr);
+		glUniform1i(ptr, sampler);
+	}
 }

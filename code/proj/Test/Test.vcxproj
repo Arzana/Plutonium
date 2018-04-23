@@ -159,6 +159,28 @@
   <ItemGroup>
     <ClInclude Include="KnightInit.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\assets\shaders\Dynamic3D.vert">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\assets\shaders\PortalFrame3D.vert">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\assets\shaders\Static2D.vert">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\assets\shaders\Static3D.vert">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="..\..\assets\shaders\Text2D.vert">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\assets\shaders\Static2D.frag" />
+    <None Include="..\..\assets\shaders\Static3D.frag" />
+    <None Include="..\..\assets\shaders\Text2D.frag" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

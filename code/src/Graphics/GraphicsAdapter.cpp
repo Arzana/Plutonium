@@ -7,12 +7,14 @@ Plutonium::GraphicsAdapter::~GraphicsAdapter(void) noexcept
 
 void Plutonium::GraphicsAdapter::SetAlphaBlendFunction(BlendState func)
 {
-	UpdateBlendEq(abf = func);
+	if (func != BlendState::None) abf = func;
+	UpdateBlendEq(func);
 }
 
 void Plutonium::GraphicsAdapter::SetColorBlendFunction(BlendState func)
 {
-	UpdateBlendEq(cbf = func);
+	if (func != BlendState::None) cbf = func;
+	UpdateBlendEq(func);
 }
 
 void Plutonium::GraphicsAdapter::SetAlphaSourceBlend(BlendType blend)

@@ -12,11 +12,7 @@ Plutonium::EuclidRoom::~EuclidRoom(void)
 	/* Free underlying shapes. */
 	while (shapes.size() > 0)
 	{
-		Shape *cur = shapes.back();
-		delete_s(cur->MaterialName);
-		delete_s(cur->Mesh);
-		delete_s(cur->Material);
-		delete_s(cur);
+		delete_s(shapes.back());
 		shapes.pop_back();
 	}
 
@@ -76,7 +72,8 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 				Texture *texture = Texture::FromFile(mtlPath);
 
 				/* Add shape to the model. */
-				cur->shapes.push_back(new Shape(mtl.name.c_str(), mesh, texture));
+				// TODO: fix!
+				//cur->shapes.push_back(new Shape(mtl.name.c_str(), mesh, nullptr, texture));
 			}
 			else LOG_WAR("Skipping mesh '%s', material '%s'(%zu), diffuse texture not specified!", mesh->Name, mtl.name.c_str(), shape.mesh.material_ids.at(0));
 		}

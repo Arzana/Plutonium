@@ -219,6 +219,7 @@
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
+    <ClCompile Include="..\..\src\Graphics\PhongShape.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\Portal.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp" />
@@ -314,7 +315,7 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
-    <ClInclude Include="..\..\include\Graphics\Shape.h" />
+    <ClInclude Include="..\..\include\Graphics\PhongShape.h" />
     <ClInclude Include="..\..\include\Graphics\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\TextureOptions.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />

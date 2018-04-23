@@ -40,5 +40,12 @@ namespace Plutonium
 		TextureCreationOptions(void)
 			: HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat)
 		{}
+
+		/* Set both horizontal and vertical wrapping to the specified value. */
+		inline void SetWrapping(_In_ WrapMode mode)
+		{
+			HorizontalWrap = mode;
+			VerticalWrap = mode;
+		}
 	};
 }

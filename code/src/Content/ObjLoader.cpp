@@ -104,7 +104,7 @@ Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(const ObjLoaderTextureMap & 
 	: Path(""), Type(value.Type),
 	Sharpness(value.Sharpness), Brightness(value.Brightness), Contrast(value.Contrast),
 	Origin(value.Origin), Scale(value.Scale), Turbulence(value.Turbulence), ClampedCoords(value.ClampedCoords),
-	BlendH(value.BlendH), BlendV(value.BlendV), ScalarOrBumpChannel(value.ScalarOrBumpChannel)
+	BlendH(value.BlendH), BlendV(value.BlendV), ScalarOrBumpChannel(value.ScalarOrBumpChannel), BumpMod(value.BumpMod)
 {
 	if (strlen(value.Path) > 0) Path = heapstr(value.Path);
 }

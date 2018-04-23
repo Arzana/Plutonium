@@ -141,38 +141,116 @@ namespace Plutonium
 		/* The name of the material. */
 		const char *Name;
 
-		/* The ambient reflectivity of this material. */
+		/*
+		The ambient reflectivity of this material.
+		Defines how the material reflects ambient light.
+		Default: 'Black'.
+		Token(s) (.mtl): 'Ka'.
+		*/
 		Color Ambient;
-		/* The diffuse reflectivity of this material. */
+		/* 
+		The diffuse reflectivity of this material.
+		Defines how the material reflects diffuse light.
+		Default: 'Black'.
+		Token(s) (.mtl): 'Kd'.
+		*/
 		Color Diffuse;
-		/* The specular reflectivity of this material. */
+		/* 
+		The specular reflectivity of this material. 
+		Defines how the material reflects specular light.
+		Default: 'Black'.
+		Token(s) (.mtl): 'Ks'.
+		*/
 		Color Specular;
-		/* The light transmission filter of this material. */
+		/* 
+		The light transmission filter of this material. 
+		Defines the color filter that should be applied to the final fragment color.
+		Default: 'Black'.
+		Token(s) (.mtl): 'Kt', 'Tf'.
+		*/
 		Color Transmittance;
-		/* Defines the specular highlight exponent (shininess) of this material. */
+		/*
+		The specular highlight exponent (shininess) of this material.
+		Defines the focus of the specular highlight, a high value results in a concentrated highlight.
+		Default: 1.0f.
+		Token(s) (.mtl): 'Ns'.
+		*/
 		float HighlightExponent;
-		/* Defines the optical density (index of refraction) of this material. */
+		/* 
+		The optical density (index of refraction) of this material. 
+		Defines how much light should bend whils passing through the object,
+		a value of 1.0f means light doesn't bend, increasing this amount increases the bending,
+		values below 1.0f produce unwanted results.
+		Default: 1.0f.
+		Token(s) (.mtl): 'Ni'.
+		*/
 		float OpticalDensity;
-		/* Defines the dissolve factor (transparency) of this material. */
+		/*
+		The dissolve factor (transparency) of this material. 
+		Defines how much an object using this material should blend in the background,
+		a value of 1.0f means the object is fully opaque and 0.0f means it's fully transparent.
+		Default: 1.0f.
+		Token(s) (.mtl): 'd', 'Tr'.
+		*/
 		float Dissolve;
-		/* Defines the illumination model. */
+		/* 
+		The illumination model.
+		Defines which illumination model should be used whilst rendering with this material,
+		0:	Color and ambient off.
+		1:	Color on and ambient on.
+		2:	Highlight on.
+		3:	Reflection on and ray trace on.
+		4:	Transparency glass on, reflection ray trace on.
+		5:	Reflection fresnel on and ray trace on.
+		6:	Transparency refraction on, reflection fresnel off and ray trace on.
+		7:	Transparency refraction on, reflection fresnel on and ray trace on.
+		8:	Reflection on and ray trace off.
+		9:	Transparency glass on, reflection ray trace off.
+		10:	Casts shadows onto invisible surfaces.
+		Default: 0.
+		Token(s) (.mtl): 'illum'.
+		*/
 		int IlluminationModel;
 
-		/* Defines the ambient texture map associated with the material. */
+		/* 
+		Defines the ambient texture map associated with the material. 
+		Token(s) (.mtl): 'map_Ka'.
+		*/
 		ObjLoaderTextureMap AmbientMap;
-		/* Defines the diffuse texture map associated with the material. */
+		/* 
+		Defines the diffuse texture map associated with the material. 
+		Token(s) (.mtl): 'map_Kd'.
+		*/
 		ObjLoaderTextureMap DiffuseMap;
-		/* Defines the specular texture map associated with the material. */
+		/*
+		Defines the specular texture map associated with the material. 
+		Token(s) (.mtl): 'map_Ks'.
+		*/
 		ObjLoaderTextureMap SpecularMap;
-		/* Defines the specular highlight map associated with the material. */
+		/* 
+		Defines the specular highlight map associated with the material. 
+		Token(s) (.mtl): 'map_Ns'.
+		*/
 		ObjLoaderTextureMap HighlightMap;
-		/* Defines the bump map associated with the material. */
+		/*
+		Defines the bump map associated with the material. 
+		Token(s) (.mtl): 'map_Bump', 'ma_bump', 'bump'.
+		*/
 		ObjLoaderTextureMap BumpMap;
-		/* Defines the displacement map associated with the material. */
+		/* 
+		Defines the displacement map associated with the material. 
+		Token(s) (.mtl): 'disp'.
+		*/
 		ObjLoaderTextureMap DisplacementMap;
-		/* Defines the alpha map associated with the material. */
+		/* 
+		Defines the alpha map associated with the material. 
+		Token(s) (.mtl): 'map_d'.
+		*/
 		ObjLoaderTextureMap AlphaMap;
-		/* Defines reflection map associated with the material. */
+		/*
+		Defines reflection map associated with the material. 
+		Token(s) (.mtl): 'refl'.
+		*/
 		ObjLoaderTextureMap ReflectionMap;
 
 		/* Initializes a new instance of an obj loader material. */

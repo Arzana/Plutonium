@@ -1,6 +1,6 @@
 #pragma once
 #include "GameLogic\WorldObject.h"
-#include "Graphics\Shape.h"
+#include "Graphics\PhongShape.h"
 
 namespace Plutonium
 {
@@ -26,7 +26,7 @@ namespace Plutonium
 	private:
 		friend struct StaticRenderer;
 
-		std::vector<Shape*> shapes;
+		std::vector<PhongShape*> shapes;
 
 		StaticModel(void)
 			: WorldObject()

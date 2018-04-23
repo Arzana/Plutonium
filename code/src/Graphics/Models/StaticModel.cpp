@@ -11,11 +11,7 @@ Plutonium::StaticModel::~StaticModel(void)
 	/* Free underlying shapes. */
 	while (shapes.size() > 0)
 	{
-		Shape *cur = shapes.back();
-		delete_s(cur->MaterialName);
-		delete_s(cur->Mesh);
-		delete_s(cur->Material);
-		delete_s(cur);
+		delete_s(shapes.back());
 		shapes.pop_back();
 	}
 }
@@ -35,7 +31,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 		const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
 
 		/* Create final mesh and texture if able to. */
-		if (strlen(material.DiffuseMap.Path) > 0)
+		if (strlen(material.DiffuseMap.Path) > 0 && strlen(material.AmbientMap.Path) > 0)
 		{
 			Mesh *mesh = Mesh::FromFile(raw, i);
 
@@ -48,11 +44,11 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 			}
 			else
 			{
-				Texture *texture = Texture::FromFile(material.DiffuseMap.Path);
-				result->shapes.push_back(new Shape(material.Name, mesh, texture));
+				/* Push material to shapes. */
+				result->shapes.push_back(new PhongShape(mesh, &material));
 			}
 		}
-		else LOG_WAR("Skipping material '%s'(%zu), diffuse texture not specified!", material.Name, shape.Material);
+		else LOG_WAR("Skipping material '%s'(%zu), ambient or diffuse texture not specified!", material.Name, shape.Material);
 	}
 
 	/* Finalize loading. */
@@ -73,7 +69,7 @@ int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		Shape *cur = shapes.at(i);
+		PhongShape *cur = shapes.at(i);
 		if (!strcmp(cur->MaterialName, name)) return i;
 	}
 

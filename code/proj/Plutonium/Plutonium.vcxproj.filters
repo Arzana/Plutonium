@@ -284,6 +284,9 @@
     <ClCompile Include="..\..\src\Content\ObjLoader.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\PhongShape.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -538,9 +541,6 @@
     <ClInclude Include="..\..\include\Graphics\Mesh.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Shape.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -561,6 +561,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Content\ObjLoader.h">
       <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\PhongShape.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

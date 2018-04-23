@@ -4,7 +4,6 @@
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Diagnostics\FrameInfo.h>
 #include <Graphics\Rendering\StaticRenderer.h>
-#include <Graphics\Portals\PortalRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
@@ -45,19 +44,20 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
-		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vsh", "./assets/shaders/Text2D.fsh"));
-		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vsh", "./assets/shaders/Static2D.fsh"));
+		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag"));
+		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));
 
-		srenderer = new StaticRenderer("./assets/shaders/Static3D.vsh", "./assets/shaders/Static3D.fsh");
+		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
 	}
 
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
+		cam->Move(Vector3(0.0f, 2.0f, -4.0f));
 
 		map = StaticModel::FromFile("./assets/models/Sponza/sponza.obj");
-		map->SetScale(0.05f); // If map is sponza
+		map->SetScale(0.03f); // If map is sponza
 	}
 
 	virtual void UnLoadContent(void)
@@ -78,7 +78,7 @@ struct TestGame
 	{
 		/* Update rotating light. */
 		theta = modrads(theta += DEG2RAD * dt * 100);
-		light = Vector3::FromYaw(theta);
+		light = Vector3::FromRoll(theta);
 
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
@@ -105,10 +105,8 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
-		GetGraphics()->SetFaceCull(FaceCullState::None);
-
-		/* Render current room last. */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), light);
+		/* Render current scene, */
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), light, cam->GetPosition());
 		srenderer->Render(map);
 		srenderer->End();
 

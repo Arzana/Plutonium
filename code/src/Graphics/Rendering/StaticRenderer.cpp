@@ -10,9 +10,20 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	matMdl = shdr->GetUniform("u_model");
 	matView = shdr->GetUniform("u_view");
 	matProj = shdr->GetUniform("u_projection");
-	texture = shdr->GetUniform("u_texture");
+
+	mapAmbi = shdr->GetUniform("u_texture_ambient");
+	mapDiff = shdr->GetUniform("u_texture_diffuse");
+	mapSpec = shdr->GetUniform("u_texture_specular");
+	mapAlpha = shdr->GetUniform("u_texture_alpha");
+
 	lightDir = shdr->GetUniform("u_light_direction");
-	ambient = shdr->GetUniform("u_ambient");
+	specExp = shdr->GetUniform("u_spec_exp");
+	camPos = shdr->GetUniform("u_view_pos");
+
+	filter = shdr->GetUniform("u_frag_filter");
+	ambient = shdr->GetUniform("u_refl_ambient");
+	diffuse = shdr->GetUniform("u_refl_diffuse");
+	specular = shdr->GetUniform("u_refl_specular");
 
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
@@ -25,7 +36,7 @@ Plutonium::StaticRenderer::~StaticRenderer(void)
 	delete_s(shdr);
 }
 
-void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 lightDir)
+void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 lightDir, Vector3 camPos)
 {
 	/* Make sure we don't call begin twice. */
 	if (!beginCalled)
@@ -37,7 +48,7 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		/* Set constant uniforms. */
 		matView->Set(view);
 		matProj->Set(proj);
-		ambient->Set(0.5f);
+		this->camPos->Set(camPos);
 		this->lightDir->Set(lightDir);
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");
@@ -53,11 +64,19 @@ void Plutonium::StaticRenderer::Render(const StaticModel * model)
 	for (size_t i = 0; i < model->shapes.size(); i++)
 	{
 		/* Get current textured mesh. */
-		Shape *cur = model->shapes.at(i);
+		PhongShape *cur = model->shapes.at(i);
 		Buffer *buffer = cur->Mesh->GetVertexBuffer();
 
-		/* Set current texture sampler. */
-		texture->Set(cur->Material);
+		/* Set material attributes. */
+		mapAmbi->Set(cur->AmbientMap);
+		mapDiff->Set(cur->DiffuseMap);
+		mapSpec->Set(cur->SpecularMap);
+		mapAlpha->Set(cur->AlphaMap);
+		specExp->Set(cur->SpecularExp);
+		filter->Set(cur->Transmittance);
+		ambient->Set(cur->Ambient);
+		diffuse->Set(cur->Diffuse);
+		specular->Set(cur->Specular);
 
 		/* Set mesh buffer attributes. */
 		buffer->Bind();
@@ -80,8 +99,8 @@ void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 	for (size_t i = 0; i < model->shapes.size(); i++)
 	{
 		/* Set current texture sampler. */
-		Shape *cur = model->shapes.at(i);
-		texture->Set(cur->Material);
+		PhongShape *cur = model->shapes.at(i);
+		mapDiff->Set(cur->DiffuseMap);
 
 		/* Set mesh buffer attributes. */
 		cur->Mesh->GetVertexBuffer()->Bind();
