@@ -67,7 +67,10 @@ namespace Plutonium
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
 
 		void Dispose(void);
-		void SetFormat(uint32 channels);
-		void GenerateTexture(const void *data, TextureCreationOptions *config);
+		bool SetFormat(uint32 channels);
+		void ConvertFormat(byte **data, int32 srcChannels, int32 destChannels);
+		void GenerateTexture(byte *data, const TextureCreationOptions *config);
+		void SetPreDataTransferTextureOptions(byte *data, const TextureCreationOptions *config);
+		void SetPostDataTransferTextureOptions(const TextureCreationOptions *config);
 	};
 }

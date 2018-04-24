@@ -21,7 +21,7 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 	if (strlen(material->AmbientMap.Path) > 0)
 	{
 		/* Set texture options and create sampler. */
-		opt.SetWrapping(material->AmbientMap.ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
+		InitOptions(&material->AmbientMap, &opt);
 		AmbientMap = Texture::FromFile(material->AmbientMap.Path, &opt);
 	}
 	else AmbientMap = CreateDefault();
@@ -30,7 +30,7 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 	if (strlen(material->DiffuseMap.Path) > 0)
 	{
 		/* Set texture options and create sampler. */
-		opt.SetWrapping(material->DiffuseMap.ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
+		InitOptions(&material->DiffuseMap, &opt);
 		DiffuseMap = Texture::FromFile(material->DiffuseMap.Path, &opt);
 	}
 	else DiffuseMap = CreateDefault();
@@ -39,7 +39,7 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 	if (strlen(material->SpecularMap.Path) > 0)
 	{
 		/* Set texture options and create sampler. */
-		opt.SetWrapping(material->SpecularMap.ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
+		InitOptions(&material->SpecularMap, &opt);
 		SpecularMap = Texture::FromFile(material->SpecularMap.Path, &opt);
 	}
 	else SpecularMap = CreateDefault();
@@ -48,7 +48,7 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 	if (strlen(material->AlphaMap.Path) > 0)
 	{
 		/* Set textyre options and create sampler. */
-		opt.SetWrapping(material->AlphaMap.ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
+		InitOptions(&material->AlphaMap, &opt);
 		AlphaMap = Texture::FromFile(material->AlphaMap.Path, &opt);
 	}
 	else AlphaMap = CreateDefault();
@@ -64,10 +64,18 @@ Plutonium::PhongShape::~PhongShape(void) noexcept
 	if (AlphaMap) delete_s(AlphaMap);
 }
 
+void Plutonium::PhongShape::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)
+{
+	texOpt->SetWrapping(objOpt->ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
+	texOpt->Gain = objOpt->Brightness;
+	texOpt->Range = objOpt->Contrast;
+}
+
 Plutonium::Texture * Plutonium::PhongShape::CreateDefault(void)
 {
+	static Color data[] = { Color::White, Color::White, Color::White, Color::White };
+
 	Texture *result = new Texture(2, 2, 0, "default");
-	Color data[] = { Color::White, Color::White, Color::White, Color::White };
 	result->SetData(reinterpret_cast<byte*>(data));
 	return result;
 }

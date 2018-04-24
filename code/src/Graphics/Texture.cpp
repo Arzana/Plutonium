@@ -50,11 +50,11 @@ Texture * Plutonium::Texture::FromFile(const char * path, TextureCreationOptions
 
 	/* Set texture information. */
 	Texture *result = new Texture(w, h, clamp(GetMaxMipMapLevel(w, h), 0, 4));
-	result->SetFormat(m);
+	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
 	result->name = reader.GetFileName();
 
 	/* Load data into texture and return result. */
-	result->GenerateTexture(void_ptr(data), config);
+	result->GenerateTexture(data, config);
 	stbi_image_free(data);
 
 	return result;
@@ -79,7 +79,7 @@ void Plutonium::Texture::SetData(byte * data, TextureCreationOptions * config)
 	if (ptr) Dispose();
 
 	/* Generate new texture. */
-	GenerateTexture(void_ptr(data), config);
+	GenerateTexture(data, config);
 }
 
 byte * Plutonium::Texture::GetData(void) const
@@ -133,7 +133,7 @@ void Plutonium::Texture::Dispose(void)
 	else LOG_WAR("Attempting to dispose of not-loaded texture!");
 }
 
-void Plutonium::Texture::SetFormat(uint32 channels)
+bool Plutonium::Texture::SetFormat(uint32 channels)
 {
 	switch (channels)
 	{
@@ -146,12 +146,36 @@ void Plutonium::Texture::SetFormat(uint32 channels)
 		ifrmt = GL_RGBA8;
 		break;
 	default:
-		LOG_THROW("Texture doesn't support %d channels!", channels);
-		break;
+		LOG_WAR("Texture doesn't support %d channels, converting data to RGB!", channels);
+		frmt = GL_RGB;
+		ifrmt = GL_RGB8;
+		return false;
 	}
+
+	return true;
 }
 
-void Plutonium::Texture::GenerateTexture(const void * data, TextureCreationOptions *config)
+void Plutonium::Texture::ConvertFormat(byte ** data, int32 srcChannels, int32 destChannels)
+{
+	/* Allocate new buffer. */
+	byte *result = malloc_s(byte, Width * Height * destChannels);
+	size_t size = Width * Height * srcChannels;
+
+	/* Copy over raw data. */
+	for (size_t i = 0, j = 0; i < size; i += srcChannels)
+	{
+		for (size_t k = 0; k < destChannels; k++, j++)
+		{
+			result[j] = (*data)[i];
+		}
+	}
+
+	/* Release old buffer and set new buffer. */
+	free_s(*data);
+	*data = result;
+}
+
+void Plutonium::Texture::GenerateTexture(byte * data, const TextureCreationOptions *config)
 {
 	/* Set options to default options if needed. */
 	if (!config)
@@ -160,15 +184,45 @@ void Plutonium::Texture::GenerateTexture(const void * data, TextureCreationOptio
 		config = &defaultOpt;
 	}
 
+	/* Apply texture options associated with the raw data. */
+	SetPreDataTransferTextureOptions(data, config);
+
 	/* Generate storage and bind texture. */
 	glGenTextures(1, &ptr);
 	glBindTexture(GL_TEXTURE_2D, ptr);
 
 	/* Generate mip map storage and load base texture. */
 	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, data);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, void_ptr(data));
+
+	/* Apply texture options associated with rendering and update GPU memory counter. */
+	SetPostDataTransferTextureOptions(config);
 	_CrtUpdateUsedGPUMemory(Width * Height * GetChannels());
 
+	/* Log creation on debug. */
+	LOG("Created texture '%s'(%dx%d), %d mipmaps.", name, Width, Height, MipMapLevels);
+}
+
+void Plutonium::Texture::SetPreDataTransferTextureOptions(byte * data, const TextureCreationOptions * config)
+{
+	/* Check if texture defines brightness gain / scaling. */
+	if (config->Gain != 0.0f || config->Range != 1.0f)
+	{
+		const byte gain = static_cast<byte>(config->Gain);
+		const size_t channels = GetChannels(), size = Width * Height * channels;
+
+		/* Apply brightness gain and scale. */
+		for (size_t i = 0; i < size; i += channels)
+		{
+			data[i] = static_cast<byte>((data[i] + gain) * config->Range);
+			data[i + 1] = static_cast<byte>((data[i + 1] + gain) * config->Range);
+			data[i + 2] = static_cast<byte>((data[i + 2] + gain) * config->Range);
+		}
+	}
+}
+
+void Plutonium::Texture::SetPostDataTransferTextureOptions(const TextureCreationOptions * config)
+{
 	/* Generate desired mip maps. */
 	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -177,6 +231,4 @@ void Plutonium::Texture::GenerateTexture(const void * data, TextureCreationOptio
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _CrtEnum2Int(config->VerticalWrap));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-
-	LOG("Created texture '%s'(%dx%d), %d mipmaps.", name, Width, Height, MipMapLevels);
 }

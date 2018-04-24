@@ -30,29 +30,26 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 		const ObjLoaderMesh &shape = raw->Shapes.at(i);
 		const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
 
-		/* Create final mesh and texture if able to. */
-		if (strlen(material.DiffuseMap.Path) > 0 && strlen(material.AmbientMap.Path) > 0)
-		{
-			Mesh *mesh = Mesh::FromFile(raw, i);
+		/* Create final mesh. */
+		Mesh *mesh = Mesh::FromFile(raw, i);
 
-			/* Check if we can merge the mesh into another one to have on draw calls. */
-			int64 j = result->ContainsMaterial(material.Name);
-			if (j != -1)
-			{
-				result->shapes.at(j)->Mesh->Append(mesh);
-				delete_s(mesh);
-			}
-			else
-			{
-				/* Push material to shapes. */
-				result->shapes.push_back(new PhongShape(mesh, &material));
-			}
+		/* Check if we can merge the mesh into another one to have on draw calls. */
+		int64 j = result->ContainsMaterial(material.Name);
+		if (j != -1)
+		{
+			result->shapes.at(j)->Mesh->Append(mesh);
+			delete_s(mesh);
 		}
-		else LOG_WAR("Skipping material '%s'(%zu), ambient or diffuse texture not specified!", material.Name, shape.Material);
+		else
+		{
+			/* Push material to shapes. */
+			result->shapes.push_back(new PhongShape(mesh, &material));
+		}
 	}
 
 	/* Finalize loading. */
 	result->Finalize();
+	LOG("Finished loading model '%s', %zu/%zu distinct materials.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size());
 	delete_s(raw);
 	return result;
 }

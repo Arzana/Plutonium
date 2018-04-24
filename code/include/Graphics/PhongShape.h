@@ -6,6 +6,7 @@
 namespace Plutonium
 {
 	struct ObjLoaderMaterial;
+	struct ObjLoaderTextureMap;
 
 	/* Defines the internal layout of the model. */
 	struct PhongShape
@@ -46,6 +47,8 @@ namespace Plutonium
 		_Check_return_ PhongShape& operator =(_In_ const PhongShape &other) = delete;
 		_Check_return_ PhongShape& operator =(_In_ PhongShape &&other) = delete;
 	private:
+
+		static void InitOptions(const ObjLoaderTextureMap *objOpt, TextureCreationOptions *texOpt);
 		static Texture* CreateDefault(void);
 	};
 }

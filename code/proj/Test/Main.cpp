@@ -42,7 +42,7 @@ struct TestGame
 
 	virtual void Initialize(void)
 	{
-		AddComponent(fps = new FpsCounter(this, 100, 1));
+		AddComponent(fps = new FpsCounter(this, 100, 60));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
 		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag"));
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));

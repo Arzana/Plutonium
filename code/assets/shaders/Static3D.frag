@@ -23,6 +23,10 @@ out vec4 fragColor;
 
 void main()
 {
+	// Calculate fragment filter and discard fragment if invisible.
+	vec4 modifier = u_frag_filter * texture(u_texture_alpha, a_texture);
+	if ((modifier.r == 0.0f && modifier.g == 0.0f && modifier.b == 0.0f) || modifier.a == 0.0f) discard;
+
 	// Calculate fragment ambient color.
 	vec4 ambient = texture(u_texture_ambient, a_texture) * u_refl_ambient;
 
@@ -33,9 +37,6 @@ void main()
 	vec3 viewDir = normalize(u_view_pos - gl_FragCoord.xyz);
 	float power = pow(max(dot(viewDir, a_refl_dir), 0.0f), u_spec_exp);
 	vec4 specular = texture(u_texture_specular, a_texture) * u_refl_specular * vec4(power, power, power, 1.0f);
-
-	// Calculate fragment filter.
-	vec4 modifier = u_frag_filter * texture(u_texture_alpha, a_texture);
 	
 	// Calculate fragment's final color.  
 	vec4 clr = (ambient + diffuse + specular) * modifier;

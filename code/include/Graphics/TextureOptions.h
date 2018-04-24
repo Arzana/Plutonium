@@ -35,10 +35,15 @@ namespace Plutonium
 		WrapMode HorizontalWrap;
 		/* Defines how the vertical wrapping (T) should work. */
 		WrapMode VerticalWrap;
+		/* Defines the base brightness of the texture. */
+		float Gain;
+		/* Defines the color range of the texture. */
+		float Range;
 
 		/* Initializes a new instance of texture options. */
 		TextureCreationOptions(void)
-			: HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat)
+			: HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat),
+			Gain(0.0f), Range(1.0f)
 		{}
 
 		/* Set both horizontal and vertical wrapping to the specified value. */
