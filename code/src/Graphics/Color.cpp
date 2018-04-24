@@ -19,6 +19,8 @@ const Color Color::Cyan =			Color(MASK_OPAQUE | MASK_BLUE | MASK_GREEN);
 const Color Color::Magenta =		Color(MASK_OPAQUE | MASK_RED | MASK_BLUE);
 const Color Color::Yellow =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN);
 const Color Color::White =			Color(MASK_OPAQUE | MASK_RED | MASK_BLUE | MASK_GREEN);
+const Color Color::SunDay =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN | (220 << 8));
+const Color Color::SunDawn =		Color(MASK_OPAQUE | MASK_RED | (60 << 16) | (60 << 8));
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {

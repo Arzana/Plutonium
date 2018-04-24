@@ -7,7 +7,7 @@
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
-#include <Core\Math\Basics.h>
+#include <Core\Math\Interpolation.h>
 
 using namespace Plutonium;
 
@@ -22,7 +22,7 @@ struct TestGame
 
 	/* Scene */
 	float theta;
-	Vector3 light;
+	Vector3 lightDir;
 	StaticModel *map;
 
 	/* Diagnostics. */
@@ -78,7 +78,7 @@ struct TestGame
 	{
 		/* Update rotating light. */
 		theta = modrads(theta += DEG2RAD * dt * 10);
-		light = Vector3::FromRoll(theta);
+		lightDir = Vector3::FromRoll(theta);
 
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
@@ -106,7 +106,7 @@ struct TestGame
 	virtual void Render(float dt)
 	{
 		/* Render current scene, */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), light, cam->GetPosition());
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), lightDir, Color::SunDay);
 		srenderer->Render(map);
 		srenderer->End();
 

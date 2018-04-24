@@ -17,6 +17,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	mapAlpha = shdr->GetUniform("u_texture_alpha");
 
 	lightDir = shdr->GetUniform("u_light_direction");
+	lightClr = shdr->GetUniform("u_light_color");
 	specExp = shdr->GetUniform("u_spec_exp");
 	camPos = shdr->GetUniform("u_view_pos");
 
@@ -36,7 +37,7 @@ Plutonium::StaticRenderer::~StaticRenderer(void)
 	delete_s(shdr);
 }
 
-void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 lightDir, Vector3 camPos)
+void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, Vector3 lightDir, Color lightClr)
 {
 	/* Make sure we don't call begin twice. */
 	if (!beginCalled)
@@ -50,6 +51,7 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		matProj->Set(proj);
 		this->camPos->Set(camPos);
 		this->lightDir->Set(lightDir);
+		this->lightClr->Set(lightClr);
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }

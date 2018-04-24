@@ -338,6 +338,7 @@
     <Natvis Include="..\..\visualizers\Color.natvis" />
     <Natvis Include="..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\visualizers\EventSubscriber.natvis" />
+    <Natvis Include="..\..\visualizers\Field.natvis" />
     <Natvis Include="..\..\visualizers\FileReader.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />

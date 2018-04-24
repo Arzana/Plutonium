@@ -9,6 +9,7 @@ uniform vec4 u_frag_filter;
 uniform vec4 u_refl_ambient;
 uniform vec4 u_refl_diffuse;
 uniform vec4 u_refl_specular;
+uniform vec4 u_light_color;
 uniform float u_spec_exp;
 uniform vec3 u_view_pos;
 
@@ -31,11 +32,11 @@ void main()
 	vec4 ambient = texture(u_texture_ambient, a_texture) * u_refl_ambient;
 
 	// Calculate fragment diffuse color.
-	vec4 diffuse = texture(u_texture_diffuse, a_texture) * u_refl_diffuse * a_intensity;
+	vec4 diffuse = texture(u_texture_diffuse, a_texture) * u_refl_diffuse * a_intensity * u_light_color;
 
 	// Calculate fragment specular color.
 	float power = pow(max(dot(normalize(u_view_pos - a_vrtx_pos), a_refl_dir), 0.0f), u_spec_exp);
-	vec4 specular = texture(u_texture_specular, a_texture) * u_refl_specular * power;
+	vec4 specular = texture(u_texture_specular, a_texture) * u_refl_specular * power * u_light_color;
 	
 	// Calculate fragment's final color.  
 	fragColor = (ambient + diffuse + specular) * modifier;

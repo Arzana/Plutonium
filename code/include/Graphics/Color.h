@@ -26,6 +26,10 @@ namespace Plutonium
 		const static Color Yellow;
 		/* Defines a white opaque color. */
 		const static Color White;
+		/* Defines the color of the sun during the day. */
+		const static Color SunDay;
+		/* Defines the color of the sun during dawn and dusk. */
+		const static Color SunDawn;
 
 		union
 		{
