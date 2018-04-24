@@ -9,6 +9,7 @@ constexpr int32 MASK_OPAQUE = 0x000000FF;
 constexpr int32 MASK_RED = 0xFF000000;
 constexpr int32 MASK_BLUE = 0x0000FF00;
 constexpr int32 MASK_GREEN = 0x00FF0000;
+constexpr float CONV_MOD = recip(255.0f);
 
 const Color Color::Transparent =	Color();
 const Color Color::Black =			Color(MASK_OPAQUE);
@@ -19,8 +20,8 @@ const Color Color::Cyan =			Color(MASK_OPAQUE | MASK_BLUE | MASK_GREEN);
 const Color Color::Magenta =		Color(MASK_OPAQUE | MASK_RED | MASK_BLUE);
 const Color Color::Yellow =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN);
 const Color Color::White =			Color(MASK_OPAQUE | MASK_RED | MASK_BLUE | MASK_GREEN);
-const Color Color::SunDay =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN | (220 << 8));
-const Color Color::SunDawn =		Color(MASK_OPAQUE | MASK_RED | (60 << 16) | (60 << 8));
+const Color Color::SunDay =			Color(0xFFFFDCFF);
+const Color Color::SunDawn =		Color(0xFF3C3CFF);
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {
@@ -33,7 +34,7 @@ Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 #endif
 
 	/* Multiply alpha over color. */
-	float v = a / 255.0f;
+	float v = a * CONV_MOD;
 	return Color(static_cast<byte>(ipart(r * v)), static_cast<byte>(ipart(g * v)), static_cast<byte>(ipart(b * v)), a);
 }
 
@@ -63,5 +64,5 @@ Color Plutonium::Color::operator*(float scalar) const
 
 Vector4 Plutonium::Color::ToVector4(void) const
 {
-	return Vector4(R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f);
+	return Vector4(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD, A * CONV_MOD);
 }

@@ -22,7 +22,9 @@ struct TestGame
 
 	/* Scene */
 	float theta;
+	Color lightClr;
 	Vector3 lightDir;
+	const char *dayState;
 	StaticModel *map;
 
 	/* Diagnostics. */
@@ -31,7 +33,7 @@ struct TestGame
 	Texture *depthSprite;
 
 	TestGame(void)
-		: Game("TestGame"), theta(0.0f), depthSprite(nullptr)
+		: Game("TestGame"), depthSprite(nullptr), theta(0.0f)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -54,7 +56,8 @@ struct TestGame
 	virtual void LoadContent(void)
 	{
 		cam = new Camera(GetGraphics()->GetWindow());
-		cam->Move(Vector3(0.0f, 2.0f, -4.0f));
+		cam->Move(Vector3(0.0f, 5.0f, -3.0f));
+		cam->Yaw = PI2;
 
 		map = StaticModel::FromFile("./assets/models/Sponza/sponza.obj");
 		map->SetScale(0.03f); // If map is sponza
@@ -76,15 +79,59 @@ struct TestGame
 
 	virtual void Update(float dt)
 	{
-		/* Update rotating light. */
-		theta = modrads(theta += DEG2RAD * dt * 10);
-		lightDir = Vector3::FromRoll(theta);
+		/* Update day night cycle. */
+		UpdateDayState(dt);
 
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
 
 		/* Update input. */
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
+	}
+
+	void UpdateDayState(float dt)
+	{
+		/* Define dusk and dawn thresholds. */
+		constexpr float SUNSET = PI + 9.0f * DEG2RAD;
+		constexpr float DUSK = PI + 18.0f * DEG2RAD;
+		constexpr float DAWN = TAU - 18.0f * DEG2RAD;
+		constexpr float SUNRISE = TAU - 9.0f * DEG2RAD;
+
+		/* Update light orientation. */
+		theta = modrads(theta += DEG2RAD * dt * 5.0f);
+		lightDir = Vector3::FromRoll(theta);
+
+		/* Update light color. */
+		if (theta > 0.0f && theta < PI)
+		{
+			lightClr = Color::SunDay;
+			dayState = "Day";
+		}
+		else if (theta > PI && theta < SUNSET)
+		{
+			lightClr = Color::Lerp(Color::SunDay, Color::SunDawn, ilerp(PI, SUNSET, theta));
+			dayState = "Sunset";
+		}
+		else if (theta > SUNSET && theta < DUSK)
+		{
+			lightClr = Color::Lerp(Color::SunDawn, Color::Black, ilerp(SUNSET, DUSK, theta));
+			dayState = "Dusk";
+		}
+		else if (theta > DUSK && theta < DAWN)
+		{
+			lightClr = Color::Black;
+			dayState = "Night";
+		}
+		else if (theta > DAWN && theta < SUNRISE)
+		{
+			lightClr = Color::Lerp(Color::Black, Color::SunDawn, ilerp(DAWN, SUNRISE, theta));
+			dayState = "Dawn";
+		}
+		else if (theta > SUNRISE && theta < TAU)
+		{
+			lightClr = Color::Lerp(Color::SunDawn, Color::SunDay, ilerp(SUNRISE, TAU, theta));
+			dayState = "Sunrise";
+		}
 	}
 
 	void KeyInput(WindowHandler, KeyEventArgs args)
@@ -106,13 +153,13 @@ struct TestGame
 	virtual void Render(float dt)
 	{
 		/* Render current scene, */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), lightDir, Color::SunDay);
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), lightDir, lightClr);
 		srenderer->Render(map);
 		srenderer->End();
 
 		/* Add debug light direction. */
-		std::string lightStr = "Light: ";
-		lightStr += std::to_string(ipart(theta * RAD2DEG)) += '°';
+		std::string lightStr = "Time: ";
+		((lightStr += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + ::map(0.0f, 24.0f, theta, 0.0f, TAU), 24.0f)));
 		dfRenderer->AddDebugString(lightStr);
 
 		/* Add debug average FPS. */
