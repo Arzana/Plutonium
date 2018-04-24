@@ -13,9 +13,9 @@ uniform float u_spec_exp;
 uniform vec3 u_view_pos;
 
 // Inputs.
-in vec4 gl_FragCoord;
 in float a_intensity;
 in vec3 a_refl_dir;
+in vec3 a_vrtx_pos;
 in vec2 a_texture;
 
 // Outputs.
@@ -25,20 +25,18 @@ void main()
 {
 	// Calculate fragment filter and discard fragment if invisible.
 	vec4 modifier = u_frag_filter * texture(u_texture_alpha, a_texture);
-	if ((modifier.r == 0.0f && modifier.g == 0.0f && modifier.b == 0.0f) || modifier.a == 0.0f) discard;
+	if ((modifier.r < 0.1f && modifier.g < 0.1f && modifier.b < 0.1f) || modifier.a < 0.1f) discard;
 
 	// Calculate fragment ambient color.
 	vec4 ambient = texture(u_texture_ambient, a_texture) * u_refl_ambient;
 
 	// Calculate fragment diffuse color.
-	vec4 diffuse = texture(u_texture_diffuse, a_texture) * u_refl_diffuse * vec4(a_intensity, a_intensity, a_intensity, 1.0f);
+	vec4 diffuse = texture(u_texture_diffuse, a_texture) * u_refl_diffuse * a_intensity;
 
 	// Calculate fragment specular color.
-	vec3 viewDir = normalize(u_view_pos - gl_FragCoord.xyz);
-	float power = pow(max(dot(viewDir, a_refl_dir), 0.0f), u_spec_exp);
-	vec4 specular = texture(u_texture_specular, a_texture) * u_refl_specular * vec4(power, power, power, 1.0f);
+	float power = pow(max(dot(normalize(u_view_pos - a_vrtx_pos), a_refl_dir), 0.0f), u_spec_exp);
+	vec4 specular = texture(u_texture_specular, a_texture) * u_refl_specular * power;
 	
 	// Calculate fragment's final color.  
-	vec4 clr = (ambient + diffuse + specular) * modifier;
-	fragColor = min(clr, vec4(1.0f));
+	fragColor = (ambient + diffuse + specular) * modifier;
 }

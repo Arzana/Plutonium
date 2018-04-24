@@ -291,10 +291,11 @@ newmtl fabric_g
 	illum 2
 	Ka 0.5880 0.5880 0.5880
 	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
+	Ks 0.5880 0.5880 0.5880
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\sponza_curtain_blue_diff.tga
 	map_Kd textures\sponza_curtain_blue_diff.tga
+	map_Ks textures\sponza_fabric_spec.tga
 
 newmtl fabric_c
 	Ns 10.0000
@@ -305,10 +306,11 @@ newmtl fabric_c
 	illum 2
 	Ka 0.5880 0.5880 0.5880
 	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
+	Ks 0.5880 0.5880 0.5880
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\sponza_curtain_diff.tga
 	map_Kd textures\sponza_curtain_diff.tga
+	map_Ks textures\sponza_fabric_spec.tga
 
 newmtl fabric_f
 	Ns 10.0000
@@ -319,10 +321,11 @@ newmtl fabric_f
 	illum 2
 	Ka 0.5880 0.5880 0.5880
 	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
+	Ks 0.5880 0.5880 0.5880
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\sponza_curtain_green_diff.tga
 	map_Kd textures\sponza_curtain_green_diff.tga
+	map_Ks textures\sponza_fabric_spec.tga
 
 newmtl chain
 	Ns 10.0000
@@ -350,10 +353,11 @@ newmtl vase_hanging
 	illum 2
 	Ka 0.5880 0.5880 0.5880
 	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
+	Ks 0.5880 0.5880 0.5880
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\vase_hanging.tga
 	map_Kd textures\vase_hanging.tga
+	map_Ks textures\vase_round_spec.tga
 
 newmtl vase
 	Ns 10.0000
@@ -364,10 +368,11 @@ newmtl vase
 	illum 2
 	Ka 0.5880 0.5880 0.5880
 	Kd 0.5880 0.5880 0.5880
-	Ks 0.0000 0.0000 0.0000
+	Ks 0.5880 0.5880 0.5880
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\vase_dif.tga
 	map_Kd textures\vase_dif.tga
+	map_Ks textures\vase_round_spec.tga
 
 newmtl Material__25
 	Ns 10.0000

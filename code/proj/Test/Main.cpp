@@ -42,7 +42,7 @@ struct TestGame
 
 	virtual void Initialize(void)
 	{
-		AddComponent(fps = new FpsCounter(this, 100, 60));
+		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
 		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag"));
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));
@@ -77,7 +77,7 @@ struct TestGame
 	virtual void Update(float dt)
 	{
 		/* Update rotating light. */
-		theta = modrads(theta += DEG2RAD * dt * 100);
+		theta = modrads(theta += DEG2RAD * dt * 10);
 		light = Vector3::FromRoll(theta);
 
 		/* Update camera. */
