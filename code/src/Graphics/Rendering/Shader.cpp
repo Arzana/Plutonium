@@ -108,7 +108,7 @@ Uniform * Plutonium::Shader::GetUniform(const char * name) const
 		if (!strcmp(cur->name, name)) return static_cast<Uniform*>(cur);
 	}
 
-	ASSERT("Cannot find uniform %s!", name);
+	ASSERT("Cannot find uniform '%s'!", name);
 	return nullptr;
 }
 

@@ -2,6 +2,8 @@
 #include "Graphics\Rendering\Shader.h"
 #include "Graphics\Models\StaticModel.h"
 #include "GameLogic\EuclidRoom.h"
+#include "Graphics\Lighting\DirectionalLight.h"
+#include "Graphics\Lighting\PointLight.h"
 
 namespace Plutonium
 {
@@ -20,7 +22,7 @@ namespace Plutonium
 		_Check_return_ StaticRenderer& operator =(_In_ StaticRenderer &&other) = delete;
 
 		/* Starts rendering the specified scene. */
-		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 camPos, _In_ Vector3 lightDir, _In_ Color lightClr);
+		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 camPos, _In_ const DirectionalLight *sun, _In_ const PointLight *pointLight);
 		/* Renders the specified model. */
 		void Render(_In_ const StaticModel *model);
 		/* Renders the specified room. */
@@ -30,10 +32,11 @@ namespace Plutonium
 
 	private:
 		Shader *shdr;
-		Uniform *matMdl, *matView, *matProj;
+		Uniform *matMdl, *matView, *matProj, *camPos;
 		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha;
-		Uniform *filter, *ambient, *diffuse, *specular;
-		Uniform *lightDir, *lightClr, *specExp, *camPos;
+		Uniform *filter, *ambient, *diffuse, *specular, *specExp;
+		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
+		Uniform *pointLightPos, *pointLightAtten, *pointLightAmbi, *pointLightDiff, *pointLightSpec;
 		Attribute *pos, *norm, *uv;
 		bool beginCalled;
 	};

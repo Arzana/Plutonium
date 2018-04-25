@@ -7,24 +7,32 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	shdr = Shader::FromFile(vrtxShdr, fragShdr);
 
 	/* Get uniforms. */
-	matMdl = shdr->GetUniform("u_model");
-	matView = shdr->GetUniform("u_view");
-	matProj = shdr->GetUniform("u_projection");
-
-	mapAmbi = shdr->GetUniform("u_texture_ambient");
-	mapDiff = shdr->GetUniform("u_texture_diffuse");
-	mapSpec = shdr->GetUniform("u_texture_specular");
-	mapAlpha = shdr->GetUniform("u_texture_alpha");
-
-	lightDir = shdr->GetUniform("u_light_direction");
-	lightClr = shdr->GetUniform("u_light_color");
-	specExp = shdr->GetUniform("u_spec_exp");
+	matMdl = shdr->GetUniform("u_transform.model");
+	matView = shdr->GetUniform("u_transform.view");
+	matProj = shdr->GetUniform("u_transform.projection");
 	camPos = shdr->GetUniform("u_view_pos");
 
-	filter = shdr->GetUniform("u_frag_filter");
-	ambient = shdr->GetUniform("u_refl_ambient");
-	diffuse = shdr->GetUniform("u_refl_diffuse");
-	specular = shdr->GetUniform("u_refl_specular");
+	mapAmbi = shdr->GetUniform("u_textures.ambient");
+	mapDiff = shdr->GetUniform("u_textures.diffuse");
+	mapSpec = shdr->GetUniform("u_textures.specular");
+	mapAlpha = shdr->GetUniform("u_textures.alpha");
+
+	filter = shdr->GetUniform("u_colors.lfilter");
+	ambient = shdr->GetUniform("u_colors.ambient");
+	diffuse = shdr->GetUniform("u_colors.diffuse");
+	specular = shdr->GetUniform("u_colors.specular");
+	specExp = shdr->GetUniform("u_colors.specularExponent");
+
+	sunLightDir = shdr->GetUniform("u_light_direction");
+	sunLightAmbi = shdr->GetUniform("u_light_sun.ambient");
+	sunLightDiff = shdr->GetUniform("u_light_sun.diffuse");
+	sunLightSpec = shdr->GetUniform("u_light_sun.specular");
+
+	pointLightPos = shdr->GetUniform("u_light_point.position");
+	pointLightAtten = shdr->GetUniform("u_light_point.attenuation");
+	pointLightAmbi = shdr->GetUniform("u_light_point.ambient");
+	pointLightDiff = shdr->GetUniform("u_light_point.diffuse");
+	pointLightSpec = shdr->GetUniform("u_light_point.specular");
 
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
@@ -37,7 +45,7 @@ Plutonium::StaticRenderer::~StaticRenderer(void)
 	delete_s(shdr);
 }
 
-void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, Vector3 lightDir, Color lightClr)
+void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, const DirectionalLight * sun, const PointLight * pointLight)
 {
 	/* Make sure we don't call begin twice. */
 	if (!beginCalled)
@@ -50,8 +58,17 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		matView->Set(view);
 		matProj->Set(proj);
 		this->camPos->Set(camPos);
-		this->lightDir->Set(lightDir);
-		this->lightClr->Set(lightClr);
+
+		sunLightDir->Set(sun->Direction);
+		sunLightAmbi->Set(sun->Ambient);
+		sunLightDiff->Set(sun->Diffuse);
+		sunLightSpec->Set(sun->Specular);
+
+		pointLightPos->Set(view * pointLight->Position);
+		pointLightAtten->Set(Vector3(pointLight->Constant, pointLight->Linear, pointLight->Quadratic));
+		pointLightAmbi->Set(pointLight->Ambient);
+		pointLightDiff->Set(pointLight->Diffuse);
+		pointLightSpec->Set(pointLight->Specular);
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }

@@ -678,6 +678,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 				LOG_WAR("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh->Name, result->Materials.at(curMesh->Material).Name, line);
 				PushShapeIfNeeded(result, curMesh, true);
 			}
+
 			/* Set the material Id to the correct material. */
 			curMesh->Material = i;
 			return;

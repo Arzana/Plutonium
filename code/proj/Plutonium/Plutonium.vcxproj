@@ -281,6 +281,9 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
+    <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
+    <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
+    <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h" />
     <ClInclude Include="..\..\include\Graphics\Mesh.h" />
     <ClInclude Include="..\..\include\Graphics\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />

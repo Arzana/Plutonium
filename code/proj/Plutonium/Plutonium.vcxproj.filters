@@ -117,6 +117,9 @@
     <Filter Include="Source Files\Content">
       <UniqueIdentifier>{691b447b-97b1-4055-a9ae-edbbb0e3fc8b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Lighting">
+      <UniqueIdentifier>{5ac68692-b2b9-4a25-851a-f411fbc33472}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -564,6 +567,15 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\PhongShape.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Lighting\Light.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
