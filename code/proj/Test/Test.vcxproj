@@ -157,9 +157,11 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Fire.h" />
     <ClInclude Include="KnightInit.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\assets\shaders\Dynamic3D.frag" />
     <None Include="..\..\assets\shaders\Dynamic3D.vert">
       <FileType>Document</FileType>
     </None>

@@ -4,10 +4,12 @@
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Diagnostics\FrameInfo.h>
 #include <Graphics\Rendering\StaticRenderer.h>
+#include <Graphics\Rendering\DynamicRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <Core\Math\Interpolation.h>
+#include "Fire.h"
 
 using namespace Plutonium;
 
@@ -18,12 +20,13 @@ struct TestGame
 	DebugFontRenderer *dfRenderer;
 	DebugSpriteRenderer *dsRenderer;
 	StaticRenderer *srenderer;
+	DynamicRenderer *drenderer;
 	Camera *cam;
 
 	/* Scene */
 	float theta;
 	DirectionalLight *sun;
-	PointLight *testLight;
+	Fire *fire1;
 	const char *dayState;
 	StaticModel *map;
 
@@ -50,6 +53,7 @@ struct TestGame
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));
 
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
+		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
 	}
 
@@ -64,7 +68,7 @@ struct TestGame
 		map->SetScale(scale);
 
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color::SunDay);
-		testLight = new PointLight(Vector3(-616.6f, 166.6f, 133.3f) * scale, Color((byte)169, 20, 0), 1.0f, 0.14f, 0.07f);
+		fire1 = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 166.6f, 140.3f), scale);
 	}
 
 	virtual void UnLoadContent(void)
@@ -72,7 +76,7 @@ struct TestGame
 		delete_s(cam);
 		delete_s(map);
 		delete_s(sun);
-		delete_s(testLight);
+		delete_s(fire1);
 	}
 
 	virtual void Finalize(void)
@@ -80,13 +84,15 @@ struct TestGame
 		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
 
 		delete_s(srenderer);
+		delete_s(drenderer);
 		if (depthSprite) delete_s(depthSprite);
 	}
 
 	virtual void Update(float dt)
 	{
-		/* Update day night cycle. */
+		/* Update lights. */
 		UpdateDayState(dt);
+		fire1->Update(dt);
 
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
@@ -158,8 +164,13 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
+		/* Render light sources. */
+		drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
+		drenderer->Render(fire1->model);
+		drenderer->End();
+
 		/* Render current scene, */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, testLight);
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, fire1->light);
 		srenderer->Render(map);
 		srenderer->End();
 

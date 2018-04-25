@@ -32,23 +32,9 @@
     <ClInclude Include="KnightInit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\..\assets\shaders\Dynamic3D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\assets\shaders\PortalFrame3D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\assets\shaders\Static2D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\assets\shaders\Static3D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\assets\shaders\Text2D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </FxCompile>
+    <ClInclude Include="Fire.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\assets\shaders\Static2D.frag">
@@ -58,6 +44,14 @@
       <Filter>Resource Files\Shaders\Fragment</Filter>
     </None>
     <None Include="..\..\assets\shaders\Text2D.frag">
+      <Filter>Resource Files\Shaders\Fragment</Filter>
+    </None>
+    <None Include="..\..\assets\shaders\Dynamic3D.vert" />
+    <None Include="..\..\assets\shaders\PortalFrame3D.vert" />
+    <None Include="..\..\assets\shaders\Static2D.vert" />
+    <None Include="..\..\assets\shaders\Static3D.vert" />
+    <None Include="..\..\assets\shaders\Text2D.vert" />
+    <None Include="..\..\assets\shaders\Dynamic3D.frag">
       <Filter>Resource Files\Shaders\Fragment</Filter>
     </None>
   </ItemGroup>
