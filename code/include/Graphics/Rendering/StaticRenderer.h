@@ -22,7 +22,7 @@ namespace Plutonium
 		_Check_return_ StaticRenderer& operator =(_In_ StaticRenderer &&other) = delete;
 
 		/* Starts rendering the specified scene. */
-		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 camPos, _In_ const DirectionalLight *sun, _In_ const PointLight *pointLight);
+		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 camPos, _In_ const DirectionalLight *sun, _In_ const PointLight *pointLight[4]);
 		/* Renders the specified model. */
 		void Render(_In_ const StaticModel *model);
 		/* Renders the specified room. */
@@ -36,7 +36,7 @@ namespace Plutonium
 		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha;
 		Uniform *filter, *ambient, *diffuse, *specular, *specExp;
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
-		Uniform *pointLightPos, *pointLightAtten, *pointLightAmbi, *pointLightDiff, *pointLightSpec;
+		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
 		Attribute *pos, *norm, *uv;
 		bool beginCalled;
 	};

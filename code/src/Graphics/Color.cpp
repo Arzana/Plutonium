@@ -21,7 +21,7 @@ const Color Color::Magenta =		Color(MASK_OPAQUE | MASK_RED | MASK_BLUE);
 const Color Color::Yellow =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN);
 const Color Color::White =			Color(MASK_OPAQUE | MASK_RED | MASK_BLUE | MASK_GREEN);
 const Color Color::SunDay =			Color(0xFFFFDCFF);
-const Color Color::SunDawn =		Color(0xFF3C3CFF);
+const Color Color::SunDawn =		Color(0xF7B668FF);
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {
@@ -45,6 +45,11 @@ Color Plutonium::Color::Lerp(Color a, Color b, float v)
 	int32 green = static_cast<int32>(lerp(static_cast<float>(a.G), static_cast<float>(b.G), v));
 	int32 blue = static_cast<int32>(lerp(static_cast<float>(a.B), static_cast<float>(b.B), v));
 	return FromNonPremultiplied(red, green, blue, alpha);
+}
+
+Color Plutonium::Color::Lerp(Color a, Color b, float c, float d, float v)
+{
+	return Color::Lerp(a, b, ilerp(c, d, v));
 }
 
 Color Plutonium::Color::operator+(Color other) const

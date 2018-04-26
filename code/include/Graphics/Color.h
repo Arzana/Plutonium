@@ -83,6 +83,8 @@ namespace Plutonium
 		_Check_return_ static Color FromNonPremultiplied(_In_ int32 r, _In_ int32 g, _In_ int32 b, _In_ int32 a);
 		/* Lerps between two specified colors with a specified amount. */
 		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float v);
+		/* Lerps between two specified colors within a specified range of values. */
+		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float c, _In_ float d, _In_ float v);
 
 		/* Adds two colors together. */
 		_Check_return_ Color operator +(_In_ Color other) const;

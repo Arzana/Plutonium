@@ -28,11 +28,26 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	sunLightDiff = shdr->GetUniform("u_light_sun.diffuse");
 	sunLightSpec = shdr->GetUniform("u_light_sun.specular");
 
-	pointLightPos = shdr->GetUniform("u_light_point.position");
-	pointLightAtten = shdr->GetUniform("u_light_point.attenuation");
-	pointLightAmbi = shdr->GetUniform("u_light_point.ambient");
-	pointLightDiff = shdr->GetUniform("u_light_point.diffuse");
-	pointLightSpec = shdr->GetUniform("u_light_point.specular");
+	pointLightPos[0] = shdr->GetUniform("u_light_vases[0].position");
+	pointLightAtten[0] = shdr->GetUniform("u_light_vases[0].attenuation");
+	pointLightAmbi[0] = shdr->GetUniform("u_light_vases[0].ambient");
+	pointLightDiff[0] = shdr->GetUniform("u_light_vases[0].diffuse");
+	pointLightSpec[0] = shdr->GetUniform("u_light_vases[0].specular");
+	pointLightPos[1] = shdr->GetUniform("u_light_vases[1].position");
+	pointLightAtten[1] = shdr->GetUniform("u_light_vases[1].attenuation");
+	pointLightAmbi[1] = shdr->GetUniform("u_light_vases[1].ambient");
+	pointLightDiff[1] = shdr->GetUniform("u_light_vases[1].diffuse");
+	pointLightSpec[1] = shdr->GetUniform("u_light_vases[1].specular");
+	pointLightPos[2] = shdr->GetUniform("u_light_vases[2].position");
+	pointLightAtten[2] = shdr->GetUniform("u_light_vases[2].attenuation");
+	pointLightAmbi[2] = shdr->GetUniform("u_light_vases[2].ambient");
+	pointLightDiff[2] = shdr->GetUniform("u_light_vases[2].diffuse");
+	pointLightSpec[2] = shdr->GetUniform("u_light_vases[2].specular");
+	pointLightPos[3] = shdr->GetUniform("u_light_vases[3].position");
+	pointLightAtten[3] = shdr->GetUniform("u_light_vases[3].attenuation");
+	pointLightAmbi[3] = shdr->GetUniform("u_light_vases[3].ambient");
+	pointLightDiff[3] = shdr->GetUniform("u_light_vases[3].diffuse");
+	pointLightSpec[3] = shdr->GetUniform("u_light_vases[3].specular");
 
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
@@ -45,7 +60,7 @@ Plutonium::StaticRenderer::~StaticRenderer(void)
 	delete_s(shdr);
 }
 
-void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, const DirectionalLight * sun, const PointLight * pointLight)
+void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, const DirectionalLight * sun, const PointLight * pointLight[4])
 {
 	/* Make sure we don't call begin twice. */
 	if (!beginCalled)
@@ -64,11 +79,14 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		sunLightDiff->Set(sun->Diffuse);
 		sunLightSpec->Set(sun->Specular);
 
-		pointLightPos->Set(view * pointLight->Position);
-		pointLightAtten->Set(Vector3(pointLight->Constant, pointLight->Linear, pointLight->Quadratic));
-		pointLightAmbi->Set(pointLight->Ambient);
-		pointLightDiff->Set(pointLight->Diffuse);
-		pointLightSpec->Set(pointLight->Specular);
+		for (size_t i = 0; i < 4; i++)
+		{
+			pointLightPos[i]->Set(view * pointLight[i]->Position);
+			pointLightAtten[i]->Set(Vector3(pointLight[i]->Constant, pointLight[i]->Linear, pointLight[i]->Quadratic));
+			pointLightAmbi[i]->Set(pointLight[i]->Ambient);
+			pointLightDiff[i]->Set(pointLight[i]->Diffuse);
+			pointLightSpec[i]->Set(pointLight[i]->Specular);
+		}
 	}
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }

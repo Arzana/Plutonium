@@ -26,7 +26,7 @@ struct TestGame
 	/* Scene */
 	float theta;
 	DirectionalLight *sun;
-	Fire *fire1;
+	Fire *fires[4];
 	const char *dayState;
 	StaticModel *map;
 
@@ -68,7 +68,12 @@ struct TestGame
 		map->SetScale(scale);
 
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color::SunDay);
-		fire1 = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 166.6f, 140.3f), scale);
+		sun->Ambient = Color(0.2f, 0.2f, 0.2f);
+		sun->Specular = Color::White;
+		fires[0] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, 140.3f), scale);
+		fires[1] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, -220.3f), scale);
+		fires[2] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, 140.3f), scale);
+		fires[3] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, -220.3f), scale);
 	}
 
 	virtual void UnLoadContent(void)
@@ -76,7 +81,7 @@ struct TestGame
 		delete_s(cam);
 		delete_s(map);
 		delete_s(sun);
-		delete_s(fire1);
+		for (size_t i = 0; i < 4; i++) delete_s(fires[0]);
 	}
 
 	virtual void Finalize(void)
@@ -92,7 +97,7 @@ struct TestGame
 	{
 		/* Update lights. */
 		UpdateDayState(dt);
-		fire1->Update(dt);
+		for (size_t i = 0; i < 4; i++) fires[i]->Update(dt);
 
 		/* Update camera. */
 		cam->Update(dt, GetKeyboard(), GetCursor());
@@ -121,12 +126,12 @@ struct TestGame
 		}
 		else if (theta > PI && theta < SUNSET)
 		{
-			sun->Diffuse = Color::Lerp(Color::SunDay, Color::SunDawn, ilerp(PI, SUNSET, theta));
+			sun->Diffuse = Color::Lerp(Color::SunDay, Color::SunDawn, PI, SUNSET, theta);
 			dayState = "Sunset";
 		}
 		else if (theta > SUNSET && theta < DUSK)
 		{
-			sun->Diffuse = Color::Lerp(Color::SunDawn, Color::Black, ilerp(SUNSET, DUSK, theta));
+			sun->Diffuse = Color::Lerp(Color::SunDawn, Color::Black, SUNSET, DUSK, theta);
 			dayState = "Dusk";
 		}
 		else if (theta > DUSK && theta < DAWN)
@@ -136,12 +141,12 @@ struct TestGame
 		}
 		else if (theta > DAWN && theta < SUNRISE)
 		{
-			sun->Diffuse = Color::Lerp(Color::Black, Color::SunDawn, ilerp(DAWN, SUNRISE, theta));
+			sun->Diffuse = Color::Lerp(Color::Black, Color::SunDawn, DAWN, SUNRISE, theta);
 			dayState = "Dawn";
 		}
 		else if (theta > SUNRISE && theta < TAU)
 		{
-			sun->Diffuse = Color::Lerp(Color::SunDawn, Color::SunDay, ilerp(SUNRISE, TAU, theta));
+			sun->Diffuse = Color::Lerp(Color::SunDawn, Color::SunDay, SUNRISE, TAU, theta);
 			dayState = "Sunrise";
 		}
 	}
@@ -166,11 +171,12 @@ struct TestGame
 	{
 		/* Render light sources. */
 		drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
-		drenderer->Render(fire1->model);
+		for (size_t i = 0; i < 4; i++) drenderer->Render(fires[i]->model);
 		drenderer->End();
 
 		/* Render current scene, */
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, fire1->light);
+		const PointLight *lights[4] = { fires[0]->light, fires[1]->light, fires[2]->light, fires[3]->light };
+		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
 		srenderer->Render(map);
 		srenderer->End();
 
@@ -178,11 +184,6 @@ struct TestGame
 		std::string lightStr = "Time: ";
 		((lightStr += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + ::map(0.0f, 24.0f, theta, 0.0f, TAU), 24.0f)));
 		dfRenderer->AddDebugString(lightStr);
-
-		/* Add debug camera position. */
-		std::string camPosStr = "Positon: ";
-		camPosStr += to_string(cam->GetPosition());
-		dfRenderer->AddDebugString(camPosStr);
 
 		/* Add debug average FPS. */
 		std::string fpsaStr = "Fps (avg): ";

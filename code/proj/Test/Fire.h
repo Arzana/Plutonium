@@ -27,7 +27,7 @@ struct Fire
 		model->SetOrientation(0.0f, -PI2, 0.0f);
 		model->Initialize(InitFire);
 		model->PlayAnimation("stand");
-		light = new PointLight(pos * scale, Color((byte)169, 20, 0), 1.0f, 0.14f, 0.07f);
+		light = new PointLight(pos * scale, Color((byte)254, 211, 60), 1.0f, 0.14f, 0.07f);
 	}
 
 	void Update(float dt)

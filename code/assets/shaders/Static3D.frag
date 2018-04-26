@@ -45,7 +45,7 @@ struct PLight
 uniform ObjectMaps u_textures;
 uniform ObjectColors u_colors;
 uniform Light u_light_sun;
-uniform PLight u_light_point;
+uniform PLight u_light_vases[4];
 uniform vec3 u_view_pos;
 
 // Inputs.
@@ -88,8 +88,9 @@ void main()
 	vec4 modifier = u_colors.lfilter * texture(u_textures.alpha, a_texture);
 	if ((modifier.r < 0.1f && modifier.g < 0.1f && modifier.b < 0.1f) || modifier.a < 0.1f) discard;
 
+	// Apply lighting.
 	vec4 outputColor = CalcDirectionalLight(u_light_sun);
-	outputColor += CalcPointLight(u_light_point);
+	for (int i = 0; i < u_light_vases.length(); i++) outputColor += CalcPointLight(u_light_vases[i]);
 	
 	// Calculate fragment's final color.  
 	fragColor = outputColor * modifier;
