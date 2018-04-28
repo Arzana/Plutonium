@@ -45,7 +45,7 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 	return result;
 }
 
-Font * Plutonium::Font::FromFile(const char * path, float size)
+Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wnd)
 {
 	/* Initialize result. */
 	Font *result = new Font();
@@ -77,7 +77,7 @@ Font * Plutonium::Font::FromFile(const char * path, float size)
 	Stopwatch sw = Stopwatch::StartNew();
 
 	/* Create character info and texture map. */
-	result->SetCharacterInfo(&info, scale);
+	result->SetCharacterInfo(&info, wnd, scale);
 	result->PopulateTextureMap(&info, scale);
 
 	/* Free file data and return result. */
@@ -90,7 +90,7 @@ Plutonium::Font::Font(void)
 	: chars(nullptr), cnt(0), def(0), lineSpace(0), size(0)
 {}
 
-void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
+void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd, float scale)
 {
 	/* Get global rendering info. */
 	int32 ascent, descent, lineGap;
@@ -149,7 +149,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, float scale)
 	finalMapSize.X = max(finalMapSize.X, curLineSize.X);
 	finalMapSize.Y += curLineSize.Y;
 	lineSpace += lineGap;
-	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), 0, "Fontmap");
+	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), wnd, 0, "Fontmap");
 }
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)

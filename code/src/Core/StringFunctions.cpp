@@ -78,7 +78,7 @@ void Plutonium::mrgstr(const char * first, const char * second, char * result, c
 	result[flen + strlen(second) + 1] = '\0';
 }
 
-void Plutonium::mrgstr(char ** values, size_t argc, char * result)
+void Plutonium::mrgstr(const char ** values, size_t argc, char * result)
 {
 	/* Loop through all strings. */
 	size_t len = 0;
@@ -94,7 +94,7 @@ void Plutonium::mrgstr(char ** values, size_t argc, char * result)
 	result[len] = '\0';
 }
 
-void Plutonium::mrgstr(char ** values, size_t argc, char * result, char seperator)
+void Plutonium::mrgstr(const char ** values, size_t argc, char * result, char seperator)
 {
 	/* Loop through all strings. */
 	size_t len = 0;

@@ -1,14 +1,17 @@
 #include <Game.h>
 #include <Core\String.h>
+#include <Core\Math\Interpolation.h>
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Diagnostics\FrameInfo.h>
+#include <Graphics\Text\TextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
-#include <Core\Math\Interpolation.h>
+#include <Core\Threading\PuThread.h>
+#include <atomic>
 #include "Fire.h"
 
 using namespace Plutonium;
@@ -19,11 +22,16 @@ struct TestGame
 	/* Renderers. */
 	DebugFontRenderer *dfRenderer;
 	DebugSpriteRenderer *dsRenderer;
+	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
 	Camera *cam;
 
+	/* Loading callbacks. */
+	EventSubscriber<AssetLoader, StaticModel*> sponzaCallback;
+
 	/* Scene */
+	static constexpr float scale = 0.03f;	// If map is sponza
 	float theta;
 	DirectionalLight *sun;
 	Fire *fires[4];
@@ -36,7 +44,8 @@ struct TestGame
 	Texture *depthSprite;
 
 	TestGame(void)
-		: Game("TestGame"), depthSprite(nullptr), theta(0.0f)
+		: Game("TestGame"), depthSprite(nullptr), theta(0.0f), 
+		sponzaCallback(this, &TestGame::OnSponzaLoaded)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -52,6 +61,7 @@ struct TestGame
 		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag"));
 		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));
 
+		fRenderer = new FontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag");
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
@@ -63,25 +73,30 @@ struct TestGame
 		cam->Move(Vector3(0.0f, 5.0f, -3.0f));
 		cam->Yaw = PI2;
 
-		constexpr float scale = 0.03f;	// If map is sponza
-		map = StaticModel::FromFile("./assets/models/Sponza/sponza.obj");
-		map->SetScale(scale);
+		GetLoader()->LoadModel("models/Sponza/sponza.obj", &sponzaCallback);
 
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color::SunDay);
 		sun->Ambient = Color(0.2f, 0.2f, 0.2f);
 		sun->Specular = Color::White;
-		fires[0] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, 140.3f), scale);
-		fires[1] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, -220.3f), scale);
-		fires[2] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, 140.3f), scale);
-		fires[3] = new Fire("./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, -220.3f), scale);
+		fires[0] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, 140.3f), scale);
+		fires[1] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, -220.3f), scale);
+		fires[2] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, 140.3f), scale);
+		fires[3] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, -220.3f), scale);
+	}
+
+	void OnSponzaLoaded(const AssetLoader*, StaticModel *sponza)
+	{
+		map = sponza;
+		map->SetScale(scale);
+		SetLoadPercentage(100);
 	}
 
 	virtual void UnLoadContent(void)
 	{
 		delete_s(cam);
-		delete_s(map);
 		delete_s(sun);
-		for (size_t i = 0; i < 4; i++) delete_s(fires[0]);
+		for (size_t i = 0; i < 4; i++) delete_s(fires[i]);
+		GetLoader()->Unload("models/Sponza/sponza.obj");
 	}
 
 	virtual void Finalize(void)
@@ -203,6 +218,17 @@ struct TestGame
 		/* Add debug frame buffer diagnostics. */
 		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));
 	}
+
+	virtual void RenderLoad(float dt, int percentage)
+	{
+		std::string loadStr = GetLoader()->GetState();
+		(loadStr += '(') += std::to_string(percentage) += "%)";
+
+		Vector2 drawPos = GetGraphics()->GetWindow()->GetClientBounds().GetCenter();
+		fRenderer->AddString(drawPos, loadStr.c_str());
+
+		fRenderer->Render();
+	}
 };
 
 int main(int argc, char **argv)
@@ -211,6 +237,8 @@ int main(int argc, char **argv)
 	game->Run();
 	delete_s(game);
 
+#if defined(DEBUG)
 	_CrtPressAnyKeyToContinue();
+#endif
 	return 0;
 }

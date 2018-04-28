@@ -13,7 +13,7 @@ Texture* GenerateFrameTexture(GraphicsAdapter *device, const char *name)
 	int32 w = ipart(vp.GetWidth()), h = ipart(vp.GetHeight());
 
 	/* Return frame texture. */
-	return new Texture(w, h, 0, name);
+	return new Texture(w, h, device->GetWindow(), 0, name);
 }
 
 template <typename _Ty>

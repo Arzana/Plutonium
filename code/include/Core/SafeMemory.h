@@ -25,7 +25,7 @@
 #define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size), sizeof(type)))
 
 #define free_s(block)					free(const_cast<void*>(void_ptr(block)))
-#define freea_s(block)					_freea(block)
+#define freea_s(block)					_freea(const_cast<void*>(void_ptr(block)))
 #define delete_s(block)					delete block
 #endif	
 

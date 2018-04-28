@@ -25,13 +25,13 @@ Plutonium::Mesh::~Mesh(void) noexcept
 	if (vertices) free_s(vertices);
 }
 
-void Plutonium::Mesh::Finalize(void)
+void Plutonium::Mesh::Finalize(WindowHandler wnd)
 {
 	/* Make sure we don't allocate buffers twice. */
 	LOG_THROW_IF(buffer, "Cannot call finalize a second time!");
 
 	/* Create GPU buffer. */
-	buffer = new Buffer();
+	buffer = new Buffer(wnd);
 	buffer->Bind(BindTarget::Array);
 	buffer->SetData(BufferUsage::StaticDraw, vertices, vrtxCnt);
 

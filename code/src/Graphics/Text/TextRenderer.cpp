@@ -14,13 +14,13 @@ Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font
 	pos = shdr->GetAttribute("a_position");
 
 	/* Load font from file. */
-	this->font = Font::FromFile(font, 24.0f);
+	this->font = Font::FromFile(font, 24.0f, device->GetWindow());
 
 	/* Make sure projection matrix is updated on window resize. */
 	WindowResizeEventHandler(device->GetWindow(), EventArgs());
 	device->GetWindow()->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
-	vbo = new Buffer();
+	vbo = new Buffer(device->GetWindow());
 	vbo->Bind(BindTarget::Array);
 	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, MAX_STRING_LENGTH * 6);
 }
@@ -122,7 +122,6 @@ void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char *str)
 	}
 
 	/* Create GPU side buffer. */
-	vbo->Bind();
 	vbo->SetData(vertices, size);
 	free_s(vertices);
 }

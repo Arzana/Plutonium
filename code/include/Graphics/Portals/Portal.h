@@ -28,7 +28,7 @@ namespace Plutonium
 		friend struct PortalRenderer;
 		friend struct EuclidRoom;
 
-		Portal(Mesh *mesh);
+		Portal(Mesh *mesh, WindowHandler wnd);
 
 		Mesh *mesh;
 		Vector3 center;

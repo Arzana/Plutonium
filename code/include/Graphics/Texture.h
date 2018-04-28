@@ -2,6 +2,9 @@
 #include "Core\Math\Constants.h"
 #include "Core\Math\Rectangle.h"
 #include "Graphics\TextureOptions.h"
+#include "Graphics\Native\Window.h"
+
+struct TextureInvokeObj;
 
 namespace Plutonium
 {
@@ -16,7 +19,7 @@ namespace Plutonium
 		const int32 MipMapLevels;
 
 		/* Initializes a new instance of an empty 2D texture. */
-		Texture(_In_ int32 width, _In_ int32 height, _In_opt_ int32 mipMapLevels = 4, _In_opt_ const char *name = nullptr);
+		Texture(_In_ int32 width, _In_ int32 height, _In_ WindowHandler wnd, _In_opt_ int32 mipMapLevels = 4, _In_opt_ const char *name = nullptr);
 		Texture(_In_ const Texture &value) = delete;
 		Texture(_In_ Texture &&value) = delete;
 		/* Releases the resources allocated for the texture. */
@@ -26,12 +29,18 @@ namespace Plutonium
 		_Check_return_ Texture& operator =(_In_ Texture &&other) = delete;
 
 		/* Loads a specified texture from a file (requires delete!). */
-		_Check_return_ static Texture* FromFile(_In_ const char *path, _In_opt_ TextureCreationOptions *config = nullptr);
+		_Check_return_ static Texture* FromFile(_In_ const char *path, _In_ WindowHandler wnd, _In_opt_ TextureCreationOptions *config = nullptr);
 
 		/* Gets the name assigned to the texture. */
 		_Check_return_ inline const char* GetName(void) const
 		{
 			return name;
+		}
+
+		/* Gets the file name of texture if loaded from file. */
+		_Check_return_ inline const char* GetPath(void) const
+		{
+			return path;
 		}
 
 		/* Gets the size of the texture as a vector. */
@@ -57,12 +66,15 @@ namespace Plutonium
 
 	protected:
 		uint32 ptr;
+		const char *path;
 		const char *name;
 
 	private:
 		friend struct Uniform;
+		friend struct TextureInvokeObj;
 
 		int32 frmt, ifrmt;
+		WindowHandler wnd;
 
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
 

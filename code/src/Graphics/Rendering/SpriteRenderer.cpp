@@ -22,7 +22,7 @@ Plutonium::SpriteRenderer::SpriteRenderer(GraphicsAdapter * device, const char *
 	device->GetWindow()->SizeChanged.Add(this, &SpriteRenderer::WindowResizeEventHandler);
 
 	/* Create VBO for sprite mesh. */
-	mesh = new Buffer();
+	mesh = new Buffer(device->GetWindow());
 	mesh->Bind(BindTarget::Array);
 	mesh->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, 6);
 }

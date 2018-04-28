@@ -7,8 +7,8 @@
 
 using namespace Plutonium;
 
-Plutonium::DynamicModel::DynamicModel(void)
-	: WorldObject(), frameMoveMod(0), accumTime(0.0f),
+Plutonium::DynamicModel::DynamicModel(WindowHandler wnd)
+	: WorldObject(), wnd(wnd), frameMoveMod(0), accumTime(0.0f),
 	curAnim(0), curFrame(0), nextFrame(0), mixAmnt(0.0f), running(false)
 {}
 
@@ -22,10 +22,10 @@ Plutonium::DynamicModel::~DynamicModel(void)
 	delete_s(skin);
 }
 
-DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, const char * texture)
+DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, WindowHandler wnd, const char * texture)
 {
 	/* Create result. */
-	DynamicModel *result = new DynamicModel();
+	DynamicModel *result = new DynamicModel(wnd);
 
 	/* Attempt to load raw data. */
 	const Md2LoaderResult *raw = _CrtLoadMd2(path);
@@ -43,7 +43,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, const char *
 	mrgstr(reader.GetFileDirectory(), texture ? texture : raw->textures.at(0), tex);
 
 	/* Parse texture to result. */
-	result->skin = Texture::FromFile(tex);
+	result->skin = Texture::FromFile(tex, wnd);
 	result->Finalize();	// TODO: Remove!
 
 	/* Log creation. */
@@ -216,7 +216,7 @@ void Plutonium::DynamicModel::Finalize(void)
 		AnimationInfo *info = animations.at(i);
 		for (size_t j = 0; j < info->Frames.size(); j++)
 		{
-			info->Frames.at(j)->Finalize();
+			info->Frames.at(j)->Finalize(wnd);
 		}
 	}
 }

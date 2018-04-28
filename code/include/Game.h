@@ -1,8 +1,10 @@
 #pragma once
 #include "Input\Cursor.h"
 #include "Input\Keyboard.h"
+#include "Content\AssetLoader.h"
 #include "Graphics\GraphicsAdapter.h"
 #include "Components\GameComponent.h"
+#include <atomic>
 
 namespace Plutonium
 {
@@ -56,6 +58,12 @@ namespace Plutonium
 			return keyboard;
 		}
 
+		/* Gets the assetloader associated with this game. */
+		_Check_return_ inline AssetLoader* GetLoader(void) const
+		{
+			return loader;
+		}
+
 	protected:
 		/* Supresses the next successful ticks update call. */
 		inline void SuppressNextUpdate(void)
@@ -94,7 +102,7 @@ namespace Plutonium
 		/* Renders the game. */
 		virtual void Render(_In_ float dt) = 0;
 		/* Renders the loading screen when the percentage is updated. */
-		virtual void RenderLoad(_In_ float dt, _In_ int percentage) {}
+		virtual void RenderLoad(_In_ float dt, _In_ int percentage) = 0;
 
 	private:
 		bool suppressUpdate, suppressRender;
@@ -103,14 +111,15 @@ namespace Plutonium
 		float targetElapTimeNoFocus;
 		float accumElapTime;
 		float maxElapTime;
-		int loadPercentage;
+		std::atomic_int loadPercentage;
 
 		GraphicsAdapter *device;
+		AssetLoader *loader;
 		Cursor *cursor;
 		Keyboard *keyboard;
 		std::vector<GameComponent*> components;
 
-		bool Tick(bool focused);
+		bool Tick(bool focused, bool loading);
 		void DoInitialize(void);
 		void DoFinalize(void);
 		void DoUpdate(float dt);

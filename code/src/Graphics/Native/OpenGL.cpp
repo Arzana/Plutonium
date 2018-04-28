@@ -188,6 +188,14 @@ void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, 
 	}
 }
 
+#if defined(DEBUG)
+void GladPostGLCallEventHandler(const char *name, void *, int, ...)
+{
+	GLenum code = glad_glGetError();
+	if (code != GL_NO_ERROR) GladErrorEventHandler(0, code, 0, 0, 0, name, nullptr);
+}
+#endif
+
 #if defined(_WIN32)
 /* Checks whether a Windows extension is supported. */
 bool IsWGLExtensionSupported(const char *extension)
@@ -297,6 +305,7 @@ int Plutonium::_CrtInitGlad(void)
 	LOG_WAR("Debug mode is enabled! This has a significant performance cost, switch to release mode for optimization.");
 	glEnable(GL_DEBUG_OUTPUT);
 	glad_set_pre_callback(GLADcallback(GladPreGLCallEventHandler));
+	glad_set_post_callback(GLADcallback(GladPostGLCallEventHandler));
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
 #endif
 

@@ -3,6 +3,7 @@
 #include "Streams\FileReader.h"
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
+#include "Content\AssetLoader.h"
 
 using namespace Plutonium;
 
@@ -16,14 +17,14 @@ Plutonium::StaticModel::~StaticModel(void)
 	}
 }
 
-StaticModel * Plutonium::StaticModel::FromFile(const char * path)
+StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *loader)
 {
 	/* Load raw data. */
 	FileReader reader(path, true);
 	const ObjLoaderResult *raw = _CrtLoadObjMtl(path);
 
 	/* Load individual shapes. */
-	StaticModel *result = new StaticModel();
+	StaticModel *result = new StaticModel(loader->GetWindow());
 	for (size_t i = 0; i < raw->Shapes.size(); i++)
 	{
 		/* Get current mesh and associated material. */
@@ -43,7 +44,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path)
 		else
 		{
 			/* Push material to shapes. */
-			result->shapes.push_back(new PhongShape(mesh, &material));
+			result->shapes.push_back(new PhongShape(mesh, &material, loader));
 		}
 	}
 
@@ -58,7 +59,7 @@ void Plutonium::StaticModel::Finalize(void)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		shapes.at(i)->Mesh->Finalize();
+		shapes.at(i)->Mesh->Finalize(wnd);
 	}
 }
 

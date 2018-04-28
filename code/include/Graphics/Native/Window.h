@@ -4,11 +4,13 @@
 #include "Core\Events\EventArgs.h"
 #include "WindowModes.h"
 #include "VSyncModes.h"
+#include <queue>
+#include <mutex>
 
 struct GLFWwindow;
 
 namespace Plutonium
-{
+{ 
 	/* Defines a window handler. */
 	typedef const struct Window
 	{
@@ -98,6 +100,10 @@ namespace Plutonium
 		void SetMode(_In_ WindowMode mode);
 		/* Alters the swap interval of the window. */
 		void SetMode(_In_ VSyncMode mode);
+		/* Invokes the specified function on the OpenGL context thread (func has to be made with new!). */
+		void Invoke(_In_ EventSubscriber<Window, EventArgs> *func) const;
+		/* Gets the window associated with the active context. */
+		_Check_return_ static const Window* GetActiveContextWindow(void);
 
 	private:
 		friend struct Game;
@@ -108,17 +114,23 @@ namespace Plutonium
 		friend Window* GetWndFromHndlr(GLFWwindow*);
 		friend void GlfwFocusChangedEventHandler(GLFWwindow*, int);
 
-		void SetVerticalRetrace(VSyncMode mode);
-		bool Update(void);
-		void SetBounds(Vector2 pos, Vector2 size);
-
 		const char *title;
 		Rectangle wndBounds, vpBounds;
 		GLFWwindow *hndlr;
+		uint64 contextId;
 		bool operational;
 		WindowMode wndMode;
 		VSyncMode swapMode;
 		mutable bool focused;
+		mutable std::mutex invokeLock;
+		mutable std::queue<EventSubscriber<Window, EventArgs>*> toInvoke;
+
+		void SetVerticalRetrace(VSyncMode mode);
+		bool Update(void);
+		void SetBounds(Vector2 pos, Vector2 size);
 
 	} *WindowHandler;
+
+	/* Defines a function that can be invoked by the window. */
+	using Invoker = EventSubscriber<Window, EventArgs>;
 }

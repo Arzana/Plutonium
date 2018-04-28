@@ -1,6 +1,7 @@
 #include "Graphics\Native\Window.h"
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
+#include "Core\Threading\ThreadUtils.h"
 #include <glfw3.h>
 
 using namespace Plutonium;
@@ -16,7 +17,7 @@ Window * Plutonium::GetWndFromHndlr(GLFWwindow *hndlr)
 	}
 
 	/* Should never occur. */
-	LOG_WAR("Unknown window requested!");
+	LOG_THROW("Unknown window requested!");
 	return nullptr;
 }
 
@@ -93,6 +94,7 @@ Plutonium::Window::Window(const char * title, Vector2 size)
 {
 	/* Create underlying window. */
 	if (CreateNewWindow(&hndlr, static_cast<int>(size.X), static_cast<int>(size.Y), title) != GLFW_TRUE) return;
+	contextId = _CrtGetCurrentThreadId();
 	activeWnds.push_back(this);
 
 	/* Make sure OpenGL is initialized. */
@@ -122,6 +124,7 @@ Plutonium::Window::~Window(void)
 
 	/* Release underlying window handler. */
 	if (hndlr) glfwDestroyWindow(hndlr);
+
 	if (activeWnds.size() < 1) _CrtFinalizeGLFW();
 }
 
@@ -203,23 +206,23 @@ void Plutonium::Window::SetMode(WindowMode mode)
 
 	switch (mode)
 	{
-		case Plutonium::WindowMode::Windowed:
-			/* Just set the monitor to NULL and keep everything else the same. */
-			glfwSetWindowMonitor(hndlr, nullptr, x, y, w, h, display.RefreshRate);
-			break;
-		case Plutonium::WindowMode::BorderlessFullscreen:
-			/* Set the monitor to the specified current monitor and resize the window. */
-			glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, display.ClientWidth, display.ClientHeight, display.RefreshRate);
-			SetBounds(Vector2::Zero, display.GetClientSize());
-			break;
-		case Plutonium::WindowMode::Fullscreen:
-			/* Set the monitor to the specified current monitor. */
-			glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, w, h, display.RefreshRate);
-			SetBounds(Vector2::Zero, vpBounds.Size);
-			break;
-		default:
-			LOG_WAR("Attempted to set unsupported window mode!");
-			return;
+	case Plutonium::WindowMode::Windowed:
+		/* Just set the monitor to NULL and keep everything else the same. */
+		glfwSetWindowMonitor(hndlr, nullptr, x, y, w, h, display.RefreshRate);
+		break;
+	case Plutonium::WindowMode::BorderlessFullscreen:
+		/* Set the monitor to the specified current monitor and resize the window. */
+		glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, display.ClientWidth, display.ClientHeight, display.RefreshRate);
+		SetBounds(Vector2::Zero, display.GetClientSize());
+		break;
+	case Plutonium::WindowMode::Fullscreen:
+		/* Set the monitor to the specified current monitor. */
+		glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, w, h, display.RefreshRate);
+		SetBounds(Vector2::Zero, vpBounds.Size);
+		break;
+	default:
+		LOG_WAR("Attempted to set unsupported window mode!");
+		return;
 	}
 
 	/* Reset swap interval is needed for fullscreen window modes. */
@@ -237,23 +240,40 @@ void Plutonium::Window::SetMode(VSyncMode mode)
 	swapMode = mode;
 }
 
+void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> *func) const
+{
+	/* Only add to the invoke list if the current thread is not equal to the context thread. */
+	if (_CrtGetCurrentThreadId() != contextId)
+	{
+		invokeLock.lock();
+		toInvoke.push(func);
+		invokeLock.unlock();
+	}
+	else func->HandlePost(this, EventArgs());
+}
+
+WindowHandler Plutonium::Window::GetActiveContextWindow(void)
+{
+	return GetWndFromHndlr(glfwGetCurrentContext());
+}
+
 void Plutonium::Window::SetVerticalRetrace(VSyncMode mode)
 {
 	switch (mode)
 	{
-		case Plutonium::VSyncMode::Enabled:
-			glfwSwapInterval(1);
-			break;
-		case Plutonium::VSyncMode::Disable:
-			glfwSwapInterval(0);
-			break;
-		case Plutonium::VSyncMode::DisableForce:
-			glfwSwapInterval(0);
-			_CrtSetSwapIntervalExt(0);
-			break;
-		default:
-			LOG_WAR("Attempted to set unsupported vertical retrace mode!");
-			return;
+	case Plutonium::VSyncMode::Enabled:
+		glfwSwapInterval(1);
+		break;
+	case Plutonium::VSyncMode::Disable:
+		glfwSwapInterval(0);
+		break;
+	case Plutonium::VSyncMode::DisableForce:
+		glfwSwapInterval(0);
+		_CrtSetSwapIntervalExt(0);
+		break;
+	default:
+		LOG_WAR("Attempted to set unsupported vertical retrace mode!");
+		return;
 	}
 }
 
@@ -261,6 +281,18 @@ bool Plutonium::Window::Update(void)
 {
 	/* Make sure events are updated (mouse, keyboard, etc.) and return whether the window should be finalized. */
 	glfwPollEvents();
+
+	/* Invoke all the queued functions. */
+	invokeLock.lock();
+	while (toInvoke.size() > 0)
+	{
+		EventSubscriber<Window, EventArgs> *cur = toInvoke.back();
+		cur->HandlePost(this, EventArgs());
+		delete_s(cur);
+		toInvoke.pop();
+	}
+	invokeLock.unlock();
+
 	return glfwWindowShouldClose(hndlr);
 }
 

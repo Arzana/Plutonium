@@ -20,7 +20,7 @@ namespace Plutonium
 		/* Measures the dimensions of the specified string as if it was rendered using this font. */
 		_Check_return_ Vector2 MeasureString(_In_ const char *str) const;
 		/* Loads a font from a specified file. */
-		_Check_return_ static Font* FromFile(_In_ const char *path, _In_ float size);
+		_Check_return_ static Font* FromFile(_In_ const char *path, _In_ float size, _In_ WindowHandler wnd);
 
 		/* Gets the offset between lines. */
 		_Check_return_ inline int32 GetLineSpace(void) const
@@ -44,7 +44,7 @@ namespace Plutonium
 
 		Font(void);
 
-		void SetCharacterInfo(stbtt_fontinfo *info, float scale);
+		void SetCharacterInfo(stbtt_fontinfo *info, WindowHandler wnd, float scale);
 		void PopulateTextureMap(stbtt_fontinfo *info, float scale);
 		Character* GetCharOrDefault(int32 key) const;
 	};

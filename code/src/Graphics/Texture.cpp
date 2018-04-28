@@ -11,15 +11,60 @@
 #include "Core\Diagnostics\StackTrace.h"
 #include "Core\EnumUtils.h"
 #include "Graphics\Diagnostics\DeviceInfo.h"
+#include "Graphics\Native\Window.h"
+#include "Core\Threading\PuThread.h"
+#include "Core\StringFunctions.h"
 #include <glad\glad.h>
 #include <stb\stb_image.h>
 #include <stb\stb_image_write.h>
+#include <atomic>
 
 using namespace Plutonium;
 
-Plutonium::Texture::Texture(int32 width, int32 height, int32 mipMaplevels, const char * name)
-	: Width(width), Height(height), MipMapLevels(mipMaplevels), name(name ? name : ""),
-	frmt(GL_RGBA), ifrmt(GL_RGBA8)
+struct TextureInvokeObj
+{
+public:
+	std::atomic_bool invoked;
+
+	TextureInvokeObj(Texture *texture)
+		: texture(texture), invoked(false)
+	{}
+
+	TextureInvokeObj(Texture *texture, const TextureCreationOptions *config, byte *data)
+		: texture(texture), config(config), data(data), invoked(false)
+	{}
+
+	void InvokeGenerate(WindowHandler, EventArgs)
+	{
+		/* Generate storage and bind texture. */
+		glGenTextures(1, &texture->ptr);
+		glBindTexture(GL_TEXTURE_2D, texture->ptr);
+
+		/* Generate mip map storage and load base texture. */
+		glTexStorage2D(GL_TEXTURE_2D, max(1, texture->MipMapLevels), texture->ifrmt, texture->Width, texture->Height);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->Width, texture->Height, texture->frmt, GL_UNSIGNED_BYTE, void_ptr(data));
+
+		/* Apply texture options associated with rendering */
+		texture->SetPostDataTransferTextureOptions(config);
+
+		invoked.store(true);
+	}
+
+	void InvokeDelete(WindowHandler, EventArgs)
+	{
+		glDeleteTextures(1, &texture->ptr);
+		invoked.store(true);
+	}
+
+private:
+	Texture * texture;
+	const TextureCreationOptions *config;
+	byte *data;
+};
+
+Plutonium::Texture::Texture(int32 width, int32 height, WindowHandler wnd, int32 mipMaplevels, const char * name)
+	: wnd(wnd), Width(width), Height(height), MipMapLevels(mipMaplevels), name(name ? heapstr(name) : heapstr("")),
+	frmt(GL_RGBA), ifrmt(GL_RGBA8), ptr(0), path(nullptr)
 {
 	/* On debug mode check if the mipmap level requested is valid. */
 #if defined(DEBUG)
@@ -34,9 +79,11 @@ Plutonium::Texture::~Texture(void)
 {
 	/* If a texture is active delete it. */
 	if (ptr) Dispose();
+	if (name) free_s(name);
+	if (path) free_s(path);
 }
 
-Texture * Plutonium::Texture::FromFile(const char * path, TextureCreationOptions * config)
+Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, TextureCreationOptions * config)
 {
 	FileReader reader(path, true);
 
@@ -49,11 +96,11 @@ Texture * Plutonium::Texture::FromFile(const char * path, TextureCreationOptions
 	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
 
 	/* Set texture information. */
-	Texture *result = new Texture(w, h, clamp(GetMaxMipMapLevel(w, h), 0, 4));
+	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4));
 	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
-	result->name = reader.GetFileName();
+	result->path = heapstr(path);
+	result->name = heapstr(reader.GetFileName());
 
-	/* Load data into texture and return result. */
 	result->GenerateTexture(data, config);
 	stbi_image_free(data);
 
@@ -106,7 +153,7 @@ void Plutonium::Texture::SaveAsPng(const char * path)
 	/* If the path doesn't fully excist create it. */
 	FileReader fr(path, true);
 	if (!_CrtDirectoryExists(fr.GetFileDirectory())) _CrtCreateDirectory(fr.GetFileDirectory());
-	
+
 	/* Attempt to save as PNG, no stride for full texture. */
 	stbi_flip_vertically_on_write(true);
 	int32 result = stbi_write_png(path, Width, Height, GetChannels(), void_ptr(data), 0);
@@ -126,7 +173,10 @@ void Plutonium::Texture::Dispose(void)
 	/* Make sure we don't delete an invalid texture. */
 	if (ptr)
 	{
-		glDeleteTextures(1, &ptr);
+		TextureInvokeObj obj(this);
+		wnd->Invoke(new Invoker(&obj, &TextureInvokeObj::InvokeDelete));
+		while (!obj.invoked.load()) PuThread::Sleep(10);
+
 		_CrtUpdateUsedGPUMemory(-static_cast<int64>(Width * Height));
 		ptr = 0;
 	}
@@ -187,16 +237,11 @@ void Plutonium::Texture::GenerateTexture(byte * data, const TextureCreationOptio
 	/* Apply texture options associated with the raw data. */
 	SetPreDataTransferTextureOptions(data, config);
 
-	/* Generate storage and bind texture. */
-	glGenTextures(1, &ptr);
-	glBindTexture(GL_TEXTURE_2D, ptr);
+	/* Make sure the OpenGL commands are excecuted on the main thread. */
+	TextureInvokeObj obj(this, config, data);
+	wnd->Invoke(new Invoker(&obj, &TextureInvokeObj::InvokeGenerate));
+	while (!obj.invoked.load()) PuThread::Sleep(10);
 
-	/* Generate mip map storage and load base texture. */
-	glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, void_ptr(data));
-
-	/* Apply texture options associated with rendering and update GPU memory counter. */
-	SetPostDataTransferTextureOptions(config);
 	_CrtUpdateUsedGPUMemory(Width * Height * GetChannels());
 
 	/* Log creation on debug. */

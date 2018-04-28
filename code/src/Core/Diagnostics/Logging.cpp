@@ -198,7 +198,7 @@ void Plutonium::_CrtLogExc(unsigned int framesToSkip)
 
 	/* Log table header. */
 	printf("STACKTRACE:\n");
-	printf("		%38s FUNCTION %46s LINE %8s MODULE %16s FILE\n", "", "", "", "");
+	printf("		%46s FUNCTION %54s LINE %8s MODULE %16s FILE\n", "", "", "", "");
 
 	bool suppressLog = false;
 	for (size_t i = 0; i < callStack.size(); i++)
@@ -208,8 +208,8 @@ void Plutonium::_CrtLogExc(unsigned int framesToSkip)
 		if (!suppressLog)
 		{
 			/* Log stack trace. */
-			printf("		at %-86s ", cur->FunctionName);
-			printf(cur->Line ? "| %-10d " : "| Unknown ", cur->Line);
+			printf("		at %-102s ", cur->FunctionName);
+			printf(cur->Line ? "| %-10d " : "| Unknown    ", cur->Line);
 			printf("| %-16s", cur->ModuleName);
 			printf("| %-64s\n", cur->FileName);
 			

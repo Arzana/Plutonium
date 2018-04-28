@@ -19,9 +19,9 @@ struct Fire
 	DynamicModel *model;
 	PointLight *light;
 
-	Fire(const char *path, const char *texture, Vector3 pos, float scale)
+	Fire(WindowHandler wnd, const char *path, const char *texture, Vector3 pos, float scale)
 	{
-		model = DynamicModel::FromFile(path, texture);
+		model = DynamicModel::FromFile(path, wnd, texture);
 		model->Teleport((pos - Vector3(0.0f, 33.3f, 0.0f)) * scale);
 		model->SetScale(scale);
 		model->SetOrientation(0.0f, -PI2, 0.0f);

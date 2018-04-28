@@ -27,7 +27,7 @@ namespace Plutonium
 		_Check_return_ Mesh& operator =(_In_ Mesh &&other) = delete;
 
 		/* Pushes the vertices to the GPU and releases the resources on the CPU. */
-		void Finalize(void);
+		void Finalize(_In_ WindowHandler wnd);
 
 		/* Gets the ID for the vertex array buffer. */
 		_Check_return_ inline Buffer* GetVertexBuffer(void) const

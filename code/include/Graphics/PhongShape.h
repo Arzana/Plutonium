@@ -5,6 +5,7 @@
 
 namespace Plutonium
 {
+	struct AssetLoader;
 	struct ObjLoaderMaterial;
 	struct ObjLoaderTextureMap;
 
@@ -38,7 +39,7 @@ namespace Plutonium
 		/* Initializes an empty instance of the phong shape object. */
 		PhongShape(void);
 		/* Initializes a new instance of a phong shape. */
-		PhongShape(_In_ Plutonium::Mesh *mesh, _In_ const ObjLoaderMaterial *material);
+		PhongShape(_In_ Plutonium::Mesh *mesh, _In_ const ObjLoaderMaterial *material, _In_ AssetLoader *loader);
 		PhongShape(_In_ const PhongShape &value) = delete;
 		PhongShape(_In_ PhongShape &&value) = delete;
 		/* Releases the resources stored in the shape. */
@@ -47,8 +48,9 @@ namespace Plutonium
 		_Check_return_ PhongShape& operator =(_In_ const PhongShape &other) = delete;
 		_Check_return_ PhongShape& operator =(_In_ PhongShape &&other) = delete;
 	private:
+		AssetLoader *loader;
 
 		static void InitOptions(const ObjLoaderTextureMap *objOpt, TextureCreationOptions *texOpt);
-		static Texture* CreateDefault(void);
+		static Texture* CreateDefault(WindowHandler wnd);
 	};
 }

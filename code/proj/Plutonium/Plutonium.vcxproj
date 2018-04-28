@@ -188,6 +188,7 @@
     <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
     <ClCompile Include="..\..\src\Components\MemoryCounter.cpp" />
+    <ClCompile Include="..\..\src\Content\AssetLoader.cpp" />
     <ClCompile Include="..\..\src\Content\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp" />
@@ -244,6 +245,7 @@
     <ClInclude Include="..\..\include\Components\FpsCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
     <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
+    <ClInclude Include="..\..\include\Content\AssetLoader.h" />
     <ClInclude Include="..\..\include\Content\ObjLoader.h" />
     <ClInclude Include="..\..\include\Core\Collections\Tree.h" />
     <ClInclude Include="..\..\include\Core\Diagnostics\Logging.h" />

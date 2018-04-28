@@ -31,6 +31,7 @@ Plutonium::Game::Game(const char * name)
 
 	/* Create device handles. */
 	device = new GraphicsAdapter(wnd);
+	loader = new AssetLoader(wnd);
 	cursor = new Cursor(wnd);
 	keyboard = new Keyboard(wnd);
 }
@@ -38,9 +39,10 @@ Plutonium::Game::Game(const char * name)
 Plutonium::Game::~Game(void)
 {
 	/* Release basic helpers. */
-	delete_s(device);
+	delete_s(loader);
 	delete_s(cursor);
 	delete_s(keyboard);
+	delete_s(device);
 
 	/* Delete all components. */
 	for (size_t i = 0; i < components.size(); i++) delete_s(components.at(i));
@@ -67,10 +69,7 @@ void Plutonium::Game::SetLoadPercentage(int value)
 		return;
 	}
 
-	/* Render loading screen. */
-	BeginRender();
-	RenderLoad(accumElapTime, loadPercentage = value);
-	EndRender();
+	loadPercentage.store(value);
 }
 
 void Plutonium::Game::Run(void)
@@ -85,17 +84,26 @@ void Plutonium::Game::Run(void)
 	/* Load first level. */
 	SetLoadPercentage(loadPercentage = 0);
 	LoadContent();
+
+	/* Tick loading until the load percentage has been set to 100. */
+	prevTime = glfwGetTime();
+	while (loadPercentage < 100)
+	{
+		wnd->Update();
+		while (!Tick(wnd->HasFocus(), true));
+	}
+
 	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
 
 	/* Excecute game loop. */
-	prevTime = glfwGetTime();
 	while (!wnd->Update())
 	{
-		while (!Tick(wnd->HasFocus()));
+		while (!Tick(wnd->HasFocus(), false));
 	}
 
 	/* Finalize game. */
 	LOG("Finalizing '%s'.", wnd->title);
+	UnLoadContent();
 	DoFinalize();
 }
 
@@ -122,7 +130,7 @@ void Plutonium::Game::Exit(void)
 	suppressRender = true;
 }
 
-bool Plutonium::Game::Tick(bool focused)
+bool Plutonium::Game::Tick(bool focused, bool loading)
 {
 	/* Update timers. */
 	double curTime = glfwGetTime();
@@ -153,7 +161,7 @@ bool Plutonium::Game::Tick(bool focused)
 			for (; accumElapTime >= targetElapTime; accumElapTime -= targetElapTime)
 			{
 				dt += targetElapTime;
-				DoUpdate(targetElapTime);
+				if (!loading) DoUpdate(targetElapTime);
 			}
 		}
 		else
@@ -161,12 +169,18 @@ bool Plutonium::Game::Tick(bool focused)
 			/* Do update. */
 			dt = accumElapTime;
 			accumElapTime = 0.0f;
-			DoUpdate(dt);
+			if (!loading) DoUpdate(dt);
 		}
 	}
 
 	/* Do frame render. */
 	if (suppressRender) suppressRender = false;
+	else if (loading)
+	{
+		BeginRender();
+		RenderLoad(dt, loadPercentage.load());
+		EndRender();
+	}
 	else DoRender(dt);
 	return true;
 }

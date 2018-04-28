@@ -290,6 +290,9 @@
     <ClCompile Include="..\..\src\Graphics\PhongShape.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Content\AssetLoader.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -576,6 +579,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h">
       <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Content\AssetLoader.h">
+      <Filter>Header Files\Content</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -187,7 +187,7 @@ void Plutonium::FileReader::InitFileArgs(void)
 	if (len > 1)
 	{
 		char mrgbuf[FILENAME_MAX];
-		mrgstr(buffer, len - 1, mrgbuf, '/');
+		mrgstr(const_cast<const char**>(buffer), len - 1, mrgbuf, '/');
 		len = strlen(mrgbuf);
 		mrgbuf[len] = '/';
 		mrgbuf[len + 1] = '\0';

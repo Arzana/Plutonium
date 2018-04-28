@@ -20,7 +20,7 @@ namespace Plutonium
 		_Check_return_ EuclidRoom& operator =(_In_ EuclidRoom &&other) = delete;
 
 		/* Loads a model from a specified .obj file (requires delete!). */
-		_Check_return_ static std::vector<EuclidRoom*> FromFile(_In_ const char *path);
+		_Check_return_ static std::vector<EuclidRoom*> FromFile(_In_ const char *path, WindowHandler wnd);
 
 		/* Adds the portal argument from this room to the render list. */
 		_Check_return_ inline const std::vector<Tree<PortalRenderArgs>*>* GetPortals(void) const
@@ -50,14 +50,15 @@ namespace Plutonium
 	private:
 		friend struct StaticRenderer;
 
-		EuclidRoom(void)
-			: WorldObject()
-		{}
-
 		int32 id;
 		Vector3 gravityForce;
 		std::vector<Portal*> portals;
 		std::vector<PhongShape*> shapes;
 		std::vector<Tree<PortalRenderArgs>*> visiblePortals;
+		WindowHandler wnd;
+
+		EuclidRoom(WindowHandler wnd)
+			: WorldObject(), wnd(wnd)
+		{}
 	};
 }

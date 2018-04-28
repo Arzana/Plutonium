@@ -3,6 +3,9 @@
 #include "BufferUsage.h"
 #include "Core\SafeMemory.h"
 #include "Graphics\Rendering\Attribute.h"
+#include "Graphics\Native\Window.h"
+
+struct BufferInvoker;
 
 namespace Plutonium
 {
@@ -11,7 +14,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a GPU buffer. */
-		Buffer(void);
+		Buffer(_In_ WindowHandler wnd);
 		Buffer(_In_ const Buffer &value) = delete;
 		Buffer(_In_ Buffer &&value) = delete;
 		/* Releases the reources allocated by the buffer. */
@@ -57,10 +60,13 @@ namespace Plutonium
 		}
 
 	private:
+		friend struct BufferInvoker;
+
 		uint32 hndlr;
 		size_t size;
 		int64 bsize;
 		GLenum type;
+		WindowHandler wnd;
 
 		void BufferData(BufferUsage usage, size_t size, const void *data);
 		void BufferSubData(size_t size, const void *data, bool sizeUpdated);

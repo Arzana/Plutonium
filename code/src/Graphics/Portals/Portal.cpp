@@ -8,14 +8,14 @@ Plutonium::Portal::~Portal(void)
 	delete_s(mesh);
 }
 
-Plutonium::Portal::Portal(Mesh * mesh)
+Plutonium::Portal::Portal(Mesh * mesh, WindowHandler wnd)
 	: WorldObject(), mesh(mesh), center()
 {
 	/* Calculate portal center. */
 	for (size_t i = 0; i < mesh->GetVertexCount(); i++) center += mesh->GetVertexAt(i).Position;
 	center /= static_cast<float>(mesh->GetVertexCount());
 
-	mesh->Finalize();
+	mesh->Finalize(wnd);
 }
 
 Matrix Plutonium::Portal::GetInverseView(const Matrix & view)

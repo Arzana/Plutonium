@@ -23,7 +23,7 @@ Plutonium::EuclidRoom::~EuclidRoom(void)
 	}
 }
 
-std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
+std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, WindowHandler wnd)
 {
 	std::vector<EuclidRoom*> result;
 
@@ -48,7 +48,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		tinyobj::room_t room = raw->Rooms.at(i);
 
 		/* Create current room. */
-		EuclidRoom *cur = new EuclidRoom();
+		EuclidRoom *cur = new EuclidRoom(wnd);
 		cur->id = IdCnt++;
 		float gx = raw->Vertices.normals.at(3 * room.gravity);
 		float gy = raw->Vertices.normals.at(3 * room.gravity + 1);
@@ -69,7 +69,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 			{
 				char mtlPath[FILENAME_MAX];
 				mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
-				Texture *texture = Texture::FromFile(mtlPath);
+				Texture *texture = Texture::FromFile(mtlPath, wnd);
 
 				/* Add shape to the model. */
 				// TODO: fix!
@@ -81,7 +81,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path)
 		/* Load portals. */
 		for (size_t j = 0; j < room.portals.size(); j++)
 		{
-			Portal *portal = new Portal(Mesh::PFromFile(raw, i, j));
+			Portal *portal = new Portal(Mesh::PFromFile(raw, i, j), wnd);
 			cur->portals.push_back(portal);
 			pidx.push_back(portal);
 			didx.push_back(room.portals.at(j).destination);
@@ -143,6 +143,6 @@ void Plutonium::EuclidRoom::Finalize(void)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		shapes.at(i)->Mesh->Finalize();
+		shapes.at(i)->Mesh->Finalize(wnd);
 	}
 }
