@@ -240,16 +240,16 @@ void Plutonium::Window::SetMode(VSyncMode mode)
 	swapMode = mode;
 }
 
-void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> *func) const
+void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> &func) const
 {
 	/* Only add to the invoke list if the current thread is not equal to the context thread. */
 	if (_CrtGetCurrentThreadId() != contextId)
 	{
 		invokeLock.lock();
-		toInvoke.push(func);
+		toInvoke.push(std::move(func));
 		invokeLock.unlock();
 	}
-	else func->HandlePost(this, EventArgs());
+	else func.HandlePost(this, EventArgs());
 }
 
 WindowHandler Plutonium::Window::GetActiveContextWindow(void)
@@ -286,9 +286,7 @@ bool Plutonium::Window::Update(void)
 	invokeLock.lock();
 	while (toInvoke.size() > 0)
 	{
-		EventSubscriber<Window, EventArgs> *cur = toInvoke.back();
-		cur->HandlePost(this, EventArgs());
-		delete_s(cur);
+		toInvoke.back().HandlePost(this, EventArgs());
 		toInvoke.pop();
 	}
 	invokeLock.unlock();

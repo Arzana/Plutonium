@@ -101,7 +101,7 @@ namespace Plutonium
 		/* Alters the swap interval of the window. */
 		void SetMode(_In_ VSyncMode mode);
 		/* Invokes the specified function on the OpenGL context thread (func has to be made with new!). */
-		void Invoke(_In_ EventSubscriber<Window, EventArgs> *func) const;
+		void Invoke(_In_ EventSubscriber<Window, EventArgs> &func) const;
 		/* Gets the window associated with the active context. */
 		_Check_return_ static const Window* GetActiveContextWindow(void);
 
@@ -123,7 +123,7 @@ namespace Plutonium
 		VSyncMode swapMode;
 		mutable bool focused;
 		mutable std::mutex invokeLock;
-		mutable std::queue<EventSubscriber<Window, EventArgs>*> toInvoke;
+		mutable std::queue<EventSubscriber<Window, EventArgs>> toInvoke;
 
 		void SetVerticalRetrace(VSyncMode mode);
 		bool Update(void);

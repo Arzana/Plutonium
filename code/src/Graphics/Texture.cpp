@@ -174,7 +174,7 @@ void Plutonium::Texture::Dispose(void)
 	if (ptr)
 	{
 		TextureInvokeObj obj(this);
-		wnd->Invoke(new Invoker(&obj, &TextureInvokeObj::InvokeDelete));
+		wnd->Invoke(Invoker(&obj, &TextureInvokeObj::InvokeDelete));
 		while (!obj.invoked.load()) PuThread::Sleep(10);
 
 		_CrtUpdateUsedGPUMemory(-static_cast<int64>(Width * Height));
@@ -239,7 +239,7 @@ void Plutonium::Texture::GenerateTexture(byte * data, const TextureCreationOptio
 
 	/* Make sure the OpenGL commands are excecuted on the main thread. */
 	TextureInvokeObj obj(this, config, data);
-	wnd->Invoke(new Invoker(&obj, &TextureInvokeObj::InvokeGenerate));
+	wnd->Invoke(Invoker(&obj, &TextureInvokeObj::InvokeGenerate));
 	while (!obj.invoked.load()) PuThread::Sleep(10);
 
 	_CrtUpdateUsedGPUMemory(Width * Height * GetChannels());

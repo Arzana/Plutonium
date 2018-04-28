@@ -60,7 +60,7 @@ Plutonium::Buffer::Buffer(WindowHandler wnd)
 {
 	/* Generate a new handler for the buffer. */
 	BufferInvoker obj(this);
-	wnd->Invoke(new Invoker(&obj, &BufferInvoker::InvokeGenerate));
+	wnd->Invoke(Invoker(&obj, &BufferInvoker::InvokeGenerate));
 	while (!obj.invoked.load()) PuThread::Sleep(10);
 }
 
@@ -83,7 +83,7 @@ void Plutonium::Buffer::Bind(void)
 
 	/* Bind the buffer thread safe. */
 	BufferInvoker obj(this);
-	wnd->Invoke(new Invoker(&obj, &BufferInvoker::InvokeBind));
+	wnd->Invoke(Invoker(&obj, &BufferInvoker::InvokeBind));
 	while (!obj.invoked.load()) PuThread::Sleep(10);
 }
 
@@ -102,7 +102,7 @@ void Plutonium::Buffer::BufferData(BufferUsage usage, size_t size, const void * 
 
 	/* Buffer the data thread safe. */
 	BufferInvoker obj(this, size, data, usage);
-	wnd->Invoke(new Invoker(&obj, &BufferInvoker::InvokeBufferData));
+	wnd->Invoke(Invoker(&obj, &BufferInvoker::InvokeBufferData));
 	while (!obj.invoked.load()) PuThread::Sleep(10);
 
 	LOG("%s Buffer 0x%04x allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), hndlr, size);
@@ -117,7 +117,7 @@ void Plutonium::Buffer::BufferSubData(size_t size, const void * data, bool sizeU
 
 	/* Buffer the sub data thread safe. */
 	BufferInvoker obj(this, size, data);
-	wnd->Invoke(new Invoker(&obj, &BufferInvoker::InvokeBufferSubData));
+	wnd->Invoke(Invoker(&obj, &BufferInvoker::InvokeBufferSubData));
 	while (!obj.invoked.load()) PuThread::Sleep(10);
 
 	/* Update GPU diag if needed. */
