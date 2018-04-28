@@ -35,7 +35,8 @@ Plutonium::AssetLoader::AssetLoader(WindowHandler wnd, const char * root)
 
 	/* Add specified loader methods to the tick queue. */
 	ioThread->Tick.Add(this, &AssetLoader::TickIoTextures);
-	ioThread->Tick.Add(this, &AssetLoader::TickIoModels);
+	ioThread->Tick.Add(this, &AssetLoader::TickIoSModels);
+	ioThread->Tick.Add(this, &AssetLoader::TickIoDModels);
 
 	/* Start IO thread. */
 	ioThread->Start();
@@ -59,13 +60,22 @@ Plutonium::AssetLoader::~AssetLoader(void) noexcept
 		loadedTextures.pop_back();
 	}
 
-	/* Unload all stored models. */
-	while (loadedModels.size())
+	/* Unload all stored static models. */
+	while (loadedSModels.size())
 	{
-		AssetInfo<StaticModel> *cur = loadedModels.back();
+		AssetInfo<StaticModel> *cur = loadedSModels.back();
 		LOG_WAR_IF(cur->RefCnt > 0, "Active refrence to model '%s' is removed!", cur->Asset->GetName());
 		delete_s(cur);
-		loadedModels.pop_back();
+		loadedSModels.pop_back();
+	}
+
+	/* Unload all stored dynamic models. */
+	while (loadedDModels.size())
+	{
+		AssetInfo<DynamicModel> *cur = loadedDModels.back();
+		LOG_WAR_IF(cur->RefCnt > 0, "Active refrence to model '%s' is removed!", cur->Asset->GetName());
+		delete_s(cur);
+		loadedDModels.pop_back();
 	}
 }
 
@@ -131,12 +141,12 @@ bool Plutonium::AssetLoader::Unload(const StaticModel * model)
 	if (!model->path) return false;
 
 	/* Searches the buffer for the model. */
-	lockMod.lock();
-	int32 idx = GetModelIdx(model->path);
+	lockSMod.lock();
+	int32 idx = GetSModelIdx(model->path);
 	if (idx != -1)
 	{
 		/* Check for corrupt unloading. */
-		AssetInfo<StaticModel> *cur = loadedModels.at(idx);
+		AssetInfo<StaticModel> *cur = loadedSModels.at(idx);
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced model!");
 
 		/* Remove refrence to model and check if it needs to be deleted. */
@@ -144,16 +154,51 @@ bool Plutonium::AssetLoader::Unload(const StaticModel * model)
 		{
 			/* Delete model and remove it from the list. */
 			LOG("Removing refrence to model '%s'.", cur->Asset->GetName());
-			loadedModels.erase(loadedModels.begin() + idx);
-			lockMod.unlock();
+			loadedSModels.erase(loadedSModels.begin() + idx);
+			lockSMod.unlock();
 			delete_s(cur);
 			return true;
 		}
 
-		lockMod.unlock();
+		lockSMod.unlock();
 		return true;
 	}
-	lockMod.unlock();
+	lockSMod.unlock();
+
+	/* Unable to find specified model. */
+	return false;
+}
+
+bool Plutonium::AssetLoader::Unload(const DynamicModel * model)
+{
+	/* Check if model was loaded from file. */
+	ASSERT_IF(!model, "Input model cannot be null!");
+	if (!model->path) return false;
+
+	/* Searches the buffer for the model. */
+	lockDMod.lock();
+	int32 idx = GetDModelIdx(model->path);
+	if (idx != -1)
+	{
+		/* Check for corrupt unloading. */
+		AssetInfo<DynamicModel> *cur = loadedDModels.at(idx);
+		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced model!");
+
+		/* Remove refrence to model and check if it needs to be deleted. */
+		if ((--cur->RefCnt) <= 0 && !cur->Keep)
+		{
+			/* Delete model and remove it from the list. */
+			LOG("Removing refrence to model '%s'.", cur->Asset->GetName());
+			loadedDModels.erase(loadedDModels.begin() + idx);
+			lockDMod.unlock();
+			delete_s(cur);
+			return true;
+		}
+
+		lockDMod.unlock();
+		return true;
+	}
+	lockDMod.unlock();
 
 	/* Unable to find specified model. */
 	return false;
@@ -174,6 +219,19 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 	}
 	else
 	{
+		/* Check if asset is already in the load queu. */
+		for (size_t i = 0; i < queuedTextures.size(); i++)
+		{
+			TextureLoadInfo *cur = queuedTextures.at(i);
+			if (!strcmp(cur->Names->GetFilePath(), path))
+			{
+				/* Add callback to the list if asset found. */
+				cur->Callbacks.push_back(std::move(callback));
+				lockTex.unlock();
+				return;
+			}
+		}
+
 		/* We have to load the texture so create an infomation struct. */
 		TextureLoadInfo *info = new TextureLoadInfo(new FileReader(path, true), keep, callback, config);
 
@@ -185,7 +243,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		}
 		else
 		{
-			queuedTextures.push(info);
+			queuedTextures.push_back(info);
 			lockTex.unlock();
 		}
 	}
@@ -193,32 +251,90 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 
 void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, StaticModel*> &callback, bool keep)
 {
-	lockMod.lock();
+	lockSMod.lock();
 
-	int32 idx = GetModelIdx(path);
+	int32 idx = GetSModelIdx(path);
 	if (idx != -1)
 	{
 		/* if model is already loaded return it and increase it's refrence count. */
-		AssetInfo<StaticModel> *cur = loadedModels.at(idx);
+		AssetInfo<StaticModel> *cur = loadedSModels.at(idx);
 		++cur->RefCnt;
 		callback.HandlePost(this, cur->Asset);
-		lockMod.unlock();
+		lockSMod.unlock();
 	}
 	else
 	{
+		/* Check if asset is already in the load queu. */
+		for (size_t i = 0; i < queuedSModels.size(); i++)
+		{
+			AssetLoadInfo<StaticModel> *cur = queuedSModels.at(i);
+			if (!strcmp(cur->Names->GetFilePath(), path))
+			{
+				/* Add callback to the list if asset found. */
+				cur->Callbacks.push_back(std::move(callback));
+				lockSMod.unlock();
+				return;
+			}
+		}
+
 		/* We have to load the model so create an information struct. */
 		AssetLoadInfo<StaticModel> *info = new AssetLoadInfo<StaticModel>(new FileReader(path, true), keep, callback);
 
 		/* Make sure we actually load the model on the IO thread. */
 		if (OnIoThread())
 		{
-			lockMod.unlock();
-			LoadModelInternal(info, true);
+			lockSMod.unlock();
+			LoadSModelInternal(info, true);
 		}
 		else
 		{
-			queuedModels.push(info);
-			lockMod.unlock();
+			queuedSModels.push_back(info);
+			lockSMod.unlock();
+		}
+	}
+}
+
+void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, DynamicModel*>& callback, bool keep, const char * texture)
+{
+	lockDMod.lock();
+
+	int32 idx = GetDModelIdx(path);
+	if (idx != -1)
+	{
+		/* if model is already loaded return it and increase it's refrence count. */
+		AssetInfo<DynamicModel> *cur = loadedDModels.at(idx);
+		++cur->RefCnt;
+		callback.HandlePost(this, cur->Asset);
+		lockDMod.unlock();
+	}
+	else
+	{
+		/* Check if asset is already in the load queu. */
+		for (size_t i = 0; i < queuedDModels.size(); i++)
+		{
+			DynamicModelLoadInfo *cur = queuedDModels.at(i);
+			if (!strcmp(cur->Names->GetFilePath(), path))
+			{
+				/* Add callback to the list if asset found. */
+				cur->Callbacks.push_back(std::move(callback));
+				lockDMod.unlock();
+				return;
+			}
+		}
+
+		/* We have to load the model so create an information struct. */
+		DynamicModelLoadInfo *info = new DynamicModelLoadInfo(new FileReader(path, true), keep, callback, texture);
+
+		/* Make sure we actually load the model on the IO thread. */
+		if (OnIoThread())
+		{
+			lockDMod.unlock();
+			LoadDModelInternal(info, true);
+		}
+		else
+		{
+			queuedDModels.push_back(info);
+			lockDMod.unlock();
 		}
 	}
 }
@@ -241,8 +357,21 @@ StaticModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep)
 	/* Create temporary storage. */
 	LoadResult<StaticModel> result;
 
-	/* Load the texture with the specified callback. */
+	/* Load the model with the specified callback. */
 	LoadModel(path, EventSubscriber<AssetLoader, StaticModel*>(&result, &LoadResult<StaticModel>::OnLoadComplete), keep);
+
+	/* Wait untill loading is complete and return value. */
+	while (!result.loaded.load()) PuThread::Sleep(10);
+	return result.value;
+}
+
+DynamicModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep, const char * texture)
+{
+	/* Create temporary storage. */
+	LoadResult<DynamicModel> result;
+
+	/* Load the model with the specified callback. */
+	LoadModel(path, EventSubscriber<AssetLoader, DynamicModel*>(&result, &LoadResult<DynamicModel>::OnLoadComplete), keep);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -332,12 +461,23 @@ int32 Plutonium::AssetLoader::GetTextureIdx(const char * path)
 	return -1;
 }
 
-int32 Plutonium::AssetLoader::GetModelIdx(const char * path)
+int32 Plutonium::AssetLoader::GetSModelIdx(const char * path)
 {
 	/* Attempt to find the requested texture or return -1 when not found. */
-	for (size_t i = 0; i < loadedModels.size(); i++)
+	for (size_t i = 0; i < loadedSModels.size(); i++)
 	{
-		if (!strcmp(loadedModels.at(i)->Path, path)) return static_cast<int32>(i);
+		if (!strcmp(loadedSModels.at(i)->Path, path)) return static_cast<int32>(i);
+	}
+
+	return -1;
+}
+
+int32 Plutonium::AssetLoader::GetDModelIdx(const char * path)
+{
+	/* Attempt to find the requested texture or return -1 when not found. */
+	for (size_t i = 0; i < loadedDModels.size(); i++)
+	{
+		if (!strcmp(loadedDModels.at(i)->Path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -359,11 +499,11 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 	lockTex.unlock();
 
 	/* Call callback. */
-	info->Callback.HandlePost(this, result->Asset);
+	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
 }
 
-void Plutonium::AssetLoader::LoadModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState)
+void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState)
 {
 	/* Update state is requested. */
 	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
@@ -374,12 +514,32 @@ void Plutonium::AssetLoader::LoadModelInternal(AssetLoadInfo<StaticModel> *info,
 	free_s(fullPath);
 
 	/* Push to loaded list. */
-	lockMod.lock();
-	loadedModels.push_back(result);
-	lockMod.unlock();
+	lockSMod.lock();
+	loadedSModels.push_back(result);
+	lockSMod.unlock();
 
 	/* Call callback. */
-	info->Callback.HandlePost(this, result->Asset);
+	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
+	delete_s(info);
+}
+
+void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info, bool updateState)
+{
+	/* Update state is requested. */
+	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+
+	/* Load model. */
+	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
+	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(fullPath, info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture));
+	free_s(fullPath);
+
+	/* Push to loaded list. */
+	lockDMod.lock();
+	loadedDModels.push_back(result);
+	lockDMod.unlock();
+
+	/* Call callback. */
+	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
 }
 
@@ -390,8 +550,8 @@ void Plutonium::AssetLoader::TickIoTextures(const TickThread *, EventArgs)
 	while (queuedTextures.size() > 0)
 	{
 		/* Get current texture queued for loading. */
-		TextureLoadInfo *cur = queuedTextures.back();
-		queuedTextures.pop();
+		TextureLoadInfo *cur = queuedTextures.front();
+		queuedTextures.pop_front();
 
 		/* Unload the buffer to allow more additions whilst we load the texture. */
 		lockTex.unlock();
@@ -405,24 +565,46 @@ void Plutonium::AssetLoader::TickIoTextures(const TickThread *, EventArgs)
 	SetStateWaiting();
 }
 
-void Plutonium::AssetLoader::TickIoModels(const TickThread *, EventArgs)
+void Plutonium::AssetLoader::TickIoSModels(const TickThread *, EventArgs)
 {
 	/* Lock the buffer to make sure we safely read the size. */
-	lockMod.lock();
-	while (queuedModels.size() > 0)
+	lockSMod.lock();
+	while (queuedSModels.size() > 0)
 	{
 		/* Get current model queued for loading. */
-		AssetLoadInfo<StaticModel> *cur = queuedModels.back();
-		queuedModels.pop();
+		AssetLoadInfo<StaticModel> *cur = queuedSModels.front();
+		queuedSModels.pop_front();
 
 		/* Unload the buffer to allow more additions whilst we load the model. */
-		lockMod.unlock();
+		lockSMod.unlock();
 		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		LoadModelInternal(cur, false);
-		lockMod.lock();
+		LoadSModelInternal(cur, false);
+		lockSMod.lock();
 	}
 
 	/* Make sure we unlock the buffer. */
-	lockMod.unlock();
+	lockSMod.unlock();
+	SetStateWaiting();
+}
+
+void Plutonium::AssetLoader::TickIoDModels(const TickThread *, EventArgs)
+{
+	/* Lock the buffer to make sure we safely read the size. */
+	lockDMod.lock();
+	while (queuedDModels.size() > 0)
+	{
+		/* Get current model queued for loading. */
+		DynamicModelLoadInfo *cur = queuedDModels.front();
+		queuedDModels.pop_front();
+
+		/* Unload the buffer to allow more additions whilst we load the model. */
+		lockDMod.unlock();
+		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
+		LoadDModelInternal(cur, false);
+		lockDMod.lock();
+	}
+
+	/* Make sure we unlock the buffer. */
+	lockDMod.unlock();
 	SetStateWaiting();
 }

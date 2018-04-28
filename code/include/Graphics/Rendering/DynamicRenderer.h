@@ -1,6 +1,6 @@
 #pragma once
 #include "Shader.h"
-#include "Graphics\Models\DynamicModel.h"
+#include "GameLogic\DynamicObject.h"
 
 namespace Plutonium
 {
@@ -21,7 +21,7 @@ namespace Plutonium
 		/* Starts rendering the specified scene. */
 		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 lightDir);
 		/* Renders the specified model. */
-		void Render(_In_ const DynamicModel *model);
+		void Render(_In_ const DynamicObject *model);
 		/* Stops rendering the specified scene. */
 		void End(void);
 

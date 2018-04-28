@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics\Models\DynamicModel.h>
+#include <GameLogic\DynamicObject.h>
 #include <Graphics\Lighting\PointLight.h>
 
 using namespace Plutonium;
@@ -16,28 +16,34 @@ inline void InitFire(const char *Name, PlayBackFlags &flags, float &fps)
 
 struct Fire
 {
-	DynamicModel *model;
+	DynamicObject *object;
 	PointLight *light;
+	bool animationStarted;
 
-	Fire(WindowHandler wnd, const char *path, const char *texture, Vector3 pos, float scale)
+	Fire(Game *game, Vector3 pos, float scale, int weight)
+		: animationStarted(false)
 	{
-		model = DynamicModel::FromFile(path, wnd, texture);
-		model->Teleport((pos - Vector3(0.0f, 33.3f, 0.0f)) * scale);
-		model->SetScale(scale);
-		model->SetOrientation(0.0f, -PI2, 0.0f);
-		model->Initialize(InitFire);
-		model->PlayAnimation("stand");
+		object = new DynamicObject(game, "models/Fire/fire.md2", "fire.png", weight, InitFire);
+		object->Teleport((pos - Vector3(0.0f, 33.3f, 0.0f)) * scale);
+		object->SetScale(scale);
+		object->SetOrientation(0.0f, -PI2, 0.0f);
 		light = new PointLight(pos * scale, Color((byte)254, 211, 60), 1.0f, 0.14f, 0.07f);
 	}
 
 	void Update(float dt)
 	{
-		model->Update(dt);
+		if (!animationStarted)
+		{
+			object->PlayAnimation("stand");
+			animationStarted = true;
+		}
+
+		object->Update(dt);
 	}
-	
-	~Fire(void) noexcept 
+
+	~Fire(void) noexcept
 	{
-		delete_s(model);
+		delete_s(object);
 		delete_s(light);
 	}
 };

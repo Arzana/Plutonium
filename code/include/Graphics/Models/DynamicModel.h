@@ -11,7 +11,6 @@ namespace Plutonium
 
 	/* Defines a basic animated model that can be placed in the world. */
 	struct DynamicModel
-		: public WorldObject
 	{
 	public:
 		DynamicModel(_In_ const DynamicModel &value) = delete;
@@ -22,46 +21,33 @@ namespace Plutonium
 		_Check_return_ DynamicModel& operator =(_In_ const DynamicModel &other) = delete;
 		_Check_return_ DynamicModel& operator =(_In_ DynamicModel &&other) = delete;
 
-		/* Loads a model from a specified .md2 file (requires delete!). */
-		_Check_return_ static DynamicModel* FromFile(_In_ const char *path, WindowHandler wnd, _In_opt_ const char *texture = nullptr);
+		/* Gets the name assigned to the model. */
+		_Check_return_ inline const char* GetName(void) const
+		{
+			return name;
+		}
 
-		/* Plays a specified animation. */
-		void PlayAnimation(_In_ const char *name);
-		/* Initializes the animations specified by the model. */
-		void Initialize(_In_ Initializer func);
-		/* Updates the model. */
-		void Update(_In_ float dt);
+		/* Loads a model from a specified .md2 file (requires delete!). */
+		_Check_return_ static DynamicModel* FromFile(_In_ const char *path, _In_ AssetLoader *loader, _In_opt_ const char *texture = nullptr);
 
 	protected:
+		std::vector<AnimationInfo*> animations;
+		Texture *skin;
+		const char *name;
+		const char *path;
+
 		/* Finalizes the underlying meshes, sending them to the GPU. */
 		void Finalize(void);
 
-		/* Gets the current animations frame mesh. */
-		_Check_return_ inline const Mesh* GetCurrentFrame(void) const
-		{
-			return animations.at(curAnim)->Frames.at(curFrame);
-		}
-
-		/* Gets the next animations frame mesh. */
-		_Check_return_ inline const Mesh* GetNextFrame(void) const
-		{
-			return animations.at(curAnim)->Frames.at(nextFrame);
-		}
-
 	private:
 		friend struct DynamicRenderer;
+		friend struct DynamicObject;
+		friend struct AssetLoader;
 
-		bool running;
-		int frameMoveMod;
-		float accumTime, mixAmnt;
-		size_t curAnim, curFrame, nextFrame;
-		std::vector<AnimationInfo*> animations;
-		Texture *skin;
-		WindowHandler wnd;
+		AssetLoader *loader;
 
-		DynamicModel(WindowHandler wnd);
+		DynamicModel(AssetLoader *loader);
 
-		void MoveFrame(void);
 		void SplitFrames(std::vector<Mesh*> meshes);
 	};
 }

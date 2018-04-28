@@ -46,14 +46,14 @@ void Plutonium::DynamicRenderer::Begin(const Matrix & view, const Matrix & proj,
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
-void Plutonium::DynamicRenderer::Render(const DynamicModel * model)
+void Plutonium::DynamicRenderer::Render(const DynamicObject * model)
 {
 	/* Make sure begin is called. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 
 	/* Set uniforms. */
 	matMdl->Set(model->GetWorld());
-	texture->Set(model->skin);
+	texture->Set(model->GetModel()->skin);
 	time->Set(model->mixAmnt);
 
 	/* Set first mesh buffer attributes. */

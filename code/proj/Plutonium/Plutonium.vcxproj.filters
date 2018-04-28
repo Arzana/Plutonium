@@ -296,6 +296,9 @@
     <ClCompile Include="..\..\src\GameLogic\StaticObject.cpp">
       <Filter>Source Files\GameLogic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\GameLogic\DynamicObject.cpp">
+      <Filter>Source Files\GameLogic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -587,6 +590,9 @@
       <Filter>Header Files\Content</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\GameLogic\StaticObject.h">
+      <Filter>Header Files\GameLogic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\GameLogic\DynamicObject.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
   </ItemGroup>
