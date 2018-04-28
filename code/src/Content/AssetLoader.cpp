@@ -89,15 +89,18 @@ void Plutonium::AssetLoader::SetRoot(const char * root)
 	lockRoot.unlock();
 }
 
-bool Plutonium::AssetLoader::Unload(const char * path)
+bool Plutonium::AssetLoader::Unload(const Texture * texture)
 {
-	if (!path) return false;
+	/* Check if texture was loaded from file. */
+	ASSERT_IF(!texture, "Input texture cannot be null!");
+	if (!texture->path) return false;
 
-	/* Check if asset is texture. */
+	/* Searches the buffer for the texture. */
 	lockTex.lock();
-	int32 idx = GetTextureIdx(path);
+	int32 idx = GetTextureIdx(texture->path);
 	if (idx != -1)
 	{
+		/* Check for corrupt unloading. */
 		AssetInfo<Texture> *cur = loadedTextures.at(idx);
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced texture!");
 
@@ -117,11 +120,22 @@ bool Plutonium::AssetLoader::Unload(const char * path)
 	}
 	lockTex.unlock();
 
-	/* Check if asset is model. */
+	/* Unable to find specified texture. */
+	return false;
+}
+
+bool Plutonium::AssetLoader::Unload(const StaticModel * model)
+{
+	/* Check if model was loaded from file. */
+	ASSERT_IF(!model, "Input model cannot be null!");
+	if (!model->path) return false;
+
+	/* Searches the buffer for the model. */
 	lockMod.lock();
-	idx = GetModelIdx(path);
+	int32 idx = GetModelIdx(model->path);
 	if (idx != -1)
 	{
+		/* Check for corrupt unloading. */
 		AssetInfo<StaticModel> *cur = loadedModels.at(idx);
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced model!");
 
@@ -141,6 +155,7 @@ bool Plutonium::AssetLoader::Unload(const char * path)
 	}
 	lockMod.unlock();
 
+	/* Unable to find specified model. */
 	return false;
 }
 
@@ -335,7 +350,7 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 
 	/* Load texture. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<Texture> *result = new AssetInfo<Texture>(info, Texture::FromFile(fullPath, wnd, info->Options));
+	AssetInfo<Texture> *result = new AssetInfo<Texture>(fullPath, info->Keep, Texture::FromFile(fullPath, wnd, info->Options));
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -355,7 +370,7 @@ void Plutonium::AssetLoader::LoadModelInternal(AssetLoadInfo<StaticModel> *info,
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info, StaticModel::FromFile(fullPath, this));
+	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(fullPath, info->Keep, StaticModel::FromFile(fullPath, this));
 	free_s(fullPath);
 
 	/* Push to loaded list. */

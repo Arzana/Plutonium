@@ -206,6 +206,7 @@
     <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp" />
+    <ClCompile Include="..\..\src\GameLogic\StaticObject.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h" />
+    <ClInclude Include="..\..\include\GameLogic\StaticObject.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugRenderer.h" />

@@ -11,8 +11,8 @@ namespace Plutonium
 		Vector3 Direction;
 
 		/* Initializes a new instance of a directional light source. */
-		DirectionalLight(_In_ Vector3 direction, _In_ Color color)
-			: Light(color, color, color), Direction(direction)
+		DirectionalLight(_In_ Vector3 direction, _In_ Color ambient, _In_ Color diffuse, _In_ Color specular)
+			: Light(ambient, diffuse, specular), Direction(direction)
 		{}
 
 		DirectionalLight(_In_ const DirectionalLight &value) = delete;

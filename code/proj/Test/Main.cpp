@@ -3,13 +3,13 @@
 #include <Core\Math\Interpolation.h>
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
-#include <Graphics\Diagnostics\FrameInfo.h>
 #include <Graphics\Text\TextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
+#include <GameLogic\StaticObject.h>
 #include "Fire.h"
 
 using namespace Plutonium;
@@ -31,7 +31,7 @@ struct TestGame
 	DirectionalLight *sun;
 	Fire *fires[4];
 	const char *dayState;
-	StaticModel *map;
+	StaticObject *map;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -58,31 +58,25 @@ struct TestGame
 		fRenderer = new FontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag");
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
-		GetKeyboard()->KeyPress.Add(this, &TestGame::KeyInput);
 	}
 
 	virtual void LoadContent(void)
 	{
+		/* Setup camera for sponza. */
 		cam = new Camera(GetGraphics()->GetWindow());
 		cam->Move(Vector3(0.0f, 5.0f, -3.0f));
 		cam->Yaw = PI2;
 
-		GetLoader()->LoadModel("models/Sponza/sponza.obj", Callback<StaticModel>(this, &TestGame::OnSponzaLoaded));
+		/* Load static assets. */
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 100);
+		map->SetScale(scale);
 
-		sun = new DirectionalLight(Vector3::FromRoll(theta), Color::SunDay);
-		sun->Ambient = Color(0.2f, 0.2f, 0.2f);
-		sun->Specular = Color::White;
+		/* Setup lighting. */
+		sun = new DirectionalLight(Vector3::FromRoll(theta), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
 		fires[0] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, 140.3f), scale);
 		fires[1] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(-616.6f, 172.6f, -220.3f), scale);
 		fires[2] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, 140.3f), scale);
 		fires[3] = new Fire(GetGraphics()->GetWindow(), "./assets/models/Fire/fire.md2", "fire.png", Vector3(490.6f, 172.6f, -220.3f), scale);
-	}
-
-	void OnSponzaLoaded(const AssetLoader*, StaticModel *sponza)
-	{
-		map = sponza;
-		map->SetScale(scale);
-		SetLoadPercentage(100);
 	}
 
 	virtual void UnLoadContent(void)
@@ -90,13 +84,11 @@ struct TestGame
 		delete_s(cam);
 		delete_s(sun);
 		for (size_t i = 0; i < 4; i++) delete_s(fires[i]);
-		GetLoader()->Unload("models/Sponza/sponza.obj");
+		delete_s(map);
 	}
 
 	virtual void Finalize(void)
 	{
-		GetKeyboard()->KeyPress.Remove(this, &TestGame::KeyInput);
-
 		delete_s(srenderer);
 		delete_s(drenderer);
 		if (depthSprite) delete_s(depthSprite);
@@ -158,22 +150,6 @@ struct TestGame
 			sun->Diffuse = Color::Lerp(Color::SunDawn, Color::SunDay, SUNRISE, TAU, theta);
 			dayState = "Sunrise";
 		}
-	}
-
-	void KeyInput(WindowHandler, KeyEventArgs args)
-	{
-#if defined(DEBUG)
-		/* If PrintScreen is pressed (once), update frame diagnostics. */
-		if (args.Key == Keys::PrintScreen && args.Action == KeyState::Down)
-		{
-			/* Create new texture from depth and delete old texture if needed. */
-			if (depthSprite) delete_s(depthSprite);
-			depthSprite = _CrtSaveDepthToTexture(GetGraphics());
-
-			/* Operation will take a long time, so make sure it doesn't affect next frames delta. */
-			SuppressNextUpdate();
-		}
-#endif
 	}
 
 	virtual void Render(float dt)

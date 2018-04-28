@@ -293,6 +293,9 @@
     <ClCompile Include="..\..\src\Content\AssetLoader.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\GameLogic\StaticObject.cpp">
+      <Filter>Source Files\GameLogic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -582,6 +585,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Content\AssetLoader.h">
       <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\GameLogic\StaticObject.h">
+      <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -37,12 +37,6 @@ namespace Plutonium
 			return name;
 		}
 
-		/* Gets the file name of texture if loaded from file. */
-		_Check_return_ inline const char* GetPath(void) const
-		{
-			return path;
-		}
-
 		/* Gets the size of the texture as a vector. */
 		_Check_return_ inline Vector2 GetSize(void) const
 		{
@@ -72,6 +66,7 @@ namespace Plutonium
 	private:
 		friend struct Uniform;
 		friend struct TextureInvokeObj;
+		friend struct AssetLoader;
 
 		int32 frmt, ifrmt;
 		WindowHandler wnd;

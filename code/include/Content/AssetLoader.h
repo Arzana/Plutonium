@@ -42,8 +42,11 @@ namespace Plutonium
 		_Check_return_ const char* GetState(void) const;
 		/* Resets the root directory of this asset loader. */
 		void SetRoot(_In_ const char *root);
-		/* Removes a refrence to a specified asset. */
-		_Check_return_ bool Unload(_In_ const char *path);
+
+		/* Removes a refrence to the specified texture. */
+		bool Unload(_In_ const Texture *texture);
+		/* Removes a refrence to the specified model. */
+		bool Unload(_In_ const StaticModel *model);
 
 		/* Loads a specified texture, calls the callback after completion. */
 		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
@@ -92,8 +95,8 @@ namespace Plutonium
 			int32 RefCnt;
 			_Ty *Asset;
 
-			AssetInfo(AssetLoadInfo<_Ty> *info, _Ty *asset)
-				: Path(heapstr(info->Names->GetFilePath())), Keep(info->Keep), RefCnt(1), Asset(asset)
+			AssetInfo(const char *path, bool keep, _Ty *asset)
+				: Path(heapstr(path)), Keep(keep), RefCnt(1), Asset(asset)
 			{}
 
 			~AssetInfo(void)

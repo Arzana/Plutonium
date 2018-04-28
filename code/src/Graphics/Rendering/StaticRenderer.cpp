@@ -91,17 +91,17 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
-void Plutonium::StaticRenderer::Render(const StaticModel * model)
+void Plutonium::StaticRenderer::Render(const StaticObject * model)
 {
 	/* Make sure begin is called and set the model matrix. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 	matMdl->Set(model->GetWorld());
 
 	/* Render each shape. */
-	for (size_t i = 0; i < model->shapes.size(); i++)
+	for (size_t i = 0; i < model->GetModel()->shapes.size(); i++)
 	{
 		/* Get current textured mesh. */
-		PhongShape *cur = model->shapes.at(i);
+		PhongShape *cur = model->GetModel()->shapes.at(i);
 		Buffer *buffer = cur->Mesh->GetVertexBuffer();
 
 		/* Set material attributes. */

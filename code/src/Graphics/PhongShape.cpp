@@ -59,10 +59,10 @@ Plutonium::PhongShape::~PhongShape(void) noexcept
 {
 	free_s(MaterialName);
 	delete_s(Mesh);
-	if (!loader->Unload(AmbientMap->GetPath())) delete_s(AmbientMap);
-	if (!loader->Unload(DiffuseMap->GetPath())) delete_s(DiffuseMap);
-	if (!loader->Unload(SpecularMap->GetPath())) delete_s(SpecularMap);
-	if (!loader->Unload(AlphaMap->GetPath())) delete_s(AlphaMap);
+	if (!loader->Unload(AmbientMap)) delete_s(AmbientMap);
+	if (!loader->Unload(DiffuseMap)) delete_s(DiffuseMap);
+	if (!loader->Unload(SpecularMap)) delete_s(SpecularMap);
+	if (!loader->Unload(AlphaMap)) delete_s(AlphaMap);
 }
 
 void Plutonium::PhongShape::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)
