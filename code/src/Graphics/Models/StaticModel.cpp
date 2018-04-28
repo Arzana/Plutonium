@@ -9,6 +9,8 @@ using namespace Plutonium;
 
 Plutonium::StaticModel::~StaticModel(void)
 {
+	free_s(name);
+
 	/* Free underlying shapes. */
 	while (shapes.size() > 0)
 	{
@@ -25,6 +27,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *l
 
 	/* Load individual shapes. */
 	StaticModel *result = new StaticModel(loader->GetWindow());
+	result->name = heapstr(reader.GetFileNameWithoutExtension());
 	for (size_t i = 0; i < raw->Shapes.size(); i++)
 	{
 		/* Get current mesh and associated material. */

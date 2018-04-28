@@ -10,8 +10,6 @@
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
-#include <Core\Threading\PuThread.h>
-#include <atomic>
 #include "Fire.h"
 
 using namespace Plutonium;
@@ -217,6 +215,7 @@ struct TestGame
 
 	virtual void RenderLoad(float dt, int percentage)
 	{
+		/* Update dot count at the end of the loading state to indicate that the game hasen't frozen. */
 		static float accum = 0.0f;
 		static int dotCnt = 0;
 		if ((accum += dt) > 1.0f)
@@ -225,13 +224,14 @@ struct TestGame
 			if (++dotCnt > 3) dotCnt = 0;
 		}
 
+		/* Create loading state. */
 		std::string loadStr = GetLoader()->GetState();
 		(loadStr += '(') += std::to_string(percentage) += "%)";
 		for (size_t i = 0; i < dotCnt; i++) loadStr += '.';
 
+		/* Render loading state at the center of the screen. */
 		Vector2 drawPos = GetGraphics()->GetWindow()->GetClientBounds().GetCenter();
 		fRenderer->AddString(drawPos, loadStr.c_str());
-
 		fRenderer->Render();
 	}
 };

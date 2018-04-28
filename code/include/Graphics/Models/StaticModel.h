@@ -19,10 +19,18 @@ namespace Plutonium
 		_Check_return_ StaticModel& operator =(_In_ const StaticModel &other) = delete;
 		_Check_return_ StaticModel& operator =(_In_ StaticModel &&other) = delete;
 
+		/* Gets the name assigned to the model. */
+		_Check_return_ inline const char* GetName(void) const
+		{
+			return name;
+		}
+
 		/* Loads a model from a specified .obj file (requires delete!). */
 		_Check_return_ static StaticModel* FromFile(_In_ const char *path, _In_ AssetLoader *loader);
 
 	protected:
+		const char *name;
+
 		/* Finalizes the underlying meshes, sending them to the GPU. */
 		void Finalize(void);
 

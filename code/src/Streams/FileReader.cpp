@@ -120,6 +120,9 @@ const char * Plutonium::FileReader::ReadToEnd(void)
 
 int32 Plutonium::FileReader::Peek(void)
 {
+	/* On debug check if file is open. */
+	ASSERT_IF(!open, "File isn't open!");
+
 	/* Get current read position, read char and set read position back. */
 	int64 pos = GetPosition();
 	int32 result = Read();
@@ -129,6 +132,9 @@ int32 Plutonium::FileReader::Peek(void)
 
 size_t Plutonium::FileReader::Peek(byte * buffer, size_t offset, size_t amount)
 {
+	/* On debug check if file is open. */
+	ASSERT_IF(!open, "File isn't open!");
+
 	/* Get current read position, read buffer and set read position back. */
 	int64 pos = GetPosition();
 	size_t result = Read(buffer, offset, amount);
@@ -138,6 +144,9 @@ size_t Plutonium::FileReader::Peek(byte * buffer, size_t offset, size_t amount)
 
 void Plutonium::FileReader::Seek(SeekOrigin from, int64 amount)
 {
+	/* On debug check if file is open. */
+	ASSERT_IF(!open, "File isn't open!");
+
 	if (fseek(hndlr, static_cast<long>(amount), static_cast<int>(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
 }
 

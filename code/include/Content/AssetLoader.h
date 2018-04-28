@@ -105,11 +105,11 @@ namespace Plutonium
 
 		WindowHandler wnd;
 		TickThread *ioThread;
+		int64 threadID;
 		std::mutex lockRoot;
 		mutable std::mutex lockState;
 		std::mutex lockTex;
 		std::mutex lockMod;
-		int64 threadID;
 
 		const char *root;
 		size_t rootLen;

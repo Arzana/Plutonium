@@ -99,7 +99,7 @@ Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, Tex
 	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4));
 	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
 	result->path = heapstr(path);
-	result->name = heapstr(reader.GetFileName());
+	result->name = heapstr(reader.GetFileNameWithoutExtension());
 
 	result->GenerateTexture(data, config);
 	stbi_image_free(data);

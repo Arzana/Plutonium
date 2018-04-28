@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <crtdbg.h>
 #include <malloc.h>
 #include <type_traits>
 #include "Core\Diagnostics\Logging.h"
@@ -122,7 +123,7 @@ namespace Plutonium
 		/* Check for nullptr. */
 		LOG_THROW_IF(*block == nullptr, "Attempting to free nullptr!");
 
-		/* Release and set to nullptr. */
+		/* Try release and set to nullptr. */
 		_freea(const_cast<void*>(void_ptr(*block)));
 		*block = nullptr;
 	}

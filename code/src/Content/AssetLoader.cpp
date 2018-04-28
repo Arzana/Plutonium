@@ -63,7 +63,7 @@ Plutonium::AssetLoader::~AssetLoader(void) noexcept
 	while (loadedModels.size())
 	{
 		AssetInfo<StaticModel> *cur = loadedModels.back();
-		LOG_WAR_IF(cur->RefCnt > 0, "Active refrence to model is removed!");
+		LOG_WAR_IF(cur->RefCnt > 0, "Active refrence to model '%s' is removed!", cur->Asset->GetName());
 		delete_s(cur);
 		loadedModels.pop_back();
 	}
@@ -105,6 +105,7 @@ bool Plutonium::AssetLoader::Unload(const char * path)
 		if ((--cur->RefCnt) <= 0 && !cur->Keep)
 		{
 			/* Delete texture and remove it from the list. */
+			LOG("Removing refrence to texture '%s'.", cur->Asset->GetName());
 			loadedTextures.erase(loadedTextures.begin() + idx);
 			lockTex.unlock();
 			delete_s(cur);
@@ -128,6 +129,7 @@ bool Plutonium::AssetLoader::Unload(const char * path)
 		if ((--cur->RefCnt) <= 0 && !cur->Keep)
 		{
 			/* Delete model and remove it from the list. */
+			LOG("Removing refrence to model '%s'.", cur->Asset->GetName());
 			loadedModels.erase(loadedModels.begin() + idx);
 			lockMod.unlock();
 			delete_s(cur);
@@ -236,19 +238,22 @@ const char * Plutonium::AssetLoader::CreateFullPath(const char * fpath)
 {
 	lockRoot.lock();
 
+	char *buffer = nullptr;
+
 	/* If string already contains the root skip it. */
 	if (strstr(fpath, root))
 	{
 		lockRoot.unlock();
-		char *buffer = malloca_s(char, strlen(fpath) + 1);
+		buffer = malloc_s(char, strlen(fpath) + 1);
 		strcpy(buffer, fpath);
-		return buffer;
 	}
-
-	/* Merge the two strings into a stack path. */
-	char *buffer = malloca_s(char, rootLen + strlen(fpath) + 1);
-	mrgstr(root, fpath, buffer);
-	lockRoot.unlock();
+	else
+	{
+		/* Merge the two strings into a stack path. */
+		buffer = malloc_s(char, rootLen + strlen(fpath) + 1);
+		mrgstr(root, fpath, buffer);
+		lockRoot.unlock();
+	}
 
 	return buffer;
 }
@@ -331,7 +336,7 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 	/* Load texture. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
 	AssetInfo<Texture> *result = new AssetInfo<Texture>(info, Texture::FromFile(fullPath, wnd, info->Options));
-	freea_s(fullPath);
+	free_s(fullPath);
 
 	/* Push to loaded list. */
 	lockTex.lock();
@@ -351,7 +356,7 @@ void Plutonium::AssetLoader::LoadModelInternal(AssetLoadInfo<StaticModel> *info,
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
 	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info, StaticModel::FromFile(fullPath, this));
-	freea_s(fullPath);
+	free_s(fullPath);
 
 	/* Push to loaded list. */
 	lockMod.lock();
