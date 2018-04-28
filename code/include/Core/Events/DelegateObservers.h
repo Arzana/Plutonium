@@ -7,12 +7,10 @@ namespace Plutonium
 	template <typename _STy, typename ... _ArgTy>
 	struct DelegateBase
 	{
-		/* Defines a virtual destructor so the destructors of child types will always be called upon finalization. */
-		virtual ~DelegateBase(void) noexcept
-		{}
-
 		/* Defines a method for invoking this delegate. */
 		virtual void Invoke(_In_ const _STy *sender, _In_ _ArgTy ... args) = 0;
+		/* Defines a method for cloning the derived delegate (requires delete!). */
+		_Check_return_ virtual DelegateBase<_STy, _ArgTy...>* Copy(void) = 0;
 	};
 
 	/* Provides a structure for a function style generic delegate. */
@@ -33,6 +31,12 @@ namespace Plutonium
 		virtual void Invoke(_In_ const _STy *sender, _In_ _ArgTy ... args) override
 		{
 			hndlr(sender, args...);
+		}
+
+		/* Copies this delegate (requires delete!). */
+		_Check_return_ virtual DelegateBase<_STy, _ArgTy...>* Copy(void) override
+		{
+			return new DelegateFunc<_STy, _ArgTy...>(hndlr);
 		}
 
 	private:
@@ -57,6 +61,12 @@ namespace Plutonium
 		virtual void Invoke(_In_ const _STy *sender, _In_ _ArgTy ... args) override
 		{
 			(obj->*hndlr)(sender, args...);
+		}
+
+		/* Copies this delegate (requires delete!). */
+		_Check_return_ virtual DelegateBase<_STy, _ArgTy...>* Copy(void) override
+		{
+			return new DelegateMethod<_STy, _CTy, _ArgTy...>(obj, hndlr);
 		}
 
 	private:

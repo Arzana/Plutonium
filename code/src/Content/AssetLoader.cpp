@@ -142,7 +142,7 @@ bool Plutonium::AssetLoader::Unload(const char * path)
 	return false;
 }
 
-void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*>* callback, bool keep, TextureCreationOptions * config)
+void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*> &callback, bool keep, TextureCreationOptions * config)
 {
 	lockTex.lock();
 
@@ -152,7 +152,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		/* If texture is already loaded return it and increase it's refrence count. */
 		AssetInfo<Texture> *cur = loadedTextures.at(idx);
 		++cur->RefCnt;
-		callback->HandlePost(this, cur->Asset);
+		callback.HandlePost(this, cur->Asset);
 		lockTex.unlock();
 	}
 	else
@@ -174,7 +174,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 	}
 }
 
-void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, StaticModel*>* callback, bool keep)
+void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, StaticModel*> &callback, bool keep)
 {
 	lockMod.lock();
 
@@ -184,7 +184,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 		/* if model is already loaded return it and increase it's refrence count. */
 		AssetInfo<StaticModel> *cur = loadedModels.at(idx);
 		++cur->RefCnt;
-		callback->HandlePost(this, cur->Asset);
+		callback.HandlePost(this, cur->Asset);
 		lockMod.unlock();
 	}
 	else
@@ -212,8 +212,7 @@ Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, Text
 	LoadResult<Texture> result;
 
 	/* Load the texture with the specified callback. */
-	EventSubscriber<AssetLoader, Texture*> callback(&result, &LoadResult<Texture>::OnLoadComplete);
-	LoadTexture(path, &callback, keep, config);
+	LoadTexture(path, EventSubscriber<AssetLoader, Texture*>(&result, &LoadResult<Texture>::OnLoadComplete), keep, config);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -226,8 +225,7 @@ StaticModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep)
 	LoadResult<StaticModel> result;
 
 	/* Load the texture with the specified callback. */
-	EventSubscriber<AssetLoader, StaticModel*> callback(&result, &LoadResult<StaticModel>::OnLoadComplete);
-	LoadModel(path, &callback, keep);
+	LoadModel(path, EventSubscriber<AssetLoader, StaticModel*>(&result, &LoadResult<StaticModel>::OnLoadComplete), keep);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -341,7 +339,7 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 	lockTex.unlock();
 
 	/* Call callback. */
-	info->Callback->HandlePost(this, result->Asset);
+	info->Callback.HandlePost(this, result->Asset);
 	delete_s(info);
 }
 
@@ -361,7 +359,7 @@ void Plutonium::AssetLoader::LoadModelInternal(AssetLoadInfo<StaticModel> *info,
 	lockMod.unlock();
 
 	/* Call callback. */
-	info->Callback->HandlePost(this, result->Asset);
+	info->Callback.HandlePost(this, result->Asset);
 	delete_s(info);
 }
 

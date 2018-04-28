@@ -31,17 +31,59 @@ namespace Plutonium
 			hndlr = new DelegateMethod<_STy, _CTy, _ArgTy...>(cnt, func);
 		}
 
-		EventSubscriber(_In_ const EventSubscriber<_STy, _ArgTy...> &value) = delete;
-		EventSubscriber(_In_ EventSubscriber<_STy, _ArgTy...> &&value) = delete;
+		/* Initializes a new instance of an event subscriber as a copy of the specified subscriber. */
+		EventSubscriber(_In_ const EventSubscriber<_STy, _ArgTy...> &value)
+			: id(value.id)
+		{
+			hndlr = value.hndlr->Copy();
+		}
+
+		/* Moves the specified subscriber instance to a new instance. */
+		EventSubscriber(_In_ EventSubscriber<_STy, _ArgTy...> &&value)
+			: id(value.id)
+		{
+			hndlr = value.hndlr;
+
+			value.id = 0;
+			value.hndlr = nullptr;
+		}
 
 		/* Releases the resources of the event subscriber. */
 		~EventSubscriber(void) noexcept
 		{
-			delete_s(hndlr);
+			if (hndlr) delete_s(hndlr);
 		}
 
-		_Check_return_ EventSubscriber& operator =(_In_ const EventSubscriber &other) = delete;
-		_Check_return_ EventSubscriber& operator =(_In_ EventSubscriber &&other) = delete;
+		/* Copies the data from the specified subscriber to this subscriber. */
+		_Check_return_ EventSubscriber<_STy, _ArgTy...>& operator =(_In_ const EventSubscriber<_STy, _ArgTy...> &other)
+		{
+			if (this != &other)
+			{
+				if (hndlr) delete_s(hndlr);
+
+				id = other.id;
+				hndlr = other.hndlr->Copy();
+			}
+
+			return *this;
+		}
+
+		/* Moves the data from the specified subscriber to this subscriber. */
+		_Check_return_ EventSubscriber<_STy, _ArgTy...>& operator =(_In_ EventSubscriber<_STy, _ArgTy...> &&other)
+		{
+			if (this != &other)
+			{
+				if (hndlr) delete_s(hndlr);
+
+				id = other.id;
+				hndlr = other.hndlr;
+
+				other.id = 0;
+				other.hndlr = nullptr;
+			}
+
+			return *this;
+		}
 
 		/* Checks whether the subscriber has the same ID. */
 		_Check_return_ inline bool operator ==(_In_ int64 id) const

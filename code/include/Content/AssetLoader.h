@@ -46,9 +46,9 @@ namespace Plutonium
 		_Check_return_ bool Unload(_In_ const char *path);
 
 		/* Loads a specified texture, calls the callback after completion. */
-		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> *callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
 		/* Loads a specified model, calls the callback after completion. */
-		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> *callback, _In_opt_ bool keep = false);
+		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> &callback, _In_opt_ bool keep = false);
 
 		/* Loads a specified texture and returns it. */
 		_Check_return_ Texture* LoadTexture(_In_ const char *path, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
@@ -62,14 +62,10 @@ namespace Plutonium
 		{
 			FileReader *Names;
 			bool Keep;
-			EventSubscriber<AssetLoader, _Ty*> *Callback;
+			EventSubscriber<AssetLoader, _Ty*> Callback;
 
-			AssetLoadInfo(void)
-				: Names(nullptr), Keep(false)
-			{}
-
-			AssetLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, _Ty*> *callback)
-				: Names(fr), Keep(keep), Callback(callback)
+			AssetLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, _Ty*> &callback)
+				: Names(fr), Keep(keep), Callback(std::move(callback))
 			{}
 
 			~AssetLoadInfo(void)
@@ -83,11 +79,7 @@ namespace Plutonium
 		{
 			TextureCreationOptions *Options;
 
-			TextureLoadInfo(void)
-				: AssetLoadInfo(), Options(nullptr)
-			{}
-
-			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> *callback, TextureCreationOptions *opt)
+			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> &callback, TextureCreationOptions *opt)
 				: AssetLoadInfo(fr, keep, callback), Options(opt)
 			{}
 		};
@@ -99,10 +91,6 @@ namespace Plutonium
 			bool Keep;
 			int32 RefCnt;
 			_Ty *Asset;
-
-			AssetInfo(void)
-				: Path(nullptr), keep(false), RefCnt(0), Asset(nullptr)
-			{}
 
 			AssetInfo(AssetLoadInfo<_Ty> *info, _Ty *asset)
 				: Path(heapstr(info->Names->GetFilePath())), Keep(info->Keep), RefCnt(1), Asset(asset)
@@ -150,4 +138,8 @@ namespace Plutonium
 		void TickIoTextures(const TickThread*, EventArgs);
 		void TickIoModels(const TickThread*, EventArgs);
 	};
+
+	/* Defines the generic callback method. */
+	template <typename _Ty>
+	using Callback = EventSubscriber<AssetLoader, _Ty*>;
 }

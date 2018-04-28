@@ -27,9 +27,6 @@ struct TestGame
 	DynamicRenderer *drenderer;
 	Camera *cam;
 
-	/* Loading callbacks. */
-	EventSubscriber<AssetLoader, StaticModel*> sponzaCallback;
-
 	/* Scene */
 	static constexpr float scale = 0.03f;	// If map is sponza
 	float theta;
@@ -44,8 +41,7 @@ struct TestGame
 	Texture *depthSprite;
 
 	TestGame(void)
-		: Game("TestGame"), depthSprite(nullptr), theta(0.0f), 
-		sponzaCallback(this, &TestGame::OnSponzaLoaded)
+		: Game("TestGame"), depthSprite(nullptr), theta(0.0f)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -73,7 +69,7 @@ struct TestGame
 		cam->Move(Vector3(0.0f, 5.0f, -3.0f));
 		cam->Yaw = PI2;
 
-		GetLoader()->LoadModel("models/Sponza/sponza.obj", &sponzaCallback);
+		GetLoader()->LoadModel("models/Sponza/sponza.obj", Callback<StaticModel>(this, &TestGame::OnSponzaLoaded));
 
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color::SunDay);
 		sun->Ambient = Color(0.2f, 0.2f, 0.2f);
@@ -221,8 +217,17 @@ struct TestGame
 
 	virtual void RenderLoad(float dt, int percentage)
 	{
+		static float accum = 0.0f;
+		static int dotCnt = 0;
+		if ((accum += dt) > 1.0f)
+		{
+			accum = 0.0f;
+			if (++dotCnt > 3) dotCnt = 0;
+		}
+
 		std::string loadStr = GetLoader()->GetState();
 		(loadStr += '(') += std::to_string(percentage) += "%)";
+		for (size_t i = 0; i < dotCnt; i++) loadStr += '.';
 
 		Vector2 drawPos = GetGraphics()->GetWindow()->GetClientBounds().GetCenter();
 		fRenderer->AddString(drawPos, loadStr.c_str());
