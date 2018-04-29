@@ -20,7 +20,7 @@ namespace Plutonium
 		_Check_return_ EuclidRoom& operator =(_In_ EuclidRoom &&other) = delete;
 
 		/* Loads a model from a specified .obj file (requires delete!). */
-		_Check_return_ static std::vector<EuclidRoom*> FromFile(_In_ const char *path, WindowHandler wnd);
+		_Check_return_ static std::vector<EuclidRoom*> FromFile(_In_ const char *path, _In_ AssetLoader *loader);
 
 		/* Adds the portal argument from this room to the render list. */
 		_Check_return_ inline const std::vector<Tree<PortalRenderArgs>*>* GetPortals(void) const

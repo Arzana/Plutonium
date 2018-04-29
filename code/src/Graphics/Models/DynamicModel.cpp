@@ -24,6 +24,19 @@ Plutonium::DynamicModel::~DynamicModel(void)
 	loader->Unload(skin);
 }
 
+void Plutonium::DynamicModel::Finalize(void)
+{
+	/* Finalize all animation frames. */
+	for (size_t i = 0; i < animations.size(); i++)
+	{
+		AnimationInfo *info = animations.at(i);
+		for (size_t j = 0; j < info->Frames.size(); j++)
+		{
+			info->Frames.at(j)->Finalize(loader->GetWindow());
+		}
+	}
+}
+
 DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader *loader, const char * texture)
 {
 	/* Create result. */
@@ -50,22 +63,9 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	result->skin = loader->LoadTexture(tex);
 	result->Finalize();	// TODO: Remove!
 
-	/* Log creation. */
+						/* Log creation. */
 	LOG("Finished loading model '%s' (%zu animations).", reader.GetFileName(), result->animations.size());
 	return result;
-}
-
-void Plutonium::DynamicModel::Finalize(void)
-{
-	/* Finalize all animation frames. */
-	for (size_t i = 0; i < animations.size(); i++)
-	{
-		AnimationInfo *info = animations.at(i);
-		for (size_t j = 0; j < info->Frames.size(); j++)
-		{
-			info->Frames.at(j)->Finalize(loader->GetWindow());
-		}
-	}
 }
 
 void Plutonium::DynamicModel::SplitFrames(std::vector<Mesh*> meshes)

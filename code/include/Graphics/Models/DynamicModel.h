@@ -27,9 +27,6 @@ namespace Plutonium
 			return name;
 		}
 
-		/* Loads a model from a specified .md2 file (requires delete!). */
-		_Check_return_ static DynamicModel* FromFile(_In_ const char *path, _In_ AssetLoader *loader, _In_opt_ const char *texture = nullptr);
-
 	protected:
 		std::vector<AnimationInfo*> animations;
 		Texture *skin;
@@ -47,6 +44,8 @@ namespace Plutonium
 		AssetLoader *loader;
 
 		DynamicModel(AssetLoader *loader);
+
+		static DynamicModel* FromFile(const char *path, AssetLoader *loader, const char *texture = nullptr);
 
 		void SplitFrames(std::vector<Mesh*> meshes);
 	};

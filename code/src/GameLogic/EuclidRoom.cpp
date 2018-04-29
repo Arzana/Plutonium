@@ -2,6 +2,7 @@
 #include "Streams\FileReader.h"
 #include "Graphics\Portals\PobjLoader.h"
 #include "Core\StringFunctions.h"
+#include "Content\AssetLoader.h"
 
 using namespace Plutonium;
 
@@ -23,7 +24,7 @@ Plutonium::EuclidRoom::~EuclidRoom(void)
 	}
 }
 
-std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, WindowHandler wnd)
+std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, AssetLoader * loader)
 {
 	std::vector<EuclidRoom*> result;
 
@@ -48,7 +49,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, Wind
 		tinyobj::room_t room = raw->Rooms.at(i);
 
 		/* Create current room. */
-		EuclidRoom *cur = new EuclidRoom(wnd);
+		EuclidRoom *cur = new EuclidRoom(loader->GetWindow());
 		cur->id = IdCnt++;
 		float gx = raw->Vertices.normals.at(3 * room.gravity);
 		float gy = raw->Vertices.normals.at(3 * room.gravity + 1);
@@ -69,7 +70,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, Wind
 			{
 				char mtlPath[FILENAME_MAX];
 				mrgstr(reader.GetFileDirectory(), mtl.diffuse_texname.c_str(), mtlPath);
-				Texture *texture = Texture::FromFile(mtlPath, wnd);
+				Texture *texture = loader->LoadTexture(mtlPath);
 
 				/* Add shape to the model. */
 				// TODO: fix!
@@ -81,7 +82,7 @@ std::vector<EuclidRoom*> Plutonium::EuclidRoom::FromFile(const char * path, Wind
 		/* Load portals. */
 		for (size_t j = 0; j < room.portals.size(); j++)
 		{
-			Portal *portal = new Portal(Mesh::PFromFile(raw, i, j), wnd);
+			Portal *portal = new Portal(Mesh::PFromFile(raw, i, j), loader->GetWindow());
 			cur->portals.push_back(portal);
 			pidx.push_back(portal);
 			didx.push_back(room.portals.at(j).destination);

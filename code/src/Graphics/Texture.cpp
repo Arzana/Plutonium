@@ -83,30 +83,6 @@ Plutonium::Texture::~Texture(void)
 	if (path) free_s(path);
 }
 
-Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, TextureCreationOptions * config)
-{
-	FileReader reader(path, true);
-
-	/* Attempt to load texture. */
-	int32 w, h, m;
-	stbi_set_flip_vertically_on_load(true);
-	byte *data = stbi_load(path, &w, &h, &m, 0);
-
-	/* Throw is loading failed. */
-	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
-
-	/* Set texture information. */
-	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4));
-	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
-	result->path = heapstr(path);
-	result->name = heapstr(reader.GetFileNameWithoutExtension());
-
-	result->GenerateTexture(data, config);
-	stbi_image_free(data);
-
-	return result;
-}
-
 int32 Plutonium::Texture::GetChannels(void) const
 {
 	switch (frmt)
@@ -161,6 +137,30 @@ void Plutonium::Texture::SaveAsPng(const char * path)
 
 	/* On debug throw is saving is not possible. */
 	ASSERT_IF(!result, "Unable to save texture(%s) as '%s', reason: %s!", name, path, _CrtGetErrorString());
+}
+
+Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, TextureCreationOptions * config)
+{
+	FileReader reader(path, true);
+
+	/* Attempt to load texture. */
+	int32 w, h, m;
+	stbi_set_flip_vertically_on_load(true);
+	byte *data = stbi_load(path, &w, &h, &m, 0);
+
+	/* Throw is loading failed. */
+	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
+
+	/* Set texture information. */
+	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4));
+	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
+	result->path = heapstr(path);
+	result->name = heapstr(reader.GetFileNameWithoutExtension());
+
+	result->GenerateTexture(data, config);
+	stbi_image_free(data);
+
+	return result;
 }
 
 int32 Plutonium::Texture::GetMaxMipMapLevel(int32 w, int32 h)

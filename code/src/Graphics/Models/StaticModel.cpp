@@ -20,6 +20,14 @@ Plutonium::StaticModel::~StaticModel(void)
 	}
 }
 
+void Plutonium::StaticModel::Finalize(void)
+{
+	for (size_t i = 0; i < shapes.size(); i++)
+	{
+		shapes.at(i)->Mesh->Finalize(wnd);
+	}
+}
+
 StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *loader)
 {
 	/* Load raw data. */
@@ -58,14 +66,6 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *l
 	LOG("Finished loading model '%s', %zu/%zu distinct materials.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size());
 	delete_s(raw);
 	return result;
-}
-
-void Plutonium::StaticModel::Finalize(void)
-{
-	for (size_t i = 0; i < shapes.size(); i++)
-	{
-		shapes.at(i)->Mesh->Finalize(wnd);
-	}
 }
 
 int64 Plutonium::StaticModel::ContainsMaterial(const char * name)

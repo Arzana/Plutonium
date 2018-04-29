@@ -455,7 +455,7 @@ int32 Plutonium::AssetLoader::GetTextureIdx(const char * path)
 	/* Attempt to find the requested texture or return -1 when not found. */
 	for (size_t i = 0; i < loadedTextures.size(); i++)
 	{
-		if (!strcmp(loadedTextures.at(i)->Path, path)) return static_cast<int32>(i);
+		if (!strcmp(loadedTextures.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -466,7 +466,7 @@ int32 Plutonium::AssetLoader::GetSModelIdx(const char * path)
 	/* Attempt to find the requested texture or return -1 when not found. */
 	for (size_t i = 0; i < loadedSModels.size(); i++)
 	{
-		if (!strcmp(loadedSModels.at(i)->Path, path)) return static_cast<int32>(i);
+		if (!strcmp(loadedSModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -477,7 +477,7 @@ int32 Plutonium::AssetLoader::GetDModelIdx(const char * path)
 	/* Attempt to find the requested texture or return -1 when not found. */
 	for (size_t i = 0; i < loadedDModels.size(); i++)
 	{
-		if (!strcmp(loadedDModels.at(i)->Path, path)) return static_cast<int32>(i);
+		if (!strcmp(loadedDModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -490,7 +490,7 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 
 	/* Load texture. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<Texture> *result = new AssetInfo<Texture>(fullPath, info->Keep, Texture::FromFile(fullPath, wnd, info->Options));
+	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(fullPath, wnd, info->Options));
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -510,7 +510,7 @@ void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(fullPath, info->Keep, StaticModel::FromFile(fullPath, this));
+	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info->Keep, StaticModel::FromFile(fullPath, this));
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -530,7 +530,7 @@ void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info, bool
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(fullPath, info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture));
+	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture));
 	free_s(fullPath);
 
 	/* Push to loaded list. */

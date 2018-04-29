@@ -109,18 +109,16 @@ namespace Plutonium
 		template <typename _Ty>
 		struct AssetInfo
 		{
-			const char *Path;
 			bool Keep;
 			int32 RefCnt;
 			_Ty *Asset;
 
-			AssetInfo(const char *path, bool keep, _Ty *asset)
-				: Path(heapstr(path)), Keep(keep), RefCnt(1), Asset(asset)
+			AssetInfo(bool keep, _Ty *asset)
+				: Keep(keep), RefCnt(1), Asset(asset)
 			{}
 
 			~AssetInfo(void)
 			{
-				free_s(Path);
 				delete_s(Asset);
 			}
 		};

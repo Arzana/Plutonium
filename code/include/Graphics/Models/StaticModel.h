@@ -23,9 +23,6 @@ namespace Plutonium
 			return name;
 		}
 
-		/* Loads a model from a specified .obj file (requires delete!). */
-		_Check_return_ static StaticModel* FromFile(_In_ const char *path, _In_ AssetLoader *loader);
-
 	protected:
 		const char *name;
 		const char *path;
@@ -43,6 +40,8 @@ namespace Plutonium
 		StaticModel(WindowHandler wnd)
 			: wnd(wnd)
 		{}
+
+		static StaticModel* FromFile(const char *path, AssetLoader *loader);
 
 		int64 ContainsMaterial(const char *name);
 	};

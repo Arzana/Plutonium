@@ -28,9 +28,6 @@ namespace Plutonium
 		_Check_return_ Texture& operator =(_In_ const Texture &other) = delete;
 		_Check_return_ Texture& operator =(_In_ Texture &&other) = delete;
 
-		/* Loads a specified texture from a file (requires delete!). */
-		_Check_return_ static Texture* FromFile(_In_ const char *path, _In_ WindowHandler wnd, _In_opt_ TextureCreationOptions *config = nullptr);
-
 		/* Gets the name assigned to the texture. */
 		_Check_return_ inline const char* GetName(void) const
 		{
@@ -71,6 +68,7 @@ namespace Plutonium
 		int32 frmt, ifrmt;
 		WindowHandler wnd;
 
+		static Texture* FromFile(const char *path, WindowHandler wnd, TextureCreationOptions *config = nullptr);
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
 
 		void Dispose(void);
