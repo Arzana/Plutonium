@@ -1,8 +1,8 @@
 #pragma once
 #include "Graphics\Rendering\Shader.h"
-#include "Graphics\GraphicsAdapter.h"
-#include "Font.h"
 #include "Graphics\Native\Buffer.h"
+#include "Game.h"
+#include "Font.h"
 #include <vector>
 
 namespace Plutonium
@@ -12,7 +12,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a font renderer. */
-		FontRenderer(_In_ GraphicsAdapter *device, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
+		FontRenderer(_In_ Game *game, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_ int loadWeight);
 		FontRenderer(_In_ const FontRenderer &value) = delete;
 		FontRenderer(_In_ FontRenderer &&value) = delete;
 		/* Releases the resources allocated by the font renderer. */
@@ -58,8 +58,8 @@ namespace Plutonium
 		Font *font;
 		/* A buffer for storing the strings. */
 		std::vector<LineInfo*> strs;
-		/* The window associated with the renderer. */
-		GraphicsAdapter *device;
+		/* The game associated with the renderer. */
+		Game *parent;
 
 	private:
 		Buffer *vbo;
@@ -71,10 +71,13 @@ namespace Plutonium
 		Attribute *pos;
 		Matrix proj;
 
+		int percentage;
+
 		void RenderString(LineInfo *info);
 		void UpdateVBO(Vector2 pos, const char *str);
 		void AddSingleString(Vector2 pos, const char *str, Color clr);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void ClearBuffer(void);
+		void OnLoadComplete(const AssetLoader*, Font *result);
 	};
 }

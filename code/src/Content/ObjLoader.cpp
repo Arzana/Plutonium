@@ -213,7 +213,7 @@ ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(ObjLoaderTexture
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	: Name(""), IlluminationModel(0),
 	Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
-	Transmittance(Color::Black), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
+	Transmittance(Color::White), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
 	AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
 	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
 {}
@@ -256,7 +256,7 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
 	value.Ambient = Color::Black;
 	value.Diffuse = Color::Black;
 	value.Specular = Color::Black;
-	value.Transmittance = Color::Black;
+	value.Transmittance = Color::White;
 	value.HighlightExponent = 1.0f;
 	value.OpticalDensity = 1.0f;
 	value.Dissolve = 1.0f;
@@ -329,7 +329,7 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 		other.Ambient = Color::Black;
 		other.Diffuse = Color::Black;
 		other.Specular = Color::Black;
-		other.Transmittance = Color::Black;
+		other.Transmittance = Color::White;
 		other.HighlightExponent = 1.0f;
 		other.OpticalDensity = 1.0f;
 		other.Dissolve = 1.0f;

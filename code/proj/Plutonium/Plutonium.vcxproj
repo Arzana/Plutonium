@@ -343,15 +343,18 @@
     <ClInclude Include="..\..\include\Streams\StringParsing.h" />
   </ItemGroup>
   <ItemGroup>
+    <Natvis Include="..\..\visualizers\AnimationInfo.natvis" />
     <Natvis Include="..\..\visualizers\Box.natvis" />
     <Natvis Include="..\..\visualizers\Color.natvis" />
     <Natvis Include="..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\visualizers\EventSubscriber.natvis" />
     <Natvis Include="..\..\visualizers\Field.natvis" />
     <Natvis Include="..\..\visualizers\FileReader.natvis" />
+    <Natvis Include="..\..\visualizers\Font.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />
     <Natvis Include="..\..\visualizers\Rectangle.natvis" />
+    <Natvis Include="..\..\visualizers\Texture.natvis" />
     <Natvis Include="..\..\visualizers\Tree.natvis" />
     <Natvis Include="..\..\visualizers\Vector2.natvis" />
     <Natvis Include="..\..\visualizers\Vector3.natvis" />

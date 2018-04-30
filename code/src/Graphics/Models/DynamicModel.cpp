@@ -46,6 +46,9 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	/* Attempt to load raw data. */
 	const Md2LoaderResult *raw = _CrtLoadMd2(path);
 
+	/* Check if there is at least one texture that can be used. */
+	LOG_THROW_IF(raw->textures.size() < 1 && !texture, "No texture is defined for model '%s'!", result->name);
+
 	/* Load all animation frames. */
 	std::vector<Mesh*> meshes;
 	for (size_t i = 0; i < raw->frames.size(); i++) meshes.push_back(Mesh::FromFile(raw, i));
@@ -64,7 +67,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	result->Finalize();	// TODO: Remove!
 
 						/* Log creation. */
-	LOG("Finished loading model '%s' (%zu animations).", reader.GetFileName(), result->animations.size());
+	LOG("Finished loading model '%s' (%zu animation(s)).", reader.GetFileName(), result->animations.size());
 	return result;
 }
 

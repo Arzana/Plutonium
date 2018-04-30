@@ -33,7 +33,11 @@ Plutonium::AssetLoader::AssetLoader(WindowHandler wnd, const char * root)
 	ioThread = new TickThread("PuIO");
 	ioThread->Initialize.Add(this, &AssetLoader::IoThreadInit);
 
-	/* Add specified loader methods to the tick queue. */
+	/* 
+	Add specified loader methods to the tick queue. 
+	Make sure the fonts have priority because they will most likely be used in the load screen.
+	*/
+	ioThread->Tick.Add(this, &AssetLoader::TickIoFonts);
 	ioThread->Tick.Add(this, &AssetLoader::TickIoTextures);
 	ioThread->Tick.Add(this, &AssetLoader::TickIoSModels);
 	ioThread->Tick.Add(this, &AssetLoader::TickIoDModels);
@@ -115,7 +119,7 @@ bool Plutonium::AssetLoader::Unload(const Texture * texture)
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced texture!");
 
 		/* Remove refrence to texture and checks if it needs to be deleted. */
-		if ((--cur->RefCnt) <= 0 && !cur->Keep)
+		if (cur->RemoveRef())
 		{
 			/* Delete texture and remove it from the list. */
 			LOG("Removing refrence to texture '%s'.", cur->Asset->GetName());
@@ -150,7 +154,7 @@ bool Plutonium::AssetLoader::Unload(const StaticModel * model)
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced model!");
 
 		/* Remove refrence to model and check if it needs to be deleted. */
-		if ((--cur->RefCnt) <= 0 && !cur->Keep)
+		if (cur->RemoveRef())
 		{
 			/* Delete model and remove it from the list. */
 			LOG("Removing refrence to model '%s'.", cur->Asset->GetName());
@@ -185,7 +189,7 @@ bool Plutonium::AssetLoader::Unload(const DynamicModel * model)
 		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced model!");
 
 		/* Remove refrence to model and check if it needs to be deleted. */
-		if ((--cur->RefCnt) <= 0 && !cur->Keep)
+		if (cur->RemoveRef())
 		{
 			/* Delete model and remove it from the list. */
 			LOG("Removing refrence to model '%s'.", cur->Asset->GetName());
@@ -201,6 +205,41 @@ bool Plutonium::AssetLoader::Unload(const DynamicModel * model)
 	lockDMod.unlock();
 
 	/* Unable to find specified model. */
+	return false;
+}
+
+bool Plutonium::AssetLoader::Unload(const Font * font)
+{
+	/* Check if font was loaded from file. */
+	ASSERT_IF(!font, "Input font cannot be null!");
+	if (!font->path) return false;
+
+	/* Searches the buffer for the font. */
+	lockFont.lock();
+	int32 idx = GetFontIdx(font->path);
+	if (idx != -1)
+	{
+		/* Check for corrupt unloading. */
+		AssetInfo<Font> *cur = loadedFonts.at(idx);
+		LOG_WAR_IF(cur->RefCnt <= 0, "Attempting to unload unrefrenced font!");
+
+		/* Remove refrence to font and check if it needs to be deleted. */
+		if (cur->RemoveRef())
+		{
+			/* Delete font and remove it from the list. */
+			LOG("Removing refrence to font '%s'.", cur->Asset->GetName());
+			loadedFonts.erase(loadedFonts.begin() + idx);
+			lockFont.unlock();
+			delete_s(cur);
+			return true;
+		}
+
+		lockFont.unlock();
+		return true;
+	}
+	lockFont.unlock();
+
+	/* Unable to find specified font. */
 	return false;
 }
 
@@ -256,7 +295,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	int32 idx = GetSModelIdx(path);
 	if (idx != -1)
 	{
-		/* if model is already loaded return it and increase it's refrence count. */
+		/* If model is already loaded return it and increase it's refrence count. */
 		AssetInfo<StaticModel> *cur = loadedSModels.at(idx);
 		++cur->RefCnt;
 		callback.HandlePost(this, cur->Asset);
@@ -301,7 +340,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	int32 idx = GetDModelIdx(path);
 	if (idx != -1)
 	{
-		/* if model is already loaded return it and increase it's refrence count. */
+		/* If model is already loaded return it and increase it's refrence count. */
 		AssetInfo<DynamicModel> *cur = loadedDModels.at(idx);
 		++cur->RefCnt;
 		callback.HandlePost(this, cur->Asset);
@@ -339,13 +378,58 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	}
 }
 
+void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLoader, Font*>& callback, float scale, bool keep)
+{
+	lockFont.lock();
+
+	int32 idx = GetFontIdx(path);
+	if (idx != -1)
+	{
+		/* If font is already loaded return it and increase it's refrence count. */
+		AssetInfo<Font> *cur = loadedFonts.at(idx);
+		++cur->RefCnt;
+		callback.HandlePost(this, cur->Asset);
+		lockFont.unlock();
+	}
+	else
+	{
+		/* Check if asset is already in the load queu. */
+		for (size_t i = 0; i < queuedFonts.size(); i++)
+		{
+			FontLoadInfo *cur = queuedFonts.at(i);
+			if (!strcmp(cur->Names->GetFilePath(), path))
+			{
+				/* Add callback to the list if asset found. */
+				cur->Callbacks.push_back(std::move(callback));
+				lockFont.unlock();
+				return;
+			}
+		}
+
+		/* We have to load the model so create an information struct. */
+		FontLoadInfo *info = new FontLoadInfo(new FileReader(path, true), keep, callback, scale);
+
+		/* Make sure we actually load the model on the IO thread. */
+		if (OnIoThread())
+		{
+			lockFont.unlock();
+			LoadFontInternal(info, true);
+		}
+		else
+		{
+			queuedFonts.push_back(info);
+			lockFont.unlock();
+		}
+	}
+}
+
 Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, TextureCreationOptions * config)
 {
 	/* Create temporary storage. */
 	LoadResult<Texture> result;
 
 	/* Load the texture with the specified callback. */
-	LoadTexture(path, EventSubscriber<AssetLoader, Texture*>(&result, &LoadResult<Texture>::OnLoadComplete), keep, config);
+	LoadTexture(path, Callback<Texture>(&result, &LoadResult<Texture>::OnLoadComplete), keep, config);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -358,7 +442,7 @@ StaticModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep)
 	LoadResult<StaticModel> result;
 
 	/* Load the model with the specified callback. */
-	LoadModel(path, EventSubscriber<AssetLoader, StaticModel*>(&result, &LoadResult<StaticModel>::OnLoadComplete), keep);
+	LoadModel(path, Callback<StaticModel>(&result, &LoadResult<StaticModel>::OnLoadComplete), keep);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -371,7 +455,20 @@ DynamicModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep, c
 	LoadResult<DynamicModel> result;
 
 	/* Load the model with the specified callback. */
-	LoadModel(path, EventSubscriber<AssetLoader, DynamicModel*>(&result, &LoadResult<DynamicModel>::OnLoadComplete), keep);
+	LoadModel(path, Callback<DynamicModel>(&result, &LoadResult<DynamicModel>::OnLoadComplete), keep, texture);
+
+	/* Wait untill loading is complete and return value. */
+	while (!result.loaded.load()) PuThread::Sleep(10);
+	return result.value;
+}
+
+Font * Plutonium::AssetLoader::LoadFont(const char * path, float scale, bool keep)
+{
+	/* Create temporary storage. */
+	LoadResult<Font> result;
+
+	/* Load the model with the specified callback. */
+	LoadFont(path, Callback<Font>(&result, &LoadResult<Font>::OnLoadComplete), scale, keep);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -463,7 +560,7 @@ int32 Plutonium::AssetLoader::GetTextureIdx(const char * path)
 
 int32 Plutonium::AssetLoader::GetSModelIdx(const char * path)
 {
-	/* Attempt to find the requested texture or return -1 when not found. */
+	/* Attempt to find the requested model or return -1 when not found. */
 	for (size_t i = 0; i < loadedSModels.size(); i++)
 	{
 		if (!strcmp(loadedSModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
@@ -474,10 +571,21 @@ int32 Plutonium::AssetLoader::GetSModelIdx(const char * path)
 
 int32 Plutonium::AssetLoader::GetDModelIdx(const char * path)
 {
-	/* Attempt to find the requested texture or return -1 when not found. */
+	/* Attempt to find the requested model or return -1 when not found. */
 	for (size_t i = 0; i < loadedDModels.size(); i++)
 	{
 		if (!strcmp(loadedDModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
+	}
+
+	return -1;
+}
+
+int32 Plutonium::AssetLoader::GetFontIdx(const char * path)
+{
+	/* Attempt to find the requested font or return -1 when not found. */
+	for (size_t i = 0; i < loadedFonts.size(); i++)
+	{
+		if (!strcmp(loadedFonts.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -537,6 +645,26 @@ void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info, bool
 	lockDMod.lock();
 	loadedDModels.push_back(result);
 	lockDMod.unlock();
+
+	/* Call callback. */
+	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
+	delete_s(info);
+}
+
+void Plutonium::AssetLoader::LoadFontInternal(FontLoadInfo * info, bool updateState)
+{
+	/* Update state is requested. */
+	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+
+	/* Load font. */
+	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
+	AssetInfo<Font> *result = new AssetInfo<Font>(info->Keep, Font::FromFile(fullPath, info->Scale, wnd));
+	free_s(fullPath);
+
+	/* Push to loaded list. */
+	lockFont.lock();
+	loadedFonts.push_back(result);
+	lockFont.unlock();
 
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
@@ -606,5 +734,27 @@ void Plutonium::AssetLoader::TickIoDModels(const TickThread *, EventArgs)
 
 	/* Make sure we unlock the buffer. */
 	lockDMod.unlock();
+	SetStateWaiting();
+}
+
+void Plutonium::AssetLoader::TickIoFonts(const TickThread *, EventArgs)
+{
+	/* Lock the buffer to make sure we safely read the size. */
+	lockFont.lock();
+	while (queuedFonts.size() > 0)
+	{
+		/* Get current font queued for loading. */
+		FontLoadInfo *cur = queuedFonts.front();
+		queuedFonts.pop_front();
+
+		/* Unload the buffer to allow more additions whilst we load the font. */
+		lockFont.unlock();
+		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
+		LoadFontInternal(cur, false);
+		lockFont.lock();
+	}
+
+	/* Make sure we unlock the buffer. */
+	lockFont.unlock();
 	SetStateWaiting();
 }

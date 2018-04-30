@@ -10,9 +10,7 @@ Plutonium::Attribute::~Attribute(void)
 void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offset)
 {
 	/* On debug check if attribute is valid. */
-#if defined(DEBUG)
-	LOG_THROW_IF(ptr == -1, "Attempting to initialize a invalid attribute!");
-#endif
+	ASSERT_IF(ptr == -1, "Attempting to initialize a invalid attribute!");
 
 	if (type == FieldType::Double) glVertexAttribLPointer(ptr, initSize, initType, stride, offset);
 	else glVertexAttribPointer(ptr, initSize, initType, norm, stride, offset);
@@ -21,9 +19,7 @@ void Plutonium::Attribute::Initialize(bool norm, int32 stride, const void * offs
 void Plutonium::Attribute::Enable(void)
 {
 	/* On debug check if attribute is valid. */
-#if defined(DEBUG)
-	LOG_THROW_IF(ptr == -1, "Attempting to enable a invalid attribute!");
-#endif
+	ASSERT_IF(ptr == -1, "Attempting to enable a invalid attribute!");
 
 	/* Enable the buffer. */
 	if (!enabled)
@@ -37,9 +33,7 @@ void Plutonium::Attribute::Enable(void)
 void Plutonium::Attribute::Disable(void)
 {
 	/* On debug check if attribute is valid. */
-#if defined(DEBUG)
-	LOG_THROW_IF(ptr == -1, "Attempting to disable a invalid attribute!");
-#endif
+	ASSERT_IF(ptr == -1, "Attempting to disable a invalid attribute!");
 
 	/* Disable buffer. */
 	if (enabled)

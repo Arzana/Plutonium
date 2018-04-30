@@ -2,6 +2,7 @@
 #include "Graphics\Native\OpenGL.h"
 #include "Graphics\Native\Monitor.h"
 #include "Core\Threading\ThreadUtils.h"
+#include "Core\Stopwatch.h"
 #include <glfw3.h>
 
 using namespace Plutonium;
@@ -90,7 +91,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 Plutonium::Window::Window(const char * title, Vector2 size)
 	: title(title), wndBounds(size), vpBounds(size), focused(false), wndMode(WindowMode::Windowed), swapMode(VSyncMode::Enabled),
 	INIT_BUS(SizeChanged), INIT_BUS(PositionChanged), INIT_BUS(GainedFocus), INIT_BUS(LostFocus),
-	operational(false)
+	operational(false), invokeTimer(new Stopwatch())
 {
 	/* Create underlying window. */
 	if (CreateNewWindow(&hndlr, static_cast<int>(size.X), static_cast<int>(size.Y), title) != GLFW_TRUE) return;
@@ -124,6 +125,7 @@ Plutonium::Window::~Window(void)
 
 	/* Release underlying window handler. */
 	if (hndlr) glfwDestroyWindow(hndlr);
+	delete_s(invokeTimer);
 
 	if (activeWnds.size() < 1) _CrtFinalizeGLFW();
 }
@@ -279,18 +281,23 @@ void Plutonium::Window::SetVerticalRetrace(VSyncMode mode)
 
 bool Plutonium::Window::Update(void)
 {
-	/* Make sure events are updated (mouse, keyboard, etc.) and return whether the window should be finalized. */
+	/* Make sure events are updated (mouse, keyboard, etc.). */
 	glfwPollEvents();
 
 	/* Invoke all the queued functions. */
+	invokeTimer->Restart();
 	invokeLock.lock();
 	while (toInvoke.size() > 0)
 	{
 		toInvoke.back().HandlePost(this, EventArgs());
 		toInvoke.pop();
+
+		/* If invoke calls take longer then 0.05f seconds break and invoke later to prevent lag on the main thread. */
+		if (invokeTimer->Seconds() > 0.05f) break;
 	}
 	invokeLock.unlock();
 
+	/* Return whether the window should be finalized. */
 	return glfwWindowShouldClose(hndlr);
 }
 

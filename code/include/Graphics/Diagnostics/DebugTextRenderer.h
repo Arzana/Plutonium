@@ -12,7 +12,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a debug font renderer. */
-		DebugFontRenderer(_In_ Game *game, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_opt_ Vector2 resetPos = Vector2::Zero, _In_opt_ Vector2 moveMod = Vector2::UnitY);
+		DebugFontRenderer(_In_ Game *game, _In_ const char *font, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_ int loadWeight, _In_opt_ Vector2 resetPos = Vector2::Zero, _In_opt_ Vector2 moveMod = Vector2::UnitY);
 		DebugFontRenderer(_In_ const DebugFontRenderer &value) = delete;
 		DebugFontRenderer(_In_ DebugFontRenderer &&value) = delete;
 

@@ -11,6 +11,8 @@ struct GLFWwindow;
 
 namespace Plutonium
 { 
+	struct Stopwatch;
+
 	/* Defines a window handler. */
 	typedef const struct Window
 	{
@@ -121,6 +123,7 @@ namespace Plutonium
 		bool operational;
 		WindowMode wndMode;
 		VSyncMode swapMode;
+		Stopwatch *invokeTimer;
 		mutable bool focused;
 		mutable std::mutex invokeLock;
 		mutable std::queue<EventSubscriber<Window, EventArgs>> toInvoke;

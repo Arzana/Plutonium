@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Plutonium::Font">
+    <DisplayString>[{name, sb}]</DisplayString>
+    <Expand>
+      <Item Name="Size">size</Item>
+      <Item Name="Line spacing">lineSpace</Item>
+      <Item Name="Default character">chars[def]</Item>
+      <ArrayItems>
+        <Size>cnt</Size>
+        <ValuePointer>chars</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name="Plutonium::Character">
+    <DisplayString>{(wchar_t)Key}</DisplayString>
+  </Type>
+</AutoVisualizer>

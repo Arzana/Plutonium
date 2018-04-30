@@ -165,7 +165,7 @@ namespace Plutonium
 		/* 
 		The light transmission filter of this material. 
 		Defines the color filter that should be applied to the final fragment color.
-		Default: 'Black'.
+		Default: 'White'.
 		Token(s) (.mtl): 'Kt', 'Tf'.
 		*/
 		Color Transmittance;

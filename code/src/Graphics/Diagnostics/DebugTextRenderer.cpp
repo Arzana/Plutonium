@@ -2,10 +2,10 @@
 #include "Graphics\Text\TextRenderer.h"
 #include "Game.h"
 
-Plutonium::DebugFontRenderer::DebugFontRenderer(Game * game, const char * font, const char * vrtxShdr, const char * fragShdr, Vector2 resetPos, Vector2 moveMod)
+Plutonium::DebugFontRenderer::DebugFontRenderer(Game * game, const char * font, const char * vrtxShdr, const char * fragShdr, int loadWeight, Vector2 resetPos, Vector2 moveMod)
 	: DebugRenderer(game, resetPos, moveMod)
 {
-	renderer = new FontRenderer(game->GetGraphics(), font, vrtxShdr, fragShdr);
+	renderer = new FontRenderer(game, font, vrtxShdr, fragShdr, loadWeight);
 }
 
 void Plutonium::DebugFontRenderer::AddDebugString(const char * str, Color clr)

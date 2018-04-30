@@ -3,9 +3,11 @@
 
 constexpr Plutonium::int32 MAX_STRING_LENGTH = 64;
 
-Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font, const char * vrtxShdr, const char * fragShdr)
-	: device(device)
+Plutonium::FontRenderer::FontRenderer(Game *game, const char * font, const char * vrtxShdr, const char * fragShdr, int loadWeight)
+	: parent(game), percentage(loadWeight), font(nullptr)
 {
+	WindowHandler wnd = game->GetGraphics()->GetWindow();
+
 	/* Load shader and fields from files. */
 	shdr = Shader::FromFile(vrtxShdr, fragShdr);
 	clr = shdr->GetUniform("u_color");
@@ -14,13 +16,13 @@ Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font
 	pos = shdr->GetAttribute("a_position");
 
 	/* Load font from file. */
-	this->font = Font::FromFile(font, 24.0f, device->GetWindow());
+	game->GetLoader()->LoadFont(font, Callback<Font>(this, &FontRenderer::OnLoadComplete), 24.0f, true);
 
 	/* Make sure projection matrix is updated on window resize. */
-	WindowResizeEventHandler(device->GetWindow(), EventArgs());
-	device->GetWindow()->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
+	WindowResizeEventHandler(wnd, EventArgs());
+	wnd->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
-	vbo = new Buffer(device->GetWindow());
+	vbo = new Buffer(wnd);
 	vbo->Bind(BindTarget::Array);
 	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, MAX_STRING_LENGTH * 6);
 }
@@ -28,16 +30,19 @@ Plutonium::FontRenderer::FontRenderer(GraphicsAdapter *device, const char * font
 Plutonium::FontRenderer::~FontRenderer(void)
 {
 	/* Remove event handler. */
-	device->GetWindow()->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
+	parent->GetGraphics()->GetWindow()->SizeChanged.Remove(this, &FontRenderer::WindowResizeEventHandler);
 
 	/* Delete shader and font. */
 	delete_s(vbo);
 	delete_s(shdr);
-	delete_s(font);
+	parent->GetLoader()->Unload(font);
 }
 
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr)
 {
+	/* Make sure we don't allow string to be rendered when the font is not yet loaded. */
+	if (!font) return;
+
 	/* Initialize newline split buffer. */
 	constexpr size_t BUFF_LEN = 16;
 	char *buffer[BUFF_LEN];
@@ -47,7 +52,7 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 	size_t len = spltstr(str, '\n', buffer, 0);
 	for (size_t i = 0; i < len; i++)
 	{
-		AddSingleString(device->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
+		AddSingleString(parent->GetGraphics()->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
 	}
 
 	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
@@ -64,7 +69,7 @@ void Plutonium::FontRenderer::Render(void)
 		tex->Set(font->map);
 
 		/* Make sure blending is enabled. */
-		device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
+		parent->GetGraphics()->SetAlphaSourceBlend(BlendType::ISrcAlpha);
 
 		/* Render all stored strings. */
 		for (size_t i = 0; i < strs.size(); i++)
@@ -145,6 +150,12 @@ void Plutonium::FontRenderer::ClearBuffer(void)
 	/* Make sure we free the copies to the strings. */
 	for (size_t i = 0; i < strs.size(); i++) delete_s(strs.at(i));
 	strs.clear();
+}
+
+void Plutonium::FontRenderer::OnLoadComplete(const AssetLoader *, Font * result)
+{
+	font = result;
+	parent->UpdateLoadPercentage(percentage);
 }
 
 Plutonium::FontRenderer::LineInfo::LineInfo(const char * string, Vector2 pos, Plutonium::Color clr)

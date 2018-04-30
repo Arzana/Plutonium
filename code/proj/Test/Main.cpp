@@ -19,7 +19,6 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *dfRenderer;
-	DebugSpriteRenderer *dsRenderer;
 	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
@@ -36,10 +35,9 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
-	Texture *depthSprite;
 
 	TestGame(void)
-		: Game("TestGame"), depthSprite(nullptr), theta(0.0f)
+		: Game("TestGame"), theta(0.0f)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -52,10 +50,9 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
-		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag"));
-		AddComponent(dsRenderer = new DebugSpriteRenderer(this, "./assets/shaders/Static2D.vert", "./assets/shaders/Static2D.frag"));
+		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1));
 
-		fRenderer = new FontRenderer(GetGraphics(), "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag");
+		fRenderer = new FontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 	}
@@ -68,7 +65,7 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		map = new StaticObject(this, "models/Sponza/sponza.obj", 20);
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 18);
 		map->SetScale(scale);
 
 		/* Setup lighting. */
@@ -89,9 +86,9 @@ struct TestGame
 
 	virtual void Finalize(void)
 	{
+		delete_s(fRenderer);
 		delete_s(srenderer);
 		delete_s(drenderer);
-		if (depthSprite) delete_s(depthSprite);
 	}
 
 	virtual void Update(float dt)
@@ -184,9 +181,6 @@ struct TestGame
 		std::string gpuStr = "GPU: ";
 		gpuStr += b2short_string(mem->GetAvrgGPURamUsage());
 		dfRenderer->AddDebugString(gpuStr);
-
-		/* Add debug frame buffer diagnostics. */
-		if (depthSprite) dsRenderer->AddDebugTexture(depthSprite, Color::White, Vector2(0.1f));
 	}
 
 	virtual void RenderLoad(float dt, int percentage)

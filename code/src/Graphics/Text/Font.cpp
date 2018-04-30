@@ -4,6 +4,8 @@
 #include "Core\Math\Basics.h"
 #include "Core\SafeMemory.h"
 #include "Core\Stopwatch.h"
+#include "Core\StringFunctions.h"
+#include "Streams\FileReader.h"
 #include <stb\stb_truetype.h>
 #include <cfloat>
 #include <cstdio>
@@ -14,6 +16,7 @@ using namespace Plutonium;
 Plutonium::Font::~Font(void) noexcept
 {
 	free_s(chars);
+	free_s(path);
 }
 
 Vector2 Plutonium::Font::MeasureString(const char * str) const
@@ -45,11 +48,18 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 	return result;
 }
 
+Plutonium::Font::Font(void)
+	: chars(nullptr), cnt(0), def(0), lineSpace(0), size(0)
+{}
+
 Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wnd)
 {
 	/* Initialize result. */
 	Font *result = new Font();
+	FileReader reader(path, true);
 	result->size = size;
+	result->path = heapstr(path);
+	result->name = heapstr(reader.GetFileNameWithoutExtension());
 
 	/* Initialize file content buffer. */
 	constexpr size_t TTF_BUFFER_SIZE = 1 << 20;
@@ -86,10 +96,6 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	return result;
 }
 
-Plutonium::Font::Font(void)
-	: chars(nullptr), cnt(0), def(0), lineSpace(0), size(0)
-{}
-
 void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd, float scale)
 {
 	/* Get global rendering info. */
@@ -116,7 +122,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 		int32 w = x1 - x0, h = y1 - y0;
 
 		/* Save known character details. */
-		cur->Key = static_cast<char>(c);
+		cur->Key = c;
 		cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
 		cur->Bounds = Rectangle(curLineSize.X, finalMapSize.Y, static_cast<float>(w), static_cast<float>(h));
 		cur->Advance = static_cast<uint32>(rectify(x0 + advance * scale));

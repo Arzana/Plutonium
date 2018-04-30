@@ -42,6 +42,13 @@ namespace Plutonium
 			end = -1;
 		}
 
+		/* Restarts the stopwatch reseting the timer and starting time measuring. */
+		inline void Restart(void)
+		{
+			start = clock();
+			end = -1;
+		}
+
 		/* Gets the amount of clock ticks since End was called or now. */
 		inline long double Ticks(void) const
 		{
