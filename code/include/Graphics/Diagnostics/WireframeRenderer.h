@@ -22,15 +22,15 @@ namespace Plutonium
 		/* Start rendering the specified scene. */
 		void Begin(_In_ const Matrix &view, const Matrix &proj);
 		/* Renders the specified model as a wireframe. */
-		void Render(_In_ const StaticObject *model);
+		void Render(_In_ const StaticObject *model, _In_opt_ Color color = Color::Red);
 		/* Render the specified model as a wireframe. */
-		void Render(_In_ const DynamicObject *model);
+		void Render(_In_ const DynamicObject *model, _In_opt_ Color color = Color::Yellow);
 		/* Stops rendering the specified scene. */
 		void End(void);
 
 	private:
 		Shader *shdr;
-		Uniform *matMdl, *matView, *matProj;
+		Uniform *matMdl, *matView, *matProj, *clr;
 		Attribute *pos;
 		bool beginCalled;
 	};

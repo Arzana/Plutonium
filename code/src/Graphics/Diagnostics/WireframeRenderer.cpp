@@ -10,6 +10,7 @@ Plutonium::WireframeRenderer::WireframeRenderer(const char * vrtxShdr)
 	matMdl = shdr->GetUniform("u_model");
 	matView = shdr->GetUniform("u_view");
 	matProj = shdr->GetUniform("u_projection");
+	clr = shdr->GetUniform("u_color");
 
 	/* Get attribute. */
 	pos = shdr->GetAttribute("a_position");
@@ -39,11 +40,12 @@ void Plutonium::WireframeRenderer::Begin(const Matrix & view, const Matrix & pro
 	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
-void Plutonium::WireframeRenderer::Render(const StaticObject *model)
+void Plutonium::WireframeRenderer::Render(const StaticObject *model, Color color)
 {
 	/* Make sure begin is called and set the model matrix. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 	matMdl->Set(model->GetWorld());
+	clr->Set(color);
 
 	/* Render each shape. */
 	for (size_t i = 0; i < model->GetModel()->shapes.size(); i++)
@@ -58,13 +60,14 @@ void Plutonium::WireframeRenderer::Render(const StaticObject *model)
 	}
 }
 
-void Plutonium::WireframeRenderer::Render(const DynamicObject * model)
+void Plutonium::WireframeRenderer::Render(const DynamicObject * model, Color color)
 {
 	/* Make sure begin is called. */
 	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 
 	/* Set uniforms. */
 	matMdl->Set(model->GetWorld());
+	clr->Set(color);
 
 	/* Set first mesh buffer attributes. */
 	const Mesh *curFrame = model->GetCurrentFrame();
