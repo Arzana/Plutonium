@@ -4,8 +4,6 @@
 #include "Graphics\TextureOptions.h"
 #include "Graphics\Native\Window.h"
 
-struct TextureInvokeObj;
-
 namespace Plutonium
 {
 	/* Defines a basic 2D texture used in rendering. */
@@ -62,7 +60,6 @@ namespace Plutonium
 
 	private:
 		friend struct Uniform;
-		friend struct TextureInvokeObj;
 		friend struct AssetLoader;
 
 		int32 frmt, ifrmt;

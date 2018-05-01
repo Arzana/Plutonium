@@ -73,4 +73,31 @@ namespace Plutonium
 		_CTy *obj;
 		HandlerType hndlr;
 	};
+
+	/* Provides a structure for a lambda style generic delegate. */
+	template <typename _STy, typename _LTy, typename ... _ArgTy>
+	struct DelegateLambda
+		: public DelegateBase<_STy, _ArgTy...>
+	{
+	public:
+		/* Initializes a new instance of a lambda style generic delegate. */
+		DelegateLambda(_In_ const _LTy &lambda)
+			: lambda(lambda)
+		{}
+
+		/* Invokes this delegate. */
+		virtual void Invoke(_In_ const _STy *sender, _In_ _ArgTy ... args) override
+		{
+			return lambda.operator()(sender, args...);
+		}
+
+		/* Copies this delegate (requires delete!). */
+		_Check_return_ virtual DelegateBase<_STy, _ArgTy...>* Copy(void) override
+		{
+			return new DelegateLambda<_STy, _LTy, _ArgTy...>(lambda);
+		}
+
+	private:
+		_LTy lambda;
+	};
 }

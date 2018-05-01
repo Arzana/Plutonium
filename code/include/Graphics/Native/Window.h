@@ -102,8 +102,10 @@ namespace Plutonium
 		void SetMode(_In_ WindowMode mode);
 		/* Alters the swap interval of the window. */
 		void SetMode(_In_ VSyncMode mode);
-		/* Invokes the specified function on the OpenGL context thread (func has to be made with new!). */
+		/* Invokes the specified function on the OpenGL context thread. */
 		void Invoke(_In_ EventSubscriber<Window, EventArgs> &func) const;
+		/* Invokes the specified function on the OpenGL context thread and waits for it to complete. */
+		void InvokeWait(_In_ EventSubscriber<Window, EventArgs> &func) const;
 		/* Gets the window associated with the active context. */
 		_Check_return_ static const Window* GetActiveContextWindow(void);
 

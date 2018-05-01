@@ -65,15 +65,15 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		map = new StaticObject(this, "models/Sponza/sponza.obj", 18);
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 58);
 		map->SetScale(scale);
 
 		/* Setup lighting. */
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
-		fires[0] = new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), scale, 20);
-		fires[1] = new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), scale, 20);
-		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), scale, 20);
-		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 20);
+		fires[0] = new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), scale, 10);
+		fires[1] = new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), scale, 10);
+		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), scale, 10);
+		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 10);
 	}
 
 	virtual void UnLoadContent(void)

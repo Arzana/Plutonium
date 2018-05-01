@@ -31,6 +31,14 @@ namespace Plutonium
 			hndlr = new DelegateMethod<_STy, _CTy, _ArgTy...>(cnt, func);
 		}
 
+		/* Initializes a new instance of an event subscriber. */
+		template <typename _LTy>
+		EventSubscriber(const _LTy &lambda)
+		{
+			id = ComputeHash(reinterpret_cast<const _LTy*>(nullptr), reinterpret_cast<HandlerMethodType<_LTy>>(&_LTy::operator()));
+			hndlr = new DelegateLambda<_STy, _LTy, _ArgTy...>(lambda);
+		}
+
 		/* Initializes a new instance of an event subscriber as a copy of the specified subscriber. */
 		EventSubscriber(_In_ const EventSubscriber<_STy, _ArgTy...> &value)
 			: id(value.id)

@@ -3,7 +3,9 @@
 #include "Graphics\Native\Monitor.h"
 #include "Core\Threading\ThreadUtils.h"
 #include "Core\Stopwatch.h"
+#include "Core\Threading\PuThread.h"
 #include <glfw3.h>
+#include <atomic>
 
 using namespace Plutonium;
 
@@ -245,13 +247,30 @@ void Plutonium::Window::SetMode(VSyncMode mode)
 void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> &func) const
 {
 	/* Only add to the invoke list if the current thread is not equal to the context thread. */
-	if (_CrtGetCurrentThreadId() != contextId)
+	if (_CrtGetCurrentThreadId() == contextId)
 	{
-		invokeLock.lock();
-		toInvoke.push(std::move(func));
-		invokeLock.unlock();
+		func.HandlePost(this, EventArgs());
+		return;
 	}
-	else func.HandlePost(this, EventArgs());
+
+	invokeLock.lock();
+	toInvoke.push(std::move(func));
+	invokeLock.unlock();
+}
+
+void Plutonium::Window::InvokeWait(EventSubscriber<Window, EventArgs>& func) const
+{
+	std::atomic_bool invoked(false);
+	
+	/* Create wrapper function to set invoked on completion of the origional call. */
+	Invoke(Invoker([&](WindowHandler sender, EventArgs args)
+	{
+		func.HandlePost(sender, args);
+		invoked.store(true);
+	}));
+
+	/* Wait for the function to be invoked. */
+	while (!invoked.load()) PuThread::Sleep(10);
 }
 
 WindowHandler Plutonium::Window::GetActiveContextWindow(void)

@@ -5,8 +5,6 @@
 #include "Graphics\Rendering\Attribute.h"
 #include "Graphics\Native\Window.h"
 
-struct BufferInvoker;
-
 namespace Plutonium
 {
 	/* Defines a GPU side buffer. */
@@ -60,8 +58,6 @@ namespace Plutonium
 		}
 
 	private:
-		friend struct BufferInvoker;
-
 		uint32 hndlr;
 		size_t size;
 		int64 bsize;
