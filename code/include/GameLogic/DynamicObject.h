@@ -45,6 +45,7 @@ namespace Plutonium
 
 	private:
 		friend struct DynamicRenderer;
+		friend struct WireframeRenderer;
 
 		Game *parent;
 		DynamicModel *model;

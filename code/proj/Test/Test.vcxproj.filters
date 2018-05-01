@@ -64,5 +64,8 @@
     <None Include="..\..\assets\shaders\Dynamic3D.vert">
       <Filter>Resource Files\Shaders\Vertex</Filter>
     </None>
+    <None Include="..\..\assets\shaders\Wireframe.vert">
+      <Filter>Resource Files\Shaders\Vertex</Filter>
+    </None>
   </ItemGroup>
 </Project>

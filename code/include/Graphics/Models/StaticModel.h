@@ -32,6 +32,7 @@ namespace Plutonium
 
 	private:
 		friend struct StaticRenderer;
+		friend struct WireframeRenderer;
 		friend struct AssetLoader;
 
 		std::vector<PhongShape*> shapes;

@@ -3,6 +3,7 @@
 #include <Core\Math\Interpolation.h>
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
+#include <Graphics\Diagnostics\WireframeRenderer.h>
 #include <Graphics\Text\TextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
@@ -22,7 +23,9 @@ struct TestGame
 	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
+	WireframeRenderer *wrenderer;
 	Camera *cam;
+	bool wireframeMode;
 
 	/* Scene */
 	static constexpr float scale = 0.03f;	// If map is sponza
@@ -37,7 +40,7 @@ struct TestGame
 	MemoryCounter *mem;
 
 	TestGame(void)
-		: Game("TestGame"), theta(0.0f)
+		: Game("TestGame"), theta(0.0f), wireframeMode(false)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -55,6 +58,12 @@ struct TestGame
 		fRenderer = new FontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
+		wrenderer = new WireframeRenderer("./assets/shaders/Wireframe.vert");
+
+		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
+		{
+			if (args.Key == Keys::D1 && args.Action == KeyState::Down) wireframeMode = !wireframeMode;
+		});
 	}
 
 	virtual void LoadContent(void)
@@ -89,6 +98,7 @@ struct TestGame
 		delete_s(fRenderer);
 		delete_s(srenderer);
 		delete_s(drenderer);
+		delete_s(wrenderer);
 	}
 
 	virtual void Update(float dt)
@@ -151,16 +161,27 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
-		/* Render light sources. */
-		drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
-		for (size_t i = 0; i < 4; i++) drenderer->Render(fires[i]->object);
-		drenderer->End();
+		if (!wireframeMode)
+		{
+			/* Render light sources. */
+			drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
+			for (size_t i = 0; i < 4; i++) drenderer->Render(fires[i]->object);
+			drenderer->End();
 
-		/* Render current scene, */
-		const PointLight *lights[4] = { fires[0]->light, fires[1]->light, fires[2]->light, fires[3]->light };
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
-		srenderer->Render(map);
-		srenderer->End();
+			/* Render current scene, */
+			const PointLight *lights[4] = { fires[0]->light, fires[1]->light, fires[2]->light, fires[3]->light };
+			srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
+			srenderer->Render(map);
+			srenderer->End();
+		}
+		else
+		{
+			/* Render light sources and scene. */
+			wrenderer->Begin(cam->GetView(), cam->GetProjection());
+			wrenderer->Render(map);
+			for (size_t i = 0; i < 4; i++) wrenderer->Render(fires[i]->object);
+			wrenderer->End();
+		}
 
 		/* Add debug light direction. */
 		std::string lightStr = "Time: ";

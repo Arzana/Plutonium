@@ -38,6 +38,7 @@ namespace Plutonium
 
 	private:
 		friend struct DynamicRenderer;
+		friend struct WireframeRenderer;
 		friend struct DynamicObject;
 		friend struct AssetLoader;
 

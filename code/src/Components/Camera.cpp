@@ -5,7 +5,7 @@ Plutonium::Camera::Camera(WindowHandler wnd)
 	: wnd(wnd), actualPos(0.0f, 0.0f, 50.0f), 
 	target(), offset(0.0f, 0.0f, 0.5f),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), 
-	MoveSpeed(100.0f), LookSpeed(10.0f),
+	MoveSpeed(100.0f), LookSpeed(0.1f),
 	orien()
 {
 	desiredPos = actualPos;
@@ -32,8 +32,8 @@ void Plutonium::Camera::Update(float dt, const Matrix & obj2Follow)
 void Plutonium::Camera::Update(float dt, KeyHandler keys, CursorHandler cursor)
 {
 	/* Update orientation. */
-	Yaw -= cursor->DeltaX * DEG2RAD * dt * LookSpeed;
-	Pitch -= cursor->DeltaY * DEG2RAD * dt * LookSpeed;
+	Yaw -= cursor->DeltaX * DEG2RAD * LookSpeed;
+	Pitch -= cursor->DeltaY * DEG2RAD * LookSpeed;
 
 	/* Update desired position. */
 	if (keys->IsKeyDown(Keys::W)) desiredPos += orien.GetForward() * dt * MoveSpeed;

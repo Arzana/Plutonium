@@ -66,6 +66,17 @@ namespace Plutonium
 			LOG("Registered callback(%llX) to event %s.", sub->GetID(), name);
 		}
 
+		/* Registers an event handler to this event. */
+		template <typename _LTy>
+		void Add(_In_ const _LTy &lambda) const
+		{
+			SubscriberType *sub = new SubscriberType(lambda);
+			lock.lock();
+			callbacks.push_back(sub);
+			lock.unlock();
+			LOG("Registered callback(lambda) to event %s.", name);
+		}
+
 		/* Unregisters an event handler from this event. */
 		void Remove(_In_ HandlerFuncType func) const
 		{

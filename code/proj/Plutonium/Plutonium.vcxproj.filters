@@ -299,6 +299,9 @@
     <ClCompile Include="..\..\src\GameLogic\DynamicObject.cpp">
       <Filter>Source Files\GameLogic</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\WireframeRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -594,6 +597,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\GameLogic\DynamicObject.h">
       <Filter>Header Files\GameLogic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\WireframeRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
