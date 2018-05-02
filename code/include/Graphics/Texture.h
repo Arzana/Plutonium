@@ -55,6 +55,7 @@ namespace Plutonium
 
 	protected:
 		uint32 ptr;
+		TextureType target;
 		const char *path;
 		const char *name;
 
@@ -62,16 +63,19 @@ namespace Plutonium
 		friend struct Uniform;
 		friend struct AssetLoader;
 
+		static constexpr size_t CUBEMAP_TEXTURE_COUNT = 6;
+
 		int32 frmt, ifrmt;
 		WindowHandler wnd;
 
 		static Texture* FromFile(const char *path, WindowHandler wnd, TextureCreationOptions *config = nullptr);
+		static Texture* FromFile(const char *paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, TextureCreationOptions *config = nullptr);
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
 
 		void Dispose(void);
 		bool SetFormat(uint32 channels);
 		void ConvertFormat(byte **data, int32 srcChannels, int32 destChannels);
-		void GenerateTexture(byte *data, const TextureCreationOptions *config);
+		void GenerateTexture(byte **data, const TextureCreationOptions *config);
 		void SetPreDataTransferTextureOptions(byte *data, const TextureCreationOptions *config);
 		void SetPostDataTransferTextureOptions(const TextureCreationOptions *config);
 	};

@@ -302,6 +302,9 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\WireframeRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -600,6 +603,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\WireframeRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\SkyboxRenderer.h">
+      <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

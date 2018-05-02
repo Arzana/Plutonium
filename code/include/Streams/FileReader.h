@@ -12,13 +12,17 @@ namespace Plutonium
 	public:
 		/* Initializes a new file reader from a specified path. */
 		FileReader(_In_ const char *path, bool suppressOpen = false);
-		FileReader(_In_ const FileReader &value) = delete;
-		FileReader(_In_ FileReader &&value) = delete;
+		/* Initializes a new file reader as a copy. */
+		FileReader(_In_ const FileReader &value);
+		/* Initializes a new file reader and moves the specified data. */
+		FileReader(_In_ FileReader &&value);
 		/* Closes the stream and releases the resources of the reader. */
 		~FileReader(void) noexcept;
 
-		_Check_return_ FileReader& operator =(_In_ const FileReader &other) = delete;
-		_Check_return_ FileReader& operator =(_In_ FileReader &&other) = delete;
+		/* Copies the specified file reader to this file reader. */
+		_Check_return_ FileReader& operator =(_In_ const FileReader &other);
+		/* Moves the specified file reader to this file reader. */
+		_Check_return_ FileReader& operator =(_In_ FileReader &&other);
 
 		/* Gets whether the stream can be used. */
 		_Check_return_ inline bool IsOpen(void) const

@@ -123,6 +123,20 @@ Matrix Plutonium::Matrix::GetOrientation(void) const
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+Matrix Plutonium::Matrix::GetStatic(void) const
+{
+	/* Simply remove the translation. */
+	Vector3 r = GetRight();
+	Vector3 u = GetUp();
+	Vector3 b = GetBackward();
+
+	return Matrix(
+		r.X, u.X, b.X, 0.0f,
+		r.Y, u.Y, b.Y, 0.0f,
+		r.Z, u.Z, b.Z, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 float Plutonium::Matrix::GetDeterminant(void) const
 {
 	return

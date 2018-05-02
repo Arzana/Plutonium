@@ -7,6 +7,7 @@
 #include <Graphics\Text\TextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
+#include <Graphics\Rendering\SkyboxRenderer.h>
 #include <Components\Camera.h>
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
@@ -23,6 +24,7 @@ struct TestGame
 	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
+	SkyboxRenderer *sbrenderer;
 	WireframeRenderer *wrenderer;
 	Camera *cam;
 	bool wireframeMode;
@@ -34,6 +36,7 @@ struct TestGame
 	Fire *fires[4];
 	const char *dayState;
 	StaticObject *map;
+	Texture *skybox;
 
 	/* Diagnostics. */
 	FpsCounter *fps;
@@ -58,6 +61,7 @@ struct TestGame
 		fRenderer = new FontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
+		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
 		wrenderer = new WireframeRenderer("./assets/shaders/Wireframe.vert");
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
@@ -74,8 +78,24 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		map = new StaticObject(this, "models/Sponza/sponza.obj", 58);
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
 		map->SetScale(scale);
+
+		/* Load skybox. */
+		const char *skyboxPaths[] =
+		{
+			"models/Skybox/right.jpg",
+			"models/Skybox/left.jpg",
+			"models/Skybox/top.jpg",
+			"models/Skybox/bottom.jpg",
+			"models/Skybox/front.jpg",
+			"models/Skybox/back.jpg"
+		};
+		GetLoader()->LoadTexture(skyboxPaths, Callback<Texture>([&](const AssetLoader*, Texture *result)
+		{
+			skybox = result;
+			UpdateLoadPercentage(3);
+		}));
 
 		/* Setup lighting. */
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
@@ -91,6 +111,7 @@ struct TestGame
 		delete_s(sun);
 		for (size_t i = 0; i < 4; i++) delete_s(fires[i]);
 		delete_s(map);
+		GetLoader()->Unload(skybox);
 	}
 
 	virtual void Finalize(void)
@@ -98,6 +119,7 @@ struct TestGame
 		delete_s(fRenderer);
 		delete_s(srenderer);
 		delete_s(drenderer);
+		delete_s(sbrenderer);
 		delete_s(wrenderer);
 	}
 
@@ -182,6 +204,9 @@ struct TestGame
 			for (size_t i = 0; i < 4; i++) wrenderer->Render(fires[i]->object);
 			wrenderer->End();
 		}
+
+		/* Render skybox. */
+		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
 
 		/* Add debug light direction. */
 		std::string lightStr = "Time: ";

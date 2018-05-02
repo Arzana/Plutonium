@@ -19,6 +19,8 @@
 
 using namespace Plutonium;
 
+constexpr int32 DEFAULT_CHANNEL = 3;
+
 Plutonium::Texture::Texture(int32 width, int32 height, WindowHandler wnd, int32 mipMaplevels, const char * name)
 	: wnd(wnd), Width(width), Height(height), MipMapLevels(mipMaplevels), name(name ? heapstr(name) : heapstr("")),
 	frmt(GL_RGBA), ifrmt(GL_RGBA8), ptr(0), path(nullptr)
@@ -59,7 +61,7 @@ void Plutonium::Texture::SetData(byte * data, TextureCreationOptions * config)
 	if (ptr) Dispose();
 
 	/* Generate new texture. */
-	GenerateTexture(data, config);
+	GenerateTexture(&data, config);
 }
 
 byte * Plutonium::Texture::GetData(void) const
@@ -112,13 +114,46 @@ Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, Tex
 	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
 
 	/* Set texture information. */
-	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4));
-	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, 3);
+	Texture *result = new Texture(w, h, wnd, clamp(GetMaxMipMapLevel(w, h), 0, 4), reader.GetFileNameWithoutExtension());
+	if (!result->SetFormat(m)) result->ConvertFormat(&data, m, DEFAULT_CHANNEL);
 	result->path = heapstr(path);
-	result->name = heapstr(reader.GetFileNameWithoutExtension());
 
-	result->GenerateTexture(data, config);
+	/* Generate OpenGL texture and free stbi data. */
+	result->GenerateTexture(&data, config);
 	stbi_image_free(data);
+
+	return result;
+}
+
+Texture * Plutonium::Texture::FromFile(const char * paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, TextureCreationOptions * config)
+{
+	/* Setup buffers for cube map textures. */
+	byte *data[CUBEMAP_TEXTURE_COUNT];
+	int32 w[CUBEMAP_TEXTURE_COUNT], h[CUBEMAP_TEXTURE_COUNT], m[CUBEMAP_TEXTURE_COUNT];
+	stbi_set_flip_vertically_on_load(false);
+
+	/* Load individual textures. */
+	for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+	{
+		FileReader reader(paths[i], true);
+		data[i] = stbi_load(paths[i], &w[i], &h[i], &m[i], 0);
+
+		/* Check for errors. */
+		LOG_THROW_IF(!data[i], "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
+		ASSERT_IF(i > 0 ? (w[i] != w[i - 1] || h[i] != h[i - 1]) : false, "Cannot use specified texture for cubemap (texture sizes differ)!");
+	}
+
+	/* Set texture information. */
+	Texture *result = new Texture(w[0], h[0], wnd, 0, "Skybox");
+	result->path = heapstr(paths[0]);
+	for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+	{
+		if (!result->SetFormat(m[i])) result->ConvertFormat(&data[i], m[i], DEFAULT_CHANNEL);
+	}
+
+	/* Generate OpenGL texture and free stbi data. */
+	result->GenerateTexture(data, config);
+	for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++) stbi_image_free(data[i]);
 
 	return result;
 }
@@ -186,7 +221,7 @@ void Plutonium::Texture::ConvertFormat(byte ** data, int32 srcChannels, int32 de
 	*data = result;
 }
 
-void Plutonium::Texture::GenerateTexture(byte * data, const TextureCreationOptions *config)
+void Plutonium::Texture::GenerateTexture(byte ** data, const TextureCreationOptions *config)
 {
 	/* Set options to default options if needed. */
 	if (!config)
@@ -195,19 +230,41 @@ void Plutonium::Texture::GenerateTexture(byte * data, const TextureCreationOptio
 		config = &defaultOpt;
 	}
 
+	target = config->Type;
+
 	/* Apply texture options associated with the raw data. */
-	SetPreDataTransferTextureOptions(data, config);
+	if (config->Type == TextureType::TextureCube)
+	{
+		for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+		{
+			SetPreDataTransferTextureOptions(data[i], config);
+		}
+	}
+	else SetPreDataTransferTextureOptions(*data, config);
 
 	/* Make sure the OpenGL commands are excecuted on the main thread. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
+		GLenum target = _CrtEnum2Int(config->Type);
+
 		/* Generate storage and bind texture. */
 		glGenTextures(1, &ptr);
-		glBindTexture(GL_TEXTURE_2D, ptr);
+		glBindTexture(target, ptr);
 
 		/* Generate mip map storage and load base texture. */
-		glTexStorage2D(GL_TEXTURE_2D, max(1, MipMapLevels), ifrmt, Width, Height);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, void_ptr(data));
+		if (config->Type == TextureType::TextureCube)
+		{
+			for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+			{
+				target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+				glTexImage2D(target, 0, ifrmt, Width, Height, 0, frmt, GL_UNSIGNED_BYTE, void_ptr(data[i]));
+			}
+		}
+		else
+		{
+			glTexStorage2D(target, max(1, MipMapLevels), ifrmt, Width, Height);
+			glTexSubImage2D(target, 0, 0, 0, Width, Height, frmt, GL_UNSIGNED_BYTE, void_ptr(*data));
+		}
 
 		/* Apply texture options associated with rendering */
 		SetPostDataTransferTextureOptions(config);
@@ -239,12 +296,16 @@ void Plutonium::Texture::SetPreDataTransferTextureOptions(byte * data, const Tex
 
 void Plutonium::Texture::SetPostDataTransferTextureOptions(const TextureCreationOptions * config)
 {
+	GLenum target = _CrtEnum2Int(config->Type);
+	ASSERT_IF(MipMapLevels && config->Type == TextureType::TextureRect, "Cannot create rectangle texture with mip maps!");
+
 	/* Generate desired mip maps. */
-	if (MipMapLevels) glGenerateMipmap(GL_TEXTURE_2D);
+	if (MipMapLevels) glGenerateMipmap(target);
 
 	/* Set texture use parameters. */
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _CrtEnum2Int(config->HorizontalWrap));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _CrtEnum2Int(config->VerticalWrap));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_WRAP_S, _CrtEnum2Int(config->HorizontalWrap));
+	glTexParameteri(target, GL_TEXTURE_WRAP_T, _CrtEnum2Int(config->VerticalWrap));
+	if (config->Type == TextureType::Texture3D || config->Type == TextureType::TextureCube) glTexParameteri(target, GL_TEXTURE_WRAP_R, _CrtEnum2Int(config->DepthWrap));
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 }

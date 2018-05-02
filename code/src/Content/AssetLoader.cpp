@@ -258,7 +258,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 	}
 	else
 	{
-		/* Check if asset is already in the load queu. */
+		/* Check if asset is already in the load queue. */
 		for (size_t i = 0; i < queuedTextures.size(); i++)
 		{
 			TextureLoadInfo *cur = queuedTextures.at(i);
@@ -272,13 +272,73 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		}
 
 		/* We have to load the texture so create an infomation struct. */
-		TextureLoadInfo *info = new TextureLoadInfo(new FileReader(path, true), keep, callback, config);
+		TextureLoadInfo *info = new TextureLoadInfo(new FileReader(path, true), keep, callback, config, false);
 
 		/* Make sure we actually load the texture on the IO thread. */
 		if (OnIoThread())
 		{
 			lockTex.unlock();
 			LoadTextureInternal(info, true);
+		}
+		else
+		{
+			queuedTextures.push_back(info);
+			lockTex.unlock();
+		}
+	}
+}
+
+void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<AssetLoader, Texture*>& callback, bool keep, TextureCreationOptions * config)
+{
+	lockTex.lock();
+
+	int32 idx = GetTextureIdx(paths[0]);
+	if (idx != -1)
+	{
+		/* If texture is already loaded return it and increase it's refrence count. */
+		AssetInfo<Texture> *cur = loadedTextures.at(idx);
+		++cur->RefCnt;
+		callback.HandlePost(this, cur->Asset);
+		lockTex.unlock();
+	}
+	else
+	{
+		/* Check if asset is already in the load queue. */
+		for (size_t i = 0; i < queuedTextures.size(); i++)
+		{
+			TextureLoadInfo *cur = queuedTextures.at(i);
+			if (!strcmp(cur->Names->GetFilePath(), paths[0]))
+			{
+				/* Add callback to the list if asset found. */
+				cur->Callbacks.push_back(std::move(callback));
+				lockTex.unlock();
+				return;
+			}
+		}
+
+		/* make sure the texture type is set  */
+		bool configset = true;
+		if (!config)
+		{
+			TextureCreationOptions *opt = new TextureCreationOptions();
+			opt->Type = TextureType::TextureCube;
+			config = opt;
+			configset = false;
+		}
+		
+		ASSERT_IF(config->Type != TextureType::TextureCube, "Invalid teture creation options for skybox!");
+
+		/* We have to load the texture so create an infomation struct. */
+		FileReader *readers = calloc_s(FileReader, Texture::CUBEMAP_TEXTURE_COUNT);
+		for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) readers[i] = FileReader(paths[i], true);
+
+		TextureLoadInfo *info = new TextureLoadInfo(readers, keep, callback, config, !configset);
+
+		/* Make sure we actually load the texture on the IO thread. */
+		if (OnIoThread())
+		{
+			lockTex.unlock();
+			LoadSkyboxInternal(info, true);
 		}
 		else
 		{
@@ -303,7 +363,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	}
 	else
 	{
-		/* Check if asset is already in the load queu. */
+		/* Check if asset is already in the load queue. */
 		for (size_t i = 0; i < queuedSModels.size(); i++)
 		{
 			AssetLoadInfo<StaticModel> *cur = queuedSModels.at(i);
@@ -348,7 +408,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	}
 	else
 	{
-		/* Check if asset is already in the load queu. */
+		/* Check if asset is already in the load queue. */
 		for (size_t i = 0; i < queuedDModels.size(); i++)
 		{
 			DynamicModelLoadInfo *cur = queuedDModels.at(i);
@@ -393,7 +453,7 @@ void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLo
 	}
 	else
 	{
-		/* Check if asset is already in the load queu. */
+		/* Check if asset is already in the load queue. */
 		for (size_t i = 0; i < queuedFonts.size(); i++)
 		{
 			FontLoadInfo *cur = queuedFonts.at(i);
@@ -430,6 +490,19 @@ Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, Text
 
 	/* Load the texture with the specified callback. */
 	LoadTexture(path, Callback<Texture>(&result, &LoadResult<Texture>::OnLoadComplete), keep, config);
+
+	/* Wait untill loading is complete and return value. */
+	while (!result.loaded.load()) PuThread::Sleep(10);
+	return result.value;
+}
+
+Texture * Plutonium::AssetLoader::LoadTexture(const char * paths[6], bool keep, TextureCreationOptions * config)
+{
+	/* Create temporary storage. */
+	LoadResult<Texture> result;
+
+	/* Load the texture with the specified callback. */
+	LoadTexture(paths, Callback<Texture>(&result, &LoadResult<Texture>::OnLoadComplete), keep, config);
 
 	/* Wait untill loading is complete and return value. */
 	while (!result.loaded.load()) PuThread::Sleep(10);
@@ -611,6 +684,27 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 	delete_s(info);
 }
 
+void Plutonium::AssetLoader::LoadSkyboxInternal(TextureLoadInfo * info, bool updateState)
+{
+	/* Update state is requested. */
+	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+
+	/* Load texture. */
+	const char *paths[Texture::CUBEMAP_TEXTURE_COUNT];
+	for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) paths[i] = CreateFullPath(info->Names[i].GetFilePath());
+	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(paths, wnd, info->Options));
+	for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) free_s(paths[i]);
+
+	/* Push to loaded list. */
+	lockTex.lock();
+	loadedTextures.push_back(result);
+	lockTex.unlock();
+
+	/* Call callback. */
+	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
+	delete_s(info);
+}
+
 void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState)
 {
 	/* Update state is requested. */
@@ -684,7 +778,8 @@ void Plutonium::AssetLoader::TickIoTextures(const TickThread *, EventArgs)
 		/* Unload the buffer to allow more additions whilst we load the texture. */
 		lockTex.unlock();
 		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		LoadTextureInternal(cur, false);
+		if (cur->Options && cur->Options->Type == TextureType::TextureCube) LoadSkyboxInternal(cur, false);
+		else LoadTextureInternal(cur, false);
 		lockTex.lock();
 	}
 

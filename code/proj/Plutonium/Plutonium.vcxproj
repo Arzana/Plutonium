@@ -230,6 +230,7 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
@@ -321,6 +322,7 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\SkyboxRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\SpriteRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />

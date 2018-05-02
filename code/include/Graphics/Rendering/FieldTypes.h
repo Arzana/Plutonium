@@ -37,7 +37,9 @@ namespace Plutonium
 		/* A 4x4 floating point matrix. */
 		Matrix = GL_FLOAT_MAT4,
 		/* A 2D texture. */
-		Texture = GL_SAMPLER_2D
+		Texture = GL_SAMPLER_2D,
+		/* A cube map texture. */
+		CubeTexture = GL_SAMPLER_CUBE
 	};
 
 	/* Gets a string version of a specified OpenGL field type. */

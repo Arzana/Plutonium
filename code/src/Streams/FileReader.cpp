@@ -9,11 +9,47 @@
 using namespace Plutonium;
 
 Plutonium::FileReader::FileReader(const char * path, bool suppressOpen)
-	: fpath(path), fname(nullptr), fext(nullptr), fnamenoext(nullptr), fdir(nullptr), open(false)
+	: fpath(heapstr(path)), fname(nullptr), fext(nullptr), fnamenoext(nullptr), fdir(nullptr)
+	, open(false), hndlr(nullptr)
 {
 	/* Initializes the file attributes and open the file. */
 	InitFileArgs();
 	if (!suppressOpen) Open();
+}
+
+Plutonium::FileReader::FileReader(const FileReader & value)
+	: open(false), hndlr(nullptr)
+{
+	/* Copy over the file attributes. */
+	fpath = heapstr(value.fpath);
+	fname = heapstr(value.fname);
+	fext = heapstr(value.fext);
+	fnamenoext = heapstr(value.fnamenoext);
+	fdir = heapstr(value.fdir);
+
+	/* Open a new file handle if needed. */
+	if (value.open) Open();
+}
+
+Plutonium::FileReader::FileReader(FileReader && value)
+{
+	/* Move file attributes and file handle. */
+	fpath = value.fpath;
+	fname = value.fname;
+	fext = value.fext;
+	fnamenoext = value.fnamenoext;
+	fdir = value.fdir;
+	open = value.open;
+	hndlr = value.hndlr;
+
+	/* Clear moved attributes. */
+	value.fpath = nullptr;
+	value.fname = nullptr;
+	value.fext = nullptr;
+	value.fnamenoext = nullptr;
+	value.fdir = nullptr;
+	value.open = false;
+	value.hndlr = nullptr;
 }
 
 Plutonium::FileReader::~FileReader(void) noexcept
@@ -22,10 +58,75 @@ Plutonium::FileReader::~FileReader(void) noexcept
 	if (open) Close();
 
 	/* Release file info. */
+	if (fpath) free_s(fpath);
 	if (fname) free_s(fname);
 	if (fext) free_s(fext);
 	if (fnamenoext) free_s(fnamenoext);
 	if (fdir) free_s(fdir);
+}
+
+FileReader & Plutonium::FileReader::operator=(const FileReader & other)
+{
+	if (this != &other)
+	{
+		/*  Closes the stream if it's still open. */
+		if (open) Close();
+
+		/* Release file info. */
+		if (fpath) free_s(fpath);
+		if (fname) free_s(fname);
+		if (fext) free_s(fext);
+		if (fnamenoext) free_s(fnamenoext);
+		if (fdir) free_s(fdir);
+
+		/* Copy over new data. */
+		fpath = heapstr(other.fpath);
+		fname = heapstr(other.fname);
+		fext = heapstr(other.fext);
+		fnamenoext = heapstr(other.fnamenoext);
+		fdir = heapstr(other.fdir);
+
+		/* Open file is needed. */
+		if (other.open) Open();
+	}
+
+	return *this;
+}
+
+FileReader & Plutonium::FileReader::operator=(FileReader && other)
+{
+	if (this != &other)
+	{
+		/*  Closes the stream if it's still open. */
+		if (open) Close();
+
+		/* Release file info. */
+		if (fpath) free_s(fpath);
+		if (fname) free_s(fname);
+		if (fext) free_s(fext);
+		if (fnamenoext) free_s(fnamenoext);
+		if (fdir) free_s(fdir);
+
+		/* Move file attributes and file handle. */
+		fpath = other.fpath;
+		fname = other.fname;
+		fext = other.fext;
+		fnamenoext = other.fnamenoext;
+		fdir = other.fdir;
+		open = other.open;
+		hndlr = other.hndlr;
+
+		/* Clear moved attributes. */
+		other.fpath = nullptr;
+		other.fname = nullptr;
+		other.fext = nullptr;
+		other.fnamenoext = nullptr;
+		other.fdir = nullptr;
+		other.open = false;
+		other.hndlr = nullptr;
+	}
+
+	return *this;
 }
 
 void Plutonium::FileReader::Close(void)

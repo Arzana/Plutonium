@@ -1,5 +1,6 @@
 #include "Graphics\Rendering\Uniform.h"
 #include "Core\Diagnostics\Logging.h"
+#include "Core\EnumUtils.h"
 
 /* make sure we only check if the correct type is passed on debug mode. */
 #if defined(DEBUG)
@@ -72,10 +73,10 @@ void Plutonium::Uniform::Set(const Matrix & value)
 
 void Plutonium::Uniform::Set(const Texture * value)
 {
-	DBG_CHECK(FieldType::Texture);
+	DBG_CHECK(value->target == TextureType::Texture2D ? FieldType::Texture : FieldType::CubeTexture);
 	ASSERT_IF(!value, "texture cannot be null!");
 
 	glActiveTexture(GL_TEXTURE0 + sampler);
-	glBindTexture(GL_TEXTURE_2D, value->ptr);
+	glBindTexture(_CrtEnum2Int(value->target), value->ptr);
 	glUniform1i(ptr, sampler);
 }

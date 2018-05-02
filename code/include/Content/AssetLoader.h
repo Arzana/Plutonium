@@ -56,6 +56,8 @@ namespace Plutonium
 
 		/* Loads a specified texture, calls the callback after completion. */
 		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		/* Loads a specified skybox, calls the callback after completion. */
+		void LoadTexture(_In_ const char *paths[6], _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
 		/* Loads a specified model, calls the callback after completion. */
 		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> &callback, _In_opt_ bool keep = false);
 		/* Loads a specified model, calls the callback after completion. */
@@ -65,6 +67,8 @@ namespace Plutonium
 
 		/* Loads a specified texture and returns it. */
 		_Check_return_ Texture* LoadTexture(_In_ const char *path, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		/* Loads a specified skybox and returns it. */
+		_Check_return_ Texture* LoadTexture(_In_ const char *paths[6], _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
 		/* Loads a specified model and returns it. */
 		_Check_return_ StaticModel* LoadModel(_In_ const char *path, _In_opt_ bool keep = false);
 		/* Loads a specified model and returns it. */
@@ -77,30 +81,44 @@ namespace Plutonium
 		template <typename _Ty>
 		struct AssetLoadInfo
 		{
+		public:
 			FileReader *Names;
 			bool Keep;
 			std::vector<EventSubscriber<AssetLoader, _Ty*>> Callbacks;
 
 			AssetLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, _Ty*> &callback)
-				: Names(fr), Keep(keep)
+				: Names(fr), Keep(keep), useFree(false)
 			{
 				Callbacks.push_back(std::move(callback));
 			}
 
 			~AssetLoadInfo(void)
 			{
-				delete_s(Names);
+				if (useFree) free_s(Names);
+				else delete_s(Names);
 			}
+		protected:
+			bool useFree;
 		};
 
 		struct TextureLoadInfo
 			: AssetLoadInfo<Texture>
 		{
+		public:
 			TextureCreationOptions *Options;
 
-			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> &callback, TextureCreationOptions *opt)
-				: AssetLoadInfo(fr, keep, callback), Options(opt)
-			{}
+			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> &callback, TextureCreationOptions *opt, bool deleteOpt)
+				: AssetLoadInfo(fr, keep, callback), Options(opt), deleteOpt(deleteOpt)
+			{
+				if (opt && opt->Type == TextureType::TextureCube) useFree = true;
+			}
+
+			~TextureLoadInfo(void)
+			{
+				if (deleteOpt) delete_s(Options);
+			}
+		private:
+			bool deleteOpt;
 		};
 
 		struct DynamicModelLoadInfo
@@ -180,6 +198,7 @@ namespace Plutonium
 		int32 GetFontIdx(const char *path);
 
 		void LoadTextureInternal(TextureLoadInfo *info, bool updateState);
+		void LoadSkyboxInternal(TextureLoadInfo *info, bool updateState);
 		void LoadSModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState);
 		void LoadDModelInternal(DynamicModelLoadInfo *info, bool updateState);
 		void LoadFontInternal(FontLoadInfo *info, bool updateState);

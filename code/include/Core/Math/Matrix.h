@@ -176,6 +176,8 @@ namespace Plutonium
 
 		/* Calculates a matrix that defines the orientation of this matrix. */
 		_Check_return_ Matrix GetOrientation(void) const;
+		/* Calculates a matrix that defines the orientation and scale of this matrix. */
+		_Check_return_ Matrix GetStatic(void) const;
 		/* Calculates the determinant of the matrix. */
 		_Check_return_ float GetDeterminant(void) const;
 		/* Calculates the inverse of the matrix. */
