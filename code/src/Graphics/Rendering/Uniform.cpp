@@ -5,8 +5,27 @@
 /* make sure we only check if the correct type is passed on debug mode. */
 #if defined(DEBUG)
 #define DBG_CHECK(type)		CheckInput(type)
+
+Plutonium::FieldType TextureTypeToFieldType(Plutonium::TextureType type)
+{
+	switch (type)
+	{
+	case Plutonium::TextureType::Texture2D:
+		return Plutonium::FieldType::Texture;
+	case Plutonium::TextureType::TextureCube:
+		return Plutonium::FieldType::CubeTexture;
+	case Plutonium::TextureType::Texture1D:
+	case Plutonium::TextureType::Texture3D:
+	case Plutonium::TextureType::TextureRect:
+	case Plutonium::TextureType::TextureBuffer:
+	case Plutonium::TextureType::Texture2DMultiSample:
+	default:
+		LOG_THROW("Cannot curretly use texture type %s in Uniform!", Plutonium::_CrtGetVisualTextureType(type));
+	}
+}
 #else
 #define DBG_CHECK(...)
+#define TextureTypeToFieldType(...)	0
 #endif
 
 Plutonium::Uniform::Uniform(void)
@@ -73,8 +92,8 @@ void Plutonium::Uniform::Set(const Matrix & value)
 
 void Plutonium::Uniform::Set(const Texture * value)
 {
-	DBG_CHECK(value->target == TextureType::Texture2D ? FieldType::Texture : FieldType::CubeTexture);
 	ASSERT_IF(!value, "texture cannot be null!");
+	DBG_CHECK(TextureTypeToFieldType(value->target));
 
 	glActiveTexture(GL_TEXTURE0 + sampler);
 	glBindTexture(_CrtEnum2Int(value->target), value->ptr);

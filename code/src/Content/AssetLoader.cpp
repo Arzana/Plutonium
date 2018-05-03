@@ -243,7 +243,7 @@ bool Plutonium::AssetLoader::Unload(const Font * font)
 	return false;
 }
 
-void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*> &callback, bool keep, TextureCreationOptions * config)
+void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*> &callback, bool keep, const TextureCreationOptions * config)
 {
 	lockTex.lock();
 
@@ -272,7 +272,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		}
 
 		/* We have to load the texture so create an infomation struct. */
-		TextureLoadInfo *info = new TextureLoadInfo(new FileReader(path, true), keep, callback, config, false);
+		TextureLoadInfo *info = new TextureLoadInfo(new FileReader(path, true), keep, callback, config);
 
 		/* Make sure we actually load the texture on the IO thread. */
 		if (OnIoThread())
@@ -288,7 +288,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 	}
 }
 
-void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<AssetLoader, Texture*>& callback, bool keep, TextureCreationOptions * config)
+void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<AssetLoader, Texture*>& callback, bool keep, const TextureCreationOptions * config)
 {
 	lockTex.lock();
 
@@ -315,16 +315,6 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 				return;
 			}
 		}
-
-		/* make sure the texture type is set  */
-		bool configset = true;
-		if (!config)
-		{
-			TextureCreationOptions *opt = new TextureCreationOptions();
-			opt->Type = TextureType::TextureCube;
-			config = opt;
-			configset = false;
-		}
 		
 		ASSERT_IF(config->Type != TextureType::TextureCube, "Invalid teture creation options for skybox!");
 
@@ -332,7 +322,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 		FileReader *readers = calloc_s(FileReader, Texture::CUBEMAP_TEXTURE_COUNT);
 		for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) readers[i] = FileReader(paths[i], true);
 
-		TextureLoadInfo *info = new TextureLoadInfo(readers, keep, callback, config, !configset);
+		TextureLoadInfo *info = new TextureLoadInfo(readers, keep, callback, config);
 
 		/* Make sure we actually load the texture on the IO thread. */
 		if (OnIoThread())
@@ -483,7 +473,7 @@ void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLo
 	}
 }
 
-Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, TextureCreationOptions * config)
+Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, const TextureCreationOptions * config)
 {
 	/* Create temporary storage. */
 	LoadResult<Texture> result;
@@ -496,7 +486,7 @@ Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, Text
 	return result.value;
 }
 
-Texture * Plutonium::AssetLoader::LoadTexture(const char * paths[6], bool keep, TextureCreationOptions * config)
+Texture * Plutonium::AssetLoader::LoadTexture(const char * paths[6], bool keep, const TextureCreationOptions * config)
 {
 	/* Create temporary storage. */
 	LoadResult<Texture> result;

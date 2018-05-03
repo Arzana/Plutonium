@@ -236,6 +236,7 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
     <ClCompile Include="..\..\src\Graphics\Texture.cpp" />
+    <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />

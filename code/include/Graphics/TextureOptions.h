@@ -61,9 +61,17 @@ namespace Plutonium
 #endif
 	};
 
+	/* Gets a string representing the specified texture type. */
+	_Check_return_ const char* _CrtGetVisualTextureType(_In_ TextureType type);
+
 	/* Defines creation parameters for a texture. */
 	struct TextureCreationOptions
 	{
+		/* Defines the default options for a 2D texture. */
+		const static TextureCreationOptions Default2D;
+		/* Defines the default options for a cubemap texture. */
+		const static TextureCreationOptions DefaultCube;
+
 		/* Defines what kind of texture this is. */
 		TextureType Type;
 		/* Defines how the horizontal wrapping (S) should work. */
@@ -78,11 +86,7 @@ namespace Plutonium
 		float Range;
 
 		/* Initializes a new instance of texture options. */
-		TextureCreationOptions(void)
-			: Type(TextureType::Texture2D),
-			HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat), DepthWrap(WrapMode::Repeat),
-			Gain(0.0f), Range(1.0f)
-		{}
+		TextureCreationOptions(void);
 
 		/* Set both horizontal and vertical wrapping to the specified value. */
 		inline void SetWrapping(_In_ WrapMode mode)

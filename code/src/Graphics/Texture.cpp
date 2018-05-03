@@ -55,7 +55,7 @@ int32 Plutonium::Texture::GetChannels(void) const
 	}
 }
 
-void Plutonium::Texture::SetData(byte * data, TextureCreationOptions * config)
+void Plutonium::Texture::SetData(byte * data, const TextureCreationOptions * config)
 {
 	/* Delete old texture if needed. */
 	if (ptr) Dispose();
@@ -101,7 +101,7 @@ void Plutonium::Texture::SaveAsPng(const char * path)
 	ASSERT_IF(!result, "Unable to save texture(%s) as '%s', reason: %s!", name, path, _CrtGetErrorString());
 }
 
-Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, TextureCreationOptions * config)
+Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, const TextureCreationOptions * config)
 {
 	FileReader reader(path, true);
 
@@ -125,7 +125,7 @@ Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, Tex
 	return result;
 }
 
-Texture * Plutonium::Texture::FromFile(const char * paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, TextureCreationOptions * config)
+Texture * Plutonium::Texture::FromFile(const char * paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, const TextureCreationOptions * config)
 {
 	/* Setup buffers for cube map textures. */
 	byte *data[CUBEMAP_TEXTURE_COUNT];
@@ -223,13 +223,7 @@ void Plutonium::Texture::ConvertFormat(byte ** data, int32 srcChannels, int32 de
 
 void Plutonium::Texture::GenerateTexture(byte ** data, const TextureCreationOptions *config)
 {
-	/* Set options to default options if needed. */
-	if (!config)
-	{
-		TextureCreationOptions defaultOpt;
-		config = &defaultOpt;
-	}
-
+	/* Set OpenGL bind target. */
 	target = config->Type;
 
 	/* Apply texture options associated with the raw data. */

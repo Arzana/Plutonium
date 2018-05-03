@@ -305,6 +305,9 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">

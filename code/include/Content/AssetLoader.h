@@ -55,9 +55,12 @@ namespace Plutonium
 		bool Unload(_In_ const Font *font);
 
 		/* Loads a specified texture, calls the callback after completion. */
-		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
-		/* Loads a specified skybox, calls the callback after completion. */
-		void LoadTexture(_In_ const char *paths[6], _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
+		/* 
+		Loads a specified skybox, calls the callback after completion.
+		Expected texture order: right, left, top, bottom, front, back.
+		*/
+		void LoadTexture(_In_ const char *paths[6], _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::DefaultCube);
 		/* Loads a specified model, calls the callback after completion. */
 		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> &callback, _In_opt_ bool keep = false);
 		/* Loads a specified model, calls the callback after completion. */
@@ -66,9 +69,9 @@ namespace Plutonium
 		void LoadFont(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Font*> &callback, _In_ float scale, _In_opt_ bool keep = false);
 
 		/* Loads a specified texture and returns it. */
-		_Check_return_ Texture* LoadTexture(_In_ const char *path, _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		_Check_return_ Texture* LoadTexture(_In_ const char *path, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
 		/* Loads a specified skybox and returns it. */
-		_Check_return_ Texture* LoadTexture(_In_ const char *paths[6], _In_opt_ bool keep = false, _In_opt_ TextureCreationOptions *config = nullptr);
+		_Check_return_ Texture* LoadTexture(_In_ const char *paths[6], _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::DefaultCube);
 		/* Loads a specified model and returns it. */
 		_Check_return_ StaticModel* LoadModel(_In_ const char *path, _In_opt_ bool keep = false);
 		/* Loads a specified model and returns it. */
@@ -104,21 +107,13 @@ namespace Plutonium
 		struct TextureLoadInfo
 			: AssetLoadInfo<Texture>
 		{
-		public:
-			TextureCreationOptions *Options;
+			const TextureCreationOptions *Options;
 
-			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> &callback, TextureCreationOptions *opt, bool deleteOpt)
-				: AssetLoadInfo(fr, keep, callback), Options(opt), deleteOpt(deleteOpt)
+			TextureLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, Texture*> &callback, const TextureCreationOptions *opt)
+				: AssetLoadInfo(fr, keep, callback), Options(opt)
 			{
 				if (opt && opt->Type == TextureType::TextureCube) useFree = true;
 			}
-
-			~TextureLoadInfo(void)
-			{
-				if (deleteOpt) delete_s(Options);
-			}
-		private:
-			bool deleteOpt;
 		};
 
 		struct DynamicModelLoadInfo

@@ -47,7 +47,7 @@ namespace Plutonium
 		/* Get the amount of channels stored in the texture. */
 		_Check_return_ int32 GetChannels(void) const;
 		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
-		void SetData(_In_ byte *data, _In_opt_ TextureCreationOptions *config = nullptr);
+		void SetData(_In_ byte *data, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
 		/* Gets a copy of the data specified for the texture (requires free!). */
 		_Check_return_ byte* GetData(void) const;
 		/* Saves the tetxure as a specified file. */
@@ -68,8 +68,8 @@ namespace Plutonium
 		int32 frmt, ifrmt;
 		WindowHandler wnd;
 
-		static Texture* FromFile(const char *path, WindowHandler wnd, TextureCreationOptions *config = nullptr);
-		static Texture* FromFile(const char *paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, TextureCreationOptions *config = nullptr);
+		static Texture* FromFile(const char *path, WindowHandler wnd, const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
+		static Texture* FromFile(const char *paths[CUBEMAP_TEXTURE_COUNT], WindowHandler wnd, const TextureCreationOptions *config = &TextureCreationOptions::DefaultCube);
 		static int32 GetMaxMipMapLevel(int32 w, int32 h);
 
 		void Dispose(void);

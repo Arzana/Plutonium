@@ -66,5 +66,5 @@ void Plutonium::Camera::UpdateView(void)
 
 void Plutonium::Camera::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
 {
-	proj = Matrix::CreatPerspective(PI4, sender->AspectRatio(), 0.1f, 100.0f);
+	proj = Matrix::CreatPerspective(PI4, sender->AspectRatio(), 0.1f, 1000.0f);
 }
