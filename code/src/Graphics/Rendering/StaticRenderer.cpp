@@ -23,7 +23,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	specular = shdr->GetUniform("u_colors.specular");
 	specExp = shdr->GetUniform("u_colors.specularExponent");
 
-	sunLightDir = shdr->GetUniform("u_light_direction");
+	sunLightDir = shdr->GetUniform("u_light_sun.direction");
 	sunLightAmbi = shdr->GetUniform("u_light_sun.ambient");
 	sunLightDiff = shdr->GetUniform("u_light_sun.diffuse");
 	sunLightSpec = shdr->GetUniform("u_light_sun.specular");

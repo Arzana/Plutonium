@@ -250,7 +250,7 @@ void Plutonium::Texture::GenerateTexture(byte ** data, const TextureCreationOpti
 		{
 			for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
 			{
-				target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+				target = static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i);
 				glTexImage2D(target, 0, ifrmt, Width, Height, 0, frmt, GL_UNSIGNED_BYTE, void_ptr(data[i]));
 			}
 		}
