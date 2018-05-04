@@ -213,7 +213,7 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\WireframeRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
@@ -289,7 +289,7 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\WireframeRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />

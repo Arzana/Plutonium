@@ -3,7 +3,7 @@
 #include <Core\Math\Interpolation.h>
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
-#include <Graphics\Diagnostics\WireframeRenderer.h>
+#include <Graphics\Diagnostics\DebugMeshRenderer.h>
 #include <Graphics\Text\TextRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
@@ -21,13 +21,13 @@ struct TestGame
 {
 	/* Renderers. */
 	DebugFontRenderer *dfRenderer;
+	DebugMeshRenderer *dmrenderer;
 	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
-	WireframeRenderer *wrenderer;
 	Camera *cam;
-	bool wireframeMode;
+	DebuggableValues renderMode;
 
 	/* Scene */
 	static constexpr float scale = 0.03f;	// If map is sponza
@@ -43,7 +43,7 @@ struct TestGame
 	MemoryCounter *mem;
 
 	TestGame(void)
-		: Game("TestGame"), theta(0.0f), wireframeMode(false)
+		: Game("TestGame"), theta(0.0f), renderMode(DebuggableValues::None)
 	{
 		Window *wnd = GetGraphics()->GetWindow();
 		wnd->Move(Vector2::Zero);
@@ -62,11 +62,14 @@ struct TestGame
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag");
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
-		wrenderer = new WireframeRenderer("./assets/shaders/Wireframe.vert");
+		dmrenderer = new DebugMeshRenderer();
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
 		{
-			if (args.Key == Keys::D1 && args.Action == KeyState::Down) wireframeMode = !wireframeMode;
+			if (args.Key == Keys::D1 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Wireframe ? DebuggableValues::None : DebuggableValues::Wireframe;
+			if (args.Key == Keys::D2 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Normals ? DebuggableValues::None : DebuggableValues::Normals;
+
+			if (renderMode != DebuggableValues::None) dmrenderer->SetMode(renderMode);
 		});
 	}
 
@@ -120,7 +123,7 @@ struct TestGame
 		delete_s(srenderer);
 		delete_s(drenderer);
 		delete_s(sbrenderer);
-		delete_s(wrenderer);
+		delete_s(dmrenderer);
 	}
 
 	virtual void Update(float dt)
@@ -183,7 +186,7 @@ struct TestGame
 
 	virtual void Render(float dt)
 	{
-		if (!wireframeMode)
+		if (renderMode == DebuggableValues::None)
 		{
 			/* Render light sources. */
 			drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
@@ -199,10 +202,10 @@ struct TestGame
 		else
 		{
 			/* Render light sources and scene. */
-			wrenderer->Begin(cam->GetView(), cam->GetProjection());
-			wrenderer->Render(map);
-			for (size_t i = 0; i < 4; i++) wrenderer->Render(fires[i]->object);
-			wrenderer->End();
+			dmrenderer->Begin(cam->GetView(), cam->GetProjection());
+			dmrenderer->Render(map);
+			for (size_t i = 0; i < 4; i++) dmrenderer->Render(fires[i]->object);
+			dmrenderer->End();
 		}
 
 		/* Render skybox. */

@@ -299,14 +299,14 @@
     <ClCompile Include="..\..\src\GameLogic\DynamicObject.cpp">
       <Filter>Source Files\GameLogic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\WireframeRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -604,11 +604,11 @@
     <ClInclude Include="..\..\include\GameLogic\DynamicObject.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\WireframeRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Rendering\SkyboxRenderer.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

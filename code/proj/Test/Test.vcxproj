@@ -179,7 +179,6 @@
     <None Include="..\..\assets\shaders\Text2D.vert">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\assets\shaders\Wireframe.vert" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\assets\shaders\Static2D.frag" />
