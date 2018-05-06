@@ -10,9 +10,11 @@ constexpr const char *WIREFRAME_VRTX_SHDR =
 
 "in vec3 a_position;															\n"
 
+"out vec4 a_color;																\n"
+
 "void main()																	\n"
 "{																				\n"
-"	gl_FrontColor = u_color;													\n"
+"	a_color = u_color;															\n"
 "	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);		\n"
 "}";
 
@@ -26,18 +28,32 @@ constexpr const char *NORMALS_VRTX_SHDR =
 "in vec3 a_position;															\n"
 "in vec3 a_normal;																\n"
 
+"out vec4 a_color;																\n"
+
 "void main()																	\n"
 "{																				\n"
-"	gl_FrontColor = vec4(a_normal, 1.0f);										\n"
+"	a_color = vec4(a_normal, 1.0f);												\n"
 "	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0f);		\n"
+"}";
+
+constexpr const char *CLR_PASS_FRAG_SHDR =
+"#version 430 core																\n"
+
+"in vec4 a_color;																\n"
+
+"out vec4 fragColor;															\n"
+
+"void main()																	\n"
+"{																				\n"
+"	fragColor = a_color;														\n"
 "}";
 
 Plutonium::DebugMeshRenderer::DebugMeshRenderer(DebuggableValues mode)
 	: beginCalled(false), mode(mode)
 {
 	/* Load shader and fields from file. */
-	shdrWf = new Shader(WIREFRAME_VRTX_SHDR);
-	shdrN = new Shader(NORMALS_VRTX_SHDR);
+	shdrWf = new Shader(WIREFRAME_VRTX_SHDR, CLR_PASS_FRAG_SHDR);
+	shdrN = new Shader(NORMALS_VRTX_SHDR, CLR_PASS_FRAG_SHDR);
 
 	/* Get uniforms. */
 	matMdlWf = shdrWf->GetUniform("u_model");
