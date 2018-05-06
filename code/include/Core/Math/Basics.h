@@ -209,6 +209,12 @@ namespace Plutonium
 	{
 		return fmodf(rads, TAU);
 	}
+
+	/* Calculates the specified nth root of the specified value. */
+	_Check_return_ inline float nthrt(_In_ float value, _In_ uint32 root)
+	{
+		return powf(value, recip(static_cast<float>(root)));
+	}
 #pragma endregion
 #pragma region byte conversion
 	/* Converts kilobytes to bytes. */

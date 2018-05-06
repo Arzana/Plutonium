@@ -1,5 +1,6 @@
 #include "Graphics\Native\Monitor.h"
 #include "Core\Diagnostics\Logging.h"
+#include "Core\Math\Basics.h"
 #include <glfw3.h>
 
 using namespace Plutonium;
@@ -72,7 +73,8 @@ MonitorInfo Plutonium::MonitorInfo::FromWindow(GLFWwindow * hndlr)
 
 Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 	: Name(""), X(0), Y(0), WindowWidth(0), WindowHeight(0),
-	ClientWidth(0), ClientHeight(0), Red(0), Green(0), Blue(0), RefreshRate(0),
+	ClientWidth(0), ClientHeight(0), Red(0), Green(0), Blue(0), 
+	RefreshRate(0), GammeCorrection(1.0f),
 	Handle(info), IsValid(info != nullptr)
 {
 	/* Set values to default to make sure we don't crash if no info is supplied. */
@@ -91,5 +93,17 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 		Green = mode.greenBits;
 		Blue = mode.blueBits;
 		RefreshRate = mode.refreshRate;
+
+		/* Set average gamma correction. */
+		const GLFWgammaramp *ramp = glfwGetGammaRamp(info);
+		float sum = 0.0f;
+		for (size_t i = 0, j = 1; i < ramp->size; i++, j++)
+		{
+			sum += nthrt(ramp->red[i], j);
+			sum += nthrt(ramp->green[i], j);
+			sum += nthrt(ramp->blue[i], j);
+		}
+
+		GammeCorrection = sum / (ramp->size * 3.0f);
 	}
 }

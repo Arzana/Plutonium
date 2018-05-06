@@ -33,6 +33,8 @@ namespace Plutonium
 		int Blue;
 		/* The refresh rate int Hz. */
 		int RefreshRate;
+		/* The average gamma correction that should be applied to the final fragment color. */
+		float GammeCorrection;
 		/* The handler for the monitor. */
 		GLFWmonitor *Handle;
 		/* Whether this structure is valid. */

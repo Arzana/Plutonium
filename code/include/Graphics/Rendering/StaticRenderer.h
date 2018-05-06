@@ -12,7 +12,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a basic model renderer. */
-		StaticRenderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr);
+		StaticRenderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr, _In_ float displayGamma);
 		StaticRenderer(_In_ const StaticRenderer &value) = delete;
 		StaticRenderer(_In_ StaticRenderer &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
@@ -34,10 +34,11 @@ namespace Plutonium
 		Shader *shdr;
 		Uniform *matMdl, *matView, *matProj, *camPos;
 		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha;
-		Uniform *filter, *ambient, *diffuse, *specular, *specExp;
+		Uniform *filter, *ambient, *diffuse, *specular, *specExp, *gamma;
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
 		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
 		Attribute *pos, *norm, *uv;
 		bool beginCalled;
+		float gammaValue;
 	};
 }

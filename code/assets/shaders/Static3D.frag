@@ -16,6 +16,7 @@ struct ObjectColors
 	vec4 diffuse;
 	vec4 specular;
 	float specularExponent;
+	float displayGamma;
 };
 
 struct DLight
@@ -94,6 +95,7 @@ void main()
 	vec4 outputColor = CalcDirectionalLight(u_light_sun, viewDir);
 	for (int i = 0; i < u_light_vases.length(); i++) outputColor += CalcPointLight(u_light_vases[i], viewDir);
 	
-	// Calculate fragment's final color.  
-	fragColor = outputColor * modifier;
+	// Calculate fragment's final color and apply gamma correction.  
+	vec4 clr = outputColor * modifier;
+	fragColor = vec4(pow(clr.rgb, vec3(u_colors.displayGamma)), clr.w);
 }

@@ -1,7 +1,7 @@
 #include "Graphics\Rendering\StaticRenderer.h"
 
-Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fragShdr)
-	: beginCalled(false)
+Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fragShdr, float displayGamma)
+	: beginCalled(false), gammaValue(displayGamma)
 {
 	/* Load shader and fields from files. */
 	shdr = Shader::FromFile(vrtxShdr, fragShdr);
@@ -22,6 +22,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	diffuse = shdr->GetUniform("u_colors.diffuse");
 	specular = shdr->GetUniform("u_colors.specular");
 	specExp = shdr->GetUniform("u_colors.specularExponent");
+	gamma = shdr->GetUniform("u_colors.displayGamma");
 
 	sunLightDir = shdr->GetUniform("u_light_sun.direction");
 	sunLightAmbi = shdr->GetUniform("u_light_sun.ambient");
@@ -72,6 +73,7 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 		/* Set constant uniforms. */
 		matView->Set(view);
 		matProj->Set(proj);
+		gamma->Set(gammaValue);
 		this->camPos->Set(camPos);
 
 		sunLightDir->Set(sun->Direction);
