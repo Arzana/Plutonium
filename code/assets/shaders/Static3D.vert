@@ -29,7 +29,7 @@ in vec2 a_uv;
 // Outputs.
 out vec2 a_texture;
 out vec3 a_frag_pos;
-out vec3 a_frag_normal;
+out vec3 a_vrtx_normal;
 out float diffuseIntensity;
 
 void main()
@@ -39,7 +39,7 @@ void main()
 
 	// Calculate vertex world position for specular will be interpolated to be correct fragment position.
 	a_frag_pos = (u_transform.view * u_transform.model * vec4(a_position, 1.0f)).xyz;
-	a_frag_normal = a_normal;
+	a_vrtx_normal = a_normal;
 	
 	// Set texture uv and vertex position.
 	a_texture = a_uv;

@@ -25,6 +25,8 @@ namespace Plutonium
 		Texture *SpecularMap;
 		/* The transparency sampler of the material. */
 		Texture *AlphaMap;
+		/* The normal sampler of the material. */
+		Texture *BumpMap;
 		/* The color filter of the material. */
 		Color Transmittance;
 		/* The ambient reflectance of the material. */

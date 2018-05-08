@@ -5,14 +5,14 @@
 
 Plutonium::PhongShape::PhongShape(void)
 	: MaterialName(nullptr), Mesh(nullptr),
-	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr),
+	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(Color::White), Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
 	SpecularExp(1.0f)
 {}
 
 Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMaterial * material, AssetLoader *loader)
 	: MaterialName(heapstr(material->Name)), loader(loader), Mesh(mesh),
-	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr),
+	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(material->Transmittance), Ambient(material->Ambient), Diffuse(material->Diffuse), Specular(material->Specular),
 	SpecularExp(material->HighlightExponent)
 {
@@ -53,6 +53,14 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 		AlphaMap = loader->LoadTexture(material->AlphaMap.Path, false, &opt);
 	}
 	else AlphaMap = CreateDefault(loader->GetWindow());
+
+	/* Check if bump sampler is available. */
+	if (strlen(material->BumpMap.Path) > 0)
+	{
+		InitOptions(&material->BumpMap, &opt);
+		BumpMap = loader->LoadTexture(material->BumpMap.Path, false, &opt);
+	}
+	else BumpMap = CreateDefault(loader->GetWindow());
 }
 
 Plutonium::PhongShape::~PhongShape(void) noexcept
@@ -63,6 +71,7 @@ Plutonium::PhongShape::~PhongShape(void) noexcept
 	if (!loader->Unload(DiffuseMap)) delete_s(DiffuseMap);
 	if (!loader->Unload(SpecularMap)) delete_s(SpecularMap);
 	if (!loader->Unload(AlphaMap)) delete_s(AlphaMap);
+	if (!loader->Unload(BumpMap)) delete_s(BumpMap);
 }
 
 void Plutonium::PhongShape::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)

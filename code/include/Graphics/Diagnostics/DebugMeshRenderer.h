@@ -13,7 +13,9 @@ namespace Plutonium
 		/* Displays the models wireframe. */
 		Wireframe,
 		/* Displays the models normals. */
-		Normals
+		Normals,
+		/* Displays the models normal maps. */
+		Bump
 	};
 
 	/* Defines a very basic debug mesh information renderer. */
@@ -58,6 +60,10 @@ namespace Plutonium
 		Uniform *matMdlN, *matViewN, *matProjN;
 		Attribute *posN, *normN;
 
+		Shader *shdrBmp;
+		Uniform *matMdlBmp, *matViewBmp, *matProjBmp, *mapBmp;
+		Attribute *posBmp, *texBmp;
+
 		void BeginWireframe(const Matrix &view, const Matrix &proj);
 		void RenderWireframe(const StaticObject *model, Color color);
 		void RenderWireframe(const DynamicObject *model, Color color);
@@ -67,5 +73,9 @@ namespace Plutonium
 		void RenderNormals(const StaticObject *model);
 		void RenderNormals(const DynamicObject *model);
 		void EndNormals(void);
+
+		void BeginBump(const Matrix &view, const Matrix &proj);
+		void RenderBump(const StaticObject *model);
+		void EndBump(void);
 	};
 }
