@@ -12,7 +12,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a GPU buffer. */
-		Buffer(_In_ WindowHandler wnd);
+		Buffer(_In_ WindowHandler wnd, _In_ BindTarget target);
 		Buffer(_In_ const Buffer &value) = delete;
 		Buffer(_In_ Buffer &&value) = delete;
 		/* Releases the reources allocated by the buffer. */
@@ -23,8 +23,6 @@ namespace Plutonium
 
 		/* Binds the buffer to the same target as last time. */
 		void Bind(void);
-		/* Binds the buffer to a specified target. */
-		void Bind(_In_ BindTarget target);
 		/* Sets the data for the specified buffer. */
 		template <typename _Ty>
 		inline void SetData(_In_ BufferUsage usage, _In_ const _Ty *data, _In_ size_t count)

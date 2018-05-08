@@ -196,6 +196,9 @@ void Plutonium::_CrtLogExc(unsigned int framesToSkip)
 	/* Lock logger. */
 	printLock.lock();
 
+	/* Make sure the color is correct. */
+	if (shouldAddLinePrefix) _CrtLogLinePrefix(LogType::Error);
+
 	/* Log table header. */
 	printf("STACKTRACE:\n");
 	printf("		%46s FUNCTION %54s LINE %8s MODULE %16s FILE\n", "", "", "", "");

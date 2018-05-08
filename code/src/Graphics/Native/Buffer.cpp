@@ -1,10 +1,11 @@
 #include "Graphics\Native\Buffer.h"
 #include "Graphics\Diagnostics\DeviceInfo.h"
+#include "Core\EnumUtils.h"
 
 using namespace Plutonium;
 
-Plutonium::Buffer::Buffer(WindowHandler wnd)
-	: wnd(wnd), hndlr(0), size(0), type(0)
+Plutonium::Buffer::Buffer(WindowHandler wnd, BindTarget target)
+	: wnd(wnd), hndlr(0), size(0), type(_CrtEnum2Int(target))
 {
 	/* Generate a new handler for the buffer. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
@@ -35,13 +36,6 @@ void Plutonium::Buffer::Bind(void)
 	{
 		glBindBuffer(type, hndlr);
 	}));
-}
-
-void Plutonium::Buffer::Bind(BindTarget target)
-{
-	/* Set or reset the type and bind buffer. */
-	type = static_cast<GLenum>(target);
-	Bind();
 }
 
 void Plutonium::Buffer::BufferData(BufferUsage usage, size_t size, const void * data)

@@ -63,8 +63,7 @@ Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device, const ch
 	pos = shdr->GetAttribute("a_position");
 
 	/* Create single skybox VBO. */
-	vbo = new Buffer(device->GetWindow());
-	vbo->Bind(BindTarget::Array);
+	vbo = new Buffer(device->GetWindow(), BindTarget::Array);
 	vbo->SetData(BufferUsage::StaticDraw, skyboxVertices, sizeof(skyboxVertices) / sizeof(Vector3));
 }
 

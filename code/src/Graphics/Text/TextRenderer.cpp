@@ -22,8 +22,7 @@ Plutonium::FontRenderer::FontRenderer(Game *game, const char * font, const char 
 	WindowResizeEventHandler(wnd, EventArgs());
 	wnd->SizeChanged.Add(this, &FontRenderer::WindowResizeEventHandler);
 
-	vbo = new Buffer(wnd);
-	vbo->Bind(BindTarget::Array);
+	vbo = new Buffer(wnd, BindTarget::Array);
 	vbo->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, MAX_STRING_LENGTH * 6);
 }
 

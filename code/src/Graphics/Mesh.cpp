@@ -31,8 +31,7 @@ void Plutonium::Mesh::Finalize(WindowHandler wnd)
 	LOG_THROW_IF(buffer, "Cannot call finalize a second time!");
 
 	/* Create GPU buffer. */
-	buffer = new Buffer(wnd);
-	buffer->Bind(BindTarget::Array);
+	buffer = new Buffer(wnd, BindTarget::Array);
 	buffer->SetData(BufferUsage::StaticDraw, vertices, vrtxCnt);
 
 	/* Release CPU memory. */

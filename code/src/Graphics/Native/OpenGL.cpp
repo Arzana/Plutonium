@@ -302,11 +302,17 @@ int Plutonium::_CrtInitGlad(void)
 
 	/* Set error callback to make sure we log OpenGL errors. */
 #if defined(DEBUG)
+	static const GLuint msgFilter[] =
+	{
+		131185,	// NVidea buffer creation messages.
+	};
+
 	LOG_WAR("Debug mode is enabled! This has a significant performance cost, switch to release mode for optimization.");
 	glEnable(GL_DEBUG_OUTPUT);
 	glad_set_pre_callback(GLADcallback(GladPreGLCallEventHandler));
 	glad_set_post_callback(GLADcallback(GladPostGLCallEventHandler));
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
+	glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, sizeof(msgFilter) / sizeof(GLuint), msgFilter, GL_FALSE);
 #endif
 
 	/* Log results. */

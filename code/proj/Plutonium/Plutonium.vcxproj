@@ -358,6 +358,7 @@
     <Natvis Include="..\..\visualizers\Font.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />
+    <Natvis Include="..\..\visualizers\Monitor.natvis" />
     <Natvis Include="..\..\visualizers\Rectangle.natvis" />
     <Natvis Include="..\..\visualizers\Texture.natvis" />
     <Natvis Include="..\..\visualizers\Tree.natvis" />
