@@ -67,7 +67,7 @@ namespace Plutonium
 		/* Gets the associated graphics device. */
 		_Check_return_ inline MonitorInfo GetGraphicsDevice(void) const
 		{
-			return MonitorInfo::FromWindow(hndlr);
+			return device;
 		}
 
 		/* Calculates the aspect ration of the windows viewport. */
@@ -121,6 +121,7 @@ namespace Plutonium
 		const char *title;
 		Rectangle wndBounds, vpBounds;
 		GLFWwindow *hndlr;
+		MonitorInfo device;
 		uint64 contextId;
 		bool operational;
 		WindowMode wndMode;

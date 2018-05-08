@@ -93,7 +93,7 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 Plutonium::Window::Window(const char * title, Vector2 size)
 	: title(title), wndBounds(size), vpBounds(size), focused(false), wndMode(WindowMode::Windowed), swapMode(VSyncMode::Enabled),
 	INIT_BUS(SizeChanged), INIT_BUS(PositionChanged), INIT_BUS(GainedFocus), INIT_BUS(LostFocus),
-	operational(false), invokeTimer(new Stopwatch())
+	operational(false), invokeTimer(new Stopwatch()), device(MonitorInfo::FromWindow(nullptr))
 {
 	/* Create underlying window. */
 	if (CreateNewWindow(&hndlr, static_cast<int>(size.X), static_cast<int>(size.Y), title) != GLFW_TRUE) return;
@@ -107,6 +107,8 @@ Plutonium::Window::Window(const char * title, Vector2 size)
 	int x, y;
 	glfwGetWindowPos(hndlr, &x, &y);
 	SetBounds(Vector2(static_cast<float>(x), static_cast<float>(y)), size);
+	device = MonitorInfo::FromWindow(hndlr);
+
 	SetVerticalRetrace(VSyncMode::Enabled);
 	Show();
 	operational = true;
@@ -327,6 +329,7 @@ void Plutonium::Window::SetBounds(Vector2 pos, Vector2 size)
 	{
 		wndBounds.Position = pos;
 		glfwSetWindowPos(hndlr, static_cast<int>(pos.X), static_cast<int>(pos.Y));
+		device = MonitorInfo::FromWindow(hndlr);
 
 		PositionChanged.Post(this, EventArgs());
 		LOG("Window '%s' moved to (%dx%d).", title, static_cast<int>(pos.X), static_cast<int>(pos.Y));

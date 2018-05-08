@@ -57,6 +57,9 @@ std::vector<MonitorInfo>& Plutonium::MonitorInfo::GetAll(void)
 
 MonitorInfo Plutonium::MonitorInfo::FromWindow(GLFWwindow * hndlr)
 {
+	/* If invalid handler; return default. */
+	if (!hndlr) return MonitorInfo(nullptr);
+
 	/* Get window position vector. */
 	int x = 0, y = 0;
 	glfwGetWindowPos(hndlr, &x, &y);
@@ -111,5 +114,6 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 		}
 
 		GammeCorrection = sum / (ramp->size * 3.0f);
+		LOG("Gamma correction for monitor '%s' set to average of %f.", Name, GammeCorrection);
 	}
 }
