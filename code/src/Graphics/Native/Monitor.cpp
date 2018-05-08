@@ -114,6 +114,8 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 		}
 
 		GammeCorrection = sum / (ramp->size * 3.0f);
-		LOG("Gamma correction for monitor '%s' set to average of %f.", Name, GammeCorrection);
+
+		/* Log discovery. */
+		LOG("%s(%dx%d @%dHz) detected at [%d, %d], Color depth %d, Gamma correction %f.", Name, ClientWidth, ClientHeight, RefreshRate, X, Y, Red, GammeCorrection);
 	}
 }
