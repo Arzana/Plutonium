@@ -54,7 +54,7 @@ namespace Plutonium
 		/* Gets the monitor specified as the primary monitor by the operating system. */
 		_Check_return_ static MonitorInfo GetPrimary(void);
 		/* Gets all the monitors that are defined by the operating system. */
-		_Check_return_ static std::vector<MonitorInfo> GetAll(void);
+		_Check_return_ static std::vector<MonitorInfo>& GetAll(void);
 		/* Gets the monitor on which the specified window is displayed. */
 		_Check_return_ static MonitorInfo FromWindow(_In_ GLFWwindow *hndlr);
 

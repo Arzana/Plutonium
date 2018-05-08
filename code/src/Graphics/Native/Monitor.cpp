@@ -5,6 +5,8 @@
 
 using namespace Plutonium;
 
+std::vector<MonitorInfo> buffered;
+
 Vector2 Plutonium::MonitorInfo::GetPosition(void) const
 {
 	return Vector2(static_cast<float>(X), static_cast<float>(Y));
@@ -35,20 +37,22 @@ MonitorInfo Plutonium::MonitorInfo::GetPrimary(void)
 	return MonitorInfo(glfwGetPrimaryMonitor());
 }
 
-std::vector<MonitorInfo> Plutonium::MonitorInfo::GetAll(void)
+std::vector<MonitorInfo>& Plutonium::MonitorInfo::GetAll(void)
 {
+	/* Check if we already have monitors buffered if so return them. */
+	if (buffered.size() > 0) return buffered;
+
 	/* Get underlying monitor pointers. */
 	int displayCnt = 0;
 	GLFWmonitor **displays = glfwGetMonitors(&displayCnt);
 
 	/* Populate result. */
-	std::vector<MonitorInfo> result;
 	for (size_t i = 0; i < displayCnt; i++)
 	{
-		result.push_back(MonitorInfo(displays[i]));
+		buffered.push_back(MonitorInfo(displays[i]));
 	}
 
-	return result;
+	return buffered;
 }
 
 MonitorInfo Plutonium::MonitorInfo::FromWindow(GLFWwindow * hndlr)
@@ -97,11 +101,13 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 		/* Set average gamma correction. */
 		const GLFWgammaramp *ramp = glfwGetGammaRamp(info);
 		float sum = 0.0f;
-		for (size_t i = 0, j = 1; i < ramp->size; i++, j++)
+		for (size_t i = 0; i < ramp->size; i++)
 		{
-			sum += nthrt(ramp->red[i], j);
-			sum += nthrt(ramp->green[i], j);
-			sum += nthrt(ramp->blue[i], j);
+			uint32 power = static_cast<uint32>(i + 1);
+
+			sum += nthrt(ramp->red[i], power);
+			sum += nthrt(ramp->green[i], power);
+			sum += nthrt(ramp->blue[i], power);
 		}
 
 		GammeCorrection = sum / (ramp->size * 3.0f);
