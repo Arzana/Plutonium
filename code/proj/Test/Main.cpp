@@ -68,7 +68,6 @@ struct TestGame
 		{
 			if (args.Key == Keys::D1 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Wireframe ? DebuggableValues::None : DebuggableValues::Wireframe;
 			if (args.Key == Keys::D2 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Normals ? DebuggableValues::None : DebuggableValues::Normals;
-			if (args.Key == Keys::D3 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Bump ? DebuggableValues::None : DebuggableValues::Bump;
 
 			if (renderMode != DebuggableValues::None) dmrenderer->SetMode(renderMode);
 		});

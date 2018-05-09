@@ -16,7 +16,7 @@ constexpr const char *WIREFRAME_VRTX_SHDR =
 "	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);		\n"
 "}";
 
-constexpr const char *NORMALS_VRTX_SHDR =
+constexpr const char *BUMP_VRTX_SHDR =
 "#version 430 core																\n"
 
 "uniform mat4 u_model;															\n"
@@ -25,37 +25,51 @@ constexpr const char *NORMALS_VRTX_SHDR =
 
 "in vec3 a_position;															\n"
 "in vec3 a_normal;																\n"
+"in vec3 a_tangent;																\n"
+"in vec3 a_bitangent;															\n"
+"in vec2 a_uv;																	\n"
+
+"out vec2 a_texture;															\n"
+"out mat3 a_tbn;																\n"
 
 "void main()																	\n"
 "{																				\n"
-"	gl_FrontColor = vec4(a_normal, 1.0f);										\n"
+"	vec3 t = normalize((u_model * vec4(a_tangent, 0.0f)).xyz);					\n"
+"	vec3 b = normalize((u_model * vec4(a_bitangent, 0.0f)).xyz);				\n"
+"	vec3 n = normalize((u_model * vec4(a_normal, 0.0f)).xyz);					\n"
+
+"	a_texture = a_uv;															\n"
+"	a_tbn = mat3(t, b, n);														\n"
+
 "	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0f);		\n"
 "}";
 
-constexpr const char *BUMP_VRTX_SHDR =
+constexpr const char *BUMP_FRAG_SHDR =
 "#version 430 core																\n"
 
-"uniform mat4 u_model;															\n"
-"uniform mat4 u_view;															\n"
-"uniform mat4 u_projection;														\n"
-"uniform sampler2D u_map;														\n"
+"uniform sampler2D u_bump;														\n"
 
-"in vec3 a_position;															\n"
 "in vec2 a_texture;																\n"
+"in mat3 a_tbn;																	\n"
+
+"out vec4 fragColor;															\n"
 
 "void main()																	\n"
 "{																				\n"
-"	gl_FrontColor = texture(u_map, a_texture);									\n"
-"	gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0f);		\n"
-"}";
+"	vec3 bumpNormal = texture(u_bump, a_texture).rgb * 2.0f - 1.0f;				\n"
+"	if (length(bumpNormal) > 1.0f)												\n"
+"	{																			\n"
+"		fragColor = vec4(a_tbn[2][0],a_tbn[2][1],a_tbn[2][2], 1.0f);			\n"
+"	}																			\n"
+"	else fragColor = vec4(a_tbn * normalize(bumpNormal), 1.0f);					\n"
+"}																				\n";
 
 Plutonium::DebugMeshRenderer::DebugMeshRenderer(DebuggableValues mode)
 	: beginCalled(false), mode(mode)
 {
 	/* Load shader and fields from file. */
 	shdrWf = new Shader(WIREFRAME_VRTX_SHDR);
-	shdrN = new Shader(NORMALS_VRTX_SHDR);
-	shdrBmp = new Shader(BUMP_VRTX_SHDR);
+	shdrBmp = new Shader(BUMP_VRTX_SHDR, BUMP_FRAG_SHDR);
 
 	/* Get uniforms. */
 	matMdlWf = shdrWf->GetUniform("u_model");
@@ -63,29 +77,24 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(DebuggableValues mode)
 	matProjWf = shdrWf->GetUniform("u_projection");
 	clrWf = shdrWf->GetUniform("u_color");
 
-	matMdlN = shdrN->GetUniform("u_model");
-	matViewN = shdrN->GetUniform("u_view");
-	matProjN = shdrN->GetUniform("u_projection");
-
 	matMdlBmp = shdrBmp->GetUniform("u_model");
 	matViewBmp = shdrBmp->GetUniform("u_view");
 	matProjBmp = shdrBmp->GetUniform("u_projection");
-	mapBmp = shdrBmp->GetUniform("u_map");
+	mapBmp = shdrBmp->GetUniform("u_bump");
 
 	/* Get attribute. */
 	posWf = shdrWf->GetAttribute("a_position");
 
-	posN = shdrN->GetAttribute("a_position");
-	normN = shdrN->GetAttribute("a_normal");
-
 	posBmp = shdrBmp->GetAttribute("a_position");
-	texBmp = shdrBmp->GetAttribute("a_texture");
+	normBmp = shdrBmp->GetAttribute("a_normal");
+	tanBmp = shdrBmp->GetAttribute("a_tangent");
+	bitanBmp = shdrBmp->GetAttribute("a_bitangent");
+	texBmp = shdrBmp->GetAttribute("a_uv");
 }
 
 Plutonium::DebugMeshRenderer::~DebugMeshRenderer(void)
 {
 	delete_s(shdrWf);
-	delete_s(shdrN);
 	delete_s(shdrBmp);
 }
 
@@ -100,9 +109,6 @@ void Plutonium::DebugMeshRenderer::Begin(const Matrix & view, const Matrix & pro
 			BeginWireframe(view, proj);
 			break;
 		case DebuggableValues::Normals:
-			BeginNormals(view, proj);
-			break;
-		case DebuggableValues::Bump:
 			BeginBump(view, proj);
 			break;
 		default:
@@ -124,9 +130,6 @@ void Plutonium::DebugMeshRenderer::Render(const StaticObject *model, Color color
 		RenderWireframe(model, color);
 		break;
 	case DebuggableValues::Normals:
-		RenderNormals(model);
-		break;
-	case DebuggableValues::Bump:
 		RenderBump(model);
 		break;
 	default:
@@ -146,10 +149,7 @@ void Plutonium::DebugMeshRenderer::Render(const DynamicObject * model, Color col
 		RenderWireframe(model, color);
 		break;
 	case DebuggableValues::Normals:
-		RenderNormals(model);
-		break;
-	case DebuggableValues::Bump:
-		LOG_WAR_ONCE("Cannot render dynamic model as a bump map at this point!");
+		RenderBump(model);
 		break;
 	default:
 		LOG_THROW("Render not defined for value!");
@@ -168,9 +168,6 @@ void Plutonium::DebugMeshRenderer::End(void)
 			EndWireframe();
 			break;
 		case DebuggableValues::Normals:
-			EndNormals();
-			break;
-		case DebuggableValues::Bump:
 			EndBump();
 			break;
 		default:
@@ -238,57 +235,6 @@ void Plutonium::DebugMeshRenderer::EndWireframe(void)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void Plutonium::DebugMeshRenderer::BeginNormals(const Matrix & view, const Matrix & proj)
-{
-	/* Begin shader. */
-	beginCalled = true;
-	shdrN->Begin();
-
-	/* Set constant uniforms. */
-	matViewN->Set(view);
-	matProjN->Set(proj);
-}
-
-void Plutonium::DebugMeshRenderer::RenderNormals(const StaticObject * model)
-{
-	matMdlN->Set(model->GetWorld());
-
-	/* Render each shape. */
-	for (size_t i = 0; i < model->GetModel()->shapes.size(); i++)
-	{
-		/* Set mesh buffer attribute. */
-		Buffer *buffer = model->GetModel()->shapes.at(i)->Mesh->GetVertexBuffer();
-		buffer->Bind();
-		posN->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-		normN->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-
-		/* Render current shape. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
-	}
-}
-
-void Plutonium::DebugMeshRenderer::RenderNormals(const DynamicObject * model)
-{
-	/* Set uniforms. */
-	matMdlN->Set(model->GetWorld());
-
-	/* Set first mesh buffer attributes. */
-	const Mesh *curFrame = model->GetCurrentFrame();
-	curFrame->GetVertexBuffer()->Bind();
-	posN->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-	normN->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-
-	/* Render current shape. */
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curFrame->GetVertexBuffer()->GetElementCount()));
-}
-
-void Plutonium::DebugMeshRenderer::EndNormals(void)
-{
-	/* End shader. */
-	beginCalled = false;
-	shdrN->End();
-}
-
 void Plutonium::DebugMeshRenderer::BeginBump(const Matrix & view, const Matrix & proj)
 {
 	/* Begin shader. */
@@ -315,11 +261,32 @@ void Plutonium::DebugMeshRenderer::RenderBump(const StaticObject * model)
 		Buffer *buffer = cur->Mesh->GetVertexBuffer();
 		buffer->Bind();
 		posBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+		normBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+		tanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+		bitanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, BiTangent));
 		texBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
 	}
+}
+
+void Plutonium::DebugMeshRenderer::RenderBump(const DynamicObject * model)
+{
+	/* Set uniforms. */
+	matMdlBmp->Set(model->GetWorld());
+
+	/* Set first mesh buffer attributes. */
+	const Mesh *curFrame = model->GetCurrentFrame();
+	curFrame->GetVertexBuffer()->Bind();
+	posBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+	normBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+	tanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+	bitanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, BiTangent));
+	texBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+	/* Render current shape. */
+	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curFrame->GetVertexBuffer()->GetElementCount()));
 }
 
 void Plutonium::DebugMeshRenderer::EndBump(void)

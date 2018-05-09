@@ -196,6 +196,12 @@ namespace Plutonium
 		return v.X * w.X + v.Y * w.Y;
 	}
 
+	/* Calculates the prep dot product of the two specified vectors. */
+	_Check_return_ inline float prepdot(_In_ Vector2 v, _In_ Vector2 w)
+	{
+		return v.X * w.Y - v.Y * w.X;
+	}
+
 	/*Gets the highest value from each component from the specified vectors. */
 	_Check_return_ inline Vector2 max(_In_ Vector2 v, _In_ Vector2 w)
 	{
