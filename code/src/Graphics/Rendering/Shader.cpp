@@ -183,26 +183,26 @@ bool Plutonium::Shader::CompileShader(uint32 * shdr, ShaderType type, const char
 	glShaderSource(*shdr, 1, &src, nullptr);
 	glCompileShader(*shdr);
 
+	/* On debug mode check shader log and report if needed. */
+#if defined(DEBUG)
+	/* Get compile log length. */
+	int32 len;
+	glGetShaderiv(*shdr, GL_INFO_LOG_LENGTH, &len);
+	if (len > 1)
+	{
+		/* Log is available so log it to output. */
+		char *log = malloc_s(char, len);
+		glGetShaderInfoLog(*shdr, len, &len, log);
+		LOG_WAR("Shader compilation log:\n%s", log);
+		free_s(log);
+	}
+#endif
+
 	/* Get whether the shader is successfuly compiled. */
 	int32 state;
 	glGetShaderiv(*shdr, GL_COMPILE_STATUS, &state);
 	if (!state)
 	{
-		/* On debug mode check shader log and report if needed. */
-#if defined(DEBUG)
-		/* Get compile log length. */
-		int32 len;
-		glGetShaderiv(*shdr, GL_INFO_LOG_LENGTH, &len);
-		if (len > 1)
-		{
-			/* Log is available so log it to output. */
-			char *log = malloc_s(char, len);
-			glGetShaderInfoLog(*shdr, len, &len, log);
-			LOG_WAR("Shader compilation log:\n%s", log);
-			free_s(log);
-		}
-#endif
-
 		/* Throw exception with source. */
 		LOG_THROW("Failed to compile %s shader!\nSOURCE:\n%s", _CrtGetShaderVisualType(type), src);
 		return false;

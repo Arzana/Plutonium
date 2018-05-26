@@ -3,7 +3,7 @@
 #include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Core\Diagnostics\StackTrace.h"
 #include "Core\Diagnostics\Logging.h"
-#include <glad\glad.h>
+#include "Core\EnumUtils.h"
 #include <glfw3.h>
 
 #if defined(_WIN32)
@@ -300,19 +300,17 @@ int Plutonium::_CrtInitGlad(void)
 		return GLFW_FALSE;
 	}
 
-	/* Set error callback to make sure we log OpenGL errors. */
 #if defined(DEBUG)
-	static const GLuint msgFilter[] =
-	{
-		131185,	// NVidea buffer creation messages.
-	};
-
+	/* Set error callback to make sure we log OpenGL errors. */
 	LOG_WAR("Debug mode is enabled! This has a significant performance cost, switch to release mode for optimization.");
 	glEnable(GL_DEBUG_OUTPUT);
 	glad_set_pre_callback(GLADcallback(GladPreGLCallEventHandler));
 	glad_set_post_callback(GLADcallback(GladPostGLCallEventHandler));
 	glDebugMessageCallback(GLDEBUGPROC(GladErrorEventHandler), nullptr);
-	glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, sizeof(msgFilter) / sizeof(GLuint), msgFilter, GL_FALSE);
+
+	/* Add specific filters to the message API. */
+	_CrtAddLogRule(131185, OpenGLSource::Basic, OpenGLMsgType::Other, "Plutonium handles buffer creation messages");				// NVidea buffer creation messages.
+	_CrtAddLogRule(131154, OpenGLSource::Basic, OpenGLMsgType::Performance, "Video capture software is a know performance issue");	// Framebuffer captures used by video software.
 #endif
 
 	/* Log results. */
@@ -332,4 +330,10 @@ void Plutonium::_CrtFinalizeGLFW(void)
 	glfwState = false;
 	LOG("Terminating GLFW.");
 	glfwTerminate();
+}
+
+void Plutonium::_CrtAddLogRule(uint32 id, OpenGLSource api, OpenGLMsgType type, const char * reason)
+{
+	glDebugMessageControl(_CrtEnum2Int(api), _CrtEnum2Int(type), GL_DONT_CARE, 1, &id, GL_FALSE);
+	LOG("Ingoring OpenGL message %u, reason: %s!", id, reason);
 }

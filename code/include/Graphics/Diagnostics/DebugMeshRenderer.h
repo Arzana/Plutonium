@@ -56,7 +56,7 @@ namespace Plutonium
 
 		Shader *shdrBmp;
 		Uniform *matMdlBmp, *matViewBmp, *matProjBmp, *mapBmp;
-		Attribute *posBmp, *normBmp, *tanBmp, *bitanBmp, *texBmp;
+		Attribute *posBmp, *normBmp, *tanBmp, *texBmp;
 
 		void BeginWireframe(const Matrix &view, const Matrix &proj);
 		void RenderWireframe(const StaticObject *model, Color color);

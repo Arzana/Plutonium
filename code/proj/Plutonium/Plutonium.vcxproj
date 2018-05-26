@@ -311,6 +311,8 @@
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Monitor.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGLSources.h" />
     <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />

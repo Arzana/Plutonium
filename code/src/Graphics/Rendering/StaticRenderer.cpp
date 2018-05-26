@@ -16,6 +16,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	mapDiff = shdr->GetUniform("u_textures.diffuse");
 	mapSpec = shdr->GetUniform("u_textures.specular");
 	mapAlpha = shdr->GetUniform("u_textures.alpha");
+	mapBump = shdr->GetUniform("u_textures.bump");
 
 	filter = shdr->GetUniform("u_colors.lfilter");
 	ambient = shdr->GetUniform("u_colors.ambient");
@@ -53,6 +54,7 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	/* Get attributes. */
 	pos = shdr->GetAttribute("a_position");
 	norm = shdr->GetAttribute("a_normal");
+	tan = shdr->GetAttribute("a_tangent");
 	uv = shdr->GetAttribute("a_uv");
 }
 
@@ -111,6 +113,7 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 		mapDiff->Set(cur->DiffuseMap);
 		mapSpec->Set(cur->SpecularMap);
 		mapAlpha->Set(cur->AlphaMap);
+		mapBump->Set(cur->BumpMap);
 		specExp->Set(cur->SpecularExp);
 		filter->Set(cur->Transmittance);
 		ambient->Set(cur->Ambient);
@@ -121,6 +124,7 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 		buffer->Bind();
 		pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+		tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */

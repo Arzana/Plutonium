@@ -610,6 +610,12 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGLSources.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">

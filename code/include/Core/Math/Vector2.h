@@ -1,6 +1,6 @@
 #pragma once
-#include <cmath>
 #include <sal.h>
+#include <Core\Math\Basics.h>
 
 namespace Plutonium
 {
@@ -170,6 +170,12 @@ namespace Plutonium
 		{
 			return sqrtf(LengthSquared());
 		}
+
+		/* Normalizes the current vector. */
+		inline void Normalize(void)
+		{
+			operator/=(Length());
+		}
 	} Vec2;
 
 	/* Multiplies the vector by a scalar value. */
@@ -178,10 +184,22 @@ namespace Plutonium
 		return v * s;
 	}
 
+	/* Gets the absolute value of each vector component. */
+	_Check_return_ inline Vector2 abs(_In_ Vector2 v)
+	{
+		return Vector2(fabsf(v.X), fabsf(v.Y));
+	}
+
 	/* Gets the angle between two specified vectors. */
 	_Check_return_ inline float angle(_In_ Vector2 v, _In_ Vector2 w)
 	{
 		return w.Angle() - v.Angle();
+	}
+
+	/* Gets the input vector restricted to the specified range. */
+	_Check_return_ inline Vector2 clamp(_In_ Vector2 v, _In_ Vector2 a, _In_ Vector2 b)
+	{
+		return Vector2(clamp(v.X, a.X, b.X), clamp(v.Y, a.Y, b.Y));
 	}
 
 	/* Gets the distance between the two specified vectors. */
@@ -194,12 +212,6 @@ namespace Plutonium
 	_Check_return_ inline float dot(_In_ Vector2 v, _In_ Vector2 w)
 	{
 		return v.X * w.X + v.Y * w.Y;
-	}
-
-	/* Calculates the prep dot product of the two specified vectors. */
-	_Check_return_ inline float prepdot(_In_ Vector2 v, _In_ Vector2 w)
-	{
-		return v.X * w.Y - v.Y * w.X;
 	}
 
 	/*Gets the highest value from each component from the specified vectors. */
@@ -220,9 +232,27 @@ namespace Plutonium
 		return v / v.Length();
 	}
 
+	/* Calculates the prep dot product of the two specified vectors. */
+	_Check_return_ inline float prepdot(_In_ Vector2 v, _In_ Vector2 w)
+	{
+		return v.X * w.Y - v.Y * w.X;
+	}
+
 	/* Calculates the reflection vector of the specified input vector around the specified normal. */
 	_Check_return_ inline Vector2 reflect(_In_ Vector2 v, _In_ Vector2 n)
 	{
 		return v - 2.0f * dot(v, n) * n;
+	}
+
+	/* Gets the sign of each component of the input vector. */
+	_Check_return_ inline Vector2 sign(_In_ Vector2 v)
+	{
+		return Vector2(sign(v.X), sign(v.Y));
+	}
+
+	/* Get the input vector restricted to the specified range in positive and negative direction. */
+	_Check_return_ inline Vector2 mclamp(_In_ Vector2 v, _In_ Vector2 a, _In_ Vector2 b)
+	{
+		return clamp(abs(v), a, b) * sign(v);
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include <cmath>
 #include <sal.h>
+#include <Core\Math\Basics.h>
 
 namespace Plutonium
 {
@@ -195,12 +195,30 @@ namespace Plutonium
 		{
 			return sqrtf(LengthSquared());
 		}
+
+		/* Normalizes the current vector. */
+		inline void Normalize(void)
+		{
+			operator/=(Length());
+		}
 	} Vec3;
 
 	/* Multiplies the vector by a scalar value. */
 	_Check_return_ inline Vector3 operator *(_In_ float s, _In_ Vector3 v)
 	{
 		return v * s;
+	}
+
+	/* Gets the absolute value of each vector component. */
+	_Check_return_ inline Vector3 abs(_In_ Vector3 v)
+	{
+		return Vector3(fabsf(v.X), fabsf(v.Y), fabsf(v.Z));
+	}
+
+	/* Gets the input vector restricted to the specified range. */
+	_Check_return_ inline Vector3 clamp(_In_ Vector3 v, _In_ Vector3 a, _In_ Vector3 b)
+	{
+		return Vector3(clamp(v.X, a.X, b.X), clamp(v.Y, a.Y, b.Y), clamp(v.Z, a.Z, b.Z));
 	}
 
 	/* Calculates the cross product between two vectors. */
@@ -246,5 +264,17 @@ namespace Plutonium
 	_Check_return_ inline Vector3 reflect(_In_ Vector3 v, _In_ Vector3 n)
 	{
 		return v - 2.0f * dot(v, n) * n;
+	}
+
+	/* Gets the sign of each component of the input vector. */
+	_Check_return_ inline Vector3 sign(_In_ Vector3 v)
+	{
+		return Vector3(sign(v.X), sign(v.Y), sign(v.Z));
+	}
+
+	/* Get the input vector restricted to the specified range in positive and negative direction. */
+	_Check_return_ inline Vector3 mclamp(_In_ Vector3 v, _In_ Vector3 a, _In_ Vector3 b)
+	{
+		return clamp(abs(v), a, b) * sign(v);
 	}
 }

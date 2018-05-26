@@ -55,7 +55,7 @@ namespace Plutonium
 		size_t vrtxCnt;
 		Buffer *buffer;
 
-		static void SetTanAndBiTan(VertexFormat &vrtx1, VertexFormat &vrtx2, VertexFormat &vrtx3);
+		static void SetTangent(VertexFormat &vrtx1, VertexFormat &vrtx2, VertexFormat &vrtx3);
 		static Mesh* FromFile(const ObjLoaderResult *buffer, size_t idx);
 		static Mesh* RFromFile(const PobjLoaderResult *buffer, size_t ridx, size_t sidx);
 		static Mesh* PFromFile(const PobjLoaderResult *buffer, size_t ridx, size_t pidx);

@@ -52,19 +52,19 @@ namespace Plutonium
 		/* Gets the absolute width of the box. */
 		_Check_return_ inline float GetWidth(void) const
 		{
-			return abs(Size.X);
+			return fabsf(Size.X);
 		}
 
 		/* Gets the absolute height of the box. */
 		_Check_return_ inline float GetHeight(void) const
 		{
-			return abs(Size.Y);
+			return fabsf(Size.Y);
 		}
 
 		/* Gets the absolute depth of the box. */
 		_Check_return_ inline float GetDepth(void) const
 		{
-			return abs(Size.Z);
+			return fabsf(Size.Z);
 		}
 
 		/* Gets the rightmost face of the box. */

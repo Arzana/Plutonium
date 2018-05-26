@@ -5,10 +5,10 @@
 
 using namespace Plutonium;
 
-constexpr int32 MASK_OPAQUE = 0x000000FF;
-constexpr int32 MASK_RED = 0xFF000000;
-constexpr int32 MASK_BLUE = 0x0000FF00;
-constexpr int32 MASK_GREEN = 0x00FF0000;
+constexpr int32 MASK_OPAQUE =		0x000000FF;
+constexpr int32 MASK_RED =			0xFF000000;
+constexpr int32 MASK_BLUE =			0x0000FF00;
+constexpr int32 MASK_GREEN =		0x00FF0000;
 constexpr float CONV_MOD = recip(255.0f);
 
 const Color Color::Transparent =	Color();

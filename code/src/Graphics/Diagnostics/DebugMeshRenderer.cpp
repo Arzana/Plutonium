@@ -26,7 +26,6 @@ constexpr const char *BUMP_VRTX_SHDR =
 "in vec3 a_position;															\n"
 "in vec3 a_normal;																\n"
 "in vec3 a_tangent;																\n"
-"in vec3 a_bitangent;															\n"
 "in vec2 a_uv;																	\n"
 
 "out vec2 a_texture;															\n"
@@ -35,8 +34,8 @@ constexpr const char *BUMP_VRTX_SHDR =
 "void main()																	\n"
 "{																				\n"
 "	vec3 t = normalize((u_model * vec4(a_tangent, 0.0f)).xyz);					\n"
-"	vec3 b = normalize((u_model * vec4(a_bitangent, 0.0f)).xyz);				\n"
 "	vec3 n = normalize((u_model * vec4(a_normal, 0.0f)).xyz);					\n"
+"	vec3 b = cross(n, t);														\n"
 
 "	a_texture = a_uv;															\n"
 "	a_tbn = mat3(t, b, n);														\n"
@@ -56,12 +55,11 @@ constexpr const char *BUMP_FRAG_SHDR =
 
 "void main()																	\n"
 "{																				\n"
-"	vec3 bumpNormal = texture(u_bump, a_texture).rgb * 2.0f - 1.0f;				\n"
-"	if (length(bumpNormal) > 1.0f)												\n"
-"	{																			\n"
-"		fragColor = vec4(a_tbn[2][0],a_tbn[2][1],a_tbn[2][2], 1.0f);			\n"
-"	}																			\n"
-"	else fragColor = vec4(a_tbn * normalize(bumpNormal), 1.0f);					\n"
+"	vec3 rgb_normal = texture(u_bump, a_texture).rgb;							\n"
+"	vec3 world_normal = normalize(rgb_normal * 2.0f - 1.0f);					\n"
+"	world_normal = normalize(a_tbn * world_normal);								\n"
+"	rgb_normal = normalize(world_normal * 0.5f + 0.5f);							\n"
+"	fragColor = vec4(rgb_normal, 1.0f);											\n"
 "}																				\n";
 
 Plutonium::DebugMeshRenderer::DebugMeshRenderer(DebuggableValues mode)
@@ -88,7 +86,6 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(DebuggableValues mode)
 	posBmp = shdrBmp->GetAttribute("a_position");
 	normBmp = shdrBmp->GetAttribute("a_normal");
 	tanBmp = shdrBmp->GetAttribute("a_tangent");
-	bitanBmp = shdrBmp->GetAttribute("a_bitangent");
 	texBmp = shdrBmp->GetAttribute("a_uv");
 }
 
@@ -263,7 +260,6 @@ void Plutonium::DebugMeshRenderer::RenderBump(const StaticObject * model)
 		posBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 		normBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
 		tanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-		bitanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, BiTangent));
 		texBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
@@ -282,7 +278,6 @@ void Plutonium::DebugMeshRenderer::RenderBump(const DynamicObject * model)
 	posBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 	normBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
 	tanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-	bitanBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, BiTangent));
 	texBmp->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 	/* Render current shape. */

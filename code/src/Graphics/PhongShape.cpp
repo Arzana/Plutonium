@@ -60,7 +60,7 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 		InitOptions(&material->BumpMap, &opt);
 		BumpMap = loader->LoadTexture(material->BumpMap.Path, false, &opt);
 	}
-	else BumpMap = CreateDefault(loader->GetWindow());
+	else BumpMap = CreateDefault(loader->GetWindow(), Color((byte)122, 128, 255));
 }
 
 Plutonium::PhongShape::~PhongShape(void) noexcept
@@ -81,11 +81,11 @@ void Plutonium::PhongShape::InitOptions(const ObjLoaderTextureMap * objOpt, Text
 	texOpt->Range = objOpt->Contrast;
 }
 
-Plutonium::Texture * Plutonium::PhongShape::CreateDefault(WindowHandler wnd)
+Plutonium::Texture * Plutonium::PhongShape::CreateDefault(WindowHandler wnd, Color filler)
 {
-	static Color data[] = { Color::White, Color::White, Color::White, Color::White };
+	byte data[] = { filler.R, filler.G, filler.B, filler.A };
 
-	Texture *result = new Texture(2, 2, wnd, 0, "default");
-	result->SetData(reinterpret_cast<byte*>(data));
+	Texture *result = new Texture(1, 1, wnd, 0, "default");
+	result->SetData(data);
 	return result;
 }

@@ -152,7 +152,7 @@ struct TestGame
 		sun->Direction = Vector3::FromRoll(theta);
 
 		/* Update light color. */
-		if (theta > 0.0f && theta < PI)
+		if (theta >= 0.0f && theta < PI)
 		{
 			sun->Diffuse = Color::SunDay;
 			dayState = "Day";

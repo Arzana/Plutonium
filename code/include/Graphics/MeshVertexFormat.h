@@ -14,8 +14,6 @@ namespace Plutonium
 		Vector3 Normal;
 		/* The tangent vector at the position. */
 		Vector3 Tangent;
-		/* The bitangent vector at the position. */
-		Vector3 BiTangent;
 		/* The texture UV at the position. */
 		Vector2 Texture;
 	};

@@ -272,11 +272,12 @@ void Plutonium::Texture::GenerateTexture(byte ** data, const TextureCreationOpti
 
 void Plutonium::Texture::SetPreDataTransferTextureOptions(byte * data, const TextureCreationOptions * config)
 {
+	const size_t channels = GetChannels(), size = Width * Height * channels;
+
 	/* Check if texture defines brightness gain / scaling. */
 	if (config->Gain != 0.0f || config->Range != 1.0f)
 	{
 		const byte gain = static_cast<byte>(config->Gain);
-		const size_t channels = GetChannels(), size = Width * Height * channels;
 
 		/* Apply brightness gain and scale. */
 		for (size_t i = 0; i < size; i += channels)

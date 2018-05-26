@@ -53,6 +53,6 @@ namespace Plutonium
 		AssetLoader *loader;
 
 		static void InitOptions(const ObjLoaderTextureMap *objOpt, TextureCreationOptions *texOpt);
-		static Texture* CreateDefault(WindowHandler wnd);
+		static Texture* CreateDefault(WindowHandler wnd, Color filler = Color::White);
 	};
 }

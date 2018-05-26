@@ -27,6 +27,40 @@ std::map<uint64, const char*> processNames;
 std::map<uint64, const char*> threadNames;
 std::mutex printLock;
 
+void _CrtUpdateType(LogType type)
+{
+	lastType = type;
+	int typeClr;
+
+	switch (type)
+	{
+	case (LogType::Debug):
+		typeStr = "Debug";
+		typeClr = 7;
+		break;
+	case (LogType::Info):
+		typeStr = "Info";
+		typeClr = 7;
+		break;
+	case (LogType::Warning):
+		typeStr = "Warning";
+		typeClr = 14;
+		break;
+	case (LogType::Error):
+		typeStr = "Error";
+		typeClr = 4;
+		break;
+	default:
+		typeStr = "NULL";
+		typeClr = 0;
+		break;
+	}
+
+#if defined(_WIN32)
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), typeClr);
+#endif
+}
+
 void _CrtLogLinePrefix(LogType type)
 {
 	/* Gets the current milliseconds. */
@@ -41,39 +75,7 @@ void _CrtLogLinePrefix(LogType type)
 	if (std::strftime(buffer, sizeof(buffer), "%H:%M:%S", std::localtime(&now)) == 0) return;
 
 	/* Update type prefix. */
-	if (type != lastType)
-	{
-		lastType = type;
-		int typeClr;
-
-		switch (type)
-		{
-		case (LogType::Debug):
-			typeStr = "Debug";
-			typeClr = 7;
-			break;
-		case (LogType::Info):
-			typeStr = "Info";
-			typeClr = 7;
-			break;
-		case (LogType::Warning):
-			typeStr = "Warning";
-			typeClr = 14;
-			break;
-		case (LogType::Error):
-			typeStr = "Error";
-			typeClr = 4;
-			break;
-		default:
-			typeStr = "NULL";
-			typeClr = 0;
-			break;
-		}
-
-#if defined(_WIN32)
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), typeClr);
-#endif
-	}
+	if (type != lastType) _CrtUpdateType(type);
 
 	/* If any of the funtions in here start to log we end up in an endless loop. */
 	suppressLogging = true;
@@ -197,7 +199,7 @@ void Plutonium::_CrtLogExc(unsigned int framesToSkip)
 	printLock.lock();
 
 	/* Make sure the color is correct. */
-	if (shouldAddLinePrefix) _CrtLogLinePrefix(LogType::Error);
+	_CrtUpdateType(LogType::Error);
 
 	/* Log table header. */
 	printf("STACKTRACE:\n");

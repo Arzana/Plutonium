@@ -52,13 +52,13 @@ namespace Plutonium
 		/* Gets the absolute width of the rectangle. */
 		_Check_return_ inline float GetWidth(void) const
 		{
-			return abs(Size.X);
+			return fabsf(Size.X);
 		}
 
 		/* Gets the absolute height of the rectangle. */
 		_Check_return_ inline float GetHeight(void) const
 		{
-			return abs(Size.Y);
+			return fabsf(Size.Y);
 		}
 
 		/* Gets the rightmost edge of the rectangle. */

@@ -33,11 +33,11 @@ namespace Plutonium
 	private:
 		Shader *shdr;
 		Uniform *matMdl, *matView, *matProj, *camPos;
-		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha;
+		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 		Uniform *filter, *ambient, *diffuse, *specular, *specExp, *gamma;
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
 		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
-		Attribute *pos, *norm, *uv;
+		Attribute *pos, *norm, *tan, *uv;
 		bool beginCalled;
 		float gammaValue;
 	};

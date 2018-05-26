@@ -79,7 +79,9 @@ void Plutonium::Mesh::Append(Mesh * other)
 	for (size_t i = 0, j = start; i < other->vrtxCnt; i++, j++) vertices[j] = other->vertices[i];
 }
 
-void Plutonium::Mesh::SetTanAndBiTan(VertexFormat & vrtx1, VertexFormat & vrtx2, VertexFormat & vrtx3)
+#include "Core\String.h"
+
+void Plutonium::Mesh::SetTangent(VertexFormat & vrtx1, VertexFormat & vrtx2, VertexFormat & vrtx3)
 {
 	/* Calculate the edges and delta uv's. */
 	Vector3 e1 = vrtx2.Position - vrtx1.Position;
@@ -88,19 +90,12 @@ void Plutonium::Mesh::SetTanAndBiTan(VertexFormat & vrtx1, VertexFormat & vrtx2,
 	Vector2 dUv2 = vrtx3.Texture - vrtx1.Texture;
 
 	/* Calculate tangent and bitangent. */
-	float fractal = recip(prepdot(dUv1, dUv2));
-	Vector3 tangent = normalize(fractal * Vector3(dUv2.Y * e1.X - dUv1.Y * e2.X, dUv2.Y * e1.Y - dUv1.Y * e2.Y, dUv2.Y * e1.Z - dUv1.Y * e2.Z));
-	Vector3 bitangent = normalize(fractal * Vector3(-dUv2.X * e1.X + dUv1.X * e2.X, -dUv2.X * e1.Y + dUv1.X * e2.Y, -dUv2.X * e1.Z + dUv1.X * e2.Z));
+	Vector3 tangent = normalize((dUv2.Y * e1 - dUv1.Y * e2) / prepdot(dUv1, dUv2));
 
 	/* Set tangent. */
 	vrtx1.Tangent = tangent;
 	vrtx2.Tangent = tangent;
 	vrtx3.Tangent = tangent;
-
-	/* Set bitangent. */
-	vrtx1.BiTangent = bitangent;
-	vrtx2.BiTangent = bitangent;
-	vrtx3.BiTangent = bitangent;
 }
 
 Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
@@ -114,8 +109,7 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
 	/* Copy vertices. */
-	size_t j = 0;
-	for (size_t i = 0; i < mesh.Indices.size(); i++, j++)
+	for (size_t i = 0, j = 0; i < mesh.Indices.size(); i++, j++)
 	{
 		const ObjLoaderVertex &idx = mesh.Indices.at(i);
 
@@ -123,11 +117,11 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 		result->vertices[i].Normal = buffer->Normals.at(idx.Normal);
 		result->vertices[i].Texture = buffer->TexCoords.at(idx.TexCoord);
 
-		/* Set tangent and bitangent for the last three vertices. */
+		/* Set tangent for the last three vertices. */
 		if (j > 1)
 		{
 			j = -1;
-			SetTanAndBiTan(result->vertices[i - 2], result->vertices[i - 1], result->vertices[i]);
+			SetTangent(result->vertices[i - 2], result->vertices[i - 1], result->vertices[i]);
 		}
 	}
 
@@ -168,7 +162,6 @@ Mesh * Plutonium::Mesh::RFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 			format.Texture.X = buffer->Vertices.texcoords.at(2 * idx.texcoord_index);
 			format.Texture.Y = buffer->Vertices.texcoords.at(2 * idx.texcoord_index + 1);
 			format.Tangent = Vector3::Zero;
-			format.BiTangent = Vector3::Zero;
 
 			/* Push vertex to buffer  */
 			result->vertices[k] = format;
@@ -206,7 +199,6 @@ Mesh * Plutonium::Mesh::PFromFile(const PobjLoaderResult * buffer, size_t ridx, 
 		format.Normal = Vector3::Zero;
 		format.Texture = Vector2::Zero;
 		format.Tangent = Vector3::Zero;
-		format.BiTangent = Vector3::Zero;
 
 		/* Push vertex to buffer. */
 		result->vertices[i] = format;
