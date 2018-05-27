@@ -215,6 +215,7 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\NormalRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\NormalRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />

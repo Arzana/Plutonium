@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics\Diagnostics\ViewModes\WireframeRenderer.h"
 #include "Graphics\Diagnostics\ViewModes\NormalRenderer.h"
+#include "Graphics\Diagnostics\ViewModes\UnlitRenderer.h"
 #include "GameLogic\StaticObject.h"
 #include "GameLogic\DynamicObject.h"
 
@@ -14,7 +15,9 @@ namespace Plutonium
 		/* Displays the models wireframe. */
 		Wireframe,
 		/* Displays the models normals. */
-		Normals
+		Normals,
+		/* Displays the models without lighting. */
+		Unlit
 	};
 
 	/* Defines a very basic debug mesh information renderer. */
@@ -48,13 +51,18 @@ namespace Plutonium
 
 	private:
 		DebuggableValues mode;
+		Texture *defBmpMap;
+		Texture *defAlphaMap;
+
 		WireframeRenderer *wfrenderer;
 		NormalRenderer *nrenderer;
-		Texture *defBmpMap;
+		UnlitRenderer *ulrenderer;
 
 		void RenderWfStatic(const StaticObject *model, Color color);
 		void RenderWfDynamic(const DynamicObject *model, Color color);
 		void RenderNStatic(const StaticObject *model);
 		void RenderNDynamic(const DynamicObject *model);
+		void RenderUlStatic(const StaticObject *model);
+		void RenderUlDynamic(const DynamicObject *model);
 	};
 }

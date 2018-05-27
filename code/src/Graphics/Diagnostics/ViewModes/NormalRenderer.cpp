@@ -12,7 +12,7 @@ constexpr const char *VRTX_SHDR_SRC =
 "in vec3 tangent;																\n"
 "in vec2 uv;																	\n"
 
-"out vec2 textureUv;																\n"
+"out vec2 textureUv;															\n"
 "out mat3 tbn;																	\n"
 
 "void main()																	\n"

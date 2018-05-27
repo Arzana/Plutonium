@@ -66,10 +66,17 @@ struct TestGame
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
 		{
-			if (args.Key == Keys::D1 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Wireframe ? DebuggableValues::None : DebuggableValues::Wireframe;
-			if (args.Key == Keys::D2 && args.Action == KeyState::Down) renderMode = renderMode == DebuggableValues::Normals ? DebuggableValues::None : DebuggableValues::Normals;
+			DebuggableValues desired = DebuggableValues::None;
 
-			if (renderMode != DebuggableValues::None) dmrenderer->SetMode(renderMode);
+			if (args.Key == Keys::D1 && args.Action == KeyState::Down) desired = DebuggableValues::Wireframe;
+			if (args.Key == Keys::D2 && args.Action == KeyState::Down) desired = DebuggableValues::Normals;
+			if (args.Key == Keys::D3 && args.Action == KeyState::Down) desired = DebuggableValues::Unlit;
+
+			if (desired != DebuggableValues::None)
+			{
+				renderMode = renderMode == desired ? DebuggableValues::None : desired;
+				dmrenderer->SetMode(renderMode);
+			}
 		});
 	}
 

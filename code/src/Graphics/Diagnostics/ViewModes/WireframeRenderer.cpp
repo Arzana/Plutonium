@@ -1,33 +1,33 @@
 #include "Graphics\Diagnostics\ViewModes\WireframeRenderer.h"
 
 constexpr const char *VRTX_SHDR_SRC =
-"#version 430 core																\n"
+"#version 430 core														\n"
 
-"uniform mat4 model;															\n"
-"uniform mat4 view;																\n"
-"uniform mat4 projection;														\n"
-"uniform vec4 color;															\n"
+"uniform mat4 model;													\n"
+"uniform mat4 view;														\n"
+"uniform mat4 projection;												\n"
+"uniform vec4 color;													\n"
 
-"in vec3 position;																\n"
+"in vec3 position;														\n"
 
-"out vec3 clr;																	\n"
+"out vec3 clr;															\n"
 
-"void main()																	\n"
-"{																				\n"
-"	clr = color.rgb;															\n"
-"	gl_Position = projection * view * model * vec4(position, 1.0);				\n"
+"void main()															\n"
+"{																		\n"
+"	clr = color.rgb;													\n"
+"	gl_Position = projection * view * model * vec4(position, 1.0);		\n"
 "}";
 
 constexpr const char *FRAG_SHDR_SRC =
-"#version 430 core																\n"
+"#version 430 core														\n"
 
-"in vec3 clr;																	\n"
+"in vec3 clr;															\n"
 
-"out vec4 fragColor;															\n"
+"out vec4 fragColor;													\n"
 
-"void main()																	\n"
-"{																				\n"
-"	fragColor = vec4(clr, 1.0f);												\n"
+"void main()															\n"
+"{																		\n"
+"	fragColor = vec4(clr, 1.0f);										\n"
 "}";
 
 
