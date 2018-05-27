@@ -5,23 +5,20 @@
 
 using namespace Plutonium;
 
-constexpr int32 MASK_OPAQUE =		0x000000FF;
-constexpr int32 MASK_RED =			0xFF000000;
-constexpr int32 MASK_BLUE =			0x0000FF00;
-constexpr int32 MASK_GREEN =		0x00FF0000;
-constexpr float CONV_MOD = recip(255.0f);
+constexpr float CONV_MOD =			recip(255.0f);
 
 const Color Color::Transparent =	Color();
-const Color Color::Black =			Color(MASK_OPAQUE);
-const Color Color::Red =			Color(MASK_OPAQUE | MASK_RED);
-const Color Color::Green =			Color(MASK_OPAQUE | MASK_GREEN);
-const Color Color::Blue =			Color(MASK_OPAQUE | MASK_BLUE);
-const Color Color::Cyan =			Color(MASK_OPAQUE | MASK_BLUE | MASK_GREEN);
-const Color Color::Magenta =		Color(MASK_OPAQUE | MASK_RED | MASK_BLUE);
-const Color Color::Yellow =			Color(MASK_OPAQUE | MASK_RED | MASK_GREEN);
-const Color Color::White =			Color(MASK_OPAQUE | MASK_RED | MASK_BLUE | MASK_GREEN);
-const Color Color::SunDay =			Color(0xFFFFDCFF);
-const Color Color::SunDawn =		Color(0xF7B668FF);
+const Color Color::Black =			Color((byte)0x00, 0x00, 0x00);
+const Color Color::Red =			Color((byte)0xFF, 0x00, 0x00);
+const Color Color::Green =			Color((byte)0x00, 0xFF, 0x00);
+const Color Color::Blue =			Color((byte)0x00, 0x00, 0xFF);
+const Color Color::Cyan =			Color((byte)0x00, 0xFF, 0xFF);
+const Color Color::Magenta =		Color((byte)0xFF, 0x00, 0xFF);
+const Color Color::Yellow =			Color((byte)0xFF, 0xFF, 0x00);
+const Color Color::White =			Color((byte)0xFF, 0xFF, 0xFF);
+const Color Color::SunDay =			Color((byte)0xFF, 0xFF, 0xDC);
+const Color Color::SunDawn =		Color((byte)0xF7, 0xB6, 0x68);
+const Color Color::Malibu =			Color((byte)0x80, 0x80, 0xFF);
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {
@@ -70,4 +67,9 @@ Color Plutonium::Color::operator*(float scalar) const
 Vector4 Plutonium::Color::ToVector4(void) const
 {
 	return Vector4(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD, A * CONV_MOD);
+}
+
+byte * Plutonium::Color::ToArray(void) const
+{
+	return reinterpret_cast<byte*>(const_cast<Color*>(this));
 }

@@ -105,7 +105,7 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 	for (size_t i = 0; i < model->GetModel()->shapes.size(); i++)
 	{
 		/* Get current textured mesh. */
-		PhongShape *cur = model->GetModel()->shapes.at(i);
+		PhongMaterial *cur = model->GetModel()->shapes.at(i);
 		Buffer *buffer = cur->Mesh->GetVertexBuffer();
 
 		/* Set material attributes. */
@@ -142,7 +142,7 @@ void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 	for (size_t i = 0; i < model->shapes.size(); i++)
 	{
 		/* Set current texture sampler. */
-		PhongShape *cur = model->shapes.at(i);
+		PhongMaterial *cur = model->shapes.at(i);
 		mapDiff->Set(cur->DiffuseMap);
 
 		/* Set mesh buffer attributes. */

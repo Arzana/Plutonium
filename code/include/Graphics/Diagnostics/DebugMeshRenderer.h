@@ -1,5 +1,6 @@
 #pragma once
-#include "Graphics\Rendering\Shader.h"
+#include "Graphics\Diagnostics\ViewModes\WireframeRenderer.h"
+#include "Graphics\Diagnostics\ViewModes\NormalRenderer.h"
 #include "GameLogic\StaticObject.h"
 #include "GameLogic\DynamicObject.h"
 
@@ -21,7 +22,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a basic mesh renderer. */
-		DebugMeshRenderer(_In_opt_ DebuggableValues mode = DebuggableValues::Wireframe);
+		DebugMeshRenderer(_In_ WindowHandler wnd, _In_opt_ DebuggableValues mode = DebuggableValues::Wireframe);
 		DebugMeshRenderer(_In_ const DebugMeshRenderer &value) = delete;
 		DebugMeshRenderer(_In_ DebugMeshRenderer &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
@@ -33,7 +34,6 @@ namespace Plutonium
 		/* Sets the render mode of the debug mesh renderer. */
 		inline void SetMode(_In_ DebuggableValues mode)
 		{
-			ASSERT_IF(beginCalled, "Cannot change mode whilst renderer!");
 			this->mode = mode;
 		}
 
@@ -47,25 +47,14 @@ namespace Plutonium
 		void End(void);
 
 	private:
-		bool beginCalled;
 		DebuggableValues mode;
+		WireframeRenderer *wfrenderer;
+		NormalRenderer *nrenderer;
+		Texture *defBmpMap;
 
-		Shader *shdrWf;
-		Uniform *matMdlWf, *matViewWf, *matProjWf, *clrWf;
-		Attribute *posWf;
-
-		Shader *shdrBmp;
-		Uniform *matMdlBmp, *matViewBmp, *matProjBmp, *mapBmp;
-		Attribute *posBmp, *normBmp, *tanBmp, *texBmp;
-
-		void BeginWireframe(const Matrix &view, const Matrix &proj);
-		void RenderWireframe(const StaticObject *model, Color color);
-		void RenderWireframe(const DynamicObject *model, Color color);
-		void EndWireframe(void);
-
-		void BeginBump(const Matrix &view, const Matrix &proj);
-		void RenderBump(const StaticObject *model);
-		void RenderBump(const DynamicObject *model);
-		void EndBump(void);
+		void RenderWfStatic(const StaticObject *model, Color color);
+		void RenderWfDynamic(const DynamicObject *model, Color color);
+		void RenderNStatic(const StaticObject *model);
+		void RenderNDynamic(const DynamicObject *model);
 	};
 }

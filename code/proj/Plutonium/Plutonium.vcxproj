@@ -214,6 +214,8 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\NormalRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
@@ -223,10 +225,11 @@
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
-    <ClCompile Include="..\..\src\Graphics\PhongShape.cpp" />
+    <ClCompile Include="..\..\src\Graphics\PhongMaterial.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\Portal.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
@@ -290,6 +293,8 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\NormalRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
@@ -321,6 +326,7 @@
     <ClInclude Include="..\..\include\Graphics\Portals\Portal.h" />
     <ClInclude Include="..\..\include\Graphics\Portals\PortalRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h" />
+    <ClInclude Include="..\..\include\Graphics\Renderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
@@ -331,7 +337,7 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
-    <ClInclude Include="..\..\include\Graphics\PhongShape.h" />
+    <ClInclude Include="..\..\include\Graphics\PhongMaterial.h" />
     <ClInclude Include="..\..\include\Graphics\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\TextureOptions.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />

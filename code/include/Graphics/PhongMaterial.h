@@ -10,7 +10,7 @@ namespace Plutonium
 	struct ObjLoaderTextureMap;
 
 	/* Defines the internal layout of the model. */
-	struct PhongShape
+	struct PhongMaterial
 	{
 	public:
 		/* The name of the used material. */
@@ -39,16 +39,16 @@ namespace Plutonium
 		float SpecularExp;
 
 		/* Initializes an empty instance of the phong shape object. */
-		PhongShape(void);
+		PhongMaterial(void);
 		/* Initializes a new instance of a phong shape. */
-		PhongShape(_In_ Plutonium::Mesh *mesh, _In_ const ObjLoaderMaterial *material, _In_ AssetLoader *loader);
-		PhongShape(_In_ const PhongShape &value) = delete;
-		PhongShape(_In_ PhongShape &&value) = delete;
+		PhongMaterial(_In_ Plutonium::Mesh *mesh, _In_ const ObjLoaderMaterial *material, _In_ AssetLoader *loader);
+		PhongMaterial(_In_ const PhongMaterial &value) = delete;
+		PhongMaterial(_In_ PhongMaterial &&value) = delete;
 		/* Releases the resources stored in the shape. */
-		~PhongShape(void) noexcept;
+		~PhongMaterial(void) noexcept;
 
-		_Check_return_ PhongShape& operator =(_In_ const PhongShape &other) = delete;
-		_Check_return_ PhongShape& operator =(_In_ PhongShape &&other) = delete;
+		_Check_return_ PhongMaterial& operator =(_In_ const PhongMaterial &other) = delete;
+		_Check_return_ PhongMaterial& operator =(_In_ PhongMaterial &&other) = delete;
 	private:
 		AssetLoader *loader;
 

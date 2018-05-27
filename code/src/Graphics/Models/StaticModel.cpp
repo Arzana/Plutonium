@@ -57,7 +57,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *l
 		else
 		{
 			/* Push material to shapes. */
-			result->shapes.push_back(new PhongShape(mesh, &material, loader));
+			result->shapes.push_back(new PhongMaterial(mesh, &material, loader));
 		}
 	}
 
@@ -72,7 +72,7 @@ int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		PhongShape *cur = shapes.at(i);
+		PhongMaterial *cur = shapes.at(i);
 		if (!strcmp(cur->MaterialName, name)) return i;
 	}
 

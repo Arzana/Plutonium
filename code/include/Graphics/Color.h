@@ -30,19 +30,21 @@ namespace Plutonium
 		const static Color SunDay;
 		/* Defines the color of the sun during dawn and dusk. */
 		const static Color SunDawn;
+		/* Defines the color of a default normal pointing forwards. */
+		const static Color Malibu;
 
 		union
 		{
 			struct
 			{
-				/* The alpha (transparency) of this color. */
-				byte A;
-				/* The blue amount of this color. */
-				byte B;
-				/* The green amount of this color. */
-				byte G;
 				/* The red amount of this color. */
 				byte R;
+				/* The green amount of this color. */
+				byte G;
+				/* The blue amount of this color. */
+				byte B;
+				/* The alpha (transparency) of this color. */
+				byte A;
 			};
 
 			/* The color as a 32 bit unsigned int. */
@@ -107,5 +109,7 @@ namespace Plutonium
 
 		/* Gets the color as a four dimensional vector. */
 		_Check_return_ Vector4 ToVector4(void) const;
+		/* Gets the color as a four length byte array. */
+		_Check_return_ byte* ToArray(void) const;
 	};
 }

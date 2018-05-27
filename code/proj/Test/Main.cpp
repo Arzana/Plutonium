@@ -62,7 +62,7 @@ struct TestGame
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammeCorrection);
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
-		dmrenderer = new DebugMeshRenderer();
+		dmrenderer = new DebugMeshRenderer(GetGraphics()->GetWindow());
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
 		{

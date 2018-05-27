@@ -120,6 +120,12 @@
     <Filter Include="Header Files\Graphics\Lighting">
       <UniqueIdentifier>{5ac68692-b2b9-4a25-851a-f411fbc33472}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Diagnostics\ViewModes">
+      <UniqueIdentifier>{170138f3-19fd-4004-bd41-34038facd373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Diagnostics\ViewModes">
+      <UniqueIdentifier>{fb1229aa-ca7d-448c-b31a-8f2b6ec21d9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -287,9 +293,6 @@
     <ClCompile Include="..\..\src\Content\ObjLoader.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\PhongShape.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Content\AssetLoader.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
@@ -307,6 +310,18 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\PhongMaterial.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Renderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\NormalRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -583,9 +598,6 @@
     <ClInclude Include="..\..\include\Content\ObjLoader.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\PhongShape.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h">
       <Filter>Header Files\Graphics\Lighting</Filter>
     </ClInclude>
@@ -615,6 +627,18 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h">
       <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\PhongMaterial.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Renderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\NormalRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\PhongShape.h"
+#include "Graphics\PhongMaterial.h"
 #include "Graphics\Native\Window.h"
 
 namespace Plutonium
@@ -35,7 +35,7 @@ namespace Plutonium
 		friend struct DebugMeshRenderer;
 		friend struct AssetLoader;
 
-		std::vector<PhongShape*> shapes;
+		std::vector<PhongMaterial*> shapes;
 		WindowHandler wnd;
 
 		StaticModel(WindowHandler wnd)

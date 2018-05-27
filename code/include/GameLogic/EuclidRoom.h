@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\PhongShape.h"
+#include "Graphics\PhongMaterial.h"
 #include "Core\Collections\Tree.h"
 #include "Graphics\Portals\Portal.h"
 #include "Graphics\Portals\SceneRenderArgs.h"
@@ -53,7 +53,7 @@ namespace Plutonium
 		int32 id;
 		Vector3 gravityForce;
 		std::vector<Portal*> portals;
-		std::vector<PhongShape*> shapes;
+		std::vector<PhongMaterial*> shapes;
 		std::vector<Tree<PortalRenderArgs>*> visiblePortals;
 		WindowHandler wnd;
 

@@ -1,16 +1,16 @@
-#include "Graphics\PhongShape.h"
+#include "Graphics\PhongMaterial.h"
 #include "Core\StringFunctions.h"
 #include "Content\ObjLoader.h"
 #include "Content\AssetLoader.h"
 
-Plutonium::PhongShape::PhongShape(void)
+Plutonium::PhongMaterial::PhongMaterial(void)
 	: MaterialName(nullptr), Mesh(nullptr),
 	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(Color::White), Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
 	SpecularExp(1.0f)
 {}
 
-Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMaterial * material, AssetLoader *loader)
+Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderMaterial * material, AssetLoader *loader)
 	: MaterialName(heapstr(material->Name)), loader(loader), Mesh(mesh),
 	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(material->Transmittance), Ambient(material->Ambient), Diffuse(material->Diffuse), Specular(material->Specular),
@@ -60,10 +60,10 @@ Plutonium::PhongShape::PhongShape(Plutonium::Mesh * mesh, const ObjLoaderMateria
 		InitOptions(&material->BumpMap, &opt);
 		BumpMap = loader->LoadTexture(material->BumpMap.Path, false, &opt);
 	}
-	else BumpMap = CreateDefault(loader->GetWindow(), Color((byte)122, 128, 255));
+	else BumpMap = CreateDefault(loader->GetWindow(), Color::Malibu);
 }
 
-Plutonium::PhongShape::~PhongShape(void) noexcept
+Plutonium::PhongMaterial::~PhongMaterial(void) noexcept
 {
 	free_s(MaterialName);
 	delete_s(Mesh);
@@ -74,18 +74,16 @@ Plutonium::PhongShape::~PhongShape(void) noexcept
 	if (!loader->Unload(BumpMap)) delete_s(BumpMap);
 }
 
-void Plutonium::PhongShape::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)
+void Plutonium::PhongMaterial::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)
 {
 	texOpt->SetWrapping(objOpt->ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);
 	texOpt->Gain = objOpt->Brightness;
 	texOpt->Range = objOpt->Contrast;
 }
 
-Plutonium::Texture * Plutonium::PhongShape::CreateDefault(WindowHandler wnd, Color filler)
+Plutonium::Texture * Plutonium::PhongMaterial::CreateDefault(WindowHandler wnd, Color filler)
 {
-	byte data[] = { filler.R, filler.G, filler.B, filler.A };
-
 	Texture *result = new Texture(1, 1, wnd, 0, "default");
-	result->SetData(data);
+	result->SetData(filler.ToArray());
 	return result;
 }
