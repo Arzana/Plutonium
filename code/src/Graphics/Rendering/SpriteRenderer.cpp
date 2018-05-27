@@ -3,10 +3,9 @@
 #include "Core\SafeMemory.h"
 
 Plutonium::SpriteRenderer::SpriteRenderer(GraphicsAdapter * device, const char * vrtxShdr, const char * fragShdr)
-	: beginCalled(false), device(device)
+	: Renderer(Shader::FromFile(vrtxShdr, fragShdr)), device(device)
 {
-	/* Load shader and fields from files. */
-	shdr = Shader::FromFile(vrtxShdr, fragShdr);
+	const Shader *shdr = GetShader();
 
 	/* Get uniforms. */
 	matVp = shdr->GetUniform("u_vp");
@@ -31,30 +30,19 @@ Plutonium::SpriteRenderer::~SpriteRenderer(void)
 	/* Remove event handler. */
 	device->GetWindow()->SizeChanged.Remove(this, &SpriteRenderer::WindowResizeEventHandler);
 
-	delete_s(shdr);
 	delete_s(mesh);
 }
 
 void Plutonium::SpriteRenderer::Begin(void)
 {
-	/* Make sure we don't call begin twice. */
-	if (!beginCalled)
-	{
-		/* Begin shader. */
-		beginCalled = true;
-		shdr->Begin();
+	Renderer::Begin();
 
-		/* Set constant uniforms. */
-		matVp->Set(proj);
-	}
-	else LOG_WAR("Attempting to call Begin before calling End!");
+	/* Set constant uniforms. */
+	matVp->Set(proj);
 }
 
 void Plutonium::SpriteRenderer::Render(const Texture * sprite, Vector2 position, Color color, Vector2 scale, float rotation)
 {
-	/* Make sure begin is called. */
-	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
-
 	/* Construct model matrix. */
 	position = device->ToOpenGL(position);
 	Matrix model = Matrix::CreateTranslation(position.X, position.Y, 0.0f)
@@ -71,18 +59,7 @@ void Plutonium::SpriteRenderer::Render(const Texture * sprite, Vector2 position,
 	posUv->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
 
 	/* Render sprite. */
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
-}
-
-void Plutonium::SpriteRenderer::End(void)
-{
-	/* Make sure end isn't called twice. */
-	if (beginCalled)
-	{
-		beginCalled = false;
-		shdr->End();
-	}
-	else LOG_WAR("Attempting to call End before calling Begin.!");
+	DrawTris(mesh->GetElementCount());
 }
 
 void Plutonium::SpriteRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)

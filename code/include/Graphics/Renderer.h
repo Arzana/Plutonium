@@ -29,13 +29,17 @@ namespace Plutonium
 		}
 
 		/* Signals OpenGL to draw the specified buffer as triangles. */
-		void DrawTris(_In_ const Buffer *buffer, _In_opt_ int32 start = 0);
+		inline void DrawTris(_In_ const Buffer *buffer, _In_opt_ int32 start = 0)
+		{
+			DrawTris(buffer->GetElementCount(), start);
+		}
+		/* Signals OpenGL to draw a specified amount of triangles. */
+		void DrawTris(_In_ size_t elemCnt, _In_opt_ int32 start = 0);
 
 		/* Initializes a new instance of a renderer (shader should be made with new and is deleted by the renderer!). */
 		Renderer(_In_ Shader *shader);
 
 	private:
-		bool beginCalled;
 		Shader *shdr;
 	};
 }

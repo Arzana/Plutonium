@@ -1,10 +1,9 @@
 #include "Graphics\Rendering\StaticRenderer.h"
 
 Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fragShdr, float displayGamma)
-	: beginCalled(false), gammaValue(displayGamma)
+	: Renderer(Shader::FromFile(vrtxShdr, fragShdr)), gammaValue(displayGamma)
 {
-	/* Load shader and fields from files. */
-	shdr = Shader::FromFile(vrtxShdr, fragShdr);
+	const Shader *shdr = GetShader();
 
 	/* Get uniforms. */
 	matMdl = shdr->GetUniform("u_transform.model");
@@ -58,47 +57,33 @@ Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fr
 	uv = shdr->GetAttribute("a_uv");
 }
 
-Plutonium::StaticRenderer::~StaticRenderer(void)
-{
-	delete_s(shdr);
-}
-
 void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 camPos, const DirectionalLight * sun, const PointLight * pointLight[4])
 {
-	/* Make sure we don't call begin twice. */
-	if (!beginCalled)
+	Renderer::Begin();
+
+	/* Set constant uniforms. */
+	matView->Set(view);
+	matProj->Set(proj);
+	gamma->Set(gammaValue);
+	this->camPos->Set(camPos);
+
+	sunLightDir->Set(sun->Direction);
+	sunLightAmbi->Set(sun->Ambient);
+	sunLightDiff->Set(sun->Diffuse);
+	sunLightSpec->Set(sun->Specular);
+
+	for (size_t i = 0; i < 4; i++)
 	{
-		/* Begin shader. */
-		beginCalled = true;
-		shdr->Begin();
-
-		/* Set constant uniforms. */
-		matView->Set(view);
-		matProj->Set(proj);
-		gamma->Set(gammaValue);
-		this->camPos->Set(camPos);
-
-		sunLightDir->Set(sun->Direction);
-		sunLightAmbi->Set(sun->Ambient);
-		sunLightDiff->Set(sun->Diffuse);
-		sunLightSpec->Set(sun->Specular);
-
-		for (size_t i = 0; i < 4; i++)
-		{
-			pointLightPos[i]->Set(view * pointLight[i]->Position);
-			pointLightAtten[i]->Set(Vector3(pointLight[i]->Constant, pointLight[i]->Linear, pointLight[i]->Quadratic));
-			pointLightAmbi[i]->Set(pointLight[i]->Ambient);
-			pointLightDiff[i]->Set(pointLight[i]->Diffuse);
-			pointLightSpec[i]->Set(pointLight[i]->Specular);
-		}
+		pointLightPos[i]->Set(view * pointLight[i]->Position);
+		pointLightAtten[i]->Set(Vector3(pointLight[i]->Constant, pointLight[i]->Linear, pointLight[i]->Quadratic));
+		pointLightAmbi[i]->Set(pointLight[i]->Ambient);
+		pointLightDiff[i]->Set(pointLight[i]->Diffuse);
+		pointLightSpec[i]->Set(pointLight[i]->Specular);
 	}
-	else LOG_WAR("Attempting to call Begin before calling End!");
 }
 
 void Plutonium::StaticRenderer::Render(const StaticObject * model)
 {
-	/* Make sure begin is called and set the model matrix. */
-	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 	matMdl->Set(model->GetWorld());
 
 	/* Render each shape. */
@@ -134,8 +119,6 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 
 void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 {
-	/* Make sure begin is called and set the model matrix. */
-	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
 	matMdl->Set(model->GetWorld());
 
 	/* Render each shape. */
@@ -154,15 +137,4 @@ void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 		/* Render current shape. */
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexBuffer()->GetElementCount()));
 	}
-}
-
-void Plutonium::StaticRenderer::End(void)
-{
-	/* Make sure end isn't called twice. */
-	if (beginCalled)
-	{
-		beginCalled = false;
-		shdr->End();
-	}
-	else LOG_WAR("Attempting to call End before calling Begin!");
 }

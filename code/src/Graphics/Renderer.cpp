@@ -15,9 +15,9 @@ void Plutonium::Renderer::End(void)
 	shdr->End();
 }
 
-void Plutonium::Renderer::DrawTris(const Buffer * buffer, int32 start)
+void Plutonium::Renderer::DrawTris(size_t elemCnt, int32 start)
 {
-	glDrawArrays(GL_TRIANGLES, start, static_cast<GLsizei>(buffer->GetElementCount()));
+	glDrawArrays(GL_TRIANGLES, start, static_cast<GLsizei>(elemCnt));
 }
 
 Plutonium::Renderer::Renderer(Shader * shader)

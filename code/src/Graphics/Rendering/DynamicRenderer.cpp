@@ -1,10 +1,9 @@
 #include "Graphics\Rendering\DynamicRenderer.h"
 
 Plutonium::DynamicRenderer::DynamicRenderer(const char * vrtxShdr, const char * fragShdr)
-	: beginCalled(false)
+	: Renderer(Shader::FromFile(vrtxShdr, fragShdr))
 {
-	/* Load shader and fields from files. */
-	shdr = Shader::FromFile(vrtxShdr, fragShdr);
+	const Shader *shdr = GetShader();
 
 	/* Get uniforms. */
 	matMdl = shdr->GetUniform("u_model");
@@ -23,34 +22,19 @@ Plutonium::DynamicRenderer::DynamicRenderer(const char * vrtxShdr, const char * 
 	uv = shdr->GetAttribute("a_uv");
 }
 
-Plutonium::DynamicRenderer::~DynamicRenderer(void)
-{
-	delete_s(shdr);
-}
-
 void Plutonium::DynamicRenderer::Begin(const Matrix & view, const Matrix & proj, Vector3 lightDir)
 {
-	/* Make sure we don't call begin twice. */
-	if (!beginCalled)
-	{
-		/* Begin shader. */
-		beginCalled = true;
-		shdr->Begin();
+	Renderer::Begin();
 
-		/* Set constant uniforms. */
-		matView->Set(view);
-		matProj->Set(proj);
-		ambient->Set(0.5f);
-		this->lightDir->Set(lightDir);
-	}
-	else LOG_WAR("Attempting to call Begin before calling End!");
+	/* Set constant uniforms. */
+	matView->Set(view);
+	matProj->Set(proj);
+	ambient->Set(0.5f);
+	this->lightDir->Set(lightDir);
 }
 
 void Plutonium::DynamicRenderer::Render(const DynamicObject * model)
 {
-	/* Make sure begin is called. */
-	ASSERT_IF(!beginCalled, "Cannot call Render before calling Begin!");
-
 	/* Set uniforms. */
 	matMdl->Set(model->GetWorld());
 	texture->Set(model->GetModel()->skin);
@@ -69,16 +53,5 @@ void Plutonium::DynamicRenderer::Render(const DynamicObject * model)
 	norm2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
 
 	/* Render current shape. */
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curFrame->GetVertexBuffer()->GetElementCount()));
-}
-
-void Plutonium::DynamicRenderer::End(void)
-{
-	/* Make sure end isn't called twice. */
-	if (beginCalled)
-	{
-		beginCalled = false;
-		shdr->End();
-	}
-	else LOG_WAR("Attempting to call End before calling Begin!");
+	DrawTris(curFrame->GetVertexBuffer());
 }

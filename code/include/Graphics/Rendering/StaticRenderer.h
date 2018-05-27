@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\Rendering\Shader.h"
+#include "Graphics\Renderer.h"
 #include "GameLogic\StaticObject.h"
 #include "GameLogic\EuclidRoom.h"
 #include "Graphics\Lighting\DirectionalLight.h"
@@ -9,14 +9,13 @@ namespace Plutonium
 {
 	/* Defines a very basic model renderer. */
 	struct StaticRenderer
+		: public Renderer
 	{
 	public:
 		/* Initializes a new instance of a basic model renderer. */
 		StaticRenderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr, _In_ float displayGamma);
 		StaticRenderer(_In_ const StaticRenderer &value) = delete;
 		StaticRenderer(_In_ StaticRenderer &&value) = delete;
-		/* Releases the resources allocated by the renderer. */
-		~StaticRenderer(void);
 
 		_Check_return_ StaticRenderer& operator =(_In_ const StaticRenderer &other) = delete;
 		_Check_return_ StaticRenderer& operator =(_In_ StaticRenderer &&other) = delete;
@@ -27,18 +26,14 @@ namespace Plutonium
 		void Render(_In_ const StaticObject *model);
 		/* Renders the specified room. */
 		void Render(_In_ const EuclidRoom *model);
-		/* Stops rendering the specified scene. */
-		void End(void);
 
 	private:
-		Shader *shdr;
 		Uniform *matMdl, *matView, *matProj, *camPos;
 		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 		Uniform *filter, *ambient, *diffuse, *specular, *specExp, *gamma;
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
 		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
 		Attribute *pos, *norm, *tan, *uv;
-		bool beginCalled;
 		float gammaValue;
 	};
 }
