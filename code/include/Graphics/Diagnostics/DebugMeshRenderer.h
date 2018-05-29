@@ -42,9 +42,9 @@ namespace Plutonium
 
 		/* Start rendering the specified scene. */
 		void Begin(_In_ const Matrix &view, const Matrix &proj);
-		/* Renders the specified model as a wireframe. */
+		/* Renders the specified model. */
 		void Render(_In_ const StaticObject *model, _In_opt_ Color color = Color::Red);
-		/* Render the specified model as a wireframe. */
+		/* Render the specified model. */
 		void Render(_In_ const DynamicObject *model, _In_opt_ Color color = Color::Yellow);
 		/* Stops rendering the specified scene. */
 		void End(void);

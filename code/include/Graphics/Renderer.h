@@ -29,10 +29,7 @@ namespace Plutonium
 		}
 
 		/* Signals OpenGL to draw the specified buffer as triangles. */
-		inline void DrawTris(_In_ const Buffer *buffer, _In_opt_ int32 start = 0)
-		{
-			DrawTris(buffer->GetElementCount(), start);
-		}
+		void DrawTris(_In_ const Buffer *buffer, _In_opt_ int32 start = 0);
 		/* Signals OpenGL to draw a specified amount of triangles. */
 		void DrawTris(_In_ size_t elemCnt, _In_opt_ int32 start = 0);
 

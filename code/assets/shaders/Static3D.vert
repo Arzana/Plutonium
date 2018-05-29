@@ -8,15 +8,6 @@ struct Transform
 	mat4 projection;
 };
 
-struct DLight
-{
-	vec3 direction;
-
-	vec4 ambient;
-	vec4 diffuse;
-	vec4 specular;
-};
-
 struct FragInfo
 {
 	vec3 position;
@@ -26,7 +17,6 @@ struct FragInfo
 
 // Uniforms.
 uniform Transform u_transform;
-uniform DLight u_light_sun;
 
 // Attributes.
 in vec3 a_position;
@@ -36,13 +26,9 @@ in vec2 a_uv;
 
 // Outputs.
 out FragInfo a_frag;
-out float a_diffuseIntensity;
 
 void main()
 {	
-	// Calculate diffuse light intensity.
-	a_diffuseIntensity = max(0.0, dot(a_normal, u_light_sun.direction));
-
 	// Calculate vertex world position for specular will be interpolated to be correct fragment position.
 	a_frag.position = (u_transform.view * u_transform.model * vec4(a_position, 1.0f)).xyz;
 	

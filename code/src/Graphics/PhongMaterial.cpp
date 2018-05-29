@@ -74,6 +74,22 @@ Plutonium::PhongMaterial::~PhongMaterial(void) noexcept
 	if (!loader->Unload(BumpMap)) delete_s(BumpMap);
 }
 
+Plutonium::PhongMaterial * Plutonium::PhongMaterial::GetDefault(void)
+{
+	/* Initialize variables. */
+	PhongMaterial *result = new PhongMaterial();
+	WindowHandler wnd = result->loader->GetWindow();
+
+	/* Set neutral maps. */
+	result->AmbientMap = CreateDefault(wnd);
+	result->DiffuseMap = CreateDefault(wnd);
+	result->SpecularMap = CreateDefault(wnd);
+	result->AlphaMap = CreateDefault(wnd);
+	result->BumpMap = CreateDefault(wnd, Color::Malibu);
+
+	return result;
+}
+
 void Plutonium::PhongMaterial::InitOptions(const ObjLoaderTextureMap * objOpt, TextureCreationOptions * texOpt)
 {
 	texOpt->SetWrapping(objOpt->ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);

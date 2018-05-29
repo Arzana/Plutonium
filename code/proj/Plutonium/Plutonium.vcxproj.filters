@@ -326,6 +326,9 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\LightingRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -644,6 +647,9 @@
       <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\LightingRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClInclude>
   </ItemGroup>

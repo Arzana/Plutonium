@@ -113,7 +113,7 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
+		DrawTris(buffer);
 	}
 }
 
@@ -135,6 +135,6 @@ void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
 		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 		/* Render current shape. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->Mesh->GetVertexBuffer()->GetElementCount()));
+		DrawTris(cur->Mesh->GetVertexBuffer());
 	}
 }

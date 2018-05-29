@@ -49,6 +49,9 @@ namespace Plutonium
 
 		_Check_return_ PhongMaterial& operator =(_In_ const PhongMaterial &other) = delete;
 		_Check_return_ PhongMaterial& operator =(_In_ PhongMaterial &&other) = delete;
+
+		/* Creates a neutral material (requires delete!). */
+		_Check_return_ static PhongMaterial* GetDefault(void);
 	private:
 		AssetLoader *loader;
 

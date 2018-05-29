@@ -55,7 +55,6 @@ uniform vec3 u_view_pos;
 
 // Inputs.
 in FragInfo a_frag;
-in float a_diffuseIntensity;
 
 // Outputs.
 out vec4 fragColor;
@@ -63,11 +62,12 @@ out vec4 fragColor;
 // Calculates the color change for the object from a specified directional light source.
 vec4 CalcDirectionalLight(DLight light, vec3 viewDir, vec3 normal)
 {
+	float intensity = max(0.0f, dot(normal, light.direction));
 	vec3 halfwayDir = normalize(light.direction + viewDir);
 	float power = pow(max(dot(normal, halfwayDir), 0.0f), u_colors.specularExponent);
 
 	vec4 ambient = texture(u_textures.ambient, a_frag.uv) * u_colors.ambient * light.ambient;
-	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * a_diffuseIntensity * light.diffuse;
+	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * intensity * light.diffuse;
 	vec4 specular = texture(u_textures.specular, a_frag.uv) * u_colors.specular * power * light.specular;
 
 	return ambient + diffuse + specular;
@@ -76,13 +76,14 @@ vec4 CalcDirectionalLight(DLight light, vec3 viewDir, vec3 normal)
 // Calculates the color change for the object from a specified point light source.
 vec4 CalcPointLight(PLight light, vec3 viewDir, vec3 normal)
 {
+	float intensity = max(0.0f, dot(normal, normalize(light.position - a_frag.position)));
 	float distance = length(light.position - a_frag.position);
 	float attenuation = 1.0f / (light.attenuation.x + light.attenuation.y * distance + light.attenuation.z * (distance * distance));
 	vec3 halfwayDir = normalize(normalize(light.position - a_frag.position) + viewDir);
 	float power = pow(max(dot(normal, halfwayDir), 0.0f), u_colors.specularExponent);
 
 	vec4 ambient = texture(u_textures.ambient, a_frag.uv) * u_colors.ambient * light.ambient * attenuation;
-	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * a_diffuseIntensity * light.diffuse * attenuation;
+	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * intensity * light.diffuse * attenuation;
 	vec4 specular = texture(u_textures.specular, a_frag.uv) * u_colors.specular * power * light.specular * attenuation;
 
 	return ambient + diffuse + specular;
