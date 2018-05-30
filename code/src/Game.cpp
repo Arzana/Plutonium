@@ -187,6 +187,9 @@ bool Plutonium::Game::Tick(bool focused, bool loading)
 
 void Plutonium::Game::DoInitialize(void)
 {
+	/* Make sure the render target is set to the window. */
+	device->SetRenderTarget(nullptr);
+
 	/* Initialize game specific components. */
 	Initialize();
 
@@ -232,10 +235,6 @@ void Plutonium::Game::DoUpdate(float dt)
 
 void Plutonium::Game::BeginRender(void)
 {
-	/* Set window specific viewport. */
-	const Rectangle vp = device->GetWindow()->GetClientBounds();
-	glViewport(static_cast<int>(vp.Position.X), static_cast<int>(vp.Position.Y), static_cast<int>(vp.GetWidth()), static_cast<int>(vp.GetHeight()));
-
 	/* Disable alpha blending and enable culling. */
 	device->SetAlphaBlendFunction(BlendState::None);
 	device->SetDepthTest(DepthState::LessOrEqual);

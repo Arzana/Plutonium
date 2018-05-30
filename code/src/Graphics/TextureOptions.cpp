@@ -38,5 +38,6 @@ const char * Plutonium::_CrtGetVisualTextureType(TextureType type)
 Plutonium::TextureCreationOptions::TextureCreationOptions(void)
 	: Type(TextureType::Texture2D),
 	HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat), DepthWrap(WrapMode::Repeat),
+	MinFilter(ZoomFilter::Linear), MagFilter(ZoomFilter::Linear),
 	Gain(0.0f), Range(1.0f)
 {}

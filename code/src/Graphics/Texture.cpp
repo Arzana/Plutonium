@@ -301,6 +301,6 @@ void Plutonium::Texture::SetPostDataTransferTextureOptions(const TextureCreation
 	glTexParameteri(target, GL_TEXTURE_WRAP_S, _CrtEnum2Int(config->HorizontalWrap));
 	glTexParameteri(target, GL_TEXTURE_WRAP_T, _CrtEnum2Int(config->VerticalWrap));
 	if (config->Type == TextureType::Texture3D || config->Type == TextureType::TextureCube) glTexParameteri(target, GL_TEXTURE_WRAP_R, _CrtEnum2Int(config->DepthWrap));
-	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, _CrtEnum2Int(config->MagFilter));
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, MipMapLevels ? GL_LINEAR_MIPMAP_LINEAR : _CrtEnum2Int(config->MinFilter));
 }

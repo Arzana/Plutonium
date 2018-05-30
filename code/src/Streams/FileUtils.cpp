@@ -43,6 +43,8 @@ bool Plutonium::_CrtDirectoryExists(const char * directory)
 
 void Plutonium::_CrtCreateDirectory(const char * directory)
 {
+	if (strlen(directory) < 1) return;
+
 #if defined(_WIN32)
 
 	/* Attempt to create the directory and throw (on debug) is failed. */

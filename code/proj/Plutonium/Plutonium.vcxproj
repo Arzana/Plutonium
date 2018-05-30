@@ -226,6 +226,7 @@
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Native\RenderTarget.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
     <ClCompile Include="..\..\src\Graphics\PhongMaterial.cpp" />
     <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp" />
@@ -322,6 +323,7 @@
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLSources.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\RenderTarget.h" />
     <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />

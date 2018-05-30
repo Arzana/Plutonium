@@ -114,6 +114,22 @@ void Plutonium::GraphicsAdapter::Clear(ClearTarget target)
 	glClear(_CrtEnum2Int(target));
 }
 
+void Plutonium::GraphicsAdapter::SetRenderTarget(const RenderTarget * target)
+{
+	if (target)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, target->ptrFb);
+		glViewport(0, 0, static_cast<GLsizei>(target->Width), static_cast<GLsizei>(target->Height));
+	}
+	else
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		const Rectangle vp = window->GetClientBounds();
+		glViewport(static_cast<GLsizei>(vp.Position.X), static_cast<GLsizei>(vp.Position.Y), static_cast<GLsizei>(vp.GetWidth()), static_cast<GLsizei>(vp.GetHeight()));
+	}
+}
+
 Plutonium::Vector2 Plutonium::GraphicsAdapter::ToOpenGL(Vector2 screenCoord)
 {
 	return Vector2(screenCoord.X, window->GetClientBounds().Size.Y - screenCoord.Y);

@@ -62,6 +62,7 @@ namespace Plutonium
 	private:
 		friend struct Uniform;
 		friend struct AssetLoader;
+		friend struct RenderTarget;
 
 		static constexpr size_t CUBEMAP_TEXTURE_COUNT = 6;
 

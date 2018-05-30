@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics\Native\Monitor.h"
 #include "Graphics\Native\Window.h"
+#include "Graphics\Native\RenderTarget.h"
 #include "Graphics\Native\BlendState.h"
 #include "Graphics\Native\BlendType.h"
 #include "Graphics\Native\FaceCullState.h"
@@ -61,6 +62,8 @@ namespace Plutonium
 
 		/* Clears the specified buffers. */
 		void Clear(_In_ ClearTarget target);
+		/* Sets the current render target (nullptr for none). */
+		void SetRenderTarget(_In_ const RenderTarget *target);
 
 		/* Gets the window associated with the context. */
 		_Check_return_ inline Window* GetWindow(void) const

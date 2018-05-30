@@ -61,6 +61,35 @@ namespace Plutonium
 #endif
 	};
 
+	/* Defines how the texture should me minified or maxified. */
+	enum class ZoomFilter : GLint
+	{
+#if defined(GL_NEAREST)
+		/* Uses the nearest (Manhattan) fragment value. */
+		Nearest = GL_NEAREST,
+#endif
+#if defined(GL_LINEAR)
+		/* Uses weighted average of vertical and horizontal wrap. */
+		Linear = GL_LINEAR,
+#endif
+#if defined(GL_NEAREST_MIPMAP_NEAREST)
+		/* Uses the closest matching mipmap and uses nearest zooming on that (minifying only!). */
+		NearestMipMapNearest = GL_NEAREST_MIPMAP_NEAREST,
+#endif
+#if defined(GL_LINEAR_MIPMAP_NEAREST)
+		/* Uses the weighted average mipmap and uses nearest zooming on that (minifying only!). */
+		LinearMipMapNearest = GL_LINEAR_MIPMAP_NEAREST,
+#endif
+#if defined(GL_NEAREST_MIPMAP_LINEAR)
+		/* Uses the closest matching mipmap and uses linear zooming on that (minifying only!). */
+		NearestMipMapLinear = GL_NEAREST_MIPMAP_LINEAR,
+#endif
+#if defined(GL_LINEAR_MIPMAP_LINEAR)
+		/* Uses the weighted average mipmap and uses linear zooming on that (minifying only!). */
+		LinearMipMapLinear = GL_LINEAR_MIPMAP_LINEAR
+#endif
+	};
+
 	/* Gets a string representing the specified texture type. */
 	_Check_return_ const char* _CrtGetVisualTextureType(_In_ TextureType type);
 
@@ -80,6 +109,10 @@ namespace Plutonium
 		WrapMode VerticalWrap;
 		/* Defines how the depth wrapping (R) should work. */
 		WrapMode DepthWrap;
+		/* Defines the minifying function of the texture. */
+		ZoomFilter MinFilter;
+		/* Defines the magnification function of the texture. */
+		ZoomFilter MagFilter;
 		/* Defines the base brightness of the texture. */
 		float Gain;
 		/* Defines the color range of the texture. */
