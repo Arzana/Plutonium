@@ -168,6 +168,7 @@ namespace Plutonium
 		const char *root;
 		size_t rootLen;
 		const char *state;
+		std::deque<const char*> loadStack;
 
 		std::deque<TextureLoadInfo*> queuedTextures;
 		std::deque<AssetLoadInfo<StaticModel>*> queuedSModels;
@@ -180,9 +181,9 @@ namespace Plutonium
 		std::vector<AssetInfo<Font>*> loadedFonts;
 
 		const char* CreateFullPath(const char *fpath);
-		void SetStateWaiting(void);
-		void SetStateLoading(const char *asset);
-		void SetStateLoadingInternal(const char *asset);
+		void PushState(const char *asset);
+		void PopState(void);
+		void UpdateState(void);
 		void SetState(const char *value);
 		void IoThreadInit(const TickThread*, EventArgs);
 		bool OnIoThread(void);
@@ -192,11 +193,11 @@ namespace Plutonium
 		int32 GetDModelIdx(const char *path);
 		int32 GetFontIdx(const char *path);
 
-		void LoadTextureInternal(TextureLoadInfo *info, bool updateState);
-		void LoadSkyboxInternal(TextureLoadInfo *info, bool updateState);
-		void LoadSModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState);
-		void LoadDModelInternal(DynamicModelLoadInfo *info, bool updateState);
-		void LoadFontInternal(FontLoadInfo *info, bool updateState);
+		void LoadTextureInternal(TextureLoadInfo *info);
+		void LoadSkyboxInternal(TextureLoadInfo *info);
+		void LoadSModelInternal(AssetLoadInfo<StaticModel> *info);
+		void LoadDModelInternal(DynamicModelLoadInfo *info);
+		void LoadFontInternal(FontLoadInfo *info);
 
 		void TickIoTextures(const TickThread*, EventArgs);
 		void TickIoSModels(const TickThread*, EventArgs);

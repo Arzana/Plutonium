@@ -64,23 +64,34 @@ void Plutonium::Texture::SetData(byte * data, const TextureCreationOptions * con
 	GenerateTexture(&data, config);
 }
 
-byte * Plutonium::Texture::GetData(void) const
+template <typename _Ty>
+_Ty * GetTypedData(WindowHandler wnd, uint32 hndlr, int32 size, int32 format)
 {
 	/* On debug mode crash if no texture is specified. */
-	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
+	ASSERT_IF(!hndlr, "Cannot get data from not-loaded texture!");
 
 	/* Initialize buffer result. */
-	byte *result = malloc_s(byte, Width * Height * GetChannels());
+	_Ty *result = malloc_s(_Ty, size);
 
 	/* Request data from GPU. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
-		glBindTexture(GL_TEXTURE_2D, ptr);
-		glGetTexImage(GL_TEXTURE_2D, 0, frmt, GL_UNSIGNED_BYTE, result);
+		glBindTexture(GL_TEXTURE_2D, hndlr);
+		glGetTexImage(GL_TEXTURE_2D, 0, format, GL_UNSIGNED_BYTE, result);
 	}));
 
 	/* Return supplied data. */
 	return result;
+}
+
+byte * Plutonium::Texture::GetData(void) const
+{
+	return GetTypedData<byte>(wnd, ptr, Width * Height * GetChannels(), frmt);
+}
+
+Color * Plutonium::Texture::GetColorData(void) const
+{
+	return GetTypedData<Color>(wnd, ptr, Width * Height, GL_RGBA);
 }
 
 void Plutonium::Texture::SaveAsPng(const char * path)

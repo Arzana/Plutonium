@@ -25,7 +25,7 @@ namespace Plutonium
 		{
 			return lineSpace;
 		}
-		/* gets the size of this font. */
+		/* Gets the size of this font. */
 		_Check_return_ inline float GetSize(void) const
 		{
 			return size;

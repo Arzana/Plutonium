@@ -1,6 +1,7 @@
 #pragma once
 #include "Core\Math\Constants.h"
 #include "Core\Math\Rectangle.h"
+#include "Graphics\Color.h"
 #include "Graphics\TextureOptions.h"
 #include "Graphics\Native\Window.h"
 
@@ -50,6 +51,8 @@ namespace Plutonium
 		void SetData(_In_ byte *data, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
 		/* Gets a copy of the data specified for the texture (requires free!). */
 		_Check_return_ byte* GetData(void) const;
+		/* Gets a copy of the data (as colors) specified for the texture (requires free!). */
+		_Check_return_ Color* GetColorData(void) const;
 		/* Saves the tetxure as a specified file. */
 		void SaveAsPng(_In_ const char *path);
 

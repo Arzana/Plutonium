@@ -278,7 +278,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		if (OnIoThread())
 		{
 			lockTex.unlock();
-			LoadTextureInternal(info, true);
+			LoadTextureInternal(info);
 		}
 		else
 		{
@@ -328,7 +328,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 		if (OnIoThread())
 		{
 			lockTex.unlock();
-			LoadSkyboxInternal(info, true);
+			LoadSkyboxInternal(info);
 		}
 		else
 		{
@@ -373,7 +373,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 		if (OnIoThread())
 		{
 			lockSMod.unlock();
-			LoadSModelInternal(info, true);
+			LoadSModelInternal(info);
 		}
 		else
 		{
@@ -418,7 +418,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 		if (OnIoThread())
 		{
 			lockDMod.unlock();
-			LoadDModelInternal(info, true);
+			LoadDModelInternal(info);
 		}
 		else
 		{
@@ -463,7 +463,7 @@ void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLo
 		if (OnIoThread())
 		{
 			lockFont.unlock();
-			LoadFontInternal(info, true);
+			LoadFontInternal(info);
 		}
 		else
 		{
@@ -562,33 +562,67 @@ const char * Plutonium::AssetLoader::CreateFullPath(const char * fpath)
 	return buffer;
 }
 
-void Plutonium::AssetLoader::SetStateWaiting(void)
+void Plutonium::AssetLoader::PushState(const char * asset)
 {
-	SetState("Waiting...");
+	loadStack.push_back(asset);
+	UpdateState();
 }
 
-void Plutonium::AssetLoader::SetStateLoading(const char * asset)
+void Plutonium::AssetLoader::PopState(void)
 {
-	char *buffer = malloca_s(char, 10 + strlen(asset));
-	mrgstr("Loading: ", asset, buffer);
-	SetState(buffer);
-	freea_s(buffer);
+	loadStack.pop_back();
+	UpdateState();
 }
 
-void Plutonium::AssetLoader::SetStateLoadingInternal(const char * asset)
+void Plutonium::AssetLoader::UpdateState(void)
 {
-	lockState.lock();
+	/* Defines prefix and seperator. */
+	constexpr const char *PREFIX = "Loading: ";
+	constexpr const char *SEPERATOR = "> ";
+	const size_t SEPERATOR_LEN = strlen(SEPERATOR);
+	const size_t PREFIX_LEN = strlen(PREFIX);
 
-	char *split[2] = { malloca_s(char, FILENAME_MAX), malloca_s(char, FILENAME_MAX) };
-	size_t cnt = spltstr(state, '>', split, 0);
-	char *buffer = malloca_s(char, strlen(split[0]) + strlen(asset) + 4);
-	const char *args[] = { split[0], "> ", asset };
-	mrgstr(args, 3, buffer);
-	lockState.unlock();
+	/* Set state to waiting if empty. */
+	if (loadStack.size() < 1)
+	{
+		SetState("Waiting...");
+		return;
+	}
 
+	/* Calculate final string length. */
+	size_t len = SEPERATOR_LEN * (loadStack.size() - 1);
+	for (size_t i = 0; i < loadStack.size(); i++)
+	{
+		len += strlen(loadStack.at(i));
+	}
+
+	/* Populate buffer. */
+	char *buffer = malloca_s(char, len + PREFIX_LEN + 1);
+	strncpy(buffer, PREFIX, PREFIX_LEN);
+
+	for (size_t i = 0, start = PREFIX_LEN; i < loadStack.size(); i++)
+	{
+		const char *cur = loadStack.at(i);
+		const size_t curLen = strlen(cur);
+
+		/* Add seperator if needed. */
+		if (i > 0)
+		{
+			strncpy(buffer + start, SEPERATOR, SEPERATOR_LEN);
+			start += SEPERATOR_LEN;
+		}
+
+		/* Add current asset. */
+		strncpy(buffer + start, cur, curLen);
+		start += curLen;
+	}
+
+	/* Add null terminator. */
+	buffer[len + PREFIX_LEN] = '\0';
+
+	/* Set state and free temporary buffer. */
 	SetState(buffer);
 	freea_s(buffer);
-	for (size_t i = 0; i < cnt; i++) freea_s(split[i]);
 }
 
 void Plutonium::AssetLoader::SetState(const char * value)
@@ -654,10 +688,10 @@ int32 Plutonium::AssetLoader::GetFontIdx(const char * path)
 	return -1;
 }
 
-void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool updateState)
+void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info)
 {
 	/* Update state is requested. */
-	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+	PushState(info->Names->GetFileNameWithoutExtension());
 
 	/* Load texture. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
@@ -672,12 +706,14 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info, bool upd
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
+
+	PopState();
 }
 
-void Plutonium::AssetLoader::LoadSkyboxInternal(TextureLoadInfo * info, bool updateState)
+void Plutonium::AssetLoader::LoadSkyboxInternal(TextureLoadInfo * info)
 {
 	/* Update state is requested. */
-	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+	PushState(info->Names->GetFileNameWithoutExtension());
 
 	/* Load texture. */
 	const char *paths[Texture::CUBEMAP_TEXTURE_COUNT];
@@ -693,12 +729,14 @@ void Plutonium::AssetLoader::LoadSkyboxInternal(TextureLoadInfo * info, bool upd
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
+
+	PopState();
 }
 
-void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info, bool updateState)
+void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info)
 {
 	/* Update state is requested. */
-	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+	PushState(info->Names->GetFileNameWithoutExtension());
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
@@ -713,12 +751,13 @@ void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
+
+	PopState();
 }
 
-void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info, bool updateState)
+void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info)
 {
-	/* Update state is requested. */
-	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+	PushState(info->Names->GetFileNameWithoutExtension());
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
@@ -733,12 +772,13 @@ void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info, bool
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
+
+	PopState();
 }
 
-void Plutonium::AssetLoader::LoadFontInternal(FontLoadInfo * info, bool updateState)
+void Plutonium::AssetLoader::LoadFontInternal(FontLoadInfo * info)
 {
-	/* Update state is requested. */
-	if (updateState) SetStateLoadingInternal(info->Names->GetFileNameWithoutExtension());
+	PushState(info->Names->GetFileNameWithoutExtension());
 
 	/* Load font. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
@@ -753,6 +793,8 @@ void Plutonium::AssetLoader::LoadFontInternal(FontLoadInfo * info, bool updateSt
 	/* Call callback. */
 	for (size_t i = 0; i < info->Callbacks.size(); i++) info->Callbacks.at(i).HandlePost(this, result->Asset);
 	delete_s(info);
+
+	PopState();
 }
 
 void Plutonium::AssetLoader::TickIoTextures(const TickThread *, EventArgs)
@@ -767,15 +809,13 @@ void Plutonium::AssetLoader::TickIoTextures(const TickThread *, EventArgs)
 
 		/* Unload the buffer to allow more additions whilst we load the texture. */
 		lockTex.unlock();
-		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		if (cur->Options && cur->Options->Type == TextureType::TextureCube) LoadSkyboxInternal(cur, false);
-		else LoadTextureInternal(cur, false);
+		if (cur->Options && cur->Options->Type == TextureType::TextureCube) LoadSkyboxInternal(cur);
+		else LoadTextureInternal(cur);
 		lockTex.lock();
 	}
 
 	/* Make sure we unlock the buffer. */
 	lockTex.unlock();
-	SetStateWaiting();
 }
 
 void Plutonium::AssetLoader::TickIoSModels(const TickThread *, EventArgs)
@@ -790,14 +830,12 @@ void Plutonium::AssetLoader::TickIoSModels(const TickThread *, EventArgs)
 
 		/* Unload the buffer to allow more additions whilst we load the model. */
 		lockSMod.unlock();
-		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		LoadSModelInternal(cur, false);
+		LoadSModelInternal(cur);
 		lockSMod.lock();
 	}
 
 	/* Make sure we unlock the buffer. */
 	lockSMod.unlock();
-	SetStateWaiting();
 }
 
 void Plutonium::AssetLoader::TickIoDModels(const TickThread *, EventArgs)
@@ -812,14 +850,12 @@ void Plutonium::AssetLoader::TickIoDModels(const TickThread *, EventArgs)
 
 		/* Unload the buffer to allow more additions whilst we load the model. */
 		lockDMod.unlock();
-		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		LoadDModelInternal(cur, false);
+		LoadDModelInternal(cur);
 		lockDMod.lock();
 	}
 
 	/* Make sure we unlock the buffer. */
 	lockDMod.unlock();
-	SetStateWaiting();
 }
 
 void Plutonium::AssetLoader::TickIoFonts(const TickThread *, EventArgs)
@@ -834,12 +870,10 @@ void Plutonium::AssetLoader::TickIoFonts(const TickThread *, EventArgs)
 
 		/* Unload the buffer to allow more additions whilst we load the font. */
 		lockFont.unlock();
-		SetStateLoading(cur->Names->GetFileNameWithoutExtension());
-		LoadFontInternal(cur, false);
+		LoadFontInternal(cur);
 		lockFont.lock();
 	}
 
 	/* Make sure we unlock the buffer. */
 	lockFont.unlock();
-	SetStateWaiting();
 }

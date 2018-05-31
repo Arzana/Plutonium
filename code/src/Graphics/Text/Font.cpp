@@ -133,7 +133,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 		if (x > 32)
 		{
 			/* Update final map size. */
-			finalMapSize.X = __max(finalMapSize.X, curLineSize.X);
+			finalMapSize.X = max(finalMapSize.X, curLineSize.X);
 			finalMapSize.Y += curLineSize.Y;
 
 			/* Reset current line. */
@@ -171,21 +171,21 @@ void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 		Character *cur = chars + c;
 
 		/* Render to temporary alpha buffer. */
-		int32 outw = static_cast<int32>(cur->Size.X), outh = static_cast<int32>(cur->Size.Y);
+		int32 outw = ipart(cur->Size.X), outh = ipart(cur->Size.Y);
 		if (outw < 1 || outh < 1) continue;
 
 		byte *alphaBuffer = malloc_s(byte, outw * outh);
 		stbtt_MakeCodepointBitmapSubpixel(info, alphaBuffer, outw, outh, outw, scale, scale, 0.0f, 0.0f, c);
 
 		/* Populate data. */
-		byte cv = static_cast<byte>(255);
+		const byte cv = static_cast<byte>(255);
 		for (int32 y = 0; y < outh; y++)
 		{
 			for (int32 x = 0; x < outw; x++)
 			{
 				/* Get indices for source and destination buffer. */
 				int32 i = y * outw + x;
-				int32 j = static_cast<int32>((cur->Bounds.Position.Y + y) * map->Width + (cur->Bounds.Position.X + x)) << 2;
+				int32 j = ipart((cur->Bounds.Position.Y + y) * map->Width + (cur->Bounds.Position.X + x)) << 2;
 
 				/* Set current pixel data. */
 				data[j] = cv;
