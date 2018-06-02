@@ -1,5 +1,6 @@
 #pragma once
 #include <glad\glad.h>
+#include <Core\Math\Constants.h>
 
 namespace Plutonium
 {
@@ -100,6 +101,10 @@ namespace Plutonium
 		const static TextureCreationOptions Default2D;
 		/* Defines the default options for a cubemap texture. */
 		const static TextureCreationOptions DefaultCube;
+		/* Defines the default options for a 2D texture with no mipmapping. */
+		const static TextureCreationOptions DefaultNoMipMap;
+		/* Defines the default options for a 2D depth texture. */
+		const static TextureCreationOptions DefaultDepthMap;
 
 		/* Defines what kind of texture this is. */
 		TextureType Type;
@@ -111,12 +116,18 @@ namespace Plutonium
 		WrapMode DepthWrap;
 		/* Defines the minifying function of the texture. */
 		ZoomFilter MinFilter;
+		/* Defines the minifying function of the texture when mipmaps are available. */
+		ZoomFilter MinFilterMipMap;
 		/* Defines the magnification function of the texture. */
 		ZoomFilter MagFilter;
 		/* Defines the base brightness of the texture. */
 		float Gain;
 		/* Defines the color range of the texture. */
 		float Range;
+		/* Defines the amount of mipmaps levels the texture should generate. */
+		int32 MipMapLevels;
+		/* Defines whether the texture should store its data as floats instead of bytes. */
+		bool IsDepth;
 
 		/* Initializes a new instance of texture options. */
 		TextureCreationOptions(void);
@@ -126,6 +137,7 @@ namespace Plutonium
 		{
 			HorizontalWrap = mode;
 			VerticalWrap = mode;
+			DepthWrap = mode;
 		}
 	};
 }

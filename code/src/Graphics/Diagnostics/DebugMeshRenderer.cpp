@@ -7,10 +7,10 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(WindowHandler wnd, DebuggableVal
 	nrenderer = new NormalRenderer();
 	ulrenderer = new UnlitRenderer();
 
-	defBmpMap = new Texture(1, 1, wnd, 0, "default");
+	defBmpMap = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
 	defBmpMap->SetData(Color::Malibu.ToArray());
 
-	defAlphaMap = new Texture(1, 1, wnd, 0, "default");
+	defAlphaMap = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
 	defAlphaMap->SetData(Color::White.ToArray());
 }
 

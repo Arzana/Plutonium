@@ -62,7 +62,7 @@ namespace Plutonium
 
 		/* Clears the specified buffers. */
 		void Clear(_In_ ClearTarget target);
-		/* Sets the current render target (nullptr for none). */
+		/* Sets the current render target (nullptr for window). */
 		void SetRenderTarget(_In_ const RenderTarget *target);
 
 		/* Gets the window associated with the context. */

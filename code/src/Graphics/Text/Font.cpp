@@ -155,7 +155,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 	finalMapSize.X = max(finalMapSize.X, curLineSize.X);
 	finalMapSize.Y += curLineSize.Y;
 	lineSpace += lineGap;
-	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), wnd, 0, "Fontmap");
+	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), wnd, &TextureCreationOptions::DefaultNoMipMap, "Fontmap");
 }
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)

@@ -68,7 +68,7 @@ vec4 CalcDirectionalLight(DLight light, vec3 viewDir, vec3 normal)
 
 	vec4 ambient = texture(u_textures.ambient, a_frag.uv) * u_colors.ambient * light.ambient;
 	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * intensity * light.diffuse;
-	vec4 specular = texture(u_textures.specular, a_frag.uv) * u_colors.specular * power * light.specular;
+	vec4 specular = texture(u_textures.specular, a_frag.uv).r * u_colors.specular * power * light.specular;
 
 	return ambient + diffuse + specular;
 }
@@ -84,7 +84,7 @@ vec4 CalcPointLight(PLight light, vec3 viewDir, vec3 normal)
 
 	vec4 ambient = texture(u_textures.ambient, a_frag.uv) * u_colors.ambient * light.ambient * attenuation;
 	vec4 diffuse = texture(u_textures.diffuse, a_frag.uv) * u_colors.diffuse * intensity * light.diffuse * attenuation;
-	vec4 specular = texture(u_textures.specular, a_frag.uv) * u_colors.specular * power * light.specular * attenuation;
+	vec4 specular = texture(u_textures.specular, a_frag.uv).r * u_colors.specular * power * light.specular * attenuation;
 
 	return ambient + diffuse + specular;
 }

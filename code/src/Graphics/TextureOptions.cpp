@@ -2,15 +2,35 @@
 
 using namespace Plutonium;
 
-TextureCreationOptions CreateDefaultCubeMap()
+TextureCreationOptions CreateDefaultCubeMap(void)
 {
 	TextureCreationOptions result;
 	result.Type = TextureType::TextureCube;
 	return result;
 }
 
+TextureCreationOptions CreateDefaultNoMipMap(void)
+{
+	TextureCreationOptions result;
+	result.MipMapLevels = 0;
+	return result;
+}
+
+TextureCreationOptions CreateDefaultDepthMap(void)
+{
+	TextureCreationOptions result;
+	result.MipMapLevels = 0;
+	result.IsDepth = true;
+	result.MagFilter = ZoomFilter::Nearest;
+	result.MinFilter = ZoomFilter::Nearest;
+	result.MinFilterMipMap = ZoomFilter::Nearest;
+	return result;
+}
+
 const TextureCreationOptions TextureCreationOptions::Default2D = TextureCreationOptions();
 const TextureCreationOptions TextureCreationOptions::DefaultCube = CreateDefaultCubeMap();
+const TextureCreationOptions TextureCreationOptions::DefaultNoMipMap = CreateDefaultNoMipMap();
+const TextureCreationOptions TextureCreationOptions::DefaultDepthMap = CreateDefaultDepthMap();
 
 const char * Plutonium::_CrtGetVisualTextureType(TextureType type)
 {
@@ -36,8 +56,8 @@ const char * Plutonium::_CrtGetVisualTextureType(TextureType type)
 }
 
 Plutonium::TextureCreationOptions::TextureCreationOptions(void)
-	: Type(TextureType::Texture2D),
+	: Type(TextureType::Texture2D), IsDepth(false),
 	HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat), DepthWrap(WrapMode::Repeat),
-	MinFilter(ZoomFilter::Linear), MagFilter(ZoomFilter::Linear),
-	Gain(0.0f), Range(1.0f)
+	MinFilter(ZoomFilter::Linear), MinFilterMipMap(ZoomFilter::LinearMipMapLinear), MagFilter(ZoomFilter::Linear),
+	Gain(0.0f), Range(1.0f), MipMapLevels(4)
 {}

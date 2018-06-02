@@ -21,6 +21,7 @@ Plutonium::FieldType TextureTypeToFieldType(Plutonium::TextureType type)
 	case Plutonium::TextureType::Texture2DMultiSample:
 	default:
 		LOG_THROW("Cannot curretly use texture type %s in Uniform!", Plutonium::_CrtGetVisualTextureType(type));
+		return Plutonium::FieldType::Invalid;
 	}
 }
 #else
@@ -93,9 +94,9 @@ void Plutonium::Uniform::Set(const Matrix & value)
 void Plutonium::Uniform::Set(const Texture * value)
 {
 	ASSERT_IF(!value, "texture cannot be null!");
-	DBG_CHECK(TextureTypeToFieldType(value->target));
+	DBG_CHECK(TextureTypeToFieldType(value->config.Type));
 
 	glActiveTexture(GL_TEXTURE0 + sampler);
-	glBindTexture(_CrtEnum2Int(value->target), value->ptr);
+	glBindTexture(_CrtEnum2Int(value->config.Type), value->ptr);
 	glUniform1i(ptr, sampler);
 }

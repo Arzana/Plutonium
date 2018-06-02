@@ -99,7 +99,7 @@ void Plutonium::PhongMaterial::InitOptions(const ObjLoaderTextureMap * objOpt, T
 
 Plutonium::Texture * Plutonium::PhongMaterial::CreateDefault(WindowHandler wnd, Color filler)
 {
-	Texture *result = new Texture(1, 1, wnd, 0, "default");
+	Texture *result = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
 	result->SetData(filler.ToArray());
 	return result;
 }

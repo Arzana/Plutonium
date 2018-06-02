@@ -1,57 +1,55 @@
 #include "Graphics\Native\RenderTarget.h"
 #include "Graphics\GraphicsAdapter.h"
-#include <glad\glad.h>
 
-Plutonium::RenderTarget::RenderTarget(GraphicsAdapter * device, int32 width, int32 height)
-	: Width(width), Height(height)
+Plutonium::RenderTarget::RenderTarget(GraphicsAdapter * device, RenderTargetType type, int32 width, int32 height)
+	: Width(width), Height(height), ptrDb(0)
 {
-	/* Generate frame and depth buffers. */
-	GenBuffers();
+	/* Create frame buffer and depth buffer if needed. */
+	GenBuffers(type != RenderTargetType::Color);
 
-	/* Create underlying texture. */
-	texture = new Texture(width, height, device->GetWindow(), 0, "RenderTarget");
-	TextureCreationOptions opt;
-	opt.MagFilter = ZoomFilter::Nearest;
-	opt.MinFilter = ZoomFilter::Nearest;
+	/* Create underlying texture target. */
+	const TextureCreationOptions *opt = &(type == RenderTargetType::Depth ? TextureCreationOptions::DefaultDepthMap : TextureCreationOptions::DefaultNoMipMap);
+	target = new Texture(width, height, device->GetWindow(), opt, "RenderTarget");
 
-	/* Set texture data for first time. */
-	byte *data = malloca_s(byte, Width * Height);
-	texture->SetData(data, &opt);
+	/* Configure the render target. */
+	Configure(type == RenderTargetType::Depth);
 
-	/* Configure the frame buffer. */
-	Configure();
-
-	/* Reset state. */
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	freea_s(data);
+	/* Reset the frame buffer to its default state. */
+	device->SetRenderTarget(nullptr);
 }
 
 Plutonium::RenderTarget::~RenderTarget(void)
 {
-	delete_s(texture);
+	delete_s(target);
 	glDeleteFramebuffers(1, &ptrFb);
-	glDeleteRenderbuffers(1, &ptrDb);
+	if (ptrDb) glDeleteRenderbuffers(1, &ptrDb);
 }
 
-void Plutonium::RenderTarget::GenBuffers(void)
+void Plutonium::RenderTarget::GenBuffers(bool addDepthComponent)
 {
 	/* Generate frame buffer. */
 	glGenFramebuffers(1, &ptrFb);
 	glBindFramebuffer(GL_FRAMEBUFFER, ptrFb);
 
-	/* Generate depth buffer. */
-	glGenRenderbuffers(1, &ptrDb);
-	glBindRenderbuffer(GL_RENDERBUFFER, ptrDb);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<GLsizei>(Width), static_cast<GLsizei>(Height));
+	/* Generate depth buffer is desired. */
+	if (addDepthComponent)
+	{
+		glGenRenderbuffers(1, &ptrDb);
+		glBindRenderbuffer(GL_RENDERBUFFER, ptrDb);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<GLsizei>(Width), static_cast<GLsizei>(Height));
+	}
 }
 
-void Plutonium::RenderTarget::Configure(void)
+void Plutonium::RenderTarget::Configure(bool isDepth)
 {
-	/* Bind color and depth buffers. */
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ptrDb);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture->ptr, 0);
+	/* Bind texture buffer and depth buffer if needed. */
+	if (ptrDb) glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ptrDb);
+	glFramebufferTexture(GL_FRAMEBUFFER, isDepth ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0, target->ptr, 0);
 
-	/* Set list of draw buffers. */
-	GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, buffers);
+	/* Set the draw buffers if any. */
+	if (!isDepth)
+	{
+		const GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, buffers);
+	}
 }
