@@ -14,7 +14,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a debug sprite renderer. */
-		DebugSpriteRenderer(_In_ Game *game, _In_ const char *vrtxShdr, _In_ const char *fragShdr, _In_opt_ Vector2 resetPos = Vector2(0.0f, 100.0f), _In_opt_ Vector2 moveMod = Vector2::UnitY);
+		DebugSpriteRenderer(_In_ Game *game, _In_opt_ Vector2 resetPos = Vector2(0.0f, 100.0f), _In_opt_ Vector2 moveMod = Vector2::UnitY);
 		DebugSpriteRenderer(_In_ const DebugSpriteRenderer &value) = delete;
 		DebugSpriteRenderer(_In_ DebugSpriteRenderer &&value) = delete;
 

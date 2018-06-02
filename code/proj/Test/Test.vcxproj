@@ -170,9 +170,6 @@
     </None>
     <None Include="..\..\assets\shaders\Skybox.frag" />
     <None Include="..\..\assets\shaders\Skybox.vert" />
-    <None Include="..\..\assets\shaders\Static2D.vert">
-      <FileType>Document</FileType>
-    </None>
     <None Include="..\..\assets\shaders\Static3D.vert">
       <FileType>Document</FileType>
     </None>
@@ -181,7 +178,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\assets\shaders\Static2D.frag" />
     <None Include="..\..\assets\shaders\Static3D.frag" />
     <None Include="..\..\assets\shaders\Text2D.frag" />
   </ItemGroup>

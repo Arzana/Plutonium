@@ -97,6 +97,8 @@ namespace Plutonium
 		/* Posts an event to all registered subscribers. */
 		void Post(_In_ const _STy *sender, _In_ _ArgTy ... args)
 		{
+			ASSERT_IF(!sender, "Event sender cannot be null!");
+
 			lock.lock();
 			for (size_t i = 0; i < callbacks.size(); i++) callbacks.at(i)->HandlePost(sender, args...);
 			lock.unlock();

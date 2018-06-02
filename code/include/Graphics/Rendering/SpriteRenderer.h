@@ -13,7 +13,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a basic sprite renderer. */
-		SpriteRenderer(_In_ GraphicsAdapter *device, _In_ const char *vrtxShdr, _In_ const char * fragShdr);
+		SpriteRenderer(_In_ GraphicsAdapter *device);
 		SpriteRenderer(_In_ const SpriteRenderer &value) = delete;
 		SpriteRenderer(_In_ SpriteRenderer &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
@@ -25,13 +25,18 @@ namespace Plutonium
 		/* Starts rendering the specified scene. */
 		void Begin(void);
 		/* Renders the specified sprite. */
-		void Render(_In_ const Texture *sprite, _In_ Vector2 position, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f);
+		inline void Render(_In_ const Texture *sprite, _In_ Vector2 position, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f)
+		{
+			Render(sprite, Rectangle(position, sprite->GetSize()), color, scale, rotation);
+		}
+		/* Renders the specified sprite. */
+		void Render(_In_ const Texture *sprite, _In_ Rectangle bounds, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f);
 
 	protected:
 		GraphicsAdapter *device;
 
 	private:
-		Uniform *matVp, *matMdl, *texture, *color;
+		Uniform *matVp, *matMdl, *texture, *color, *bounds;
 		Attribute *posUv;
 		Buffer *mesh;
 		Matrix proj;

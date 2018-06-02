@@ -2,10 +2,10 @@
 #include "Graphics\Rendering\SpriteRenderer.h"
 #include "Game.h"
 
-Plutonium::DebugSpriteRenderer::DebugSpriteRenderer(Game * game, const char * vrtxShdr, const char * fragShdr, Vector2 resetPos, Vector2 moveMod)
+Plutonium::DebugSpriteRenderer::DebugSpriteRenderer(Game * game, Vector2 resetPos, Vector2 moveMod)
 	: DebugRenderer(game, resetPos, moveMod), spacing(10.0f)
 {
-	renderer = new SpriteRenderer(game->GetGraphics(), vrtxShdr, fragShdr);
+	renderer = new SpriteRenderer(game->GetGraphics());
 }
 
 void Plutonium::DebugSpriteRenderer::AddDebugTexture(const Texture * sprite, Color color, Vector2 scale, float rotation)

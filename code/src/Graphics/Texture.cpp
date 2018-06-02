@@ -309,6 +309,7 @@ void Plutonium::Texture::GetDataAsBytes(byte * buffer) const
 {
 	/* On debug mode crash if no texture is specified. */
 	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
+	ASSERT_IF(config.Type == TextureType::TextureCube, "Cannot get data from cube map at this point!");
 
 	/* Populate buffer. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
@@ -322,6 +323,7 @@ void Plutonium::Texture::GetDataAsFloats(float * buffer) const
 {
 	/* On debug mode crash if no texture is specified. */
 	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
+	ASSERT_IF(config.Type == TextureType::TextureCube, "Cannot get data from cube map at this point!");
 
 	/* Populate buffer. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
@@ -335,6 +337,7 @@ void Plutonium::Texture::GetDataAsRGB(Color * buffer) const
 {
 	/* On debug mode crash if no texture is specified. */
 	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
+	ASSERT_IF(config.Type == TextureType::TextureCube, "Cannot get data from cube map at this point!");
 
 	/* Get raw data. */
 	byte *raw = malloca_s(byte, Width * Height * 3);
@@ -358,6 +361,7 @@ void Plutonium::Texture::GetDataAsRGBA(Color * buffer) const
 {
 	/* On debug mode crash if no texture is specified. */
 	ASSERT_IF(!ptr, "Cannot get data from not-loaded texture!");
+	ASSERT_IF(config.Type == TextureType::TextureCube, "Cannot get data from cube map at this point!");
 
 	/* Get raw data. */
 	byte *raw = malloca_s(byte, Width * Height * 3);

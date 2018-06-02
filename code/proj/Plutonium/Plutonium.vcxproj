@@ -240,6 +240,7 @@
     <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\StitchedTexture2D.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
     <ClCompile Include="..\..\src\Graphics\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\StitchedTexture2D.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
     <ClInclude Include="..\..\include\Graphics\PhongMaterial.h" />
     <ClInclude Include="..\..\include\Graphics\Texture.h" />

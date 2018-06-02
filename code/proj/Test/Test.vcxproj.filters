@@ -37,9 +37,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\assets\shaders\Static2D.frag">
-      <Filter>Resource Files\Shaders\Fragment</Filter>
-    </None>
     <None Include="..\..\assets\shaders\Static3D.frag">
       <Filter>Resource Files\Shaders\Fragment</Filter>
     </None>
@@ -53,9 +50,6 @@
       <Filter>Resource Files\Shaders\Vertex</Filter>
     </None>
     <None Include="..\..\assets\shaders\Static3D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </None>
-    <None Include="..\..\assets\shaders\Static2D.vert">
       <Filter>Resource Files\Shaders\Vertex</Filter>
     </None>
     <None Include="..\..\assets\shaders\PortalFrame3D.vert">
