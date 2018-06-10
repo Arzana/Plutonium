@@ -25,7 +25,7 @@ Plutonium::Buffer::~Buffer(void) noexcept
 	}
 }
 
-void Plutonium::Buffer::Bind(void)
+void Plutonium::Buffer::Bind(void) const
 {
 	/* Error check if glDeleteBuffers has already been called and if the target is correct. */
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");

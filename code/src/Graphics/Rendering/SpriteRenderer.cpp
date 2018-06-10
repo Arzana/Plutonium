@@ -80,10 +80,7 @@ void Plutonium::SpriteRenderer::Render(const Texture * sprite, Rectangle bounds,
 	/* Construct model matrix. */
 	const Vector2 position = device->ToOpenGL(bounds.Position);
 	const Vector2 size = bounds.Size / sprite->GetSize();
-
-	const Matrix model = Matrix::CreateTranslation(position.X, position.Y, 0.0f)
-		* Matrix::CreateRotationZ(rotation)
-		* Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
+	const Matrix model = Matrix::CreateWorld(position, rotation, scale);
 
 	/* Set uniforms. */
 	matMdl->Set(model);
@@ -119,6 +116,5 @@ void Plutonium::SpriteRenderer::UpdateVBO(Vector2 size)
 		Vector4(size.X, 0.0f, 1.0f, 1.0f)		// bottom-right
 	};
 
-	mesh->Bind();
 	mesh->SetData(vertices, 6);
 }

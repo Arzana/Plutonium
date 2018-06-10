@@ -21,8 +21,8 @@ namespace Plutonium
 		_Check_return_ Buffer& operator =(_In_ const Buffer &other) = delete;
 		_Check_return_ Buffer& operator =(_In_ Buffer &&other) = delete;
 
-		/* Binds the buffer to the same target as last time. */
-		void Bind(void);
+		/* Binds the buffer to be used. */
+		void Bind(void) const;
 		/* Sets the data for the specified buffer. */
 		template <typename _Ty>
 		inline void SetData(_In_ BufferUsage usage, _In_ const _Ty *data, _In_ size_t count)

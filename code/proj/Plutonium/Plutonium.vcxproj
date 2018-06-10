@@ -219,6 +219,8 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
@@ -269,6 +271,7 @@
     <ClInclude Include="..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\include\Core\Events\EventBus.h" />
     <ClInclude Include="..\..\include\Core\Events\EventSubscriber.h" />
+    <ClInclude Include="..\..\include\Core\Events\ValueChangedEventArgs.h" />
     <ClInclude Include="..\..\include\Core\Math\Basics.h" />
     <ClInclude Include="..\..\include\Core\Math\Box.h" />
     <ClInclude Include="..\..\include\Core\Math\Constants.h" />
@@ -302,6 +305,9 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h" />
@@ -355,6 +361,7 @@
     <ClInclude Include="..\..\include\Input\Cursor.h" />
     <ClInclude Include="..\..\include\Input\Keyboard.h" />
     <ClInclude Include="..\..\include\Input\KeyEventArgs.h" />
+    <ClInclude Include="..\..\include\Input\KeyMods.h" />
     <ClInclude Include="..\..\include\Input\Keys.h" />
     <ClInclude Include="..\..\include\Input\KeyState.h" />
     <ClInclude Include="..\..\include\Streams\FileReader.h" />

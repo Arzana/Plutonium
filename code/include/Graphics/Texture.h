@@ -8,7 +8,7 @@
 namespace Plutonium
 {
 	/* Defines a basic 2D texture used in rendering. */
-	struct Texture
+	typedef const struct Texture
 	{
 		/* The width of the texture. */
 		const int32 Width;
@@ -85,7 +85,7 @@ namespace Plutonium
 		void GetDataAsFloats(float *buffer) const;
 		void GetDataAsRGB(Color *buffer) const;
 		void GetDataAsRGBA(Color *buffer) const;
-	};
+	} *TextureHandler;
 
 	template<typename _Ty>
 	inline void Texture::GetData(_Ty * buffer) const

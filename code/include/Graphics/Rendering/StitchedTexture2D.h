@@ -31,7 +31,7 @@ namespace Plutonium
 		void End(void);
 
 		/* Gets the result of the texture stitching process. */
-		_Check_return_ inline const Texture* GetTexture(void) const
+		_Check_return_ inline TextureHandler GetTexture(void) const
 		{
 			return target->GetTexture();
 		}

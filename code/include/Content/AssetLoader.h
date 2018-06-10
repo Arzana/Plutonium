@@ -46,7 +46,7 @@ namespace Plutonium
 		void SetRoot(_In_ const char *root);
 
 		/* Removes a refrence to the specified texture. */
-		bool Unload(_In_ const Texture *texture);
+		bool Unload(_In_ TextureHandler texture);
 		/* Removes a refrence to the specified model. */
 		bool Unload(_In_ const StaticModel *model);
 		/* Removes a refrence to the specified model. */

@@ -3,7 +3,7 @@
 namespace Plutonium
 {
 	/* Defines the states a key can be in. */
-	enum class KeyState
+	enum class KeyState : int
 	{
 		/* The key is released. */
 		Up,

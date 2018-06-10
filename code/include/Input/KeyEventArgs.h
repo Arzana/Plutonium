@@ -2,6 +2,8 @@
 #include <sal.h>
 #include "Keys.h"
 #include "KeyState.h"
+#include "KeyMods.h"
+#include "Core\EnumUtils.h"
 #include "Core\Events\EventArgs.h"
 
 namespace Plutonium
@@ -16,11 +18,11 @@ namespace Plutonium
 		/* The platform specific code for the key. */
 		int ScanCode;
 		/* The modifiers that are active during the key press. */
-		int Mods;
+		KeyMods Mods;
 
 		/* Initializes a new instance of the KeyEventArgs object. */
 		KeyEventArgs(_In_ int key, _In_ int scancode, _In_ int action, int mods)
-			: Key(static_cast<Keys>(key)), Action(static_cast<KeyState>(action)), ScanCode(scancode), Mods(mods)
+			: Key(_CrtInt2Enum<Keys>(key)), Action(_CrtInt2Enum<KeyState>(action)), ScanCode(scancode), Mods(_CrtInt2Enum<KeyMods>(mods))
 		{}
 	};
 }

@@ -42,6 +42,8 @@ namespace Plutonium
 
 		/* Gets the current position of the cursor. */
 		_Check_return_ Vector2 GetPosition(void) const;
+		/* Gets whether the cursor is visible. */
+		_Check_return_ bool IsVisible(void) const;
 		/* Sets the cursor position, relative to the screen! */
 		void SetPosition(_In_ Vector2 position);
 		/* Disables the cursor, disabling it from moving and causing events. */

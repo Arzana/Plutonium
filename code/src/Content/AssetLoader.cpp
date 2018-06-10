@@ -103,7 +103,7 @@ void Plutonium::AssetLoader::SetRoot(const char * root)
 	lockRoot.unlock();
 }
 
-bool Plutonium::AssetLoader::Unload(const Texture * texture)
+bool Plutonium::AssetLoader::Unload(TextureHandler texture)
 {
 	/* Check if texture was loaded from file. */
 	ASSERT_IF(!texture, "Input texture cannot be null!");

@@ -8,30 +8,32 @@ namespace Plutonium
 	struct Color
 	{
 	public:
-		/* Defines a black transparent color. */
-		const static Color Transparent;
 		/* Defines a black opaque color. */
 		const static Color Black;
-		/* Defines a red opaque color. */
-		const static Color Red;
-		/* Defines a green opaque color. */
-		const static Color Green;
 		/* Defines a blue opaque color. */
 		const static Color Blue;
 		/* Defines a cyan opaque color. */
 		const static Color Cyan;
+		/* Defines a green opaque color. */
+		const static Color Green;
+		/* Defines the color of a default normal pointing forwards. */
+		const static Color Malibu;
 		/* Defines a magenta opaque color. */
 		const static Color Magenta;
-		/* Defines a yellow opaque color. */
-		const static Color Yellow;
-		/* Defines a white opaque color. */
-		const static Color White;
+		/* Defines a red opaque color. */
+		const static Color Red;
 		/* Defines the color of the sun during the day. */
 		const static Color SunDay;
 		/* Defines the color of the sun during dawn and dusk. */
 		const static Color SunDawn;
-		/* Defines the color of a default normal pointing forwards. */
-		const static Color Malibu;
+		/* Defines a black transparent color. */
+		const static Color Transparent;
+		/* Defines a white opaque color. */
+		const static Color White;
+		/* Defines a white-smoke color.  */
+		const static Color WhiteSmoke;
+		/* Defines a yellow opaque color. */
+		const static Color Yellow;
 
 		union
 		{

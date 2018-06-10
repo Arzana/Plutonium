@@ -36,7 +36,7 @@ namespace Plutonium
 		_Check_return_ RenderTarget& operator =(_In_ RenderTarget &&other) = delete;
 
 		/* Gets the underlying texture buffer. */
-		_Check_return_ inline const Texture* GetTexture(void) const
+		_Check_return_ inline TextureHandler GetTexture(void) const
 		{
 			return target;
 		}

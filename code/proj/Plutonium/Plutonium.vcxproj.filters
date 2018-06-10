@@ -126,6 +126,18 @@
     <Filter Include="Source Files\Graphics\Diagnostics\ViewModes">
       <UniqueIdentifier>{fb1229aa-ca7d-448c-b31a-8f2b6ec21d9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\GUI">
+      <UniqueIdentifier>{334665d7-1be2-4acf-b453-e9bc63c170a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\GUI\Core">
+      <UniqueIdentifier>{2b12d248-6dbd-4787-a4d9-29a1bdb4d4b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GUI">
+      <UniqueIdentifier>{db006495-b302-45c8-b527-cac14a8c6a42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GUI\Core">
+      <UniqueIdentifier>{c6f4b171-8fe7-4451-b9a2-be3e109f984e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -334,6 +346,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\StitchedTexture2D.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp">
+      <Filter>Source Files\Graphics\GUI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp">
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -663,6 +681,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Rendering\StitchedTexture2D.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Events\ValueChangedEventArgs.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h">
+      <Filter>Header Files\Graphics\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Input\KeyMods.h">
+      <Filter>Header Files\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

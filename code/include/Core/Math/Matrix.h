@@ -1,4 +1,5 @@
 #pragma once
+#include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
 
@@ -115,6 +116,12 @@ namespace Plutonium
 			const float c = cosf(theta);
 			const float s = sinf(theta);
 			return Matrix(c, -s, 0.0f, 0.0f, s, c, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		}
+
+		/* Create a 2D world matrix from the specified parameters. */
+		_Check_return_ static inline Matrix CreateWorld(_In_ Vector2 pos, _In_ float theta, _In_ Vector2 scale)
+		{
+			return Matrix::CreateTranslation(pos.X, pos.Y, 0.0f) * Matrix::CreateRotationZ(theta) * Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
 		}
 
 		/* Creates an orthographics projection matrix. */

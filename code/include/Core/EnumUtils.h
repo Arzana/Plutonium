@@ -47,7 +47,7 @@ namespace Plutonium
 	template <typename _EnumTy>
 	_Check_return_ inline constexpr bool _CrtEnumCheckFlag(_In_ _EnumTy e, _In_ _EnumTy flag)
 	{
-		return _CrtEnum2Int(_CrtEnumBitAnd(e, flag)) != 0;
+		return _CrtEnumBitAnd(e, flag) == flag;
 	}
 
 	/* Removes a specified flag from the specified enum value. */
