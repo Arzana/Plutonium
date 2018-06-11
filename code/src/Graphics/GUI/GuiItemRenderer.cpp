@@ -132,6 +132,7 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 		"		vec4 texel = texture(background, uv);									\n"
 		"		fragColor = texel * backgroundFilter;									\n"
 		"	}																			\n"
+		"	else fragColor = vec4(0.0f);												\n"
 		"}";
 
 	basic.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
