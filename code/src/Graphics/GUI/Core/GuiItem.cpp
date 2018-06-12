@@ -171,8 +171,7 @@ void Plutonium::GuiItem::SetName(const char * name)
 {
 	if (!strcmp(this->name, name)) return;
 
-	ValueChangedEventArgs<const char*> args(heapstr(this->name), name);
-	free_s(this->name);
+	ValueChangedEventArgs<const char*> args(this->name, name);
 	this->name = heapstr(name);
 	NameChanged.Post(this, args);
 

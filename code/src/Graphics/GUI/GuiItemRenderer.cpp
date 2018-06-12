@@ -139,6 +139,7 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 	basic.matMdl = basic.shdr->GetUniform("model");
 	basic.background = basic.shdr->GetUniform("background");
 	basic.clrBack = basic.shdr->GetUniform("backgroundFilter");
+	//basic.clrResiz = basic.shdr->GetUniform("");
 	basic.rounding = basic.shdr->GetUniform("border");
 	basic.pos = basic.shdr->GetUniform("pos");
 	basic.size = basic.shdr->GetUniform("size");

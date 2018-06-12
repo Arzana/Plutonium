@@ -132,6 +132,7 @@ struct TestGame
 		item->SetName("TestGuiItem");
 		item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
 		item->MoveRelative(Anchors::Center);
+		item->SetSizable(true);
 		item->Hover.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(1.0f, 1.0f, 0.0f, 0.5f)); });
 		item->HoverLeave.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f)); });
 		item->Clicked.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(1.0f, 0.0f, 0.0f, 0.5f)); });
