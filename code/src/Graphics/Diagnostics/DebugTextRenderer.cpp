@@ -1,5 +1,5 @@
 #include "Graphics\Diagnostics\DebugTextRenderer.h"
-#include "Graphics\Text\TextRenderer.h"
+#include "Graphics\Text\FontRenderer.h"
 #include "Game.h"
 
 Plutonium::DebugFontRenderer::DebugFontRenderer(Game * game, const char * font, const char * vrtxShdr, const char * fragShdr, int loadWeight, Vector2 resetPos, Vector2 moveMod)

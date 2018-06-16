@@ -19,6 +19,14 @@ namespace Plutonium
 
 		/* Measures the dimensions of the specified string as if it was rendered using this font. */
 		_Check_return_ Vector2 MeasureString(_In_ const char *str) const;
+		/* Measures the dimensions of the specified string as if it was rendered using this font. */
+		_Check_return_ Vector2 MeasureString(_In_ const char32 *str) const;
+		/* Measures only the height of the specified string as if it was rendered using this font. */
+		_Check_return_ float MeasureStringHeight(_In_ const char *str) const;
+		/* Measures only the height of the specified string as if it was rendered using this font. */
+		_Check_return_ float MeasureStringHeight(_In_ const char32 *str) const;
+		/* Gets the character info if the specified character in the font. */
+		_Check_return_ const Character* GetCharOrDefault(_In_ char32 key) const;
 
 		/* Gets the offset between lines. */
 		_Check_return_ inline int32 GetLineSpace(void) const
@@ -43,6 +51,7 @@ namespace Plutonium
 
 	private:
 		friend struct FontRenderer;
+		friend struct GuiItemRenderer;
 		friend struct AssetLoader;
 
 		Texture *map;
@@ -57,6 +66,5 @@ namespace Plutonium
 
 		void SetCharacterInfo(stbtt_fontinfo *info, WindowHandler wnd, float scale);
 		void PopulateTextureMap(stbtt_fontinfo *info, float scale);
-		Character* GetCharOrDefault(int32 key) const;
 	};
 }

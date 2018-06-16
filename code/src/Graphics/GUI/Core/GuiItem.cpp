@@ -169,7 +169,7 @@ void Plutonium::GuiItem::SetHeight(int32 height)
 
 void Plutonium::GuiItem::SetName(const char * name)
 {
-	if (!strcmp(this->name, name)) return;
+	if (eqlstr(this->name, name)) return;
 
 	ValueChangedEventArgs<const char*> args(this->name, name);
 	this->name = heapstr(name);

@@ -87,10 +87,11 @@ namespace Plutonium
 		public:
 			FileReader *Names;
 			bool Keep;
+			int32 RefCnt;
 			std::vector<EventSubscriber<AssetLoader, _Ty*>> Callbacks;
 
 			AssetLoadInfo(FileReader *fr, bool keep, EventSubscriber<AssetLoader, _Ty*> &callback)
-				: Names(fr), Keep(keep), useFree(false)
+				: Names(fr), Keep(keep), useFree(false), RefCnt(1)
 			{
 				Callbacks.push_back(std::move(callback));
 			}
@@ -127,7 +128,7 @@ namespace Plutonium
 		};
 
 		struct FontLoadInfo
-			:AssetLoadInfo<Font>
+			: AssetLoadInfo<Font>
 		{
 			float Scale;
 
@@ -143,8 +144,8 @@ namespace Plutonium
 			int32 RefCnt;
 			_Ty *Asset;
 
-			AssetInfo(bool keep, _Ty *asset)
-				: Keep(keep), RefCnt(1), Asset(asset)
+			AssetInfo(bool keep, _Ty *asset, int32 refCnt)
+				: Keep(keep), RefCnt(refCnt), Asset(asset)
 			{}
 
 			~AssetInfo(void)
@@ -185,7 +186,6 @@ namespace Plutonium
 		void PopState(void);
 		void UpdateState(void);
 		void SetState(const char *value);
-		void IoThreadInit(const TickThread*, EventArgs);
 		bool OnIoThread(void);
 
 		int32 GetTextureIdx(const char *path);

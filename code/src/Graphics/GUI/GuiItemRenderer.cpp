@@ -13,6 +13,7 @@ Plutonium::GuiItemRenderer::GuiItemRenderer(GraphicsAdapter * device)
 
 	/* Initialize shaders. */
 	InitBasicShader();
+	InitTextShader();
 }
 
 Plutonium::GuiItemRenderer::~GuiItemRenderer(void)
@@ -40,13 +41,30 @@ void Plutonium::GuiItemRenderer::RenderGuiItem(Rectangle bounds, float rounding,
 	basicDrawQueue.push(args);
 }
 
+void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, float orientation, Color textColor, const Font * font, const char32 * text, const Buffer * mesh)
+{
+	/* Make sure to convert the position to OpenGL coordinates. */
+	LabelTextArgs args =
+	{
+		mesh,
+		font,
+		device->ToOpenGL(position),
+		orientation,
+		textColor,
+		text
+	};
+
+	textDrawQueue.push(args);
+}
+
 void Plutonium::GuiItemRenderer::End(bool noBlending)
 {
 	/* Enable blending (default). */
 	if (!noBlending) device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
 
-	/* Renders all basic GuiItems. */
+	/* Renders all queued GuiItems. */
 	RenderBasics();
+	RenderText();
 }
 
 void Plutonium::GuiItemRenderer::RenderBasics(void)
@@ -78,6 +96,34 @@ void Plutonium::GuiItemRenderer::RenderBasics(void)
 	}
 
 	basic.shdr->End();
+}
+
+void Plutonium::GuiItemRenderer::RenderText(void)
+{
+	/* Set shader globals. */
+	text.shdr->Begin();
+	text.matProj->Set(projection);
+
+	/* Render all queued items. */
+	while (textDrawQueue.size() > 0)
+	{
+		LabelTextArgs cur = textDrawQueue.back();
+		textDrawQueue.pop();
+
+		/* Create or bus uniforms to shader. */
+		text.matMdl->Set(Matrix::CreateWorld(cur.Position, cur.Orientation, Vector2::One));
+		text.map->Set(cur.Font->map);
+		text.clr->Set(cur.TextColor);
+		
+		/* Set position/uv attribute. */
+		cur.Mesh->Bind();
+		text.posUv->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
+
+		/* Render text. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur.Mesh->GetElementCount()));
+	}
+
+	text.shdr->End();
 }
 
 void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
@@ -145,4 +191,45 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 	basic.pos = basic.shdr->GetUniform("pos");
 	basic.size = basic.shdr->GetUniform("size");
 	basic.posUv = basic.shdr->GetAttribute("posUv");
+}
+
+void Plutonium::GuiItemRenderer::InitTextShader(void)
+{
+	constexpr const char *VRTX_SHDR_SRC =
+		"#version 430 core																\n"
+
+		"uniform mat4 projection;														\n"
+		"uniform mat4 model;															\n"
+
+		"in vec4 posUv;																	\n"
+
+		"out vec2 uv;																	\n"
+
+		"void main()																	\n"
+		"{																				\n"
+		"	uv = posUv.zw;																\n"
+		"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);				\n"
+		"}";
+
+	constexpr const char *FRAG_SHDR_SRC =
+		"#version 430 core																\n"
+		
+		"uniform sampler2D map;															\n"
+		"uniform vec4 color;															\n"
+		
+		"in vec2 uv;																	\n"
+		
+		"out vec4 fragColor;															\n"
+		
+		"void main()																	\n"
+		"{																				\n"
+		"	fragColor = texture(map, uv) * color;										\n"
+		"}";
+
+	text.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	text.matProj = text.shdr->GetUniform("projection");
+	text.matMdl = text.shdr->GetUniform("model");
+	text.map = text.shdr->GetUniform("map");
+	text.clr = text.shdr->GetUniform("color");
+	text.posUv = text.shdr->GetAttribute("posUv");
 }

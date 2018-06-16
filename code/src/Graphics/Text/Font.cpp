@@ -21,31 +21,107 @@ Plutonium::Font::~Font(void) noexcept
 
 Vector2 Plutonium::Font::MeasureString(const char * str) const
 {
-	/* Initialize result and allocate required temporary storage. */
-	Vector2 result = Vector2(0.0f, FLT_MIN);
-	int32 nlCnt = 0;
+	char32 *wstr = heapwstr(str);
+	Vector2 result = MeasureString(wstr);
+	free_s(wstr);
+	return result;
+}
 
-	char c = *str;
-	Character *ch = chars + def;
+Vector2 Plutonium::Font::MeasureString(const char32 * str) const
+{
+	/* Initialize result and temporary values. */
+	float width = 0.0f;
+	float lineHeight = static_cast<float>(lineSpace);
+	Vector2 offset = Vector2::Zero;
+	bool firstChar = true;
 
 	/* Loop through all chars in the string. */
-	for (size_t i = 0; c != '\0'; i++, c = str[i])
+	char32 c = *str;
+	for (size_t i = 0; c != '\0'; c = str[++i])
 	{
-		ch = GetCharOrDefault(c);
+		/* Handle newlines. */
+		if (c == '\r') continue;
+		if (c == '\n')
+		{
+			lineHeight = static_cast<float>(lineSpace);
+			offset.X = 0;
+			offset.Y += static_cast<float>(lineSpace);
+			firstChar = true;
+			continue;
+		}
 
-		/* Update height if needed. */
-		if (ch->Size.Y > result.Y) result.Y = ch->Size.Y;
-		if (ch->Key == '\n') ++nlCnt;
+		const Character *ch = GetCharOrDefault(static_cast<int32>(c));
+
+		/* Make sure first characters cannot hang left of the bounding box with left side bearing. */
+		if (firstChar)
+		{
+			offset.X = max(0.0f, ch->Bearing.X);
+			firstChar = false;
+		}
+		else offset.X += ch->Bearing.X;
 
 		/* Update width. */
-		result.X += (ch->Size.X - ch->Bearing.X) + ch->Advance;
+		offset.X += static_cast<float>(ch->Advance);
+		if (offset.X > width) width = offset.X;
+
+		/* Update height. */
+		if (ch->Size.Y > lineHeight) lineHeight = ch->Size.Y;
 	}
 
-	/* Remove the last advance and add the newlines. */
-	result.X -= ch->Advance;
-	result.Y += static_cast<float>(nlCnt * lineSpace);
+	/* Return size. */
+	return Vector2(width, offset.Y + lineHeight);
+}
 
+float Plutonium::Font::MeasureStringHeight(const char * str) const
+{
+	char32 *wstr = heapwstr(str);
+	float result = MeasureStringHeight(wstr);
+	free_s(wstr);
 	return result;
+}
+
+float Plutonium::Font::MeasureStringHeight(const char32 * str) const
+{
+	/* Initialize result and temporary values. */
+	float lineHeight = static_cast<float>(lineSpace);
+	float y = 0;
+
+	/* Loop through all chars in the string. */
+	char32 c = *str;
+	for (size_t i = 0; c != '\0'; c = str[++i])
+	{
+		/* Handle newlines. */
+		if (c == '\r') continue;
+		if (c == '\n')
+		{
+			lineHeight = static_cast<float>(lineSpace);
+			y += static_cast<float>(lineSpace);
+			continue;
+		}
+
+		const Character *ch = GetCharOrDefault(static_cast<int32>(c));
+
+		/* Update height. */
+		if (ch->Size.Y > lineHeight) lineHeight = ch->Size.Y;
+	}
+
+	return y + lineHeight;
+}
+
+const Character * Plutonium::Font::GetCharOrDefault(char32 key) const
+{
+	/* Search through storage for specified character. */
+	for (size_t i = 0; i < cnt; i++)
+	{
+		Character *cur = chars + i;
+		if (cur->Key == key) return cur;
+	}
+
+	/* Nothing found, return default. */
+#if defined(DEBUG)
+	LOG_WAR("Character %c not found in font, replacing with '%c'!", key, chars[def].Key);
+#endif
+	return chars + def;
 }
 
 Plutonium::Font::Font(void)
@@ -122,7 +198,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 		int32 w = x1 - x0, h = y1 - y0;
 
 		/* Save known character details. */
-		cur->Key = c;
+		cur->Key = static_cast<char32>(c);
 		cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
 		cur->Bounds = Rectangle(curLineSize.X, finalMapSize.Y, static_cast<float>(w), static_cast<float>(h));
 		cur->Advance = static_cast<uint32>(rectify(x0 + advance * scale));
@@ -206,20 +282,4 @@ void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 	/* Create map. */
 	map->SetData(data);
 	free_s(data);
-}
-
-Character * Plutonium::Font::GetCharOrDefault(int32 key) const
-{
-	/* Search through storage for specified character. */
-	for (size_t i = 0; i < cnt; i++)
-	{
-		Character *cur = chars + i;
-		if (cur->Key == key) return cur;
-	}
-
-	/* Nothing found, return default. */
-#if defined(DEBUG)
-	LOG_WAR("Character %c not found in font, replacing with '%c'!", key, chars[def].Key);
-#endif
-	return chars + def;
 }

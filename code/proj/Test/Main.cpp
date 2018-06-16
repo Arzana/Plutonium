@@ -4,7 +4,7 @@
 #include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Diagnostics\DebugMeshRenderer.h>
-#include <Graphics\Text\TextRenderer.h>
+#include <Graphics\Text\FontRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
@@ -12,7 +12,7 @@
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <GameLogic\StaticObject.h>
-#include <Graphics\GUI\Core\GuiItem.h>
+#include <Graphics\GUI\Items\Label.h>
 #include "Fire.h"
 
 using namespace Plutonium;
@@ -43,7 +43,7 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
-	GuiItem *item;
+	Label *item;
 
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f), renderMode(DebuggableValues::None)
@@ -59,9 +59,9 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
-		AddComponent(dfRenderer = new DebugFontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1));
+		AddComponent(dfRenderer = new DebugFontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1));
 
-		fRenderer = new FontRenderer(this, "./assets/fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
+		fRenderer = new FontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammeCorrection);
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
@@ -117,7 +117,7 @@ struct TestGame
 		GetLoader()->LoadTexture(skyboxPaths, Callback<Texture>([&](const AssetLoader*, Texture *result)
 		{
 			skybox = result;
-			UpdateLoadPercentage(3);
+			UpdateLoadPercentage(2);
 		}));
 
 		/* Setup lighting. */
@@ -128,14 +128,17 @@ struct TestGame
 		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 10);
 
 		/* Add test GuiItem. */
-		item = new GuiItem(this);
-		item->SetName("TestGuiItem");
-		item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
-		item->MoveRelative(Anchors::Center);
-		item->SetSizable(true);
-		item->Hover.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(1.0f, 1.0f, 0.0f, 0.5f)); });
-		item->HoverLeave.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f)); });
-		item->Clicked.Add([&](const GuiItem *sender, CursorHandler) { item->SetBackColor(Color(1.0f, 0.0f, 0.0f, 0.5f)); });
+		GetLoader()->LoadFont("fonts/OpenSans-Regular.ttf", Callback<Font>([&](const AssetLoader*, Font *font) 
+		{
+			item = new Label(this, font);
+			item->SetName("TestGuiItem");
+			item->SetText(U"Test Text");
+			item->SetAutoSize(true);
+			item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
+			item->SetTextColor(Color::WhiteSmoke);
+			item->MoveRelative(Anchors::Center);
+			UpdateLoadPercentage(1);
+		}), 24.0f);
 	}
 
 	virtual void UnLoadContent(void)

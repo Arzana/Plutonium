@@ -1,4 +1,4 @@
-#include "Graphics\Text\TextRenderer.h"
+#include "Graphics\Text\FontRenderer.h"
 #include "Core\StringFunctions.h"
 
 constexpr Plutonium::int32 MAX_STRING_LENGTH = 64;
@@ -57,6 +57,26 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
 }
 
+void Plutonium::FontRenderer::AddString(Vector2 pos, const char32 * str, Color clr)
+{
+	/* Make sure we don't allow string to be rendered when the font is not yet loaded. */
+	if (!font) return;
+
+	/* Initialize newline split buffer. */
+	constexpr size_t BUFF_LEN = 16;
+	char32 *buffer[BUFF_LEN];
+	for (size_t i = 0; i < BUFF_LEN; i++) buffer[i] = malloca_s(char32, FILENAME_MAX);
+
+	/* Split string to lines and loop through them. */
+	size_t len = spltstr(str, '\n', buffer, 0);
+	for (size_t i = 0; i < len; i++)
+	{
+		AddSingleString(parent->GetGraphics()->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
+	}
+
+	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
+}
+
 void Plutonium::FontRenderer::Render(void)
 {
 	/* If there are strings render them. */
@@ -95,16 +115,16 @@ void Plutonium::FontRenderer::RenderString(LineInfo *info)
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
 }
 
-void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char *str)
+void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char32 *str)
 {
 	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
 	size_t size = strlen(str) * 6;
-	Vector4 *vertices = malloc_s(Vector4, size);
+	Vector4 *vertices = malloca_s(Vector4, size);
 
 	for (size_t i = 0, j = 0; i < (size / 6); i++)
 	{
-		/* Get current character and set texture. */
-		Character *ch = font->GetCharOrDefault(str[i]);
+		/* Get current character. */
+		const Character *ch = font->GetCharOrDefault(str[i]);
 
 		/* Defines components of the position vertices. */
 		float x = pos.X + ch->Bearing.X;
@@ -127,10 +147,17 @@ void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char *str)
 
 	/* Create GPU side buffer. */
 	vbo->SetData(vertices, size);
-	free_s(vertices);
+	freea_s(vertices);
 }
 
 void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char * str, Color clr)
+{
+	/* Make sure we check for the maximum string length. */
+	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
+	strs.push_back(new LineInfo(str, pos, clr));
+}
+
+void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char32 * str, Color clr)
 {
 	/* Make sure we check for the maximum string length. */
 	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
@@ -158,7 +185,11 @@ void Plutonium::FontRenderer::OnLoadComplete(const AssetLoader *, Font * result)
 }
 
 Plutonium::FontRenderer::LineInfo::LineInfo(const char * string, Vector2 pos, Plutonium::Color clr)
-	: String(heapstr(string)), Position(pos), Color(clr)
+	: String(heapwstr(string)), Position(pos), Color(clr)
+{}
+
+Plutonium::FontRenderer::LineInfo::LineInfo(const char32 * string, Vector2 pos, Plutonium::Color clr)
+	: String(heapwstr(string)), Position(pos), Color(clr)
 {}
 
 Plutonium::FontRenderer::LineInfo::~LineInfo(void) noexcept

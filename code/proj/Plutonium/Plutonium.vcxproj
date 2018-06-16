@@ -94,10 +94,10 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -115,10 +115,10 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -142,10 +142,10 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -169,10 +169,10 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>glfw3.lib;dbghelp.lib;Opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;dbghelp.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\glfw\lib\$(PlatformTarget)\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -221,6 +221,7 @@
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
@@ -247,7 +248,7 @@
     <ClCompile Include="..\..\src\Graphics\Texture.cpp" />
     <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp" />
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Text\FontRenderer.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
@@ -308,6 +309,7 @@
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\Label.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h" />
@@ -356,7 +358,7 @@
     <ClInclude Include="..\..\include\Graphics\TextureOptions.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Font.h" />
-    <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\Text\FontRenderer.h" />
     <ClInclude Include="..\..\include\Input\ButtonEventArgs.h" />
     <ClInclude Include="..\..\include\Input\Cursor.h" />
     <ClInclude Include="..\..\include\Input\Keyboard.h" />

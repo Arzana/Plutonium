@@ -23,6 +23,8 @@ namespace Plutonium
 
 		/* Adds a string to the font renderer to be rendered in the next frame. */
 		void AddString(_In_ Vector2 pos, _In_ const char *str, _In_ Color clr = Color::White);
+		/* Adds a string to the font renderer to be rendered in the next frame. */
+		void AddString(_In_ Vector2 pos, _In_ const char32 *str, _In_ Color clr = Color::White);
 		/* Renders the strings specified throughout the frame. */
 		virtual void Render(void);
 
@@ -37,7 +39,7 @@ namespace Plutonium
 		struct LineInfo
 		{
 			/* The string to render, */
-			const char *String;
+			const char32 *String;
 			/* Where to render the string(top-left). */
 			Vector2 Position;
 			/* The color of the string. */
@@ -45,6 +47,7 @@ namespace Plutonium
 
 			/* Initializes a new instance. */
 			LineInfo(_In_ const char *string, _In_ Vector2 pos, _In_ Plutonium::Color clr);
+			LineInfo(_In_ const char32 *string, _In_ Vector2 pos, _In_ Plutonium::Color clr);
 			LineInfo(_In_ const LineInfo &value) = delete;
 			LineInfo(_In_ LineInfo &&value) = delete;
 			/* Releases the underlying string. */
@@ -74,8 +77,9 @@ namespace Plutonium
 		int percentage;
 
 		void RenderString(LineInfo *info);
-		void UpdateVBO(Vector2 pos, const char *str);
+		void UpdateVBO(Vector2 pos, const char32 *str);
 		void AddSingleString(Vector2 pos, const char *str, Color clr);
+		void AddSingleString(Vector2 pos, const char32 *str, Color clr);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void ClearBuffer(void);
 		void OnLoadComplete(const AssetLoader*, Font *result);

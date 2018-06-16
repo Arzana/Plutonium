@@ -31,7 +31,7 @@ Plutonium::AssetLoader::AssetLoader(WindowHandler wnd, const char * root)
 {
 	/* Create new IO thread per asset loader. */
 	ioThread = new TickThread("PuIO");
-	ioThread->Initialize.Add(this, &AssetLoader::IoThreadInit);
+	ioThread->Initialize.Add([&](TickThreadHandler, EventArgs) { threadID = _CrtGetCurrentThreadId(); });
 
 	/* 
 	Add specified loader methods to the tick queue. 
@@ -264,7 +264,8 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 			TextureLoadInfo *cur = queuedTextures.at(i);
 			if (!strcmp(cur->Names->GetFilePath(), path))
 			{
-				/* Add callback to the list if asset found. */
+				/* Add callback to the list if asset found and increase ref count. */
+				++cur->RefCnt;
 				cur->Callbacks.push_back(std::move(callback));
 				lockTex.unlock();
 				return;
@@ -309,7 +310,8 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 			TextureLoadInfo *cur = queuedTextures.at(i);
 			if (!strcmp(cur->Names->GetFilePath(), paths[0]))
 			{
-				/* Add callback to the list if asset found. */
+				/* Add callback to the list if asset found and increase ref count. */
+				++cur->RefCnt;
 				cur->Callbacks.push_back(std::move(callback));
 				lockTex.unlock();
 				return;
@@ -359,7 +361,8 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 			AssetLoadInfo<StaticModel> *cur = queuedSModels.at(i);
 			if (!strcmp(cur->Names->GetFilePath(), path))
 			{
-				/* Add callback to the list if asset found. */
+				/* Add callback to the list if asset found and increase ref count. */
+				++cur->RefCnt;
 				cur->Callbacks.push_back(std::move(callback));
 				lockSMod.unlock();
 				return;
@@ -404,7 +407,8 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 			DynamicModelLoadInfo *cur = queuedDModels.at(i);
 			if (!strcmp(cur->Names->GetFilePath(), path))
 			{
-				/* Add callback to the list if asset found. */
+				/* Add callback to the list if asset found and increase ref count. */
+				++cur->RefCnt;
 				cur->Callbacks.push_back(std::move(callback));
 				lockDMod.unlock();
 				return;
@@ -449,7 +453,8 @@ void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLo
 			FontLoadInfo *cur = queuedFonts.at(i);
 			if (!strcmp(cur->Names->GetFilePath(), path))
 			{
-				/* Add callback to the list if asset found. */
+				/* Add callback to the list if asset found and increase ref count. */
+				++cur->RefCnt;
 				cur->Callbacks.push_back(std::move(callback));
 				lockFont.unlock();
 				return;
@@ -634,11 +639,6 @@ void Plutonium::AssetLoader::SetState(const char * value)
 	lockState.unlock();
 }
 
-void Plutonium::AssetLoader::IoThreadInit(const TickThread *, EventArgs)
-{
-	threadID = _CrtGetCurrentThreadId();
-}
-
 bool Plutonium::AssetLoader::OnIoThread(void)
 {
 	return _CrtGetCurrentThreadId() == threadID;
@@ -695,7 +695,7 @@ void Plutonium::AssetLoader::LoadTextureInternal(TextureLoadInfo *info)
 
 	/* Load texture. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(fullPath, wnd, info->Options));
+	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(fullPath, wnd, info->Options), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -718,7 +718,7 @@ void Plutonium::AssetLoader::LoadSkyboxInternal(TextureLoadInfo * info)
 	/* Load texture. */
 	const char *paths[Texture::CUBEMAP_TEXTURE_COUNT];
 	for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) paths[i] = CreateFullPath(info->Names[i].GetFilePath());
-	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(paths, wnd, info->Options));
+	AssetInfo<Texture> *result = new AssetInfo<Texture>(info->Keep, Texture::FromFile(paths, wnd, info->Options), info->RefCnt);
 	for (size_t i = 0; i < Texture::CUBEMAP_TEXTURE_COUNT; i++) free_s(paths[i]);
 
 	/* Push to loaded list. */
@@ -740,7 +740,7 @@ void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info->Keep, StaticModel::FromFile(fullPath, this));
+	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info->Keep, StaticModel::FromFile(fullPath, this), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -761,7 +761,7 @@ void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info)
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture));
+	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -782,7 +782,7 @@ void Plutonium::AssetLoader::LoadFontInternal(FontLoadInfo * info)
 
 	/* Load font. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<Font> *result = new AssetInfo<Font>(info->Keep, Font::FromFile(fullPath, info->Scale, wnd));
+	AssetInfo<Font> *result = new AssetInfo<Font>(info->Keep, Font::FromFile(fullPath, info->Scale, wnd), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */

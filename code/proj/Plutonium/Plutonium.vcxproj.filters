@@ -138,6 +138,12 @@
     <Filter Include="Source Files\Graphics\GUI\Core">
       <UniqueIdentifier>{c6f4b171-8fe7-4451-b9a2-be3e109f984e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\GUI\Items">
+      <UniqueIdentifier>{a55fa833-e694-4aff-b665-dfb4376b1b31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GUI\Items">
+      <UniqueIdentifier>{2f43762e-faf8-4a91-bc3e-47efa6be82cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -213,9 +219,6 @@
       <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Text\Font.cpp">
-      <Filter>Source Files\Graphics\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Text\TextRenderer.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Core\String.cpp">
@@ -353,6 +356,12 @@
     <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp">
       <Filter>Source Files\Graphics\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Text\FontRenderer.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp">
+      <Filter>Source Files\Graphics\GUI\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -476,9 +485,6 @@
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Text\Font.h">
-      <Filter>Header Files\Graphics\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Text\TextRenderer.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Core\String.h">
@@ -696,6 +702,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Input\KeyMods.h">
       <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\Label.h">
+      <Filter>Header Files\Graphics\GUI\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Text\FontRenderer.h">
+      <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

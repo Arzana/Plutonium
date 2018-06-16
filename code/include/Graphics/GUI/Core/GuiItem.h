@@ -224,6 +224,12 @@ namespace Plutonium
 			return rdown;
 		}
 
+		/* Gets the rounding factor. */
+		_Check_return_ inline float GetRoundingFactor(void) const
+		{
+			return roundingFactor;
+		}
+
 	private:
 		Buffer *mesh;
 		TextureHandler background;

@@ -363,7 +363,7 @@ inline void PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, b
 	const char *name = heapstr(curMesh->Name);
 
 	/* Check if current mesh has data. */
-	if (strlen(name) > 0)
+	if (::strlen(name) > 0)
 	{
 		/* Push old mesh. */
 		result->Shapes.push_back(*curMesh);
@@ -745,7 +745,7 @@ void HandleSmoothingGroupLine(const char *line, uint64 *smoothingGroup)
 	if (IS_NEWLINE(line[0])) return;
 
 	/* Set smoothing group to zero is 'off' is specified. */
-	if (strlen(line) >= 3)
+	if (::strlen(line) >= 3)
 	{
 		if (line[0] == 'o' && line[1] == 'f' && line[2] == 'f') *smoothingGroup = 0;
 	}
@@ -844,7 +844,7 @@ void HandleObjLine(const char *line, const char *dir, ObjLoaderResult *result, O
 inline void HandleNewMaterialLine(const char *line, ObjLoaderResult *result, ObjLoaderMaterial *curMaterial)
 {
 	/* Push old material if needed. */
-	if (strlen(curMaterial->Name) > 0)
+	if (::strlen(curMaterial->Name) > 0)
 	{
 		result->Materials.push_back(*curMaterial);
 		*curMaterial = ObjLoaderMaterial();
@@ -912,7 +912,7 @@ inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial *curMa
 inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextureMap *curTexture, bool isBump)
 {
 	/* Reset texture map values. */
-	LOG_WAR_IF(strlen(curTexture->Path) > 0, "Texture map is defined multiple times, replacing old texture map '%s'.", curTexture->Path);
+	LOG_WAR_IF(::strlen(curTexture->Path) > 0, "Texture map is defined multiple times, replacing old texture map '%s'.", curTexture->Path);
 	*curTexture = ObjLoaderTextureMap(isBump);
 
 	/* Handle all options. */
@@ -1013,10 +1013,10 @@ inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextur
 		/* Assume texture path. */
 		curTexture->Path = malloc_s(char, FILENAME_MAX);
 		mrgstr(dir, line, const_cast<char*>(curTexture->Path));
-		line += strlen(line);
+		line += ::strlen(line);
 	}
 
-	LOG_THROW_IF(strlen(curTexture->Path) < 1, "Texture defines no path!");
+	LOG_THROW_IF(::strlen(curTexture->Path) < 1, "Texture defines no path!");
 }
 
 /* Handles the raw line of a mtl file. */
@@ -1194,12 +1194,12 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 		const char *line = reader.ReadLine();
 
 		/* Only handle line if it's not an empty line. */
-		if (strlen(line) > 0) HandleMtlLine(line, dir, result, &material, &hasd, &hastr);
+		if (::strlen(line) > 0) HandleMtlLine(line, dir, result, &material, &hasd, &hastr);
 		free_s(line);
 	}
 
 	/* Add last material to result if needed and release path. */
-	if (strlen(material.Name) > 0) result->Materials.push_back(material);
+	if (::strlen(material.Name) > 0) result->Materials.push_back(material);
 	freea_s(path);
 }
 

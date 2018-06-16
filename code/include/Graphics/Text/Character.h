@@ -3,11 +3,14 @@
 
 namespace Plutonium
 {
+	/* Defines a UTF32 size character. */
+	using char32 = char32_t;
+
 	/* Defines all the information needed for a texture bases character. */
 	struct Character
 	{
 		/* The char variant of the texture character in this object. */
-		int32 Key;
+		char32 Key;
 		/* The texture bounds of the character. */
 		Rectangle Bounds;
 		/* The size of the character. */
