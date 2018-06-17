@@ -1,7 +1,6 @@
 #include <Game.h>
 #include <Core\String.h>
 #include <Core\Math\Interpolation.h>
-#include <Graphics\Diagnostics\DebugTextRenderer.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 #include <Graphics\Diagnostics\DebugMeshRenderer.h>
 #include <Graphics\Text\FontRenderer.h>
@@ -21,7 +20,6 @@ struct TestGame
 	: public Game
 {
 	/* Renderers. */
-	DebugFontRenderer *dfRenderer;
 	DebugMeshRenderer *dmrenderer;
 	FontRenderer *fRenderer;
 	StaticRenderer *srenderer;
@@ -43,7 +41,7 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
-	Label *item;
+	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam;
 
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f), renderMode(DebuggableValues::None)
@@ -59,7 +57,6 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
-		AddComponent(dfRenderer = new DebugFontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1));
 
 		fRenderer = new FontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammeCorrection);
@@ -100,9 +97,8 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		UpdateLoadPercentage(55);
-		//map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
-		//map->SetScale(scale);
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
+		map->SetScale(scale);
 
 		/* Load skybox. */
 		const char *skyboxPaths[] =
@@ -117,7 +113,7 @@ struct TestGame
 		GetLoader()->LoadTexture(skyboxPaths, Callback<Texture>([&](const AssetLoader*, Texture *result)
 		{
 			skybox = result;
-			UpdateLoadPercentage(2);
+			UpdateLoadPercentage(3);
 		}));
 
 		/* Setup lighting. */
@@ -127,16 +123,40 @@ struct TestGame
 		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), scale, 10);
 		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 10);
 
-		/* Add test GuiItem. */
+		/* Add debug HUD. */
 		GetLoader()->LoadFont("fonts/OpenSans-Regular.ttf", Callback<Font>([&](const AssetLoader*, Font *font) 
 		{
-			item = new Label(this, font);
-			item->SetName("TestGuiItem");
-			item->SetText(U"Test Text");
-			item->SetAutoSize(true);
-			item->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
-			item->SetTextColor(Color::WhiteSmoke);
-			item->MoveRelative(Anchors::Center);
+			const Color backColor = Color(0.0f, 0.0f, 0.0f, 0.5f);
+			const Color foreColor = Color::White;
+			float y = 0.0f;
+
+			lblTime = new Label(this, font);
+			lblTime->SetAutoSize(true);
+			lblTime->SetBackColor(backColor);
+			lblTime->SetTextColor(foreColor);
+			lblTime->SetPosition(Vector2::Zero);
+			y += lblTime->GetHeight();
+
+			lblFps = new Label(this, font);
+			lblFps->SetAutoSize(true);
+			lblFps->SetBackColor(backColor);
+			lblFps->SetTextColor(foreColor);
+			lblFps->SetPosition(Vector2(0.0f, y));
+			y += lblFps->GetHeight();
+
+			lblCpuRam = new Label(this, font);
+			lblCpuRam->SetAutoSize(true);
+			lblCpuRam->SetBackColor(backColor);
+			lblCpuRam->SetTextColor(foreColor);
+			lblCpuRam->SetPosition(Vector2(0.0f, y));
+			y += lblCpuRam->GetHeight();
+
+			lblGpuRam = new Label(this, font);
+			lblGpuRam->SetAutoSize(true);
+			lblGpuRam->SetBackColor(backColor);
+			lblGpuRam->SetTextColor(foreColor);
+			lblGpuRam->SetPosition(Vector2(0.0f, y));
+
 			UpdateLoadPercentage(1);
 		}), 24.0f);
 	}
@@ -146,10 +166,13 @@ struct TestGame
 		delete_s(cam);
 		delete_s(sun);
 		for (size_t i = 0; i < 4; i++) delete_s(fires[i]);
-		//delete_s(map);
+		delete_s(map);
 		GetLoader()->Unload(skybox);
 
-		delete_s(item);
+		delete_s(lblTime);
+		delete_s(lblFps);
+		delete_s(lblCpuRam);
+		delete_s(lblGpuRam);
 	}
 
 	virtual void Finalize(void)
@@ -174,8 +197,35 @@ struct TestGame
 		/* Update input. */
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 
-		/* Update GUI. */
-		item->Update(dt);
+		/* Update HUD. */
+		UpdateHUD(dt);
+	}
+
+	void UpdateHUD(float dt)
+	{
+		/* Update time string. */
+		std::string strTime = "Time: ";
+		((strTime += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + ::map(0.0f, 24.0f, theta, 0.0f, TAU), 24.0f)));
+		lblTime->SetText(strTime.c_str());
+		lblTime->Update(dt);
+
+		/* Add debug average FPS. */
+		std::string strFps = "Fps (avg): ";
+		strFps += std::to_string(ipart(fps->GetAvrgHz()));
+		lblFps->SetText(strFps.c_str());
+		lblFps->Update(dt);
+
+		/* Add debug average VRAM. */
+		std::string strRam = "RAM: ";
+		((strRam += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
+		lblCpuRam->SetText(strRam.c_str());
+		lblCpuRam->Update(dt);
+
+		/* Add debug average GRAM. */
+		std::string strGpu = "GPU: ";
+		strGpu += b2short_string(mem->GetAvrgGPURamUsage());
+		lblGpuRam->SetText(strGpu.c_str());
+		lblGpuRam->Update(dt);
 	}
 
 	void UpdateDayState(float dt)
@@ -235,14 +285,14 @@ struct TestGame
 			/* Render current scene, */
 			const PointLight *lights[4] = { fires[0]->light, fires[1]->light, fires[2]->light, fires[3]->light };
 			srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
-			//srenderer->Render(map);
+			srenderer->Render(map);
 			srenderer->End();
 		}
 		else
 		{
 			/* Render light sources and scene. */
 			dmrenderer->Begin(cam->GetView(), cam->GetProjection());
-			//dmrenderer->Render(map);
+			dmrenderer->Render(map);
 			for (size_t i = 0; i < 4; i++) dmrenderer->Render(fires[i]->object);
 			dmrenderer->End();
 		}
@@ -251,28 +301,11 @@ struct TestGame
 		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
 
 		/* Render GUI. */
-		item->Draw(grenderer);
+		lblTime->Draw(grenderer);
+		lblFps->Draw(grenderer);
+		lblCpuRam->Draw(grenderer);
+		lblGpuRam->Draw(grenderer);
 		grenderer->End();
-
-		/* Add debug light direction. */
-		std::string lightStr = "Time: ";
-		((lightStr += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + ::map(0.0f, 24.0f, theta, 0.0f, TAU), 24.0f)));
-		dfRenderer->AddDebugString(lightStr);
-
-		/* Add debug average FPS. */
-		std::string fpsaStr = "Fps (avg): ";
-		fpsaStr += std::to_string(ipart(fps->GetAvrgHz()));
-		dfRenderer->AddDebugString(fpsaStr);
-
-		/* Add debug average VRAM. */
-		std::string ramStr = "RAM: ";
-		((ramStr += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
-		dfRenderer->AddDebugString(ramStr);
-
-		/* Add debug average GRAM. */
-		std::string gpuStr = "GPU: ";
-		gpuStr += b2short_string(mem->GetAvrgGPURamUsage());
-		dfRenderer->AddDebugString(gpuStr);
 	}
 
 	virtual void RenderLoad(float dt, int percentage)

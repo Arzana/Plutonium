@@ -39,6 +39,12 @@ namespace Plutonium
 			return autoSize;
 		}
 
+		/* Gets the initial size of the text buffer. */
+		_Check_return_ size_t GetDefaultBufferSize(void) const
+		{
+			return 64;
+		}
+
 		/* Gets the default value for the text color. */
 		_Check_return_ Color GetDefaultTextColor(void) const
 		{
@@ -48,7 +54,7 @@ namespace Plutonium
 		/* Gets the default value for the text offset. */
 		_Check_return_ Vector2 GetDefaultTextOffset(void) const
 		{
-			return Vector2(10.0f);
+			return Vector2(10.0f, 0.0f);
 		}
 
 		/* Gets the curent displayed text. */
@@ -100,6 +106,7 @@ namespace Plutonium
 		Buffer *textMesh;
 		size_t charBufferSize;
 
+		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2> args);
 		void UpdateTextMesh(void);
 	};
 }

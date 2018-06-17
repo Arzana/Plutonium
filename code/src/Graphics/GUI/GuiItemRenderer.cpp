@@ -76,7 +76,7 @@ void Plutonium::GuiItemRenderer::RenderBasics(void)
 	/* Render all queued items. */
 	while (basicDrawQueue.size() > 0)
 	{
-		BasicGuiItemArgs cur = basicDrawQueue.back();
+		BasicGuiItemArgs cur = basicDrawQueue.front();
 		basicDrawQueue.pop();
 
 		/* Create or bus uniforms to shader. */
@@ -107,7 +107,7 @@ void Plutonium::GuiItemRenderer::RenderText(void)
 	/* Render all queued items. */
 	while (textDrawQueue.size() > 0)
 	{
-		LabelTextArgs cur = textDrawQueue.back();
+		LabelTextArgs cur = textDrawQueue.front();
 		textDrawQueue.pop();
 
 		/* Create or bus uniforms to shader. */
