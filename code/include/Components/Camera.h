@@ -59,7 +59,7 @@ namespace Plutonium
 		Matrix view, proj, orien;
 		WindowHandler wnd;
 
-		void UpdatePosition(void);
+		void UpdatePosition(float dt);
 		void UpdateView(void);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 	};

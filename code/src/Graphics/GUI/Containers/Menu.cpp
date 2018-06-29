@@ -7,8 +7,8 @@ using namespace Plutonium;
 constexpr size_t MAX_STR_LEN = 64;
 
 Plutonium::Menu::Menu(Game *game)
-	: GameComponent(game), defaultFontIdx(-1), loadTarget(-1),
-	loadCnt(0), loadLock(), visible(true), callCreate(false)
+	: GameComponent(game), defaultFontIdx(-1),
+	loadCnt(0), loadTarget(0), loadLock(), visible(true), callCreate(false)
 {
 	renderer = new GuiItemRenderer(game->GetGraphics());
 
@@ -107,6 +107,7 @@ void Plutonium::Menu::SetDefaultFont(const char * path, float size)
 {
 	LOG_WAR_IF(defaultFontIdx != -1, "Redefining the default font!");
 	++loadTarget;
+	callCreate = false;
 
 	game->GetLoader()->LoadFont(path, Callback<Font>([&](const AssetLoader*, const Font *result)
 	{
@@ -123,6 +124,7 @@ void Plutonium::Menu::SetDefaultFont(const char * path, float size)
 void Plutonium::Menu::LoadFont(const char * path, float size)
 {
 	++loadTarget;
+	callCreate = false;
 
 	game->GetLoader()->LoadFont(path, Callback<Font>([&](const AssetLoader*, const Font *result)
 	{
@@ -138,6 +140,7 @@ void Plutonium::Menu::LoadFont(const char * path, float size)
 void Plutonium::Menu::LoadTexture(const char * path, const TextureCreationOptions * config)
 {
 	++loadTarget;
+	callCreate = false;
 
 	game->GetLoader()->LoadTexture(path, Callback<Texture>([&](const AssetLoader*, TextureHandler result)
 	{
@@ -156,22 +159,25 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 	LOG_THROW_IF(defaultFontIdx == -1, "Unable to render debug text if no default font is specified!");
 
 	const Font *font = loadedFonts.at(defaultFontIdx);
-	const char32 *string = heapwstr(text);
+	const char32 *string = heapwstr(text);	// TODO: Fix memory leak.
+	float lh = font->MeasureStringHeight(text);
 
 	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
-	size_t size = strlen(string) * 6;
+	size_t len = strlen(string), size = len * 6;
 	Vector4 *vertices = malloca_s(Vector4, size);
 
-	for (size_t i = 0, j = 0; i < (size / 6); i++)
+	float xAdder = 0.0f;
+	float yAdder = -lh;
+	for (size_t i = 0, j = 0; i < len; i++)
 	{
 		/* Get current character. */
-		const Character *ch = font->GetCharOrDefault(string[i]);
+		const Character *ch = font->GetCharOrDefault(text[i]);
 
 		/* Defines components of the position vertices. */
-		float x = position.X + ch->Bearing.X;
-		float y = position.Y - (ch->Size.Y + ch->Bearing.Y);
 		float w = ch->Size.X;
 		float h = ch->Size.Y;
+		float x = xAdder + ch->Bearing.X;
+		float y = yAdder - (ch->Size.Y + ch->Bearing.Y);
 		Vector2 tl = ch->Bounds.Position;
 		Vector2 br = ch->Bounds.Position + ch->Bounds.Size;
 
@@ -183,7 +189,8 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 		vertices[j++] = Vector4(x + w, y, br.X, br.Y);
 		vertices[j++] = Vector4(x + w, y + h, br.X, tl.Y);
 
-		position.X += ch->Advance;
+		xAdder += ch->Advance;
+		if (ch->Key == U'\n') yAdder -= lh;
 	}
 
 	/* Create GPU side buffer. */
@@ -255,7 +262,7 @@ void Plutonium::Menu::Finalize(void)
 
 void Plutonium::Menu::CheckIfLoadingDone(void)
 {
-	if (loadCnt.load() >= loadTarget)
+	if (loadCnt.load() >= loadTarget.load())
 	{
 		callCreate = true;
 		Show();

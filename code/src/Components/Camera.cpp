@@ -5,7 +5,7 @@ Plutonium::Camera::Camera(WindowHandler wnd)
 	: wnd(wnd), actualPos(0.0f, 0.0f, 50.0f), 
 	target(), offset(0.0f, 0.0f, 0.5f),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), 
-	MoveSpeed(100.0f), LookSpeed(0.1f),
+	MoveSpeed(100.0f), LookSpeed(6.0f),
 	orien()
 {
 	desiredPos = actualPos;
@@ -25,7 +25,7 @@ void Plutonium::Camera::Update(float dt, const Matrix & obj2Follow)
 	desiredPos = obj2Follow * offset;
 
 	/* Update position and view matrix. */
-	UpdatePosition();
+	UpdatePosition(dt);
 	UpdateView();
 }
 
@@ -34,8 +34,9 @@ void Plutonium::Camera::Update(float dt, KeyHandler keys, CursorHandler cursor)
 	/* Update orientation. */
 	if (cursor)
 	{
-		Yaw -= cursor->DeltaX * DEG2RAD * LookSpeed;
-		Pitch -= cursor->DeltaY * DEG2RAD * LookSpeed;
+		const float mod = DEG2RAD * dt * LookSpeed;
+		Yaw -= cursor->DeltaX * mod;
+		Pitch -= cursor->DeltaY * mod;
 	}
 
 	/* Update desired position. */
@@ -48,17 +49,18 @@ void Plutonium::Camera::Update(float dt, KeyHandler keys, CursorHandler cursor)
 	}
 
 	/* Update position and target. */
-	UpdatePosition();
+	UpdatePosition(dt);
 	target = actualPos + orien.GetForward();
 
 	UpdateView();
 }
 
-void Plutonium::Camera::UpdatePosition(void)
+void Plutonium::Camera::UpdatePosition(float dt)
 {
-	actualPos.X = smoothstep(actualPos.X, desiredPos.X, 0.15f);
-	actualPos.Y = smoothstep(actualPos.Y, desiredPos.Y, 0.15f);
-	actualPos.Z = smoothstep(actualPos.Z, desiredPos.Z, 0.15f);
+	constexpr float SPEED = 6.0f;
+	actualPos.X = lerp(actualPos.X, desiredPos.X, dt * SPEED);
+	actualPos.Y = lerp(actualPos.Y, desiredPos.Y, dt * SPEED);
+	actualPos.Z = lerp(actualPos.Z, desiredPos.Z, dt * SPEED);
 }
 
 void Plutonium::Camera::UpdateView(void)

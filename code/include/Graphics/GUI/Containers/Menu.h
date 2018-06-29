@@ -87,8 +87,8 @@ namespace Plutonium
 		std::vector<GuiItem*> controlls;
 		std::vector<const Font*> loadedFonts;
 		std::vector<TextureHandler> loadedTextures;
-		int32 defaultFontIdx, loadTarget;
-		std::atomic_int loadCnt;
+		int32 defaultFontIdx;
+		std::atomic_int loadCnt, loadTarget;
 		std::mutex loadLock;
 		GuiItemRenderer *renderer;
 		bool visible, callCreate;

@@ -141,7 +141,7 @@ Plutonium::Cursor::Cursor(const Window * wnd)
 	X(0), Y(0), LeftButton(false), RightButton(false), MiddleButton(false), firstMovement(true)
 {
 	activeCursors.push_back(this);
-	Update();
+	Reset();
 
 	/* Set GLFW specific event handlers. */
 	glfwSetCursorPosCallback(wnd->hndlr, GlfwCursorMoveEventHandler);
@@ -150,7 +150,7 @@ Plutonium::Cursor::Cursor(const Window * wnd)
 	glfwSetScrollCallback(wnd->hndlr, GlfwCursorScrollEventHandler);
 }
 
-void Plutonium::Cursor::Update(void)
+void Plutonium::Cursor::Reset(void)
 {
 	/* Reset scrollwheel delta and movement. */
 	ScrollWheel = Vector2::Zero;

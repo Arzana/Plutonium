@@ -99,6 +99,7 @@ void Plutonium::Game::Run(void)
 	while (!wnd->Update())
 	{
 		while (!Tick(wnd->HasFocus(), false));
+		cursor->Reset();
 	}
 
 	/* Finalize game. */
@@ -233,9 +234,6 @@ void Plutonium::Game::DoUpdate(float dt)
 
 	/* Update game specific code. */
 	Update(dt);
-
-	/* Make sure the cursor delta's are reset. */
-	cursor->Update();
 }
 
 void Plutonium::Game::BeginRender(void)
