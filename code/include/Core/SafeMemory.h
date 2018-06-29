@@ -10,6 +10,9 @@
 /* Gets the byte offset to the specified member in the specified type as a void pointer. */
 #define offset_ptr(o, m)				void_ptr(offsetof(o, m))
 
+#define mallocaa_s(type, size, amount)	Plutonium::_CrtMallocAS<type>(size, amount)
+#define freeaa_s(block, size)			Plutonium::_CrtFreeAS(&block, size)
+
 #if defined(DEBUG)
 #define malloc_s(type, size)			Plutonium::_CrtMallocH<type>(size)
 #define malloca_s(type, size)			Plutonium::_CrtMallocS<type>(size)
@@ -73,6 +76,15 @@ namespace Plutonium
 		return reinterpret_cast<_Ty*>(result);
 	}
 
+	/* Allocates a C-style memory array on the stack. */
+	template <typename _Ty>
+	_Check_return_ inline _Ty** _CrtMallocAS(_In_ size_t size, _In_ size_t amount)
+	{
+		_Ty **result = malloca_s(_Ty*, size);
+		for (size_t i = 0; i < size; i++) result[i] = malloca_s(_Ty, amount);
+		return result;
+	}
+
 	/* Re-allocates C-style memory on the heap. */
 	template <typename _Ty>
 	_Check_return_ inline void _CrtReallocH(_In_ _Ty **block, _In_ size_t amount)
@@ -117,6 +129,7 @@ namespace Plutonium
 		*block = nullptr;
 	}
 
+	/* Deletes a C-style memory block and sets it to NULL. */
 	template <typename _Ty>
 	inline void _CrtFreeS(_In_ _Ty **block)
 	{
@@ -126,6 +139,18 @@ namespace Plutonium
 		/* Try release and set to nullptr. */
 		_freea(const_cast<void*>(void_ptr(*block)));
 		*block = nullptr;
+	}
+
+	/* Deletes a C-style memory array block and sets it to NULL. */
+	template <typename _Ty>
+	inline void _CrtFreeAS(_In_ _Ty ***block, _In_ size_t size)
+	{
+		/* Check for nullptr. */
+		ASSERT_IF(*block == nullptr, "Attempting to free nullptr!");
+
+		/* Free blocks. */
+		for (size_t i = 0; i < size; i++) freea_s((*block)[i]);
+		freea_s(*block);
 	}
 
 	/* Deletes a pointer and sets it to NULL. */

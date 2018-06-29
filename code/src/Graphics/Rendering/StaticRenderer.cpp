@@ -116,25 +116,3 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 		DrawTris(buffer);
 	}
 }
-
-void Plutonium::StaticRenderer::Render(const EuclidRoom * model)
-{
-	matMdl->Set(model->GetWorld());
-
-	/* Render each shape. */
-	for (size_t i = 0; i < model->shapes.size(); i++)
-	{
-		/* Set current texture sampler. */
-		PhongMaterial *cur = model->shapes.at(i);
-		mapDiff->Set(cur->DiffuseMap);
-
-		/* Set mesh buffer attributes. */
-		cur->Mesh->GetVertexBuffer()->Bind();
-		pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
-
-		/* Render current shape. */
-		DrawTris(cur->Mesh->GetVertexBuffer());
-	}
-}

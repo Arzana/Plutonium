@@ -19,6 +19,11 @@ std::string Plutonium::to_string(const void * value)
 	return std::string(buffer);
 }
 
+std::string Plutonium::to_string(const char * format, float value)
+{
+	return std::_Floating_to_string(format, value);
+}
+
 std::string Plutonium::to_string(Vector2 value)
 {
 	/* Create buffer to hold converted value. */

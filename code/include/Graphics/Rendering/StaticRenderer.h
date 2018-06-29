@@ -1,7 +1,6 @@
 #pragma once
 #include "Graphics\Renderer.h"
 #include "GameLogic\StaticObject.h"
-#include "GameLogic\EuclidRoom.h"
 #include "Graphics\Lighting\DirectionalLight.h"
 #include "Graphics\Lighting\PointLight.h"
 
@@ -24,8 +23,6 @@ namespace Plutonium
 		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ Vector3 camPos, _In_ const DirectionalLight *sun, _In_ const PointLight *pointLight[4]);
 		/* Renders the specified model. */
 		void Render(_In_ const StaticObject *model);
-		/* Renders the specified room. */
-		void Render(_In_ const EuclidRoom *model);
 
 	private:
 		Uniform *matMdl, *matView, *matProj, *camPos;

@@ -35,6 +35,9 @@
     <ClInclude Include="Fire.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HUD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\assets\shaders\Static3D.frag">
@@ -50,9 +53,6 @@
       <Filter>Resource Files\Shaders\Vertex</Filter>
     </None>
     <None Include="..\..\assets\shaders\Static3D.vert">
-      <Filter>Resource Files\Shaders\Vertex</Filter>
-    </None>
-    <None Include="..\..\assets\shaders\PortalFrame3D.vert">
       <Filter>Resource Files\Shaders\Vertex</Filter>
     </None>
     <None Include="..\..\assets\shaders\Dynamic3D.vert">

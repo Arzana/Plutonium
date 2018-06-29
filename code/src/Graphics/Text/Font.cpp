@@ -254,19 +254,20 @@ void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 		stbtt_MakeCodepointBitmapSubpixel(info, alphaBuffer, outw, outh, outw, scale, scale, 0.0f, 0.0f, c);
 
 		/* Populate data. */
-		const byte cv = static_cast<byte>(255);
+		constexpr byte cv = static_cast<byte>(255);
 		for (int32 y = 0; y < outh; y++)
 		{
 			for (int32 x = 0; x < outw; x++)
 			{
 				/* Get indices for source and destination buffer. */
 				int32 i = y * outw + x;
-				int32 j = ipart((cur->Bounds.Position.Y + y) * map->Width + (cur->Bounds.Position.X + x)) << 2;
+				int32 j = static_cast<int32>((cur->Bounds.Position.Y + y) * map->Width + (cur->Bounds.Position.X + x)) << 2;
+				byte cd = alphaBuffer[i] > 0 ? cv : 0;
 
 				/* Set current pixel data. */
-				data[j] = cv;
-				data[j + 1] = cv;
-				data[j + 2] = cv;
+				data[j] = cd;
+				data[j + 1] = cd;
+				data[j + 2] = cd;
 				data[j + 3] = alphaBuffer[i];
 			}
 		}

@@ -8,6 +8,8 @@ namespace Plutonium
 {
 	/* Converts a pointer to a string form. */
 	_Check_return_ std::string to_string(_In_ const void *value);
+	/* Converts a floating point value to string form with a specified format. */
+	_Check_return_ std::string to_string(_In_ const char *format, float value);
 	/* Converts a 2D vector to a string form. */
 	_Check_return_ std::string to_string(_In_ Vector2 value);
 	/* Converts a 3D vector to a string form. */

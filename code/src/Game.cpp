@@ -189,6 +189,7 @@ void Plutonium::Game::DoInitialize(void)
 {
 	/* Make sure the render target is set to the window. */
 	device->SetRenderTarget(nullptr);
+	drawTimer = new Stopwatch();
 
 	/* Initialize game specific components. */
 	Initialize();
@@ -224,7 +225,11 @@ void Plutonium::Game::DoFinalize(void)
 void Plutonium::Game::DoUpdate(float dt)
 {
 	/* Update all defined components. */
-	for (size_t i = 0; i < components.size(); i++) components.at(i)->Update(dt);
+	for (size_t i = 0; i < components.size(); i++)
+	{
+		GameComponent *cmp = components.at(i);
+		if (cmp->enabled) cmp->Update(dt);
+	}
 
 	/* Update game specific code. */
 	Update(dt);
@@ -250,6 +255,7 @@ void Plutonium::Game::BeginRender(void)
 
 void Plutonium::Game::DoRender(float dt)
 {
+	drawTimer->Restart();
 	BeginRender();
 
 	/* Render game specific code. */
@@ -259,6 +265,7 @@ void Plutonium::Game::DoRender(float dt)
 	for (size_t i = 0; i < components.size(); i++) components.at(i)->Render(dt);
 
 	EndRender();
+	drawTimer->End();
 }
 
 void Plutonium::Game::EndRender(void)

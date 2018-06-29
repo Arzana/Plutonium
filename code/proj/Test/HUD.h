@@ -1,0 +1,108 @@
+#pragma once
+#include <Graphics\GUI\Containers\Menu.h>
+#include <Core\Math\Interpolation.h>
+#include <Core\String.h>
+
+using namespace Plutonium;
+
+struct HUD
+	: Menu
+{
+public:
+	HUD(Game *game)
+		: Menu(game),
+		dayState("NULL"), sunAngle(0.0f), fpsAvrg(0.0f), ram(0), vram(0), budget(0)
+	{}
+
+	void UpdateDisplayValues(const char *dayState, float sunAngle, float fpsAvrg, uint64 ram, uint64 vram, uint64 budget)
+	{
+		this->dayState = dayState;
+		this->sunAngle = sunAngle;
+		this->fpsAvrg = fpsAvrg;
+		this->ram = ram;
+		this->vram = vram;
+		this->budget = budget;
+	}
+
+protected:
+	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
+
+	virtual void Initialize(void) override
+	{
+		Menu::Initialize();
+		SetDefaultFont("fonts/OpenSans-Regular.ttf", 24.0f);
+	}
+
+	virtual void Create(void) override 
+	{
+		float y = 0.0f;
+
+		lblTime = CreateDefaultLabel(y);
+		y += lblTime->GetHeight();
+
+		lblFps = CreateDefaultLabel(y);
+		y += lblFps->GetHeight();
+
+		lblCpuRam = CreateDefaultLabel(y);
+		y += lblCpuRam->GetHeight();
+
+		lblGpuRam = CreateDefaultLabel(y);
+		y += lblGpuRam->GetHeight();
+
+		lblWorldDrawTime = CreateDefaultLabel(y);
+	}
+
+	virtual void Update(float dt) override
+	{
+		Menu::Update(dt);
+
+		/* Update time string. */
+		std::string strTime = "Time: ";
+		((strTime += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + map(0.0f, 24.0f, sunAngle, 0.0f, TAU), 24.0f)));
+		lblTime->SetText(strTime.c_str());
+		lblTime->Update(dt);
+
+		/* Update debug average FPS. */
+		std::string strFps = "Fps (avg): ";
+		strFps += std::to_string(ipart(fpsAvrg));
+		strFps += " Hz";
+		lblFps->SetText(strFps.c_str());
+		lblFps->Update(dt);
+
+		/* Update debug average VRAM. */
+		std::string strRam = "RAM: ";
+		((strRam += b2short_string(ram)) += " / ") += b2short_string(budget);
+		lblCpuRam->SetText(strRam.c_str());
+		lblCpuRam->Update(dt);
+
+		/* Update debug average GRAM. */
+		std::string strGpu = "GPU: ";
+		strGpu += b2short_string(vram);
+		lblGpuRam->SetText(strGpu.c_str());
+		lblGpuRam->Update(dt);
+
+		/* Update debug draw time. */
+		std::string strDraw = "World Draw Time: ";
+		strDraw += to_string("%.2f", static_cast<float>(game->GetGlobalRenderTime()));
+		strDraw += " ms";
+		lblWorldDrawTime->SetText(strDraw.c_str());
+		lblWorldDrawTime->Update(dt);
+	}
+
+private:
+	const char *dayState;
+	float sunAngle, fpsAvrg;
+	uint64 ram, vram, budget;
+
+	Label* CreateDefaultLabel(float y)
+	{
+		Label *result = AddLabel();
+
+		result->SetAutoSize(true);
+		result->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
+		result->SetTextColor(Color::White);
+		result->SetPosition(Vector2(0.0f, y));
+
+		return result;
+	}
+};

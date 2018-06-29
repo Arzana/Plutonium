@@ -206,7 +206,6 @@
     <ClCompile Include="..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\GameLogic\DynamicObject.cpp" />
-    <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp" />
     <ClCompile Include="..\..\src\GameLogic\StaticObject.cpp" />
     <ClCompile Include="..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugSpriteRenderer.cpp" />
@@ -219,6 +218,7 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp" />
@@ -232,9 +232,6 @@
     <ClCompile Include="..\..\src\Graphics\Native\RenderTarget.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
     <ClCompile Include="..\..\src\Graphics\PhongMaterial.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Portals\Portal.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
@@ -291,7 +288,6 @@
     <ClInclude Include="..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\include\Game.h" />
     <ClInclude Include="..\..\include\GameLogic\DynamicObject.h" />
-    <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h" />
     <ClInclude Include="..\..\include\GameLogic\StaticObject.h" />
     <ClInclude Include="..\..\include\GameLogic\WorldObject.h" />
     <ClInclude Include="..\..\include\Graphics\Color.h" />
@@ -306,6 +302,7 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h" />
@@ -337,10 +334,6 @@
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />
     <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h" />
-    <ClInclude Include="..\..\include\Graphics\Portals\PobjLoader.h" />
-    <ClInclude Include="..\..\include\Graphics\Portals\Portal.h" />
-    <ClInclude Include="..\..\include\Graphics\Portals\PortalRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h" />
     <ClInclude Include="..\..\include\Graphics\Renderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />

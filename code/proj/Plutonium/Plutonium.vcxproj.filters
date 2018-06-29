@@ -84,12 +84,6 @@
     <Filter Include="Header Files\GameLogic">
       <UniqueIdentifier>{a3f731af-c396-4dc3-b95b-01548888980a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Graphics\Portals">
-      <UniqueIdentifier>{f1345731-4bb7-4970-a12f-3523ecac1cdd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\Portals">
-      <UniqueIdentifier>{3b741d39-3ddf-42bc-b860-3bd6bcd0f94d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Core\Collections">
       <UniqueIdentifier>{5533fc3f-fd6d-4c79-b29d-929cc6f48065}</UniqueIdentifier>
     </Filter>
@@ -143,6 +137,12 @@
     </Filter>
     <Filter Include="Source Files\Graphics\GUI\Items">
       <UniqueIdentifier>{2f43762e-faf8-4a91-bc3e-47efa6be82cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\GUI\Containers">
+      <UniqueIdentifier>{7dc843cc-a024-41ab-b009-01a6e7b1f5a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GUI\Containers">
+      <UniqueIdentifier>{20006271-df0f-4a02-bd9c-85c19199d59a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -260,20 +260,8 @@
     <ClCompile Include="..\..\src\Streams\FileUtils.cpp">
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Portals\Portal.cpp">
-      <Filter>Source Files\Graphics\Portals</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Portals\PortalRenderer.cpp">
-      <Filter>Source Files\Graphics\Portals</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Portals\PobjLoader.cpp">
-      <Filter>Source Files\Graphics\Portals</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GameLogic\EuclidRoom.cpp">
-      <Filter>Source Files\GameLogic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
@@ -361,6 +349,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp">
       <Filter>Source Files\Graphics\GUI\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp">
+      <Filter>Source Files\Graphics\GUI\Containers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -559,12 +550,6 @@
     <ClInclude Include="..\..\include\Graphics\Native\FaceCullType.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Portals\Portal.h">
-      <Filter>Header Files\Graphics\Portals</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Portals\PortalRenderer.h">
-      <Filter>Header Files\Graphics\Portals</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
@@ -580,17 +565,8 @@
     <ClInclude Include="..\..\include\Core\Diagnostics\ReflectNames.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Portals\SceneRenderArgs.h">
-      <Filter>Header Files\Graphics\Portals</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Portals\PobjLoader.h">
-      <Filter>Header Files\Graphics\Portals</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\GameLogic\EuclidRoom.h">
-      <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Rendering\SpriteRenderer.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
@@ -708,6 +684,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Text\FontRenderer.h">
       <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h">
+      <Filter>Header Files\Graphics\GUI\Containers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

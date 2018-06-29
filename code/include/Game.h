@@ -1,4 +1,5 @@
 #pragma once
+#include "Core\Stopwatch.h"
 #include "Input\Cursor.h"
 #include "Input\Keyboard.h"
 #include "Content\AssetLoader.h"
@@ -64,6 +65,12 @@ namespace Plutonium
 			return loader;
 		}
 
+		/* Gets the time (in milliseconds) it took for the last render call to fully complete. */
+		_Check_return_ inline long double GetGlobalRenderTime(void) const
+		{
+			return drawTimer->Microseconds() * 0.001L;
+		}
+
 	protected:
 		/* Supresses the next successful ticks update call. */
 		inline void SuppressNextUpdate(void)
@@ -112,6 +119,7 @@ namespace Plutonium
 		float accumElapTime;
 		float maxElapTime;
 		std::atomic_int loadPercentage;
+		Stopwatch *drawTimer;
 
 		GraphicsAdapter *device;
 		AssetLoader *loader;

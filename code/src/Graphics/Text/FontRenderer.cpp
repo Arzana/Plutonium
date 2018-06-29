@@ -43,18 +43,18 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 	if (!font) return;
 
 	/* Initialize newline split buffer. */
-	constexpr size_t BUFF_LEN = 16;
-	char *buffer[BUFF_LEN];
-	for (size_t i = 0; i < BUFF_LEN; i++) buffer[i] = malloca_s(char, FILENAME_MAX);
+	const size_t buffLen = cntchar(str, '\n') + 1;
+	char **buffer = mallocaa_s(char, buffLen, FILENAME_MAX);
 
 	/* Split string to lines and loop through them. */
 	size_t len = spltstr(str, '\n', buffer, 0);
+	ASSERT_IF(buffLen != len, "Something went wrong whilst splitting the string, this should never occur!");
 	for (size_t i = 0; i < len; i++)
 	{
 		AddSingleString(parent->GetGraphics()->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
 	}
 
-	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
+	freeaa_s(buffer, buffLen);
 }
 
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char32 * str, Color clr)
@@ -63,18 +63,18 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char32 * str, Color c
 	if (!font) return;
 
 	/* Initialize newline split buffer. */
-	constexpr size_t BUFF_LEN = 16;
-	char32 *buffer[BUFF_LEN];
-	for (size_t i = 0; i < BUFF_LEN; i++) buffer[i] = malloca_s(char32, FILENAME_MAX);
+	const size_t buffLen = cntchar(str, '\n') + 1;
+	char32 **buffer = mallocaa_s(char32, buffLen, FILENAME_MAX);
 
 	/* Split string to lines and loop through them. */
 	size_t len = spltstr(str, '\n', buffer, 0);
+	ASSERT_IF(buffLen != len, "Something went wrong whilst splitting the string, this should never occur!");
 	for (size_t i = 0; i < len; i++)
 	{
 		AddSingleString(parent->GetGraphics()->ToOpenGL(Vector2(pos.X, pos.Y + font->lineSpace * (i + 1))), buffer[i], clr);
 	}
 
-	for (size_t i = 0; i < BUFF_LEN; i++) freea_s(buffer[i]);
+	freeaa_s(buffer, buffLen);
 }
 
 void Plutonium::FontRenderer::Render(void)

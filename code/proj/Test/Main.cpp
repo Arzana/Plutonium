@@ -11,8 +11,8 @@
 #include <Components\MemoryCounter.h>
 #include <Components\FpsCounter.h>
 #include <GameLogic\StaticObject.h>
-#include <Graphics\GUI\Items\Label.h>
 #include "Fire.h"
+#include "HUD.h"
 
 using namespace Plutonium;
 
@@ -25,7 +25,6 @@ struct TestGame
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
-	GuiItemRenderer *grenderer;
 	Camera *cam;
 	DebuggableValues renderMode;
 
@@ -41,7 +40,7 @@ struct TestGame
 	/* Diagnostics. */
 	FpsCounter *fps;
 	MemoryCounter *mem;
-	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam;
+	HUD *hud;
 
 	TestGame(void)
 		: Game("TestGame"), theta(0.0f), renderMode(DebuggableValues::None)
@@ -57,13 +56,13 @@ struct TestGame
 	{
 		AddComponent(fps = new FpsCounter(this, 100, 1));
 		AddComponent(mem = new MemoryCounter(this, 100, 1));
+		AddComponent(hud = new HUD(this));
 
 		fRenderer = new FontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
 		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammeCorrection);
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
 		dmrenderer = new DebugMeshRenderer(GetGraphics()->GetWindow());
-		grenderer = new GuiItemRenderer(GetGraphics());
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
 		{
@@ -113,7 +112,7 @@ struct TestGame
 		GetLoader()->LoadTexture(skyboxPaths, Callback<Texture>([&](const AssetLoader*, Texture *result)
 		{
 			skybox = result;
-			UpdateLoadPercentage(3);
+			UpdateLoadPercentage(4);
 		}));
 
 		/* Setup lighting. */
@@ -122,43 +121,6 @@ struct TestGame
 		fires[1] = new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), scale, 10);
 		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), scale, 10);
 		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 10);
-
-		/* Add debug HUD. */
-		GetLoader()->LoadFont("fonts/OpenSans-Regular.ttf", Callback<Font>([&](const AssetLoader*, Font *font) 
-		{
-			const Color backColor = Color(0.0f, 0.0f, 0.0f, 0.5f);
-			const Color foreColor = Color::White;
-			float y = 0.0f;
-
-			lblTime = new Label(this, font);
-			lblTime->SetAutoSize(true);
-			lblTime->SetBackColor(backColor);
-			lblTime->SetTextColor(foreColor);
-			lblTime->SetPosition(Vector2::Zero);
-			y += lblTime->GetHeight();
-
-			lblFps = new Label(this, font);
-			lblFps->SetAutoSize(true);
-			lblFps->SetBackColor(backColor);
-			lblFps->SetTextColor(foreColor);
-			lblFps->SetPosition(Vector2(0.0f, y));
-			y += lblFps->GetHeight();
-
-			lblCpuRam = new Label(this, font);
-			lblCpuRam->SetAutoSize(true);
-			lblCpuRam->SetBackColor(backColor);
-			lblCpuRam->SetTextColor(foreColor);
-			lblCpuRam->SetPosition(Vector2(0.0f, y));
-			y += lblCpuRam->GetHeight();
-
-			lblGpuRam = new Label(this, font);
-			lblGpuRam->SetAutoSize(true);
-			lblGpuRam->SetBackColor(backColor);
-			lblGpuRam->SetTextColor(foreColor);
-			lblGpuRam->SetPosition(Vector2(0.0f, y));
-
-			UpdateLoadPercentage(1);
-		}), 24.0f);
 	}
 
 	virtual void UnLoadContent(void)
@@ -168,11 +130,6 @@ struct TestGame
 		for (size_t i = 0; i < 4; i++) delete_s(fires[i]);
 		delete_s(map);
 		GetLoader()->Unload(skybox);
-
-		delete_s(lblTime);
-		delete_s(lblFps);
-		delete_s(lblCpuRam);
-		delete_s(lblGpuRam);
 	}
 
 	virtual void Finalize(void)
@@ -182,7 +139,6 @@ struct TestGame
 		delete_s(drenderer);
 		delete_s(sbrenderer);
 		delete_s(dmrenderer);
-		delete_s(grenderer);
 	}
 
 	virtual void Update(float dt)
@@ -198,34 +154,7 @@ struct TestGame
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 
 		/* Update HUD. */
-		UpdateHUD(dt);
-	}
-
-	void UpdateHUD(float dt)
-	{
-		/* Update time string. */
-		std::string strTime = "Time: ";
-		((strTime += dayState) += ' ') += std::to_string(ipart(fmodf(6.0f + ::map(0.0f, 24.0f, theta, 0.0f, TAU), 24.0f)));
-		lblTime->SetText(strTime.c_str());
-		lblTime->Update(dt);
-
-		/* Add debug average FPS. */
-		std::string strFps = "Fps (avg): ";
-		strFps += std::to_string(ipart(fps->GetAvrgHz()));
-		lblFps->SetText(strFps.c_str());
-		lblFps->Update(dt);
-
-		/* Add debug average VRAM. */
-		std::string strRam = "RAM: ";
-		((strRam += b2short_string(mem->GetAvrgRamUsage())) += " / ") += b2short_string(mem->GetOSRamBudget());
-		lblCpuRam->SetText(strRam.c_str());
-		lblCpuRam->Update(dt);
-
-		/* Add debug average GRAM. */
-		std::string strGpu = "GPU: ";
-		strGpu += b2short_string(mem->GetAvrgGPURamUsage());
-		lblGpuRam->SetText(strGpu.c_str());
-		lblGpuRam->Update(dt);
+		hud->UpdateDisplayValues(dayState, theta, fps->GetAvrgHz(), mem->GetAvrgRamUsage(), mem->GetAvrgGPURamUsage(), mem->GetOSRamBudget());
 	}
 
 	void UpdateDayState(float dt)
@@ -299,13 +228,6 @@ struct TestGame
 
 		/* Render skybox. */
 		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
-
-		/* Render GUI. */
-		lblTime->Draw(grenderer);
-		lblFps->Draw(grenderer);
-		lblCpuRam->Draw(grenderer);
-		lblGpuRam->Draw(grenderer);
-		grenderer->End();
 	}
 
 	virtual void RenderLoad(float dt, int percentage)
