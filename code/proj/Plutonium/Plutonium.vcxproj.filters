@@ -144,6 +144,12 @@
     <Filter Include="Source Files\Graphics\GUI\Containers">
       <UniqueIdentifier>{20006271-df0f-4a02-bd9c-85c19199d59a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Components\Diagnostics">
+      <UniqueIdentifier>{6009c7d0-d575-45ed-843b-a42cec80fc1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Components\Diagnostics">
+      <UniqueIdentifier>{1b5ceb9a-e16d-4a2f-a693-1421a4f29f54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -180,9 +186,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Components\GameComponent.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Components\FpsCounter.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp">
@@ -229,9 +232,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Components\MemoryCounter.cpp">
-      <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
@@ -353,6 +353,9 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp">
       <Filter>Source Files\Graphics\GUI\Containers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Components\Diagnostics\VRamCounter.cpp">
+      <Filter>Source Files\Components\Diagnostics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -430,9 +433,6 @@
     <ClInclude Include="..\..\include\Components\GameComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Components\FpsCounter.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Core\StringFunctions.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -489,9 +489,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Diagnostics\Memory.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Components\MemoryCounter.h">
-      <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h">
       <Filter>Header Files\Graphics\Models</Filter>
@@ -688,6 +685,18 @@
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h">
       <Filter>Header Files\Graphics\GUI\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Components\Diagnostics\Counter.h">
+      <Filter>Header Files\Components\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Components\Diagnostics\FpsCounter.h">
+      <Filter>Header Files\Components\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Components\Diagnostics\RamCounter.h">
+      <Filter>Header Files\Components\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Components\Diagnostics\VRAMCounter.h">
+      <Filter>Header Files\Components\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">
@@ -742,6 +751,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\visualizers\Monitor.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\DeviceInfo.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

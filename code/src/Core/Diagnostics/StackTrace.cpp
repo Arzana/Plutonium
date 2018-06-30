@@ -19,7 +19,7 @@ const char * Plutonium::_CrtGetErrorString(void)
 
 	/* Get error underlying error code and early out if no error was raised. */
 	DWORD error = GetLastError();
-	if (error == NO_ERROR) return heapstr("");
+	if (error == NO_ERROR) return heapstr("No Error!");
 
 	/* Get human readable error from system. */
 	LPSTR msgBuffer = nullptr;

@@ -8,8 +8,9 @@
 #include <Graphics\Rendering\DynamicRenderer.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
 #include <Components\Camera.h>
-#include <Components\MemoryCounter.h>
-#include <Components\FpsCounter.h>
+#include <Components\Diagnostics\FpsCounter.h>
+#include <Components\Diagnostics\RamCounter.h>
+#include <Components\Diagnostics\VRAMCounter.h>
 #include <GameLogic\StaticObject.h>
 #include "Fire.h"
 #include "HUD.h"
@@ -39,7 +40,8 @@ struct TestGame
 
 	/* Diagnostics. */
 	FpsCounter *fps;
-	MemoryCounter *mem;
+	RamCounter *ram;
+	VRamCounter *vram;
 	HUD *hud;
 
 	TestGame(void)
@@ -54,8 +56,9 @@ struct TestGame
 
 	virtual void Initialize(void)
 	{
-		AddComponent(fps = new FpsCounter(this, 100, 1));
-		AddComponent(mem = new MemoryCounter(this, 100, 1));
+		AddComponent(fps = new FpsCounter(this));
+		AddComponent(ram = new RamCounter(this));
+		AddComponent(vram = new VRamCounter(this));
 		AddComponent(hud = new HUD(this));
 
 		fRenderer = new FontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
@@ -154,7 +157,7 @@ struct TestGame
 		if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
 
 		/* Update HUD. */
-		hud->UpdateDisplayValues(dayState, theta, fps->GetAvrgHz(), mem->GetAvrgRamUsage(), mem->GetAvrgGPURamUsage(), mem->GetOSRamBudget());
+		hud->UpdateDisplayValues(dayState, theta, fps->GetAverageHz(), ram->GetAverage(), vram->GetAverage(), ram->GetOSBudget(), vram->GetOSBudget());
 	}
 
 	void UpdateDayState(float dt)

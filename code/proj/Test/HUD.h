@@ -11,17 +11,18 @@ struct HUD
 public:
 	HUD(Game *game)
 		: Menu(game),
-		dayState("NULL"), sunAngle(0.0f), fpsAvrg(0.0f), ram(0), vram(0), budget(0)
+		dayState("NULL"), sunAngle(0.0f), fpsAvrg(0.0f), ram(0), vram(0), cpuBudget(0), gpuBudget(0)
 	{}
 
-	void UpdateDisplayValues(const char *dayState, float sunAngle, float fpsAvrg, uint64 ram, uint64 vram, uint64 budget)
+	void UpdateDisplayValues(const char *dayState, float sunAngle, float fpsAvrg, uint64 ram, uint64 vram, uint64 osBudget, uint64 framBufferSize)
 	{
 		this->dayState = dayState;
 		this->sunAngle = sunAngle;
 		this->fpsAvrg = fpsAvrg;
 		this->ram = ram;
 		this->vram = vram;
-		this->budget = budget;
+		this->cpuBudget = osBudget;
+		this->gpuBudget = framBufferSize;
 	}
 
 protected:
@@ -69,15 +70,15 @@ protected:
 		lblFps->SetText(strFps.c_str());
 		lblFps->Update(dt);
 
-		/* Update debug average VRAM. */
+		/* Update debug average RAM. */
 		std::string strRam = "RAM: ";
-		((strRam += b2short_string(ram)) += " / ") += b2short_string(budget);
+		((strRam += b2short_string(ram)) += " / ") += b2short_string(cpuBudget);
 		lblCpuRam->SetText(strRam.c_str());
 		lblCpuRam->Update(dt);
 
 		/* Update debug average GRAM. */
 		std::string strGpu = "GPU: ";
-		strGpu += b2short_string(vram);
+		((strGpu += b2short_string(vram)) += " / ") += b2short_string(gpuBudget);
 		lblGpuRam->SetText(strGpu.c_str());
 		lblGpuRam->Update(dt);
 
@@ -92,7 +93,7 @@ protected:
 private:
 	const char *dayState;
 	float sunAngle, fpsAvrg;
-	uint64 ram, vram, budget;
+	uint64 ram, vram, cpuBudget, gpuBudget;
 
 	Label* CreateDefaultLabel(float y)
 	{

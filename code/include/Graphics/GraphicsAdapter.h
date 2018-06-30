@@ -1,4 +1,5 @@
 #pragma once
+#include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Graphics\Native\Monitor.h"
 #include "Graphics\Native\Window.h"
 #include "Graphics\Native\RenderTarget.h"
@@ -71,12 +72,19 @@ namespace Plutonium
 			return window;
 		}
 
+		/* Gets the information of the graphics device. */
+		_Check_return_ inline const DeviceInfo* GetInfo(void) const
+		{
+			return device;
+		}
+
 		/* Converts a 2D vector from screen space (top-left origin) to OpenGL space (bottom-left origin). */
 		_Check_return_ Vector2 ToOpenGL(_In_ Vector2 screenCoord);
 
 	private:
 		friend struct Game;
 
+		const DeviceInfo *device;
 		Window *window;
 		BlendState abf, cbf;
 		StencilOperation sf, df, dp;

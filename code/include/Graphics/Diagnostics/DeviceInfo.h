@@ -16,6 +16,8 @@ namespace Plutonium
 		const char *DriverVersion;
 		/* The version or release number of the shading language. */
 		const char *ShaderVersion;
+		/* The physical memory budget. */
+		uint64 FrameBufferSize;
 
 		/* Releases the resources allocated by the info. */
 		~DeviceInfo(void) noexcept;
@@ -24,7 +26,7 @@ namespace Plutonium
 		friend const DeviceInfo* _CrtGetDeviceInfo(void);
 
 		DeviceInfo(void)
-			: DeviceVendor(nullptr), DeviceConfig(nullptr), DriverVersion(nullptr), ShaderVersion(nullptr)
+			: DeviceVendor(nullptr), DeviceConfig(nullptr), DriverVersion(nullptr), ShaderVersion(nullptr), FrameBufferSize(0)
 		{}
 	};
 
@@ -32,6 +34,6 @@ namespace Plutonium
 	_Check_return_ const DeviceInfo* _CrtGetDeviceInfo(void);
 	/* Updates the memory currently used by graphical resources. */
 	void _CrtUpdateUsedGPUMemory(_In_ int64 modifier);
-	/* Gets the amounbt of memory currently used by graphical resources. */
+	/* Gets the amount of memory currently used by graphical resources. */
 	_Check_return_ uint64 _CrtGetUsedGPUMemory(void);
 }

@@ -220,42 +220,39 @@ namespace Plutonium
 	/* Converts kilobytes to bytes. */
 	_Check_return_ constexpr inline uint64 kb2b(_In_ int32 kilobytes)
 	{
-		constexpr float scalar = static_cast<float>(1 << 10);
-		return static_cast<uint64>(kilobytes * scalar);
+		return static_cast<uint64>(kilobytes * 1000.0f);
 	}
 
 	/* Converts megabytes to bytes. */
 	_Check_return_ constexpr inline uint64 mb2b(_In_ int32 megabytes)
 	{
-		constexpr float scalar = static_cast<float>(1 << 20);
-		return static_cast<uint64>(megabytes * scalar);
+		return static_cast<uint64>(megabytes * 1000000.0f);
 	}
 
 	/* Converts gigabytes to bytes. */
 	_Check_return_ constexpr inline uint64 gb2b(_In_ int32 gigabytes)
 	{
-		constexpr float scalar = static_cast<float>(1 << 30);
-		return static_cast<uint64>(gigabytes * scalar);
+		return static_cast<uint64>(gigabytes * 1000000000.0f);
 	}
 
 	/* Converts bytes to kilobytes. */
 	_Check_return_ constexpr inline int32 b2kb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(kb2b(1)));
+		constexpr float denom = recip(static_cast<float>(1000));
 		return static_cast<int32>(bytes * denom);
 	}
 
 	/* Converts bytes to megabytes. */
 	_Check_return_ constexpr inline int32 b2mb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(mb2b(1)));
+		constexpr float denom = recip(static_cast<float>(1000000));
 		return static_cast<int32>(bytes * denom);
 	}
 
 	/* Converts bytes to gigabytes. */
 	_Check_return_ constexpr inline int32 b2gb(_In_ uint64 bytes)
 	{
-		constexpr float denom = recip(static_cast<float>(gb2b(1)));
+		constexpr float denom = recip(static_cast<float>(1000000000));
 		return static_cast<int32>(bytes * denom);
 	}
 #pragma endregion

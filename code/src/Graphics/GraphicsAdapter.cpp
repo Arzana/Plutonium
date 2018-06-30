@@ -3,6 +3,7 @@
 Plutonium::GraphicsAdapter::~GraphicsAdapter(void) noexcept
 {
 	delete_s(window);
+	delete_s(device);
 }
 
 void Plutonium::GraphicsAdapter::SetAlphaBlendFunction(BlendState func)
@@ -138,6 +139,8 @@ Plutonium::Vector2 Plutonium::GraphicsAdapter::ToOpenGL(Vector2 screenCoord)
 Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 	: window(window)
 {
+	device = _CrtGetDeviceInfo();
+
 	/* Set defaults. */
 	SetDefaultBlendEq();
 	SetDefaultStencilOp();

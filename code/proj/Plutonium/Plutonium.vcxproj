@@ -185,9 +185,8 @@
     <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c" />
     <ClCompile Include="..\..\deps\glad\Release\src\glad_release.c" />
     <ClCompile Include="..\..\src\Components\Camera.cpp" />
-    <ClCompile Include="..\..\src\Components\FpsCounter.cpp" />
+    <ClCompile Include="..\..\src\Components\Diagnostics\VRamCounter.cpp" />
     <ClCompile Include="..\..\src\Components\GameComponent.cpp" />
-    <ClCompile Include="..\..\src\Components\MemoryCounter.cpp" />
     <ClCompile Include="..\..\src\Content\AssetLoader.cpp" />
     <ClCompile Include="..\..\src\Content\ObjLoader.cpp" />
     <ClCompile Include="..\..\src\Core\Diagnostics\Logging.cpp" />
@@ -254,9 +253,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Components\Camera.h" />
-    <ClInclude Include="..\..\include\Components\FpsCounter.h" />
+    <ClInclude Include="..\..\include\Components\Diagnostics\Counter.h" />
+    <ClInclude Include="..\..\include\Components\Diagnostics\FpsCounter.h" />
+    <ClInclude Include="..\..\include\Components\Diagnostics\RamCounter.h" />
+    <ClInclude Include="..\..\include\Components\Diagnostics\VRAMCounter.h" />
     <ClInclude Include="..\..\include\Components\GameComponent.h" />
-    <ClInclude Include="..\..\include\Components\MemoryCounter.h" />
     <ClInclude Include="..\..\include\Content\AssetLoader.h" />
     <ClInclude Include="..\..\include\Content\ObjLoader.h" />
     <ClInclude Include="..\..\include\Core\Collections\Tree.h" />
@@ -369,6 +370,7 @@
     <Natvis Include="..\..\visualizers\AnimationInfo.natvis" />
     <Natvis Include="..\..\visualizers\Box.natvis" />
     <Natvis Include="..\..\visualizers\Color.natvis" />
+    <Natvis Include="..\..\visualizers\DeviceInfo.natvis" />
     <Natvis Include="..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\visualizers\EventSubscriber.natvis" />
     <Natvis Include="..\..\visualizers\Field.natvis" />

@@ -81,11 +81,26 @@ std::string Plutonium::to_string(const Matrix & value)
 	return std::string(buffer);
 }
 
+std::string Plutonium::b2kb_string(uint64 value)
+{
+	return std::to_string(b2kb(value)).append(" KB");
+}
+
+std::string Plutonium::b2mb_string(uint64 value)
+{
+	return std::to_string(b2mb(value)).append(" MB");
+}
+
+std::string Plutonium::b2gb_string(uint64 value)
+{
+	return std::to_string(b2gb(value)).append(" GB");
+}
+
 std::string Plutonium::b2short_string(uint64 value, uint64 kbBoundry, uint64 mbBoundry, uint64 gbBoundry)
 {
 	/* Converts the bytes to the needed level and returns it as a string. */
-	if (value < kbBoundry) return std::to_string(value).append(" B");
-	else if (value < mbBoundry) return std::to_string(b2kb(value)).append(" KB");
-	else if (value < gbBoundry) return std::to_string(b2mb(value)).append(" MB");
-	else return std::to_string(b2gb(value)).append(" GB");
+	if (value <= kbBoundry) return std::to_string(value).append(" B");
+	else if (value <= mbBoundry) return b2kb_string(value);
+	else if (value <= gbBoundry) return b2mb_string(value);
+	else return b2gb_string(value);
 }

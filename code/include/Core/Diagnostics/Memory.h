@@ -17,12 +17,13 @@ namespace Plutonium
 		/* The amount in bytes of physical memory used by this process. */
 		uint64 UsedRam;
 
-	private:
-		friend const MemoryFrame _CrtGetMemStats(void);
-
+		/* Initializes an empty instance of the memory frame object. */
 		MemoryFrame(void)
 			: TotalVRam(0), TotalRam(0), UsedVRam(0), UsedRam(0)
 		{}
+
+	private:
+		friend const MemoryFrame _CrtGetMemStats(void);
 	};
 
 	/* Gets the current memory statistics for the calling process. */
