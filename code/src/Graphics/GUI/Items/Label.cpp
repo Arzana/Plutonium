@@ -8,7 +8,8 @@ Plutonium::Label::Label(Game * parent, const Font * font)
 Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	: GuiItem(parent, bounds), autoSize(false), textColor(GetDefaultTextColor()),
 	font(font), text(heapwstr("")), offset(GetDefaultTextOffset()), charBufferSize(GetDefaultBufferSize()),
-	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged)
+	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged),
+	bindFunc()
 {
 	/* Initilaize text render position. */
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
@@ -29,6 +30,18 @@ Plutonium::Label::~Label(void)
 size_t Plutonium::Label::GetLineCount(void) const
 {
 	return cntchar(text, U'\n') + 1;
+}
+
+void Plutonium::Label::Update(float dt)
+{
+	GuiItem::Update(dt);
+
+	if (bindFunc != 0)
+	{
+		std::string result;
+		bindFunc.HandlePost(this, result);
+		SetText(result.c_str());
+	}
 }
 
 void Plutonium::Label::Draw(GuiItemRenderer * renderer)
@@ -80,6 +93,11 @@ void Plutonium::Label::SetTextOffset(Vector2 offset)
 	textPos = GetPosition() + offset;
 	HandleAutoSize();
 	TextOffsetChanged.Post(this, args);
+}
+
+void Plutonium::Label::SetTextBind(Binder & binder)
+{
+	bindFunc = binder;
 }
 
 void Plutonium::Label::HandleAutoSize(void)

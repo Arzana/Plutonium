@@ -9,6 +9,9 @@ namespace Plutonium
 		: public GuiItem
 	{
 	public:
+		/* Defines a function used to set the value of the label each frame. */
+		using Binder = EventSubscriber<Label, std::string&>;
+
 		/* Occurs when the text property is changed. */
 		EventBus<Label, ValueChangedEventArgs<const char32*>> TextChanged;
 		/* Occurs when the text color property is changed. */
@@ -30,8 +33,10 @@ namespace Plutonium
 
 		/* Gets the amount of lines within this label (at least 1). */
 		_Check_return_ size_t GetLineCount(void) const;
+		/* Updates the Label and handles the auto text setting. */
+		virtual void Update(_In_ float dt) override;
 		/* Renders the Label to the screen. */
-		virtual void Draw(_In_ GuiItemRenderer *renderer);
+		virtual void Draw(_In_ GuiItemRenderer *renderer) override;
 
 		/* Gets whether the label should be automatically resized to fit the text. */
 		_Check_return_ bool GetAutoSize(void) const
@@ -91,6 +96,8 @@ namespace Plutonium
 		void SetTextColor(_In_ Color color);
 		/* Sets the offset from the background position to the text position. */
 		void SetTextOffset(_In_ Vector2 offset);
+		/* Sets the function used to update the text every update. */
+		void SetTextBind(_In_ Binder &binder);
 
 	protected:
 		/* Handles the autosize functionality. */
@@ -105,6 +112,7 @@ namespace Plutonium
 		Vector2 textPos;
 		Buffer *textMesh;
 		size_t charBufferSize;
+		Binder bindFunc;
 
 		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2> args);
 		void UpdateTextMesh(void);

@@ -16,6 +16,11 @@ namespace Plutonium
 		template <typename _CTy>
 		using HandlerMethodType = void(_CTy::*)(_In_ const _STy *sender, _In_ _ArgTy ... args);
 
+		/* Initializes an empty instance of an event subscriber. */
+		EventSubscriber(void)
+			: id(0), hndlr(nullptr)
+		{}
+
 		/* Initializes a new instance of an event subscriber. */
 		EventSubscriber(HandlerFuncType func)
 		{
