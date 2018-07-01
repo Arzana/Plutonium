@@ -23,6 +23,12 @@ namespace Plutonium
 			return name;
 		}
 
+		/* Gets the underlying shapes of the model. */
+		_Check_return_ inline const std::vector<PhongMaterial*>* GetShapes(void) const
+		{
+			return &shapes;
+		}
+
 	protected:
 		const char *name;
 		const char *path;

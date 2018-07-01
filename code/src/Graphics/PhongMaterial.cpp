@@ -25,7 +25,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 		InitOptions(&material->AmbientMap, &opt);
 		AmbientMap = loader->LoadTexture(material->AmbientMap.Path, false, &opt);
 	}
-	else AmbientMap = CreateDefault(loader->GetWindow());
+	else AmbientMap = CreateDefault(loader->GetWindow(), "default ambient");
 
 	/* Check if diffuse sampler is available. */
 	if (strlen(material->DiffuseMap.Path) > 0)
@@ -34,7 +34,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 		InitOptions(&material->DiffuseMap, &opt);
 		DiffuseMap = loader->LoadTexture(material->DiffuseMap.Path, false, &opt);
 	}
-	else DiffuseMap = CreateDefault(loader->GetWindow());
+	else DiffuseMap = CreateDefault(loader->GetWindow(), "default diffuse");
 
 	/* Check if specular sampler is available. */
 	if (strlen(material->SpecularMap.Path) > 0)
@@ -43,7 +43,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 		InitOptions(&material->SpecularMap, &opt);
 		SpecularMap = loader->LoadTexture(material->SpecularMap.Path, false, &opt);
 	}
-	else SpecularMap = CreateDefault(loader->GetWindow());
+	else SpecularMap = CreateDefault(loader->GetWindow(), "default specular");
 
 	/* Check if alpha sampler is available. */
 	if (strlen(material->AlphaMap.Path) > 0)
@@ -52,7 +52,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 		InitOptions(&material->AlphaMap, &opt);
 		AlphaMap = loader->LoadTexture(material->AlphaMap.Path, false, &opt);
 	}
-	else AlphaMap = CreateDefault(loader->GetWindow());
+	else AlphaMap = CreateDefault(loader->GetWindow(), "default alpha");
 
 	/* Check if bump sampler is available. */
 	if (strlen(material->BumpMap.Path) > 0)
@@ -60,7 +60,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 		InitOptions(&material->BumpMap, &opt);
 		BumpMap = loader->LoadTexture(material->BumpMap.Path, false, &opt);
 	}
-	else BumpMap = CreateDefault(loader->GetWindow(), Color::Malibu);
+	else BumpMap = CreateDefault(loader->GetWindow(), "default bump", Color::Malibu);
 }
 
 Plutonium::PhongMaterial::~PhongMaterial(void) noexcept
@@ -81,11 +81,11 @@ Plutonium::PhongMaterial * Plutonium::PhongMaterial::GetDefault(void)
 	WindowHandler wnd = result->loader->GetWindow();
 
 	/* Set neutral maps. */
-	result->AmbientMap = CreateDefault(wnd);
-	result->DiffuseMap = CreateDefault(wnd);
-	result->SpecularMap = CreateDefault(wnd);
-	result->AlphaMap = CreateDefault(wnd);
-	result->BumpMap = CreateDefault(wnd, Color::Malibu);
+	result->AmbientMap = CreateDefault(wnd, "default ambient");
+	result->DiffuseMap = CreateDefault(wnd, "default diffuse");
+	result->SpecularMap = CreateDefault(wnd, "default specular");
+	result->AlphaMap = CreateDefault(wnd, "default alpha");
+	result->BumpMap = CreateDefault(wnd, "default bump", Color::Malibu);
 
 	return result;
 }
@@ -97,9 +97,9 @@ void Plutonium::PhongMaterial::InitOptions(const ObjLoaderTextureMap * objOpt, T
 	texOpt->Range = objOpt->Contrast;
 }
 
-Plutonium::Texture * Plutonium::PhongMaterial::CreateDefault(WindowHandler wnd, Color filler)
+Plutonium::Texture * Plutonium::PhongMaterial::CreateDefault(WindowHandler wnd, const char *name, Color filler)
 {
-	Texture *result = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
+	Texture *result = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, name);
 	result->SetData(filler.ToArray());
 	return result;
 }

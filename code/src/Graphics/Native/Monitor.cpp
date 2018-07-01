@@ -81,7 +81,7 @@ MonitorInfo Plutonium::MonitorInfo::FromWindow(GLFWwindow * hndlr)
 Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 	: Name(""), X(0), Y(0), WindowWidth(0), WindowHeight(0),
 	ClientWidth(0), ClientHeight(0), Red(0), Green(0), Blue(0), 
-	RefreshRate(0), GammeCorrection(1.0f),
+	RefreshRate(0), GammaCorrection(1.0f),
 	Handle(info), IsValid(info != nullptr)
 {
 	/* Set values to default to make sure we don't crash if no info is supplied. */
@@ -113,9 +113,9 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 			sum += nthrt(ramp->blue[i], power);
 		}
 
-		GammeCorrection = sum / (ramp->size * 3.0f);
+		GammaCorrection = sum / (ramp->size * 3.0f);
 
 		/* Log discovery. */
-		LOG("%s(%dx%d @%dHz) detected at [%d, %d], Color depth %d, Gamma correction %f.", Name, ClientWidth, ClientHeight, RefreshRate, X, Y, Red, GammeCorrection);
+		LOG("%s(%dx%d @%dHz) detected at [%d, %d], Color depth %d, Gamma correction %f.", Name, ClientWidth, ClientHeight, RefreshRate, X, Y, Red, GammaCorrection);
 	}
 }

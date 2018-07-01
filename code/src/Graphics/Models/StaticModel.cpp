@@ -40,25 +40,29 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *l
 	result->name = heapstr(reader.GetFileNameWithoutExtension());
 	for (size_t i = 0; i < raw->Shapes.size(); i++)
 	{
-		/* Get current mesh and associated material. */
+		/* Get current mesh and associated material, skip any mesh that does not define any indices. */
 		const ObjLoaderMesh &shape = raw->Shapes.at(i);
-		const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
-
-		/* Create final mesh. */
-		Mesh *mesh = Mesh::FromFile(raw, i);
-
-		/* Check if we can merge the mesh into another one to have on draw calls. */
-		int64 j = result->ContainsMaterial(material.Name);
-		if (j != -1)
+		if (shape.Indices.size() > 0)
 		{
-			result->shapes.at(j)->Mesh->Append(mesh);
-			delete_s(mesh);
+			const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
+
+			/* Create final mesh. */
+			Mesh *mesh = Mesh::FromFile(raw, i);
+
+			/* Check if we can merge the mesh into another one to have on draw calls. */
+			int64 j = result->ContainsMaterial(material.Name);
+			if (j != -1)
+			{
+				result->shapes.at(j)->Mesh->Append(mesh);
+				delete_s(mesh);
+			}
+			else
+			{
+				/* Push material to shapes. */
+				result->shapes.push_back(new PhongMaterial(mesh, &material, loader));
+			}
 		}
-		else
-		{
-			/* Push material to shapes. */
-			result->shapes.push_back(new PhongMaterial(mesh, &material, loader));
-		}
+		else LOG_WAR("Shape '%s' in model '%s' does not define any vertices, skipping mesh!", shape.Name, result->name);
 	}
 
 	/* Finalize loading. */

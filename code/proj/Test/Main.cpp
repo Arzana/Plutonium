@@ -62,10 +62,10 @@ struct TestGame
 		AddComponent(hud = new HUD(this));
 
 		fRenderer = new FontRenderer(this, "fonts/OpenSans-Regular.ttf", "./assets/shaders/Text2D.vert", "./assets/shaders/Text2D.frag", 1);
-		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammeCorrection);
+		srenderer = new StaticRenderer("./assets/shaders/Static3D.vert", "./assets/shaders/Static3D.frag", GetGraphics()->GetWindow()->GetGraphicsDevice().GammaCorrection);
 		drenderer = new DynamicRenderer("./assets/shaders/Dynamic3D.vert", "./assets/shaders/Dynamic3D.frag");
 		sbrenderer = new SkyboxRenderer(GetGraphics(), "./assets/shaders/Skybox.vert", "./assets/shaders/Skybox.frag");
-		dmrenderer = new DebugMeshRenderer(GetGraphics()->GetWindow());
+		dmrenderer = new DebugMeshRenderer(GetGraphics());
 
 		GetKeyboard()->KeyPress.Add([&](WindowHandler, const KeyEventArgs args)
 		{
@@ -75,6 +75,7 @@ struct TestGame
 			if (args.Key == Keys::D1 && args.Action == KeyState::Down) desired = DebuggableValues::Wireframe;
 			if (args.Key == Keys::D2 && args.Action == KeyState::Down) desired = DebuggableValues::Normals;
 			if (args.Key == Keys::D3 && args.Action == KeyState::Down) desired = DebuggableValues::Unlit;
+			if (args.Key == Keys::D4 && args.Action == KeyState::Down) desired = DebuggableValues::Lighting;
 
 			if (desired != DebuggableValues::None)
 			{
@@ -99,8 +100,9 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
-		map->SetScale(scale);
+		//map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
+		//map->SetScale(scale);
+		map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", 55);
 
 		/* Load skybox. */
 		const char *skyboxPaths[] =
@@ -223,10 +225,14 @@ struct TestGame
 		else
 		{
 			/* Render light sources and scene. */
-			dmrenderer->Begin(cam->GetView(), cam->GetProjection());
-			dmrenderer->Render(map);
-			for (size_t i = 0; i < 4; i++) dmrenderer->Render(fires[i]->object);
-			dmrenderer->End();
+			dmrenderer->AddModel(map);
+			for (size_t i = 0; i < 4; i++)
+			{
+				dmrenderer->AddModel(fires[i]->object);
+				dmrenderer->AddLight(fires[i]->light);
+			}
+			dmrenderer->AddLight(sun);
+			dmrenderer->Render(cam->GetView(), cam->GetProjection(), cam->GetPosition());
 		}
 
 		/* Render skybox. */

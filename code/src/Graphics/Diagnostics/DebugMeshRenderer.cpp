@@ -1,16 +1,17 @@
 #include "Graphics\Diagnostics\DebugMeshRenderer.h"
 
-Plutonium::DebugMeshRenderer::DebugMeshRenderer(WindowHandler wnd, DebuggableValues mode)
+Plutonium::DebugMeshRenderer::DebugMeshRenderer(GraphicsAdapter * device, DebuggableValues mode)
 	: mode(mode)
 {
 	wfrenderer = new WireframeRenderer();
 	nrenderer = new NormalRenderer();
 	ulrenderer = new UnlitRenderer();
+	lrenderer = new LightingRenderer(device);
 
-	defBmpMap = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
+	defBmpMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default");
 	defBmpMap->SetData(Color::Malibu.ToArray());
 
-	defAlphaMap = new Texture(1, 1, wnd, &TextureCreationOptions::DefaultNoMipMap, "default");
+	defAlphaMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default");
 	defAlphaMap->SetData(Color::White.ToArray());
 }
 
@@ -19,86 +20,66 @@ Plutonium::DebugMeshRenderer::~DebugMeshRenderer(void)
 	delete_s(wfrenderer);
 	delete_s(nrenderer);
 	delete_s(ulrenderer);
+	delete_s(lrenderer);
 
 	delete_s(defBmpMap);
 	delete_s(defAlphaMap);
 }
 
-void Plutonium::DebugMeshRenderer::Begin(const Matrix & view, const Matrix & proj)
+void Plutonium::DebugMeshRenderer::Render(const Matrix & view, const Matrix & proj, Vector3 camPos)
 {
 	switch (mode)
 	{
 	case DebuggableValues::Wireframe:
 		wfrenderer->Begin(view, proj);
-		break;
-	case DebuggableValues::Normals:
-		nrenderer->Begin(view, proj);
-		break;
-	case DebuggableValues::Unlit:
-		ulrenderer->Begin(view, proj);
-		break;
-	default:
-		LOG_THROW("Begin not defined for value!");
-		break;
-	}
-}
-
-void Plutonium::DebugMeshRenderer::Render(const StaticObject *model, Color color)
-{
-	switch (mode)
-	{
-	case DebuggableValues::Wireframe:
-		RenderWfStatic(model, color);
-		break;
-	case DebuggableValues::Normals:
-		RenderNStatic(model);
-		break;
-	case DebuggableValues::Unlit:
-		RenderUlStatic(model);
-		break;
-	default:
-		LOG_THROW("Render not defined for value!");
-		break;
-	}
-}
-
-void Plutonium::DebugMeshRenderer::Render(const DynamicObject * model, Color color)
-{
-	switch (mode)
-	{
-	case DebuggableValues::Wireframe:
-		RenderWfDynamic(model, color);
-		break;
-	case DebuggableValues::Normals:
-		RenderNDynamic(model);
-		break;
-	case DebuggableValues::Unlit:
-		RenderUlDynamic(model);
-		break;
-	default:
-		LOG_THROW("Render not defined for value!");
-		break;
-	}
-}
-
-void Plutonium::DebugMeshRenderer::End(void)
-{
-	/* Make sure end isn't called twice. */
-	switch (mode)
-	{
-	case DebuggableValues::Wireframe:
+		for (size_t i = 0; i < sModels.size(); i++) RenderWfStatic(sModels.at(i), Color::Red);
+		for (size_t i = 0; i < dModels.size(); i++) RenderWfDynamic(dModels.at(i), Color::Yellow);
 		wfrenderer->End();
 		break;
 	case DebuggableValues::Normals:
+		nrenderer->Begin(view, proj);
+		for (size_t i = 0; i < sModels.size(); i++) RenderNStatic(sModels.at(i));
+		for (size_t i = 0; i < dModels.size(); i++) RenderNDynamic(dModels.at(i));
 		nrenderer->End();
 		break;
 	case DebuggableValues::Unlit:
+		ulrenderer->Begin(view, proj);
+		for (size_t i = 0; i < sModels.size(); i++) RenderUlStatic(sModels.at(i));
+		for (size_t i = 0; i < dModels.size(); i++) RenderUlDynamic(dModels.at(i));
 		ulrenderer->End();
 		break;
-	default:
-		LOG_THROW("End not defined for value!");
+	case DebuggableValues::Lighting:
+		lrenderer->BeginModels(view, proj);
+		for (size_t i = 0; i < sModels.size(); i++) RenderLStatic(sModels.at(i));
+		for (size_t i = 0; i < dModels.size(); i++) RenderLDynamic(dModels.at(i));
+		if (dLights.size() > 0)
+		{
+			lrenderer->BeginDirectionalLights(camPos);
+			while (dLights.size() > 0)
+			{
+				RenderLDLight(dLights.front());
+				dLights.pop();
+			}
+		}
+
+		if (pLights.size() > 0)
+		{
+			lrenderer->BeginPointLights();
+			while (pLights.size() > 0)
+			{
+				RenderLPLight(pLights.front());
+				pLights.pop();
+			}
+		}
+
+		lrenderer->End();
 		break;
 	}
+
+	sModels.clear();
+	dModels.clear();
+	while (dLights.size() > 0) dLights.pop();
+	while (pLights.size() > 0) pLights.pop();
 }
 
 void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model, Color color)
@@ -136,11 +117,66 @@ void Plutonium::DebugMeshRenderer::RenderUlStatic(const StaticObject * model)
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
 		PhongMaterial *cur = underlying->shapes.at(i);
-		ulrenderer->Render(model->GetWorld(), cur->Mesh, cur->AmbientMap, cur->AlphaMap);
+		ulrenderer->Render(model->GetWorld(), cur->Mesh, cur->DiffuseMap, cur->AlphaMap);
 	}
 }
 
 void Plutonium::DebugMeshRenderer::RenderUlDynamic(const DynamicObject * model)
 {
 	ulrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), model->model->skin, defAlphaMap);
+}
+
+void Plutonium::DebugMeshRenderer::RenderLStatic(const StaticObject * model)
+{
+	const StaticModel *underlying = model->GetModel();
+	for (size_t i = 0; i < underlying->shapes.size(); i++)
+	{
+		PhongMaterial *cur = underlying->shapes.at(i);
+		lrenderer->Render(model->GetWorld(), cur->Mesh);
+	}
+}
+
+void Plutonium::DebugMeshRenderer::RenderLDynamic(const DynamicObject * model)
+{
+	lrenderer->Render(model->GetWorld(), model->GetCurrentFrame());
+}
+
+void Plutonium::DebugMeshRenderer::RenderLDLight(const DirectionalLight * light)
+{
+	for (size_t i = 0; i < sModels.size(); i++)
+	{
+		const StaticObject *object = sModels.at(i);
+		const StaticModel *model = object->GetModel();
+		for (size_t j = 0; j < model->shapes.size(); j++)
+		{
+			PhongMaterial *cur = model->shapes.at(j);
+			lrenderer->Render(object->GetWorld(), cur->Mesh, cur->BumpMap, light);
+		}
+	}
+
+	for (size_t i = 0; i < dModels.size(); i++)
+	{
+		const DynamicObject *object = dModels.at(i);
+		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), defBmpMap, light);
+	}
+}
+
+void Plutonium::DebugMeshRenderer::RenderLPLight(const PointLight * light)
+{
+	for (size_t i = 0; i < sModels.size(); i++)
+	{
+		const StaticObject *object = sModels.at(i);
+		const StaticModel *model = object->GetModel();
+		for (size_t j = 0; j < model->shapes.size(); j++)
+		{
+			PhongMaterial *cur = model->shapes.at(j);
+			lrenderer->Render(object->GetWorld(), cur->Mesh, cur->BumpMap, light);
+		}
+	}
+
+	for (size_t i = 0; i < dModels.size(); i++)
+	{
+		const DynamicObject *object = dModels.at(i);
+		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), defBmpMap, light);
+	}
 }
