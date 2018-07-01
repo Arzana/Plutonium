@@ -22,7 +22,7 @@ out float a_intensity;
 void main()
 {	
 	// Calculate light intensity.
-	vec3 normal = mix(a_normal_1, a_normal_2, u_time);
+	vec3 normal = (u_model * vec4(mix(a_normal_1, a_normal_2, u_time), 0.0f)).xyz;
 	a_intensity = u_ambient + max(0.0, dot(normal, u_light_direction));
 	
 	// Set texture uv and vertex position.

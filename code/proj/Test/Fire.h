@@ -20,14 +20,14 @@ struct Fire
 	PointLight *light;
 	bool animationStarted;
 
-	Fire(Game *game, Vector3 pos, float scale, int weight)
+	Fire(Game *game, Vector3 pos, Color lightColor, float scale, int weight)
 		: animationStarted(false)
 	{
 		object = new DynamicObject(game, "models/Fire/fire.md2", "fire.png", weight, InitFire);
 		object->Teleport((pos - Vector3(0.0f, 33.3f, 0.0f)) * scale);
 		object->SetScale(scale);
 		object->SetOrientation(0.0f, -PI2, 0.0f);
-		light = new PointLight(pos * scale, Color((byte)254, 211, 60), 1.0f, 0.14f, 0.07f);
+		light = new PointLight(pos * scale, lightColor, 1.0f, 0.14f, 0.07f);
 	}
 
 	void Update(float dt)

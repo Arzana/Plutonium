@@ -43,13 +43,17 @@ void Plutonium::DynamicObject::Update(float dt)
 	AnimationInfo *info = model->animations.at(curAnim);
 
 	/* Update timer and if it's above the threshold update the frame. */
-	if (running && (accumTime += dt) > info->TargetFrameTime)
+	if (running)
 	{
-		/* Reset time. */
-		accumTime = 0.0f;
+		accumTime += dt;
+		while (accumTime > info->TargetFrameTime)
+		{
+			/* Reset time. */
+			accumTime -= info->TargetFrameTime;
 
-		/* Update accordingly. */
-		MoveFrame();
+			/* Update accordingly. */
+			MoveFrame();
+		}
 	}
 
 	/* Update the mix amount. */

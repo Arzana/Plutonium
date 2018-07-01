@@ -15,6 +15,8 @@
 #include "Fire.h"
 #include "HUD.h"
 
+#define QUICK_MAP
+
 using namespace Plutonium;
 
 struct TestGame
@@ -100,9 +102,12 @@ struct TestGame
 		cam->Yaw = PI2;
 
 		/* Load static assets. */
-		//map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
-		//map->SetScale(scale);
+#ifndef QUICK_MAP
+		map = new StaticObject(this, "models/Sponza/sponza.obj", 55);
+		map->SetScale(scale);
+#else
 		map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", 55);
+#endif
 
 		/* Load skybox. */
 		const char *skyboxPaths[] =
@@ -122,10 +127,17 @@ struct TestGame
 
 		/* Setup lighting. */
 		sun = new DirectionalLight(Vector3::FromRoll(theta), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
-		fires[0] = new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), scale, 10);
-		fires[1] = new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), scale, 10);
-		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), scale, 10);
-		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), scale, 10);
+
+#ifdef QUICK_MAP
+		Color fireColor = Color::Black;
+#else
+		Color fireColor = Color((byte)254, 211, 60);
+#endif
+
+		fires[0] = new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, scale, 10);
+		fires[1] = new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), fireColor, scale, 10);
+		fires[2] = new Fire(this, Vector3(490.6f, 172.6f, 140.3f), fireColor, scale, 10);
+		fires[3] = new Fire(this, Vector3(490.6f, 172.6f, -220.3f), fireColor, scale, 10);
 	}
 
 	virtual void UnLoadContent(void)
@@ -171,7 +183,11 @@ struct TestGame
 		constexpr float SUNRISE = TAU - 9.0f * DEG2RAD;
 
 		/* Update light orientation. */
+#ifndef QUICK_MAP
 		theta = modrads(theta += DEG2RAD * dt * 25.0f);
+#else
+		theta = DEG2RAD * 45.0f;
+#endif
 		sun->Direction = Vector3::FromRoll(theta);
 
 		/* Update light color. */
@@ -212,9 +228,11 @@ struct TestGame
 		if (renderMode == DebuggableValues::None)
 		{
 			/* Render light sources. */
+#ifndef QUICK_MAP
 			drenderer->Begin(cam->GetView(), cam->GetProjection(), Vector3::Zero);
 			for (size_t i = 0; i < 4; i++) drenderer->Render(fires[i]->object);
 			drenderer->End();
+#endif
 
 			/* Render current scene, */
 			const PointLight *lights[4] = { fires[0]->light, fires[1]->light, fires[2]->light, fires[3]->light };
@@ -226,11 +244,13 @@ struct TestGame
 		{
 			/* Render light sources and scene. */
 			dmrenderer->AddModel(map);
+#ifndef QUICK_MAP
 			for (size_t i = 0; i < 4; i++)
 			{
 				dmrenderer->AddModel(fires[i]->object);
 				dmrenderer->AddLight(fires[i]->light);
 			}
+#endif
 			dmrenderer->AddLight(sun);
 			dmrenderer->Render(cam->GetView(), cam->GetProjection(), cam->GetPosition());
 		}

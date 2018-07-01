@@ -8,10 +8,10 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(GraphicsAdapter * device, Debugg
 	ulrenderer = new UnlitRenderer();
 	lrenderer = new LightingRenderer(device);
 
-	defBmpMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default");
+	defBmpMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default bump");
 	defBmpMap->SetData(Color::Malibu.ToArray());
 
-	defAlphaMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default");
+	defAlphaMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default alpha");
 	defAlphaMap->SetData(Color::White.ToArray());
 }
 

@@ -241,7 +241,6 @@ void Plutonium::Game::BeginRender(void)
 	/* Disable alpha blending and enable culling. */
 	device->SetAlphaBlendFunction(BlendState::None);
 	device->SetDepthTest(DepthState::LessOrEqual);
-	device->SetFaceCull(FaceCullState::Back);
 
 	/* Set clear color and clear window. */
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

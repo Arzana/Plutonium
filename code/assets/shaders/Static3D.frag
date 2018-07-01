@@ -92,7 +92,7 @@ vec4 CalcPointLight(PLight light, vec3 viewDir, vec3 normal)
 void main()
 {
 	// Calculate fragment filter and discard fragment if invisible.
-	vec4 modifier = u_colors.lfilter * texture(u_textures.alpha, a_frag.uv);
+	vec4 modifier = texture(u_textures.alpha, a_frag.uv);
 	if ((modifier.r < 0.1f && modifier.g < 0.1f && modifier.b < 0.1f) || modifier.a < 0.1f) discard;
 
 	// Calculate general viewing direction towards the fragment.
@@ -107,6 +107,6 @@ void main()
 	for (int i = 0; i < u_light_vases.length(); i++) outputColor += CalcPointLight(u_light_vases[i], viewDir, normal);
 	
 	// Calculate fragment's final color and apply gamma correction.  
-	vec4 clr = outputColor * modifier;
+	vec4 clr = outputColor * u_colors.lfilter;
 	fragColor = vec4(pow(clr.rgb, vec3(u_colors.displayGamma)), clr.w);
 }

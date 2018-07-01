@@ -128,32 +128,30 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 
 Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx)
 {
-	/* Get specified frame. */
-	const md2_frame_t& frame = buffer->frames.at(idx);
+	/* Get desired shape. */
+	const md2_frame_t &frame = buffer->frames.at(idx);
 
-	/* Create result. */
+	/* Create result and allocate memory. */
 	Mesh *result = new Mesh(frame.name);
 	result->vrtxCnt = buffer->shapes.size() * 3;
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
-	/* Loop through all triangles. */
+	/* Copy vertices. */
 	for (size_t i = 0, k = 0; i < buffer->shapes.size(); i++)
 	{
-		/* Loop through all vertices in triangle. */
 		const md2_triangle_t &trgl = buffer->shapes.at(i);
-		for (size_t j = 0; j < 3; j++)
+		for (size_t j = 0; j < 3; j++, k++)
 		{
-			/* Get current vertex. */
-			md2_vertex_t vrtx = frame.vertices.at(trgl.vertex_indices[j]);
+			const md2_vertex_t vrtx = frame.vertices.at(trgl.vertex_indices[j]);
 
-			/* Copy over current vertex. */
-			size_t test = k + j;
-			result->vertices[test].Position = frame.scale * vrtx.position + frame.translation;
-			result->vertices[test].Normal = Vector3(vrtx.normal.X, vrtx.normal.Y, vrtx.normal.Z);
-			result->vertices[test].Texture = buffer->texcoords.at(trgl.texture_indices[j]);
+			/* Apply scale and translation per frame. */
+			result->vertices[k].Position = frame.scale * vrtx.position + frame.translation;
+			result->vertices[k].Normal = vrtx.normal;
+			result->vertices[k].Texture = buffer->texcoords.at(trgl.texture_indices[j]);
 		}
 
-		k += 3;
+		/* Set tangent for the last three vertices. */
+		SetTangent(result->vertices[k - 3], result->vertices[k - 2], result->vertices[k - 1]);
 	}
 
 	return result;

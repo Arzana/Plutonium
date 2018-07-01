@@ -66,7 +66,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	result->skin = loader->LoadTexture(tex);
 	result->Finalize();	// TODO: Remove!
 
-						/* Log creation. */
+	/* Log creation. */
 	LOG("Finished loading model '%s' (%zu animation(s)).", reader.GetFileName(), result->animations.size());
 	return result;
 }
