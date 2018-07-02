@@ -6,14 +6,16 @@ Plutonium::GuiItem::GuiItem(Game * parent)
 {}
 
 Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
-	: game(parent), background(nullptr), backColor(GetDefaultBackColor()),
-	over(false), ldown(false), rdown(false), visible(false), enabled(false), sizable(false),
+	: game(parent), background(nullptr), focusedBackground(nullptr), backColor(GetDefaultBackColor()),
+	over(false), ldown(false), rdown(false), visible(false), enabled(false), 
+	sizable(false), focusable(false), focused(false), movable(false),
 	roundingFactor(10.0f), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
 	suppressRefresh(false), suppressUpdate(false), suppressRender(false),
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
-	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter),
+	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter), INIT_BUS(FocusableChanged),
 	INIT_BUS(HoverLeave), INIT_BUS(Moved), INIT_BUS(NameChanged), INIT_BUS(Resized),
-	INIT_BUS(SizableChanged), INIT_BUS(MovableChanged), INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged)
+	INIT_BUS(SizableChanged), INIT_BUS(MovableChanged), INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged),
+	INIT_BUS(GainedFocus), INIT_BUS(LostFocus), INIT_BUS(FocusedImageChanged)
 {
 	/* Check for invalid bounds and show the GuiItem. */
 	CheckBounds(bounds.Size);
@@ -30,9 +32,6 @@ Plutonium::GuiItem::~GuiItem(void)
 {
 	/* Call finalize before releaseing assets. */
 	Finalized.Post(this, EventArgs());
-
-	/* Try to unload the texture (if specified) from the asset loader. */
-	if (background) game->GetLoader()->Unload(background);
 
 	free_s(name);
 	delete_s(mesh);
@@ -91,7 +90,7 @@ void Plutonium::GuiItem::Update(float dt)
 
 void Plutonium::GuiItem::Draw(GuiItemRenderer * renderer)
 {
-	if (visible) renderer->RenderGuiItem(bounds, roundingFactor, 0.0f, backColor, background, sizable, mesh);
+	if (visible) renderer->RenderGuiItem(bounds, roundingFactor, 0.0f, backColor, focused ? focusedBackground : background, sizable, mesh);
 }
 
 void Plutonium::GuiItem::MoveRelative(Anchors anchor, float x, float y)
@@ -145,6 +144,15 @@ void Plutonium::GuiItem::SetBackgroundImage(TextureHandler image)
 	ValueChangedEventArgs<TextureHandler> args(background, image);
 	background = image;
 	BackgroundImageChanged.Post(this, args);
+}
+
+void Plutonium::GuiItem::SetFocusedBackgroundImage(TextureHandler image)
+{
+	if (image == focusedBackground) return;
+
+	ValueChangedEventArgs<TextureHandler> args(focusedBackground, image);
+	focusedBackground = image;
+	FocusedImageChanged.Post(this, args);
 }
 
 void Plutonium::GuiItem::SetBounds(Rectangle bounds)
@@ -240,10 +248,24 @@ void Plutonium::GuiItem::SetMovable(bool value)
 	MovableChanged.Post(this, args);
 }
 
+void Plutonium::GuiItem::SetFocusable(bool value)
+{
+	if (value == focusable) return;
+
+	ValueChangedEventArgs<bool> args(focusable, value);
+	focusable = value;
+	FocusableChanged.Post(this, args);
+}
+
 Plutonium::Vector2 Plutonium::GuiItem::GetRotatedCursor(CursorHandler cursor)
 {
 	Vector3 transformedPos = Matrix::CreateRotationZ(-0.0f) * Vector3(cursor->X - GetX(), cursor->Y - GetY(), 0.0f);
 	return GetPosition() + Vector2(transformedPos.X, transformedPos.Y);
+}
+
+Plutonium::Vector2 Plutonium::GuiItem::GetMinSize(void) const
+{
+	return max(background ? background->GetSize() : Vector2::Zero, focusedBackground ? focusedBackground->GetSize() : Vector2::Zero);
 }
 
 void Plutonium::GuiItem::CheckBounds(Vector2 size)
@@ -264,4 +286,12 @@ void Plutonium::GuiItem::UpdateMesh(void)
 	};
 
 	mesh->SetData(data);
+}
+
+void Plutonium::GuiItem::ApplyFocus(bool focused)
+{
+	if (!focusable || focused == this->focused) return;
+
+	if (this->focused = focused) GainedFocus.Post(this, EventArgs());
+	else LostFocus.Post(this, EventArgs());
 }

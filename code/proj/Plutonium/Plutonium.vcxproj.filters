@@ -356,6 +356,9 @@
     <ClCompile Include="..\..\src\Components\Diagnostics\VRamCounter.cpp">
       <Filter>Source Files\Components\Diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\Button.cpp">
+      <Filter>Source Files\Graphics\GUI\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -697,6 +700,12 @@
     <ClInclude Include="..\..\include\Components\Diagnostics\VRAMCounter.h">
       <Filter>Header Files\Components\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\Button.h">
+      <Filter>Header Files\Graphics\GUI\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\CursorButtons.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">
@@ -754,6 +763,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\visualizers\DeviceInfo.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\GuiItem.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

@@ -32,6 +32,9 @@ protected:
 	{
 		Menu::Initialize();
 		SetDefaultFont("fonts/OpenSans-Regular.ttf", 24.0f);
+		LoadTexture("textures/water.png");
+		LoadTexture("textures/stone.png");
+		LoadTexture("textures/uv.png");
 	}
 
 	virtual void Create(void) override 
@@ -51,6 +54,18 @@ protected:
 		y += lblGpuRam->GetHeight();
 
 		lblWorldDrawTime = CreateDefaultLabel(y);
+
+		Button *btn = AddButton();
+		btn->MoveRelative(Anchors::Center);
+		btn->SetAutoSize(true);
+		btn->SetBackColor(Color::White);
+		btn->SetText(U"Test Btn");
+		btn->SetBackgroundImage(GetTexture("water"));
+		btn->SetHoverImage(GetTexture("stone"));
+		btn->SetClickImage(GetTexture("uv"));
+		btn->LeftClicked.Add([](const Button*, CursorHandler) { LOG("LEFT"); });
+		btn->RightClicked.Add([](const Button*, CursorHandler) { LOG("RIGHT"); });
+		btn->DoubleClicked.Add([](const Button*, CursorHandler) { LOG("DOUBLE"); });
 	}
 
 	virtual void Update(float dt) override

@@ -19,12 +19,20 @@ namespace Plutonium
 		EventBus<GuiItem, CursorHandler> Clicked;
 		/* Occurs before the deletion of the base GuiItem. */
 		EventBus<GuiItem, EventArgs> Finalized;
+		/* Occurs when the Focusable indicator is changed. */
+		EventBus<GuiItem, ValueChangedEventArgs<bool>> FocusableChanged;
+		/* Occurs when the FocusedImage is set or changed. */
+		EventBus<GuiItem, ValueChangedEventArgs<TextureHandler>> FocusedImageChanged;
+		/* Occurs when the GuiItem gains focus. */
+		EventBus<GuiItem, EventArgs> GainedFocus;
 		/* Occurs when the cursor pointer rests on the GuiItem. */
 		EventBus<GuiItem, CursorHandler> Hover;
 		/* Occurs when the cursor pointer enters the GuiItem's bounds. */
 		EventBus<GuiItem, CursorHandler> HoverEnter;
 		/* Occurs when the cursor pointer leaves the GuiItem's bounds. */
 		EventBus<GuiItem, CursorHandler> HoverLeave;
+		/* Occurs when the GuiItem loses focus. */
+		EventBus<GuiItem, EventArgs> LostFocus;
 		/* Occurs when the Movable indicator is changed. */
 		EventBus<GuiItem, ValueChangedEventArgs<bool>> MovableChanged;
 		/* Occurs when the position of the GuiItem is changed. */
@@ -164,10 +172,24 @@ namespace Plutonium
 			return movable;
 		}
 
+		/* Gets whether the GuiItem can be focused. */
+		_Check_return_ inline bool IsFocusable(void) const
+		{
+			return focusable;
+		}
+
+		/* Gets whether the GuiItem is currently focused. */
+		_Check_return_ inline bool IsFocused(void) const
+		{
+			return focused;
+		}
+
 		/* Sets the color of the background to a new solid color, or (when a background image is set) changes the color filter of the background image. */
 		virtual void SetBackColor(_In_ Color color);
 		/* Sets the background image for this GuiItem replacing the solid color background. */
 		virtual void SetBackgroundImage(_In_ TextureHandler image);
+		/* Sets the focused background image for this GuiItem replacing the solid color background. */
+		virtual void SetFocusedBackgroundImage(_In_ TextureHandler image);
 		/* Sets the bounds of the GuiItem, possibly moving it and resizing it. */
 		virtual void SetBounds(_In_ Rectangle bounds);
 		/* Sets whether the GuiItem is enabled or disabled. */
@@ -192,6 +214,8 @@ namespace Plutonium
 		virtual void SetSizable(_In_ bool value);
 		/* Sets whether the GuiItem can be moved by the user. */
 		virtual void SetMovable(_In_ bool value);
+		/* Sets whether the GuiItem can be focused. */
+		virtual void SetFocusable(_In_ bool value);
 
 	protected:
 		/* Suppresses all the refresh calls to this GuiItem until enabled again. */
@@ -205,6 +229,8 @@ namespace Plutonium
 
 		/* Gets the position of the cursor relative to the GuiItem. */
 		_Check_return_ Vector2 GetRotatedCursor(_In_ CursorHandler cursor);
+		/* Gets the required size of the GuiItem at any time, max of background or focus image. */
+		_Check_return_ virtual Vector2 GetMinSize(void) const;
 
 		/* Gets whether the cursor is currently hovering over the GuiItem. */
 		_Check_return_ inline bool IsMouseOver(void) const
@@ -230,10 +256,16 @@ namespace Plutonium
 			return roundingFactor;
 		}
 
+		/* Gets the underlying mesh used to render the GuiItem background. */
+		_Check_return_ inline const Buffer* GetBackgroundMesh(void) const
+		{
+			return mesh;
+		}
+
 	private:
 		Buffer *mesh;
-		TextureHandler background;
-		bool over, ldown, rdown, visible, enabled, sizable, movable;
+		TextureHandler background, focusedBackground;
+		bool over, ldown, rdown, visible, enabled, sizable, movable, focusable, focused;
 		Color backColor;
 		float roundingFactor;
 		Rectangle bounds;
@@ -241,5 +273,6 @@ namespace Plutonium
 
 		void CheckBounds(Vector2 size);
 		void UpdateMesh(void);
+		void ApplyFocus(bool focused);
 	};
 }

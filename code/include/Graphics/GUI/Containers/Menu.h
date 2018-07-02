@@ -1,6 +1,7 @@
 #pragma once
 #include "Components\GameComponent.h"
 #include "Graphics\GUI\Items\Label.h"
+#include "Graphics\GUI\Items\Button.h"
 
 namespace Plutonium
 {
@@ -61,6 +62,8 @@ namespace Plutonium
 		_Check_return_ GuiItem* AddGuiItem(void);
 		/* Adds a label to the menu, if no font is specified the default font will be used. */
 		_Check_return_ Label* AddLabel(_In_opt_ const Font *font = nullptr);
+		/* Adds a button to the menu, if no font is specified the default font will be used. */
+		_Check_return_ Button* AddButton(_In_opt_ const Font *font = nullptr);
 
 		/* Sets the default font to a specified font. */
 		void SetDefaultFont(_In_ const char *path, _In_ float size);

@@ -8,8 +8,7 @@ Plutonium::Label::Label(Game * parent, const Font * font)
 Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	: GuiItem(parent, bounds), autoSize(false), textColor(GetDefaultTextColor()),
 	font(font), text(heapwstr("")), offset(GetDefaultTextOffset()), charBufferSize(GetDefaultBufferSize()),
-	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged),
-	bindFunc()
+	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged), bindFunc()
 {
 	/* Initilaize text render position. */
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
@@ -36,18 +35,22 @@ void Plutonium::Label::Update(float dt)
 {
 	GuiItem::Update(dt);
 
-	if (bindFunc != 0)
+	if (IsEnabled())
 	{
-		std::string result;
-		bindFunc.HandlePost(this, result);
-		SetText(result.c_str());
+		/* If the bind function is set; update the labels text. */
+		if (bindFunc != 0)
+		{
+			std::string result;
+			bindFunc.HandlePost(this, result);
+			SetText(result.c_str());
+		}
 	}
 }
 
 void Plutonium::Label::Draw(GuiItemRenderer * renderer)
 {
 	GuiItem::Draw(renderer);
-	renderer->RenderTextForeground(textPos, 0.0f, textColor, font, text, textMesh);
+	if (IsVisible()) renderer->RenderTextForeground(textPos, 0.0f, textColor, font, text, textMesh);
 }
 
 void Plutonium::Label::SetAutoSize(bool value)
@@ -104,8 +107,9 @@ void Plutonium::Label::HandleAutoSize(void)
 {
 	if (autoSize)
 	{
+		/* Make sure to not autosize to smaller dimensions than the user defined textures. */
 		Vector2 size = GetSize();
-		Vector2 dim = font->MeasureString(text) + offset * 2.0f;
+		Vector2 dim = max(font->MeasureString(text) + offset * 2.0f, GetMinSize());
 
 		if (dim.X != size.X || dim.Y != size.Y) SetSize(dim);
 	}

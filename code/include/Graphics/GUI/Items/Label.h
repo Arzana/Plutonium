@@ -33,7 +33,7 @@ namespace Plutonium
 
 		/* Gets the amount of lines within this label (at least 1). */
 		_Check_return_ size_t GetLineCount(void) const;
-		/* Updates the Label and handles the auto text setting. */
+		/* Updates the Label and handles the binding text function. */
 		virtual void Update(_In_ float dt) override;
 		/* Renders the Label to the screen. */
 		virtual void Draw(_In_ GuiItemRenderer *renderer) override;
@@ -102,6 +102,18 @@ namespace Plutonium
 	protected:
 		/* Handles the autosize functionality. */
 		void HandleAutoSize(void);
+
+		/* Gets the underlying mesh used to render the text. */
+		_Check_return_ inline const Buffer* GetTextMesh(void) const
+		{
+			return textMesh;
+		}
+
+		/* Gets the render position of the text. */
+		_Check_return_ inline Vector2 GetTextRenderPosition(void) const
+		{
+			return textPos;
+		}
 
 	private:
 		bool autoSize;

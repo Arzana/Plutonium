@@ -103,6 +103,16 @@ Label * Plutonium::Menu::AddLabel(const Font * font)
 	return result;
 }
 
+Button * Plutonium::Menu::AddButton(const Font * font)
+{
+	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(Button));
+	CheckFont(font);
+
+	Button *result = new Button(game, font ? font : loadedFonts.at(defaultFontIdx));
+	controlls.push_back(result);
+	return result;
+}
+
 void Plutonium::Menu::SetDefaultFont(const char * path, float size)
 {
 	LOG_WAR_IF(defaultFontIdx != -1, "Redefining the default font!");

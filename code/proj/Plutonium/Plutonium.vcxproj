@@ -220,6 +220,7 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\Button.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
@@ -305,8 +306,10 @@
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\CursorButtons.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\Button.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Items\Label.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
@@ -376,6 +379,7 @@
     <Natvis Include="..\..\visualizers\Field.natvis" />
     <Natvis Include="..\..\visualizers\FileReader.natvis" />
     <Natvis Include="..\..\visualizers\Font.natvis" />
+    <Natvis Include="..\..\visualizers\GuiItem.natvis" />
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />
     <Natvis Include="..\..\visualizers\Monitor.natvis" />
