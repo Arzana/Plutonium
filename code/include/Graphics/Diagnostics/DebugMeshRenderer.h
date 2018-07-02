@@ -82,8 +82,8 @@ namespace Plutonium
 		std::queue<const DirectionalLight*> dLights;
 		std::queue<const PointLight*> pLights;
 
-		void RenderWfStatic(const StaticObject *model, Color color);
-		void RenderWfDynamic(const DynamicObject *model, Color color);
+		void RenderWfStatic(const StaticObject *model);
+		void RenderWfDynamic(const DynamicObject *model);
 		void RenderNStatic(const StaticObject *model);
 		void RenderNDynamic(const DynamicObject *model);
 		void RenderUlStatic(const StaticObject *model);

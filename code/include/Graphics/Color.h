@@ -28,6 +28,8 @@ namespace Plutonium
 		const static Color SunDawn;
 		/* Defines a black transparent color. */
 		const static Color Transparent;
+		/* Defines a white transparent color. */
+		const static Color TransparentWhite;
 		/* Defines a white opaque color. */
 		const static Color White;
 		/* Defines a white-smoke color.  */

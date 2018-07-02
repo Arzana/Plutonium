@@ -3,6 +3,22 @@
 #include "Content\ObjLoader.h"
 #include "Content\AssetLoader.h"
 
+using namespace Plutonium;
+
+Color randColor(void)
+{
+	static std::vector<Color> usedColors;
+
+	Color result;
+	do
+	{
+		result = Color(static_cast<uint32>((rand() % maxv<uint32>()) & Color::TransparentWhite.Packed));
+	} while (std::find(usedColors.begin(), usedColors.end(), result) != usedColors.end());
+
+	usedColors.push_back(result);
+	return result;
+}
+
 Plutonium::PhongMaterial::PhongMaterial(void)
 	: MaterialName(nullptr), Mesh(nullptr),
 	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
@@ -15,6 +31,9 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(material->Transmittance), Ambient(material->Ambient), Diffuse(material->Diffuse), Specular(material->Specular),
 	SpecularExp(material->HighlightExponent)
+#if defined (DEBUG)
+	, Debug(randColor())
+#endif
 {
 	TextureCreationOptions opt;
 

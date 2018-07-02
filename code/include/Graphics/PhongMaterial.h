@@ -38,6 +38,11 @@ namespace Plutonium
 		/* The specular exponent of the material. */
 		float SpecularExp;
 
+#if defined (DEBUG)
+		/* A unique random color assigned to the material to use in debug rendering (only available on debug mode!). */
+		Color Debug;
+#endif
+
 		/* Initializes an empty instance of the phong shape object. */
 		PhongMaterial(void);
 		/* Initializes a new instance of a phong shape. */

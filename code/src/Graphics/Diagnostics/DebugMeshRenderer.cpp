@@ -32,8 +32,8 @@ void Plutonium::DebugMeshRenderer::Render(const Matrix & view, const Matrix & pr
 	{
 	case DebuggableValues::Wireframe:
 		wfrenderer->Begin(view, proj);
-		for (size_t i = 0; i < sModels.size(); i++) RenderWfStatic(sModels.at(i), Color::Red);
-		for (size_t i = 0; i < dModels.size(); i++) RenderWfDynamic(dModels.at(i), Color::Yellow);
+		for (size_t i = 0; i < sModels.size(); i++) RenderWfStatic(sModels.at(i));
+		for (size_t i = 0; i < dModels.size(); i++) RenderWfDynamic(dModels.at(i));
 		wfrenderer->End();
 		break;
 	case DebuggableValues::Normals:
@@ -82,18 +82,24 @@ void Plutonium::DebugMeshRenderer::Render(const Matrix & view, const Matrix & pr
 	while (pLights.size() > 0) pLights.pop();
 }
 
-void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model, Color color)
+void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model)
 {
 	const StaticModel *underlying = model->GetModel();
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
-		wfrenderer->Render(model->GetWorld(), underlying->shapes.at(i)->Mesh, color);
+		const PhongMaterial *cur = underlying->shapes.at(i);
+#if defined (DEBUG)
+		Color clr = cur->Debug;
+#else
+		Color clr = Color::Red;
+#endif
+		wfrenderer->Render(model->GetWorld(), cur->Mesh, clr);
 	}
 }
 
-void Plutonium::DebugMeshRenderer::RenderWfDynamic(const DynamicObject * model, Color color)
+void Plutonium::DebugMeshRenderer::RenderWfDynamic(const DynamicObject * model)
 {
-	wfrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), color);
+	wfrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), Color::Yellow);
 }
 
 void Plutonium::DebugMeshRenderer::RenderNStatic(const StaticObject * model)
