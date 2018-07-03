@@ -21,19 +21,7 @@ const char * Plutonium::_CrtGetErrorString(void)
 	DWORD error = GetLastError();
 	if (error == NO_ERROR) return heapstr("No Error!");
 
-	/* Get human readable error from system. */
-	LPSTR msgBuffer = nullptr;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				  nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&msgBuffer, 0, nullptr);
-
-	/* Remove newline characters from error. */
-	replstr(msgBuffer, '\n', '\0');
-	replstr(msgBuffer, '\r', '\0');
-
-	/* Copy message to heap so that the user can free it platform indipendent. */
-	const char *result = heapstr(msgBuffer);
-	LocalFree(msgBuffer);
-	return result;
+	return _CrtFormatError(error);
 #else
 	LOG_WAR_ONCE("Cannot get error string on this platform!");
 	return "";
@@ -74,6 +62,23 @@ void InitializeProcess(HANDLE process)
 	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
 	if (!SymInitialize(process, nullptr, true)) _CrtLogSymbolLoadException(0L, "Could not initialize process");
 	else LOG("Initialized debug symbols for process %lu.", GetProcessId(process));
+}
+
+const char * Plutonium::_CrtFormatError(uint64 error)
+{
+	/* Get human readable error from system. */
+	LPSTR msgBuffer = nullptr;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, static_cast<DWORD>(error), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&msgBuffer, 0, nullptr);
+
+	/* Remove newline characters from error. */
+	replstr(msgBuffer, '\n', '\0');
+	replstr(msgBuffer, '\r', '\0');
+
+	/* Copy message to heap so that the user can free it platform indipendent. */
+	const char *result = heapstr(msgBuffer);
+	LocalFree(msgBuffer);
+	return result;
 }
 
 void Plutonium::_CrtFinalizeWinProcess(void)

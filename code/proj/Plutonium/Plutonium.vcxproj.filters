@@ -150,6 +150,18 @@
     <Filter Include="Source Files\Components\Diagnostics">
       <UniqueIdentifier>{1b5ceb9a-e16d-4a2f-a693-1421a4f29f54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Platform">
+      <UniqueIdentifier>{fea2903a-4a63-4a32-b4d1-3b4adc40ec4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Platform\Windows">
+      <UniqueIdentifier>{af466a94-3e86-4430-a388-3779f9953281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Platform">
+      <UniqueIdentifier>{d940d945-3968-458e-9596-98f93da5d315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Platform\Windows">
+      <UniqueIdentifier>{3a4b1927-d1cb-4b26-8e29-4a81b3e3573c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
@@ -358,6 +370,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Button.cpp">
       <Filter>Source Files\Graphics\GUI\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Core\Platform\Windows\RegistryFetcher.cpp">
+      <Filter>Source Files\Core\Platform\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -705,6 +720,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\GUI\Core\CursorButtons.h">
       <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Platform\Windows\RegistryFetcher.h">
+      <Filter>Header Files\Core\Platform\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

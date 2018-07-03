@@ -1,4 +1,5 @@
 #include "Graphics\GUI\Items\Button.h"
+#include "Core\Platform\Windows\RegistryFetcher.h"
 
 Plutonium::Button::Button(Game * parent, const Font * font)
 	: Button(parent, GetDefaultBounds(), font)
@@ -52,8 +53,18 @@ void Plutonium::Button::Update(float dt)
 			else
 			{
 				/* Make sure the correct button event is triggered once the button is released. */
-				if (doubleLeftClicked) leftPostQueued = true;
-				if (doubleRightClicked) rightPostQueued = true;
+				if (doubleLeftClicked)
+				{
+					/* Queue a click event for when the button is released incase of hold, otherwise just post event. */
+					if (leftInvoked) leftPostQueued = true;
+					else LeftClicked.Post(this, game->GetCursor());
+				}
+				if (doubleRightClicked)
+				{
+					/* Queue a click event for when the button is released incase of hold, otherwise just post event. */
+					if (rightInvoked) rightPostQueued = true;
+					else RightClicked.Post(this, game->GetCursor());
+				}
 			}
 
 			/* Reset counters. */
@@ -93,12 +104,11 @@ void Plutonium::Button::Draw(GuiItemRenderer * renderer)
 	/* We can't use the label draw method because the button need to override the gui item background image. */
 	if (IsVisible())
 	{
-		/* Render background with specific texture. */
-		TextureHandler tex = displayTex == 0 ? GetBackgroundImage() : (displayTex == 1 ? hover : click);
-		renderer->RenderGuiItem(GetBounds(), GetRoundingFactor(), 0.0f, GetBackColor(), tex, IsSizable(), GetBackgroundMesh());
+		if (!displayTex) RenderGuiItem(renderer);
+		else RenderButton(renderer);
 
 		/* Render foreground. */
-		renderer->RenderTextForeground(GetTextRenderPosition(), 0.0f, GetTextColor(), GetFont(), GetText(), GetTextMesh());
+		RenderLabel(renderer);
 	}
 }
 
@@ -124,6 +134,26 @@ void Plutonium::Button::PerformClick(CursorButtons type)
 	}
 }
 
+float Plutonium::Button::GetDefaultDoubleClickThreshold(void) const
+{
+	constexpr float DEFAULT = 0.5f;
+
+#if defined(_WIN32)
+	/* Try to get the users Windows double click speed setting if possible; otherwise just default to 0.5 seconds. */
+	const char *value = nullptr;
+	if (Plutonium::RegistryFetcher::TryReadString("DoubleClickSpeed", "Control Panel\\Mouse", &value))
+	{
+		/* Convert value from milliseconds to seconds. */
+		int64 milli = strtol(value, nullptr, 10);
+		free_s(value);
+		return static_cast<float>(milli) * 0.001f;
+	}
+	else return DEFAULT;
+#else
+	return DEFAULT;
+#endif
+}
+
 void Plutonium::Button::SetHoverImage(TextureHandler image)
 {
 	if (image == hover) return;
@@ -145,4 +175,20 @@ void Plutonium::Button::SetClickImage(TextureHandler image)
 void Plutonium::Button::SetDoubleClickThreshold(float value)
 {
 	threshold = value;
+}
+
+void Plutonium::Button::RenderButton(GuiItemRenderer * renderer)
+{
+	if (displayTex == 1 || displayTex == 2)
+	{
+		TextureHandler tex = displayTex == 1 ? hover : click;
+		renderer->RenderGuiItem(GetBounds(), GetRoundingFactor(), 0.0f, GetBackColor(), tex, IsSizable(), GetBackgroundMesh());
+	}
+}
+
+Plutonium::Vector2 Plutonium::Button::GetMinSize(void) const
+{
+	Vector2 baseDim = Label::GetMinSize();
+	Vector2 btnDim = max(hover ? hover->GetSize() : Vector2::Zero, click ? click->GetSize() : Vector2::Zero);
+	return max(baseDim, btnDim);
 }

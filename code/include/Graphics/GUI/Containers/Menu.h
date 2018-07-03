@@ -53,6 +53,8 @@ namespace Plutonium
 		_Check_return_ int32 GetScreenHeight(void) const;
 
 	protected:
+		/* Gets the font specified as the default font. */
+		_Check_return_ const Font* GetDefaultFont(void) const;
 		/* Gets a named font from the loaded fonts. */
 		_Check_return_ const Font* GetFont(_In_ const char *name) const;
 		/* Gets a named texture from the loaded textures. */

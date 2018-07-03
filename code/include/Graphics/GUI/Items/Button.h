@@ -38,10 +38,7 @@ namespace Plutonium
 		void PerformClick(_In_ CursorButtons type = CursorButtons::Default);
 
 		/* Gets the default value for the double click timer threshold. */
-		_Check_return_ inline float GetDefaultDoubleClickThreshold(void) const
-		{
-			return 0.5f;
-		}
+		_Check_return_ float GetDefaultDoubleClickThreshold(void) const;
 
 		/* Gets the current hover image (nullptr is none is set). */
 		_Check_return_ inline TextureHandler GetHoverImage(void) const
@@ -67,6 +64,12 @@ namespace Plutonium
 		void SetClickImage(_In_ TextureHandler image);
 		/* Sets the threshold timer for the double click logic. */
 		void SetDoubleClickThreshold(_In_ float value);
+
+	protected:
+		/* Renderes the Button to the renderer, use for internal item skipping. */
+		void RenderButton(_In_ GuiItemRenderer *renderer);
+		/* Gets the required size of the Button at any time, max of background or focus image. */
+		_Check_return_ virtual Vector2 GetMinSize(void) const override;
 
 	private:
 		bool leftInvoked, rightInvoked, leftPostQueued, rightPostQueued;

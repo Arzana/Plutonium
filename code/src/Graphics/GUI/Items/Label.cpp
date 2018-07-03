@@ -13,6 +13,7 @@ Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	/* Initilaize text render position. */
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
 	Moved.Add(this, &Label::OnMoved);
+	BackgroundImageChanged.Add([&](const GuiItem*, ValueChangedEventArgs<TextureHandler> args) { HandleAutoSize(); });
 
 	/* Initialize text mesh. */
 	textMesh = new Buffer(parent->GetGraphics()->GetWindow(), BindTarget::Array);
@@ -50,7 +51,7 @@ void Plutonium::Label::Update(float dt)
 void Plutonium::Label::Draw(GuiItemRenderer * renderer)
 {
 	GuiItem::Draw(renderer);
-	if (IsVisible()) renderer->RenderTextForeground(textPos, 0.0f, textColor, font, text, textMesh);
+	if (IsVisible()) RenderLabel(renderer);
 }
 
 void Plutonium::Label::SetAutoSize(bool value)
@@ -103,15 +104,20 @@ void Plutonium::Label::SetTextBind(Binder & binder)
 	bindFunc = binder;
 }
 
+void Plutonium::Label::RenderLabel(GuiItemRenderer * renderer)
+{
+	renderer->RenderTextForeground(textPos, 0.0f, textColor, font, text, textMesh);
+}
+
 void Plutonium::Label::HandleAutoSize(void)
 {
 	if (autoSize)
 	{
-		/* Make sure to not autosize to smaller dimensions than the user defined textures. */
+		/* Autosize will resize the Label to the size of the text if defined; otherwise to the size of the minimum defined size (textures), it cannot resize to a zero dimention. */
 		Vector2 size = GetSize();
-		Vector2 dim = max(font->MeasureString(text) + offset * 2.0f, GetMinSize());
+		Vector2 dim = strlen(text) > 0 ? dim = font->MeasureString(text) + offset * 2.0f : GetMinSize();
 
-		if (dim.X != size.X || dim.Y != size.Y) SetSize(dim);
+		if (dim != Vector2::Zero && (dim.X != size.X || dim.Y != size.Y)) SetSize(dim);
 	}
 }
 

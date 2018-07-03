@@ -90,7 +90,7 @@ void Plutonium::GuiItem::Update(float dt)
 
 void Plutonium::GuiItem::Draw(GuiItemRenderer * renderer)
 {
-	if (visible) renderer->RenderGuiItem(bounds, roundingFactor, 0.0f, backColor, focused ? focusedBackground : background, sizable, mesh);
+	if (visible) RenderGuiItem(renderer);
 }
 
 void Plutonium::GuiItem::MoveRelative(Anchors anchor, float x, float y)
@@ -255,6 +255,11 @@ void Plutonium::GuiItem::SetFocusable(bool value)
 	ValueChangedEventArgs<bool> args(focusable, value);
 	focusable = value;
 	FocusableChanged.Post(this, args);
+}
+
+void Plutonium::GuiItem::RenderGuiItem(GuiItemRenderer * renderer)
+{
+	renderer->RenderGuiItem(bounds, roundingFactor, 0.0f, backColor, focused ? focusedBackground : background, sizable, mesh);
 }
 
 Plutonium::Vector2 Plutonium::GuiItem::GetRotatedCursor(CursorHandler cursor)

@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\src\Core\Math\Vector2.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector3.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Vector4.cpp" />
+    <ClCompile Include="..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
     <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Core\Threading\PuThread.cpp" />
@@ -281,6 +282,7 @@
     <ClInclude Include="..\..\include\Core\Math\Vector2.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />
+    <ClInclude Include="..\..\include\Core\Platform\Windows\RegistryFetcher.h" />
     <ClInclude Include="..\..\include\Core\SafeMemory.h" />
     <ClInclude Include="..\..\include\Core\Stopwatch.h" />
     <ClInclude Include="..\..\include\Core\String.h" />

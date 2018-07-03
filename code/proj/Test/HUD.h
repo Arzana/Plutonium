@@ -40,18 +40,19 @@ protected:
 	virtual void Create(void) override 
 	{
 		float y = 0.0f;
+		float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace());
 
 		lblTime = CreateDefaultLabel(y);
-		y += lblTime->GetHeight();
+		y += yAdded;
 
 		lblFps = CreateDefaultLabel(y);
-		y += lblFps->GetHeight();
+		y += yAdded;
 
 		lblCpuRam = CreateDefaultLabel(y);
-		y += lblCpuRam->GetHeight();
+		y += yAdded;
 
 		lblGpuRam = CreateDefaultLabel(y);
-		y += lblGpuRam->GetHeight();
+		y += yAdded;
 
 		lblWorldDrawTime = CreateDefaultLabel(y);
 

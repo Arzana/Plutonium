@@ -60,6 +60,12 @@ int32 Plutonium::Menu::GetScreenHeight(void) const
 	return static_cast<int32>(game->GetGraphics()->GetWindow()->GetClientBounds().GetHeight());
 }
 
+const Font * Plutonium::Menu::GetDefaultFont(void) const
+{
+	LOG_THROW_IF(defaultFontIdx == -1, "No default font is set!");
+	return loadedFonts.at(defaultFontIdx);
+}
+
 const Font * Plutonium::Menu::GetFont(const char * name) const
 {
 	for (size_t i = 0; i < loadedFonts.size(); i++)

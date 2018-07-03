@@ -227,6 +227,8 @@ namespace Plutonium
 		/* The game associated with the GuiItem. */
 		Game *game;
 
+		/* Renders the GuiItem to the renderer, use for internal item skipping. */
+		void RenderGuiItem(_In_ GuiItemRenderer *renderer);
 		/* Gets the position of the cursor relative to the GuiItem. */
 		_Check_return_ Vector2 GetRotatedCursor(_In_ CursorHandler cursor);
 		/* Gets the required size of the GuiItem at any time, max of background or focus image. */

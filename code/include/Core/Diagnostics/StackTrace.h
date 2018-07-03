@@ -34,6 +34,8 @@ namespace Plutonium
 	/* Gets the platform specific last error in human readable format (Requires free!). */
 	_Check_return_ const char* _CrtGetErrorString(void);
 #if defined(_WIN32)
+	/* Converts a windows error code into a human readable format (Requires free!). */
+	_Check_return_ const char* _CrtFormatError(uint64 error);
 	/* Finalizes the processes that have been initialized. */
 	void _CrtFinalizeWinProcess(void);
 #endif

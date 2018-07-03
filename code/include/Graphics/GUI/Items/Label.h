@@ -102,6 +102,8 @@ namespace Plutonium
 	protected:
 		/* Handles the autosize functionality. */
 		void HandleAutoSize(void);
+		/* Renders the Label to the renderer, use for internal item skipping. */
+		void RenderLabel(_In_ GuiItemRenderer *renderer);
 
 		/* Gets the underlying mesh used to render the text. */
 		_Check_return_ inline const Buffer* GetTextMesh(void) const
