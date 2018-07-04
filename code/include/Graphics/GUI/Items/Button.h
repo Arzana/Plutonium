@@ -38,7 +38,7 @@ namespace Plutonium
 		void PerformClick(_In_ CursorButtons type = CursorButtons::Default);
 
 		/* Gets the default value for the double click timer threshold. */
-		_Check_return_ float GetDefaultDoubleClickThreshold(void) const;
+		_Check_return_ static float GetDefaultDoubleClickThreshold(void);
 
 		/* Gets the current hover image (nullptr is none is set). */
 		_Check_return_ inline TextureHandler GetHoverImage(void) const

@@ -35,11 +35,23 @@ namespace Plutonium
 		{
 			SetLoadPercentage(loadPercentage + value);
 		}
+		/* Gets the durrent load percentage. */
+		inline int32 GetLoadPercentage(void) const
+		{
+			return loadPercentage.load();
+		}
 
 		/* Starts the game and runs it until the game is closed. */
 		void Run(void);
 		/* Loads a new level for the game. */
 		void LoadNew(void);
+		/*
+		Adds a component to the game,
+		this component will be initialized after Initilaize is called but before LoadContent is called.
+		These component will also not be reloaded when a new level is loaded!
+		Note that the framework deallocates them with delete!
+		*/
+		void AddComponent(_In_ GameComponent *component);
 
 		/* Gets the game graphics adapter associated with this game. */
 		_Check_return_ inline GraphicsAdapter* GetGraphics(void) const
@@ -84,13 +96,6 @@ namespace Plutonium
 			suppressRender = true;
 		}
 
-		/* 
-		Adds a component to the game,
-		this component will be initialized after Initilaize is called but before LoadContent is called.
-		These component will also not be reloaded when a new level is loaded!
-		Note that the framework deallocates them with delete!
-		*/
-		void AddComponent(_In_ GameComponent *component);
 		/* Exits the game. */
 		void Exit(void);
 
@@ -109,7 +114,7 @@ namespace Plutonium
 		/* Renders the game. */
 		virtual void Render(_In_ float dt) = 0;
 		/* Renders the loading screen when the percentage is updated. */
-		virtual void RenderLoad(_In_ float dt, _In_ int percentage) = 0;
+		virtual void RenderLoad(_In_ float dt, _In_ int percentage) {}
 
 	private:
 		bool suppressUpdate, suppressRender;
@@ -130,9 +135,10 @@ namespace Plutonium
 		bool Tick(bool focused, bool loading);
 		void DoInitialize(void);
 		void DoFinalize(void);
-		void DoUpdate(float dt);
+		void DoUpdate(float dt, bool loading);
 		void BeginRender(void);
 		void DoRender(float dt);
+		void DoRenderLoad(float dt);
 		void EndRender(void);
 	};
 }

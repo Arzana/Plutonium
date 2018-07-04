@@ -39,49 +39,49 @@ namespace Plutonium
 		virtual void Draw(_In_ GuiItemRenderer *renderer) override;
 
 		/* Gets whether the label should be automatically resized to fit the text. */
-		_Check_return_ bool GetAutoSize(void) const
+		_Check_return_ inline bool GetAutoSize(void) const
 		{
 			return autoSize;
 		}
 
 		/* Gets the initial size of the text buffer. */
-		_Check_return_ size_t GetDefaultBufferSize(void) const
+		_Check_return_ inline static size_t GetDefaultBufferSize(void)
 		{
 			return 64;
 		}
 
 		/* Gets the default value for the text color. */
-		_Check_return_ Color GetDefaultTextColor(void) const
+		_Check_return_ inline static Color GetDefaultTextColor(void)
 		{
 			return Color::Black;
 		}
 
 		/* Gets the default value for the text offset. */
-		_Check_return_ Vector2 GetDefaultTextOffset(void) const
+		_Check_return_ inline static Vector2 GetDefaultTextOffset(void)
 		{
 			return Vector2(10.0f, 0.0f);
 		}
 
 		/* Gets the curent displayed text. */
-		_Check_return_ const char32* GetText(void) const
+		_Check_return_ inline const char32* GetText(void) const
 		{
 			return text;
 		}
 
 		/* Gets the current text color. */
-		_Check_return_ Color GetTextColor(void) const
+		_Check_return_ inline Color GetTextColor(void) const
 		{
 			return textColor;
 		}
 
 		/* Gets the offset from the background render position to the text render position. */
-		_Check_return_ Vector2 GetTextOffset(void) const
+		_Check_return_ inline Vector2 GetTextOffset(void) const
 		{
 			return offset;
 		}
 
 		/* Gets the font used to render the Label. */
-		_Check_return_ const Font* GetFont(void) const
+		_Check_return_ inline const Font* GetFont(void) const
 		{
 			return font;
 		}

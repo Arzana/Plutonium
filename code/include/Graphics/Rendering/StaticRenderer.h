@@ -3,6 +3,7 @@
 #include "GameLogic\StaticObject.h"
 #include "Graphics\Lighting\DirectionalLight.h"
 #include "Graphics\Lighting\PointLight.h"
+#include "Graphics\GraphicsAdapter.h"
 
 namespace Plutonium
 {
@@ -12,7 +13,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new instance of a basic model renderer. */
-		StaticRenderer(_In_ const char *vrtxShdr, _In_ const char * fragShdr, _In_ float displayGamma);
+		StaticRenderer(_In_ const GraphicsAdapter *device, _In_ const char *vrtxShdr, _In_ const char * fragShdr);
 		StaticRenderer(_In_ const StaticRenderer &value) = delete;
 		StaticRenderer(_In_ StaticRenderer &&value) = delete;
 
@@ -31,6 +32,6 @@ namespace Plutonium
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
 		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
 		Attribute *pos, *norm, *tan, *uv;
-		float gammaValue;
+		const GraphicsAdapter *device;
 	};
 }

@@ -9,7 +9,7 @@ Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	: game(parent), background(nullptr), focusedBackground(nullptr), backColor(GetDefaultBackColor()),
 	over(false), ldown(false), rdown(false), visible(false), enabled(false), 
 	sizable(false), focusable(false), focused(false), movable(false),
-	roundingFactor(10.0f), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
+	roundingFactor(GetDefaultRoundingFactor()), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
 	suppressRefresh(false), suppressUpdate(false), suppressRender(false),
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
 	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter), INIT_BUS(FocusableChanged),
@@ -255,6 +255,11 @@ void Plutonium::GuiItem::SetFocusable(bool value)
 	ValueChangedEventArgs<bool> args(focusable, value);
 	focusable = value;
 	FocusableChanged.Post(this, args);
+}
+
+void Plutonium::GuiItem::SetRoundingFactor(float value)
+{
+	roundingFactor = value;
 }
 
 void Plutonium::GuiItem::RenderGuiItem(GuiItemRenderer * renderer)

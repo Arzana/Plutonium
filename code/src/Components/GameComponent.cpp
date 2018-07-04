@@ -2,19 +2,26 @@
 #include "Core\Diagnostics\Logging.h"
 
 Plutonium::GameComponent::GameComponent(Game * game)
-	: game(game), initialized(false), enabled(true), place(-1), INIT_BUS(StateChanged)
+	: game(game), initialized(false), enabled(true), ActiveDuringLoad(false),
+	place(-1), INIT_BUS(StateChanged)
 {}
 
 void Plutonium::GameComponent::Enable(void)
 {
-	enabled = true;
-	StateChanged.Post(this, EventArgs());
+	if (!enabled)
+	{
+		enabled = true;
+		StateChanged.Post(this, EventArgs());
+	}
 }
 
 void Plutonium::GameComponent::Disable(void)
 {
-	enabled = false;
-	StateChanged.Post(this, EventArgs());
+	if (enabled)
+	{
+		enabled = false;
+		StateChanged.Post(this, EventArgs());
+	}
 }
 
 void Plutonium::GameComponent::SetUpdatePlace(int place)

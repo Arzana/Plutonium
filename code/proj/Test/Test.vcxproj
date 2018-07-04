@@ -154,12 +154,17 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HUD.cpp" />
+    <ClCompile Include="LoadScreen.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TestGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Fire.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="KnightInit.h" />
+    <ClInclude Include="LoadScreen.h" />
+    <ClInclude Include="TestGame.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\assets\shaders\Dynamic3D.frag" />

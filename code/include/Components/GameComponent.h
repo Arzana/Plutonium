@@ -10,6 +10,9 @@ namespace Plutonium
 	struct GameComponent
 	{
 	public:
+		/* Indicates that this component should be actively updated (and drawn if desired) during load time. */
+		bool ActiveDuringLoad;
+
 		/* Occurs when the state of the game component is changed. */
 		EventBus<GameComponent, EventArgs> StateChanged;
 

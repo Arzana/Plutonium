@@ -134,11 +134,15 @@ void Plutonium::Button::PerformClick(CursorButtons type)
 	}
 }
 
-float Plutonium::Button::GetDefaultDoubleClickThreshold(void) const
+float Plutonium::Button::GetDefaultDoubleClickThreshold(void)
 {
 	constexpr float DEFAULT = 0.5f;
 
 #if defined(_WIN32)
+	/* Cache the value so we don't query the Windows registry needlessly. */
+	static float cached = 0.0f;
+	if (cached != 0.0f) return cached;
+
 	/* Try to get the users Windows double click speed setting if possible; otherwise just default to 0.5 seconds. */
 	const char *value = nullptr;
 	if (Plutonium::RegistryFetcher::TryReadString("DoubleClickSpeed", "Control Panel\\Mouse", &value))
@@ -146,7 +150,7 @@ float Plutonium::Button::GetDefaultDoubleClickThreshold(void) const
 		/* Convert value from milliseconds to seconds. */
 		int64 milli = strtol(value, nullptr, 10);
 		free_s(value);
-		return static_cast<float>(milli) * 0.001f;
+		return cached = static_cast<float>(milli) * 0.001f;
 	}
 	else return DEFAULT;
 #else

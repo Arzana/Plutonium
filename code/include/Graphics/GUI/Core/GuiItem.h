@@ -101,9 +101,15 @@ namespace Plutonium
 		}
 
 		/* Gets the default value for the GuiItem bounds. */
-		_Check_return_ static Rectangle GetDefaultBounds(void)
+		_Check_return_ static inline Rectangle GetDefaultBounds(void)
 		{
 			return Rectangle(0.0f, 0.0f, 100.0f, 50.0f);
+		}
+
+		/* Gets the default value for the rounding factor. */
+		_Check_return_ static inline float GetDefaultRoundingFactor(void)
+		{
+			return 10.0f;
 		}
 
 		/* Gets whether the GuiItem is currently enabled. */
@@ -184,6 +190,12 @@ namespace Plutonium
 			return focused;
 		}
 
+		/* Gets the rounding factor. */
+		_Check_return_ inline float GetRoundingFactor(void) const
+		{
+			return roundingFactor;
+		}
+
 		/* Sets the color of the background to a new solid color, or (when a background image is set) changes the color filter of the background image. */
 		virtual void SetBackColor(_In_ Color color);
 		/* Sets the background image for this GuiItem replacing the solid color background. */
@@ -216,6 +228,8 @@ namespace Plutonium
 		virtual void SetMovable(_In_ bool value);
 		/* Sets whether the GuiItem can be focused. */
 		virtual void SetFocusable(_In_ bool value);
+		/* Sets the rounding factor used to give the GuiItem background rounded edges. */
+		virtual void SetRoundingFactor(_In_ float value);
 
 	protected:
 		/* Suppresses all the refresh calls to this GuiItem until enabled again. */
@@ -250,12 +264,6 @@ namespace Plutonium
 		_Check_return_ inline bool IsRightDown(void) const
 		{
 			return rdown;
-		}
-
-		/* Gets the rounding factor. */
-		_Check_return_ inline float GetRoundingFactor(void) const
-		{
-			return roundingFactor;
 		}
 
 		/* Gets the underlying mesh used to render the GuiItem background. */

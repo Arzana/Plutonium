@@ -217,8 +217,7 @@ void Plutonium::Window::SetMode(WindowMode mode)
 		glfwSetWindowMonitor(hndlr, nullptr, x, y, w, h, display.RefreshRate);
 		break;
 	case Plutonium::WindowMode::BorderlessFullscreen:
-		/* Set the monitor to the specified current monitor and resize the window. */
-		glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, display.ClientWidth, display.ClientHeight, display.RefreshRate);
+		/* Move and resize the window. */
 		SetBounds(Vector2::Zero, display.GetClientSize());
 		break;
 	case Plutonium::WindowMode::Fullscreen:

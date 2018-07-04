@@ -1,7 +1,7 @@
 #include "Graphics\Rendering\StaticRenderer.h"
 
-Plutonium::StaticRenderer::StaticRenderer(const char * vrtxShdr, const char * fragShdr, float displayGamma)
-	: Renderer(Shader::FromFile(vrtxShdr, fragShdr)), gammaValue(displayGamma)
+Plutonium::StaticRenderer::StaticRenderer(const GraphicsAdapter *device, const char * vrtxShdr, const char * fragShdr)
+	: Renderer(Shader::FromFile(vrtxShdr, fragShdr)), device(device)
 {
 	const Shader *shdr = GetShader();
 
@@ -64,7 +64,7 @@ void Plutonium::StaticRenderer::Begin(const Matrix & view, const Matrix & proj, 
 	/* Set constant uniforms. */
 	matView->Set(view);
 	matProj->Set(proj);
-	gamma->Set(gammaValue);
+	gamma->Set(device->GetWindow()->GetGraphicsDevice().GammaCorrection);
 	this->camPos->Set(camPos);
 
 	sunLightDir->Set(sun->Direction);

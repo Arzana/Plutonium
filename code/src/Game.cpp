@@ -87,7 +87,7 @@ void Plutonium::Game::Run(void)
 
 	/* Tick loading until the load percentage has been set to 100. */
 	prevTime = glfwGetTime();
-	while (loadPercentage < 100)
+	while (loadPercentage.load() < 100)
 	{
 		wnd->Update();
 		while (!Tick(wnd->HasFocus(), true));
@@ -162,7 +162,7 @@ bool Plutonium::Game::Tick(bool focused, bool loading)
 			for (; accumElapTime >= targetElapTime; accumElapTime -= targetElapTime)
 			{
 				dt += targetElapTime;
-				if (!loading) DoUpdate(targetElapTime);
+				DoUpdate(targetElapTime, loading);
 			}
 		}
 		else
@@ -170,18 +170,13 @@ bool Plutonium::Game::Tick(bool focused, bool loading)
 			/* Do update. */
 			dt = accumElapTime;
 			accumElapTime = 0.0f;
-			if (!loading) DoUpdate(dt);
+			DoUpdate(dt, loading);
 		}
 	}
 
 	/* Do frame render. */
 	if (suppressRender) suppressRender = false;
-	else if (loading)
-	{
-		BeginRender();
-		RenderLoad(dt, loadPercentage.load());
-		EndRender();
-	}
+	else if (loading) DoRenderLoad(dt);
 	else DoRender(dt);
 	return true;
 }
@@ -223,17 +218,17 @@ void Plutonium::Game::DoFinalize(void)
 #endif
 }
 
-void Plutonium::Game::DoUpdate(float dt)
+void Plutonium::Game::DoUpdate(float dt, bool loading)
 {
 	/* Update all defined components. */
 	for (size_t i = 0; i < components.size(); i++)
 	{
 		GameComponent *cmp = components.at(i);
-		if (cmp->enabled) cmp->Update(dt);
+		if (cmp->enabled && (!loading || cmp->ActiveDuringLoad)) cmp->Update(dt);
 	}
 
 	/* Update game specific code. */
-	Update(dt);
+	if (!loading) Update(dt);
 }
 
 void Plutonium::Game::BeginRender(void)
@@ -263,6 +258,23 @@ void Plutonium::Game::DoRender(float dt)
 
 	EndRender();
 	drawTimer->End();
+}
+
+void Plutonium::Game::DoRenderLoad(float dt)
+{
+	BeginRender();
+
+	/* Render the loadtime specific code. */
+	RenderLoad(dt, GetLoadPercentage());
+
+	/* Render the loadtime specific graphics to the game screen. */
+	for (size_t i = 0; i < components.size(); i++)
+	{
+		GameComponent *cmp = components.at(i);
+		if (cmp->ActiveDuringLoad) cmp->Render(dt);
+	}
+
+	EndRender();
 }
 
 void Plutonium::Game::EndRender(void)
