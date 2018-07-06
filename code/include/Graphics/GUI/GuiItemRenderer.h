@@ -23,8 +23,10 @@ namespace Plutonium
 
 		/* Adds a basic GuiItem to the render queue. */
 		void RenderGuiItem(_In_ Rectangle bounds, _In_ float rounding, _In_ float orientation, _In_ Color backColor, _In_ TextureHandler background, _In_ bool shouldDrawResizer, _In_ const Buffer *mesh);
-		/* Adds the Label text foregrounf to the render queue. */
+		/* Adds the Label text foregroung to the render queue. */
 		void RenderTextForeground(_In_ Vector2 position, _In_ float orientation, _In_ Color textColor, _In_ const Font *font, _In_ const char32 *text, _In_ const Buffer *mesh);
+		/* Adds the ProgressBar bar section to the render queue. */
+		void RenderBarForeground(_In_ Vector2 position, _In_ Rectangle parentBounds, _In_ float parentRounding, _In_ float orientation, _In_ Color barColor, _In_ TextureHandler texture, const Buffer *mesh);
 		/* Renders the queued GuiItems to the screen. */
 		void End(_In_opt_ bool noBlending = false);
 
@@ -54,6 +56,18 @@ namespace Plutonium
 			const char32 *Text;
 		};
 
+		struct ProgressBarBarArgs
+		{
+			const Buffer *Mesh;
+			Vector2 Position;
+			Vector2 ParentPosition;
+			Vector2 ParentSize;
+			float Orientation;
+			float ParentRounding;
+			Color BarColor;
+			TextureHandler Texture;
+		};
+
 		struct
 		{
 			Shader *shdr;
@@ -70,16 +84,27 @@ namespace Plutonium
 			Uniform *map, *clr;
 			Attribute *posUv;
 		} text;
+
+		struct
+		{
+			Shader *shdr;
+			Uniform *matMdl, *matProj;
+			Uniform *texture, *clr, *rounding, *size, *pos;
+			Attribute *posUv;
+		} bar;
 		
 		Matrix projection;
 		Texture *defBackTex;
 		std::queue<BasicGuiItemArgs> basicDrawQueue;
 		std::queue<LabelTextArgs> textDrawQueue;
+		std::queue<ProgressBarBarArgs> barDrawQueue;
 
 		void RenderBasics(void);
 		void RenderText(void);
+		void RenderBars(void);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void InitBasicShader(void);
 		void InitTextShader(void);
+		void InitBarShader(void);
 	};
 }

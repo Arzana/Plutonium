@@ -100,6 +100,9 @@ Shader * Plutonium::Shader::FromFile(const char * vertexShaderPath, const char *
 
 Uniform * Plutonium::Shader::GetUniform(const char * name) const
 {
+	/* On debug check if the shader is propperly loaded. */
+	ASSERT_IF(!loaded, "Attemping to get uniform from failed shader program!");
+
 	/* Loop through fields. */
 	for (size_t i = 0; i < fields.size(); i++)
 	{
@@ -108,12 +111,17 @@ Uniform * Plutonium::Shader::GetUniform(const char * name) const
 		if (!strcmp(cur->name, name)) return static_cast<Uniform*>(cur);
 	}
 
-	ASSERT("Cannot find uniform '%s'!", name);
+	/* On debug mode throw! */
+	ASSERT("Cannot find uniform '%s'! (uniform might be optimized away)\nSOURCE:\n%s", name, GetShaderSource().c_str());
+
 	return nullptr;
 }
 
 Attribute * Plutonium::Shader::GetAttribute(const char * name) const
 {
+	/* On debug check if the shader is propperly loaded. */
+	ASSERT_IF(!loaded, "Attemping to get attribute from failed shader program!");
+
 	/* Loop through fields. */
 	for (size_t i = 0; i < fields.size(); i++)
 	{
@@ -122,7 +130,9 @@ Attribute * Plutonium::Shader::GetAttribute(const char * name) const
 		if (!strcmp(cur->name, name)) return static_cast<Attribute*>(cur);
 	}
 
-	ASSERT("Cannot find attribute %s!", name);
+	/* On debug mode throw! */
+	ASSERT("Cannot find attribute '%s'! (attribute might be optimized away)\nSOURCE:\n%s", name, GetShaderSource().c_str());
+
 	return nullptr;
 }
 
@@ -368,4 +378,49 @@ bool Plutonium::Shader::LinkProgram(void)
 void Plutonium::Shader::AddShader(uint32 shdr)
 {
 	glAttachShader(ptr, shdr);
+}
+
+std::string Plutonium::Shader::GetShaderSource(void) const
+{
+	/* Get attached shader ids. */
+	GLsizei shdrCnt;
+	GLuint shdrs[3];
+	glGetAttachedShaders(ptr, 3, &shdrCnt, shdrs);
+
+	/* Loops through all shaders. */
+	std::string result;
+	for (size_t i = 0; i < shdrCnt; i++)
+	{
+		/* Get the shader type and add it to the result string. */
+		ShaderType type;
+		glGetShaderiv(shdrs[i], GL_SHADER_TYPE, (GLint*)&type);
+
+		result += "SOURCE (";
+		result += _CrtGetShaderVisualType(type);
+		result += " shader):\n";
+
+		/* Get the required buffer size for the shader source. */
+		GLsizei buffSize;
+		glGetShaderiv(shdrs[i], GL_SHADER_SOURCE_LENGTH, (GLsizei*)&buffSize);
+
+		/* Allocate a temporary buffer for source storage. */
+		char *buffer = malloca_s(char, buffSize);
+		glGetShaderSource(shdrs[i], buffSize, nullptr, buffer);
+
+		/* We want to offset every line so it's logged nicely so we have to split it into lines and add two tabs to each line. */
+		char **splt = mallocaa_s(char, cntchar(buffer, '\n') + 1, FILENAME_MAX);
+		size_t lines = spltstr(buffer, '\n', splt, 0);
+		for (size_t j = 0; j < lines; j++)
+		{
+			result += "\t\t";
+			result += splt[j];
+			result += '\n';
+		}
+
+		/* Free temporary buffers. */
+		freea_s(buffer);
+		freeaa_s(splt, lines);
+	}
+
+	return result;
 }

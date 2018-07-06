@@ -7,8 +7,8 @@ Plutonium::GuiItem::GuiItem(Game * parent)
 
 Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	: game(parent), background(nullptr), focusedBackground(nullptr), backColor(GetDefaultBackColor()),
-	over(false), ldown(false), rdown(false), visible(false), enabled(false), 
-	sizable(false), focusable(false), focused(false), movable(false),
+	over(false), ldown(false), rdown(false), visible(false), enabled(false),
+	sizable(false), focusable(false), focused(false), movable(false), anchor(Anchors::None),
 	roundingFactor(GetDefaultRoundingFactor()), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
 	suppressRefresh(false), suppressUpdate(false), suppressRender(false),
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
@@ -25,6 +25,9 @@ Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	mesh->SetData<Vector4>(BufferUsage::StaticDraw, nullptr, 6);
 	UpdateMesh();
 
+	/* Add event handler for anchor updates. */
+	game->GetGraphics()->GetWindow()->SizeChanged.Add(this, &GuiItem::WindowResizedHandler);
+
 	Show();
 }
 
@@ -32,6 +35,8 @@ Plutonium::GuiItem::~GuiItem(void)
 {
 	/* Call finalize before releaseing assets. */
 	Finalized.Post(this, EventArgs());
+
+	game->GetGraphics()->GetWindow()->SizeChanged.Remove(this, &GuiItem::WindowResizedHandler);
 
 	free_s(name);
 	delete_s(mesh);
@@ -95,25 +100,7 @@ void Plutonium::GuiItem::Draw(GuiItemRenderer * renderer)
 
 void Plutonium::GuiItem::MoveRelative(Anchors anchor, float x, float y)
 {
-	/* Checks whether the anchor is valid. */
-	if (_CrtIsAnchorWorkable(anchor))
-	{
-		const Rectangle vp = game->GetGraphics()->GetWindow()->GetClientBounds();
-
-		/* Check for horizontal anchors. */
-		if (_CrtEnumCheckFlag(anchor, Anchors::CenterWidth)) x = vp.GetWidth() / 2.0f - (GetWidth() >> 1);
-		if (_CrtEnumCheckFlag(anchor, Anchors::Left)) x = vp.GetLeft();
-		if (_CrtEnumCheckFlag(anchor, Anchors::Right)) x = vp.GetRight() - GetWidth();
-
-		/* Check for vertical anchors. */
-		if (_CrtEnumCheckFlag(anchor, Anchors::CenterHeight)) y = vp.GetHeight() / 2.0f - (GetHeight() >> 1);
-		if (_CrtEnumCheckFlag(anchor, Anchors::Top)) y = vp.GetTop();
-		if (_CrtEnumCheckFlag(anchor, Anchors::Bottom)) y = vp.GetBottom() - GetHeight();
-
-		/* Move GuiItem if needed. */
-		if (x != GetX() || y != GetY()) SetPosition(Vector2(x, y));
-	}
-	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is inalid!");
+	MoveRelativeInternal(anchor, Vector2(x, y), Vector2::Zero);
 }
 
 void Plutonium::GuiItem::Show(void)
@@ -126,6 +113,14 @@ void Plutonium::GuiItem::Hide(void)
 {
 	SetState(false);
 	SetVisibility(false);
+}
+
+void Plutonium::GuiItem::SetAnchors(Anchors value, float xOffset, float yOffset)
+{
+	if (value == anchor) return;
+	LOG_THROW_IF(!_CrtIsAnchorValid(value), "Invalid anchor value passed!");
+	offsetFromAnchorPoint = Vector2(xOffset, yOffset);
+	if ((anchor = value) != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero, offsetFromAnchorPoint);
 }
 
 void Plutonium::GuiItem::SetBackColor(Color color)
@@ -203,6 +198,7 @@ void Plutonium::GuiItem::SetSize(Vector2 size)
 	ValueChangedEventArgs<Vector2> args(bounds.Size, size);
 	bounds.Size = size;
 	UpdateMesh();
+	if (anchor != Anchors::None) MoveRelative(anchor);
 	Resized.Post(this, args);
 }
 
@@ -285,14 +281,17 @@ void Plutonium::GuiItem::CheckBounds(Vector2 size)
 
 void Plutonium::GuiItem::UpdateMesh(void)
 {
+	const float w = GetSize().X;
+	const float h = GetSize().Y;
+
 	const Vector4 data[] =
 	{
-		Vector4(0.0f, 0.0f, 0.0f, 1.0f),					// bottom-left
-		Vector4(0.0f, -bounds.Size.Y, 0.0f, 0.0f),			// top-left
-		Vector4(bounds.Size.X, -bounds.Size.Y, 1.0f, 0.0f),	// top-right
-		Vector4(0.0f, 0.0f, 0.0f, 1.0f),					// bottom-left
-		Vector4(bounds.Size.X, -bounds.Size.Y, 1.0f, 0.0f),	// top-right
-		Vector4(bounds.Size.X, 0.0f, 1.0f, 1.0f)			// bottom-right
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),	// bottom-left
+		Vector4(0.0f, -h, 0.0f, 0.0f),		// top-left
+		Vector4(w, -h, 1.0f, 0.0f),			// top-right
+		Vector4(0.0f, 0.0f, 0.0f, 1.0f),	// bottom-left
+		Vector4(w, -h, 1.0f, 0.0f),			// top-right
+		Vector4(w, 0.0f, 1.0f, 1.0f)		// bottom-right
 	};
 
 	mesh->SetData(data);
@@ -304,4 +303,36 @@ void Plutonium::GuiItem::ApplyFocus(bool focused)
 
 	if (this->focused = focused) GainedFocus.Post(this, EventArgs());
 	else LostFocus.Post(this, EventArgs());
+}
+
+void Plutonium::GuiItem::WindowResizedHandler(WindowHandler, EventArgs)
+{
+	if (anchor != Anchors::None) MoveRelative(anchor);
+}
+
+void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder)
+{
+	Vector2 newPos = base;
+
+	/* Checks whether the anchor is valid. */
+	if (_CrtIsAnchorWorkable(anchor))
+	{
+		const Rectangle vp = game->GetGraphics()->GetWindow()->GetClientBounds();
+
+		/* Check for horizontal anchors. */
+		if (_CrtEnumCheckFlag(anchor, Anchors::CenterWidth)) newPos.X = vp.GetWidth() / 2.0f - (GetWidth() >> 1);
+		if (_CrtEnumCheckFlag(anchor, Anchors::Left)) newPos.X = vp.GetLeft();
+		if (_CrtEnumCheckFlag(anchor, Anchors::Right)) newPos.X = vp.GetRight() - GetWidth();
+
+		/* Check for vertical anchors. */
+		if (_CrtEnumCheckFlag(anchor, Anchors::CenterHeight)) newPos.Y = vp.GetHeight() / 2.0f - (GetHeight() >> 1);
+		if (_CrtEnumCheckFlag(anchor, Anchors::Top)) newPos.Y = vp.GetTop();
+		if (_CrtEnumCheckFlag(anchor, Anchors::Bottom)) newPos.Y = vp.GetBottom() - GetHeight();
+
+		newPos += adder;
+
+		/* Move GuiItem if needed. */
+		if (newPos != GetPosition()) SetPosition(newPos);
+	}
+	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is inalid!");
 }

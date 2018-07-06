@@ -62,5 +62,6 @@ namespace Plutonium
 		void Initialize(const char *vrtxShdr, const char *geomShdr, const char *fragShdr);
 		bool LinkProgram(void);
 		void AddShader(uint32 shdr);
+		std::string GetShaderSource(void) const;
 	};
 }

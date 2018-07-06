@@ -70,11 +70,17 @@ namespace Plutonium
 		Moves the GuiItem to a specified relative position.
 		The anchor will have prefrence over the specified positional components.
 		*/
-		void MoveRelative(_In_ Anchors anchor, _In_opt_ float x = 0, _In_opt_ float y = 0);
+		void MoveRelative(_In_ Anchors anchor, _In_opt_ float x = 0.0f, _In_opt_ float y = 0.0f);
 		/* Enables the GuiItem and makes it visible. */
 		void Show(void);
 		/* Disables the GuiItem and makes it hiden. */
 		void Hide(void);
+
+		/* Gets the current value of the anchor. */
+		_Check_return_ inline Anchors GetAnchor(void) const
+		{
+			return anchor;
+		}
 
 		/* Gets the current value of the background color. */
 		_Check_return_ inline Color GetBackColor(void) const
@@ -196,6 +202,14 @@ namespace Plutonium
 			return roundingFactor;
 		}
 
+		/* Gets the current offset from the defined anchor point. */
+		_Check_return_ inline Vector2 GetOffsetFromAnchor(void) const
+		{
+			return offsetFromAnchorPoint;
+		}
+
+		/* Sets the anchor to the specified value, making sure the GuiItem always stays at the desired position if the parent or GuiItem resizes. */
+		virtual void SetAnchors(_In_ Anchors value, _In_opt_ float xOffset = 0.0f, _In_opt_ float yOffset = 0.0f);
 		/* Sets the color of the background to a new solid color, or (when a background image is set) changes the color filter of the background image. */
 		virtual void SetBackColor(_In_ Color color);
 		/* Sets the background image for this GuiItem replacing the solid color background. */
@@ -266,7 +280,7 @@ namespace Plutonium
 			return rdown;
 		}
 
-		/* Gets the underlying mesh used to render the GuiItem background. */
+		/* Gets the mesh used to render the background. */
 		_Check_return_ inline const Buffer* GetBackgroundMesh(void) const
 		{
 			return mesh;
@@ -280,9 +294,13 @@ namespace Plutonium
 		float roundingFactor;
 		Rectangle bounds;
 		const char *name;
+		Anchors anchor;
+		Vector2 offsetFromAnchorPoint;
 
 		void CheckBounds(Vector2 size);
 		void UpdateMesh(void);
 		void ApplyFocus(bool focused);
+		void WindowResizedHandler(WindowHandler, EventArgs);
+		void MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder);
 	};
 }

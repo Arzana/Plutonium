@@ -14,6 +14,7 @@ Plutonium::GuiItemRenderer::GuiItemRenderer(GraphicsAdapter * device)
 	/* Initialize shaders. */
 	InitBasicShader();
 	InitTextShader();
+	InitBarShader();
 }
 
 Plutonium::GuiItemRenderer::~GuiItemRenderer(void)
@@ -57,6 +58,24 @@ void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, float or
 	textDrawQueue.push(args);
 }
 
+void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle parentBounds, float parentRounding, float orientation, Color barColor, TextureHandler texture, const Buffer * mesh)
+{
+	/* Make sure we convert the position to OpenGL coordinates. */
+	ProgressBarBarArgs args =
+	{
+		mesh, 
+		device->ToOpenGL(position),
+		device->ToOpenGL(parentBounds.Position),
+		parentBounds.Size,
+		orientation,
+		parentRounding,
+		barColor,
+		texture ? texture : defBackTex
+	};
+
+	barDrawQueue.push(args);
+}
+
 void Plutonium::GuiItemRenderer::End(bool noBlending)
 {
 	/* Enable blending (default). */
@@ -65,6 +84,7 @@ void Plutonium::GuiItemRenderer::End(bool noBlending)
 	/* Renders all queued GuiItems. */
 	RenderBasics();
 	RenderText();
+	RenderBars();
 }
 
 void Plutonium::GuiItemRenderer::RenderBasics(void)
@@ -126,6 +146,37 @@ void Plutonium::GuiItemRenderer::RenderText(void)
 	text.shdr->End();
 }
 
+void Plutonium::GuiItemRenderer::RenderBars(void)
+{
+	/* Set shader globals. */
+	bar.shdr->Begin();
+	bar.matProj->Set(projection);
+
+	/* Render all queued items. */
+	while (barDrawQueue.size() > 0)
+	{
+		ProgressBarBarArgs cur = barDrawQueue.front();
+		barDrawQueue.pop();
+
+		/* Create or bus uniforms to shader. */
+		bar.matMdl->Set(Matrix::CreateWorld(cur.Position, cur.Orientation, Vector2::One));
+		bar.texture->Set(cur.Texture);
+		bar.clr->Set(cur.BarColor);
+		bar.pos->Set(cur.ParentPosition);
+		bar.size->Set(cur.ParentSize);
+		bar.rounding->Set(cur.ParentRounding);
+
+		/* Set position/uv attribute. */
+		cur.Mesh->Bind();
+		basic.posUv->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
+
+		/* Render bar. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur.Mesh->GetElementCount()));
+	}
+
+	bar.shdr->End();
+}
+
 void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
 {
 	/* Update the projection matrix. */
@@ -133,24 +184,25 @@ void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, 
 	projection = Matrix::CreateOrtho(vp.Position.X, vp.Size.X, vp.Position.Y, vp.Size.Y, 0.0f, 1.0f);
 }
 
+/* The vertex shader doesn't change for any shader so we save it globally. */
+constexpr const char *VRTX_SHDR_SRC =
+	"#version 430 core																	\n"
+
+	"uniform mat4 projection;															\n"
+	"uniform mat4 model;																\n"
+
+	"in vec4 posUv;																		\n"
+
+	"out vec2 uv;																		\n"
+
+	"void main()																		\n"
+	"{																					\n"
+	"	uv = posUv.zw;																	\n"
+	"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);					\n"
+	"}";
+
 void Plutonium::GuiItemRenderer::InitBasicShader(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																\n"
-
-		"uniform mat4 projection;														\n"
-		"uniform mat4 model;															\n"
-
-		"in vec4 posUv;																	\n"
-
-		"out vec2 uv;																	\n"
-
-		"void main()																	\n"
-		"{																				\n"
-		"	uv = posUv.zw;																\n"
-		"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);				\n"
-		"}";
-
 	constexpr const char *FRAG_SHDR_SRC =
 		"#version 430 core																\n"
 
@@ -173,7 +225,7 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 		"void main()																	\n"
 		"{																				\n"
 		"	vec2 center = pos + vec2(size.x, -size.y) / 2.0f;							\n"
-		"	if (RoundRect(gl_FragCoord.xy - center) < 0.0f)								\n"
+		"	if (RoundRect(gl_FragCoord.xy - center) <= 0.0f)							\n"
 		"	{																			\n"
 		"		vec4 texel = texture(background, uv);									\n"
 		"		fragColor = texel * backgroundFilter;									\n"
@@ -195,22 +247,6 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 
 void Plutonium::GuiItemRenderer::InitTextShader(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																\n"
-
-		"uniform mat4 projection;														\n"
-		"uniform mat4 model;															\n"
-
-		"in vec4 posUv;																	\n"
-
-		"out vec2 uv;																	\n"
-
-		"void main()																	\n"
-		"{																				\n"
-		"	uv = posUv.zw;																\n"
-		"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);				\n"
-		"}";
-
 	constexpr const char *FRAG_SHDR_SRC =
 		"#version 430 core																\n"
 		
@@ -232,4 +268,47 @@ void Plutonium::GuiItemRenderer::InitTextShader(void)
 	text.map = text.shdr->GetUniform("map");
 	text.clr = text.shdr->GetUniform("color");
 	text.posUv = text.shdr->GetAttribute("posUv");
+}
+
+void Plutonium::GuiItemRenderer::InitBarShader(void)
+{
+	constexpr const char *FRAG_SHDR_SRC =
+		"#version 430 core																\n"
+		
+		"uniform sampler2D bar;															\n"
+		"uniform vec4 color;															\n"
+		"uniform float border;															\n"
+		"uniform vec2 size;																\n"
+		"uniform vec2 pos;																\n"
+		
+		"in vec2 uv;																	\n"
+		
+		"out vec4 fragColor;															\n"
+
+		"float RoundRect(vec2 pos)														\n"
+		"{																				\n"
+		"	vec2 radius = size / 2.0f - border;											\n"
+		"	return length(max(abs(pos) - radius, 0.0f)) - border;						\n"
+		"}																				\n"
+
+		"void main()																	\n"
+		"{																				\n"
+		"	vec2 center = pos + vec2(size.x, -size.y) / 2.0f;							\n"
+		"	if (RoundRect(gl_FragCoord.xy - center) <= 0.0f)							\n"
+		"	{																			\n"
+		"		vec4 texel = texture(bar, uv);											\n"
+		"		fragColor = texel * color;												\n"
+		"	}																			\n"
+		"	else fragColor = vec4(0.0f);												\n"
+		"}";
+
+	bar.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	bar.matProj = bar.shdr->GetUniform("projection");
+	bar.matMdl = bar.shdr->GetUniform("model");
+	bar.texture = bar.shdr->GetUniform("bar");
+	bar.clr = bar.shdr->GetUniform("color");
+	bar.rounding = bar.shdr->GetUniform("border");
+	bar.pos = bar.shdr->GetUniform("pos");
+	bar.size = bar.shdr->GetUniform("size");
+	bar.posUv = bar.shdr->GetAttribute("posUv");
 }

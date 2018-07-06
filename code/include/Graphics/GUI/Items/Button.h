@@ -46,7 +46,7 @@ namespace Plutonium
 			return hover;
 		}
 
-		/* gets the current click image (nullptr is none is set). */
+		/* Gets the current click image (nullptr is none is set). */
 		_Check_return_ inline TextureHandler GetClickImage(void) const
 		{
 			return click;
@@ -66,7 +66,7 @@ namespace Plutonium
 		void SetDoubleClickThreshold(_In_ float value);
 
 	protected:
-		/* Renderes the Button to the renderer, use for internal item skipping. */
+		/* Renderes the Button to the renderer, used for internal item skipping. */
 		void RenderButton(_In_ GuiItemRenderer *renderer);
 		/* Gets the required size of the Button at any time, max of background or focus image. */
 		_Check_return_ virtual Vector2 GetMinSize(void) const override;

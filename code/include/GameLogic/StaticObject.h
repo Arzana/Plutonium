@@ -28,7 +28,7 @@ namespace Plutonium
 	private:
 		Game *parent;
 		StaticModel *model;
-		int percentage;
+		float percentage;
 
 		void OnLoadComplete(const AssetLoader*, StaticModel *result);
 	};

@@ -62,13 +62,13 @@ void TestGame::LoadContent(void)
 	GetLoader()->LoadTexture(skyboxPaths, Callback<Texture>([&](const AssetLoader*, Texture *result)
 	{
 		skybox = result;
-		UpdateLoadPercentage(SKYBOX_WEIGHT);
+		UpdateLoadPercentage(SKYBOX_WEIGHT * 0.01f);
 	}));
 
 	/* Setup lighting. */
 	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
 #if defined (QUICK_MAP)
-	UpdateLoadPercentage(PER_FIRE_WEIGHT * 4);
+	UpdateLoadPercentage(PER_FIRE_WEIGHT * 4 * 0.01f);
 #else
 	Color fireColor = Color((byte)254, 211, 60);
 	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));

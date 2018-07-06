@@ -20,7 +20,7 @@ Plutonium::Game::Game(const char * name)
 	: device(nullptr), cursor(nullptr), keyboard(nullptr),				// Default state for helper objects.
 	FixedTimeStep(true), suppressUpdate(false), suppressRender(true),	// Enable fixed time step and disable first render.
 	targetElapTimeFocused(0.0166667f), targetElapTimeNoFocus(0.05f),	// Normal: 60 FPS, Out of focus: 20 FPS.
-	accumElapTime(0), maxElapTime(5), loadPercentage(-1)				// Set buffer time objects.
+	accumElapTime(0), maxElapTime(5), loadPercentage(-1.0f)				// Set buffer time objects.
 {
 	/* Set the main thread name (I think game will always be made on the main thread). */
 	_CrtSetCurrentThreadName("main");
@@ -60,10 +60,10 @@ void Plutonium::Game::SetTargetTimeStep(int value)
 	if (targetElapTimeFocused < targetElapTimeNoFocus) targetElapTimeNoFocus = targetElapTimeFocused;
 }
 
-void Plutonium::Game::SetLoadPercentage(int value)
+void Plutonium::Game::SetLoadPercentage(float value)
 {
 	/* Make sure we don't call the method too early or late. */
-	if (loadPercentage == -1)
+	if (GetLoadPercentage() == -1)
 	{
 		LOG_WAR("Cannot set load percentage at this point!");
 		return;
@@ -82,15 +82,22 @@ void Plutonium::Game::Run(void)
 	DoInitialize();
 
 	/* Load first level. */
-	SetLoadPercentage(loadPercentage = 0);
+	loadPercentage.store(0.0f);
 	LoadContent();
 
-	/* Tick loading until the load percentage has been set to 100. */
+	/* 
+	Tick loading until the load percentage has been set to 1. 
+	Also tick a few more times to make sure all resources are loaded correctly and the window invoke buffer is empty.
+	This is also just to show the loading progress bar at 100% is one is used.
+	*/
 	prevTime = glfwGetTime();
-	while (loadPercentage.load() < 100)
+	int32 extraTicks = 0;
+	while (GetLoadPercentage() < 1.0f || extraTicks < 10)
 	{
 		wnd->Update();
 		while (!Tick(wnd->HasFocus(), true));
+
+		if (GetLoadPercentage() >= 1.0f) ++extraTicks;
 	}
 
 	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());

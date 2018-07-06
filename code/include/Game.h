@@ -29,14 +29,14 @@ namespace Plutonium
 		/* Sets the target time step in Hz. */
 		void SetTargetTimeStep(_In_ int value);
 		/* Sets the current load percentage. */
-		void SetLoadPercentage(_In_ int value);
+		void SetLoadPercentage(_In_ float value);
 		/* Adds a specified value to the load percentage. */
-		void UpdateLoadPercentage(_In_ int value)
+		void UpdateLoadPercentage(_In_ float value)
 		{
-			SetLoadPercentage(loadPercentage + value);
+			SetLoadPercentage(GetLoadPercentage() + value);
 		}
 		/* Gets the durrent load percentage. */
-		inline int32 GetLoadPercentage(void) const
+		inline float GetLoadPercentage(void) const
 		{
 			return loadPercentage.load();
 		}
@@ -114,7 +114,7 @@ namespace Plutonium
 		/* Renders the game. */
 		virtual void Render(_In_ float dt) = 0;
 		/* Renders the loading screen when the percentage is updated. */
-		virtual void RenderLoad(_In_ float dt, _In_ int percentage) {}
+		virtual void RenderLoad(_In_ float dt, _In_ float percentage) {}
 
 	private:
 		bool suppressUpdate, suppressRender;
@@ -123,7 +123,7 @@ namespace Plutonium
 		float targetElapTimeNoFocus;
 		float accumElapTime;
 		float maxElapTime;
-		std::atomic_int loadPercentage;
+		std::atomic<float> loadPercentage;
 		Stopwatch *drawTimer;
 
 		GraphicsAdapter *device;

@@ -4,7 +4,7 @@
 constexpr Plutonium::int32 MAX_STRING_LENGTH = 64;
 
 Plutonium::FontRenderer::FontRenderer(Game *game, const char * font, const char * vrtxShdr, const char * fragShdr, int loadWeight)
-	: parent(game), percentage(loadWeight), font(nullptr)
+	: parent(game), percentage(loadWeight * 0.01f), font(nullptr)
 {
 	WindowHandler wnd = game->GetGraphics()->GetWindow();
 

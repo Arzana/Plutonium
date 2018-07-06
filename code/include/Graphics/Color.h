@@ -12,6 +12,8 @@ namespace Plutonium
 		const static Color Black;
 		/* Defines a blue opaque color. */
 		const static Color Blue;
+		/* Defines a lime opaque color. */
+		const static Color Lime;
 		/* Defines a cyan opaque color. */
 		const static Color Cyan;
 		/* Defines a green opaque color. */

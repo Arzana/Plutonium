@@ -17,17 +17,18 @@ void LoadScreen::Create(void)
 {
 	lblLoaderState = AddLabel();
 	lblLoaderState->SetAutoSize(true);
-	lblLoaderState->MoveRelative(Anchors::Center);
+	lblLoaderState->SetAnchors(Anchors::Center);
 	lblLoaderState->SetBackColor(Color::Transparent);
 	lblLoaderState->SetTextColor(Color::WhiteSmoke);
 	lblLoaderState->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = game->GetLoader()->GetState();
-		text += '(';
-		text += std::to_string(game->GetLoadPercentage());
-		text += "%)";
 		for (size_t i = 0; i < dotCnt; i++) text += '.';
 	}));
+
+	pbLoadingPercentage = AddProgressBar();
+	pbLoadingPercentage->SetBackColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
+	pbLoadingPercentage->SetAnchors(Anchors::Center, 0.0f, static_cast<float>(lblLoaderState->GetFont()->GetLineSpace()) * 2.0f);
 }
 
 void LoadScreen::Update(float dt)
@@ -40,4 +41,6 @@ void LoadScreen::Update(float dt)
 		accum = 0.0f;
 		if (++dotCnt > 3) dotCnt = 0;
 	}
+
+	pbLoadingPercentage->SetValue(game->GetLoadPercentage());
 }

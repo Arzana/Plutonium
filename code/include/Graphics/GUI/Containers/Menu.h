@@ -2,6 +2,7 @@
 #include "Components\GameComponent.h"
 #include "Graphics\GUI\Items\Label.h"
 #include "Graphics\GUI\Items\Button.h"
+#include "Graphics\GUI\Items\ProgressBar.h"
 
 namespace Plutonium
 {
@@ -66,6 +67,8 @@ namespace Plutonium
 		_Check_return_ Label* AddLabel(_In_opt_ const Font *font = nullptr);
 		/* Adds a button to the menu, if no font is specified the default font will be used. */
 		_Check_return_ Button* AddButton(_In_opt_ const Font *font = nullptr);
+		/* Adds a progress bar to the menu. */
+		_Check_return_ ProgressBar* AddProgressBar(void);
 
 		/* Sets the default font to a specified font. */
 		void SetDefaultFont(_In_ const char *path, _In_ float size);

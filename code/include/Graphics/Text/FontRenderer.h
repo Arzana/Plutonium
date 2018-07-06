@@ -74,7 +74,7 @@ namespace Plutonium
 		Attribute *pos;
 		Matrix proj;
 
-		int percentage;
+		float percentage;
 
 		void RenderString(LineInfo *info);
 		void UpdateVBO(Vector2 pos, const char32 *str);

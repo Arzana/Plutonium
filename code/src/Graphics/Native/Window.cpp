@@ -337,14 +337,19 @@ void Plutonium::Window::SetBounds(Vector2 pos, Vector2 size)
 	/* Check if window was resized. */
 	if (size != vpBounds.Size)
 	{
+		/* Update viewport and size. */
 		vpBounds.Size = size;
 		glfwSetWindowSize(hndlr, static_cast<int>(size.X), static_cast<int>(size.Y));
 
-		/* Check if viewport needs to be updated. */
+		/* Update full window size. */
 		int l = 0, r = 0, t = 0, b = 0;
 		glfwGetWindowFrameSize(hndlr, &l, &t, &r, &b);
 		wndBounds.Size = vpBounds.Size + Vector2(static_cast<float>(l + r), static_cast<float>(t + b));
 
+		/* Update OpenGL rendering viewport. */
+		glViewport(0, 0, static_cast<GLsizei>(size.X), static_cast<GLsizei>(size.Y));
+
+		/* Post event and log change of window size. */
 		SizeChanged.Post(this, EventArgs());
 		LOG("Window '%s' resized to %dx%d.", title, static_cast<int>(size.X), static_cast<int>(size.Y));
 	}

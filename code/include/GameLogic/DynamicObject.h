@@ -49,7 +49,7 @@ namespace Plutonium
 
 		Game *parent;
 		DynamicModel *model;
-		int percentage;
+		float percentage;
 		Initializer initializer;
 
 		bool running;

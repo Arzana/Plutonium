@@ -119,6 +119,15 @@ Button * Plutonium::Menu::AddButton(const Font * font)
 	return result;
 }
 
+ProgressBar * Plutonium::Menu::AddProgressBar(void)
+{
+	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(ProgressBar));
+
+	ProgressBar *result = new ProgressBar(game);
+	controlls.push_back(result);
+	return result;
+}
+
 void Plutonium::Menu::SetDefaultFont(const char * path, float size)
 {
 	LOG_WAR_IF(defaultFontIdx != -1, "Redefining the default font!");

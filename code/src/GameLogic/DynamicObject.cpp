@@ -2,7 +2,7 @@
 #include "Core\Math\Interpolation.h"
 
 Plutonium::DynamicObject::DynamicObject(Game * game, const char * model, const char * texture, int loadWeight, Initializer initializer)
-	: parent(game), percentage(loadWeight), model(nullptr), initializer(initializer),
+	: parent(game), percentage(loadWeight * 0.01f), model(nullptr), initializer(initializer),
 	frameMoveMod(0), accumTime(0.0f), curAnim(0), curFrame(0), nextFrame(0), mixAmnt(0.0f), running(false)
 {
 	game->GetLoader()->LoadModel(model, Callback<DynamicModel>(this, &DynamicObject::OnLoadComplete), false, texture);
