@@ -11,22 +11,28 @@
 
 namespace Plutonium
 {
-	/* Performs nearest-neighbor interpolation between two specified points with a specified amount. */
+	/* Performs nearest-neighbor interpolation between two specified points (a, b) with a specified amount (v). */
 	_Check_return_ inline constexpr float near(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return v < 0.5f ? a : b;
 	}
 
-	/* Performs linear interpolation between two specified points with a specified amount. */
+	/* Performs linear interpolation between two specified points (a, b) with a specified amount (v). */
 	_Check_return_ inline constexpr float lerp(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return a + (b - a) * v;
 	}
 
-	/* Performs inverse linear interpolation between two specified points with a specified point. */
+	/* Performs inverse linear interpolation between two specified points (a, b) with a specified point (v). */
 	_Check_return_ inline constexpr float ilerp(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return (v - a) / (b - a);
+	}
+
+	/* Performs linear interpolation between the current point (a) and the target point (b) over delta time (dt) with a specified speed (s). */
+	_Check_return_ inline constexpr float interp(_In_ float a, _In_ float b, _In_ float dt, _In_ float s)
+	{
+		return lerp(a, b, dt * s);
 	}
 
 	/* Maps the input value (range: d-c) to the output specified range (b-a). */
@@ -35,7 +41,7 @@ namespace Plutonium
 		return sclamp(lerp(a, b, ilerp(c, d, v)), a, b);
 	}
 
-	/* Performs cubic hermite spline interpolation with specified bounds and derivatives. */
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and derivatives (ad, bd). */
 	_Check_return_ inline constexpr float hermite(_In_ float a, _In_ float ad, _In_ float b, _In_ float bd, _In_ float v)
 	{
 		return a + (2.0f * a - 2.0f * b + bd + ad) * cube(v) + (3.0f * b - 3.0f * a - 2.0f * ad - bd) * sqr(v) + ad * v;
@@ -47,7 +53,7 @@ namespace Plutonium
 		return sqr(v) * (3.0f - 2.0f * v);
 	}
 
-	/* Performs cubic hermite spline interpolation with specified bounds and with zero for derivatives. */
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
 	_Check_return_ inline constexpr float smoothstep(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return lerp(a, b, smoothstep(v));
@@ -59,7 +65,7 @@ namespace Plutonium
 		return sqr(v) * (1.0f - 3.0f * v) + v;
 	}
 
-	/* Performs cubic hermite spline interpolation with specified bounds and with one for the first derivative and zero for the second. */
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with one for the first derivative and zero for the second. */
 	_Check_return_ inline constexpr float fadeout(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return lerp(a, b, fadeout(v));
@@ -71,7 +77,7 @@ namespace Plutonium
 		return sqr(v) * 2.0f - cube(v);
 	}
 
-	/* Performs cubic hermite spline interpolation with specified bounds and with zero for the first derivative and one for the second. */
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for the first derivative and one for the second. */
 	_Check_return_ inline constexpr float fadein(_In_ float a, _In_ float b, _In_ float v)
 	{
 		return lerp(a, b, fadein(v));

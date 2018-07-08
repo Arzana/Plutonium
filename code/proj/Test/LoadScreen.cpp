@@ -42,5 +42,5 @@ void LoadScreen::Update(float dt)
 		if (++dotCnt > 3) dotCnt = 0;
 	}
 
-	pbLoadingPercentage->SetValue(game->GetLoadPercentage());
+	pbLoadingPercentage->SetValue(clamp(game->GetLoadPercentage(), 0.0f, 1.0f));
 }

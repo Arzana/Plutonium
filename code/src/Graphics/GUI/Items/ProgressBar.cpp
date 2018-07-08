@@ -8,7 +8,7 @@ Plutonium::ProgressBar::ProgressBar(Game * parent)
 Plutonium::ProgressBar::ProgressBar(Game * parent, Rectangle bounds)
 	: GuiItem(parent, bounds), style(FillStyle::LeftToRight), value(0.0f),
 	bar(nullptr), barColor(GetDefaultBarColor()), INIT_BUS(ValueChanged),
-	INIT_BUS(BarColorChanged), INIT_BUS(BarImageChanged)
+	INIT_BUS(BarColorChanged), INIT_BUS(BarImageChanged), INIT_BUS(FillStyleChanged)
 {
 	/* Initialize bar render position. */
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
@@ -22,6 +22,7 @@ Plutonium::ProgressBar::ProgressBar(Game * parent, Rectangle bounds)
 
 Plutonium::ProgressBar::~ProgressBar(void)
 {
+	Moved.Remove(this, &ProgressBar::OnMoved);
 	delete_s(barMesh);
 }
 
@@ -40,14 +41,23 @@ void Plutonium::ProgressBar::SetFillStyle(FillStyle style)
 {
 	if (style == this->style) return;
 
+	ValueChangedEventArgs<FillStyle> args(this->style, style);
 	this->style = style;
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
 	UpdateBarMesh();
+
+	FillStyleChanged.Post(this, args);
+}
+
+void Plutonium::ProgressBar::SetValueMapped(float value, float min, float max)
+{
+	SetValue(ilerp(min, max, value));
 }
 
 void Plutonium::ProgressBar::SetValue(float value)
 {
 	if (value == this->value) return;
+	LOG_THROW_IF(value < 0.0f || value > 1.0f, "Value must be between zero and one!");
 
 	ValueChangedEventArgs<float> args(this->value, value);
 	this->value = value;
@@ -78,7 +88,7 @@ void Plutonium::ProgressBar::SetBarColor(Color color)
 
 void Plutonium::ProgressBar::RenderProgressBar(GuiItemRenderer * renderer)
 {
-	renderer->RenderBarForeground(barPos, GetBounds(), GetRoundingFactor(), 0.0f, barColor, bar, barMesh);
+	renderer->RenderBarForeground(barPos, GetBounds(), GetRoundingFactor(), barColor, bar, barMesh);
 }
 
 void Plutonium::ProgressBar::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2> args)

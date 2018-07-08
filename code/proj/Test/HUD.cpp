@@ -76,6 +76,15 @@ void HUD::Create(void)
 		text += to_string("%.2f", static_cast<float>(game->GetGlobalRenderTime()));
 		text += " ms";
 	}));
+
+	Slider *sld = AddSlider();
+	sld->SetRoundingFactor(0.0f);
+	sld->SetAnchors(_CrtEnumBitOr(Anchors::Top, Anchors::CenterWidth), 0.0f, 15.0f);
+	sld->SetValueMapped(dynamic_cast<TestGame*>(game)->cam->GetFov(), 0.0f, PI2);
+	sld->ValueChanged.Add([&](const ProgressBar*, ValueChangedEventArgs<float> args) 
+	{
+		dynamic_cast<TestGame*>(game)->cam->SetFoV(lerp(0.0f, PI2, args.NewValue));
+	});
 }
 
 Label * HUD::CreateDefaultLabel(float y)

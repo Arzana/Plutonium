@@ -53,7 +53,33 @@ namespace Plutonium
 			return actualPos;
 		}
 
+		/* Gets the current near clipping plane. */
+		_Check_return_ inline float GetNear(void) const
+		{
+			return near;
+		}
+
+		/* Gets the current far clipping plane. */
+		_Check_return_ inline float GetFar(void) const
+		{
+			return far;
+		}
+
+		/* Gets the current field of view. */
+		_Check_return_ inline float GetFov(void) const
+		{
+			return fov;
+		}
+
+		/* Sets the near clipping plane. */
+		void SetNear(_In_ float value);
+		/* Sets the far clipping plane. */
+		void SetFar(_In_ float value);
+		/* Sets the field of view. */
+		void SetFoV(_In_ float value);
+
 	private:
+		float near, far, fov;
 		Vector3 actualPos, desiredPos;
 		Vector3 target, offset;
 		Matrix view, proj, orien;

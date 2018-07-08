@@ -128,6 +128,15 @@ ProgressBar * Plutonium::Menu::AddProgressBar(void)
 	return result;
 }
 
+Slider * Plutonium::Menu::AddSlider(void)
+{
+	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(Slider));
+
+	Slider *result = new Slider(game);
+	controlls.push_back(result);
+	return result;
+}
+
 void Plutonium::Menu::SetDefaultFont(const char * path, float size)
 {
 	LOG_WAR_IF(defaultFontIdx != -1, "Redefining the default font!");
@@ -223,7 +232,7 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 	freea_s(vertices);
 
 	/* Render debug string. */
-	renderer->RenderTextForeground(position, 0.0f, color, font, string, stringVbo);
+	renderer->RenderTextForeground(position, color, font, string, stringVbo);
 #endif
 }
 

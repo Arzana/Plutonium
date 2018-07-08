@@ -186,7 +186,7 @@ void Plutonium::Button::RenderButton(GuiItemRenderer * renderer)
 	if (displayTex == 1 || displayTex == 2)
 	{
 		TextureHandler tex = displayTex == 1 ? hover : click;
-		renderer->RenderGuiItem(GetBounds(), GetRoundingFactor(), 0.0f, GetBackColor(), tex, IsSizable(), GetBackgroundMesh());
+		renderer->RenderBackground(GetBounds(), GetRoundingFactor(), GetBackColor(), tex, GetBackgroundMesh(), false);
 	}
 }
 

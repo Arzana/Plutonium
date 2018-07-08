@@ -24,7 +24,7 @@ Plutonium::GuiItemRenderer::~GuiItemRenderer(void)
 	delete_s(basic.shdr);
 }
 
-void Plutonium::GuiItemRenderer::RenderGuiItem(Rectangle bounds, float rounding, float orientation, Color backColor, TextureHandler background, bool shouldDrawResizer, const Buffer *mesh)
+void Plutonium::GuiItemRenderer::RenderBackground(Rectangle bounds, float rounding, Color backColor, TextureHandler background, const Buffer *mesh, bool lateCall)
 {
 	/* Make sure to convert the position to OpenGL coordinates and add a default background (white color) if none is specified. */
 	BasicGuiItemArgs args =
@@ -32,17 +32,16 @@ void Plutonium::GuiItemRenderer::RenderGuiItem(Rectangle bounds, float rounding,
 		mesh,
 		device->ToOpenGL(bounds.Position),
 		bounds.Size,
-		orientation,
 		rounding,
 		backColor,
-		shouldDrawResizer ? Color::White : Color::Transparent,
 		background ? background : defBackTex
 	};
 
-	basicDrawQueue.push(args);
+	if(lateCall) basicLateDrawQueue.push(args);
+	else basicEarlyDrawQueue.push(args);
 }
 
-void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, float orientation, Color textColor, const Font * font, const char32 * text, const Buffer * mesh)
+void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, Color textColor, const Font * font, const char32 * text, const Buffer * mesh)
 {
 	/* Make sure to convert the position to OpenGL coordinates. */
 	LabelTextArgs args =
@@ -50,7 +49,6 @@ void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, float or
 		mesh,
 		font,
 		device->ToOpenGL(position),
-		orientation,
 		textColor,
 		text
 	};
@@ -58,7 +56,7 @@ void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, float or
 	textDrawQueue.push(args);
 }
 
-void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle parentBounds, float parentRounding, float orientation, Color barColor, TextureHandler texture, const Buffer * mesh)
+void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle parentBounds, float parentRounding, Color barColor, TextureHandler texture, const Buffer * mesh)
 {
 	/* Make sure we convert the position to OpenGL coordinates. */
 	ProgressBarBarArgs args =
@@ -67,7 +65,6 @@ void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle
 		device->ToOpenGL(position),
 		device->ToOpenGL(parentBounds.Position),
 		parentBounds.Size,
-		orientation,
 		parentRounding,
 		barColor,
 		texture ? texture : defBackTex
@@ -82,25 +79,26 @@ void Plutonium::GuiItemRenderer::End(bool noBlending)
 	if (!noBlending) device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
 
 	/* Renders all queued GuiItems. */
-	RenderBasics();
+	RenderBasics(basicEarlyDrawQueue);
 	RenderText();
 	RenderBars();
+	RenderBasics(basicLateDrawQueue);
 }
 
-void Plutonium::GuiItemRenderer::RenderBasics(void)
+void Plutonium::GuiItemRenderer::RenderBasics(std::queue<BasicGuiItemArgs> &queue)
 {
 	/* Set shader globals. */
 	basic.shdr->Begin();
 	basic.matProj->Set(projection);
 
 	/* Render all queued items. */
-	while (basicDrawQueue.size() > 0)
+	while (queue.size() > 0)
 	{
-		BasicGuiItemArgs cur = basicDrawQueue.front();
-		basicDrawQueue.pop();
+		BasicGuiItemArgs cur = queue.front();
+		queue.pop();
 
 		/* Create or bus uniforms to shader. */
-		basic.matMdl->Set(Matrix::CreateWorld(cur.Position, cur.Orientation, Vector2::One));
+		basic.matMdl->Set(Matrix::CreateTranslation(cur.Position.X, cur.Position.Y, 0.0f));
 		basic.background->Set(cur.Background);
 		basic.clrBack->Set(cur.BackgroundColor);
 		basic.pos->Set(cur.Position);
@@ -131,7 +129,7 @@ void Plutonium::GuiItemRenderer::RenderText(void)
 		textDrawQueue.pop();
 
 		/* Create or bus uniforms to shader. */
-		text.matMdl->Set(Matrix::CreateWorld(cur.Position, cur.Orientation, Vector2::One));
+		text.matMdl->Set(Matrix::CreateTranslation(cur.Position.X, cur.Position.Y, 0.0f));
 		text.map->Set(cur.Font->map);
 		text.clr->Set(cur.TextColor);
 		
@@ -159,7 +157,7 @@ void Plutonium::GuiItemRenderer::RenderBars(void)
 		barDrawQueue.pop();
 
 		/* Create or bus uniforms to shader. */
-		bar.matMdl->Set(Matrix::CreateWorld(cur.Position, cur.Orientation, Vector2::One));
+		bar.matMdl->Set(Matrix::CreateTranslation(cur.Position.X, cur.Position.Y, 0.0f));
 		bar.texture->Set(cur.Texture);
 		bar.clr->Set(cur.BarColor);
 		bar.pos->Set(cur.ParentPosition);
@@ -238,7 +236,6 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 	basic.matMdl = basic.shdr->GetUniform("model");
 	basic.background = basic.shdr->GetUniform("background");
 	basic.clrBack = basic.shdr->GetUniform("backgroundFilter");
-	//basic.clrResiz = basic.shdr->GetUniform("");
 	basic.rounding = basic.shdr->GetUniform("border");
 	basic.pos = basic.shdr->GetUniform("pos");
 	basic.size = basic.shdr->GetUniform("size");

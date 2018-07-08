@@ -23,6 +23,7 @@ Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 
 Plutonium::Label::~Label(void)
 {
+	Moved.Remove(this, &Label::OnMoved);
 	free_s(text);
 	delete_s(textMesh);
 }
@@ -106,7 +107,7 @@ void Plutonium::Label::SetTextBind(Binder & binder)
 
 void Plutonium::Label::RenderLabel(GuiItemRenderer * renderer)
 {
-	renderer->RenderTextForeground(textPos, 0.0f, textColor, font, text, textMesh);
+	renderer->RenderTextForeground(textPos, textColor, font, text, textMesh);
 }
 
 void Plutonium::Label::HandleAutoSize(void)

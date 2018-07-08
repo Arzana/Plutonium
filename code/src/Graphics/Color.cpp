@@ -22,6 +22,7 @@ const Color Color::SunDawn =			Color((byte)0xF7, 0xB6, 0x68);
 const Color Color::Malibu =				Color((byte)0x80, 0x80, 0xFF);
 const Color Color::WhiteSmoke =			Color((byte)0xF5, 0xF5, 0xFF);
 const Color Color::Lime =				Color((byte)0x7F, 0xFF, 0x00);
+const Color Color::Abbey =				Color((byte)0x4C, 0x4F, 0x56);
 
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {

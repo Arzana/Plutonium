@@ -1,8 +1,7 @@
 #pragma once
 #include "Components\GameComponent.h"
-#include "Graphics\GUI\Items\Label.h"
 #include "Graphics\GUI\Items\Button.h"
-#include "Graphics\GUI\Items\ProgressBar.h"
+#include "Graphics\GUI\Items\Slider.h"
 
 namespace Plutonium
 {
@@ -69,6 +68,8 @@ namespace Plutonium
 		_Check_return_ Button* AddButton(_In_opt_ const Font *font = nullptr);
 		/* Adds a progress bar to the menu. */
 		_Check_return_ ProgressBar* AddProgressBar(void);
+		/* Adds a slider to the menu. */
+		_Check_return_ Slider* AddSlider(void);
 
 		/* Sets the default font to a specified font. */
 		void SetDefaultFont(_In_ const char *path, _In_ float size);

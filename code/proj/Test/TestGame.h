@@ -26,6 +26,8 @@ public:
 	float sunAngle;
 	const char *dayState;
 
+	Camera *cam;
+
 	TestGame(void);
 
 protected:
@@ -42,9 +44,6 @@ private:
 	StaticRenderer *srenderer;
 	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
-
-	/* Render helpers. */
-	Camera *cam;
 	DebuggableValues renderMode;
 
 	/* Menus */

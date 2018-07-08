@@ -15,6 +15,8 @@ namespace Plutonium
 		EventBus<ProgressBar, ValueChangedEventArgs<Color>> BarColorChanged;
 		/* Occurs when the value of the bar image is set or changed. */
 		EventBus<ProgressBar, ValueChangedEventArgs<TextureHandler>> BarImageChanged;
+		/* Occurs when the fill style of the progress bar is changed. */
+		EventBus<ProgressBar, ValueChangedEventArgs<FillStyle>> FillStyleChanged;
 
 		/* Initializes a new instance of a progress bar with default parameters. */
 		ProgressBar(_In_ Game *parent);
@@ -71,6 +73,8 @@ namespace Plutonium
 
 		/* Sets the bar filling style to the specified value. */
 		void SetFillStyle(_In_ FillStyle style);
+		/* Set the value with an input that is mapped to a specified range. */
+		void SetValueMapped(_In_ float value, _In_ float min = 0.0f, _In_ float max = 100.0f);
 		/* Updates the value of the progress bar (0 <= value >= 1). */
 		void SetValue(_In_ float value);
 		/* Sets the image used to render the bar section of the progress bar. */

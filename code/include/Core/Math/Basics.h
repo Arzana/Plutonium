@@ -215,6 +215,12 @@ namespace Plutonium
 	{
 		return powf(value, recip(static_cast<float>(root)));
 	}
+
+	/* Checks if two float are equal with a specfied error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
+	{
+		return fabsf(a - b) < tolerance;
+	}
 #pragma endregion
 #pragma region byte conversion
 	/* Converts kilobytes to bytes. */

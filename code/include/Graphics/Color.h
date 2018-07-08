@@ -8,6 +8,8 @@ namespace Plutonium
 	struct Color
 	{
 	public:
+		/* Defines a abbey opaque color. */
+		const static Color Abbey;
 		/* Defines a black opaque color. */
 		const static Color Black;
 		/* Defines a blue opaque color. */

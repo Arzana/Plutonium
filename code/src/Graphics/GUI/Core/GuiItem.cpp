@@ -8,14 +8,14 @@ Plutonium::GuiItem::GuiItem(Game * parent)
 Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	: game(parent), background(nullptr), focusedBackground(nullptr), backColor(GetDefaultBackColor()),
 	over(false), ldown(false), rdown(false), visible(false), enabled(false),
-	sizable(false), focusable(false), focused(false), movable(false), anchor(Anchors::None),
+	focusable(false), focused(false), anchor(Anchors::None),
 	roundingFactor(GetDefaultRoundingFactor()), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
 	suppressRefresh(false), suppressUpdate(false), suppressRender(false),
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
 	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter), INIT_BUS(FocusableChanged),
 	INIT_BUS(HoverLeave), INIT_BUS(Moved), INIT_BUS(NameChanged), INIT_BUS(Resized),
-	INIT_BUS(SizableChanged), INIT_BUS(MovableChanged), INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged),
-	INIT_BUS(GainedFocus), INIT_BUS(LostFocus), INIT_BUS(FocusedImageChanged)
+	INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged), INIT_BUS(GainedFocus), 
+	INIT_BUS(LostFocus), INIT_BUS(FocusedImageChanged)
 {
 	/* Check for invalid bounds and show the GuiItem. */
 	CheckBounds(bounds.Size);
@@ -62,7 +62,7 @@ void Plutonium::GuiItem::Update(float dt)
 		CursorHandler cursor = game->GetCursor();
 
 		/* Check for hover enter and leave events. */
-		bool newOver = bounds.Contains(GetRotatedCursor(cursor));
+		bool newOver = bounds.Contains(cursor->GetPosition());
 		if (!over && newOver) HoverEnter.Post(this, cursor);
 		else if (over && !newOver) HoverLeave.Post(this, cursor);
 
@@ -226,24 +226,6 @@ void Plutonium::GuiItem::SetY(float y)
 	SetPosition(Vector2(GetX(), y));
 }
 
-void Plutonium::GuiItem::SetSizable(bool value)
-{
-	if (value == sizable) return;
-
-	ValueChangedEventArgs<bool> args(sizable, value);
-	sizable = value;
-	SizableChanged.Post(this, args);
-}
-
-void Plutonium::GuiItem::SetMovable(bool value)
-{
-	if (value == movable) return;
-
-	ValueChangedEventArgs<bool> args(movable, value);
-	movable = value;
-	MovableChanged.Post(this, args);
-}
-
 void Plutonium::GuiItem::SetFocusable(bool value)
 {
 	if (value == focusable) return;
@@ -260,13 +242,7 @@ void Plutonium::GuiItem::SetRoundingFactor(float value)
 
 void Plutonium::GuiItem::RenderGuiItem(GuiItemRenderer * renderer)
 {
-	renderer->RenderGuiItem(bounds, roundingFactor, 0.0f, backColor, focused ? focusedBackground : background, sizable, mesh);
-}
-
-Plutonium::Vector2 Plutonium::GuiItem::GetRotatedCursor(CursorHandler cursor)
-{
-	Vector3 transformedPos = Matrix::CreateRotationZ(-0.0f) * Vector3(cursor->X - GetX(), cursor->Y - GetY(), 0.0f);
-	return GetPosition() + Vector2(transformedPos.X, transformedPos.Y);
+	renderer->RenderBackground(bounds, roundingFactor, backColor, focused ? focusedBackground : background, mesh, false);
 }
 
 Plutonium::Vector2 Plutonium::GuiItem::GetMinSize(void) const
@@ -334,5 +310,5 @@ void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vect
 		/* Move GuiItem if needed. */
 		if (newPos != GetPosition()) SetPosition(newPos);
 	}
-	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is inalid!");
+	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is invalid!");
 }

@@ -33,16 +33,12 @@ namespace Plutonium
 		EventBus<GuiItem, CursorHandler> HoverLeave;
 		/* Occurs when the GuiItem loses focus. */
 		EventBus<GuiItem, EventArgs> LostFocus;
-		/* Occurs when the Movable indicator is changed. */
-		EventBus<GuiItem, ValueChangedEventArgs<bool>> MovableChanged;
 		/* Occurs when the position of the GuiItem is changed. */
 		EventBus<GuiItem, ValueChangedEventArgs<Vector2>> Moved;
 		/* Occurs when the name of the GuiItem is set or changed. */
 		EventBus<GuiItem, ValueChangedEventArgs<const char*>> NameChanged;
 		/* Occurs when the GuiItem is resized. */
 		EventBus<GuiItem, ValueChangedEventArgs<Vector2>> Resized;
-		/* Occurs when the Sizable indicator is changed. */
-		EventBus<GuiItem, ValueChangedEventArgs<bool>> SizableChanged;
 		/* Occurs when the GuiItem is enabled or disabled. */
 		EventBus<GuiItem, ValueChangedEventArgs<bool>> StateChanged;
 		/* Occurs when the GuiItem is shown or hiden. */
@@ -172,18 +168,6 @@ namespace Plutonium
 			return bounds.Position.Y;
 		}
 
-		/* Gets whether the GuiItem is currently sizable by the user. */
-		_Check_return_ inline bool IsSizable(void) const
-		{
-			return sizable;
-		}
-
-		/* Gets whether the GuiItem is currently movable by the user. */
-		_Check_return_ inline bool IsMovable(void) const
-		{
-			return movable;
-		}
-
 		/* Gets whether the GuiItem can be focused. */
 		_Check_return_ inline bool IsFocusable(void) const
 		{
@@ -236,10 +220,6 @@ namespace Plutonium
 		virtual void SetX(_In_ float x);
 		/* Sets the vertical position of the GuiItem, moving it. */
 		virtual void SetY(_In_ float y);
-		/* Sets whether the GuiItem can be resized by the user. */
-		virtual void SetSizable(_In_ bool value);
-		/* Sets whether the GuiItem can be moved by the user. */
-		virtual void SetMovable(_In_ bool value);
 		/* Sets whether the GuiItem can be focused. */
 		virtual void SetFocusable(_In_ bool value);
 		/* Sets the rounding factor used to give the GuiItem background rounded edges. */
@@ -257,8 +237,6 @@ namespace Plutonium
 
 		/* Renders the GuiItem to the renderer, use for internal item skipping. */
 		void RenderGuiItem(_In_ GuiItemRenderer *renderer);
-		/* Gets the position of the cursor relative to the GuiItem. */
-		_Check_return_ Vector2 GetRotatedCursor(_In_ CursorHandler cursor);
 		/* Gets the required size of the GuiItem at any time, max of background or focus image. */
 		_Check_return_ virtual Vector2 GetMinSize(void) const;
 
@@ -289,7 +267,7 @@ namespace Plutonium
 	private:
 		Buffer *mesh;
 		TextureHandler background, focusedBackground;
-		bool over, ldown, rdown, visible, enabled, sizable, movable, focusable, focused;
+		bool over, ldown, rdown, visible, enabled, focusable, focused;
 		Color backColor;
 		float roundingFactor;
 		Rectangle bounds;
