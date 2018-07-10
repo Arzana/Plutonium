@@ -21,7 +21,12 @@ Plutonium::TextBox::TextBox(Game * parent, Rectangle bounds, const Font * font)
 
 	/* Handle when focus is gained and lost by the text box controll.  */
 	Clicked.Add([&](const GuiItem*, CursorHandler) { ApplyFocus(true); });
-	Confirmed.Add([&](const TextBox*, EventArgs) { ApplyFocus(false); });
+	Confirmed.Add([&](const TextBox*, EventArgs)  { ApplyFocus(false); });
+	LostFocus.Add([&](const GuiItem*, EventArgs) 
+	{
+		showLine = false;
+		UpdateVisibleString();
+	});
 }
 
 Plutonium::TextBox::~TextBox(void)
@@ -116,6 +121,7 @@ float Plutonium::TextBox::GetDefaultKeyHoldThreshold(void)
 void Plutonium::TextBox::SetMinimumSize(Vector2 size)
 {
 	if (size == minSize) return;
+	ASSERT_IF(size.X < 0.0f || size.Y < 0.0f, "Minimum size must be greater than zero!");
 
 	minSize = size;
 	HandleAutoSize();
@@ -125,7 +131,7 @@ void Plutonium::TextBox::SetMaximumSize(Vector2 size)
 {
 	if (size == maxSize) return;
 
-	maxSize = size;
+	maxSize = size != Vector2::Zero ? size : Vector2(maxv<float>());
 	HandleAutoSize();
 }
 
@@ -175,9 +181,36 @@ void Plutonium::TextBox::SetKeyHoldThreshold(float seconds)
 
 void Plutonium::TextBox::HandleAutoSize(void)
 {
-	Label::HandleAutoSize();
-	Vector2 size = maxSize != Vector2::Zero ? clamp(GetSize(), minSize, maxSize) : clamp(GetSize(), minSize, Vector2(maxv<float>()));
-	if (size != GetSize()) SetSize(size);
+	if (GetAutoSize())
+	{
+		/* Get the current size of the TextBox and the string (plus it's size). */
+		const Vector2 size = GetSize();
+		const char32 *text = GetVisualString();
+		const size_t len = strlen(text);
+
+		/* Create an uniform length string to make sure the TextBox doesn't resize if the focus indicator is removed. */
+		const char32 *uniformSizeText = text;
+		char32 *buffer;
+		if (!showLine)
+		{
+			/* Add two in size for the invisible pipe character and the null terminator. */
+			buffer = malloca_s(char32, len + 2);
+			mrgstr(text, U" ", buffer);
+			buffer[len] = U'|';
+			uniformSizeText = buffer;
+		}
+
+		/* Measure the uniform length string for autosize text dimentions and free the buffer if needed.. */
+		const Vector2 textDim = GetFont()->MeasureString(uniformSizeText);
+		if (!showLine) freea_s(buffer);
+
+		/* Only apply autosize if the text is not empty. */
+		if (textDim != Vector2::Zero)
+		{
+			const Vector2 desired = clamp(textDim + GetTextOffset() * 2.0f, minSize, maxSize);
+			if (desired != size) SetSize(desired);
+		}
+	}
 }
 
 void Plutonium::TextBox::OnGlyphInput(WindowHandler, uint32 key)

@@ -113,6 +113,11 @@ namespace Plutonium
 			return textPos;
 		}
 
+		/* Gets the string that will be rendered by the label. */
+		_Check_return_ inline const char32* GetVisualString(void) const
+		{
+			return visibleText;
+		}
 
 	private:
 		bool autoSize;

@@ -21,6 +21,8 @@ Plutonium::Font::~Font(void) noexcept
 
 Vector2 Plutonium::Font::MeasureString(const char * str) const
 {
+	if (!str) return Vector2::Zero;
+
 	char32 *wstr = heapwstr(str);
 	Vector2 result = MeasureString(wstr);
 	free_s(wstr);
@@ -29,6 +31,8 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 
 Vector2 Plutonium::Font::MeasureString(const char32 * str) const
 {
+	if (!str) return Vector2::Zero;
+
 	/* Initialize result and temporary values. */
 	float width = 0.0f;
 	float lineHeight = static_cast<float>(lineSpace);

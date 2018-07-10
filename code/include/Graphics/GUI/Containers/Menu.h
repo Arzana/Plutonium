@@ -111,5 +111,6 @@ namespace Plutonium
 
 		void CheckIfLoadingDone(void);
 		void CheckFont(const Font *font) const;
+		void OnTextBoxGainFocus(const GuiItem *txt, EventArgs);
 	};
 }

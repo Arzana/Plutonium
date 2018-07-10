@@ -145,6 +145,7 @@ TextBox * Plutonium::Menu::AddTextBox(const Font * font)
 	CheckFont(font);
 
 	TextBox *result = new TextBox(game, font ? font : loadedFonts.at(defaultFontIdx));
+	result->GainedFocus.Add(this, &Menu::OnTextBoxGainFocus);
 	controlls.push_back(result);
 	return result;
 }
@@ -318,4 +319,13 @@ void Plutonium::Menu::CheckIfLoadingDone(void)
 void Plutonium::Menu::CheckFont(const Font * font) const
 {
 	LOG_THROW_IF(!font && defaultFontIdx == -1, "A default font must be specified before calling this method or a font must be specified as a parameter!");
+}
+
+void Plutonium::Menu::OnTextBoxGainFocus(const GuiItem * txt, EventArgs)
+{
+	for (size_t i = 0; i < controlls.size(); i++)
+	{
+		GuiItem *cur = controlls.at(i);
+		if (cur != txt) cur->ApplyFocus(false);
+	}
 }

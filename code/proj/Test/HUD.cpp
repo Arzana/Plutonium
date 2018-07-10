@@ -26,7 +26,7 @@ void HUD::Initialize(void)
 void HUD::Create(void)
 {
 	float y = 0.0f;
-	float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace());
+	const float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace());
 
 	lblTime = CreateDefaultLabel(y);
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
@@ -76,12 +76,6 @@ void HUD::Create(void)
 		text += to_string("%.2f", static_cast<float>(game->GetGlobalRenderTime()));
 		text += " ms";
 	}));
-
-	TextBox *txt = AddTextBox();
-	txt->SetAutoSize(true);
-	txt->SetAnchors(Anchors::BottomCenter);
-	txt->SetInputFlags(InputFlags::Text);
-	txt->GlyphRejected.Add([&](const TextBox*, GlyphRejectionArgs args) { LOG("Glyph '%c' rejected (%s)!", args.Glyph, args.GetReason()); });
 }
 
 Label * HUD::CreateDefaultLabel(float y)

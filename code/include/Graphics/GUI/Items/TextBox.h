@@ -41,7 +41,7 @@ namespace Plutonium
 		/* Gets the default value for the maximum size of the textbox. */
 		_Check_return_ static inline Vector2 GetDefaultMaximumSize(void)
 		{
-			return Vector2::Zero;
+			return Vector2(maxv<float>());
 		}
 
 		/* Gets the current minimum size of the text box. */
