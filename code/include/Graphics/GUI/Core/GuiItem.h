@@ -239,6 +239,8 @@ namespace Plutonium
 		void RenderGuiItem(_In_ GuiItemRenderer *renderer);
 		/* Gets the required size of the GuiItem at any time, max of background or focus image. */
 		_Check_return_ virtual Vector2 GetMinSize(void) const;
+		/* This function can be called to give the GuiItem focus or have it lose focus. */
+		void ApplyFocus(bool focused);
 
 		/* Gets whether the cursor is currently hovering over the GuiItem. */
 		_Check_return_ inline bool IsMouseOver(void) const
@@ -265,6 +267,8 @@ namespace Plutonium
 		}
 
 	private:
+		friend struct Menu;
+
 		Buffer *mesh;
 		TextureHandler background, focusedBackground;
 		bool over, ldown, rdown, visible, enabled, focusable, focused;
@@ -277,7 +281,6 @@ namespace Plutonium
 
 		void CheckBounds(Vector2 size);
 		void UpdateMesh(void);
-		void ApplyFocus(bool focused);
 		void WindowResizedHandler(WindowHandler, EventArgs);
 		void MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder);
 	};

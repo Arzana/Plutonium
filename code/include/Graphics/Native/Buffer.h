@@ -59,10 +59,10 @@ namespace Plutonium
 		uint32 hndlr;
 		size_t size;
 		int64 bsize;
-		GLenum type;
+		BindTarget type;
 		WindowHandler wnd;
 
 		void BufferData(BufferUsage usage, size_t size, const void *data);
-		void BufferSubData(size_t size, const void *data, bool sizeUpdated);
+		void BufferSubData(size_t sizeBytes, const void *data, bool sizeUpdated);
 	};
 }

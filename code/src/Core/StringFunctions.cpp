@@ -135,6 +135,20 @@ void Plutonium::mrgstr(const char * first, const char * second, char * result)
 	result[flen + strlen(second)] = '\0';
 }
 
+void Plutonium::mrgstr(const char32_t * first, const char32_t *second, char32_t * result)
+{
+	/* Get the length of the first string. */
+	const size_t flen = strlen(first);
+	const size_t slen = strlen(second);
+
+	/* Copy over the first and second string. */
+	for (size_t i = 0; i < flen; i++) result[i] = first[i];
+	for (size_t i = 0, j = flen; i < slen; i++, j++) result[j] = second[i];
+
+	/* Add null terminator. */
+	result[flen + slen] = U'\0';
+}
+
 void Plutonium::mrgstr(const char * first, const char * second, char * result, char seperator)
 {
 	/* Get the length of the first string. */
@@ -145,6 +159,21 @@ void Plutonium::mrgstr(const char * first, const char * second, char * result, c
 	result[flen] = seperator;
 	strcpy(result + flen + 1, second);
 	result[flen + strlen(second) + 1] = '\0';
+}
+
+void Plutonium::mrgstr(const char32_t * first, const char32_t * second, char32_t * result, char32_t seperator)
+{
+	/* Get the length of the first string. */
+	const size_t flen = strlen(first);
+	const size_t slen = strlen(second);
+
+	/* Copy over the first and second string and seperate them with the specified char. */
+	for (size_t i = 0; i < flen; i++) result[i] = first[i];
+	result[flen] = seperator;
+	for (size_t i = 0, j = flen + 1; i < slen; i++, j++) result[j] = second[i];
+
+	/* Add null terminator. */
+	result[flen + slen + 1] = U'\0';
 }
 
 void Plutonium::mrgstr(const char ** values, size_t argc, char * result)
@@ -163,6 +192,25 @@ void Plutonium::mrgstr(const char ** values, size_t argc, char * result)
 	result[len] = '\0';
 }
 
+void Plutonium::mrgstr(const char32_t ** values, size_t argc, char32_t * result)
+{
+	size_t len = 0;
+	
+	/* Loop through all strings. */
+	for (size_t i = 0, k = 0; i < argc; i++)
+	{
+		const char32_t *cur = values[i];
+		const size_t curLen = strlen(cur);
+
+		/* Copy iver the current string. */
+		for (size_t j = 0; j < curLen; j++, k++) result[k] = cur[j];
+		len += curLen;
+	}
+
+	/* Add null terminator. */
+	result[len] = U'\0';
+}
+
 void Plutonium::mrgstr(const char ** values, size_t argc, char * result, char seperator)
 {
 	/* Loop through all strings. */
@@ -178,6 +226,26 @@ void Plutonium::mrgstr(const char ** values, size_t argc, char * result, char se
 
 	/* Replace last seperator with a null terminator. */
 	result[__max(0, len - 1)] = '\0';
+}
+
+void Plutonium::mrgstr(const char32_t ** values, size_t argc, char32_t * result, char32_t seperator)
+{
+	size_t len = 0;
+
+	/* Loop through all strings. */
+	for (size_t i = 0, k = 0; i < argc; i++)
+	{
+		const char32_t *cur = values[i];
+		const size_t curLen = strlen(cur);
+
+		/* Copy iver the current string and add seperator. */
+		for (size_t j = 0; j < curLen; j++, k++) result[k] = cur[j];
+		result[k++] = seperator;
+		len += curLen + 1;
+	}
+
+	/* Replace last seperator with a null terminator. */
+	result[__max(0, len - 1)] = U'\0';
 }
 
 char * Plutonium::heapstr(const char * src)
@@ -284,7 +352,7 @@ bool Plutonium::eqlstr(const char32_t * str1, const char32_t * str2)
 	for (size_t i = 0;; i++)
 	{
 		char32_t c1 = str1[i];
-		
+
 		if (c1 != str2[i]) return false;
 		if (c1 == '\0') return true;
 	}

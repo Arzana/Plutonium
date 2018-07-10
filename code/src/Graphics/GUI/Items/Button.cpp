@@ -145,17 +145,16 @@ float Plutonium::Button::GetDefaultDoubleClickThreshold(void)
 
 	/* Try to get the users Windows double click speed setting if possible; otherwise just default to 0.5 seconds. */
 	const char *value = nullptr;
-	if (Plutonium::RegistryFetcher::TryReadString("DoubleClickSpeed", "Control Panel\\Mouse", &value))
+	if (RegistryFetcher::TryReadString("DoubleClickSpeed", "Control Panel\\Mouse", &value))
 	{
 		/* Convert value from milliseconds to seconds. */
 		int64 milli = strtol(value, nullptr, 10);
 		free_s(value);
 		return cached = static_cast<float>(milli) * 0.001f;
 	}
-	else return DEFAULT;
-#else
-	return DEFAULT;
 #endif
+
+	return DEFAULT;
 }
 
 void Plutonium::Button::SetHoverImage(TextureHandler image)

@@ -24,12 +24,20 @@ namespace Plutonium
 		TopLeft = Top | Left,
 		/* The top right corner of the screen. */
 		TopRight = Top | Right,
+		/* The top center of the screen. */
+		TopCenter = Top | CenterWidth,
+		/* The left center of the screen. */
+		LeftCenter = Left | CenterHeight,
 		/* The absolute center of the screen. */
 		Center = CenterHeight | CenterWidth,
+		/* The right center of the screen. */
+		RightCenter = Right | CenterHeight,
 		/* The bottom left corner of the screen. */
 		BottomLeft = Bottom | Left,
 		/* The bottom right corner of the screen. */
-		BottomRight = Bottom | Right
+		BottomRight = Bottom | Right,
+		/* The bottom center of the screen. */
+		BottomCenter = Bottom | CenterWidth
 	};
 
 	/* Checks whether the input value is a correct anchor. */

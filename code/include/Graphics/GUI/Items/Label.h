@@ -101,9 +101,11 @@ namespace Plutonium
 
 	protected:
 		/* Handles the autosize functionality. */
-		void HandleAutoSize(void);
-		/* Renders the Label to the renderer, use for internal item skipping. */
+		virtual void HandleAutoSize(void);
+		/* Renders the Label to the renderer, used for internal item skipping. */
 		void RenderLabel(_In_ GuiItemRenderer *renderer);
+		/* Sets the visible text to a specified value, used to override the visible text of the label. */
+		void SetVisualString(_In_ const char32 *string);
 
 		/* Gets the render position of the text. */
 		_Check_return_ inline Vector2 GetTextRenderPosition(void) const
@@ -111,9 +113,10 @@ namespace Plutonium
 			return textPos;
 		}
 
+
 	private:
 		bool autoSize;
-		const char32 *text;
+		const char32 *text, *visibleText;
 		Color textColor;
 		const Font *font;
 		Vector2 offset;

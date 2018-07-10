@@ -1,4 +1,4 @@
-#define STB_TRUETYPE_IMPLEMENTATION
+﻿#define STB_TRUETYPE_IMPLEMENTATION
 
 #include "Graphics\Text\Font.h"
 #include "Core\Math\Basics.h"
@@ -58,7 +58,6 @@ Vector2 Plutonium::Font::MeasureString(const char32 * str) const
 			offset.X = max(0.0f, ch->Bearing.X);
 			firstChar = false;
 		}
-		else offset.X += ch->Bearing.X;
 
 		/* Update width. */
 		offset.X += static_cast<float>(ch->Advance);
@@ -119,7 +118,12 @@ const Character * Plutonium::Font::GetCharOrDefault(char32 key) const
 
 	/* Nothing found, return default. */
 #if defined(DEBUG)
-	LOG_WAR("Character %c not found in font, replacing with '%c'!", key, chars[def].Key);
+	static std::vector<char32> loggedKeys;
+	if (std::find(loggedKeys.begin(), loggedKeys.end(), key) == loggedKeys.end())
+	{
+		loggedKeys.push_back(key);
+		LOG_WAR("Character '%d' not found in font, replacing with '%c'!", key, chars[def].Key);
+	}
 #endif
 	return chars + def;
 }
@@ -224,7 +228,8 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 		}
 
 		/* Make sure we set the default to a recognisable character. */
-		if (cur->Key == '?') def = static_cast<size_t>(c);
+		if (cur->Key == U'?' && def == 0) def = static_cast<size_t>(c);
+		if (cur->Key == U'\xFFFD') def = static_cast<size_t>(c);
 	}
 
 	/* Update to final map size. */

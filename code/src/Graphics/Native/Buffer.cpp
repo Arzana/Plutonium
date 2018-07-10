@@ -5,7 +5,7 @@
 using namespace Plutonium;
 
 Plutonium::Buffer::Buffer(WindowHandler wnd, BindTarget target)
-	: wnd(wnd), hndlr(0), size(0), type(_CrtEnum2Int(target))
+	: wnd(wnd), hndlr(0), size(0), bsize(0), type(target)
 {
 	/* Generate a new handler for the buffer. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
@@ -29,49 +29,46 @@ void Plutonium::Buffer::Bind(void) const
 {
 	/* Error check if glDeleteBuffers has already been called and if the target is correct. */
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");
-	ASSERT_IF(!type, "Invalid bind target specified!");
 
 	/* Bind the buffer thread safe. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
-		glBindBuffer(type, hndlr);
+		glBindBuffer(_CrtEnum2Int(type), hndlr);
 	}));
 }
 
-void Plutonium::Buffer::BufferData(BufferUsage usage, size_t size, const void * data)
+void Plutonium::Buffer::BufferData(BufferUsage usage, size_t sizeBytes, const void * data)
 {
 	/* Error check for invalid handler and not bound buffer. */
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");
-	ASSERT_IF(!type, "Cannot set data for unbound buffer %zu!", hndlr);
 
 	/* Buffer the data thread safe. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
-		glBindBuffer(type, hndlr);
-		glBufferData(type, size, data, static_cast<GLenum>(usage));
+		glBindBuffer(_CrtEnum2Int(type), hndlr);
+		glBufferData(_CrtEnum2Int(type), sizeBytes, data, _CrtEnum2Int(usage));
 	}));
 
-	LOG("%s Buffer 0x%04x allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), hndlr, size);
-	_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(size));
+	LOG("%s Buffer 0x%04x allocated (%zu bytes).", _CrtGetBufferUsageStr(usage), hndlr, sizeBytes);
+	_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(sizeBytes));
 }
 
-void Plutonium::Buffer::BufferSubData(size_t size, const void * data, bool sizeUpdated)
+void Plutonium::Buffer::BufferSubData(size_t sizeBytes, const void * data, bool sizeUpdated)
 {
 	/* Error check for invalid handler and not bound buffer. */
 	ASSERT_IF(!hndlr, "Cannot bind released buffer!");
-	ASSERT_IF(!type, "Cannot set data for unbound buffer %zu!", hndlr);
 
 	/* Buffer the sub data thread safe. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
-		glBindBuffer(type, hndlr);
-		glBufferSubData(type, 0, size, data);
+		glBindBuffer(_CrtEnum2Int(type), hndlr);
+		glBufferSubData(_CrtEnum2Int(type), 0, sizeBytes, data);
 	}));
 
 	/* Update GPU diag if needed. */
 	if (sizeUpdated)
 	{
 		_CrtUpdateUsedGPUMemory(-bsize);
-		_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(size));
+		_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(sizeBytes));
 	}
 }

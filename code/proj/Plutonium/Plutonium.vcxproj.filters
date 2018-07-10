@@ -380,6 +380,9 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Slider.cpp">
       <Filter>Source Files\Graphics\GUI\Items</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\TextBox.cpp">
+      <Filter>Source Files\Graphics\GUI\Items</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -741,6 +744,18 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Math\VInterpolation.h">
       <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\TextBox.h">
+      <Filter>Header Files\Graphics\GUI\Items</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\InputFlags.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphRejectionArgs.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphType.h">
+      <Filter>Header Files\Graphics\GUI\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

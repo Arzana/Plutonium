@@ -77,14 +77,11 @@ void HUD::Create(void)
 		text += " ms";
 	}));
 
-	Slider *sld = AddSlider();
-	sld->SetRoundingFactor(0.0f);
-	sld->SetAnchors(_CrtEnumBitOr(Anchors::Top, Anchors::CenterWidth), 0.0f, 15.0f);
-	sld->SetValueMapped(dynamic_cast<TestGame*>(game)->cam->GetFov(), 0.0f, PI2);
-	sld->ValueChanged.Add([&](const ProgressBar*, ValueChangedEventArgs<float> args) 
-	{
-		dynamic_cast<TestGame*>(game)->cam->SetFoV(lerp(0.0f, PI2, args.NewValue));
-	});
+	TextBox *txt = AddTextBox();
+	txt->SetAutoSize(true);
+	txt->SetAnchors(Anchors::BottomCenter);
+	txt->SetInputFlags(InputFlags::Text);
+	txt->GlyphRejected.Add([&](const TextBox*, GlyphRejectionArgs args) { LOG("Glyph '%c' rejected (%s)!", args.Glyph, args.GetReason()); });
 }
 
 Label * HUD::CreateDefaultLabel(float y)
@@ -92,7 +89,7 @@ Label * HUD::CreateDefaultLabel(float y)
 	Label *result = AddLabel();
 
 	result->SetAutoSize(true);
-	result->SetBackColor(Color(0.0f, 0.0f, 0.0f, 0.5f));
+	result->SetBackColor(Color::Black * 0.5f);
 	result->SetTextColor(Color::White);
 	result->SetPosition(Vector2(0.0f, y));
 

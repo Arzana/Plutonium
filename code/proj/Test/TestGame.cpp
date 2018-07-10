@@ -1,6 +1,6 @@
 #include "TestGame.h"
 
-//#define QUICK_MAP
+#define QUICK_MAP
 #define SHDR_PATH(name)		"./assets/shaders/" name
 
 TestGame::TestGame(void)

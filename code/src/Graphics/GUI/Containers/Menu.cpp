@@ -2,6 +2,8 @@
 #include "Core\StringFunctions.h"
 #include "Core\Threading\PuThread.h"
 
+#define LOG_INIT(c)		LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(c))
+
 using namespace Plutonium;
 
 constexpr size_t MAX_STR_LEN = 64;
@@ -92,7 +94,7 @@ const Texture * Plutonium::Menu::GetTexture(const char * name) const
 
 GuiItem * Plutonium::Menu::AddGuiItem(void)
 {
-	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(GuiItem));
+	LOG_INIT(GuiItem);
 
 	GuiItem *result = new GuiItem(game);
 	controlls.push_back(result);
@@ -101,7 +103,7 @@ GuiItem * Plutonium::Menu::AddGuiItem(void)
 
 Label * Plutonium::Menu::AddLabel(const Font * font)
 {
-	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(Label));
+	LOG_INIT(Label);
 	CheckFont(font);
 
 	Label *result = new Label(game, font ? font : loadedFonts.at(defaultFontIdx));
@@ -111,7 +113,7 @@ Label * Plutonium::Menu::AddLabel(const Font * font)
 
 Button * Plutonium::Menu::AddButton(const Font * font)
 {
-	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(Button));
+	LOG_INIT(Button);
 	CheckFont(font);
 
 	Button *result = new Button(game, font ? font : loadedFonts.at(defaultFontIdx));
@@ -121,7 +123,7 @@ Button * Plutonium::Menu::AddButton(const Font * font)
 
 ProgressBar * Plutonium::Menu::AddProgressBar(void)
 {
-	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(ProgressBar));
+	LOG_INIT(ProgressBar);
 
 	ProgressBar *result = new ProgressBar(game);
 	controlls.push_back(result);
@@ -130,9 +132,19 @@ ProgressBar * Plutonium::Menu::AddProgressBar(void)
 
 Slider * Plutonium::Menu::AddSlider(void)
 {
-	LOG("Initializing controll(%s).", _CRT_NAMEOF_RAW(Slider));
+	LOG_INIT(Slider);
 
 	Slider *result = new Slider(game);
+	controlls.push_back(result);
+	return result;
+}
+
+TextBox * Plutonium::Menu::AddTextBox(const Font * font)
+{
+	LOG_INIT(TextBox);
+	CheckFont(font);
+
+	TextBox *result = new TextBox(game, font ? font : loadedFonts.at(defaultFontIdx));
 	controlls.push_back(result);
 	return result;
 }
@@ -232,7 +244,7 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 	freea_s(vertices);
 
 	/* Render debug string. */
-	renderer->RenderTextForeground(position, color, font, string, stringVbo);
+	renderer->RenderTextForeground(position, color, font, stringVbo);
 #endif
 }
 

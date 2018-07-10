@@ -1,4 +1,5 @@
 #include "Graphics\GUI\GuiItemRenderer.h"
+#include "Core\StringFunctions.h"
 
 Plutonium::GuiItemRenderer::GuiItemRenderer(GraphicsAdapter * device)
 	: device(device)
@@ -41,7 +42,7 @@ void Plutonium::GuiItemRenderer::RenderBackground(Rectangle bounds, float roundi
 	else basicEarlyDrawQueue.push(args);
 }
 
-void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, Color textColor, const Font * font, const char32 * text, const Buffer * mesh)
+void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, Color textColor, const Font * font, const Buffer * mesh)
 {
 	/* Make sure to convert the position to OpenGL coordinates. */
 	LabelTextArgs args =
@@ -49,8 +50,7 @@ void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, Color te
 		mesh,
 		font,
 		device->ToOpenGL(position),
-		textColor,
-		text
+		textColor
 	};
 
 	textDrawQueue.push(args);

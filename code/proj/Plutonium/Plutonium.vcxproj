@@ -225,6 +225,7 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Label.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\ProgressBar.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Slider.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Items\TextBox.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
@@ -311,14 +312,18 @@
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphRejectionArgs.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\CursorButtons.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\FillStyle.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphType.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GuiItem.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Core\InputFlags.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\GuiItemRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Items\Button.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Items\Label.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Items\ProgressBar.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Items\Slider.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Items\TextBox.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h" />

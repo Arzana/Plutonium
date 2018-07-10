@@ -7,7 +7,7 @@ Plutonium::Label::Label(Game * parent, const Font * font)
 
 Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	: GuiItem(parent, bounds), autoSize(false), textColor(GetDefaultTextColor()),
-	font(font), text(heapwstr("")), offset(GetDefaultTextOffset()), charBufferSize(GetDefaultBufferSize()),
+	font(font), text(heapwstr("")), visibleText(heapwstr("")), offset(GetDefaultTextOffset()), charBufferSize(GetDefaultBufferSize()),
 	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged), bindFunc()
 {
 	/* Initilaize text render position. */
@@ -25,12 +25,13 @@ Plutonium::Label::~Label(void)
 {
 	Moved.Remove(this, &Label::OnMoved);
 	free_s(text);
+	free_s(visibleText);
 	delete_s(textMesh);
 }
 
 size_t Plutonium::Label::GetLineCount(void) const
 {
-	return cntchar(text, U'\n') + 1;
+	return cntchar(visibleText, U'\n') + 1;
 }
 
 void Plutonium::Label::Update(float dt)
@@ -66,6 +67,8 @@ void Plutonium::Label::SetText(const char32 * text)
 
 	ValueChangedEventArgs<const char32*> args(this->text, text);
 	this->text = heapwstr(text);
+	free_s(visibleText);
+	visibleText = heapwstr(text);
 	HandleAutoSize();
 	UpdateTextMesh();
 	TextChanged.Post(this, args);
@@ -107,7 +110,15 @@ void Plutonium::Label::SetTextBind(Binder & binder)
 
 void Plutonium::Label::RenderLabel(GuiItemRenderer * renderer)
 {
-	renderer->RenderTextForeground(textPos, textColor, font, text, textMesh);
+	if (strlen(visibleText) > 0) renderer->RenderTextForeground(textPos, textColor, font, textMesh);
+}
+
+void Plutonium::Label::SetVisualString(const char32 * string)
+{
+	free_s(visibleText);
+	visibleText = heapwstr(string);
+	HandleAutoSize();
+	UpdateTextMesh();
 }
 
 void Plutonium::Label::HandleAutoSize(void)
@@ -116,7 +127,7 @@ void Plutonium::Label::HandleAutoSize(void)
 	{
 		/* Autosize will resize the Label to the size of the text if defined; otherwise to the size of the minimum defined size (textures), it cannot resize to a zero dimention. */
 		Vector2 size = GetSize();
-		Vector2 dim = strlen(text) > 0 ? dim = font->MeasureString(text) + offset * 2.0f : GetMinSize();
+		Vector2 dim = strlen(visibleText) > 0 ? dim = font->MeasureString(visibleText) + offset * 2.0f : GetMinSize();
 
 		if (dim != Vector2::Zero && (dim.X != size.X || dim.Y != size.Y)) SetSize(dim);
 	}
@@ -131,24 +142,26 @@ void Plutonium::Label::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2> a
 void Plutonium::Label::UpdateTextMesh(void)
 {
 	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
-	size_t len = strlen(text), size = len * 6;
+	size_t len = strlen(visibleText), size = len * 6;
 	if (len < 1) return;
 
-	float lh = font->MeasureStringHeight(text);
+	float lh = font->MeasureStringHeight(visibleText);
 	Vector4 *vertices = malloca_s(Vector4, size);
 
 	/* Increase buffered size if needed. */
 	if (len > charBufferSize)
 	{
+		size_t newBufferSize = max(len, charBufferSize << 1);
+
 #if defined(DEBUG)
-		LOG_WAR("Increasing GPU text buffer size of Label '%s' from %d to %d!", GetName(), charBufferSize, len);
+		LOG_WAR("Increasing GPU text buffer size of Label '%s' from %d to %d!", GetName(), charBufferSize, newBufferSize);
 #endif
 
-		charBufferSize = len;
+		charBufferSize = newBufferSize;
 
-		free_s(textMesh);
+		delete_s(textMesh);
 		textMesh = new Buffer(game->GetGraphics()->GetWindow(), BindTarget::Array);
-		textMesh->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, charBufferSize);
+		textMesh->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, charBufferSize * 6);
 	}
 
 	float xAdder = 0.0f;
@@ -156,7 +169,7 @@ void Plutonium::Label::UpdateTextMesh(void)
 	for (size_t i = 0, j = 0; i < len; i++)
 	{
 		/* Get current character. */
-		const Character *ch = font->GetCharOrDefault(text[i]);
+		const Character *ch = font->GetCharOrDefault(visibleText[i]);
 
 		/* Defines components of the position vertices. */
 		float w = ch->Size.X;

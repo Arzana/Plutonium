@@ -62,7 +62,19 @@ namespace Plutonium
 	}
 
 	/* Gets the highest of the two input values. */
+	_Check_return_ constexpr inline uint32 max(_In_ uint32 a, _In_ uint32 b)
+	{
+		return __max(a, b);
+	}
+
+	/* Gets the highest of the two input values. */
 	_Check_return_ constexpr inline int64 max(_In_ int64 a, _In_ int64 b)
+	{
+		return __max(a, b);
+	}
+
+	/* Gets the highest of the two input values. */
+	_Check_return_ constexpr inline uint64 max(_In_ uint64 a, _In_ uint64 b)
 	{
 		return __max(a, b);
 	}
@@ -87,7 +99,19 @@ namespace Plutonium
 	}
 
 	/* Gets the lowest of the two input values. */
+	_Check_return_ constexpr inline uint32 min(_In_ uint32 a, _In_ uint32 b)
+	{
+		return __min(a, b);
+	}
+
+	/* Gets the lowest of the two input values. */
 	_Check_return_ constexpr inline int64 min(_In_ int64 a, _In_ int64 b)
+	{
+		return __min(a, b);
+	}
+
+	/* Gets the lowest of the two input values. */
+	_Check_return_ constexpr inline uint64 min(_In_ uint64 a, _In_ uint64 b)
 	{
 		return __min(a, b);
 	}

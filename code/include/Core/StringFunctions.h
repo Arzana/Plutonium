@@ -24,12 +24,20 @@ namespace Plutonium
 
 	/* Merges two strings together. */
 	void mrgstr(_In_ const char *first, _In_ const char *second, _Out_ char *result);
+	/* Merges two strings together. */
+	void mrgstr(_In_ const char32_t *first, _In_ const char32_t *second, _Out_ char32_t *result);
 	/* Merges two string together with a specified seperator character. */
 	void mrgstr(_In_ const char *first, _In_ const char *second, _Out_ char *result, _In_ char seperator);
+	/* Merges two string together with a specified seperator character. */
+	void mrgstr(_In_ const char32_t *first, _In_ const char32_t *second, _Out_ char32_t *result, _In_ char32_t seperator);
 	/* Merges a specified amount of strings together. */
 	void mrgstr(_In_ const char **values, _In_ size_t argc, _Out_ char *result);
+	/* Merges a specified amount of strings together. */
+	void mrgstr(_In_ const char32_t **values, _In_ size_t argc, _Out_ char32_t *result);
 	/* Merges a specified amount of string together with a specified seperator character. */
 	void mrgstr(_In_ const char **values, _In_ size_t argc, _Out_ char *result, char seperator);
+	/* Merges a specified amount of string together with a specified seperator character. */
+	void mrgstr(_In_ const char32_t **values, _In_ size_t argc, _Out_ char32_t *result, char32_t seperator);
 
 	/* Copies a string to the heap. */
 	_Check_return_ char* heapstr(_In_ const char *src);

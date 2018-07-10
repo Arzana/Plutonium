@@ -24,7 +24,7 @@ namespace Plutonium
 		/* Adds a basic item to the render queue. */
 		void RenderBackground(_In_ Rectangle bounds, _In_ float rounding, _In_ Color backColor, _In_ TextureHandler background, _In_ const Buffer *mesh, _In_ bool lateCall);
 		/* Adds the Label text foregroung to the render queue. */
-		void RenderTextForeground(_In_ Vector2 position, _In_ Color textColor, _In_ const Font *font, _In_ const char32 *text, _In_ const Buffer *mesh);
+		void RenderTextForeground(_In_ Vector2 position, _In_ Color textColor, _In_ const Font *font, _In_ const Buffer *mesh);
 		/* Adds the ProgressBar bar section to the render queue. */
 		void RenderBarForeground(_In_ Vector2 position, _In_ Rectangle parentBounds, _In_ float parentRounding, _In_ Color barColor, _In_ TextureHandler texture, const Buffer *mesh);
 		/* Renders the queued GuiItems to the screen. */
@@ -50,7 +50,6 @@ namespace Plutonium
 			const Font *Font;
 			Vector2 Position;
 			Color TextColor;
-			const char32 *Text;
 		};
 
 		struct ProgressBarBarArgs
