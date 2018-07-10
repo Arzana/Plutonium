@@ -10,7 +10,7 @@ LoadScreen::LoadScreen(Game * game)
 void LoadScreen::Initialize(void)
 {
 	Menu::Initialize();
-	SetDefaultFont("fonts/OpenSans-Regular.ttf", 24.0f);
+	SetDefaultFont("fonts/LucidaConsole.ttf", 24.0f);
 }
 
 void LoadScreen::Create(void)

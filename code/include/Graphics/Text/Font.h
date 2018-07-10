@@ -64,7 +64,7 @@ namespace Plutonium
 
 		static Font* FromFile(const char *path, float size, WindowHandler wnd);
 
-		void SetCharacterInfo(stbtt_fontinfo *info, WindowHandler wnd, float scale);
+		size_t SetCharacterInfo(stbtt_fontinfo *info, WindowHandler wnd, float scale);
 		void PopulateTextureMap(stbtt_fontinfo *info, float scale);
 	};
 }

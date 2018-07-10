@@ -161,7 +161,7 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	/* Get global font info. */
 	stbtt_fontinfo info;
 	stbtt_InitFont(&info, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
-	float scale = stbtt_ScaleForPixelHeight(&info, size);
+	float scale = stbtt_ScaleForMappingEmToPixels(&info, size);
 
 	/* Initialize final character buffer. */
 	result->cnt = info.numGlyphs;
@@ -171,16 +171,16 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	Stopwatch sw = Stopwatch::StartNew();
 
 	/* Create character info and texture map. */
-	result->SetCharacterInfo(&info, wnd, scale);
+	size_t loaded = result->SetCharacterInfo(&info, wnd, scale);
 	result->PopulateTextureMap(&info, scale);
 
 	/* Free file data and return result. */
-	LOG("Finished initializing %d characters, took %Lf seconds.", result->cnt, sw.Seconds());
+	LOG("Finished initializing %zu/%d characters, took %Lf seconds.", loaded, result->cnt, sw.Microseconds() * 0.000001L);
 	free_s(ttf_buffer);
 	return result;
 }
 
-void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd, float scale)
+size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd, float scale)
 {
 	/* Get global rendering info. */
 	int32 ascent, descent, lineGap;
@@ -190,50 +190,64 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 	Vector2 finalMapSize = Vector2::Zero;
 	Vector2 curLineSize = Vector2::Zero;
 
-	/* Loop through character defines by the font. */
+	/* 
+	Loop through character defines by the font. 
+
+	TODO: Fix properly.
+	Getting the last 55 glyphs in the font takes forever, I have no idea where they are defined
+	or what they represent, I'm just skipping them now to avoid long waiting times.
+	This should be fixed at some point.
+	*/
 	int32 x = 0;
-	for (int32 c = 0; c < cnt; c++, x++)
+	size_t i = 0;
+	for (int32 glyph = 0; i < cnt - 55; glyph++)
 	{
-		/* Get current character from buffer. */
-		Character *cur = chars + c;
-
-		/* Get character specific info. */
-		int32 advance, lsb, x0, y0, x1, y1;
-		stbtt_GetCodepointHMetrics(info, c, &advance, &lsb);
-		stbtt_GetCodepointBitmapBoxSubpixel(info, c, scale, scale, 0, 0, &x0, &y0, &x1, &y1);
-
-		/* Compute character boundsing box. */
-		int32 w = x1 - x0, h = y1 - y0;
-
-		/* Save known character details. */
-		cur->Key = static_cast<char32>(c);
-		cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
-		cur->Bounds = Rectangle(curLineSize.X, finalMapSize.Y, static_cast<float>(w), static_cast<float>(h));
-		cur->Advance = static_cast<uint32>(rectify(x0 + advance * scale));
-		cur->Bearing = Vector2(static_cast<float>(lsb * scale), static_cast<float>(y0));
-		if (h > lineSpace) lineSpace = h;
-
-		/* Update line size or map size. */
-		if (x > 32)
+		/* Check if glyph is renderable. */
+		if (stbtt_FindGlyphIndex(info, glyph) != 0)
 		{
-			/* Update final map size. */
-			finalMapSize.X = max(finalMapSize.X, curLineSize.X);
-			finalMapSize.Y += curLineSize.Y;
+			/* Get current character from buffer. */
+			Character *cur = chars + i;
 
-			/* Reset current line. */
-			x = 0;
-			curLineSize = Vector2::Zero;
-		}
-		else
-		{
-			/* Update current line. */
-			curLineSize.X += w;
-			curLineSize.Y = max(curLineSize.Y, static_cast<float>(h));
-		}
+			/* Get character specific info. */
+			int32 advance, lsb, x0, y0, x1, y1;
+			stbtt_GetCodepointHMetrics(info, glyph, &advance, &lsb);
+			stbtt_GetCodepointBitmapBox(info, glyph, scale, scale, &x0, &y0, &x1, &y1);
 
-		/* Make sure we set the default to a recognisable character. */
-		if (cur->Key == U'?' && def == 0) def = static_cast<size_t>(c);
-		if (cur->Key == U'\xFFFD') def = static_cast<size_t>(c);
+			/* Compute character bounding box. */
+			int32 w = x1 - x0, h = y1 - y0;
+
+			/* Save known character details. */
+			cur->Key = static_cast<char32>(glyph);
+			cur->Size = Vector2(static_cast<float>(w), static_cast<float>(h));
+			cur->Bounds = Rectangle(curLineSize.X, finalMapSize.Y, static_cast<float>(w), static_cast<float>(h));
+			cur->Advance = static_cast<uint32>(rectify(x0 + advance * scale));
+			cur->Bearing = Vector2(static_cast<float>(lsb) * scale, static_cast<float>(y0));
+			if (h > lineSpace) lineSpace = h;
+
+			/* Update line size or map size. */
+			if (x > 32)
+			{
+				/* Update final map size. */
+				finalMapSize.X = max(finalMapSize.X, curLineSize.X);
+				finalMapSize.Y += curLineSize.Y;
+
+				/* Reset current line. */
+				x = 0;
+				curLineSize = Vector2::Zero;
+			}
+			else
+			{
+				/* Update current line. */
+				curLineSize.X += w;
+				curLineSize.Y = max(curLineSize.Y, static_cast<float>(h));
+			}
+
+			/* Make sure we set the default to a recognisable character. */
+			if ((cur->Key == U'?' && def == 0) || cur->Key == U'\xFFFD') def = i;
+
+			++i;
+			++x;
+		}
 	}
 
 	/* Update to final map size. */
@@ -241,6 +255,7 @@ void Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd,
 	finalMapSize.Y += curLineSize.Y;
 	lineSpace += lineGap;
 	map = new Texture(static_cast<int32>(finalMapSize.X), static_cast<int32>(finalMapSize.Y), wnd, &TextureCreationOptions::DefaultNoMipMap, "Fontmap");
+	return i;
 }
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
@@ -260,7 +275,7 @@ void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 		if (outw < 1 || outh < 1) continue;
 
 		byte *alphaBuffer = malloc_s(byte, outw * outh);
-		stbtt_MakeCodepointBitmapSubpixel(info, alphaBuffer, outw, outh, outw, scale, scale, 0.0f, 0.0f, c);
+		stbtt_MakeCodepointBitmap(info, alphaBuffer, outw, outh, outw, scale, scale, cur->Key);
 
 		/* Populate data. */
 		constexpr byte cv = static_cast<byte>(255);
@@ -292,4 +307,17 @@ void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 	/* Create map. */
 	map->SetData(data);
 	free_s(data);
+
+	/* Save fontmap as debug test. */
+#if defined (DEBUG)
+	constexpr const char *PREFIX = "Debug\\";
+	constexpr const char *SUFFIX = "_FontMap.png";
+
+	char *buffer = malloca_s(char, strlen(PREFIX) + strlen(name) + strlen(SUFFIX) + 1);
+	const char *values[3] = { PREFIX, name, SUFFIX };
+
+	mrgstr(values, 3, buffer);
+	map->SaveAsPng(buffer, false);
+	freea_s(buffer);
+#endif
 }

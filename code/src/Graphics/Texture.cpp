@@ -70,7 +70,7 @@ void Plutonium::Texture::SetData(byte * data)
 	GenerateTexture(&data);
 }
 
-void Plutonium::Texture::SaveAsPng(const char * path)
+void Plutonium::Texture::SaveAsPng(const char * path, bool flipVertically)
 {
 	/* Get texture data. */
 	ASSERT_IF(config.IsDepth, "Cannot save depth maps to as png!");
@@ -82,7 +82,7 @@ void Plutonium::Texture::SaveAsPng(const char * path)
 	if (!_CrtDirectoryExists(fr.GetFileDirectory())) _CrtCreateDirectory(fr.GetFileDirectory());
 
 	/* Attempt to save as PNG, no stride for full texture. */
-	stbi_flip_vertically_on_write(true);
+	stbi_flip_vertically_on_write(flipVertically);
 	int32 result = stbi_write_png(path, Width, Height, GetChannels(), void_ptr(data), 0);
 	freea_s(data);
 

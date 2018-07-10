@@ -13,7 +13,7 @@ void HUD::Initialize(void)
 {
 	Menu::Initialize();
 
-	SetDefaultFont("fonts/OpenSans-Regular.ttf", 24.0f);
+	SetDefaultFont("fonts/OpenSans-Regular.ttf", 20.0f);
 	LoadTexture("textures/water.png");
 	LoadTexture("textures/stone.png");
 	LoadTexture("textures/uv.png");

@@ -12,6 +12,8 @@ size_t Plutonium::strlen(const char * str)
 
 size_t Plutonium::strlen(const char32_t * str)
 {
+	if (!str) return 0;
+
 	size_t len = 0;
 	while (str[len] != '\0') ++len;
 	return len;
@@ -195,7 +197,7 @@ void Plutonium::mrgstr(const char ** values, size_t argc, char * result)
 void Plutonium::mrgstr(const char32_t ** values, size_t argc, char32_t * result)
 {
 	size_t len = 0;
-	
+
 	/* Loop through all strings. */
 	for (size_t i = 0, k = 0; i < argc; i++)
 	{
