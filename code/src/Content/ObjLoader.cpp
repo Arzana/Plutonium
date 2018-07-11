@@ -210,6 +210,23 @@ ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(ObjLoaderTexture
 	return *this;
 }
 
+bool Plutonium::ObjLoaderTextureMap::operator!=(const ObjLoaderTextureMap & other) const
+{
+	if (eqlstr(Path, other.Path)) return false;
+	if (Type == other.Type) return false;
+	if (Sharpness == other.Sharpness) return false;
+	if (Brightness == other.Brightness) return false;
+	if (Contrast == other.Contrast) return false;
+	if (Origin == other.Origin) return false;
+	if (Scale == other.Scale) return false;
+	if (Turbulence == other.Turbulence) return false;
+	if (ClampedCoords == other.ClampedCoords) return false;
+	if (BlendH == other.BlendH) return false;
+	if (BlendV == other.BlendV) return false;
+	if (ScalarOrBumpChannel == ScalarOrBumpChannel) return false;
+	return BumpMod != other.BumpMod;
+}
+
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	: Name(""), IlluminationModel(0),
 	Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
@@ -897,22 +914,36 @@ inline void HandleIllumModelLine(const char *line, ObjLoaderMaterial *curMateria
 }
 
 /* Handles the dissolve line. */
-inline void HandleDissolveLine(const char *line, ObjLoaderMaterial *curMaterial)
+inline void HandleDissolveLine(const char *line, ObjLoaderMaterial *curMaterial, bool *hasd, bool *hastr)
 {
-	curMaterial->Dissolve = ParseFloat(&line);
+	float value = ParseFloat(&line);
+	LOG_WAR_IF(*hastr && curMaterial->Dissolve != value, "Both 'd' and 'Tr' are defined withing material '%s', using value of 'd' for dissolve!", curMaterial->Name);
+
+	*hasd = true;
+	curMaterial->Dissolve = value;
 }
 
 /* Handles the inverse dissolve line. */
-inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial *curMaterial)
+inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial *curMaterial, bool *hasd, bool *hastr)
 {
-	curMaterial->Dissolve = 1.0f - ParseFloat(&line);
+	float value = 1.0f - ParseFloat(&line);
+	if (*hasd)
+	{
+		LOG_WAR_IF(curMaterial->Dissolve != value, "Both 'd' and 'Tr' are defined withing material '%s', using value of 'd' for dissolve!", curMaterial->Name);
+	}
+	else
+	{
+		*hastr = true;
+		curMaterial->Dissolve = value;
+	}
 }
 
 /* Handles the ambient texture line. */
 inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextureMap *curTexture, bool isBump)
 {
-	/* Reset texture map values. */
-	LOG_WAR_IF(::strlen(curTexture->Path) > 0, "Texture map is defined multiple times, replacing old texture map '%s'.", curTexture->Path);
+	/* In case the texture already has some values. */
+	bool checkOld = ::strlen(curTexture->Path) > 0;
+	ObjLoaderTextureMap old(*curTexture);
 	*curTexture = ObjLoaderTextureMap(isBump);
 
 	/* Handle all options. */
@@ -1016,7 +1047,9 @@ inline void HandleTextureLine(const char *line, const char *dir, ObjLoaderTextur
 		line += ::strlen(line);
 	}
 
+	/* Check for errors or warnings. */
 	LOG_THROW_IF(::strlen(curTexture->Path) < 1, "Texture defines no path!");
+	LOG_WAR_IF(checkOld && old != *curTexture, "Texture map is defined multiple times, replacing old texture map '%s'.", curTexture->Path);
 }
 
 /* Handles the raw line of a mtl file. */
@@ -1090,22 +1123,14 @@ void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, O
 	/* Check if line is dissolve. */
 	if (line[0] == 'd' && IS_SPACE(line[1]))
 	{
-		LOG_WAR_IF(*hastr, "Both 'd' and 'Tr' are defined withing material '%s', using value of 'd' for dissolve!", curMaterial->Name);
-		*hasd = true;
-		HandleDissolveLine(line + 1, curMaterial);
+		HandleDissolveLine(line + 1, curMaterial, hasd, hastr);
 		return;
 	}
 
 	/* Check if line is inverse dissolve. */
 	if (line[0] == 'T' && line[1] == 'r' && IS_SPACE(line[2]))
 	{
-		if (*hasd) LOG_WAR("Both 'd' and 'Tr' are defined withing material '%s', using value of 'd' for dissolve!", curMaterial->Name);
-		else
-		{
-			*hastr = true;
-			HandleInverseDissolveLine(line + 2, curMaterial);
-		}
-
+		HandleInverseDissolveLine(line + 2, curMaterial, hasd, hastr);
 		return;
 	}
 

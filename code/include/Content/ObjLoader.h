@@ -133,6 +133,8 @@ namespace Plutonium
 		_Check_return_ ObjLoaderTextureMap& operator =(_In_ const ObjLoaderTextureMap &other);
 		/* Moves a previous instance of an obj loader texture map. */
 		_Check_return_ ObjLoaderTextureMap& operator =(_In_ ObjLoaderTextureMap &&other);
+		/* Checks if the two specified texture maps have the same parameters. */
+		_Check_return_ bool operator !=(_In_ const ObjLoaderTextureMap &other) const;
 	};
 
 	/* Defines the material information of a specified object. */
