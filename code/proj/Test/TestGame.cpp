@@ -107,7 +107,7 @@ void TestGame::Update(float dt)
 	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
 
 	/* Update camera. */
-	cam->Update(dt, GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
+	cam->Update(dt, hud->HasFocus() ? nullptr : GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
 
 	/* Update input. */
 	if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
@@ -206,6 +206,7 @@ void TestGame::UpdateDayState(float dt)
 
 void TestGame::SpecialKeyPress(WindowHandler, const KeyEventArgs args)
 {
+	if (hud->HasFocus()) return;
 	DebuggableValues desired = DebuggableValues::None;
 
 	/* Check if pressed key is debug render toggle key. */

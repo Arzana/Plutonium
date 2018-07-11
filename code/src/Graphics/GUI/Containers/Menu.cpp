@@ -62,6 +62,16 @@ int32 Plutonium::Menu::GetScreenHeight(void) const
 	return static_cast<int32>(game->GetGraphics()->GetWindow()->GetClientBounds().GetHeight());
 }
 
+bool Plutonium::Menu::HasFocus(void) const
+{
+	for (size_t i = 0; i < controlls.size(); i++)
+	{
+		if (controlls.at(i)->IsFocused()) return true;
+	}
+
+	return false;
+}
+
 const Font * Plutonium::Menu::GetDefaultFont(void) const
 {
 	LOG_THROW_IF(defaultFontIdx == -1, "No default font is set!");

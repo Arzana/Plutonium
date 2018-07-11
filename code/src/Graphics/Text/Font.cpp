@@ -190,17 +190,9 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 	Vector2 finalMapSize = Vector2::Zero;
 	Vector2 curLineSize = Vector2::Zero;
 
-	/* 
-	Loop through character defines by the font. 
-
-	TODO: Fix properly.
-	Getting the last 55 glyphs in the font takes forever, I have no idea where they are defined
-	or what they represent, I'm just skipping them now to avoid long waiting times.
-	This should be fixed at some point.
-	*/
-	int32 x = 0;
+	/* Loop through character defines by the font. */
 	size_t i = 0;
-	for (int32 glyph = 0; i < cnt - 55; glyph++)
+	for (int32 glyph = 0, x = 0; i < cnt && glyph < maxv<uint16>(); glyph++)
 	{
 		/* Check if glyph is renderable. */
 		if (stbtt_FindGlyphIndex(info, glyph) != 0)
@@ -260,7 +252,7 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 {
-	byte *data = malloc_s(byte, map->Width * map->Height * 4);
+	byte *data = calloc_s(byte, map->Width * map->Height * 4);
 	Vector2 b2uv = Vector2::One / Vector2(static_cast<float>(map->Width), static_cast<float>(map->Height));
 
 	/* Loop through character defines by the font. */

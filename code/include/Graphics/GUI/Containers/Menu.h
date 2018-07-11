@@ -52,6 +52,8 @@ namespace Plutonium
 		_Check_return_ int32 GetScreenWidth(void) const;
 		/* Gets the height of the screen. */
 		_Check_return_ int32 GetScreenHeight(void) const;
+		/* Check if any GuiItem has focus in this menu. */
+		_Check_return_ bool HasFocus(void) const;
 
 	protected:
 		/* Gets the font specified as the default font. */
