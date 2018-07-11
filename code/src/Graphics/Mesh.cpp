@@ -54,13 +54,13 @@ void Plutonium::Mesh::SetBufferSize(size_t size)
 	}
 }
 
-VertexFormat & Plutonium::Mesh::GetVertexAt(size_t idx) const
+VertexFormat * Plutonium::Mesh::GetVertexAt(size_t idx) const
 {
 	/* Performs a range check on debug mode and checks if the buffers are still on the CPU. */
 	ASSERT_IF(idx > vrtxCnt, "Attempting to retrieve vertex with out of bounds index!");
 	ASSERT_IF(buffer, "Attempting to retrieve vertex after Finalize has been called!");
 
-	return vertices[idx];
+	return vertices + idx ;
 }
 
 void Plutonium::Mesh::Append(Mesh * other)

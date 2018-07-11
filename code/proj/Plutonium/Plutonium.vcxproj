@@ -229,6 +229,7 @@
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Models\Shapes.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\StaticModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Monitor.cpp" />
@@ -332,6 +333,7 @@
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h" />
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h" />
+    <ClInclude Include="..\..\include\Graphics\Models\Shapes.h" />
     <ClInclude Include="..\..\include\Graphics\Models\StaticModel.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BindTargets.h" />
     <ClInclude Include="..\..\include\Graphics\Native\BlendState.h" />

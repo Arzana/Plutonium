@@ -1,9 +1,15 @@
 #include "GameLogic\StaticObject.h"
 
 Plutonium::StaticObject::StaticObject(Game * game, const char * model, int loadWeight)
-	: parent(game), percentage(loadWeight* 0.01f), model(nullptr)
+	: parent(game), percentage(loadWeight * 0.01f), model(nullptr)
 {
 	game->GetLoader()->LoadModel(model, Callback<StaticModel>(this, &StaticObject::OnLoadComplete));
+}
+
+Plutonium::StaticObject::StaticObject(Game * game, StaticModel * model, int loadWeight)
+	: parent(game), percentage(loadWeight * 0.01f), model(model)
+{
+	game->UpdateLoadPercentage(percentage);
 }
 
 Plutonium::StaticObject::~StaticObject(void)

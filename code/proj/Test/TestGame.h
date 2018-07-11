@@ -19,7 +19,7 @@ public:
 	/* Scene. */
 	DirectionalLight *sun;
 	std::vector<Fire*> fires;
-	StaticObject *map;
+	StaticObject *map, *visualizer;
 	TextureHandler skybox;
 
 	/* Display values. */

@@ -7,6 +7,12 @@
 
 using namespace Plutonium;
 
+Plutonium::StaticModel::StaticModel(PhongMaterial * material)
+	: wnd(nullptr), name(heapstr(material->MaterialName)), path(heapstr(""))
+{
+	shapes.push_back(material);
+}
+
 Plutonium::StaticModel::~StaticModel(void)
 {
 	free_s(name);

@@ -24,6 +24,9 @@ Plutonium::PhongMaterial::PhongMaterial(void)
 	AmbientMap(nullptr), DiffuseMap(nullptr), SpecularMap(nullptr), AlphaMap(nullptr), BumpMap(nullptr),
 	Transmittance(Color::White), Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
 	SpecularExp(1.0f)
+#if defined (DEBUG)
+	, Debug(randColor())
+#endif
 {}
 
 Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderMaterial * material, AssetLoader *loader)
@@ -93,11 +96,10 @@ Plutonium::PhongMaterial::~PhongMaterial(void) noexcept
 	if (!loader->Unload(BumpMap)) delete_s(BumpMap);
 }
 
-Plutonium::PhongMaterial * Plutonium::PhongMaterial::GetDefault(void)
+Plutonium::PhongMaterial * Plutonium::PhongMaterial::GetDefault(WindowHandler wnd)
 {
 	/* Initialize variables. */
 	PhongMaterial *result = new PhongMaterial();
-	WindowHandler wnd = result->loader->GetWindow();
 
 	/* Set neutral maps. */
 	result->AmbientMap = CreateDefault(wnd, "default ambient");

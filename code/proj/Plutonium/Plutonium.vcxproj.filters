@@ -383,6 +383,9 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Items\TextBox.cpp">
       <Filter>Source Files\Graphics\GUI\Items</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Models\Shapes.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -756,6 +759,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphType.h">
       <Filter>Header Files\Graphics\GUI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Models\Shapes.h">
+      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

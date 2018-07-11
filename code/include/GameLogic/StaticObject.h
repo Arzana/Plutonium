@@ -11,6 +11,8 @@ namespace Plutonium
 	public:
 		/* Initializes a new instance of a static object. */
 		StaticObject(_In_ Game *game, _In_ const char *model, _In_ int loadWeight);
+		/* Initializes a new instance of a static object with a pre-defined model. */
+		StaticObject(_In_ Game *game, _In_ StaticModel *model, _In_ int loadWeight);
 		StaticObject(_In_ const StaticObject &value) = delete;
 		StaticObject(_In_ StaticObject &&value) = delete;
 		/* Releases the resources allocated by the object. */

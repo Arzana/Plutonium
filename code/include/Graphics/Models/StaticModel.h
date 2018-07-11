@@ -9,6 +9,8 @@ namespace Plutonium
 	/* Defines a basic multitextured model that can be placed in the world. */
 	struct StaticModel
 	{
+		/* Creates a simple static model with one material (material wil be deleted by the model). */
+		StaticModel(_In_ PhongMaterial *material);
 		StaticModel(_In_ const StaticModel &value) = delete;
 		StaticModel(_In_ StaticModel &&value) = delete;
 		/* Releases the resources allocated by the model. */

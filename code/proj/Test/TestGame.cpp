@@ -1,6 +1,7 @@
 #include "TestGame.h"
+#include "Graphics\Models\Shapes.h"
 
-//#define QUICK_MAP
+#define QUICK_MAP
 #define SHDR_PATH(name)		"./assets/shaders/" name
 
 TestGame::TestGame(void)
@@ -35,7 +36,7 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	/* Define load weights. */
-	static constexpr int MAP_WEIGHT = 55;
+	static constexpr int MAP_WEIGHT = 54;
 	static constexpr int SKYBOX_WEIGHT = 5;
 	static constexpr int PER_FIRE_WEIGHT = 10;
 
@@ -76,11 +77,28 @@ void TestGame::LoadContent(void)
 	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
 	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, -220.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
 #endif
+
+	GetLoader()->LoadTexture("textures/uv.png", Callback<Texture>([&](const AssetLoader*, Texture *texture)
+	{
+		PhongMaterial *material = PhongMaterial::GetDefault(GetGraphics()->GetWindow());
+		material->MaterialName = "VisualizerMaterial";
+
+		material->Mesh = new Mesh("VisualizerMesh");
+		ShapeCreator::MakeSphere(material->Mesh, 64, 64);
+		material->Mesh->Finalize(GetGraphics()->GetWindow());
+
+		material->AmbientMap = texture;
+		material->Ambient = Color::White;
+
+		visualizer = new StaticObject(this, new StaticModel(material), 2);
+		visualizer->Move(Vector3::Up * 5.0f);
+	}));
 }
 
 void TestGame::UnLoadContent(void)
 {
 	delete_s(map);
+	delete_s(visualizer);
 	delete_s(sun);
 	for (size_t i = 0; i < fires.size(); i++) delete_s(fires.at(i));
 	fires.clear();
@@ -134,6 +152,7 @@ void TestGame::Render(float dt)
 		/* Render static map. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
 		srenderer->Render(map);
+		srenderer->Render(visualizer);
 		srenderer->End();
 
 		/* Render skybox. */
@@ -143,6 +162,7 @@ void TestGame::Render(float dt)
 	{
 		/* Render debug scene. */
 		dmrenderer->AddModel(map);
+		dmrenderer->AddModel(visualizer);
 		dmrenderer->AddLight(sun);
 #if !defined (QUICK_MAP)
 		for (size_t i = 0; i < fires.size(); i++)

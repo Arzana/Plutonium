@@ -1,10 +1,11 @@
 #include "Graphics\Rendering\SkyboxRenderer.h"
+#include "Graphics\Models\Shapes.h"
 
 using namespace Plutonium;
 
-/* Defines the vertices that are used as a mesh by the skyboxes. */
-Vector3 skyboxVertices[36] =
+Vector3 vertices[36] =
 {
+	/* Front. */
 	Vector3(-1.0f,  1.0f, -1.0f),
 	Vector3(-1.0f, -1.0f, -1.0f),
 	Vector3(1.0f, -1.0f, -1.0f),
@@ -12,6 +13,7 @@ Vector3 skyboxVertices[36] =
 	Vector3(1.0f,  1.0f, -1.0f),
 	Vector3(-1.0f,  1.0f, -1.0f),
 
+	/* Left. */
 	Vector3(-1.0f, -1.0f,  1.0f),
 	Vector3(-1.0f, -1.0f, -1.0f),
 	Vector3(-1.0f,  1.0f, -1.0f),
@@ -19,6 +21,7 @@ Vector3 skyboxVertices[36] =
 	Vector3(-1.0f,  1.0f,  1.0f),
 	Vector3(-1.0f, -1.0f,  1.0f),
 
+	/* Right. */
 	Vector3(1.0f, -1.0f, -1.0f),
 	Vector3(1.0f, -1.0f,  1.0f),
 	Vector3(1.0f,  1.0f,  1.0f),
@@ -26,6 +29,7 @@ Vector3 skyboxVertices[36] =
 	Vector3(1.0f,  1.0f, -1.0f),
 	Vector3(1.0f, -1.0f, -1.0f),
 
+	/* Back. */
 	Vector3(-1.0f, -1.0f,  1.0f),
 	Vector3(-1.0f,  1.0f,  1.0f),
 	Vector3(1.0f,  1.0f,  1.0f),
@@ -33,6 +37,7 @@ Vector3 skyboxVertices[36] =
 	Vector3(1.0f, -1.0f,  1.0f),
 	Vector3(-1.0f, -1.0f,  1.0f),
 
+	/* Top. */
 	Vector3(-1.0f,  1.0f, -1.0f),
 	Vector3(1.0f,  1.0f, -1.0f),
 	Vector3(1.0f,  1.0f,  1.0f),
@@ -40,6 +45,7 @@ Vector3 skyboxVertices[36] =
 	Vector3(-1.0f,  1.0f,  1.0f),
 	Vector3(-1.0f,  1.0f, -1.0f),
 
+	/* Bottom. */
 	Vector3(-1.0f, -1.0f, -1.0f),
 	Vector3(-1.0f, -1.0f,  1.0f),
 	Vector3(1.0f, -1.0f, -1.0f),
@@ -64,7 +70,7 @@ Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device, const ch
 
 	/* Create single skybox VBO. */
 	vbo = new Buffer(device->GetWindow(), BindTarget::Array);
-	vbo->SetData(BufferUsage::StaticDraw, skyboxVertices, sizeof(skyboxVertices) / sizeof(Vector3));
+	vbo->SetData(BufferUsage::StaticDraw, vertices, sizeof(vertices) / sizeof(Vector3));
 }
 
 Plutonium::SkyboxRenderer::~SkyboxRenderer(void)

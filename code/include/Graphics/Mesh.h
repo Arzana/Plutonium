@@ -41,9 +41,11 @@ namespace Plutonium
 		/* Makes sure the vertex buffer is of a specified size. */
 		void SetBufferSize(_In_ size_t size);
 		/* Gets a vertex at a specified position. */
-		_Check_return_ VertexFormat& GetVertexAt(_In_ size_t idx) const;
+		_Check_return_ VertexFormat* GetVertexAt(_In_ size_t idx) const;
 		/* Merges a second mesh into this mesh. */
 		void Append(_In_ Mesh *other);
+		/* Initializes the tangent component of the three specified vertices (triangle). */
+		static void SetTangent(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
 
 	private:
 		friend struct StaticModel;
@@ -53,7 +55,6 @@ namespace Plutonium
 		size_t vrtxCnt;
 		Buffer *buffer;
 
-		static void SetTangent(VertexFormat &vrtx1, VertexFormat &vrtx2, VertexFormat &vrtx3);
 		static Mesh* FromFile(const ObjLoaderResult *buffer, size_t idx);
 		static Mesh* FromFile(const Md2LoaderResult *buffer, size_t idx);
 	};
