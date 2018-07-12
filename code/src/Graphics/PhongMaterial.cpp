@@ -5,19 +5,10 @@
 
 using namespace Plutonium;
 
-Color randColor(void)
-{
-	static std::vector<Color> usedColors;
-
-	Color result;
-	do
-	{
-		result = Color(static_cast<uint32>((rand() % maxv<uint32>()) & Color::TransparentWhite.Packed));
-	} while (std::find(usedColors.begin(), usedColors.end(), result) != usedColors.end());
-
-	usedColors.push_back(result);
-	return result;
-}
+#if defined (DEBUG)
+/* Defines the gain used by the random colors on debug mode. */
+constexpr byte RND_CLR_GAIN = 25;
+#endif
 
 Plutonium::PhongMaterial::PhongMaterial(void)
 	: MaterialName(nullptr), Mesh(nullptr),
@@ -25,7 +16,7 @@ Plutonium::PhongMaterial::PhongMaterial(void)
 	Transmittance(Color::White), Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
 	SpecularExp(1.0f)
 #if defined (DEBUG)
-	, Debug(randColor())
+	, Debug(Color::Random(RND_CLR_GAIN))
 #endif
 {}
 
@@ -35,7 +26,7 @@ Plutonium::PhongMaterial::PhongMaterial(Plutonium::Mesh * mesh, const ObjLoaderM
 	Transmittance(material->Transmittance), Ambient(material->Ambient), Diffuse(material->Diffuse), Specular(material->Specular),
 	SpecularExp(material->HighlightExponent)
 #if defined (DEBUG)
-	, Debug(randColor())
+	, Debug(Color::Random(RND_CLR_GAIN))
 #endif
 {
 	TextureCreationOptions opt;

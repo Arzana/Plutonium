@@ -33,12 +33,12 @@ namespace Plutonium
 		/* Gets the center width of the screen. */
 		_Check_return_ inline int32 GetScreenWidthCenter(void) const
 		{
-			return GetScreenWidth() << 1;
+			return GetScreenWidth() >> 1;
 		}
 		/* Gets the center height of the screen. */
 		_Check_return_ inline int32 GetScreenHeightCenter(void) const
 		{
-			return GetScreenHeight() << 1;
+			return GetScreenHeight() >> 1;
 		}
 
 		/* Gets a named control present in this menu. */

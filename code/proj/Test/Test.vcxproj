@@ -171,8 +171,6 @@
     <None Include="..\..\assets\shaders\Dynamic3D.vert">
       <FileType>Document</FileType>
     </None>
-    <None Include="..\..\assets\shaders\Skybox.frag" />
-    <None Include="..\..\assets\shaders\Skybox.vert" />
     <None Include="..\..\assets\shaders\Static3D.vert">
       <FileType>Document</FileType>
     </None>

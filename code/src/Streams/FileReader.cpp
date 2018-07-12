@@ -3,6 +3,7 @@
 #include "Streams\FileReader.h"
 #include "Core\StringFunctions.h"
 #include "Core\SafeMemory.h"
+#include "Core\EnumUtils.h"
 #include <cstdio>
 #include <cstring>
 
@@ -205,9 +206,9 @@ const char * Plutonium::FileReader::ReadToEnd(void)
 
 	/* Get the remaining length of the file. */
 	int64 pos = GetPosition();
-	Seek(SeekOrigin::End, 0);
+	SeekInternal(SeekOrigin::End, 0);
 	int64 len = GetPosition();
-	Seek(SeekOrigin::Begin, pos);
+	SeekInternal(SeekOrigin::Begin, pos);
 
 	/* Allocate space for string and populate it. */
 	char *result = malloc_s(char, len + 1);
@@ -227,7 +228,7 @@ int32 Plutonium::FileReader::Peek(void)
 	/* Get current read position, read char and set read position back. */
 	int64 pos = GetPosition();
 	int32 result = Read();
-	Seek(SeekOrigin::Begin, pos);
+	SeekInternal(SeekOrigin::Begin, pos);
 	return result;
 }
 
@@ -239,7 +240,7 @@ size_t Plutonium::FileReader::Peek(byte * buffer, size_t offset, size_t amount)
 	/* Get current read position, read buffer and set read position back. */
 	int64 pos = GetPosition();
 	size_t result = Read(buffer, offset, amount);
-	Seek(SeekOrigin::Begin, pos);
+	SeekInternal(SeekOrigin::Begin, pos);
 	return result;
 }
 
@@ -248,12 +249,29 @@ void Plutonium::FileReader::Seek(SeekOrigin from, int64 amount)
 	/* On debug check if file is open. */
 	ASSERT_IF(!open, "File isn't open!");
 
-	if (fseek(hndlr, static_cast<long>(amount), static_cast<int>(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
+	SeekInternal(from, amount);
 }
 
 int64 Plutonium::FileReader::GetPosition(void) const
 {
 	return ftell(hndlr);
+}
+
+int64 Plutonium::FileReader::GetSize(void) const
+{
+	if (!open) return 0;
+
+	int64 oldPos = GetPosition();
+	SeekInternal(SeekOrigin::End, 0);
+
+	int64 size = GetPosition();
+	SeekInternal(SeekOrigin::Begin, oldPos);
+	return size;
+}
+
+void Plutonium::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
+{
+	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
 }
 
 void Plutonium::FileReader::Open(void)

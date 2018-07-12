@@ -686,7 +686,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 	/* Search for the material in the defined list. */
 	for (size_t i = 0; i < result->Materials.size(); i++)
 	{
-		if (!strcmp(result->Materials.at(i).Name, line))
+		if (eqlstr(result->Materials.at(i).Name, line))
 		{
 			/* Check if the material is already defined. */
 			if (curMesh->Material != -1)
@@ -1228,7 +1228,7 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 	freea_s(path);
 }
 
-const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
+const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float>* progression, float progressionMod)
 {
 	/* Setup input and open obj file. */
 	ObjLoaderResult *result = new ObjLoaderResult();
@@ -1239,12 +1239,22 @@ const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path)
 	uint64 smoothingGroup;
 
 	/* Read untill the end of the file. */
+	float fileLength = recip(static_cast<float>(reader.GetSize()));
 	while (reader.Peek() != EOF)
 	{
 		const char *line = reader.ReadLine();
 
 		/* Only handle line if it's not an empty line. */
-		if (strlen(line) > 0) HandleObjLine(line, reader.GetFileDirectory(), result, &shape, &smoothingGroup);
+		if (strlen(line) > 0)
+		{
+			if (progression)
+			{
+				int64 pos = reader.GetPosition();
+				progression->store(static_cast<float>(pos) * fileLength * progressionMod);
+			}
+
+			HandleObjLine(line, reader.GetFileDirectory(), result, &shape, &smoothingGroup);
+		}
 		free_s(line);
 	}
 

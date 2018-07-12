@@ -11,13 +11,15 @@ void LoadScreen::Initialize(void)
 {
 	Menu::Initialize();
 	SetDefaultFont("fonts/LucidaConsole.ttf", 24.0f);
+	LoadTexture("textures/ui/stone.png");
+	LoadTexture("textures/ui/water.png");
 }
 
 void LoadScreen::Create(void)
 {
 	lblLoaderState = AddLabel();
 	lblLoaderState->SetAutoSize(true);
-	lblLoaderState->SetAnchors(Anchors::Center);
+	lblLoaderState->SetAnchors(Anchors::TopLeft);
 	lblLoaderState->SetBackColor(Color::Transparent);
 	lblLoaderState->SetTextColor(Color::WhiteSmoke);
 	lblLoaderState->SetTextBind(Label::Binder([&](const Label*, std::string &text)
@@ -26,9 +28,19 @@ void LoadScreen::Create(void)
 		for (size_t i = 0; i < dotCnt; i++) text += '.';
 	}));
 
-	pbLoadingPercentage = AddProgressBar();
-	pbLoadingPercentage->SetBackColor(Color(1.0f, 1.0f, 1.0f, 0.5f));
-	pbLoadingPercentage->SetAnchors(Anchors::Center, 0.0f, static_cast<float>(lblLoaderState->GetFont()->GetLineSpace()) * 2.0f);
+	pbSingle = AddProgressBar();
+	pbSingle->SetBackgroundImage(GetTexture("stone"));
+	pbSingle->SetBarImage(GetTexture("water"));
+	pbSingle->SetBarColor(Color::White);
+	pbSingle->SetWidth(600);
+	pbSingle->SetAnchors(Anchors::BottomCenter);
+
+	pbGlobal = AddProgressBar();
+	pbGlobal->SetBackgroundImage(GetTexture("stone"));
+	pbGlobal->SetBarImage(GetTexture("water"));
+	pbGlobal->SetBarColor(Color::White);
+	pbGlobal->SetWidth(600);
+	pbGlobal->SetAnchors(Anchors::BottomCenter, 0.0f, static_cast<float>(-pbSingle->GetHeight()));
 }
 
 void LoadScreen::Update(float dt)
@@ -42,5 +54,6 @@ void LoadScreen::Update(float dt)
 		if (++dotCnt > 3) dotCnt = 0;
 	}
 
-	pbLoadingPercentage->SetValue(clamp(game->GetLoadPercentage(), 0.0f, 1.0f));
+	pbSingle->SetValue(clamp(game->GetLoader()->GetProgression(), 0.0f, 1.0f));
+	pbGlobal->SetValue(clamp(game->GetLoadPercentage(), 0.0f, 1.0f));
 }

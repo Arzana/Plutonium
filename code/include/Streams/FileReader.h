@@ -96,16 +96,21 @@ namespace Plutonium
 		Seeks the file, increasing it's read position by a sepcified amount.
 		*/
 		virtual void Seek(_In_ SeekOrigin from, _In_ int64 amount) override;
-
-	protected:
-		/* Gets the current read position of the stream. */
+		/* 
+		Gets the current read position of the stream. 
+		*/
 		_Check_return_ int64 GetPosition(void) const;
+		/*
+		Gets the total size of the file.
+		*/
+		_Check_return_ int64 GetSize(void) const;
 
 	private:
 		const char *fpath, *fname, *fext, *fnamenoext, *fdir;
 		bool open;
 		_iobuf *hndlr;
 
+		void SeekInternal(SeekOrigin from, int64 amount) const;
 		void Open(void);
 		void InitFileArgs(void);
 	};

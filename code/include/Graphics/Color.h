@@ -95,6 +95,8 @@ namespace Plutonium
 		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float v);
 		/* Lerps between two specified colors within a specified range of values. */
 		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float c, _In_ float d, _In_ float v);
+		/* Returns a random color. */
+		_Check_return_ static Color Random(_In_opt_ byte gain = 0, _In_opt_ bool unique = true);
 
 		/* Adds two colors together. */
 		_Check_return_ Color operator +(_In_ Color other) const;

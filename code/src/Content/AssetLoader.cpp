@@ -740,7 +740,7 @@ void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info->Keep, StaticModel::FromFile(fullPath, this), info->RefCnt);
+	AssetInfo<StaticModel> *result = new AssetInfo<StaticModel>(info->Keep, StaticModel::FromFile(fullPath, this, &progression), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */
@@ -753,6 +753,7 @@ void Plutonium::AssetLoader::LoadSModelInternal(AssetLoadInfo<StaticModel> *info
 	delete_s(info);
 
 	PopState();
+	progression.store(0.0f);
 }
 
 void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info)

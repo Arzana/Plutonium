@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <atomic>
 #include "Core\Math\Constants.h"
 #include "Graphics\Color.h"
 #include "Core\Math\Vector2.h"
@@ -289,5 +290,5 @@ namespace Plutonium
 	};
 
 	/* Loads an obj file and it's associated mtl file(s) (requires delete!). */
-	_Check_return_ const ObjLoaderResult* _CrtLoadObjMtl(_In_ const char *path);
+	_Check_return_ const ObjLoaderResult* _CrtLoadObjMtl(_In_ const char *path, _In_opt_ std::atomic<float> *progression = nullptr, _In_opt_ float progressionMod = 1.0f);
 }

@@ -240,10 +240,22 @@ namespace Plutonium
 		return powf(value, recip(static_cast<float>(root)));
 	}
 
-	/* Checks if two float are equal with a specfied error tolerance. */
+	/* Checks if two floats are equal with a specfied error tolerance. */
 	_Check_return_ inline bool nrlyeql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
 	{
 		return fabsf(a - b) < tolerance;
+	}
+
+	/* Checks if float a is less or equal with a specified error tolernace to float b. */
+	_Check_return_ inline bool lnrlyeql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
+	{
+		return a < b || nrlyeql(a, b, tolerance);
+	}
+
+	/* Checks if float a is greater or equal with a specified error tolernace to float b. */
+	_Check_return_ inline bool gnrlyeql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
+	{
+		return a > b || nrlyeql(a, b, tolerance);
 	}
 #pragma endregion
 #pragma region byte conversion
@@ -284,6 +296,13 @@ namespace Plutonium
 	{
 		constexpr float denom = recip(static_cast<float>(1000000000));
 		return static_cast<int32>(bytes * denom);
+	}
+#pragma endregion
+#pragma region random
+	/* Returns a random interger between the specified minimum and maximum values. */
+	_Check_return_ inline int32 random(_In_ int32 min, _In_ int32 max)
+	{
+		return min + (rand() % (max + 1 - min));
 	}
 #pragma endregion
 }

@@ -34,11 +34,11 @@ void Plutonium::StaticModel::Finalize(void)
 	}
 }
 
-StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *loader)
+StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * loader, std::atomic<float>* progression)
 {
 	/* Load raw data. */
 	FileReader reader(path, true);
-	const ObjLoaderResult *raw = _CrtLoadObjMtl(path);
+	const ObjLoaderResult *raw = _CrtLoadObjMtl(path, progression, 0.7f);
 
 	/* Load individual shapes. */
 	StaticModel *result = new StaticModel(loader->GetWindow());
@@ -69,6 +69,8 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader *l
 			}
 		}
 		else LOG_WAR("Shape '%s' in model '%s' does not define any vertices, skipping mesh!", shape.Name, result->name);
+
+		if (progression) progression->store(0.7f + (static_cast<float>(i) / static_cast<float>(raw->Shapes.size())) * 0.3f);
 	}
 
 	/* Finalize loading. */

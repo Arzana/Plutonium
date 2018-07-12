@@ -7,7 +7,7 @@ namespace Plutonium
 {
 	struct SkyboxRenderer
 	{
-		SkyboxRenderer(_In_ GraphicsAdapter *device, _In_ const char *vrtxShdr, _In_ const char *fragShdr);
+		SkyboxRenderer(_In_ GraphicsAdapter *device);
 		SkyboxRenderer(_In_ const SkyboxRenderer &value) = delete;
 		SkyboxRenderer(_In_ SkyboxRenderer &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
@@ -28,5 +28,6 @@ namespace Plutonium
 
 		void Begin(const Matrix &view, const Matrix &proj);
 		void End(void);
+		void InitShader(void);
 	};
 }

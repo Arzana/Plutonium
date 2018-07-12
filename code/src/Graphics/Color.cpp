@@ -2,6 +2,7 @@
 #include "Core\Math\Basics.h"
 #include "Core\Math\Interpolation.h"
 #include "Core\Diagnostics\Logging.h"
+#include <vector>
 
 using namespace Plutonium;
 
@@ -51,6 +52,31 @@ Color Plutonium::Color::Lerp(Color a, Color b, float v)
 Color Plutonium::Color::Lerp(Color a, Color b, float c, float d, float v)
 {
 	return Color::Lerp(a, b, ilerp(c, d, v));
+}
+
+Color Plutonium::Color::Random(byte gain, bool unique)
+{
+	/* Create static buffer to store all unique colors. */
+	static std::vector<Color> usedColors;
+
+	Color result;
+	do
+	{
+		/* Create random rgb value with minimum gain value. */
+		byte r = static_cast<byte>(random(gain, maxv<byte>()));
+		byte g = static_cast<byte>(random(gain, maxv<byte>()));
+		byte b = static_cast<byte>(random(gain, maxv<byte>()));
+
+		/* Create result and return if not unique. */
+		result = Color(r, g, b);
+		if (!unique) return result;
+
+		/* Loop untill a unique random color is found. */
+	} while (std::find(usedColors.begin(), usedColors.end(), result) != usedColors.end());
+
+	/* Push unique color to the buffer. */
+	usedColors.push_back(result);
+	return result;
 }
 
 Color Plutonium::Color::operator+(Color other) const

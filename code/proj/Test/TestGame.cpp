@@ -21,7 +21,7 @@ void TestGame::Initialize(void)
 	/* Initialize renderers. */
 	srenderer = new StaticRenderer(GetGraphics(), SHDR_PATH("Static3D.vert"), SHDR_PATH("Static3D.frag"));
 	drenderer = new DynamicRenderer(SHDR_PATH("Dynamic3D.vert"), SHDR_PATH("Dynamic3D.frag"));
-	sbrenderer = new SkyboxRenderer(GetGraphics(), SHDR_PATH("Skybox.vert"), SHDR_PATH("Skybox.frag"));
+	sbrenderer = new SkyboxRenderer(GetGraphics());
 	dmrenderer = new DebugMeshRenderer(GetGraphics());
 
 	/* Bind keypress events. */
@@ -87,8 +87,8 @@ void TestGame::LoadContent(void)
 		ShapeCreator::MakeSphere(material->Mesh, 64, 64);
 		material->Mesh->Finalize(GetGraphics()->GetWindow());
 
-		material->AmbientMap = texture;
-		material->Ambient = Color::White;
+		material->DiffuseMap = texture;
+		material->Diffuse = Color::White;
 
 		visualizer = new StaticObject(this, new StaticModel(material), 2);
 		visualizer->Move(Vector3::Up * 5.0f);

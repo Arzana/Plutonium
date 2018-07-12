@@ -11,7 +11,7 @@ public:
 
 protected:
 	Label *lblLoaderState;
-	ProgressBar *pbLoadingPercentage;
+	ProgressBar *pbGlobal, *pbSingle;
 	int32 dotCnt;
 
 	virtual void Initialize(void) override;

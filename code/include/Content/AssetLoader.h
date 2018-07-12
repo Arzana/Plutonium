@@ -2,6 +2,7 @@
 #include <vector>
 #include <deque>
 #include <mutex>
+#include <atomic>
 #include "Core\Events\EventSubscriber.h"
 #include "Graphics\Native\Window.h"
 #include "Streams\FileReader.h"
@@ -40,7 +41,13 @@ namespace Plutonium
 			return wnd;
 		}
 
-		/* gets the current state of the asset loader (requires free!). */
+		/* Gets the current progression of the loaded item. */
+		_Check_return_ inline float GetProgression(void) const
+		{
+			return progression.load();
+		}
+
+		/* Gets the current state of the asset loader (requires free!). */
 		_Check_return_ const char* GetState(void) const;
 		/* Resets the root directory of this asset loader. */
 		void SetRoot(_In_ const char *root);
@@ -170,6 +177,7 @@ namespace Plutonium
 		size_t rootLen;
 		const char *state;
 		std::deque<const char*> loadStack;
+		std::atomic<float> progression;
 
 		std::deque<TextureLoadInfo*> queuedTextures;
 		std::deque<AssetLoadInfo<StaticModel>*> queuedSModels;

@@ -6,6 +6,7 @@ TextureCreationOptions CreateDefaultCubeMap(void)
 {
 	TextureCreationOptions result;
 	result.Type = TextureType::TextureCube;
+	result.SetWrapping(WrapMode::ClampToEdge);
 	return result;
 }
 

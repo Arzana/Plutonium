@@ -100,7 +100,7 @@ void Plutonium::Game::Run(void)
 		if (GetLoadPercentage() >= 1.0f) ++extraTicks;
 	}
 
-	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Seconds());
+	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Milliseconds() * 0.001f);
 
 	/* Excecute game loop. */
 	while (!wnd->Update())

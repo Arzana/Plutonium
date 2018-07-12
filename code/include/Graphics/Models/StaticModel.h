@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include "Graphics\PhongMaterial.h"
 #include "Graphics\Native\Window.h"
 
@@ -50,7 +51,7 @@ namespace Plutonium
 			: wnd(wnd)
 		{}
 
-		static StaticModel* FromFile(const char *path, AssetLoader *loader);
+		static StaticModel* FromFile(const char *path, AssetLoader *loader, std::atomic<float> *progression = nullptr);
 
 		int64 ContainsMaterial(const char *name);
 	};

@@ -3,74 +3,16 @@
 
 using namespace Plutonium;
 
-Vector3 vertices[36] =
-{
-	/* Front. */
-	Vector3(-1.0f,  1.0f, -1.0f),
-	Vector3(-1.0f, -1.0f, -1.0f),
-	Vector3(1.0f, -1.0f, -1.0f),
-	Vector3(1.0f, -1.0f, -1.0f),
-	Vector3(1.0f,  1.0f, -1.0f),
-	Vector3(-1.0f,  1.0f, -1.0f),
-
-	/* Left. */
-	Vector3(-1.0f, -1.0f,  1.0f),
-	Vector3(-1.0f, -1.0f, -1.0f),
-	Vector3(-1.0f,  1.0f, -1.0f),
-	Vector3(-1.0f,  1.0f, -1.0f),
-	Vector3(-1.0f,  1.0f,  1.0f),
-	Vector3(-1.0f, -1.0f,  1.0f),
-
-	/* Right. */
-	Vector3(1.0f, -1.0f, -1.0f),
-	Vector3(1.0f, -1.0f,  1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(1.0f,  1.0f, -1.0f),
-	Vector3(1.0f, -1.0f, -1.0f),
-
-	/* Back. */
-	Vector3(-1.0f, -1.0f,  1.0f),
-	Vector3(-1.0f,  1.0f,  1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(1.0f, -1.0f,  1.0f),
-	Vector3(-1.0f, -1.0f,  1.0f),
-
-	/* Top. */
-	Vector3(-1.0f,  1.0f, -1.0f),
-	Vector3(1.0f,  1.0f, -1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(1.0f,  1.0f,  1.0f),
-	Vector3(-1.0f,  1.0f,  1.0f),
-	Vector3(-1.0f,  1.0f, -1.0f),
-
-	/* Bottom. */
-	Vector3(-1.0f, -1.0f, -1.0f),
-	Vector3(-1.0f, -1.0f,  1.0f),
-	Vector3(1.0f, -1.0f, -1.0f),
-	Vector3(1.0f, -1.0f, -1.0f),
-	Vector3(-1.0f, -1.0f,  1.0f),
-	Vector3(1.0f, -1.0f,  1.0f)
-};
-
-Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device, const char * vrtxShdr, const char * fragShdr)
+Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device)
 	: device(device)
 {
-	/* Load shader and fields from files. */
-	shdr = Shader::FromFile(vrtxShdr, fragShdr);
-
-	/* Get uniforms. */
-	matView = shdr->GetUniform("u_view");
-	matProj = shdr->GetUniform("u_projection");
-	texture = shdr->GetUniform("u_skybox");
-
-	/* Get attributes. */
-	pos = shdr->GetAttribute("a_position");
+	InitShader();
 
 	/* Create single skybox VBO. */
 	vbo = new Buffer(device->GetWindow(), BindTarget::Array);
-	vbo->SetData(BufferUsage::StaticDraw, vertices, sizeof(vertices) / sizeof(Vector3));
+	Mesh mesh("TempMesh");
+	ShapeCreator::MakeBox(&mesh);
+	vbo->SetData(BufferUsage::StaticDraw, mesh.GetVertexAt(0), mesh.GetVertexCount());
 }
 
 Plutonium::SkyboxRenderer::~SkyboxRenderer(void)
@@ -85,7 +27,7 @@ void Plutonium::SkyboxRenderer::Render(const Matrix & view, const Matrix & proj,
 	Begin(view, proj);
 	texture->Set(skybox);
 	vbo->Bind();
-	pos->Initialize(false, sizeof(Vector3), offset_ptr(Vector3, X));
+	pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 
 	/* Render skybox. */
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
@@ -110,4 +52,43 @@ void Plutonium::SkyboxRenderer::End(void)
 	/* End shader and enable depth output. */
 	shdr->End();
 	device->SetDepthOuput(true);
+}
+
+void Plutonium::SkyboxRenderer::InitShader(void)
+{
+	constexpr const char *VRTX_SHDR_SRC =
+		"#version 430 core													\n"
+		
+		"uniform mat4 view;													\n"
+		"uniform mat4 projection;											\n"
+		
+		"in vec3 position;													\n"
+		
+		"out vec3 angle;													\n"
+		
+		"void main()														\n"
+		"{																	\n"
+		"	angle = normalize(position);									\n"
+		"	gl_Position = (projection * view * vec4(position, 1.0f)).xyww;	\n"
+		"}";
+
+	constexpr const char *FRAG_SHDR_SRC =
+		"#version 430 core													\n"
+		
+		"uniform samplerCube skybox;										\n"
+		
+		"in vec3 angle;														\n"
+		
+		"out vec4 fragColor;												\n"
+		
+		"void main()														\n"
+		"{																	\n"
+		"	fragColor = texture(skybox, angle);								\n"
+		"}";
+
+	shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	matView = shdr->GetUniform("view");
+	matProj = shdr->GetUniform("projection");
+	texture = shdr->GetUniform("skybox");
+	pos = shdr->GetAttribute("position");
 }

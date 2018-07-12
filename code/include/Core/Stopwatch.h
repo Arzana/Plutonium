@@ -95,8 +95,9 @@ namespace Plutonium
 		using clock = std::chrono::high_resolution_clock;
 
 		clock::time_point start, end;
+		bool endCalled;
 #if defined (DEBUG)
-		bool startCalled, endCalled;
+		bool startCalled;
 #endif
 
 		/* Gets the amount of clock ticks since End was called or now. */

@@ -3,7 +3,7 @@
 namespace Plutonium
 {
 	/* Defines from where a stream should seek. */
-	enum class SeekOrigin
+	enum class SeekOrigin : int
 	{
 		/* The beginning of the stream. */
 		Begin = 0,
