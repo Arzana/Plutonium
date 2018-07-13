@@ -5,14 +5,12 @@
 Plutonium::MaterialBP::MaterialBP(const char * name, AssetLoader * loader)
 	: Material(name, loader), Ambient(nullptr), Diffuse(nullptr),
 	Specular(nullptr), Opacity(nullptr), Normal(nullptr),
-	SpecularExponent(0.0f)
+	SpecularExponent(1.0f)
 {}
 
-Plutonium::MaterialBP::MaterialBP(const char * name, AssetLoader * loader, Texture * ambient, Texture * diffuse, Texture * specular, Texture * opacity, Texture * normal, float specularExponent)
+Plutonium::MaterialBP::MaterialBP(const char * name, AssetLoader * loader, Texture * ambient, Texture * diffuse, Texture * specular, Texture * opacity, Texture * normal)
 	: MaterialBP(name, loader)
 {
-	SpecularExponent = specularExponent;
-
 	Ambient = ambient ? ambient : CreateDefault("DefaultAmbient", Color::Black);
 	Diffuse = diffuse ? diffuse : CreateDefault("DefaultDiffuse", Color::Black);
 	Specular = specular ? specular : CreateDefault("DefaultSpecular", Color::Black);
@@ -34,7 +32,7 @@ Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoad
 		InitConfig(&blueprint->AmbientMap, blueprint->Ambient, &config);
 		Ambient = loader->LoadTexture(blueprint->AmbientMap.Path, false, &config);
 	}
-	else Ambient = CreateDefault("DefaultAmbient", Color::Black);
+	else Ambient = CreateDefault("DefaultAmbient", blueprint->Ambient);
 
 	/* Import diffuse map is needed. */
 	if (!nullorempty(blueprint->DiffuseMap.Path))
@@ -42,7 +40,7 @@ Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoad
 		InitConfig(&blueprint->DiffuseMap, blueprint->Diffuse, &config);
 		Diffuse = loader->LoadTexture(blueprint->DiffuseMap.Path, false, &config);
 	}
-	else Diffuse = CreateDefault("DefaultDiffuse", Color::Black);
+	else Diffuse = CreateDefault("DefaultDiffuse", blueprint->Diffuse);
 
 	/* Import specular map is needed. */
 	if (!nullorempty(blueprint->SpecularMap.Path))
@@ -50,7 +48,7 @@ Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoad
 		InitConfig(&blueprint->SpecularMap, blueprint->Specular, &config);
 		Specular = loader->LoadTexture(blueprint->SpecularMap.Path, false, &config);
 	}
-	else Specular = CreateDefault("DefaultSpecular", Color::Black);
+	else Specular = CreateDefault("DefaultSpecular", blueprint->Specular);
 
 	/* Import opacity map is needed. */
 	if (!nullorempty(blueprint->AlphaMap.Path))

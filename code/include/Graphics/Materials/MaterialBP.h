@@ -26,7 +26,7 @@ namespace Plutonium
 		/* Initializes an empty instance of a Blinn-Phong material. */
 		MaterialBP(_In_ const char *name, _In_ AssetLoader *loader);
 		/* Initializes an instance of a Blinn_phong material with specified smplers. */
-		MaterialBP(_In_ const char *name, _In_ AssetLoader *loader, _In_ Texture *ambient, _In_ Texture *diffuse, _In_ Texture *specular, _In_ Texture *opacity, _In_ Texture *normal, _In_ float specularExponent);
+		MaterialBP(_In_ const char *name, _In_ AssetLoader *loader, _In_ Texture *ambient, _In_ Texture *diffuse, _In_ Texture *specular, _In_ Texture *opacity, _In_ Texture *normal);
 		/* Initializes a new instance of a Blinn-Phong material from a .obj material blueprint. */
 		MaterialBP(_In_ const ObjLoaderMaterial *blueprint, _In_ AssetLoader *loader);
 		MaterialBP(_In_ const MaterialBP &value) = delete;

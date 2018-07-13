@@ -37,15 +37,16 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	/* Define load weights. */
-	static constexpr int MAP_WEIGHT = 54;
 	static constexpr int SKYBOX_WEIGHT = 5;
 	static constexpr int PER_FIRE_WEIGHT = 10;
 
 	/* Load static map. */
 #if defined (QUICK_MAP)
+	static constexpr int MAP_WEIGHT = 54;
 	constexpr float MAP_SCALE = 1.0f;
 	map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", MAP_WEIGHT);
 #else
+	static constexpr int MAP_WEIGHT = 55;
 	constexpr float MAP_SCALE = 0.03f;
 	map = new StaticObject(this, "models/Sponza/sponza.obj", MAP_WEIGHT);
 #endif
@@ -71,17 +72,10 @@ void TestGame::LoadContent(void)
 	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
 #if defined (QUICK_MAP)
 	UpdateLoadPercentage(PER_FIRE_WEIGHT * 4 * 0.01f);
-#else
-	Color fireColor = Color((byte)254, 211, 60);
-	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
-	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
-	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
-	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, -220.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
-#endif
 
 	GetLoader()->LoadTexture("textures/uv.png", Callback<Texture>([&](const AssetLoader*, Texture *texture)
 	{
-		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr, 10.0f);
+		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr);
 
 		Mesh *mesh = new Mesh("VisualizerMesh");
 		ShapeCreator::MakeSphere(mesh, 64, 64);
@@ -89,13 +83,22 @@ void TestGame::LoadContent(void)
 
 		visualizer = new StaticObject(this, new StaticModel(mat, mesh), 2);
 		visualizer->Move(Vector3::Up * 5.0f);
-	}));
+}));
+#else
+	Color fireColor = Color((byte)254, 211, 60);
+	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
+	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, -220.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
+	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
+	fires.push_back(new Fire(this, Vector3(490.6f, 172.6f, -220.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
+#endif
 }
 
 void TestGame::UnLoadContent(void)
 {
 	delete_s(map);
+#if defined (QUICK_MAP)
 	delete_s(visualizer);
+#endif
 	delete_s(sun);
 	for (size_t i = 0; i < fires.size(); i++) delete_s(fires.at(i));
 	fires.clear();
@@ -149,7 +152,9 @@ void TestGame::Render(float dt)
 		/* Render static map. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
 		srenderer->Render(map);
+#if defined (QUICK_MAP)
 		srenderer->Render(visualizer);
+#endif
 		srenderer->End();
 
 		/* Render skybox. */
@@ -159,9 +164,10 @@ void TestGame::Render(float dt)
 	{
 		/* Render debug scene. */
 		dmrenderer->AddModel(map);
-		dmrenderer->AddModel(visualizer);
 		dmrenderer->AddLight(sun);
-#if !defined (QUICK_MAP)
+#if defined (QUICK_MAP)
+		dmrenderer->AddModel(visualizer);
+#else
 		for (size_t i = 0; i < fires.size(); i++)
 		{
 			dmrenderer->AddModel(fires.at(i)->object);
