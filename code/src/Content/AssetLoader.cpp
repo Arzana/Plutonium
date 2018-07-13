@@ -33,8 +33,8 @@ Plutonium::AssetLoader::AssetLoader(WindowHandler wnd, const char * root)
 	ioThread = new TickThread("PuIO");
 	ioThread->Initialize.Add([&](TickThreadHandler, EventArgs) { threadID = _CrtGetCurrentThreadId(); });
 
-	/* 
-	Add specified loader methods to the tick queue. 
+	/*
+	Add specified loader methods to the tick queue.
 	Make sure the fonts have priority because they will most likely be used in the load screen.
 	*/
 	ioThread->Tick.Add(this, &AssetLoader::TickIoFonts);
@@ -111,7 +111,7 @@ bool Plutonium::AssetLoader::Unload(TextureHandler texture)
 
 	/* Searches the buffer for the texture. */
 	lockTex.lock();
-	int32 idx = GetTextureIdx(texture->path);
+	int32 idx = GetTextureIdx(texture->path, texture->config);
 	if (idx != -1)
 	{
 		/* Check for corrupt unloading. */
@@ -247,7 +247,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 {
 	lockTex.lock();
 
-	int32 idx = GetTextureIdx(path);
+	int32 idx = GetTextureIdx(path, *config);
 	if (idx != -1)
 	{
 		/* If texture is already loaded return it and increase it's refrence count. */
@@ -262,7 +262,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 		for (size_t i = 0; i < queuedTextures.size(); i++)
 		{
 			TextureLoadInfo *cur = queuedTextures.at(i);
-			if (!strcmp(cur->Names->GetFilePath(), path))
+			if (eqlstr(cur->Names->GetFilePath(), path) && *cur->Options == *config)
 			{
 				/* Add callback to the list if asset found and increase ref count. */
 				++cur->RefCnt;
@@ -293,7 +293,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 {
 	lockTex.lock();
 
-	int32 idx = GetTextureIdx(paths[0]);
+	int32 idx = GetTextureIdx(paths[0], *config);
 	if (idx != -1)
 	{
 		/* If texture is already loaded return it and increase it's refrence count. */
@@ -308,7 +308,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 		for (size_t i = 0; i < queuedTextures.size(); i++)
 		{
 			TextureLoadInfo *cur = queuedTextures.at(i);
-			if (!strcmp(cur->Names->GetFilePath(), paths[0]))
+			if (eqlstr(cur->Names->GetFilePath(), paths[0]) && *cur->Options == *config)
 			{
 				/* Add callback to the list if asset found and increase ref count. */
 				++cur->RefCnt;
@@ -317,7 +317,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 				return;
 			}
 		}
-		
+
 		ASSERT_IF(config->Type != TextureType::TextureCube, "Invalid teture creation options for skybox!");
 
 		/* We have to load the texture so create an infomation struct. */
@@ -644,12 +644,14 @@ bool Plutonium::AssetLoader::OnIoThread(void)
 	return _CrtGetCurrentThreadId() == threadID;
 }
 
-int32 Plutonium::AssetLoader::GetTextureIdx(const char * path)
+int32 Plutonium::AssetLoader::GetTextureIdx(const char * path, const TextureCreationOptions & config)
 {
 	/* Attempt to find the requested texture or return -1 when not found. */
 	for (size_t i = 0; i < loadedTextures.size(); i++)
 	{
-		if (!strcmp(loadedTextures.at(i)->Asset->path, path)) return static_cast<int32>(i);
+		AssetInfo<Texture> *cur = loadedTextures.at(i);
+
+		if (eqlstr(cur->Asset->path, path) && cur->Asset->config == config) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -660,7 +662,7 @@ int32 Plutonium::AssetLoader::GetSModelIdx(const char * path)
 	/* Attempt to find the requested model or return -1 when not found. */
 	for (size_t i = 0; i < loadedSModels.size(); i++)
 	{
-		if (!strcmp(loadedSModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
+		if (eqlstr(loadedSModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;
@@ -671,7 +673,7 @@ int32 Plutonium::AssetLoader::GetDModelIdx(const char * path)
 	/* Attempt to find the requested model or return -1 when not found. */
 	for (size_t i = 0; i < loadedDModels.size(); i++)
 	{
-		if (!strcmp(loadedDModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
+		if (eqlstr(loadedDModels.at(i)->Asset->path, path)) return static_cast<int32>(i);
 	}
 
 	return -1;

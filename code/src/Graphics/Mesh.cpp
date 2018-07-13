@@ -96,6 +96,18 @@ void Plutonium::Mesh::SetTangent(VertexFormat & vrtx1, VertexFormat & vrtx2, Ver
 	vrtx3.Tangent = tangent;
 }
 
+void Plutonium::Mesh::SetNormal(VertexFormat & vrtx1, VertexFormat & vrtx2, VertexFormat & vrtx3)
+{
+	/* Calculate a surface normal and normalize it in the same place in memory. */
+	Vector3 n = cross(vrtx2.Position - vrtx3.Position, vrtx1.Position - vrtx2.Position);
+	n.Normalize();
+
+	/* Assign normal to all vertexes. */
+	vrtx1.Normal = n;
+	vrtx2.Normal = n;
+	vrtx3.Normal = n;
+}
+
 Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 {
 	/* Get desired shape. */
@@ -107,19 +119,34 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 	result->vertices = malloc_s(VertexFormat, result->vrtxCnt);
 
 	/* Copy vertices. */
+	bool redefineNormal = false;
 	for (size_t i = 0, j = 0; i < mesh.Indices.size(); i++, j++)
 	{
 		const ObjLoaderVertex &idx = mesh.Indices.at(i);
 
+		/* Copy over the position and the texture coordinate. */
 		result->vertices[i].Position = buffer->Vertices.at(idx.Vertex);
-		result->vertices[i].Normal = buffer->Normals.at(idx.Normal);
 		result->vertices[i].Texture = buffer->TexCoords.at(idx.TexCoord);
 
-		/* Set tangent for the last three vertices. */
+		/* If a normal is present just copy it over otherwise specify that the normal needs to be redefined for this triangle. */
+		if (idx.Normal != -1) result->vertices[i].Normal = buffer->Normals.at(idx.Normal);
+		else redefineNormal = true;
+
+		/* Set tangent (and normal if needed) for the last three vertices. */
 		if (j > 1)
 		{
+			VertexFormat &vrtx1 = result->vertices[i - 2];
+			VertexFormat &vrtx2 = result->vertices[i - 1];
+			VertexFormat &vrtx3 = result->vertices[i];
+
+			if (redefineNormal)
+			{
+				SetNormal(vrtx1, vrtx2, vrtx3);
+				redefineNormal = false;
+			}
+
 			j = -1;
-			SetTangent(result->vertices[i - 2], result->vertices[i - 1], result->vertices[i]);
+			SetTangent(vrtx1, vrtx2, vrtx3);
 		}
 	}
 

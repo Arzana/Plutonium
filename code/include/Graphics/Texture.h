@@ -26,6 +26,8 @@ namespace Plutonium
 
 		_Check_return_ Texture& operator =(_In_ const Texture &other) = delete;
 		_Check_return_ Texture& operator =(_In_ Texture &&other) = delete;
+		/* Checks whether the two specified textures differ. */
+		_Check_return_ bool operator !=(_In_ const Texture &other) const;
 
 		/* Gets the name assigned to the texture. */
 		_Check_return_ inline const char* GetName(void) const

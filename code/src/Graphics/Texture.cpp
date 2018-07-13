@@ -45,6 +45,13 @@ Plutonium::Texture::~Texture(void)
 	if (path) free_s(path);
 }
 
+bool Plutonium::Texture::operator!=(const Texture & other) const
+{
+	if (eqlstr(name, other.name)) return false;
+	if (eqlstr(path, other.path)) return false;
+	return config != other.config;
+}
+
 int32 Plutonium::Texture::GetChannels(void) const
 {
 	switch (frmt)

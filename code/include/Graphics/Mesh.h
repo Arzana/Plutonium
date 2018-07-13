@@ -55,6 +55,8 @@ namespace Plutonium
 		size_t vrtxCnt;
 		Buffer *buffer;
 
+		static void SetNormal(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
+
 		static Mesh* FromFile(const ObjLoaderResult *buffer, size_t idx);
 		static Mesh* FromFile(const Md2LoaderResult *buffer, size_t idx);
 	};

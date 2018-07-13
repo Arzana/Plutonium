@@ -196,7 +196,7 @@ namespace Plutonium
 		void SetState(const char *value);
 		bool OnIoThread(void);
 
-		int32 GetTextureIdx(const char *path);
+		int32 GetTextureIdx(const char *path, const TextureCreationOptions &config);
 		int32 GetSModelIdx(const char *path);
 		int32 GetDModelIdx(const char *path);
 		int32 GetFontIdx(const char *path);

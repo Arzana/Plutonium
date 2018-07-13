@@ -11,6 +11,8 @@ namespace Plutonium
 	public:
 		/* The name of this material. */
 		const char *Name;
+		/* Whether this material should be rendered. */
+		bool Visible;
 
 #if defined (_DEBUG)
 		/* A unique random color assigned to the material to use in debug rendering (only available on debug mode!). */

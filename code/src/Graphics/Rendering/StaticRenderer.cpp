@@ -88,24 +88,27 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 	{
 		/* Get current textured mesh. */
 		MaterialBP *cur = model->GetModel()->shapes.at(i).Material;
-		Buffer *buffer = model->GetModel()->shapes.at(i).Mesh->GetVertexBuffer();
+		if (cur->Visible)
+		{
+			Buffer *buffer = model->GetModel()->shapes.at(i).Mesh->GetVertexBuffer();
 
-		/* Set material attributes. */
-		mapAmbi->Set(cur->Ambient);
-		mapDiff->Set(cur->Diffuse);
-		mapSpec->Set(cur->Specular);
-		mapAlpha->Set(cur->Opacity);
-		mapBump->Set(cur->Normal);
-		specExp->Set(cur->SpecularExponent);
+			/* Set material attributes. */
+			mapAmbi->Set(cur->Ambient);
+			mapDiff->Set(cur->Diffuse);
+			mapSpec->Set(cur->Specular);
+			mapAlpha->Set(cur->Opacity);
+			mapBump->Set(cur->Normal);
+			specExp->Set(cur->SpecularExponent);
 
-		/* Set mesh buffer attributes. */
-		buffer->Bind();
-		pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-		norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-		tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-		uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+			/* Set mesh buffer attributes. */
+			buffer->Bind();
+			pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+			tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+			uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
-		/* Render current shape. */
-		DrawTris(buffer);
+			/* Render current shape. */
+			DrawTris(buffer);
+		}
 	}
 }

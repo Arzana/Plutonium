@@ -2,7 +2,7 @@
 #include "Core\StringFunctions.h"
 
 Plutonium::Material::Material(const char * name, AssetLoader * loader)
-	: Name(heapstr(name)), loader(loader)
+	: Name(heapstr(name)), loader(loader), Visible(true)
 #if defined(DEBUG)
 	, Debug(Color::Random(25))
 #endif

@@ -62,3 +62,35 @@ Plutonium::TextureCreationOptions::TextureCreationOptions(void)
 	MinFilter(ZoomFilter::Linear), MinFilterMipMap(ZoomFilter::LinearMipMapLinear), MagFilter(ZoomFilter::Linear),
 	Gain(0.0f), Range(1.0f), MipMapLevels(4)
 {}
+
+bool Plutonium::TextureCreationOptions::operator!=(const TextureCreationOptions & other) const
+{
+	if (Type == other.Type) return false;
+	if (HorizontalWrap == other.HorizontalWrap) return false;
+	if (VerticalWrap == other.VerticalWrap) return false;
+	if (DepthWrap == other.DepthWrap) return false;
+	if (MinFilter == other.MinFilter) return false;
+	if (MinFilterMipMap == other.MinFilterMipMap) return false;
+	if (MagFilter == other.MagFilter) return false;
+	if (Gain == other.Gain) return false;
+	if (Range == other.Range) return false;
+	if (Filter == other.Filter) return false;
+	if (MipMapLevels == other.MipMapLevels) return false;
+	return IsDepth != other.IsDepth;
+}
+
+bool Plutonium::TextureCreationOptions::operator==(const TextureCreationOptions & other) const
+{
+	if (Type != other.Type) return false;
+	if (HorizontalWrap != other.HorizontalWrap) return false;
+	if (VerticalWrap != other.VerticalWrap) return false;
+	if (DepthWrap != other.DepthWrap) return false;
+	if (MinFilter != other.MinFilter) return false;
+	if (MinFilterMipMap != other.MinFilterMipMap) return false;
+	if (MagFilter != other.MagFilter) return false;
+	if (Gain != other.Gain) return false;
+	if (Range != other.Range) return false;
+	if (Filter != other.Filter) return false;
+	if (MipMapLevels != other.MipMapLevels) return false;
+	return IsDepth == other.IsDepth;
+}

@@ -135,6 +135,11 @@ namespace Plutonium
 		/* Initializes a new instance of texture options. */
 		TextureCreationOptions(void);
 
+		/* Checks if the two specified texture createion options differ. */
+		_Check_return_ bool operator !=(_In_ const TextureCreationOptions &other) const;
+		/* Checks if the two specified texture createion options are equal. */
+		_Check_return_ bool operator ==(_In_ const TextureCreationOptions &other) const;
+
 		/* Set both horizontal and vertical wrapping to the specified value. */
 		inline void SetWrapping(_In_ WrapMode mode)
 		{
