@@ -667,7 +667,11 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult *result, ObjLoaderM
 	}
 
 	/* Check if we can triangulate the shape. */
-	LOG_THROW_IF(face.size() < 3 || face.size() > 4, "Cannot convert face with %zu vertices into triangles!", face.size());
+	if (face.size() < 3 || face.size() > 4)
+	{
+		LOG_WAR("Cannot convert face with %zu vertices into triangles, skipping face!", face.size());
+		return;
+	}
 
 	/* If shape is a quad, triangulate it and make sure to add the smoothing group for the new triangle. */
 	if (face.size() == 4)
@@ -1228,7 +1232,7 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 	freea_s(path);
 }
 
-const ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float>* progression, float progressionMod)
+ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float>* progression, float progressionMod)
 {
 	/* Setup input and open obj file. */
 	ObjLoaderResult *result = new ObjLoaderResult();

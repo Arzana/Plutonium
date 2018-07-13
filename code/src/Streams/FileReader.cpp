@@ -195,7 +195,7 @@ const char * Plutonium::FileReader::ReadLine(void)
 	result[len] = '\0';
 
 	/* Check for reading errors. */
-	LOG_THROW_IF(checkLen != (len + nll), "Expected length of string doesn't match actual length, this should never occur!");
+	LOG_THROW_IF(checkLen > (len + nll), "Expected length of string doesn't match actual length, this should never occur!");
 	return result;
 }
 

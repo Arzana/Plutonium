@@ -6,6 +6,8 @@
 #include "Content\AssetLoader.h"
 #include "Graphics\Materials\MaterialBP.h"
 
+constexpr bool ALLOW_MESH_MERGES = true;
+
 using namespace Plutonium;
 
 Plutonium::StaticModel::StaticModel(MaterialBP * material, Mesh * mesh)
@@ -41,26 +43,29 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 {
 	/* Load raw data. */
 	FileReader reader(path, true);
-	const ObjLoaderResult *raw = _CrtLoadObjMtl(path, progression, 0.7f);
+	ObjLoaderResult *raw = _CrtLoadObjMtl(path, progression, 0.7f);
 
 	/* Load individual shapes. */
 	StaticModel *result = new StaticModel(loader->GetWindow());
 	result->path = heapstr(path);
 	result->name = heapstr(reader.GetFileNameWithoutExtension());
-	for (size_t i = 0; i < raw->Shapes.size(); i++)
+	
+	float initialShapeCnt = recip(static_cast<float>(raw->Shapes.size()));
+	float loaded = 0.0f;
+	while (raw->Shapes.size() > 0)
 	{
 		/* Get current mesh and associated material, skip any mesh that does not define any indices. */
-		const ObjLoaderMesh &shape = raw->Shapes.at(i);
+		const ObjLoaderMesh &shape = raw->Shapes.back();
 		if (shape.Indices.size() > 0)
 		{
 			const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : ObjLoaderMaterial();
 
 			/* Create final mesh. */
-			Mesh *mesh = Mesh::FromFile(raw, i);
+			Mesh *mesh = Mesh::FromFile(raw, raw->Shapes.size() - 1);
 
 			/* Check if we can merge the mesh into another one to have on draw calls. */
 			int64 j = result->ContainsMaterial(material.Name);
-			if (j != -1)
+			if (j != -1 && ALLOW_MESH_MERGES)
 			{
 				result->shapes.at(j).Mesh->Append(mesh);
 				delete_s(mesh);
@@ -73,7 +78,8 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 		}
 		else LOG_WAR("Shape '%s' in model '%s' does not define any vertices, skipping mesh!", shape.Name, result->name);
 
-		if (progression) progression->store(0.7f + (static_cast<float>(i) / static_cast<float>(raw->Shapes.size())) * 0.3f);
+		raw->Shapes.pop_back();
+		if (progression) progression->store(0.7f + (loaded++ * initialShapeCnt) * 0.3f);
 	}
 
 	/* Finalize loading. */
