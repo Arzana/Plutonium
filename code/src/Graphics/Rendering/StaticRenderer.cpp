@@ -1,4 +1,5 @@
 #include "Graphics\Rendering\StaticRenderer.h"
+#include "Graphics\Materials\MaterialBP.h"
 
 Plutonium::StaticRenderer::StaticRenderer(const GraphicsAdapter *device, const char * vrtxShdr, const char * fragShdr)
 	: Renderer(Shader::FromFile(vrtxShdr, fragShdr)), device(device)
@@ -17,10 +18,6 @@ Plutonium::StaticRenderer::StaticRenderer(const GraphicsAdapter *device, const c
 	mapAlpha = shdr->GetUniform("u_textures.alpha");
 	mapBump = shdr->GetUniform("u_textures.bump");
 
-	filter = shdr->GetUniform("u_colors.lfilter");
-	ambient = shdr->GetUniform("u_colors.ambient");
-	diffuse = shdr->GetUniform("u_colors.diffuse");
-	specular = shdr->GetUniform("u_colors.specular");
 	specExp = shdr->GetUniform("u_colors.specularExponent");
 	gamma = shdr->GetUniform("u_colors.displayGamma");
 
@@ -90,20 +87,16 @@ void Plutonium::StaticRenderer::Render(const StaticObject * model)
 	for (size_t i = 0; i < model->GetModel()->shapes.size(); i++)
 	{
 		/* Get current textured mesh. */
-		PhongMaterial *cur = model->GetModel()->shapes.at(i);
-		Buffer *buffer = cur->Mesh->GetVertexBuffer();
+		MaterialBP *cur = model->GetModel()->shapes.at(i).Material;
+		Buffer *buffer = model->GetModel()->shapes.at(i).Mesh->GetVertexBuffer();
 
 		/* Set material attributes. */
-		mapAmbi->Set(cur->AmbientMap);
-		mapDiff->Set(cur->DiffuseMap);
-		mapSpec->Set(cur->SpecularMap);
-		mapAlpha->Set(cur->AlphaMap);
-		mapBump->Set(cur->BumpMap);
-		specExp->Set(cur->SpecularExp);
-		filter->Set(cur->Transmittance);
-		ambient->Set(cur->Ambient);
-		diffuse->Set(cur->Diffuse);
-		specular->Set(cur->Specular);
+		mapAmbi->Set(cur->Ambient);
+		mapDiff->Set(cur->Diffuse);
+		mapSpec->Set(cur->Specular);
+		mapAlpha->Set(cur->Opacity);
+		mapBump->Set(cur->Normal);
+		specExp->Set(cur->SpecularExponent);
 
 		/* Set mesh buffer attributes. */
 		buffer->Bind();

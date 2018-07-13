@@ -1,6 +1,7 @@
 #pragma once
 #include <glad\glad.h>
-#include <Core\Math\Constants.h>
+#include "Core\Math\Constants.h"
+#include "Graphics\Color.h"
 
 namespace Plutonium
 {
@@ -124,6 +125,8 @@ namespace Plutonium
 		float Gain;
 		/* Defines the color range of the texture. */
 		float Range;
+		/* Defines the color filter applied to each pixel in the texture. */
+		Color Filter;
 		/* Defines the amount of mipmaps levels the texture should generate. */
 		int32 MipMapLevels;
 		/* Defines whether the texture should store its data as floats instead of bytes. */

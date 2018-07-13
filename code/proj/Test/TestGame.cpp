@@ -1,5 +1,6 @@
 #include "TestGame.h"
 #include "Graphics\Models\Shapes.h"
+#include "Graphics\Materials\MaterialBP.h"
 
 #define QUICK_MAP
 #define SHDR_PATH(name)		"./assets/shaders/" name
@@ -80,17 +81,13 @@ void TestGame::LoadContent(void)
 
 	GetLoader()->LoadTexture("textures/uv.png", Callback<Texture>([&](const AssetLoader*, Texture *texture)
 	{
-		PhongMaterial *material = PhongMaterial::GetDefault(GetGraphics()->GetWindow());
-		material->MaterialName = "VisualizerMaterial";
+		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr, 10.0f);
 
-		material->Mesh = new Mesh("VisualizerMesh");
-		ShapeCreator::MakeSphere(material->Mesh, 64, 64);
-		material->Mesh->Finalize(GetGraphics()->GetWindow());
+		Mesh *mesh = new Mesh("VisualizerMesh");
+		ShapeCreator::MakeSphere(mesh, 64, 64);
+		mesh->Finalize(GetGraphics()->GetWindow());
 
-		material->DiffuseMap = texture;
-		material->Diffuse = Color::White;
-
-		visualizer = new StaticObject(this, new StaticModel(material), 2);
+		visualizer = new StaticObject(this, new StaticModel(mat, mesh), 2);
 		visualizer->Move(Vector3::Up * 5.0f);
 	}));
 }

@@ -58,4 +58,9 @@ namespace Plutonium
 	_Check_return_ bool eqlstr(_In_ const char *str1, _In_ const char *str2);
 	/* Checks if the two specified strings are equal. */
 	_Check_return_ bool eqlstr(_In_ const char32_t *str1, _In_ const char32_t *str2);
+
+	/* Check if the specified string is either null or empty. */
+	_Check_return_ bool nullorempty(_In_ const char *str);
+	/* Check if the specified string is either null or empty. */
+	_Check_return_ bool nullorempty(_In_ const char32_t *str);
 }

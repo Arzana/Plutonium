@@ -94,6 +94,12 @@ Color Plutonium::Color::operator*(float scalar) const
 	return Color(byte(R * scalar), byte(G * scalar), byte(B * scalar), byte(A * scalar));
 }
 
+Color Plutonium::Color::operator*(Color other) const
+{
+	Vector4 result = ToVector4() * other.ToVector4();
+	return Color(result.X, result.Y, result.Z, result.W);
+}
+
 Vector4 Plutonium::Color::ToVector4(void) const
 {
 	return Vector4(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD, A * CONV_MOD);

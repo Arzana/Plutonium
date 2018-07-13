@@ -1,17 +1,27 @@
 #pragma once
 #include <atomic>
-#include "Graphics\PhongMaterial.h"
+#include "Graphics\Mesh.h"
 #include "Graphics\Native\Window.h"
 
 namespace Plutonium
 {
 	struct AssetLoader;
+	struct MaterialBP;
 
 	/* Defines a basic multitextured model that can be placed in the world. */
 	struct StaticModel
 	{
+		/* Defines a shape within the static model. */
+		struct Shape
+		{
+			/* The material associated with this shape. */
+			MaterialBP *Material;
+			/* The mesh associated with this shape. */
+			Mesh *Mesh;
+		};
+
 		/* Creates a simple static model with one material (material wil be deleted by the model). */
-		StaticModel(_In_ PhongMaterial *material);
+		StaticModel(_In_ MaterialBP *material, _In_ Mesh *mesh);
 		StaticModel(_In_ const StaticModel &value) = delete;
 		StaticModel(_In_ StaticModel &&value) = delete;
 		/* Releases the resources allocated by the model. */
@@ -27,7 +37,7 @@ namespace Plutonium
 		}
 
 		/* Gets the underlying shapes of the model. */
-		_Check_return_ inline const std::vector<PhongMaterial*>* GetShapes(void) const
+		_Check_return_ inline const std::vector<Shape>* GetShapes(void) const
 		{
 			return &shapes;
 		}
@@ -44,7 +54,7 @@ namespace Plutonium
 		friend struct DebugMeshRenderer;
 		friend struct AssetLoader;
 
-		std::vector<PhongMaterial*> shapes;
+		std::vector<Shape> shapes;
 		WindowHandler wnd;
 
 		StaticModel(WindowHandler wnd)

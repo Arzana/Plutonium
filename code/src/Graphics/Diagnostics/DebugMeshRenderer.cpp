@@ -1,4 +1,5 @@
 #include "Graphics\Diagnostics\DebugMeshRenderer.h"
+#include "Graphics\Materials\MaterialBP.h"
 
 Plutonium::DebugMeshRenderer::DebugMeshRenderer(GraphicsAdapter * device, DebuggableValues mode)
 	: mode(mode)
@@ -87,13 +88,13 @@ void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model)
 	const StaticModel *underlying = model->GetModel();
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
-		const PhongMaterial *cur = underlying->shapes.at(i);
+		StaticModel::Shape cur = underlying->shapes.at(i);
 #if defined (DEBUG)
-		Color clr = cur->Debug;
+		Color clr = cur.Material->Debug;
 #else
 		Color clr = Color::Red;
 #endif
-		wfrenderer->Render(model->GetWorld(), cur->Mesh, clr);
+		wfrenderer->Render(model->GetWorld(), underlying->shapes.at(i).Mesh, clr);
 	}
 }
 
@@ -107,8 +108,8 @@ void Plutonium::DebugMeshRenderer::RenderNStatic(const StaticObject * model)
 	const StaticModel *underlying = model->GetModel();
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
-		PhongMaterial *cur = underlying->shapes.at(i);
-		nrenderer->Render(model->GetWorld(), cur->Mesh, cur->BumpMap);
+		StaticModel::Shape cur = underlying->shapes.at(i);
+		nrenderer->Render(model->GetWorld(), cur.Mesh, cur.Material->Normal);
 	}
 }
 
@@ -122,8 +123,8 @@ void Plutonium::DebugMeshRenderer::RenderUlStatic(const StaticObject * model)
 	const StaticModel *underlying = model->GetModel();
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
-		PhongMaterial *cur = underlying->shapes.at(i);
-		ulrenderer->Render(model->GetWorld(), cur->Mesh, cur->DiffuseMap, cur->AlphaMap);
+		StaticModel::Shape cur = underlying->shapes.at(i);
+		ulrenderer->Render(model->GetWorld(), cur.Mesh, cur.Material->Diffuse, cur.Material->Opacity);
 	}
 }
 
@@ -137,8 +138,8 @@ void Plutonium::DebugMeshRenderer::RenderLStatic(const StaticObject * model)
 	const StaticModel *underlying = model->GetModel();
 	for (size_t i = 0; i < underlying->shapes.size(); i++)
 	{
-		PhongMaterial *cur = underlying->shapes.at(i);
-		lrenderer->Render(model->GetWorld(), cur->Mesh);
+		StaticModel::Shape cur = underlying->shapes.at(i);
+		lrenderer->Render(model->GetWorld(), cur.Mesh);
 	}
 }
 
@@ -155,8 +156,8 @@ void Plutonium::DebugMeshRenderer::RenderLDLight(const DirectionalLight * light)
 		const StaticModel *model = object->GetModel();
 		for (size_t j = 0; j < model->shapes.size(); j++)
 		{
-			PhongMaterial *cur = model->shapes.at(j);
-			lrenderer->Render(object->GetWorld(), cur->Mesh, cur->BumpMap, light);
+			StaticModel::Shape cur = model->shapes.at(j);
+			lrenderer->Render(object->GetWorld(), cur.Mesh, cur.Material->Normal, light);
 		}
 	}
 
@@ -175,8 +176,8 @@ void Plutonium::DebugMeshRenderer::RenderLPLight(const PointLight * light)
 		const StaticModel *model = object->GetModel();
 		for (size_t j = 0; j < model->shapes.size(); j++)
 		{
-			PhongMaterial *cur = model->shapes.at(j);
-			lrenderer->Render(object->GetWorld(), cur->Mesh, cur->BumpMap, light);
+			StaticModel::Shape cur = model->shapes.at(j);
+			lrenderer->Render(object->GetWorld(), cur.Mesh, cur.Material->Normal, light);
 		}
 	}
 

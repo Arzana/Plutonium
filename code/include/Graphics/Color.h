@@ -104,6 +104,8 @@ namespace Plutonium
 		_Check_return_ Color operator -(_In_ Color other) const;
 		/* Multiples the color by a specified scalar. */
 		_Check_return_ Color operator *(_In_ float scalar) const;
+		/* Multiples the color by a specified color. */
+		_Check_return_ Color operator *(_In_ Color other) const;
 
 		/* Checks whether two colors are equal. */
 		_Check_return_ inline bool operator ==(_In_ Color other) const

@@ -226,6 +226,8 @@
     <ClCompile Include="..\..\src\Graphics\GUI\Items\ProgressBar.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Slider.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\TextBox.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Materials\Material.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Materials\MaterialBP.cpp" />
     <ClCompile Include="..\..\src\Graphics\Mesh.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp" />
     <ClCompile Include="..\..\src\Graphics\Models\Md2Loader.cpp" />
@@ -236,7 +238,6 @@
     <ClCompile Include="..\..\src\Graphics\Native\OpenGL.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\RenderTarget.cpp" />
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
-    <ClCompile Include="..\..\src\Graphics\PhongMaterial.cpp" />
     <ClCompile Include="..\..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
@@ -328,6 +329,8 @@
     <ClInclude Include="..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\Light.h" />
     <ClInclude Include="..\..\include\Graphics\Lighting\PointLight.h" />
+    <ClInclude Include="..\..\include\Graphics\Materials\Material.h" />
+    <ClInclude Include="..\..\include\Graphics\Materials\MaterialBP.h" />
     <ClInclude Include="..\..\include\Graphics\Mesh.h" />
     <ClInclude Include="..\..\include\Graphics\MeshVertexFormat.h" />
     <ClInclude Include="..\..\include\Graphics\Models\AnimationInfo.h" />
@@ -365,7 +368,6 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\StitchedTexture2D.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />
-    <ClInclude Include="..\..\include\Graphics\PhongMaterial.h" />
     <ClInclude Include="..\..\include\Graphics\Texture.h" />
     <ClInclude Include="..\..\include\Graphics\TextureOptions.h" />
     <ClInclude Include="..\..\include\Graphics\Text\Character.h" />

@@ -227,14 +227,17 @@ void Plutonium::Texture::ConvertFormat(byte ** data, int32 srcChannels, int32 de
 void Plutonium::Texture::GenerateTexture(byte ** data)
 {
 	/* Apply texture options associated with the raw data. */
-	if (config.Type == TextureType::TextureCube)
+	if (!config.IsDepth)
 	{
-		for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+		if (config.Type == TextureType::TextureCube)
 		{
-			SetPreDataTransferTextureOptions(data[i]);
+			for (size_t i = 0; i < CUBEMAP_TEXTURE_COUNT; i++)
+			{
+				SetPreDataTransferTextureOptions(data[i]);
+			}
 		}
+		else SetPreDataTransferTextureOptions(*data);
 	}
-	else SetPreDataTransferTextureOptions(*data);
 
 	/* Make sure the OpenGL commands are excecuted on the main thread. */
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
@@ -275,16 +278,21 @@ void Plutonium::Texture::SetPreDataTransferTextureOptions(byte * data)
 	const size_t channels = GetChannels(), size = Width * Height * channels;
 
 	/* Check if texture defines brightness gain / scaling. */
-	if (config.Gain != 0.0f || config.Range != 1.0f)
+	if (config.Gain != 0.0f || config.Range != 1.0f || config.Filter != Color::White)
 	{
 		const byte gain = static_cast<byte>(config.Gain);
+		const Vector4 filter = config.Filter.ToVector4();
 
-		/* Apply brightness gain and scale. */
+		/* Apply brightness gain and scale. Apply color filter as well. */
 		for (size_t i = 0; i < size; i += channels)
 		{
-			data[i] = static_cast<byte>((data[i] + gain) * config.Range);
-			data[i + 1] = static_cast<byte>((data[i + 1] + gain) * config.Range);
-			data[i + 2] = static_cast<byte>((data[i + 2] + gain) * config.Range);
+			data[i] = static_cast<byte>((data[i] + gain) * config.Range * filter.X);
+			if (channels > 1)
+			{
+				data[i + 1] = static_cast<byte>((data[i + 1] + gain) * config.Range * filter.Y);
+				data[i + 2] = static_cast<byte>((data[i + 2] + gain) * config.Range * filter.Z);
+				if (channels > 3) data[i + 3] = static_cast<byte>(data[i + 3] * filter.W);
+			}
 		}
 	}
 }

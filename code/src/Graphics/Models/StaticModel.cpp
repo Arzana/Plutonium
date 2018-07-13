@@ -4,13 +4,14 @@
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
 #include "Content\AssetLoader.h"
+#include "Graphics\Materials\MaterialBP.h"
 
 using namespace Plutonium;
 
-Plutonium::StaticModel::StaticModel(PhongMaterial * material)
-	: wnd(nullptr), name(heapstr(material->MaterialName)), path(heapstr(""))
+Plutonium::StaticModel::StaticModel(MaterialBP * material, Mesh * mesh)
+	: wnd(nullptr), name(heapstr(material->Name)), path(heapstr(""))
 {
-	shapes.push_back(material);
+	shapes.push_back({ material, mesh });
 }
 
 Plutonium::StaticModel::~StaticModel(void)
@@ -21,7 +22,9 @@ Plutonium::StaticModel::~StaticModel(void)
 	/* Free underlying shapes. */
 	while (shapes.size() > 0)
 	{
-		delete_s(shapes.back());
+		Shape cur = shapes.back();
+		delete_s(cur.Material);
+		delete_s(cur.Mesh);
 		shapes.pop_back();
 	}
 }
@@ -30,7 +33,7 @@ void Plutonium::StaticModel::Finalize(void)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		shapes.at(i)->Mesh->Finalize(wnd);
+		shapes.at(i).Mesh->Finalize(wnd);
 	}
 }
 
@@ -59,13 +62,13 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 			int64 j = result->ContainsMaterial(material.Name);
 			if (j != -1)
 			{
-				result->shapes.at(j)->Mesh->Append(mesh);
+				result->shapes.at(j).Mesh->Append(mesh);
 				delete_s(mesh);
 			}
 			else
 			{
 				/* Push material to shapes. */
-				result->shapes.push_back(new PhongMaterial(mesh, &material, loader));
+				result->shapes.push_back({ new MaterialBP(&material, loader), mesh });
 			}
 		}
 		else LOG_WAR("Shape '%s' in model '%s' does not define any vertices, skipping mesh!", shape.Name, result->name);
@@ -84,8 +87,7 @@ int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		PhongMaterial *cur = shapes.at(i);
-		if (!strcmp(cur->MaterialName, name)) return i;
+		if (eqlstr(shapes.at(i).Material->Name, name)) return i;
 	}
 
 	return -1;

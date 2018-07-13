@@ -359,3 +359,13 @@ bool Plutonium::eqlstr(const char32_t * str1, const char32_t * str2)
 		if (c1 == '\0') return true;
 	}
 }
+
+bool Plutonium::nullorempty(const char * str)
+{
+	return strlen(str) < 1;
+}
+
+bool Plutonium::nullorempty(const char32_t * str)
+{
+	return strlen(str) < 1;
+}
