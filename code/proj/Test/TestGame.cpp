@@ -3,7 +3,8 @@
 #include "Graphics\Materials\MaterialBP.h"
 
 #define QUICK_MAP
-//#define USE_DEFERRED
+#define USE_DEFERRED
+//#define ENABLE_DAY_NIGHT
 #define SHDR_PATH(name)		"./assets/shaders/" name
 
 TestGame::TestGame(void)
@@ -203,7 +204,7 @@ void TestGame::UpdateDayState(float dt)
 	constexpr float SUNRISE = TAU - 9.0f * DEG2RAD;
 
 	/* Update light orientation. */
-#ifndef QUICK_MAP
+#ifdef ENABLE_DAY_NIGHT
 	sunAngle = modrads(sunAngle += DEG2RAD * dt * 25.0f);
 #else
 	sunAngle = DEG2RAD * 45.0f;

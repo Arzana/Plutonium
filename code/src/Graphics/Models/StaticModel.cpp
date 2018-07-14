@@ -78,6 +78,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 			{
 				/* Push material to shapes. */
 				result->shapes.push_back({ new MaterialBP(&material, loader), mesh });
+				if (!ALLOW_MESH_MERGES) mesh->Finalize(loader->GetWindow());
 			}
 		}
 		else LOG_WAR("Shape '%s' in model '%s' does not define any vertices, skipping mesh!", shape.Name, result->name);
@@ -87,8 +88,8 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 	}
 
 	/* Finalize loading. */
-	result->Finalize();
-	LOG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);
+	if (ALLOW_MESH_MERGES) result->Finalize();
+	LOG_MSG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);
 	delete_s(raw);
 	return result;
 }

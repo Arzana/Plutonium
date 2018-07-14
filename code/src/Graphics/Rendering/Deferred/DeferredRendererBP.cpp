@@ -14,9 +14,10 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(GraphicsAdapter * device)
 	/* Initialize g buffer. */
 	fbo = new RenderTarget(device);
 	normalSpec = fbo->Attach("Normal / Specular map", AttachmentOutputType::LpVector4);
-	posSpec = fbo->Attach("Position /Specular exponent", AttachmentOutputType::LpVector4);
+	posSpec = fbo->Attach("Position / Specular exponent", AttachmentOutputType::LpVector4);
 	ambient = fbo->Attach("Ambient", AttachmentOutputType::RGB);
 	diffuse = fbo->Attach("Diffuse", AttachmentOutputType::RGB);
+	fbo->Finalize();
 
 	InitGPass();
 	InitDPass();
@@ -65,6 +66,8 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 		queuedDLights.pop();
 	}
 	EndDirLightPass();
+
+	fbo->BlitDepth();
 }
 
 void Plutonium::DeferredRendererBP::InitGPass(void)
@@ -92,7 +95,7 @@ void Plutonium::DeferredRendererBP::InitGPass(void)
 
 		"void main()																				\n"
 		"{																							\n"
-		"	Frag.Position = (Model * vec4(Position, 1.0f)).xyz;										\n"
+		"	Frag.Position = (View * Model * vec4(Position, 1.0f)).xyz;								\n"
 		"	Frag.Uv = Uv;																			\n"
 
 		"	vec3 t = normalize((Model * vec4(Tangent, 0.0f)).xyz);									\n"
@@ -136,10 +139,13 @@ void Plutonium::DeferredRendererBP::InitGPass(void)
 		"	vec4 alpha = texture(Object.Opacity, Frag.Uv);											\n"
 		"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f) discard;	\n"
 
-		"	vec3 normal = Frag.TBN * normalize(texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f);	\n"
-		"	Ambient = texture(Object.Ambient, Frag.Uv).rbg;											\n"
+		"	vec3 normal = texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f;						\n"
+		"	normal = Frag.TBN * normalize(normal);													\n"
+
+		"	Ambient = texture(Object.Ambient, Frag.Uv).rgb;											\n"
 		"	Diffuse = texture(Object.Diffuse, Frag.Uv).rgb;											\n"
-		"	NormalSpecular = vec4(normal, texture(Object.Specular, Frag.Uv).r);						\n"
+		"	NormalSpecular.xyz = normal;															\n"
+		"	NormalSpecular.w = texture(Object.Specular, Frag.Uv).r;									\n"
 		"	PositionSpecular.xyz = Frag.Position;													\n"
 		"	PositionSpecular.w = Object.SpecularExponent;											\n"
 		"}";

@@ -711,7 +711,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 }
 
 /* Handles the load material line. */
-inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderResult *result)
+inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderResult *result, std::vector<const char*> *loadedMaterialLibraries)
 {
 	/* Create buffer space for a maximum of 16 files. */
 	constexpr size_t BUFFER_LEN = 16;
@@ -725,7 +725,22 @@ inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderR
 	/* Parse material library. */
 	for (size_t i = 0; i < fileCnt; i++)
 	{
-		LoadMaterialLibraryFromFile(dir, buffer[i], result);
+		/* Only load the material library if it is not yet loaded. */
+		bool alreadyLoaded = false;
+		for (size_t i = 0; i < loadedMaterialLibraries->size(); i++)
+		{
+			if (eqlstr(loadedMaterialLibraries->at(i), buffer[i]))
+			{
+				alreadyLoaded = true;
+				break;
+			}
+		}
+		if (!alreadyLoaded)
+		{
+			loadedMaterialLibraries->push_back(heapstr(buffer[i]));
+			LoadMaterialLibraryFromFile(dir, buffer[i], result);
+		}
+
 		freea_s(buffer[i]);
 	}
 }
@@ -785,7 +800,7 @@ void HandleSmoothingGroupLine(const char *line, uint64 *smoothingGroup)
 }
 
 /* Handles the raw line within an obj file. */
-void HandleObjLine(const char *line, const char *dir, ObjLoaderResult *result, ObjLoaderMesh *curMesh, uint64 *smoothingGroup)
+void HandleObjLine(const char *line, const char *dir, ObjLoaderResult *result, ObjLoaderMesh *curMesh, uint64 *smoothingGroup, std::vector<const char*> *loadedMaterialLibraries)
 {
 	/* Skip leading spaces. */
 	SkipUseless(&line);
@@ -831,7 +846,7 @@ void HandleObjLine(const char *line, const char *dir, ObjLoaderResult *result, O
 	/* Check if line is load material line. */
 	if (!strncmp(line, "mtllib", 6) && IS_SPACE(line[6]))
 	{
-		HandleLoadMaterialLine(line + 7, dir, result);
+		HandleLoadMaterialLine(line + 7, dir, result, loadedMaterialLibraries);
 		return;
 	}
 
@@ -1241,6 +1256,7 @@ ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float
 	/* Defines current mesh and smoothing group. */
 	ObjLoaderMesh shape;
 	uint64 smoothingGroup;
+	std::vector<const char*> loadedMaterialLibraries;
 
 	/* Read untill the end of the file. */
 	float fileLength = recip(static_cast<float>(reader.GetSize()));
@@ -1257,10 +1273,13 @@ ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float
 				progression->store(static_cast<float>(pos) * fileLength * progressionMod);
 			}
 
-			HandleObjLine(line, reader.GetFileDirectory(), result, &shape, &smoothingGroup);
+			HandleObjLine(line, reader.GetFileDirectory(), result, &shape, &smoothingGroup, &loadedMaterialLibraries);
 		}
 		free_s(line);
 	}
+
+	/* Release the loaded material libraries. */
+	for (size_t i = 0; i < loadedMaterialLibraries.size(); i++) free_s(loadedMaterialLibraries.at(i));
 
 	/* Add last shape to result if needed and return. */
 	if (strlen(shape.Name) > 0) result->Shapes.push_back(shape);

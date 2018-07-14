@@ -23,13 +23,17 @@ namespace Plutonium
 		_Check_return_ const RenderTargetAttachment* Attach(_In_ const char *name, _In_ AttachmentOutputType type);
 		/* Finalizes this render target. */
 		void Finalize(void);
+		/* Copies the content of the render targets depth buffer to the default framebuffer. */
+		void BlitDepth(void);
 
 	private:
 		friend struct GraphicsAdapter;
 
 		std::vector<RenderTargetAttachment*> attachments;
-		uint32 ptr;
+		uint32 ptrFbo, ptrRbo;
 		GraphicsAdapter *device;
 		int32 width, height;
+
+		void AttachDepthBuffer(void);
 	};
 }

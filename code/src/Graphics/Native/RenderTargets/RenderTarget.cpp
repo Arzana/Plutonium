@@ -7,12 +7,15 @@ Plutonium::RenderTarget::RenderTarget(GraphicsAdapter * device)
 	Rectangle viewport = device->GetWindow()->GetClientBounds();
 	width = static_cast<int32>(viewport.GetWidth());
 	height = static_cast<int32>(viewport.GetHeight());
-	glGenFramebuffers(1, &ptr);
+	glGenFramebuffers(1, &ptrFbo);
+
+	AttachDepthBuffer();
 }
 
 Plutonium::RenderTarget::~RenderTarget(void)
 {
-	glDeleteFramebuffers(1, &ptr);
+	glDeleteFramebuffers(1, &ptrFbo);
+	glDeleteRenderbuffers(1, &ptrRbo);
 	for (size_t i = 0; i < attachments.size(); i++)
 	{
 		delete_s(attachments.at(i));
@@ -38,5 +41,25 @@ void Plutonium::RenderTarget::Finalize(void)
 	device->SetRenderTarget(this);
 	glDrawBuffers(static_cast<GLsizei>(attachments.size()), buffers);
 	LOG_THROW_IF(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete!");
+	device->SetRenderTarget(nullptr);
+}
+
+void Plutonium::RenderTarget::BlitDepth(void)
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, ptrFbo);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	device->SetRenderTarget(nullptr);
+}
+
+void Plutonium::RenderTarget::AttachDepthBuffer(void)
+{
+	device->SetRenderTarget(this);
+
+	glGenRenderbuffers(1, &ptrRbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, ptrRbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ptrRbo);
+
 	device->SetRenderTarget(nullptr);
 }
