@@ -285,7 +285,7 @@ void Plutonium::Texture::SetPreDataTransferTextureOptions(byte * data)
 	const size_t channels = GetChannels(), size = Width * Height * channels;
 
 	/* Check if texture defines brightness gain / scaling. */
-	if (config.Gain != 0.0f || config.Range != 1.0f || config.Filter != Color::White)
+	if (config.Gain != 0.0f || config.Range != 1.0f || config.Filter != Color::White())
 	{
 		const byte gain = static_cast<byte>(config.Gain);
 		const Vector4 filter = config.Filter.ToVector4();

@@ -57,7 +57,7 @@ const char * Plutonium::_CrtGetVisualTextureType(TextureType type)
 }
 
 Plutonium::TextureCreationOptions::TextureCreationOptions(void)
-	: Type(TextureType::Texture2D), IsDepth(false), Filter(Color::White),
+	: Type(TextureType::Texture2D), IsDepth(false), Filter(Color::White()),
 	HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat), DepthWrap(WrapMode::Repeat),
 	MinFilter(ZoomFilter::Linear), MinFilterMipMap(ZoomFilter::LinearMipMapLinear), MagFilter(ZoomFilter::Linear),
 	Gain(0.0f), Range(1.0f), MipMapLevels(4)

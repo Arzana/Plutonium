@@ -53,7 +53,7 @@ namespace Plutonium
 		/* Gets the default value for the text color. */
 		_Check_return_ inline static Color GetDefaultTextColor(void)
 		{
-			return Color::Black;
+			return Color::Black();
 		}
 
 		/* Gets the default value for the text offset. */

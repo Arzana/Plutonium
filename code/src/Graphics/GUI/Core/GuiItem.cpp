@@ -100,7 +100,7 @@ void Plutonium::GuiItem::Draw(GuiItemRenderer * renderer)
 
 void Plutonium::GuiItem::MoveRelative(Anchors anchor, float x, float y)
 {
-	MoveRelativeInternal(anchor, Vector2(x, y), Vector2::Zero);
+	MoveRelativeInternal(anchor, Vector2(x, y), Vector2::Zero());
 }
 
 void Plutonium::GuiItem::Show(void)
@@ -120,7 +120,7 @@ void Plutonium::GuiItem::SetAnchors(Anchors value, float xOffset, float yOffset)
 	if (value == anchor) return;
 	LOG_THROW_IF(!_CrtIsAnchorValid(value), "Invalid anchor value passed!");
 	offsetFromAnchorPoint = Vector2(xOffset, yOffset);
-	if ((anchor = value) != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero, offsetFromAnchorPoint);
+	if ((anchor = value) != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
 }
 
 void Plutonium::GuiItem::SetBackColor(Color color)
@@ -247,7 +247,7 @@ void Plutonium::GuiItem::RenderGuiItem(GuiItemRenderer * renderer)
 
 Plutonium::Vector2 Plutonium::GuiItem::GetMinSize(void) const
 {
-	return max(background ? background->GetSize() : Vector2::Zero, focusedBackground ? focusedBackground->GetSize() : Vector2::Zero);
+	return max(background ? background->GetSize() : Vector2::Zero(), focusedBackground ? focusedBackground->GetSize() : Vector2::Zero());
 }
 
 void Plutonium::GuiItem::CheckBounds(Vector2 size)

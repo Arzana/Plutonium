@@ -11,11 +11,11 @@ Plutonium::MaterialBP::MaterialBP(const char * name, AssetLoader * loader)
 Plutonium::MaterialBP::MaterialBP(const char * name, AssetLoader * loader, Texture * ambient, Texture * diffuse, Texture * specular, Texture * opacity, Texture * normal)
 	: MaterialBP(name, loader)
 {
-	Ambient = ambient ? ambient : CreateDefault("DefaultAmbient", Color::Black);
-	Diffuse = diffuse ? diffuse : CreateDefault("DefaultDiffuse", Color::Black);
-	Specular = specular ? specular : CreateDefault("DefaultSpecular", Color::Black);
-	Opacity = opacity ? opacity : CreateDefault("DefaultOpacity", Color::White);
-	Normal = normal ? normal : CreateDefault("DefaultNormal", Color::Malibu);
+	Ambient = ambient ? ambient : CreateDefault("DefaultAmbient", Color::Black());
+	Diffuse = diffuse ? diffuse : CreateDefault("DefaultDiffuse", Color::Black());
+	Specular = specular ? specular : CreateDefault("DefaultSpecular", Color::Black());
+	Opacity = opacity ? opacity : CreateDefault("DefaultOpacity", Color::White());
+	Normal = normal ? normal : CreateDefault("DefaultNormal", Color::Malibu());
 }
 
 Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoader * loader)
@@ -53,18 +53,18 @@ Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoad
 	/* Import opacity map is needed. */
 	if (!nullorempty(blueprint->AlphaMap.Path))
 	{
-		InitConfig(&blueprint->AlphaMap, Color::White, &config);
+		InitConfig(&blueprint->AlphaMap, Color::White(), &config);
 		Opacity = loader->LoadTexture(blueprint->AlphaMap.Path, false, &config);
 	}
-	else Opacity = CreateDefault("DefaultOpacity", Color::White);
+	else Opacity = CreateDefault("DefaultOpacity", Color::White());
 
 	/* Import normal map is needed. */
 	if (!nullorempty(blueprint->BumpMap.Path))
 	{
-		InitConfig(&blueprint->BumpMap, Color::White, &config);
+		InitConfig(&blueprint->BumpMap, Color::White(), &config);
 		Normal = loader->LoadTexture(blueprint->BumpMap.Path, false, &config);
 	}
-	else Normal = CreateDefault("DefaultNormal", Color::Malibu);
+	else Normal = CreateDefault("DefaultNormal", Color::Malibu());
 }
 
 Plutonium::MaterialBP::~MaterialBP(void)

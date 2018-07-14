@@ -119,8 +119,8 @@ void Plutonium::GraphicsAdapter::SetRenderTarget(const RenderTarget * target)
 {
 	if (target)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, target->ptrFb);
-		glViewport(0, 0, static_cast<GLsizei>(target->Width), static_cast<GLsizei>(target->Height));
+		glBindFramebuffer(GL_FRAMEBUFFER, target->ptr);
+		glViewport(0, 0, static_cast<GLsizei>(target->width), static_cast<GLsizei>(target->height));
 	}
 	else
 	{

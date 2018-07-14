@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics\Texture.h"
+#include "Graphics\Native\RenderTargets\RenderTargetAttachment.h"
 #include "Core\Math\Matrix.h"
 #include "Graphics\Color.h"
 #include "Field.h"
@@ -42,6 +42,8 @@ namespace Plutonium
 		}
 		/* Attempts to set the uniform to a specified texture value. */
 		void Set(_In_ const Texture *value);
+		/* Attempts to set the uniform to a specified render target attachment. */
+		void Set(_In_ const RenderTargetAttachment *value);
 
 	protected:
 		/* Returns whether this field is a attribute or a uniform. */

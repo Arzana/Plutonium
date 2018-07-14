@@ -129,7 +129,7 @@ void Plutonium::Label::HandleAutoSize(void)
 		Vector2 size = GetSize();
 		Vector2 dim = strlen(visibleText) > 0 ? dim = font->MeasureString(visibleText) + offset * 2.0f : GetMinSize();
 
-		if (dim != Vector2::Zero && (dim.X != size.X || dim.Y != size.Y)) SetSize(dim);
+		if (dim != Vector2::Zero() && (dim.X != size.X || dim.Y != size.Y)) SetSize(dim);
 	}
 }
 

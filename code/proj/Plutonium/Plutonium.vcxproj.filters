@@ -168,17 +168,20 @@
     <Filter Include="Source Files\Graphics\Materials">
       <UniqueIdentifier>{8f72aecb-29a3-43ec-a50b-58460e347cca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Native\RenderTargets">
+      <UniqueIdentifier>{34afa415-612a-4316-bcb3-960e61b023fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Native\RenderTargets">
+      <UniqueIdentifier>{c1a46d69-feba-4785-a714-83190cec36cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Rendering\Deferred">
+      <UniqueIdentifier>{02d5f681-8011-4493-8093-ddded2e3cd95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Rendering\Deferred">
+      <UniqueIdentifier>{07467947-bcfc-4a7a-89cf-1589185b64f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Core\Math\Vector2.cpp">
-      <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Core\Math\Vector3.cpp">
-      <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Core\Math\Vector4.cpp">
-      <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Core\Math\Matrix.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
@@ -347,12 +350,6 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\LightingRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Native\RenderTarget.cpp">
-      <Filter>Source Files\Graphics\Native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Rendering\StitchedTexture2D.cpp">
-      <Filter>Source Files\Graphics\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp">
       <Filter>Source Files\Graphics\GUI\Core</Filter>
     </ClCompile>
@@ -394,6 +391,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Materials\MaterialBP.cpp">
       <Filter>Source Files\Graphics\Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\RenderTargets\RenderTargetAttachment.cpp">
+      <Filter>Source Files\Graphics\Native\RenderTargets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Native\RenderTargets\RenderTarget.cpp">
+      <Filter>Source Files\Graphics\Native\RenderTargets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\Deferred\DeferredRendererBP.cpp">
+      <Filter>Source Files\Graphics\Rendering\Deferred</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -691,12 +697,6 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\LightingRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Native\RenderTarget.h">
-      <Filter>Header Files\Graphics\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Rendering\StitchedTexture2D.h">
-      <Filter>Header Files\Graphics\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h">
       <Filter>Header Files\Graphics\GUI\Core</Filter>
     </ClInclude>
@@ -774,6 +774,15 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Materials\MaterialBP.h">
       <Filter>Header Files\Graphics\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTargetAttachment.h">
+      <Filter>Header Files\Graphics\Native\RenderTargets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTarget.h">
+      <Filter>Header Files\Graphics\Native\RenderTargets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\Deferred\DeferredRendererBP.h">
+      <Filter>Header Files\Graphics\Rendering\Deferred</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

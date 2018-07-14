@@ -20,7 +20,7 @@ namespace Plutonium
 		/* Starts the renderer. */
 		void Begin(_In_ const Matrix &view, _In_ const Matrix &proj);
 		/* Renders a single shape's wireframe. */
-		void Render(_In_ const Matrix &world, _In_ const Mesh *mesh, _In_opt_ Color color = Color::White);
+		void Render(_In_ const Matrix &world, _In_ const Mesh *mesh, _In_opt_ Color color = Color::White());
 		/* Ends the renderer. */
 		void End(void);
 

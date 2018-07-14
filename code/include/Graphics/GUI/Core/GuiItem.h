@@ -99,7 +99,7 @@ namespace Plutonium
 		/* Gets the default value for the background color. */
 		_Check_return_ static inline Color GetDefaultBackColor(void)
 		{
-			return Color::WhiteSmoke;
+			return Color::WhiteSmoke();
 		}
 
 		/* Gets the default value for the GuiItem bounds. */

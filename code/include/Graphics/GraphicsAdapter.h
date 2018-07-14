@@ -2,7 +2,7 @@
 #include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Graphics\Native\Monitor.h"
 #include "Graphics\Native\Window.h"
-#include "Graphics\Native\RenderTarget.h"
+#include "Graphics\Native\RenderTargets\RenderTarget.h"
 #include "Graphics\Native\BlendState.h"
 #include "Graphics\Native\BlendType.h"
 #include "Graphics\Native\FaceCullState.h"

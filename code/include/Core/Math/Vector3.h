@@ -7,29 +7,6 @@ namespace Plutonium
 	/* Defines a three dimentional vector. */
 	typedef struct Vector3
 	{
-		/* [0, 0, 0] */
-		const static Vector3 Zero;
-		/* [1, 0, 0] */
-		const static Vector3 UnitX;
-		/* [0, 1, 0] */
-		const static Vector3 UnitY;
-		/* [0, 0, 1] */
-		const static Vector3 UnitZ;
-		/* [1, 1, 1] */
-		const static Vector3 One;
-		/* [1, 0, 0] */
-		const static Vector3 Right;
-		/* [-1, 0, 0] */
-		const static Vector3 Left;
-		/* [0, 1, 0] */
-		const static Vector3 Up;
-		/* [0, -1, 0] */
-		const static Vector3 Down;
-		/* [0, 0, 1] */
-		const static Vector3 Backward;
-		/* [0, 0, -1] */
-		const static Vector3 Forward;
-
 		union
 		{
 			/* All components of the vector. */
@@ -164,6 +141,79 @@ namespace Plutonium
 		_Check_return_ inline bool operator !=(_In_ Vector3 v) const
 		{
 			return X != v.X || Y != v.Y || Z != v.Z;
+		}
+
+		/* [0, 0, 0] */
+		_Check_return_ static inline Vector3 Zero(void)
+		{
+			static Vector3 result = Vector3();
+			return result;
+		}
+
+		/* [1, 0, 0] */
+		_Check_return_ static inline Vector3 UnitX(void)
+		{
+			static Vector3 result = Vector3(1.0f, 0.0f, 0.0f);
+			return result;
+		}
+		/* [0, 1, 0] */
+		_Check_return_ static inline Vector3 UnitY(void)
+		{
+			static Vector3 result = Vector3(0.0f, 1.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 0, 1] */
+		_Check_return_ static inline Vector3 UnitZ(void)
+		{
+			static Vector3 result = Vector3(0.0f, 0.0f, 1.0f);
+			return result;
+		}
+
+		/* [1, 1, 1] */
+		_Check_return_ static inline Vector3 One(void)
+		{
+			static Vector3 result = Vector3(1.0f);
+			return result;
+		}
+
+		/* [1, 0, 0] */
+		_Check_return_ static inline Vector3 Right(void)
+		{
+			return UnitX();
+		}
+
+		/* [-1, 0, 0] */
+		_Check_return_ static inline Vector3 Left(void)
+		{
+			static Vector3 result = Vector3(-1.0f, 0.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 1, 0] */
+		_Check_return_ static inline Vector3 Up(void)
+		{
+			return UnitY();
+		}
+
+		/* [0, -1, 0] */
+		_Check_return_ static inline Vector3 Down(void)
+		{
+			static Vector3 result = Vector3(0.0f, -1.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 0, 1] */
+		_Check_return_ static inline Vector3 Backward(void)
+		{
+			return UnitZ();
+		}
+
+		/* [0, 0, -1] */
+		_Check_return_ static inline Vector3 Forward(void)
+		{
+			static Vector3 result = Vector3(0.0f, 0.0f, -1.0f);
+			return result;
 		}
 
 		/* Creates a directional vector from an angle around the Y axis. */

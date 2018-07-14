@@ -22,9 +22,9 @@ namespace Plutonium
 		_Check_return_ FontRenderer& operator =(_In_ FontRenderer &&other) = delete;
 
 		/* Adds a string to the font renderer to be rendered in the next frame. */
-		void AddString(_In_ Vector2 pos, _In_ const char *str, _In_ Color clr = Color::White);
+		void AddString(_In_ Vector2 pos, _In_ const char *str, _In_ Color clr = Color::White());
 		/* Adds a string to the font renderer to be rendered in the next frame. */
-		void AddString(_In_ Vector2 pos, _In_ const char32 *str, _In_ Color clr = Color::White);
+		void AddString(_In_ Vector2 pos, _In_ const char32 *str, _In_ Color clr = Color::White());
 		/* Renders the strings specified throughout the frame. */
 		virtual void Render(void);
 

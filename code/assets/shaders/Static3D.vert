@@ -10,7 +10,7 @@ struct Transform
 
 struct FragInfo
 {
-	vec3 position;
+	vec3 pos;
 	vec2 uv;
 	mat3 tbn;
 };
@@ -29,8 +29,8 @@ out FragInfo a_frag;
 
 void main()
 {	
-	// Calculate vertex world position for specular will be interpolated to be correct fragment position.
-	a_frag.position = (u_transform.view * u_transform.model * vec4(a_position, 1.0f)).xyz;
+	// Calculate the depth at this vertex to later on convert into a position in the fragment shader.
+	a_frag.pos = (u_transform.view * u_transform.model * vec4(a_position, 1.0f)).xyz;
 	
 	// Calculate the tangent-bitangent-normal matrix.
 	vec3 t = normalize((u_transform.model * vec4(a_tangent, 0.0f)).xyz);

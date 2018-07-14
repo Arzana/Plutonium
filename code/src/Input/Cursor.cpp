@@ -153,7 +153,7 @@ Plutonium::Cursor::Cursor(const Window * wnd)
 void Plutonium::Cursor::Reset(void)
 {
 	/* Reset scrollwheel delta and movement. */
-	ScrollWheel = Vector2::Zero;
+	ScrollWheel = Vector2::Zero();
 	DeltaX = 0;
 	DeltaY = 0;
 }

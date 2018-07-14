@@ -2,6 +2,7 @@
 #include <Game.h>
 #include <Graphics\Diagnostics\DebugMeshRenderer.h>
 #include <Graphics\Rendering\StaticRenderer.h>
+#include <Graphics\Rendering\Deferred\DeferredRendererBP.h>
 #include <Graphics\Rendering\DynamicRenderer.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
 #include <Components\Camera.h>
@@ -42,6 +43,7 @@ private:
 	/* Renderers. */
 	DebugMeshRenderer * dmrenderer;
 	StaticRenderer *srenderer;
+	DeferredRendererBP *renderer;
 	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
 	DebuggableValues renderMode;

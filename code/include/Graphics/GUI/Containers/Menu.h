@@ -84,7 +84,7 @@ namespace Plutonium
 		void LoadTexture(_In_ const char *path, _In_opt_ const TextureCreationOptions * config = &TextureCreationOptions::Default2D);
 
 		/* Adds a debug string to the draw queue, this should only be used for debugging purposes and will not work on release mode! */
-		void DrawString(_In_ Vector2 position, _In_ const char *text, _In_opt_ Color color = Color::White);
+		void DrawString(_In_ Vector2 position, _In_ const char *text, _In_opt_ Color color = Color::White());
 
 		/* Initializes the menu, asset loading should take place here. */
 		virtual void Initialize(void) override;

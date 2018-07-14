@@ -93,10 +93,20 @@ void Plutonium::Uniform::Set(const Matrix & value)
 
 void Plutonium::Uniform::Set(const Texture * value)
 {
-	ASSERT_IF(!value, "texture cannot be null!");
+	ASSERT_IF(!value, "Texture cannot be null!");
 	DBG_CHECK(TextureTypeToFieldType(value->config.Type));
 
 	glActiveTexture(GL_TEXTURE0 + sampler);
 	glBindTexture(_CrtEnum2Int(value->config.Type), value->ptr);
+	glUniform1i(ptr, sampler);
+}
+
+void Plutonium::Uniform::Set(const RenderTargetAttachment * value)
+{
+	ASSERT_IF(!value, "Render target attachment cannot be null!");
+	DBG_CHECK(FieldType::Texture);
+
+	glActiveTexture(GL_TEXTURE0 + sampler);
+	glBindTexture(GL_TEXTURE_2D, value->ptr);
 	glUniform1i(ptr, sampler);
 }

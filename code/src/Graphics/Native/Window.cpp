@@ -218,12 +218,12 @@ void Plutonium::Window::SetMode(WindowMode mode)
 		break;
 	case Plutonium::WindowMode::BorderlessFullscreen:
 		/* Move and resize the window. */
-		SetBounds(Vector2::Zero, display.GetClientSize());
+		SetBounds(Vector2::Zero(), display.GetClientSize());
 		break;
 	case Plutonium::WindowMode::Fullscreen:
 		/* Set the monitor to the specified current monitor. */
 		glfwSetWindowMonitor(hndlr, display.Handle, 0, 0, w, h, display.RefreshRate);
-		SetBounds(Vector2::Zero, vpBounds.Size);
+		SetBounds(Vector2::Zero(), vpBounds.Size);
 		break;
 	default:
 		LOG_WAR("Attempted to set unsupported window mode!");

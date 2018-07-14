@@ -131,7 +131,7 @@ void Plutonium::TextBox::SetMaximumSize(Vector2 size)
 {
 	if (size == maxSize) return;
 
-	maxSize = size != Vector2::Zero ? size : Vector2(maxv<float>());
+	maxSize = size != Vector2::Zero() ? size : Vector2(maxv<float>());
 	HandleAutoSize();
 }
 
@@ -205,7 +205,7 @@ void Plutonium::TextBox::HandleAutoSize(void)
 		if (!showLine) freea_s(buffer);
 
 		/* Only apply autosize if the text is not empty. */
-		if (textDim != Vector2::Zero)
+		if (textDim != Vector2::Zero())
 		{
 			const Vector2 desired = clamp(textDim + GetTextOffset() * 2.0f, minSize, maxSize);
 			if (desired != size) SetSize(desired);

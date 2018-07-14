@@ -46,7 +46,7 @@ namespace Plutonium
 		/* Gets whether the box has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
 		{
-			return Size == Vector3::Zero;
+			return Size == Vector3::Zero();
 		}
 
 		/* Gets the absolute width of the box. */

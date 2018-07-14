@@ -20,8 +20,8 @@ void LoadScreen::Create(void)
 	lblLoaderState = AddLabel();
 	lblLoaderState->SetAutoSize(true);
 	lblLoaderState->SetAnchors(Anchors::TopLeft);
-	lblLoaderState->SetBackColor(Color::Transparent);
-	lblLoaderState->SetTextColor(Color::WhiteSmoke);
+	lblLoaderState->SetBackColor(Color::Transparent());
+	lblLoaderState->SetTextColor(Color::WhiteSmoke());
 	lblLoaderState->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = game->GetLoader()->GetState();
@@ -31,14 +31,14 @@ void LoadScreen::Create(void)
 	pbSingle = AddProgressBar();
 	pbSingle->SetBackgroundImage(GetTexture("stone"));
 	pbSingle->SetBarImage(GetTexture("water"));
-	pbSingle->SetBarColor(Color::White);
+	pbSingle->SetBarColor(Color::White());
 	pbSingle->SetWidth(600);
 	pbSingle->SetAnchors(Anchors::BottomCenter);
 
 	pbGlobal = AddProgressBar();
 	pbGlobal->SetBackgroundImage(GetTexture("stone"));
 	pbGlobal->SetBarImage(GetTexture("water"));
-	pbGlobal->SetBarColor(Color::White);
+	pbGlobal->SetBarColor(Color::White());
 	pbGlobal->SetWidth(600);
 	pbGlobal->SetAnchors(Anchors::BottomCenter, 0.0f, static_cast<float>(-pbSingle->GetHeight()));
 }

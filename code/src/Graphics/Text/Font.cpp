@@ -21,7 +21,7 @@ Plutonium::Font::~Font(void) noexcept
 
 Vector2 Plutonium::Font::MeasureString(const char * str) const
 {
-	if (!str) return Vector2::Zero;
+	if (!str) return Vector2::Zero();
 
 	char32 *wstr = heapwstr(str);
 	Vector2 result = MeasureString(wstr);
@@ -31,12 +31,12 @@ Vector2 Plutonium::Font::MeasureString(const char * str) const
 
 Vector2 Plutonium::Font::MeasureString(const char32 * str) const
 {
-	if (!str) return Vector2::Zero;
+	if (!str) return Vector2::Zero();
 
 	/* Initialize result and temporary values. */
 	float width = 0.0f;
 	float lineHeight = static_cast<float>(lineSpace);
-	Vector2 offset = Vector2::Zero;
+	Vector2 offset = Vector2::Zero();
 	bool firstChar = true;
 
 	/* Loop through all chars in the string. */
@@ -187,8 +187,8 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 	stbtt_GetFontVMetrics(info, &ascent, &descent, &lineGap);
 
 	/* Save the total size of the stitched texture map. */
-	Vector2 finalMapSize = Vector2::Zero;
-	Vector2 curLineSize = Vector2::Zero;
+	Vector2 finalMapSize = Vector2::Zero();
+	Vector2 curLineSize = Vector2::Zero();
 
 	/* Loop through character defines by the font. */
 	size_t i = 0;
@@ -225,7 +225,7 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 
 				/* Reset current line. */
 				x = 0;
-				curLineSize = Vector2::Zero;
+				curLineSize = Vector2::Zero();
 			}
 			else
 			{
@@ -253,7 +253,7 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 {
 	byte *data = calloc_s(byte, map->Width * map->Height * 4);
-	Vector2 b2uv = Vector2::One / Vector2(static_cast<float>(map->Width), static_cast<float>(map->Height));
+	Vector2 b2uv = Vector2::One() / Vector2(static_cast<float>(map->Width), static_cast<float>(map->Height));
 
 	/* Loop through character defines by the font. */
 	int32 max = map->Width * map->Height;

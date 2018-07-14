@@ -10,10 +10,10 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(GraphicsAdapter * device, Debugg
 	lrenderer = new LightingRenderer(device);
 
 	defBmpMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default bump");
-	defBmpMap->SetData(Color::Malibu.ToArray());
+	defBmpMap->SetData(Color::Malibu().ToArray());
 
 	defAlphaMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default alpha");
-	defAlphaMap->SetData(Color::White.ToArray());
+	defAlphaMap->SetData(Color::White().ToArray());
 }
 
 Plutonium::DebugMeshRenderer::~DebugMeshRenderer(void)
@@ -92,7 +92,7 @@ void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model)
 #if defined (DEBUG)
 		Color clr = cur.Material->Debug;
 #else
-		Color clr = Color::Red;
+		Color clr = Color::Red();
 #endif
 		wfrenderer->Render(model->GetWorld(), underlying->shapes.at(i).Mesh, clr);
 	}
@@ -100,7 +100,7 @@ void Plutonium::DebugMeshRenderer::RenderWfStatic(const StaticObject * model)
 
 void Plutonium::DebugMeshRenderer::RenderWfDynamic(const DynamicObject * model)
 {
-	wfrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), Color::Yellow);
+	wfrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), Color::Yellow());
 }
 
 void Plutonium::DebugMeshRenderer::RenderNStatic(const StaticObject * model)

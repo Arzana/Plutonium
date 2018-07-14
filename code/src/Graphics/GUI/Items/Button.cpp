@@ -192,6 +192,6 @@ void Plutonium::Button::RenderButton(GuiItemRenderer * renderer)
 Plutonium::Vector2 Plutonium::Button::GetMinSize(void) const
 {
 	Vector2 baseDim = Label::GetMinSize();
-	Vector2 btnDim = max(hover ? hover->GetSize() : Vector2::Zero, click ? click->GetSize() : Vector2::Zero);
+	Vector2 btnDim = max(hover ? hover->GetSize() : Vector2::Zero(), click ? click->GetSize() : Vector2::Zero());
 	return max(baseDim, btnDim);
 }

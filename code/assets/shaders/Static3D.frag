@@ -37,7 +37,7 @@ struct PLight
 
 struct FragInfo
 {
-	vec3 position;
+	vec3 pos;
 	vec2 uv;
 	mat3 tbn;
 };
@@ -72,10 +72,10 @@ vec4 CalcDirectionalLight(DLight light, vec3 viewDir, vec3 normal)
 // Calculates the color change for the object from a specified point light source.
 vec4 CalcPointLight(PLight light, vec3 viewDir, vec3 normal)
 {
-	float intensity = max(0.0f, dot(normal, normalize(light.position - a_frag.position)));
-	float distance = length(light.position - a_frag.position);
+	float intensity = max(0.0f, dot(normal, normalize(light.position - a_frag.pos)));
+	float distance = length(light.position - a_frag.pos);
 	float attenuation = 1.0f / (light.attenuation.x + light.attenuation.y * distance + light.attenuation.z * (distance * distance));
-	vec3 halfwayDir = normalize(normalize(light.position - a_frag.position) + viewDir);
+	vec3 halfwayDir = normalize(normalize(light.position - a_frag.pos) + viewDir);
 	float power = pow(max(dot(normal, halfwayDir), 0.0f), u_colors.specularExponent);
 
 	vec4 ambient = texture(u_textures.ambient, a_frag.uv) * light.ambient * attenuation;
@@ -92,7 +92,7 @@ void main()
 	if ((modifier.r < 0.1f && modifier.g < 0.1f && modifier.b < 0.1f) || modifier.a < 0.1f) discard;
 
 	// Calculate general viewing direction towards the fragment.
-	vec3 viewDir = normalize(u_view_pos - a_frag.position);
+	vec3 viewDir = normalize(u_view_pos - a_frag.pos);
 
 	// Calculate the fragment's normal.
 	vec3 normal = texture(u_textures.bump, a_frag.uv).rgb * 2.0f - 1.0f;

@@ -11,7 +11,7 @@ Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device)
 	/* Create single skybox VBO. */
 	vbo = new Buffer(device->GetWindow(), BindTarget::Array);
 	Mesh mesh("TempMesh");
-	ShapeCreator::MakeBox(&mesh);
+	ShapeCreator::MakeBox(&mesh, Vector3::One());
 	vbo->SetData(BufferUsage::StaticDraw, mesh.GetVertexAt(0), mesh.GetVertexCount());
 }
 

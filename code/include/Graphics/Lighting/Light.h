@@ -29,7 +29,7 @@ namespace Plutonium
 		}
 
 	protected:
-		Light(Color ambient = Color::Black, Color diffuse = Color::Black, Color specular = Color::Black)
+		Light(Color ambient = Color::Black(), Color diffuse = Color::Black(), Color specular = Color::Black())
 			: Ambient(ambient), Diffuse(diffuse), Specular(specular)
 		{}
 	};

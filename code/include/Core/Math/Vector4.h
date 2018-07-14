@@ -6,19 +6,6 @@ namespace Plutonium
 	/* Defines a four dimentional vector. */
 	typedef struct Vector4
 	{
-		/* [0, 0, 0, 0] */
-		const static Vector4 Zero;
-		/* [1, 0, 0, 0] */
-		const static Vector4 UnitX;
-		/* [0, 1, 0, 0] */
-		const static Vector4 UnitY;
-		/* [0, 0, 1, 0] */
-		const static Vector4 UnitZ;
-		/* [0, 0, 0, 1] */
-		const static Vector4 UnitW;
-		/* [1, 1, 1, 1] */
-		const static Vector4 One;
-
 		union
 		{
 			/* All components of the vector. */
@@ -165,6 +152,48 @@ namespace Plutonium
 		_Check_return_ inline bool operator !=(_In_ Vector4 v) const
 		{
 			return X != v.X || Y != v.Y || Z != v.Z || W != v.W;
+		}
+
+		/* [0, 0, 0, 0] */
+		_Check_return_ static inline Vector4 Zero()
+		{
+			static Vector4 result = Vector4();
+			return result;
+		}
+
+		/* [1, 0, 0, 0] */
+		_Check_return_ static inline Vector4 UnitX()
+		{
+			static Vector4 result = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 1, 0, 0] */
+		_Check_return_ static inline Vector4 UnitY()
+		{
+			static Vector4 result = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 0, 1, 0] */
+		_Check_return_ static inline Vector4 UnitZ()
+		{
+			static Vector4 result = Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 0, 0, 1] */
+		_Check_return_ static inline Vector4 UnitW()
+		{
+			static Vector4 result = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+			return result;
+		}
+
+		/* [1, 1, 1, 1] */
+		_Check_return_ static inline Vector4 One()
+		{
+			static Vector4 result = Vector4(1.0f);
+			return result;
 		}
 
 		/* Gets the magnetude of the vector squared. */

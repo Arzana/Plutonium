@@ -51,7 +51,7 @@ namespace Plutonium
 		/* Gets the default color of the holder bar. */
 		_Check_return_ static inline Color GetDefaultHolderBarColor(void)
 		{
-			return Color::Abbey;
+			return Color::Abbey();
 		}
 
 		/* Gets whether the holder bar should be drawn. */

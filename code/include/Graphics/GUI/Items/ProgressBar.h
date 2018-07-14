@@ -44,7 +44,7 @@ namespace Plutonium
 		/* Gets the default value for the bar color. */
 		_Check_return_ static inline Color GetDefaultBarColor(void)
 		{
-			return Color::Lime;
+			return Color::Lime();
 		}
 
 		/* Gets the current used bar filling style. */

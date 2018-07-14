@@ -8,7 +8,7 @@ Plutonium::Slider::Slider(Game * parent)
 Plutonium::Slider::Slider(Game * parent, Rectangle bounds)
 	: ProgressBar(parent, bounds), holderBarEnabled(true), allowRandomClicks(true),
 	dragInvoked(false), holderBarColor(GetDefaultHolderBarColor()),
-	holderBar(nullptr), holderBarBounds(Vector2::Zero, GetDefaultHolderBarSize()),
+	holderBar(nullptr), holderBarBounds(Vector2::Zero(), GetDefaultHolderBarSize()),
 	INIT_BUS(DragStart), INIT_BUS(DragEnd), INIT_BUS(HolderBarColorChanged),
 	INIT_BUS(HolderBarImageChanged), INIT_BUS(HolderBarResized)
 {

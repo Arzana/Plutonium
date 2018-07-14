@@ -7,15 +7,6 @@ namespace Plutonium
 	/* Defines a two dimentional vector. */
 	typedef struct Vector2
 	{
-		/* [0, 0] */
-		const static Vector2 Zero;
-		/* [1, 0] */
-		const static Vector2 UnitX;
-		/* [0, 1] */
-		const static Vector2 UnitY;
-		/* [1, 1] */
-		const static Vector2 One;
-
 		union
 		{
 			/* Both components of the vector. */
@@ -145,6 +136,34 @@ namespace Plutonium
 		_Check_return_ inline bool operator !=(_In_ Vector2 v) const
 		{
 			return X != v.X || Y != v.Y;
+		}
+
+		/* [0, 0] */
+		_Check_return_ static inline Vector2 Zero(void)
+		{
+			static Vector2 result = Vector2();
+			return result;
+		}
+
+		/* [1, 0] */
+		_Check_return_ static inline Vector2 UnitX(void)
+		{
+			static Vector2 result = Vector2(1.0f, 0.0f);
+			return result;
+		}
+
+		/* [0, 1] */
+		_Check_return_ static inline Vector2 UnitY(void)
+		{
+			static Vector2 result = Vector2(0.0f, 1.0f);
+			return result;
+		}
+
+		/* [1, 1] */
+		_Check_return_ static inline Vector2 One(void)
+		{
+			static Vector2 result = Vector2(1.0f);
+			return result;
 		}
 
 		/* Initializes a new instance of a two dimentional vector from a specified angle. */

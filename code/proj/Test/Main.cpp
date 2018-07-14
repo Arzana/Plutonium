@@ -6,8 +6,6 @@ int main(int argc, char **argv)
 	game->Run();
 	delete_s(game);
 
-#if defined(DEBUG)
 	_CrtPressAnyKeyToContinue();
-#endif
 	return 0;
 }

@@ -123,7 +123,7 @@ void Plutonium::ProgressBar::UpdateBarMesh(void)
 	{
 	case FillStyle::LeftToRight:
 		barSize = Vector2(GetValueMapped(0.0f, w), h);
-		uv1 = Vector2::Zero;
+		uv1 = Vector2::Zero();
 		uv2 = Vector2(value, 0.0f);
 		uv3 = Vector2(value, 1.0f);
 		uv4 = Vector2(0.0f, 1.0f);
@@ -131,13 +131,13 @@ void Plutonium::ProgressBar::UpdateBarMesh(void)
 	case FillStyle::RightToLeft:
 		barSize = Vector2(GetValueMapped(0.0f, w), h);
 		uv1 = Vector2(value, 0.0f);
-		uv2 = Vector2::Zero;
+		uv2 = Vector2::Zero();
 		uv3 = Vector2(0.0f, 1.0f);
 		uv4 = Vector2(value, 1.0f);
 		break;
 	case FillStyle::TopToBottom:
 		barSize = Vector2(w, GetValueMapped(0.0f, h));
-		uv1 = Vector2::Zero;
+		uv1 = Vector2::Zero();
 		uv2 = Vector2(1.0f, 0.0f);
 		uv3 = Vector2(1.0f, value);
 		uv4 = Vector2(0.0f, value);

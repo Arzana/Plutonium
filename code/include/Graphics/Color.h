@@ -8,39 +8,6 @@ namespace Plutonium
 	struct Color
 	{
 	public:
-		/* Defines a abbey opaque color. */
-		const static Color Abbey;
-		/* Defines a black opaque color. */
-		const static Color Black;
-		/* Defines a blue opaque color. */
-		const static Color Blue;
-		/* Defines a lime opaque color. */
-		const static Color Lime;
-		/* Defines a cyan opaque color. */
-		const static Color Cyan;
-		/* Defines a green opaque color. */
-		const static Color Green;
-		/* Defines the color of a default normal pointing forwards. */
-		const static Color Malibu;
-		/* Defines a magenta opaque color. */
-		const static Color Magenta;
-		/* Defines a red opaque color. */
-		const static Color Red;
-		/* Defines the color of the sun during the day. */
-		const static Color SunDay;
-		/* Defines the color of the sun during dawn and dusk. */
-		const static Color SunDawn;
-		/* Defines a black transparent color. */
-		const static Color Transparent;
-		/* Defines a white transparent color. */
-		const static Color TransparentWhite;
-		/* Defines a white opaque color. */
-		const static Color White;
-		/* Defines a white-smoke color.  */
-		const static Color WhiteSmoke;
-		/* Defines a yellow opaque color. */
-		const static Color Yellow;
-
 		union
 		{
 			struct
@@ -89,15 +56,6 @@ namespace Plutonium
 			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(static_cast<byte>(a * 255.0f))
 		{}
 
-		/* Creates a color from a non premultiplied alpha value. */
-		_Check_return_ static Color FromNonPremultiplied(_In_ int32 r, _In_ int32 g, _In_ int32 b, _In_ int32 a);
-		/* Lerps between two specified colors with a specified amount. */
-		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float v);
-		/* Lerps between two specified colors within a specified range of values. */
-		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float c, _In_ float d, _In_ float v);
-		/* Returns a random color. */
-		_Check_return_ static Color Random(_In_opt_ byte gain = 0, _In_opt_ bool unique = true);
-
 		/* Adds two colors together. */
 		_Check_return_ Color operator +(_In_ Color other) const;
 		/* Subtracts a specifed color from this color. */
@@ -106,6 +64,127 @@ namespace Plutonium
 		_Check_return_ Color operator *(_In_ float scalar) const;
 		/* Multiples the color by a specified color. */
 		_Check_return_ Color operator *(_In_ Color other) const;
+
+		/* Defines a abbey opaque color. */
+		_Check_return_ static inline Color Abbey(void)
+		{
+			static Color result = Color((byte)0x4C, 0x4F, 0x56);
+			return result;
+		}
+
+		/* Defines a black opaque color. */
+		_Check_return_ static inline Color Black(void)
+		{
+			static Color result = Color((byte)0x00, 0x00, 0x00);
+			return result;
+		}
+
+		/* Defines a blue opaque color. */
+		_Check_return_ static inline Color Blue(void)
+		{
+			static Color result = Color((byte)0x00, 0x00, 0xFF);
+			return result;
+		}
+
+		/* Defines a lime opaque color. */
+		_Check_return_ static inline Color Lime(void)
+		{
+			static Color result = Color((byte)0x7F, 0xFF, 0x00);
+			return result;
+		}
+
+		/* Defines a cyan opaque color. */
+		_Check_return_ static inline Color Cyan(void)
+		{
+			static Color result = Color((byte)0x00, 0xFF, 0xFF);
+			return result;
+		}
+
+		/* Defines a green opaque color. */
+		_Check_return_ static inline Color Green(void)
+		{
+			static Color result = Color((byte)0x00, 0xFF, 0x00);
+			return result;
+		}
+
+		/* Defines the color of a default normal pointing forwards. */
+		_Check_return_ static inline Color Malibu(void)
+		{
+			static Color result = Color((byte)0x80, 0x80, 0xFF);
+			return result;
+		}
+
+		/* Defines a magenta opaque color. */
+		_Check_return_ static inline Color Magenta(void)
+		{
+			static Color result = Color((byte)0xFF, 0x00, 0xFF);
+			return result;
+		}
+
+		/* Defines a red opaque color. */
+		_Check_return_ static inline Color Red(void)
+		{
+			static Color result = Color((byte)0xFF, 0x00, 0x00);
+			return result;
+		}
+
+		/* Defines the color of the sun during the day. */
+		_Check_return_ static inline Color SunDay(void)
+		{
+			static Color result = Color((byte)0xFF, 0xFF, 0xDC);
+			return result;
+		}
+
+		/* Defines the color of the sun during dawn and dusk. */
+		_Check_return_ static inline Color SunDawn(void)
+		{
+			static Color result = Color((byte)0xF7, 0xB6, 0x68);
+			return result;
+		}
+
+		/* Defines a black transparent color. */
+		_Check_return_ static inline Color Transparent(void)
+		{
+			static Color result = Color();
+			return result;
+		}
+
+		/* Defines a white transparent color. */
+		_Check_return_ static inline Color TransparentWhite(void)
+		{
+			static Color result = Color((byte)0xFF, 0xFF, 0xFF, 0x00);
+			return result;
+		}
+
+		/* Defines a white opaque color. */
+		_Check_return_ static inline Color White(void)
+		{
+			static Color result = Color((byte)0xFF, 0xFF, 0xFF);
+			return result;
+		}
+
+		/* Defines a white-smoke color.  */
+		_Check_return_ static inline Color WhiteSmoke(void)
+		{
+			static Color result = Color((byte)0xF5, 0xF5, 0xFF);
+			return result;
+		}
+
+		/* Defines a yellow opaque color. */
+		_Check_return_ static inline Color Yellow(void)
+		{
+			static Color result = Color((byte)0xFF, 0xFF, 0x00);
+			return result;
+		}
+
+		/* Creates a color from a non premultiplied alpha value. */
+		_Check_return_ static Color FromNonPremultiplied(_In_ int32 r, _In_ int32 g, _In_ int32 b, _In_ int32 a);
+		/* Lerps between two specified colors with a specified amount. */
+		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float v);
+		/* Lerps between two specified colors within a specified range of values. */
+		_Check_return_ static Color Lerp(_In_ Color a, _In_ Color b, _In_ float c, _In_ float d, _In_ float v);
+		/* Returns a random color. */
+		_Check_return_ static Color Random(_In_opt_ byte gain = 0, _In_opt_ bool unique = true);
 
 		/* Checks whether two colors are equal. */
 		_Check_return_ inline bool operator ==(_In_ Color other) const

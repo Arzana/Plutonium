@@ -25,12 +25,12 @@ namespace Plutonium
 		/* Starts rendering the specified scene. */
 		void Begin(void);
 		/* Renders the specified sprite. */
-		inline void Render(_In_ const Texture *sprite, _In_ Vector2 position, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f)
+		inline void Render(_In_ const Texture *sprite, _In_ Vector2 position, _In_opt_ Color color = Color::White(), _In_opt_ Vector2 scale = Vector2::One(), _In_opt_ float rotation = 0.0f)
 		{
 			Render(sprite, Rectangle(position, sprite->GetSize()), color, scale, rotation);
 		}
 		/* Renders the specified sprite. */
-		void Render(_In_ const Texture *sprite, _In_ Rectangle bounds, _In_opt_ Color color = Color::White, _In_opt_ Vector2 scale = Vector2::One, _In_opt_ float rotation = 0.0f);
+		void Render(_In_ const Texture *sprite, _In_ Rectangle bounds, _In_opt_ Color color = Color::White(), _In_opt_ Vector2 scale = Vector2::One(), _In_opt_ float rotation = 0.0f);
 
 	protected:
 		GraphicsAdapter *device;

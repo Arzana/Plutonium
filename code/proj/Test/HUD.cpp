@@ -83,8 +83,8 @@ Label * HUD::CreateDefaultLabel(float y)
 	Label *result = AddLabel();
 
 	result->SetAutoSize(true);
-	result->SetBackColor(Color::Black * 0.5f);
-	result->SetTextColor(Color::White);
+	result->SetBackColor(Color::Black() * 0.5f);
+	result->SetTextColor(Color::White());
 	result->SetPosition(Vector2(0.0f, y));
 
 	return result;

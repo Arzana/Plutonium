@@ -46,7 +46,7 @@ namespace Plutonium
 		/* Gets whether the rectangle has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
 		{
-			return Size == Vector2::Zero;
+			return Size == Vector2::Zero();
 		}
 
 		/* Gets the absolute width of the rectangle. */

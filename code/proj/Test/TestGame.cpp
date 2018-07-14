@@ -3,6 +3,7 @@
 #include "Graphics\Materials\MaterialBP.h"
 
 #define QUICK_MAP
+//#define USE_DEFERRED
 #define SHDR_PATH(name)		"./assets/shaders/" name
 
 TestGame::TestGame(void)
@@ -20,6 +21,7 @@ void TestGame::Initialize(void)
 	AddComponent(loadScreen = new LoadScreen(this));
 
 	/* Initialize renderers. */
+	renderer = new DeferredRendererBP(GetGraphics());
 	srenderer = new StaticRenderer(GetGraphics(), SHDR_PATH("Static3D.vert"), SHDR_PATH("Static3D.frag"));
 	drenderer = new DynamicRenderer(SHDR_PATH("Dynamic3D.vert"), SHDR_PATH("Dynamic3D.frag"));
 	sbrenderer = new SkyboxRenderer(GetGraphics());
@@ -69,7 +71,7 @@ void TestGame::LoadContent(void)
 	}));
 
 	/* Setup lighting. */
-	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay, Color::White);
+	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
 #if defined (QUICK_MAP)
 	UpdateLoadPercentage(PER_FIRE_WEIGHT * 4 * 0.01f);
 
@@ -78,11 +80,11 @@ void TestGame::LoadContent(void)
 		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr);
 
 		Mesh *mesh = new Mesh("VisualizerMesh");
-		ShapeCreator::MakeSphere(mesh, 64, 64);
+		ShapeCreator::MakeSphere(mesh, 64, 64, 1.0f);
 		mesh->Finalize(GetGraphics()->GetWindow());
 
 		visualizer = new StaticObject(this, new StaticModel(mat, mesh), 2);
-		visualizer->Move(Vector3::Up * 5.0f);
+		visualizer->Move(Vector3::Up() * 5.0f);
 }));
 #else
 	Color fireColor = Color((byte)254, 211, 60);
@@ -107,6 +109,7 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	delete_s(renderer);
 	delete_s(srenderer);
 	delete_s(drenderer);
 	delete_s(sbrenderer);
@@ -141,21 +144,34 @@ void TestGame::Render(float dt)
 		for (size_t i = 0; i < fires.size(); i++) drenderer->Render(fires.at(i)->object);
 		drenderer->End();
 
+		/* Render static map. */
+#if defined (USE_DEFERRED)
+		renderer->Add(map);
+		renderer->Add(sun);
+
+#if defined(QUICK_MAP)
+		renderer->Add(visualizer);
+#else
+		for (size_t i = 0; i < 4; i++) renderer->Add(fires.at(i)->light);
+#endif
+
+		renderer->Render(cam->GetProjection(), cam->GetView(), cam->GetPosition());
+#else
 		/* Setup lighting for render. */
 #if defined (QUICK_MAP)
-		const PointLight empty(Vector3::Zero, Color::Black, 1.0f, 1.0f, 1.0f);
+		const PointLight empty(Vector3::Zero(), Color::Black(), 1.0f, 1.0f, 1.0f);
 		const PointLight *lights[4] = { &empty, &empty, &empty, &empty };
 #else
 		const PointLight *lights[4] = { fires.at(0)->light, fires.at(1)->light, fires.at(2)->light, fires.at(3)->light };
 #endif
-
-		/* Render static map. */
 		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
 		srenderer->Render(map);
+
 #if defined (QUICK_MAP)
 		srenderer->Render(visualizer);
 #endif
 		srenderer->End();
+#endif
 
 		/* Render skybox. */
 		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
@@ -197,32 +213,32 @@ void TestGame::UpdateDayState(float dt)
 	/* Update light color. */
 	if (sunAngle >= 0.0f && sunAngle < PI)
 	{
-		sun->Diffuse = Color::SunDay;
+		sun->Diffuse = Color::SunDay();
 		dayState = "Day";
 	}
 	else if (sunAngle > PI && sunAngle < SUNSET)
 	{
-		sun->Diffuse = Color::Lerp(Color::SunDay, Color::SunDawn, PI, SUNSET, sunAngle);
+		sun->Diffuse = Color::Lerp(Color::SunDay(), Color::SunDawn(), PI, SUNSET, sunAngle);
 		dayState = "Sunset";
 	}
 	else if (sunAngle > SUNSET && sunAngle < DUSK)
 	{
-		sun->Diffuse = Color::Lerp(Color::SunDawn, Color::Black, SUNSET, DUSK, sunAngle);
+		sun->Diffuse = Color::Lerp(Color::SunDawn(), Color::Black(), SUNSET, DUSK, sunAngle);
 		dayState = "Dusk";
 	}
 	else if (sunAngle > DUSK && sunAngle < DAWN)
 	{
-		sun->Diffuse = Color::Black;
+		sun->Diffuse = Color::Black();
 		dayState = "Night";
 	}
 	else if (sunAngle > DAWN && sunAngle < SUNRISE)
 	{
-		sun->Diffuse = Color::Lerp(Color::Black, Color::SunDawn, DAWN, SUNRISE, sunAngle);
+		sun->Diffuse = Color::Lerp(Color::Black(), Color::SunDawn(), DAWN, SUNRISE, sunAngle);
 		dayState = "Dawn";
 	}
 	else if (sunAngle > SUNRISE && sunAngle < TAU)
 	{
-		sun->Diffuse = Color::Lerp(Color::SunDawn, Color::SunDay, SUNRISE, TAU, sunAngle);
+		sun->Diffuse = Color::Lerp(Color::SunDawn(), Color::SunDay(), SUNRISE, TAU, sunAngle);
 		dayState = "Sunrise";
 	}
 }

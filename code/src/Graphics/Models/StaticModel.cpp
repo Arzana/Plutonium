@@ -39,8 +39,12 @@ void Plutonium::StaticModel::Finalize(void)
 	}
 }
 
+#include "Core\Stopwatch.h"
+
 StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * loader, std::atomic<float>* progression)
 {
+	Stopwatch sw = Stopwatch::StartNew();
+
 	/* Load raw data. */
 	FileReader reader(path, true);
 	ObjLoaderResult *raw = _CrtLoadObjMtl(path, progression, 0.7f);
@@ -84,7 +88,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 
 	/* Finalize loading. */
 	result->Finalize();
-	LOG("Finished loading model '%s', %zu/%zu distinct materials.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size());
+	LOG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);
 	delete_s(raw);
 	return result;
 }

@@ -6,7 +6,7 @@ Plutonium::GuiItemRenderer::GuiItemRenderer(GraphicsAdapter * device)
 {
 	/* Create the default GuiItem background texture. */
 	defBackTex = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "DefaultGuiItemBackground");
-	defBackTex->SetData(Color::White.ToArray());
+	defBackTex->SetData(Color::White().ToArray());
 
 	/* Make sure the projection matrix stays up to date. */
 	WindowResizeEventHandler(device->GetWindow(), EventArgs());

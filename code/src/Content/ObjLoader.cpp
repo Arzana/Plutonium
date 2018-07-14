@@ -130,8 +130,8 @@ Plutonium::ObjLoaderTextureMap::ObjLoaderTextureMap(ObjLoaderTextureMap && value
 	value.Sharpness = 1.0f;
 	value.Brightness = 0.0f;
 	value.Contrast = 1.0f;
-	value.Origin = Vector3::Zero;
-	value.Scale = Vector3::One;
+	value.Origin = Vector3::Zero();
+	value.Scale = Vector3::One();
 	value.ClampedCoords = false;
 	value.BlendH = true;
 	value.BlendV = true;
@@ -198,8 +198,8 @@ ObjLoaderTextureMap & Plutonium::ObjLoaderTextureMap::operator=(ObjLoaderTexture
 		other.Sharpness = 1.0f;
 		other.Brightness = 0.0f;
 		other.Contrast = 1.0f;
-		other.Origin = Vector3::Zero;
-		other.Scale = Vector3::One;
+		other.Origin = Vector3::Zero();
+		other.Scale = Vector3::One();
 		other.ClampedCoords = false;
 		other.BlendH = true;
 		other.BlendV = true;
@@ -229,8 +229,8 @@ bool Plutonium::ObjLoaderTextureMap::operator!=(const ObjLoaderTextureMap & othe
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	: Name(""), IlluminationModel(0),
-	Ambient(Color::Black), Diffuse(Color::Black), Specular(Color::Black),
-	Transmittance(Color::White), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
+	Ambient(Color::Black()), Diffuse(Color::Black()), Specular(Color::Black()),
+	Transmittance(Color::White()), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
 	AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
 	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
 {}
@@ -270,10 +270,10 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
 
 	/* Reset old data. */
 	value.Name = "";
-	value.Ambient = Color::Black;
-	value.Diffuse = Color::Black;
-	value.Specular = Color::Black;
-	value.Transmittance = Color::White;
+	value.Ambient = Color::Black();
+	value.Diffuse = Color::Black();
+	value.Specular = Color::Black();
+	value.Transmittance = Color::White();
 	value.HighlightExponent = 1.0f;
 	value.OpticalDensity = 1.0f;
 	value.Dissolve = 1.0f;
@@ -343,10 +343,10 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 
 		/* Reset old data. */
 		other.Name = "";
-		other.Ambient = Color::Black;
-		other.Diffuse = Color::Black;
-		other.Specular = Color::Black;
-		other.Transmittance = Color::White;
+		other.Ambient = Color::Black();
+		other.Diffuse = Color::Black();
+		other.Specular = Color::Black();
+		other.Transmittance = Color::White();
 		other.HighlightExponent = 1.0f;
 		other.OpticalDensity = 1.0f;
 		other.Dissolve = 1.0f;

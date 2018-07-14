@@ -8,23 +8,6 @@ using namespace Plutonium;
 
 constexpr float CONV_MOD =			recip(255.0f);
 
-const Color Color::Transparent =		Color();
-const Color Color::TransparentWhite =	Color((byte)0xFF, 0xFF, 0xFF, 0x00);
-const Color Color::Black =				Color((byte)0x00, 0x00, 0x00);
-const Color Color::Red =				Color((byte)0xFF, 0x00, 0x00);
-const Color Color::Green =				Color((byte)0x00, 0xFF, 0x00);
-const Color Color::Blue =				Color((byte)0x00, 0x00, 0xFF);
-const Color Color::Cyan =				Color((byte)0x00, 0xFF, 0xFF);
-const Color Color::Magenta =			Color((byte)0xFF, 0x00, 0xFF);
-const Color Color::Yellow =				Color((byte)0xFF, 0xFF, 0x00);
-const Color Color::White =				Color((byte)0xFF, 0xFF, 0xFF);
-const Color Color::SunDay =				Color((byte)0xFF, 0xFF, 0xDC);
-const Color Color::SunDawn =			Color((byte)0xF7, 0xB6, 0x68);
-const Color Color::Malibu =				Color((byte)0x80, 0x80, 0xFF);
-const Color Color::WhiteSmoke =			Color((byte)0xF5, 0xF5, 0xFF);
-const Color Color::Lime =				Color((byte)0x7F, 0xFF, 0x00);
-const Color Color::Abbey =				Color((byte)0x4C, 0x4F, 0x56);
-
 Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 {
 	/* On debug check if input is valid. */

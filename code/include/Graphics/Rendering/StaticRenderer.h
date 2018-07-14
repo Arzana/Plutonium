@@ -26,7 +26,8 @@ namespace Plutonium
 		void Render(_In_ const StaticObject *model);
 
 	private:
-		Uniform * matMdl, *matView, *matProj, *camPos, *specExp, *gamma;
+		Uniform *matMdl, *matView, *matProj;
+		Uniform *camPos, *specExp, *gamma;
 		Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 		Uniform *sunLightDir, *sunLightAmbi, *sunLightDiff, *sunLightSpec; 
 		Uniform *pointLightPos[4], *pointLightAtten[4], *pointLightAmbi[4], *pointLightDiff[4], *pointLightSpec[4];
