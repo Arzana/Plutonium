@@ -113,7 +113,7 @@ Plutonium::MonitorInfo::MonitorInfo(GLFWmonitor * info)
 			sum += nthrt(ramp->blue[i], power);
 		}
 
-		GammaCorrection = sum / (ramp->size * 3.0f);
+		GammaCorrection = recip(sum / (ramp->size * 3.0f));
 
 		/* Log discovery. */
 		LOG("%s(%dx%d @%dHz) detected at [%d, %d], Color depth %d, Gamma correction %f.", Name, ClientWidth, ClientHeight, RefreshRate, X, Y, Red, GammaCorrection);

@@ -2,15 +2,22 @@
 #include "Graphics\Models\Shapes.h"
 #include "Graphics\Materials\MaterialBP.h"
 
-#define QUICK_MAP
+//#define QUICK_MAP
 #define USE_DEFERRED
-//#define ENABLE_DAY_NIGHT
+#define ENABLE_DAY_NIGHT
+//#define DISABLE_VSYNC
+
 #define SHDR_PATH(name)		"./assets/shaders/" name
 
 TestGame::TestGame(void)
 	: Game(_CRT_NAMEOF_RAW(TestGame)), dayState("<NULL>"),
 	sunAngle(0.0f), renderMode(DebuggableValues::None)
 {
+#if defined (DISABLE_VSYNC)
+	FixedTimeStep = false;
+	GetGraphics()->GetWindow()->SetMode(VSyncMode::Disable);
+#endif
+
 	GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 	GetCursor()->Disable();
 }
@@ -140,11 +147,6 @@ void TestGame::Render(float dt)
 	/* Render scene normally. */
 	if (renderMode == DebuggableValues::None)
 	{
-		/* Render dynamic objects. */
-		drenderer->Begin(cam->GetView(), cam->GetProjection(), sun->Direction);
-		for (size_t i = 0; i < fires.size(); i++) drenderer->Render(fires.at(i)->object);
-		drenderer->End();
-
 		/* Render static map. */
 #if defined (USE_DEFERRED)
 		renderer->Add(map);
@@ -173,6 +175,11 @@ void TestGame::Render(float dt)
 #endif
 		srenderer->End();
 #endif
+
+		/* Render dynamic objects. */
+		drenderer->Begin(cam->GetView(), cam->GetProjection(), sun->Direction);
+		for (size_t i = 0; i < fires.size(); i++) drenderer->Render(fires.at(i)->object);
+		drenderer->End();
 
 		/* Render skybox. */
 		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
