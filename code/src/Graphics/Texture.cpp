@@ -1,8 +1,4 @@
 #pragma warning(disable:4996)
-
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "Graphics\Texture.h"
 #include "Streams\FileReader.h"
 #include "Streams\FileUtils.h"
@@ -14,6 +10,13 @@
 #include "Graphics\Native\Window.h"
 #include "Core\StringFunctions.h"
 #include <glad\glad.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#if !defined (DEBUG)
+#define STBI_FAILURE_USERMSG
+#endif
+
 #include <stb\stb_image.h>
 #include <stb\stb_image_write.h>
 
@@ -106,7 +109,7 @@ Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, con
 	stbi_set_flip_vertically_on_load(true);
 	byte *data = stbi_load(path, &w, &h, &m, 0);
 
-	/* Throw is loading failed. */
+	/* Throw is loading failed or log warnings. */
 	LOG_THROW_IF(!data, "Unable to load texture '%s', reason: %s!", reader.GetFileName(), stbi_failure_reason());
 
 	/* Set texture information. */

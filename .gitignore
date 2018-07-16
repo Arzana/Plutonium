@@ -19,6 +19,9 @@ bld/
 [Oo]bj/
 [Ll]og/
 
+# Assets to ignore
+SanMiguel/
+
 # Windows specific files
 [Tt]humbs.db
 

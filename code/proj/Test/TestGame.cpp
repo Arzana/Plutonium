@@ -3,7 +3,6 @@
 #include "Graphics\Materials\MaterialBP.h"
 
 //#define QUICK_MAP
-#define USE_DEFERRED
 #define ENABLE_DAY_NIGHT
 //#define DISABLE_VSYNC
 
@@ -30,7 +29,6 @@ void TestGame::Initialize(void)
 
 	/* Initialize renderers. */
 	renderer = new DeferredRendererBP(GetGraphics());
-	srenderer = new StaticRenderer(GetGraphics(), SHDR_PATH("Static3D.vert"), SHDR_PATH("Static3D.frag"));
 	drenderer = new DynamicRenderer(SHDR_PATH("Dynamic3D.vert"), SHDR_PATH("Dynamic3D.frag"));
 	sbrenderer = new SkyboxRenderer(GetGraphics());
 	dmrenderer = new DebugMeshRenderer(GetGraphics());
@@ -57,8 +55,8 @@ void TestGame::LoadContent(void)
 	map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", MAP_WEIGHT);
 #else
 	static constexpr int MAP_WEIGHT = 55;
-	constexpr float MAP_SCALE = 0.03f;
-	map = new StaticObject(this, "models/Sponza/sponza.obj", MAP_WEIGHT);
+	constexpr float MAP_SCALE = /*0.03f*/ 1.0f;
+	map = new StaticObject(this, /*"models/Sponza/sponza.obj"*/ "models/SanMiguel/san-miguel-low-poly.obj", MAP_WEIGHT);
 #endif
 	map->SetScale(MAP_SCALE);
 
@@ -93,7 +91,7 @@ void TestGame::LoadContent(void)
 
 		visualizer = new StaticObject(this, new StaticModel(mat, mesh), 2);
 		visualizer->Move(Vector3::Up() * 5.0f);
-}));
+	}));
 #else
 	Color fireColor = Color((byte)254, 211, 60);
 	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
@@ -118,7 +116,6 @@ void TestGame::UnLoadContent(void)
 void TestGame::Finalize(void)
 {
 	delete_s(renderer);
-	delete_s(srenderer);
 	delete_s(drenderer);
 	delete_s(sbrenderer);
 	delete_s(dmrenderer);
@@ -148,7 +145,6 @@ void TestGame::Render(float dt)
 	if (renderMode == DebuggableValues::None)
 	{
 		/* Render static map. */
-#if defined (USE_DEFERRED)
 		renderer->Add(map);
 		renderer->Add(sun);
 
@@ -159,22 +155,6 @@ void TestGame::Render(float dt)
 #endif
 
 		renderer->Render(cam->GetProjection(), cam->GetView(), cam->GetPosition());
-#else
-		/* Setup lighting for render. */
-#if defined (QUICK_MAP)
-		const PointLight empty(Vector3::Zero(), Color::Black(), 1.0f, 1.0f, 1.0f);
-		const PointLight *lights[4] = { &empty, &empty, &empty, &empty };
-#else
-		const PointLight *lights[4] = { fires.at(0)->light, fires.at(1)->light, fires.at(2)->light, fires.at(3)->light };
-#endif
-		srenderer->Begin(cam->GetView(), cam->GetProjection(), cam->GetPosition(), sun, lights);
-		srenderer->Render(map);
-
-#if defined (QUICK_MAP)
-		srenderer->Render(visualizer);
-#endif
-		srenderer->End();
-#endif
 
 		/* Render dynamic objects. */
 		drenderer->Begin(cam->GetView(), cam->GetProjection(), sun->Direction);

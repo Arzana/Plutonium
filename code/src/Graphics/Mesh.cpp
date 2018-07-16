@@ -41,17 +41,7 @@ void Plutonium::Mesh::SetBufferSize(size_t size)
 {
 	/* Check if mesh if still valid. */
 	ASSERT_IF(buffer, "Attempting to buffer vertex after Finalize has been called!");
-
-	/* Check if buffer size needs to increase. */
-	if (size > vrtxCnt)
-	{
-		/* Increase buffer. */
-		if (!vrtxCnt) vertices = malloc_s(VertexFormat, size);
-		else realloc_s(VertexFormat, vertices, size);
-
-		/* Set new size. */
-		vrtxCnt = size;
-	}
+	SetBufferSizeInternal(size);
 }
 
 VertexFormat * Plutonium::Mesh::GetVertexAt(size_t idx) const
@@ -65,16 +55,25 @@ VertexFormat * Plutonium::Mesh::GetVertexAt(size_t idx) const
 
 void Plutonium::Mesh::Append(Mesh * other)
 {
-	/* Check for correct use. */
-	ASSERT_IF(buffer, "Attempting to append to finalized mesh!");
-	ASSERT_IF(other->buffer, "Cannot append finalized mesh into mesh!");
-
 	/* Ensure buffer size. */
 	size_t start = vrtxCnt;
-	SetBufferSize(vrtxCnt + other->vrtxCnt);
+	SetBufferSizeInternal(vrtxCnt + other->vrtxCnt);
 
-	/* Copy over vertices. */
-	for (size_t i = 0, j = start; i < other->vrtxCnt; i++, j++) vertices[j] = other->vertices[i];
+	/* Copy the vertices from the current buffer back if needed and delete that buffer. */
+	if (buffer)
+	{
+		buffer->GetData(vertices);
+		delete_s(buffer);
+		buffer = nullptr;
+	}
+
+	/* Copy over vertices from GPU source. */
+	if (other->buffer) other->buffer->GetData(vertices + start);
+	else
+	{
+		/* Copy over vertices. */
+		for (size_t i = 0, j = start; i < other->vrtxCnt; i++, j++) vertices[j] = other->vertices[i];
+	}
 }
 
 #include "Core\String.h"
@@ -94,6 +93,20 @@ void Plutonium::Mesh::SetTangent(VertexFormat & vrtx1, VertexFormat & vrtx2, Ver
 	vrtx1.Tangent = tangent;
 	vrtx2.Tangent = tangent;
 	vrtx3.Tangent = tangent;
+}
+
+void Plutonium::Mesh::SetBufferSizeInternal(size_t size)
+{
+	/* Check if buffer size needs to increase. */
+	if (size > vrtxCnt)
+	{
+		/* Increase buffer. */
+		if (!vrtxCnt) vertices = malloc_s(VertexFormat, size);
+		else realloc_s(VertexFormat, vertices, size);
+
+		/* Set new size. */
+		vrtxCnt = size;
+	}
 }
 
 void Plutonium::Mesh::SetNormal(VertexFormat & vrtx1, VertexFormat & vrtx2, VertexFormat & vrtx3)

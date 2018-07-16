@@ -19,9 +19,12 @@ Plutonium::Buffer::~Buffer(void) noexcept
 	/* If the buffer has not yet been released, release it. */
 	if (hndlr)
 	{
-		hndlr = 0;
-		glDeleteBuffers(1, &hndlr);
-		_CrtUpdateUsedGPUMemory(-bsize);
+		wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
+		{
+			glDeleteBuffers(1, &hndlr);
+			hndlr = 0;
+			_CrtUpdateUsedGPUMemory(-bsize);
+		}));
 	}
 }
 
@@ -71,4 +74,16 @@ void Plutonium::Buffer::BufferSubData(size_t sizeBytes, const void * data, bool 
 		_CrtUpdateUsedGPUMemory(-bsize);
 		_CrtUpdateUsedGPUMemory(bsize = static_cast<int64>(sizeBytes));
 	}
+}
+
+void Plutonium::Buffer::GetBufferSubData(void * data) const
+{
+	/* Error check for invalid handler and not bound buffer. */
+	ASSERT_IF(!hndlr, "Cannot get data from released buffer!");
+
+	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
+	{
+		glBindBuffer(_CrtEnum2Int(type), hndlr);
+		glGetBufferSubData(_CrtEnum2Int(type), 0, bsize, data);
+	}));
 }

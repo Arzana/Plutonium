@@ -287,6 +287,9 @@ namespace Plutonium
 
 		/* Initializes a new instance of an obj loader result. */
 		ObjLoaderResult(void);
+
+		/* Gets the index of the default material of this obj; -1 if none is defined. */
+		_Check_return_ int32 GetDefaultMaterial(void) const;
 	};
 
 	/* Loads an obj file and it's associated mtl file(s) (requires delete!). */

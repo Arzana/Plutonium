@@ -44,6 +44,13 @@ namespace Plutonium
 			BufferSubData(sizeof(_Ty) * size, void_ptr(data), false);
 		}
 
+		/* Gets the data stored within the buffer, supplied buffer must be at least the size of the elements stored in this buffer! */
+		template <typename _Ty>
+		inline void GetData(_In_ _Ty *data) const
+		{
+			GetBufferSubData(reinterpret_cast<void*>(data));
+		}
+
 		/* Gets the amount of elements stored by this buffer. */
 		_Check_return_ inline size_t GetElementCount(void) const
 		{
@@ -64,5 +71,6 @@ namespace Plutonium
 
 		void BufferData(BufferUsage usage, size_t size, const void *data);
 		void BufferSubData(size_t sizeBytes, const void *data, bool sizeUpdated);
+		void GetBufferSubData(void *data) const;
 	};
 }

@@ -359,6 +359,20 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 Plutonium::ObjLoaderResult::ObjLoaderResult(void)
 	: Vertices(), Normals(), TexCoords(), Shapes(), Materials()
 {}
+
+int32 Plutonium::ObjLoaderResult::GetDefaultMaterial(void) const
+{
+	for (size_t i = 0; i < Materials.size(); i++)
+	{
+#if defined (_WIN32)
+		if (!_stricmp(Materials.at(i).Name, "Default")) return static_cast<int32>(i);
+#else
+		LOG_WAR_ONCE("Cannot get default material on this platform!");
+#endif
+	}
+
+	return -1;
+}
 #pragma endregion
 
 #pragma region Checks / moves
@@ -1283,6 +1297,14 @@ ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float
 
 	/* Add last shape to result if needed and return. */
 	if (strlen(shape.Name) > 0) result->Shapes.push_back(shape);
+
+	/* Shrink all result to minimize memory footprint. */
+	result->Materials.shrink_to_fit();
+	result->Normals.shrink_to_fit();
+	result->Shapes.shrink_to_fit();
+	result->TexCoords.shrink_to_fit();
+	result->Vertices.shrink_to_fit();
+
 	return result;
 }
 #pragma endregion
