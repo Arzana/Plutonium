@@ -2,8 +2,7 @@
 #include "Graphics\Models\Shapes.h"
 #include "Graphics\Materials\MaterialBP.h"
 
-//#define QUICK_MAP
-#define ENABLE_DAY_NIGHT
+#define QUICK_MAP
 //#define DISABLE_VSYNC
 
 #define SHDR_PATH(name)		"./assets/shaders/" name
@@ -50,13 +49,13 @@ void TestGame::LoadContent(void)
 
 	/* Load static map. */
 #if defined (QUICK_MAP)
-	static constexpr int MAP_WEIGHT = 54;
+	static constexpr int MAP_WEIGHT = 55;
 	constexpr float MAP_SCALE = 1.0f;
 	map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", MAP_WEIGHT);
 #else
 	static constexpr int MAP_WEIGHT = 55;
-	constexpr float MAP_SCALE = /*0.03f*/ 1.0f;
-	map = new StaticObject(this, /*"models/Sponza/sponza.obj"*/ "models/SanMiguel/san-miguel-low-poly.obj", MAP_WEIGHT);
+	constexpr float MAP_SCALE = 0.03f;
+	map = new StaticObject(this, "models/Sponza/sponza.obj", MAP_WEIGHT);
 #endif
 	map->SetScale(MAP_SCALE);
 
@@ -79,8 +78,6 @@ void TestGame::LoadContent(void)
 	/* Setup lighting. */
 	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
 #if defined (QUICK_MAP)
-	UpdateLoadPercentage(PER_FIRE_WEIGHT * 4 * 0.01f);
-
 	GetLoader()->LoadTexture("textures/uv.png", Callback<Texture>([&](const AssetLoader*, Texture *texture)
 	{
 		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr);
@@ -89,7 +86,7 @@ void TestGame::LoadContent(void)
 		ShapeCreator::MakeSphere(mesh, 64, 64, 1.0f);
 		mesh->Finalize(GetGraphics()->GetWindow());
 
-		visualizer = new StaticObject(this, new StaticModel(mat, mesh), 2);
+		visualizer = new StaticObject(this, new StaticModel(mat, mesh), PER_FIRE_WEIGHT * 4);
 		visualizer->Move(Vector3::Up() * 5.0f);
 	}));
 #else
@@ -191,11 +188,8 @@ void TestGame::UpdateDayState(float dt)
 	constexpr float SUNRISE = TAU - 9.0f * DEG2RAD;
 
 	/* Update light orientation. */
-#ifdef ENABLE_DAY_NIGHT
-	sunAngle = modrads(sunAngle += DEG2RAD * dt * 25.0f);
-#else
-	sunAngle = DEG2RAD * 45.0f;
-#endif
+	if (enableDayNight) sunAngle = modrads(sunAngle += DEG2RAD * dt * 25.0f);
+	else sunAngle = DEG2RAD * 45.0f;
 	sun->Direction = Vector3::FromRoll(sunAngle);
 
 	/* Update light color. */

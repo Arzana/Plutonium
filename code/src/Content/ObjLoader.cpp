@@ -394,8 +394,10 @@ inline void PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, b
 	const char *name = heapstr(curMesh->Name);
 
 	/* Check if current mesh has data. */
-	if (::strlen(name) > 0)
+	if (::strlen(name) > 0 && curMesh->Indices.size() > 0)
 	{
+		LOG_WAR_IF(curMesh->Material == -1, "Pushing shape '%s' with no material defined!", name);
+
 		/* Push old mesh. */
 		result->Shapes.push_back(*curMesh);
 		*curMesh = ObjLoaderMesh();
@@ -769,6 +771,7 @@ void HandleGroupNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMes
 	SkipUseless(&line);
 
 	/* Set mesh name. */
+	if (::strlen(curMesh->Name) > 0) free_s(curMesh->Name);
 	curMesh->Name = heapstr(line);
 }
 
@@ -782,6 +785,7 @@ void HandleObjectNameLine(const char *line, ObjLoaderResult *result, ObjLoaderMe
 	SkipUseless(&line);
 
 	/* Set mesh name. */
+	if (::strlen(curMesh->Name) > 0) free_s(curMesh->Name);
 	curMesh->Name = heapstr(line);
 }
 

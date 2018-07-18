@@ -18,6 +18,8 @@ public:
 
 protected:
 	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
+	Button *btnDayNight;
+	Slider *sldExposure;
 
 	virtual void Initialize(void) override;
 	virtual void Create(void) override;

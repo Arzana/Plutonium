@@ -26,7 +26,7 @@ Plutonium::ProgressBar::~ProgressBar(void)
 	delete_s(barMesh);
 }
 
-float Plutonium::ProgressBar::GetValueMapped(float min, float max)
+float Plutonium::ProgressBar::GetValueMapped(float min, float max) const
 {
 	return lerp(min, max, value);
 }

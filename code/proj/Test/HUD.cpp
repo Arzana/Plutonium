@@ -76,6 +76,29 @@ void HUD::Create(void)
 		text += to_string("%.2f", static_cast<float>(game->GetGlobalRenderTime()));
 		text += " ms";
 	}));
+
+	btnDayNight = AddButton();
+	btnDayNight->SetAutoSize(true);
+	btnDayNight->SetBackColor(Color::Black() * 0.5f);
+	btnDayNight->SetTextColor(Color::White());
+	btnDayNight->SetAnchors(Anchors::TopCenter);
+	btnDayNight->SetText(dynamic_cast<TestGame*>(game)->enableDayNight ? "Disable Day/Night Cycle" : "Enable Day/Night Cycle");
+	btnDayNight->LeftClicked.Add([&](const Button*, CursorHandler)
+	{
+		TestGame *tgame = dynamic_cast<TestGame*>(game);
+		if (tgame->enableDayNight) btnDayNight->SetText("Enable Day/Night Cycle");
+		else btnDayNight->SetText("Diable Day/Night Cycle");
+
+		tgame->enableDayNight = !tgame->enableDayNight;
+	});
+
+	sldExposure = AddSlider();
+	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, btnDayNight->GetSize().Y * 2.0f);
+	sldExposure->SetValueMapped(dynamic_cast<TestGame*>(game)->renderer->Exposure, 0.0f, 10.0f);
+	sldExposure->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
+	{
+		dynamic_cast<TestGame*>(game)->renderer->Exposure = sender->GetValueMapped(0.0f, 10.0f);
+	});
 }
 
 Label * HUD::CreateDefaultLabel(float y)

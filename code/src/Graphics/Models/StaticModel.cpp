@@ -40,7 +40,8 @@ void Plutonium::StaticModel::Finalize(void)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
 	{
-		shapes.at(i).Mesh->Finalize(wnd);
+		Mesh *cur = shapes.at(i).Mesh;
+		if (!cur->buffer) cur->Finalize(wnd);
 	}
 }
 
@@ -104,8 +105,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 	}
 
 	/* Finalize the final meshes. */
-	if (!PRE_SORT_MATERIALS) result->Finalize();
-	else result->shapes.back().Mesh->Finalize(result->wnd);
+	result->Finalize();
 
 	/* Finalize loading. */
 	LOG_MSG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);

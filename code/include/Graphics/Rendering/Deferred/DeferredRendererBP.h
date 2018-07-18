@@ -11,6 +11,9 @@ namespace Plutonium
 	struct DeferredRendererBP
 	{
 	public:
+		/* Defines the exposure value used to render the sceen. */
+		float Exposure;
+
 		/* Initializes a new instance of a Blinn-Phong deferred rendering handler. */
 		DeferredRendererBP(_In_ GraphicsAdapter *device);
 		DeferredRendererBP(_In_ const DeferredRendererBP &value) = delete;
@@ -36,16 +39,17 @@ namespace Plutonium
 		std::queue<const PointLight*> queuePLights;
 		GraphicsAdapter *device;
 
-		RenderTarget *fbo;
+		RenderTarget *gbFbo, *hdrFbo;
 		const RenderTargetAttachment *normalSpec;	// [nx, ny, nz, s]
 		const RenderTargetAttachment *posSpec;		// [x, y, z, s]
 		const RenderTargetAttachment *ambient;		// [r, g, b]
 		const RenderTargetAttachment *diffuse;		// [r, g, b]
+		const RenderTargetAttachment *screen;		// [r, g, b, a]
 
 		struct
 		{
 			Shader *shdr;
-			Uniform *matProj, *matview, *matMdl, *specExp, *gamma;
+			Uniform *matProj, *matview, *matMdl, *specExp;
 			Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 			Attribute *pos, *norm, *tan, *uv;
 		} gpass;
@@ -70,18 +74,25 @@ namespace Plutonium
 			Mesh *sphere;
 		} ppass;
 
-		void InitGPass(void);
-		void InitDPass(void);
-		void InitPPass(void);
+		struct
+		{
+			Shader *shdr;
+			Uniform *screen, *gamma, *exposure;
+			Attribute *pos, *uv;
+		} fpass;
+
+		void InitGPass(void);	// Geometry.
+		void InitDPass(void);	// Directional light.
+		void InitPPass(void);	// Point light.
+		void InitFPass(void);	// Monitor fix.
 
 		void BeginGPass(const Matrix &proj, const Matrix &view);
-		void RenderModel(const StaticObject *model);
-		void EndGPass(void);
 		void BeginDirLightPass(Vector3 camPos);
-		void RenderDirLight(const Matrix &iview, const DirectionalLight *light);
-		void EndDirLightPass(void);
 		void BeginPntLightPass(Vector3 camPos);
+
+		void RenderModel(const StaticObject *model);
+		void RenderDirLight(const Matrix &iview, const DirectionalLight *light);
 		void RenderPntLight(const PointLight *light);
-		void EndPntLightPass(void);
+		void FixForMonitor(void);
 	};
 }

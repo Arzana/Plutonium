@@ -31,7 +31,7 @@ namespace Plutonium
 		_Check_return_ ProgressBar& operator =(_In_ ProgressBar &&other) = delete;
 
 		/* Gets the current value of the progress bar mapped to a specified range. */
-		_Check_return_ float GetValueMapped(_In_ float min = 0.0f, _In_ float max = 100.0f);
+		_Check_return_ float GetValueMapped(_In_ float min = 0.0f, _In_ float max = 100.0f) const;
 		/* Renders the progress bar to the screen. */
 		virtual void Draw(_In_ GuiItemRenderer *renderer) override;
 

@@ -25,7 +25,10 @@ public:
 	/* Display values. */
 	float sunAngle;
 	const char *dayState;
+	bool enableDayNight;
 
+	/* Renderers. */
+	DeferredRendererBP *renderer;
 	Camera *cam;
 
 	TestGame(void);
@@ -41,7 +44,6 @@ protected:
 private:
 	/* Renderers. */
 	DebugMeshRenderer * dmrenderer;
-	DeferredRendererBP *renderer;
 	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
 	DebuggableValues renderMode;
