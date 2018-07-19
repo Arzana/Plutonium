@@ -35,10 +35,10 @@ Plutonium::MaterialBP::MaterialBP(const ObjLoaderMaterial * blueprint, AssetLoad
 	else Ambient = CreateDefault("DefaultAmbient", blueprint->Ambient);
 
 	/* Import diffuse map is needed. */
-	if (!nullorempty(blueprint->DiffuseMap.Path))
+	if (!nullorempty(blueprint->AlbedoMap.Path))
 	{
-		InitConfig(&blueprint->DiffuseMap, blueprint->Diffuse, &config);
-		Diffuse = loader->LoadTexture(blueprint->DiffuseMap.Path, false, &config);
+		InitConfig(&blueprint->AlbedoMap, blueprint->Diffuse, &config);
+		Diffuse = loader->LoadTexture(blueprint->AlbedoMap.Path, false, &config);
 	}
 	else Diffuse = CreateDefault("DefaultDiffuse", blueprint->Diffuse);
 

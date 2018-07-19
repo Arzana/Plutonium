@@ -229,25 +229,30 @@ bool Plutonium::ObjLoaderTextureMap::operator!=(const ObjLoaderTextureMap & othe
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(void)
 	: Name(""), IlluminationModel(0),
-	Ambient(Color::Black()), Diffuse(Color::Black()), Specular(Color::Black()),
+	Ambient(Color::Black()), Diffuse(Color::Black()), Specular(Color::Black()), Emissive(Color::Black()),
 	Transmittance(Color::White()), HighlightExponent(1.0f), OpticalDensity(1.0f), Dissolve(1.0f),
-	AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
-	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
+	Glossiness(1.0f), Metallic(0.0f),
+	AmbientMap(false), AlbedoMap(false), SpecularMap(false), EmissiveMap(false),
+	HighlightMap(false), BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false),
+	GlossinessMap(false), MetallicMap(false)
 {}
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(const ObjLoaderMaterial & value)
 	: Name(""), IlluminationModel(value.IlluminationModel),
-	Ambient(value.Ambient), Diffuse(value.Diffuse), Specular(value.Specular),
+	Ambient(value.Ambient), Diffuse(value.Diffuse), Specular(value.Specular), Emissive(value.Emissive),
 	Transmittance(value.Transmittance), HighlightExponent(value.HighlightExponent), OpticalDensity(value.OpticalDensity), Dissolve(value.Dissolve),
-	AmbientMap(value.AmbientMap), DiffuseMap(value.DiffuseMap), SpecularMap(value.SpecularMap), HighlightMap(value.HighlightMap),
-	BumpMap(value.BumpMap), DisplacementMap(value.DisplacementMap), AlphaMap(value.AlphaMap), ReflectionMap(value.ReflectionMap)
+	Glossiness(value.Glossiness), Metallic(value.Metallic),
+	AmbientMap(value.AmbientMap), AlbedoMap(value.AlbedoMap), SpecularMap(value.SpecularMap), EmissiveMap(value.EmissiveMap),
+	HighlightMap(value.HighlightMap), BumpMap(value.BumpMap), DisplacementMap(value.DisplacementMap), AlphaMap(value.AlphaMap), ReflectionMap(value.ReflectionMap),
+	GlossinessMap(value.GlossinessMap), MetallicMap(value.MetallicMap)
 {
 	if (strlen(value.Name) > 0) Name = heapstr(value.Name);
 }
 
 Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
-	: AmbientMap(false), DiffuseMap(false), SpecularMap(false), HighlightMap(false),
-	BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false)
+	: AmbientMap(false), AlbedoMap(false), SpecularMap(false), EmissiveMap(false),
+	HighlightMap(false), BumpMap(true), DisplacementMap(false), AlphaMap(false), ReflectionMap(false),
+	GlossinessMap(false), MetallicMap(false)
 {
 	/* Move over data. */
 	Name = value.Name;
@@ -255,28 +260,37 @@ Plutonium::ObjLoaderMaterial::ObjLoaderMaterial(ObjLoaderMaterial && value)
 	Diffuse = value.Diffuse;
 	Specular = value.Specular;
 	Transmittance = value.Transmittance;
+	Emissive = value.Emissive;
 	HighlightExponent = value.HighlightExponent;
 	OpticalDensity = value.OpticalDensity;
 	Dissolve = value.Dissolve;
+	Glossiness = value.Glossiness;
+	Metallic = value.Metallic;
 	IlluminationModel = value.IlluminationModel;
 	AmbientMap = std::move(value.AmbientMap);
-	DiffuseMap = std::move(value.DiffuseMap);
+	AlbedoMap = std::move(value.AlbedoMap);
 	SpecularMap = std::move(value.SpecularMap);
+	EmissiveMap = std::move(value.EmissiveMap);
 	HighlightMap = std::move(value.HighlightMap);
 	BumpMap = std::move(value.BumpMap);
 	DisplacementMap = std::move(value.DisplacementMap);
 	AlphaMap = std::move(value.AlphaMap);
 	ReflectionMap = std::move(value.ReflectionMap);
+	GlossinessMap = std::move(value.GlossinessMap);
+	MetallicMap = std::move(value.MetallicMap);
 
 	/* Reset old data. */
 	value.Name = "";
 	value.Ambient = Color::Black();
 	value.Diffuse = Color::Black();
 	value.Specular = Color::Black();
+	value.Emissive = Color::Black();
 	value.Transmittance = Color::White();
 	value.HighlightExponent = 1.0f;
 	value.OpticalDensity = 1.0f;
 	value.Dissolve = 1.0f;
+	value.Glossiness = 1.0f;
+	value.Metallic = 0.0f;
 	value.IlluminationModel = 0;
 }
 
@@ -298,18 +312,24 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(const ObjLoaderMater
 		Diffuse = other.Diffuse;
 		Specular = other.Specular;
 		Transmittance = other.Transmittance;
+		Emissive = other.Emissive;
 		HighlightExponent = other.HighlightExponent;
 		OpticalDensity = other.OpticalDensity;
 		Dissolve = other.Dissolve;
+		Glossiness = other.Glossiness;
+		Metallic = other.Metallic;
 		IlluminationModel = other.IlluminationModel;
 		AmbientMap = other.AmbientMap;
-		DiffuseMap = other.DiffuseMap;
+		AlbedoMap = other.AlbedoMap;
 		SpecularMap = other.SpecularMap;
+		EmissiveMap = other.EmissiveMap;
 		HighlightMap = other.HighlightMap;
 		BumpMap = other.BumpMap;
 		DisplacementMap = other.DisplacementMap;
 		AlphaMap = other.AlphaMap;
 		ReflectionMap = other.ReflectionMap;
+		GlossinessMap = other.GlossinessMap;
+		MetallicMap = other.MetallicMap;
 	}
 
 	return *this;
@@ -328,18 +348,24 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 		Diffuse = other.Diffuse;
 		Specular = other.Specular;
 		Transmittance = other.Transmittance;
+		Emissive = other.Emissive;
 		HighlightExponent = other.HighlightExponent;
 		OpticalDensity = other.OpticalDensity;
 		Dissolve = other.Dissolve;
+		Glossiness = other.Glossiness;
+		Metallic = other.Metallic;
 		IlluminationModel = other.IlluminationModel;
 		AmbientMap = std::move(other.AmbientMap);
-		DiffuseMap = std::move(other.DiffuseMap);
+		AlbedoMap = std::move(other.AlbedoMap);
 		SpecularMap = std::move(other.SpecularMap);
+		EmissiveMap = std::move(other.EmissiveMap);
 		HighlightMap = std::move(other.HighlightMap);
 		BumpMap = std::move(other.BumpMap);
 		DisplacementMap = std::move(other.DisplacementMap);
 		AlphaMap = std::move(other.AlphaMap);
 		ReflectionMap = std::move(other.ReflectionMap);
+		GlossinessMap = std::move(other.GlossinessMap);
+		MetallicMap = std::move(other.MetallicMap);
 
 		/* Reset old data. */
 		other.Name = "";
@@ -347,9 +373,12 @@ ObjLoaderMaterial & Plutonium::ObjLoaderMaterial::operator=(ObjLoaderMaterial &&
 		other.Diffuse = Color::Black();
 		other.Specular = Color::Black();
 		other.Transmittance = Color::White();
+		other.Emissive = Color::Black();
 		other.HighlightExponent = 1.0f;
 		other.OpticalDensity = 1.0f;
 		other.Dissolve = 1.0f;
+		other.Glossiness = 1.0f;
+		other.Metallic = 0.0f;
 		other.IlluminationModel = 0;
 	}
 
@@ -932,6 +961,24 @@ inline void HandleTransmittanceLine(const char *line, ObjLoaderMaterial *curMate
 	curMaterial->Transmittance = ParseColor3(&line);
 }
 
+/* Handles the emissive light line. */
+inline void HandleEmissiveLine(const char *line, ObjLoaderMaterial *curMaterial)
+{
+	curMaterial->Emissive = ParseColor3(&line);
+}
+
+/* Handles the glossiness factor line. */
+inline void HandleGlossinessLine(const char *line, ObjLoaderMaterial *curMaterial)
+{
+	curMaterial->Glossiness = ParseFloat(&line);
+}
+
+/* Handles the metallic factor line. */
+inline void HandleMetallicLine(const char *line, ObjLoaderMaterial *curMaterial)
+{
+	curMaterial->Metallic = ParseFloat(&line);
+}
+
 /* Handles the index of refraction line. */
 inline void HandleIoRLine(const char *line, ObjLoaderMaterial *curMaterial)
 {
@@ -1136,6 +1183,27 @@ void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, O
 		return;
 	}
 
+	/* Check if line is emissive line. */
+	if (line[0] == 'K' && line[1] == 'e' && IS_SPACE(line[2]))
+	{
+		HandleEmissiveLine(line + 2, curMaterial);
+		return;
+	}
+
+	/* Check if line is glossiness line. */
+	if (line[0] == 'P' && line[1] == 'r' && IS_SPACE(line[2]))
+	{
+		HandleGlossinessLine(line + 2, curMaterial);
+		return;
+	}
+
+	/* Check if line is metallic line. */
+	if (line[0] == 'P' && line[1] == 'm' && IS_SPACE(line[2]))
+	{
+		HandleMetallicLine(line + 2, curMaterial);
+		return;
+	}
+
 	/* Check if line is index of refraction. */
 	if (line[0] == 'N' && line[1] == 'i' && IS_SPACE(line[2]))
 	{
@@ -1181,7 +1249,7 @@ void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, O
 	/* Check if line is diffuse tex line. */
 	if (!strncmp(line, "map_Kd", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 7, dir, &curMaterial->DiffuseMap, false);
+		HandleTextureLine(line + 7, dir, &curMaterial->AlbedoMap, false);
 		return;
 	}
 
@@ -1231,6 +1299,27 @@ void HandleMtlLine(const char *line, const char *dir, ObjLoaderResult *result, O
 	if (!strncmp(line, "refl", 4) && IS_SPACE(line[4]))
 	{
 		HandleTextureLine(line + 5, dir, &curMaterial->ReflectionMap, true);
+		return;
+	}
+
+	/* Check if line is glossiness tex line. */
+	if (!strncmp(line, "map_Pr", 4) && IS_SPACE(line[4]))
+	{
+		HandleTextureLine(line + 5, dir, &curMaterial->GlossinessMap, false);
+		return;
+	}
+
+	/* Check if line is metallic tex line. */
+	if (!strncmp(line, "map_Pm", 4) && IS_SPACE(line[4]))
+	{
+		HandleTextureLine(line + 5, dir, &curMaterial->MetallicMap, false);
+		return;
+	}
+
+	/* Check if line is emissive tex line. */
+	if (!strncmp(line, "map_Ke", 4) && IS_SPACE(line[4]))
+	{
+		HandleTextureLine(line + 5, dir, &curMaterial->EmissiveMap, false);
 		return;
 	}
 

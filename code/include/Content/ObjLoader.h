@@ -173,6 +173,13 @@ namespace Plutonium
 		*/
 		Color Transmittance;
 		/*
+		The light emitting from this materials surface.
+		Defines the color that should be emitted by the surface of this material.
+		Default: 'Black'.
+		Token(s) (.mtl): 'Ke'
+		*/
+		Color Emissive;
+		/*
 		The specular highlight exponent (shininess) of this material.
 		Defines the focus of the specular highlight, a high value results in a concentrated highlight.
 		Default: 1.0f.
@@ -196,6 +203,25 @@ namespace Plutonium
 		Token(s) (.mtl): 'd', 'Tr'.
 		*/
 		float Dissolve;
+		/*
+		The global glossiness (or roughness) modifier of this material.
+		Defines the smoothness of the microsurface level, reflected light will scatter more
+		if the surface is rougher, a value of 1.0f means the object will hardly scatter and
+		a 0.0f mean the object will scatter all it's reflected light.
+		Note that this value needs to be inverted if used in a shader to convert to roughtness.
+		Default: 1.0f.
+		Token(s) (.mtl): 'Pr'.
+		*/
+		float Glossiness;
+		/*
+		The global metallic factor used for this material.
+		Defines the depth that the refracted light will penetrate the material, a value of 1.0f
+		means the material is fully made of metal and thusly light will not travel deep within it,
+		a value of 0.0f would indicate a dielectric material where light will travel far within it.
+		Default: 0.0f.
+		Token(s) (.mtl): 'Pm'.
+		*/
+		float Metallic;
 		/* 
 		The illumination model.
 		Defines which illumination model should be used whilst rendering with this material,
@@ -221,15 +247,20 @@ namespace Plutonium
 		*/
 		ObjLoaderTextureMap AmbientMap;
 		/* 
-		Defines the diffuse texture map associated with the material. 
+		Defines the  albedo (or diffuse) texture map associated with the material. 
 		Token(s) (.mtl): 'map_Kd'.
 		*/
-		ObjLoaderTextureMap DiffuseMap;
+		ObjLoaderTextureMap AlbedoMap;
 		/*
 		Defines the specular texture map associated with the material. 
 		Token(s) (.mtl): 'map_Ks'.
 		*/
 		ObjLoaderTextureMap SpecularMap;
+		/*
+		Defines the emissive texture map associated with the material.
+		Token(s) (.mtl): 'map_Ke'.
+		*/
+		ObjLoaderTextureMap EmissiveMap;
 		/* 
 		Defines the specular highlight map associated with the material. 
 		Token(s) (.mtl): 'map_Ns'.
@@ -255,6 +286,16 @@ namespace Plutonium
 		Token(s) (.mtl): 'refl'.
 		*/
 		ObjLoaderTextureMap ReflectionMap;
+		/*
+		Defines the glossiness map associated with the material.
+		Token(s) (.mtl): 'map_Pr'.
+		*/
+		ObjLoaderTextureMap GlossinessMap;
+		/*
+		Defines the metaliic map associated with the material.
+		Token(s) (.mtl): 'map_Pm'
+		*/
+		ObjLoaderTextureMap MetallicMap;
 
 		/* Initializes a new instance of an obj loader material. */
 		ObjLoaderMaterial(void);
