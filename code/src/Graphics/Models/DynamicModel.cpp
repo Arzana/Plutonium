@@ -3,6 +3,7 @@
 #include "Streams\FileReader.h"
 #include "Core\StringFunctions.h"
 #include "Content\AssetLoader.h"
+#include "Graphics\Materials\MaterialBP.h"
 #include <cstring>
 
 using namespace Plutonium;
@@ -15,13 +16,11 @@ Plutonium::DynamicModel::~DynamicModel(void)
 {
 	free_s(name);
 	free_s(path);
+	delete_s(material);
 
 	/* Release animation information. */
 	for (size_t i = 0; i < animations.size(); i++) delete_s(animations.at(i));
 	animations.clear();
-
-	/* Release skin. */
-	loader->Unload(skin);
 }
 
 void Plutonium::DynamicModel::Finalize(void)
@@ -37,21 +36,28 @@ void Plutonium::DynamicModel::Finalize(void)
 	}
 }
 
-DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader *loader, const char * texture)
+DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader *loader, const char * texture, std::atomic<float> * progression)
 {
+	constexpr float RAW_MOD = 0.1f;
+	constexpr float MESH_MOD = 0.2f;
+
 	/* Create result. */
 	DynamicModel *result = new DynamicModel(loader);
 	result->path = heapstr(path);
 
 	/* Attempt to load raw data. */
-	const Md2LoaderResult *raw = _CrtLoadMd2(path);
+	const Md2LoaderResult *raw = _CrtLoadMd2(path, progression, RAW_MOD);
 
 	/* Check if there is at least one texture that can be used. */
 	LOG_THROW_IF(raw->textures.size() < 1 && !texture, "No texture is defined for model '%s'!", result->name);
 
 	/* Load all animation frames. */
 	std::vector<Mesh*> meshes;
-	for (size_t i = 0; i < raw->frames.size(); i++) meshes.push_back(Mesh::FromFile(raw, i));
+	for (size_t i = 0; i < raw->frames.size(); i++)
+	{
+		meshes.push_back(Mesh::FromFile(raw, i));
+		if (progression) progression->store(RAW_MOD + ((static_cast<float>(i) / raw->frames.size()) * MESH_MOD));
+	}
 
 	/* Parse frames to animations. */
 	result->SplitFrames(meshes);
@@ -63,8 +69,10 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 
 	/* Parse texture to result. */
 	result->name = heapstr(reader.GetFileNameWithoutExtension());
-	result->skin = loader->LoadTexture(tex);
+	result->material = new MaterialBP(result->name, loader, nullptr, loader->LoadTexture(tex), nullptr, nullptr, nullptr);
+
 	result->Finalize();	// TODO: Remove!
+	progression->store(1.0f);
 
 	/* Log creation. */
 	LOG("Finished loading model '%s' (%zu animation(s)).", reader.GetFileName(), result->animations.size());

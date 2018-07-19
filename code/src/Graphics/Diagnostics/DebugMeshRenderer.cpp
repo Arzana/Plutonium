@@ -8,12 +8,6 @@ Plutonium::DebugMeshRenderer::DebugMeshRenderer(GraphicsAdapter * device, Debugg
 	nrenderer = new NormalRenderer();
 	ulrenderer = new UnlitRenderer();
 	lrenderer = new LightingRenderer(device);
-
-	defBmpMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default bump");
-	defBmpMap->SetData(Color::Malibu().ToArray());
-
-	defAlphaMap = new Texture(1, 1, device->GetWindow(), &TextureCreationOptions::DefaultNoMipMap, "default alpha");
-	defAlphaMap->SetData(Color::White().ToArray());
 }
 
 Plutonium::DebugMeshRenderer::~DebugMeshRenderer(void)
@@ -22,9 +16,6 @@ Plutonium::DebugMeshRenderer::~DebugMeshRenderer(void)
 	delete_s(nrenderer);
 	delete_s(ulrenderer);
 	delete_s(lrenderer);
-
-	delete_s(defBmpMap);
-	delete_s(defAlphaMap);
 }
 
 void Plutonium::DebugMeshRenderer::Render(const Matrix & view, const Matrix & proj, Vector3 camPos)
@@ -115,7 +106,7 @@ void Plutonium::DebugMeshRenderer::RenderNStatic(const StaticObject * model)
 
 void Plutonium::DebugMeshRenderer::RenderNDynamic(const DynamicObject * model)
 {
-	nrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), defBmpMap);
+	nrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), model->model->material->Opacity);
 }
 
 void Plutonium::DebugMeshRenderer::RenderUlStatic(const StaticObject * model)
@@ -130,7 +121,8 @@ void Plutonium::DebugMeshRenderer::RenderUlStatic(const StaticObject * model)
 
 void Plutonium::DebugMeshRenderer::RenderUlDynamic(const DynamicObject * model)
 {
-	ulrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), model->model->skin, defAlphaMap);
+	const MaterialBP *material = model->model->material;
+	ulrenderer->Render(model->GetWorld(), model->GetCurrentFrame(), material->Diffuse, material->Opacity);
 }
 
 void Plutonium::DebugMeshRenderer::RenderLStatic(const StaticObject * model)
@@ -164,7 +156,7 @@ void Plutonium::DebugMeshRenderer::RenderLDLight(const DirectionalLight * light)
 	for (size_t i = 0; i < dModels.size(); i++)
 	{
 		const DynamicObject *object = dModels.at(i);
-		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), defBmpMap, light);
+		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), object->model->material->Normal, light);
 	}
 }
 
@@ -184,6 +176,6 @@ void Plutonium::DebugMeshRenderer::RenderLPLight(const PointLight * light)
 	for (size_t i = 0; i < dModels.size(); i++)
 	{
 		const DynamicObject *object = dModels.at(i);
-		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), defBmpMap, light);
+		lrenderer->Render(object->GetWorld(), object->GetCurrentFrame(), object->model->material->Normal, light);
 	}
 }

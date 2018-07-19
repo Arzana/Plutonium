@@ -42,6 +42,8 @@ namespace Plutonium
 	/* Copies a string to the heap. */
 	_Check_return_ char* heapstr(_In_ const char *src);
 	/* Copies a string to the heap. */
+	_Check_return_ char* heapstr(_In_ const char32_t *src);
+	/* Copies a string to the heap. */
 	_Check_return_ char32_t* heapwstr(_In_ const char *src);
 	/* Copies a string to the heap. */
 	_Check_return_ char32_t* heapwstr(_In_ const char32_t *src);

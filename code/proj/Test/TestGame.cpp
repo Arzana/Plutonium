@@ -1,15 +1,13 @@
 #include "TestGame.h"
-#include "Graphics\Models\Shapes.h"
-#include "Graphics\Materials\MaterialBP.h"
+#include <Graphics\Models\Shapes.h>
+#include <Graphics\Materials\MaterialBP.h>
 
 #define QUICK_MAP
 //#define DISABLE_VSYNC
 
-#define SHDR_PATH(name)		"./assets/shaders/" name
-
 TestGame::TestGame(void)
 	: Game(_CRT_NAMEOF_RAW(TestGame)), dayState("<NULL>"),
-	sunAngle(0.0f), renderMode(DebuggableValues::None)
+	sunAngle(0.0f), renderMode(DebuggableValues::None), knight(nullptr)
 {
 #if defined (DISABLE_VSYNC)
 	FixedTimeStep = false;
@@ -28,7 +26,6 @@ void TestGame::Initialize(void)
 
 	/* Initialize renderers. */
 	renderer = new DeferredRendererBP(GetGraphics());
-	drenderer = new DynamicRenderer(SHDR_PATH("Dynamic3D.vert"), SHDR_PATH("Dynamic3D.frag"));
 	sbrenderer = new SkyboxRenderer(GetGraphics());
 	dmrenderer = new DebugMeshRenderer(GetGraphics());
 
@@ -78,17 +75,7 @@ void TestGame::LoadContent(void)
 	/* Setup lighting. */
 	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
 #if defined (QUICK_MAP)
-	GetLoader()->LoadTexture("textures/uv.png", Callback<Texture>([&](const AssetLoader*, Texture *texture)
-	{
-		MaterialBP *mat = new MaterialBP("VisualizerMaterial", GetLoader(), nullptr, texture, nullptr, nullptr, nullptr);
-
-		Mesh *mesh = new Mesh("VisualizerMesh");
-		ShapeCreator::MakeSphere(mesh, 64, 64, 1.0f);
-		mesh->Finalize(GetGraphics()->GetWindow());
-
-		visualizer = new StaticObject(this, new StaticModel(mat, mesh), PER_FIRE_WEIGHT * 4);
-		visualizer->Move(Vector3::Up() * 5.0f);
-	}));
+	knight = new Knight(this, Vector3::Up() * 3.0f, 0.1f, PER_FIRE_WEIGHT * 4);
 #else
 	Color fireColor = Color((byte)254, 211, 60);
 	fires.push_back(new Fire(this, Vector3(-616.6f, 172.6f, 140.3f), fireColor, MAP_SCALE, PER_FIRE_WEIGHT));
@@ -102,7 +89,7 @@ void TestGame::UnLoadContent(void)
 {
 	delete_s(map);
 #if defined (QUICK_MAP)
-	delete_s(visualizer);
+	delete_s(knight);
 #endif
 	delete_s(sun);
 	for (size_t i = 0; i < fires.size(); i++) delete_s(fires.at(i));
@@ -113,7 +100,6 @@ void TestGame::UnLoadContent(void)
 void TestGame::Finalize(void)
 {
 	delete_s(renderer);
-	delete_s(drenderer);
 	delete_s(sbrenderer);
 	delete_s(dmrenderer);
 	delete_s(cam);
@@ -125,9 +111,10 @@ void TestGame::Update(float dt)
 	loadScreen->Hide();
 	hud->Show();
 
-	/* Update lighting. */
+	/* Update scene. */
 	UpdateDayState(dt);
 	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
+	knight->Update(dt);
 
 	/* Update camera. */
 	cam->Update(dt, hud->HasFocus() ? nullptr : GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
@@ -146,17 +133,16 @@ void TestGame::Render(float dt)
 		renderer->Add(sun);
 
 #if defined(QUICK_MAP)
-		renderer->Add(visualizer);
+		renderer->Add(knight->object);
 #else
-		for (size_t i = 0; i < 4; i++) renderer->Add(fires.at(i)->light);
+		for (size_t i = 0; i < 4; i++)
+		{
+			renderer->Add(fires.at(i)->object);
+			renderer->Add(fires.at(i)->light);
+		}
 #endif
 
 		renderer->Render(cam->GetProjection(), cam->GetView(), cam->GetPosition());
-
-		/* Render dynamic objects. */
-		drenderer->Begin(cam->GetView(), cam->GetProjection(), sun->Direction);
-		for (size_t i = 0; i < fires.size(); i++) drenderer->Render(fires.at(i)->object);
-		drenderer->End();
 
 		/* Render skybox. */
 		sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
@@ -167,7 +153,7 @@ void TestGame::Render(float dt)
 		dmrenderer->AddModel(map);
 		dmrenderer->AddLight(sun);
 #if defined (QUICK_MAP)
-		dmrenderer->AddModel(visualizer);
+		dmrenderer->AddModel(knight->object);
 #else
 		for (size_t i = 0; i < fires.size(); i++)
 		{

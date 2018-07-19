@@ -2,6 +2,7 @@
 #include "Graphics\Rendering\Shader.h"
 #include "Graphics\Native\RenderTargets\RenderTarget.h"
 #include "GameLogic\StaticObject.h"
+#include "GameLogic\DynamicObject.h"
 #include "Graphics\Lighting\DirectionalLight.h"
 #include "Graphics\Lighting\PointLight.h"
 
@@ -26,6 +27,8 @@ namespace Plutonium
 
 		/* Adds a static model to the render queue. */
 		void Add(_In_ const StaticObject *model);
+		/* Adds a animated model to the render queue. */
+		void Add(_In_ const DynamicObject *model);
 		/* Adds a directional light to the render queue. */
 		void Add(_In_ const DirectionalLight *light);
 		/* Adds a point light to the render queue. */
@@ -35,6 +38,7 @@ namespace Plutonium
 
 	private:
 		std::queue<const StaticObject*> queuedModels;
+		std::queue<const DynamicObject*> queuedAnimations;
 		std::queue<const DirectionalLight*> queuedDLights;
 		std::queue<const PointLight*> queuePLights;
 		GraphicsAdapter *device;
@@ -52,7 +56,16 @@ namespace Plutonium
 			Uniform *matProj, *matview, *matMdl, *specExp;
 			Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 			Attribute *pos, *norm, *tan, *uv;
-		} gpass;
+		} gspass;
+
+		struct
+		{
+			Shader *shdr;
+			Uniform *matProj, *matView, *matMdl, *specExp, *amnt;
+			Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
+			Attribute *pos, *norm, *tan, *uv;
+			Attribute *pos2, *norm2, *tan2;
+		} gdpass;
 
 		struct 
 		{
@@ -81,16 +94,19 @@ namespace Plutonium
 			Attribute *pos, *uv;
 		} fpass;
 
-		void InitGPass(void);	// Geometry.
+		void InitGsPass(void);	// Static geometry.
+		void InitGdPass(void);	// Animated geometry.
 		void InitDPass(void);	// Directional light.
 		void InitPPass(void);	// Point light.
 		void InitFPass(void);	// Monitor fix.
 
-		void BeginGPass(const Matrix &proj, const Matrix &view);
+		void BeginGsPass(const Matrix &proj, const Matrix &view);
+		void BeginGdPass(const Matrix &proj, const Matrix &view);
 		void BeginDirLightPass(Vector3 camPos);
 		void BeginPntLightPass(Vector3 camPos);
 
 		void RenderModel(const StaticObject *model);
+		void RenderModel(const DynamicObject *model);
 		void RenderDirLight(const Matrix &iview, const DirectionalLight *light);
 		void RenderPntLight(const PointLight *light);
 		void FixForMonitor(void);

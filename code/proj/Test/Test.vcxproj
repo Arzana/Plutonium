@@ -162,7 +162,7 @@
   <ItemGroup>
     <ClInclude Include="Fire.h" />
     <ClInclude Include="HUD.h" />
-    <ClInclude Include="KnightInit.h" />
+    <ClInclude Include="Knight.h" />
     <ClInclude Include="LoadScreen.h" />
     <ClInclude Include="TestGame.h" />
   </ItemGroup>

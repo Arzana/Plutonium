@@ -262,6 +262,28 @@ char * Plutonium::heapstr(const char * src)
 	return result;
 }
 
+char * Plutonium::heapstr(const char32_t * src)
+{
+	/* Allocate memory for string. */
+	const size_t len = strlen(src);
+	char *result = malloc_s(char, len + 1);
+
+	/* Copies string to heap. */
+	for (size_t i = 0; i < len; i++)
+	{
+		char32_t cur = src[i];
+
+		/* On debug mode check if we're not losing character information. */
+#if defined (DEBUG)
+		LOG_WAR_IF(cur > UCHAR_MAX, "Lost char when converting from UTF-32 to ASCII!");
+#endif
+		result[i] = static_cast<char>(src[i]);
+	}
+
+	result[len] = '\0';
+	return result;
+}
+
 char32_t * Plutonium::heapwstr(const char * src)
 {
 	/* Allocate memory for string. */

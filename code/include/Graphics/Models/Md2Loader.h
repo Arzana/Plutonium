@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <atomic>
 #include "Core\Math\Constants.h"
 #include "Core\Math\Vector2.h"
 #include "Core\Math\Vector3.h"
@@ -56,5 +57,5 @@ namespace Plutonium
 	};
 
 	/* Excecutes phase one of the MD2 loading and parsing process. */
-	const Md2LoaderResult* _CrtLoadMd2(const char *path);
+	_Check_return_ const Md2LoaderResult* _CrtLoadMd2(_In_ const char *path, _In_opt_ std::atomic<float> *progression = nullptr, _In_opt_ float progressionMod = 1.0f);
 }

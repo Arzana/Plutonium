@@ -239,11 +239,9 @@
     <ClCompile Include="..\..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Deferred\DeferredRendererBP.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\SpriteRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Shader.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Uniform.cpp" />
     <ClCompile Include="..\..\src\Graphics\Texture.cpp" />
@@ -358,12 +356,10 @@
     <ClInclude Include="..\..\include\Graphics\Renderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Deferred\DeferredRendererBP.h" />
-    <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\SkyboxRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\SpriteRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Shader.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\ShaderTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Uniform.h" />

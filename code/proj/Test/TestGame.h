@@ -2,11 +2,11 @@
 #include <Game.h>
 #include <Graphics\Rendering\Deferred\DeferredRendererBP.h>
 #include <Graphics\Diagnostics\DebugMeshRenderer.h>
-#include <Graphics\Rendering\DynamicRenderer.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
 #include <Components\Camera.h>
 #include <Graphics\Lighting\DirectionalLight.h>
 #include "Fire.h"
+#include "Knight.h"
 #include "HUD.h"
 #include "LoadScreen.h"
 
@@ -19,7 +19,8 @@ public:
 	/* Scene. */
 	DirectionalLight *sun;
 	std::vector<Fire*> fires;
-	StaticObject *map, *visualizer;
+	Knight *knight;
+	StaticObject *map;
 	TextureHandler skybox;
 
 	/* Display values. */
@@ -44,7 +45,6 @@ protected:
 private:
 	/* Renderers. */
 	DebugMeshRenderer * dmrenderer;
-	DynamicRenderer *drenderer;
 	SkyboxRenderer *sbrenderer;
 	DebuggableValues renderMode;
 

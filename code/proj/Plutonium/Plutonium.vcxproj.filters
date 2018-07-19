@@ -254,9 +254,6 @@
     <ClCompile Include="..\..\src\Core\Diagnostics\Memory.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Rendering\StaticRenderer.cpp">
-      <Filter>Source Files\Graphics\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Native\Buffer.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
     </ClCompile>
@@ -268,9 +265,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Models\DynamicModel.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Rendering\DynamicRenderer.cpp">
-      <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp">
       <Filter>Source Files\Graphics\Native</Filter>
@@ -538,9 +532,6 @@
     <ClInclude Include="..\..\include\Graphics\Models\Md2Loader.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Rendering\StaticRenderer.h">
-      <Filter>Header Files\Graphics\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\Buffer.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
@@ -561,9 +552,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Models\DynamicModel.h">
       <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Rendering\DynamicRenderer.h">
-      <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h">
       <Filter>Header Files\Graphics\Native</Filter>

@@ -1,6 +1,5 @@
 #pragma once
-#include <Graphics\Models\AnimationInfo.h>
-#include <Core\Diagnostics\Logging.h>
+#include <Graphics\Models\DynamicModel.h>
 
 inline void InitKnight(const char *Name, Plutonium::PlayBackFlags &flags, float &fps)
 {
@@ -106,3 +105,37 @@ inline void InitKnight(const char *Name, Plutonium::PlayBackFlags &flags, float 
 	}
 	else LOG_WAR("Unset Knight animation: %s!", Name);
 }
+
+struct Knight
+{
+public:
+	DynamicObject *object;
+
+	Knight(Game *game, Vector3 pos, float scale, int weight)
+		: animationStarted(false)
+	{
+		object = new DynamicObject(game, "models/Knight/knight.md2", "knight.bmp", weight, InitKnight);
+		object->Teleport(pos);
+		object->SetScale(scale);
+		object->SetOrientation(0.0f, -PI2, 0.0f);
+	}
+
+	void Update(float dt)
+	{
+		if (!animationStarted)
+		{
+			object->PlayAnimation("stand");
+			animationStarted = true;
+		}
+
+		object->Update(dt);
+	}
+
+	~Knight(void) noexcept
+	{
+		delete_s(object);
+	}
+
+private:
+	bool animationStarted;
+};

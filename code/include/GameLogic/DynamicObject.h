@@ -25,12 +25,6 @@ namespace Plutonium
 			return model;
 		}
 
-		/* Plays a specified animation. */
-		void PlayAnimation(_In_ const char *name);
-		/* Updates the model. */
-		void Update(_In_ float dt);
-
-	protected:
 		/* Gets the current animations frame mesh. */
 		_Check_return_ inline const Mesh* GetCurrentFrame(void) const
 		{
@@ -42,6 +36,17 @@ namespace Plutonium
 		{
 			return model->animations.at(curAnim)->Frames.at(nextFrame);
 		}
+
+		/* Gets the amount used for inter frame interpolation. */
+		_Check_return_ inline float GetMixAmount(void) const
+		{
+			return mixAmnt;
+		}
+
+		/* Plays a specified animation. */
+		_Check_return_ bool PlayAnimation(_In_ const char *name);
+		/* Updates the model. */
+		void Update(_In_ float dt);
 
 	private:
 		friend struct DynamicRenderer;

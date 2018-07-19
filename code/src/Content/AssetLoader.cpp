@@ -764,7 +764,7 @@ void Plutonium::AssetLoader::LoadDModelInternal(DynamicModelLoadInfo *info)
 
 	/* Load model. */
 	const char *fullPath = CreateFullPath(info->Names->GetFilePath());
-	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture), info->RefCnt);
+	AssetInfo<DynamicModel> *result = new AssetInfo<DynamicModel>(info->Keep, DynamicModel::FromFile(fullPath, this, info->Texture, &progression), info->RefCnt);
 	free_s(fullPath);
 
 	/* Push to loaded list. */

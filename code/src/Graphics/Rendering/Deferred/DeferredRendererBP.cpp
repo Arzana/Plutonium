@@ -35,6 +35,278 @@ struct PlaneVertexFormat
 	Plutonium::Vector2 Uv;
 };
 
+#pragma region Shader Sources
+constexpr const char *STATIC_GPASS_VRTX_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"struct FragInfo																										\n"
+	"{																														\n"
+	"	vec3 Position;																										\n"
+	"	vec2 Uv;																											\n"
+	"	mat3 TBN;																											\n"
+	"};																														\n"
+
+	"uniform mat4 Projection;																								\n"
+	"uniform mat4 View;																										\n"
+	"uniform mat4 Model;																									\n"
+
+	"in vec3 Position;																										\n"
+	"in vec3 Normal;																										\n"
+	"in vec3 Tangent;																										\n"
+	"in vec2 Uv;																											\n"
+
+	"out FragInfo Frag;																										\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	Frag.Position = (Model * vec4(Position, 1.0f)).xyz;																	\n"
+	"	Frag.Uv = Uv;																										\n"
+
+	"	vec3 t = normalize((Model * vec4(Tangent, 0.0f)).xyz);																\n"
+	"	vec3 n = normalize((Model * vec4(Normal, 0.0f)).xyz);																\n"
+	"	vec3 b = cross(n, t);																								\n"
+	"	Frag.TBN = mat3(t, b, n);																							\n"
+
+	"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
+	"}";
+
+constexpr const char *ANIMATED_GPASS_VRTX_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"struct FragInfo																										\n"
+	"{																														\n"
+	"	vec3 Position;																										\n"
+	"	vec2 Uv;																											\n"
+	"	mat3 TBN;																											\n"
+	"};																														\n"
+
+	"uniform mat4 Model;																									\n"
+	"uniform mat4 View;																										\n"
+	"uniform mat4 Projection;																								\n"
+	"uniform float Blending;																								\n"
+
+	"in vec3 Position1;																										\n"
+	"in vec3 Normal1;																										\n"
+	"in vec3 Tangent1;																										\n"
+	"in vec2 Uv;																											\n"
+
+	"in vec3 Position2;																										\n"
+	"in vec3 Normal2;																										\n"
+	"in vec3 Tangent2;																										\n"
+
+	"out FragInfo Frag;																										\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	vec3 position = mix(Position1, Position2, Blending);																\n"
+	"	vec3 normal = normalize(Normal1 + Normal2);																			\n"
+	"	vec3 tangent = normalize(Tangent1 + Tangent2);																		\n"
+
+	"	Frag.Position = (Model * vec4(position, 1.0f)).xyz;																	\n"
+	"	Frag.Uv = Uv;																										\n"
+
+	"	vec3 t = normalize((Model * vec4(tangent, 0.0f)).xyz);																\n"
+	"	vec3 n = normalize((Model * vec4(normal, 0.0f)).xyz);																\n"
+	"	vec3 b = cross(n, t);																								\n"
+	"	Frag.TBN = mat3(t, b, n);																							\n"
+
+	"	gl_Position = Projection * View * Model * vec4(position, 1.0f);														\n"
+	"}";
+
+constexpr const char *GPASS_FRAG_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"struct FragInfo																										\n"
+	"{																														\n"
+	"	vec3 Position;																										\n"
+	"	vec2 Uv;																											\n"
+	"	mat3 TBN;																											\n"
+	"};																														\n"
+
+	"struct Material																										\n"
+	"{																														\n"
+	"	sampler2D Ambient;																									\n"
+	"	sampler2D Diffuse;																									\n"
+	"	sampler2D Specular;																									\n"
+	"	sampler2D Opacity;																									\n"
+	"	sampler2D Normal;																									\n"
+	"	float SpecularExponent;																								\n"
+	"};																														\n"
+
+	"uniform Material Object;																								\n"
+	"uniform float GammaCorrection;																							\n"
+	"in FragInfo Frag;																										\n"
+
+	"out vec4 NormalSpecular;																								\n"
+	"out vec4 PositionSpecular;																								\n"
+	"out vec3 Ambient;																										\n"
+	"out vec3 Diffuse;																										\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	vec4 diffuse = texture(Object.Diffuse, Frag.Uv);																	\n"
+
+	"	vec4 alpha = texture(Object.Opacity, Frag.Uv);																		\n"
+	"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f || diffuse.a < 0.1f) discard;			\n"
+
+	"	vec3 normal = texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f;													\n"
+	"	normal = Frag.TBN * normalize(normal);																				\n"
+
+	"	Ambient = texture(Object.Ambient, Frag.Uv).rgb;																		\n"
+	"	Diffuse = diffuse.rgb;																								\n"
+	"	NormalSpecular.xyz = normal;																						\n"
+	"	NormalSpecular.w = texture(Object.Specular, Frag.Uv).r;																\n"
+	"	PositionSpecular.xyz = Frag.Position;																				\n"
+	"	PositionSpecular.w = Object.SpecularExponent;																		\n"
+	"}";
+
+constexpr const char *PASS_VRTX_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"in vec3 Position;																										\n"
+	"in vec2 ScreenCoordinate;																								\n"
+
+	"out vec2 Uv;																											\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	Uv = ScreenCoordinate;																								\n"
+	"	gl_Position = vec4(Position, 1.0f);																					\n"
+	"}";
+
+constexpr const char *DPASS_FRAG_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"struct GBuffer																											\n"
+	"{																														\n"
+	"	sampler2D NormalSpecular;																							\n"
+	"	sampler2D PositionSpecular;																							\n"
+	"	sampler2D Ambient;																									\n"
+	"	sampler2D Diffuse;																									\n"
+	"};																														\n"
+
+	"struct DirectionalLight																								\n"
+	"{																														\n"
+	"	vec3 Direction;																										\n"
+	"	vec4 Ambient;																										\n"
+	"	vec4 Diffuse;																										\n"
+	"	vec4 Specular;																										\n"
+	"};																														\n"
+
+	"uniform GBuffer Geometry;																								\n"
+	"uniform DirectionalLight Light;																						\n"
+	"uniform vec3 ViewPosition;																								\n"
+
+	"in vec2 Uv;																											\n"
+
+	"out vec4 FragColor;																									\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
+	"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
+	"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
+	"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+
+	"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
+	"	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
+	"	vec3 halfwayDir = normalize(Light.Direction + viewDir);																\n"
+	"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+
+	"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient;																\n"
+	"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * intensity;													\n"
+	"	vec4 specular = normSpec.w * Light.Specular * power;																\n"
+	"	FragColor = ambient + diffuse + specular;																			\n"
+	"}";
+
+constexpr const char *PPASS_VRTX_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"uniform mat4 Model;																									\n"
+
+	"in vec3 Position;																										\n"
+	"in vec2 ScreenCoordinate;																								\n"
+
+	"out vec2 Uv;																											\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	Uv = ScreenCoordinate;																								\n"
+	"	gl_Position = Model * vec4(Position, 1.0f);																			\n"
+	"}";
+
+constexpr const char *PPASS_FRAG_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"struct GBuffer																											\n"
+	"{																														\n"
+	"	sampler2D NormalSpecular;																							\n"
+	"	sampler2D PositionSpecular;																							\n"
+	"	sampler2D Ambient;																									\n"
+	"	sampler2D Diffuse;																									\n"
+	"};																														\n"
+
+	"struct PointLight																										\n"
+	"{																														\n"
+	"	vec3 Position;																										\n"
+	"	float Constant;																										\n"
+	"	float Linear;																										\n"
+	"	float Quadratic;																									\n"
+	"	vec4 Ambient;																										\n"
+	"	vec4 Diffuse;																										\n"
+	"	vec4 Specular;																										\n"
+	"};																														\n"
+
+	"uniform GBuffer Geometry;																								\n"
+	"uniform PointLight Light;																								\n"
+	"uniform vec3 ViewPosition;																								\n"
+
+	"in vec2 Uv;																											\n"
+
+	"out vec4 FragColor;																									\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
+	"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
+	"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
+	"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+
+	"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
+	"	vec3 lightDir = normalize(Light.Position - posSpec.xyz);															\n"
+	"	float distance = length(Light.Position - posSpec.xyz);																\n"
+
+	"	float intensity = max(0.0f, dot(normSpec.xyz, lightDir));															\n"
+	"	float attenuation = 1.0f / (Light.Constant + Light.Linear * distance + Light.Quadratic * distance * distance);		\n"
+	"	vec3 halfwayDir = normalize(lightDir + viewDir);																	\n"
+	"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+
+	"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient * attenuation;												\n"
+	"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * attenuation * intensity;									\n"
+	"	vec4 specular = normSpec.w * Light.Specular * attenuation * power;													\n"
+	"	FragColor = ambient + diffuse + specular;																			\n"
+	"}";
+
+constexpr const char *FPASS_FRAG_SHDR_SRC =
+	"#version 430 core																										\n"
+
+	"uniform sampler2D HdrBuffer;																							\n"
+	"uniform float GammaCorrection;																							\n"
+	"uniform float Exposure;																								\n"
+
+	"in vec2 Uv;																											\n"
+
+	"out vec4 FragColor;																									\n"
+
+	"void main()																											\n"
+	"{																														\n"
+	"	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
+	"	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
+	"	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
+	"	FragColor = vec4(corrected, 1.0f);																					\n"
+	"}";
+#pragma endregion
+
 Plutonium::DeferredRendererBP::DeferredRendererBP(GraphicsAdapter * device)
 	: device(device), Exposure(1.0f)
 {
@@ -51,7 +323,8 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(GraphicsAdapter * device)
 	screen = hdrFbo->Attach("HDR Output", AttachmentOutputType::LpVector4);
 	hdrFbo->Finalize();
 
-	InitGPass();
+	InitGsPass();
+	InitGdPass();
 	InitDPass();
 	InitPPass();
 	InitFPass();
@@ -61,7 +334,8 @@ Plutonium::DeferredRendererBP::~DeferredRendererBP(void)
 {
 	delete_s(gbFbo);
 	delete_s(hdrFbo);
-	delete_s(gpass.shdr);
+	delete_s(gspass.shdr);
+	delete_s(gdpass.shdr);
 	delete_s(dpass.shdr);
 	delete_s(ppass.shdr);
 }
@@ -69,6 +343,11 @@ Plutonium::DeferredRendererBP::~DeferredRendererBP(void)
 void Plutonium::DeferredRendererBP::Add(const StaticObject * model)
 {
 	queuedModels.push(model);
+}
+
+void Plutonium::DeferredRendererBP::Add(const DynamicObject * model)
+{
+	queuedAnimations.push(model);
 }
 
 void Plutonium::DeferredRendererBP::Add(const DirectionalLight * light)
@@ -88,13 +367,21 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
 
 	/* Perform geometry pass to fill the GBuffer. */
-	BeginGPass(projection, view);
+	BeginGsPass(projection, view);
 	while (queuedModels.size() > 0)
 	{
 		RenderModel(queuedModels.front());
 		queuedModels.pop();
 	}
-	gpass.shdr->End();
+	gspass.shdr->End();
+
+	BeginGdPass(projection, view);
+	while (queuedAnimations.size() > 0)
+	{
+		RenderModel(queuedAnimations.front());
+		queuedAnimations.pop();
+	}
+	gdpass.shdr->End();
 
 	/* Setup HDR buffer for lighting. */
 	device->SetRenderTarget(hdrFbo);
@@ -131,167 +418,49 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	device->SetDepthOuput(true);
 }
 
-void Plutonium::DeferredRendererBP::InitGPass(void)
+void Plutonium::DeferredRendererBP::InitGsPass(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																										\n"
+	gspass.shdr = new Shader(STATIC_GPASS_VRTX_SHDR_SRC, GPASS_FRAG_SHDR_SRC);
+	gspass.matProj = gspass.shdr->GetUniform("Projection");
+	gspass.matview = gspass.shdr->GetUniform("View");
+	gspass.matMdl = gspass.shdr->GetUniform("Model");
+	gspass.specExp = gspass.shdr->GetUniform("Object.SpecularExponent");
+	gspass.mapAmbi = gspass.shdr->GetUniform("Object.Ambient");
+	gspass.mapDiff = gspass.shdr->GetUniform("Object.Diffuse");
+	gspass.mapSpec = gspass.shdr->GetUniform("Object.Specular");
+	gspass.mapAlpha = gspass.shdr->GetUniform("Object.Opacity");
+	gspass.mapBump = gspass.shdr->GetUniform("Object.Normal");
+	gspass.pos = gspass.shdr->GetAttribute("Position");
+	gspass.norm = gspass.shdr->GetAttribute("Normal");
+	gspass.tan = gspass.shdr->GetAttribute("Tangent");
+	gspass.uv = gspass.shdr->GetAttribute("Uv");
+}
 
-		"struct FragInfo																										\n"
-		"{																														\n"
-		"	vec3 Position;																										\n"
-		"	vec2 Uv;																											\n"
-		"	mat3 TBN;																											\n"
-		"};																														\n"
-
-		"uniform mat4 Projection;																								\n"
-		"uniform mat4 View;																										\n"
-		"uniform mat4 Model;																									\n"
-
-		"in vec3 Position;																										\n"
-		"in vec3 Normal;																										\n"
-		"in vec3 Tangent;																										\n"
-		"in vec2 Uv;																											\n"
-
-		"out FragInfo Frag;																										\n"
-
-		"void main()																											\n"
-		"{																														\n"
-		"	Frag.Position = (Model * vec4(Position, 1.0f)).xyz;																	\n"
-		"	Frag.Uv = Uv;																										\n"
-
-		"	vec3 t = normalize((Model * vec4(Tangent, 0.0f)).xyz);																\n"
-		"	vec3 n = normalize((Model * vec4(Normal, 0.0f)).xyz);																\n"
-		"	vec3 b = cross(n, t);																								\n"
-		"	Frag.TBN = mat3(t, b, n);																							\n"
-
-		"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
-		"}";
-
-	constexpr const char *FRAG_SHDR_SRC =
-		"#version 430 core																										\n"
-
-		"struct FragInfo																										\n"
-		"{																														\n"
-		"	vec3 Position;																										\n"
-		"	vec2 Uv;																											\n"
-		"	mat3 TBN;																											\n"
-		"};																														\n"
-
-		"struct Material																										\n"
-		"{																														\n"
-		"	sampler2D Ambient;																									\n"
-		"	sampler2D Diffuse;																									\n"
-		"	sampler2D Specular;																									\n"
-		"	sampler2D Opacity;																									\n"
-		"	sampler2D Normal;																									\n"
-		"	float SpecularExponent;																								\n"
-		"};																														\n"
-
-		"uniform Material Object;																								\n"
-		"uniform float GammaCorrection;																							\n"
-		"in FragInfo Frag;																										\n"
-
-		"out vec4 NormalSpecular;																								\n"
-		"out vec4 PositionSpecular;																								\n"
-		"out vec3 Ambient;																										\n"
-		"out vec3 Diffuse;																										\n"
-
-		"void main()																											\n"
-		"{																														\n"
-		"	vec4 diffuse = texture(Object.Diffuse, Frag.Uv);																	\n"
-
-		"	vec4 alpha = texture(Object.Opacity, Frag.Uv);																		\n"
-		"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f || diffuse.a < 0.1f) discard;			\n"
-
-		"	vec3 normal = texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f;													\n"
-		"	normal = Frag.TBN * normalize(normal);																				\n"
-
-		"	Ambient = texture(Object.Ambient, Frag.Uv).rgb;																		\n"
-		"	Diffuse = diffuse.rgb;																								\n"
-		"	NormalSpecular.xyz = normal;																						\n"
-		"	NormalSpecular.w = texture(Object.Specular, Frag.Uv).r;																\n"
-		"	PositionSpecular.xyz = Frag.Position;																				\n"
-		"	PositionSpecular.w = Object.SpecularExponent;																		\n"
-		"}";
-
-	gpass.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
-	gpass.matProj = gpass.shdr->GetUniform("Projection");
-	gpass.matview = gpass.shdr->GetUniform("View");
-	gpass.matMdl = gpass.shdr->GetUniform("Model");
-	gpass.specExp = gpass.shdr->GetUniform("Object.SpecularExponent");
-	gpass.mapAmbi = gpass.shdr->GetUniform("Object.Ambient");
-	gpass.mapDiff = gpass.shdr->GetUniform("Object.Diffuse");
-	gpass.mapSpec = gpass.shdr->GetUniform("Object.Specular");
-	gpass.mapAlpha = gpass.shdr->GetUniform("Object.Opacity");
-	gpass.mapBump = gpass.shdr->GetUniform("Object.Normal");
-	gpass.pos = gpass.shdr->GetAttribute("Position");
-	gpass.norm = gpass.shdr->GetAttribute("Normal");
-	gpass.tan = gpass.shdr->GetAttribute("Tangent");
-	gpass.uv = gpass.shdr->GetAttribute("Uv");
+void Plutonium::DeferredRendererBP::InitGdPass(void)
+{
+	gdpass.shdr = new Shader(ANIMATED_GPASS_VRTX_SHDR_SRC, GPASS_FRAG_SHDR_SRC);
+	gdpass.matProj = gdpass.shdr->GetUniform("Projection");
+	gdpass.matView = gdpass.shdr->GetUniform("View");
+	gdpass.matMdl = gdpass.shdr->GetUniform("Model");
+	gdpass.amnt = gdpass.shdr->GetUniform("Blending");
+	gdpass.specExp = gdpass.shdr->GetUniform("Object.SpecularExponent");
+	gdpass.mapAmbi = gdpass.shdr->GetUniform("Object.Ambient");
+	gdpass.mapDiff = gdpass.shdr->GetUniform("Object.Diffuse");
+	gdpass.mapSpec = gdpass.shdr->GetUniform("Object.Specular");
+	gdpass.mapAlpha = gdpass.shdr->GetUniform("Object.Opacity");
+	gdpass.mapBump = gdpass.shdr->GetUniform("Object.Normal");
+	gdpass.pos = gdpass.shdr->GetAttribute("Position1");
+	gdpass.norm = gdpass.shdr->GetAttribute("Normal1");
+	gdpass.tan = gdpass.shdr->GetAttribute("Tangent1");
+	gdpass.pos2 = gdpass.shdr->GetAttribute("Position2");
+	gdpass.norm2 = gdpass.shdr->GetAttribute("Normal2");
+	gdpass.tan2 = gdpass.shdr->GetAttribute("Tangent2");
+	gdpass.uv = gdpass.shdr->GetAttribute("Uv");
 }
 
 void Plutonium::DeferredRendererBP::InitDPass(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																										\n"
-
-		"in vec3 Position;																										\n"
-		"in vec2 ScreenCoordinate;																								\n"
-
-		"out vec2 Uv;																											\n"
-
-		"void main()																											\n"
-		"{																														\n"
-		"	Uv = ScreenCoordinate;																								\n"
-		"	gl_Position = vec4(Position, 1.0f);																					\n"
-		"}";
-
-	constexpr const char *FRAG_SHDR_SRC =
-		"#version 430 core																										\n"
-
-		"struct GBuffer																											\n"
-		"{																														\n"
-		"	sampler2D NormalSpecular;																							\n"
-		"	sampler2D PositionSpecular;																							\n"
-		"	sampler2D Ambient;																									\n"
-		"	sampler2D Diffuse;																									\n"
-		"};																														\n"
-
-		"struct DirectionalLight																								\n"
-		"{																														\n"
-		"	vec3 Direction;																										\n"
-		"	vec4 Ambient;																										\n"
-		"	vec4 Diffuse;																										\n"
-		"	vec4 Specular;																										\n"
-		"};																														\n"
-
-		"uniform GBuffer Geometry;																								\n"
-		"uniform DirectionalLight Light;																						\n"
-		"uniform vec3 ViewPosition;																								\n"
-
-		"in vec2 Uv;																											\n"
-
-		"out vec4 FragColor;																									\n"
-
-		"void main()																											\n"
-		"{																														\n"
-		"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
-		"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
-		"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
-		"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
-
-		"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
-		"	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
-		"	vec3 halfwayDir = normalize(Light.Direction + viewDir);																\n"
-		"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
-
-		"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient;																\n"
-		"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * intensity;													\n"
-		"	vec4 specular = normSpec.w * Light.Specular * power;																\n"
-		"	FragColor = ambient + diffuse + specular;																			\n"
-		"}";
-
-	dpass.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	dpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, DPASS_FRAG_SHDR_SRC);
 	dpass.normSpec = dpass.shdr->GetUniform("Geometry.NormalSpecular");
 	dpass.posSpec = dpass.shdr->GetUniform("Geometry.PositionSpecular");
 	dpass.ambi = dpass.shdr->GetUniform("Geometry.Ambient");
@@ -318,75 +487,7 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 
 void Plutonium::DeferredRendererBP::InitPPass(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																										\n"
-		
-		"uniform mat4 Model;																									\n"
-		
-		"in vec3 Position;																										\n"
-		"in vec2 ScreenCoordinate;																								\n"
-		
-		"out vec2 Uv;																											\n"
-		
-		"void main()																											\n"
-		"{																														\n"
-		"	Uv = ScreenCoordinate;																								\n"
-		"	gl_Position = Model * vec4(Position, 1.0f);																			\n"
-		"}";
-
-	constexpr const char *FRAG_SHDR_SRC = 
-		"#version 430 core																										\n"
-		
-		"struct GBuffer																											\n"
-		"{																														\n"
-		"	sampler2D NormalSpecular;																							\n"
-		"	sampler2D PositionSpecular;																							\n"
-		"	sampler2D Ambient;																									\n"
-		"	sampler2D Diffuse;																									\n"
-		"};																														\n"
-		
-		"struct PointLight																										\n"
-		"{																														\n"
-		"	vec3 Position;																										\n"
-		"	float Constant;																										\n"
-		"	float Linear;																										\n"
-		"	float Quadratic;																									\n"
-		"	vec4 Ambient;																										\n"
-		"	vec4 Diffuse;																										\n"
-		"	vec4 Specular;																										\n"
-		"};																														\n"
-		
-		"uniform GBuffer Geometry;																								\n"
-		"uniform PointLight Light;																								\n"
-		"uniform vec3 ViewPosition;																								\n"
-
-		"in vec2 Uv;																											\n"
-
-		"out vec4 FragColor;																									\n"
-		
-		"void main()																											\n"
-		"{																														\n"
-		"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
-		"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
-		"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
-		"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
-
-		"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
-		"	vec3 lightDir = normalize(Light.Position - posSpec.xyz);															\n"
-		"	float distance = length(Light.Position - posSpec.xyz);																\n"
-
-		"	float intensity = max(0.0f, dot(normSpec.xyz, lightDir));															\n"
-		"	float attenuation = 1.0f / (Light.Constant + Light.Linear * distance + Light.Quadratic * distance * distance);		\n"
-		"	vec3 halfwayDir = normalize(lightDir + viewDir);																	\n"
-		"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
-
-		"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient * attenuation;												\n"
-		"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * attenuation * intensity;									\n"
-		"	vec4 specular = normSpec.w * Light.Specular * attenuation * power;													\n"
-		"	FragColor = ambient + diffuse + specular;																			\n"
-		"}";
-
-	ppass.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	ppass.shdr = new Shader(PPASS_VRTX_SHDR_SRC, PPASS_FRAG_SHDR_SRC);
 	ppass.normSpec = ppass.shdr->GetUniform("Geometry.NormalSpecular");
 	ppass.posSpec = ppass.shdr->GetUniform("Geometry.PositionSpecular");
 	ppass.ambi = ppass.shdr->GetUniform("Geometry.Ambient");
@@ -411,40 +512,7 @@ void Plutonium::DeferredRendererBP::InitPPass(void)
 
 void Plutonium::DeferredRendererBP::InitFPass(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core																										\n"
-
-		"in vec3 Position;																										\n"
-		"in vec2 ScreenCoordinate;																								\n"
-
-		"out vec2 Uv;																											\n"
-
-		"void main()																											\n"
-		"{																														\n"
-		"	Uv = ScreenCoordinate;																								\n"
-		"	gl_Position = vec4(Position, 1.0f);																					\n"
-		"}";
-
-	constexpr const char *FRAG_SHDR_SRC =
-		"#version 430 core																										\n"
-		
-		"uniform sampler2D HdrBuffer;																							\n"
-		"uniform float GammaCorrection;																							\n"
-		"uniform float Exposure;																								\n"
-		
-		"in vec2 Uv;																											\n"
-
-		"out vec4 FragColor;																									\n"
-		
-		"void main()																											\n"
-		"{																														\n"
-		"	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
-		"	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
-		"	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
-		"	FragColor = vec4(corrected, 1.0f);																					\n"
-		"}";
-
-	fpass.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	fpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, FPASS_FRAG_SHDR_SRC);
 	fpass.screen = fpass.shdr->GetUniform("HdrBuffer");
 	fpass.gamma = fpass.shdr->GetUniform("GammaCorrection");
 	fpass.exposure = fpass.shdr->GetUniform("Exposure");
@@ -452,12 +520,20 @@ void Plutonium::DeferredRendererBP::InitFPass(void)
 	fpass.uv = fpass.shdr->GetAttribute("ScreenCoordinate");
 }
 
-void Plutonium::DeferredRendererBP::BeginGPass(const Matrix & proj, const Matrix & view)
+void Plutonium::DeferredRendererBP::BeginGsPass(const Matrix & proj, const Matrix & view)
 {
 	/* Set geometry pass global parameters. */
-	gpass.shdr->Begin();
-	gpass.matProj->Set(proj);
-	gpass.matview->Set(view);
+	gspass.shdr->Begin();
+	gspass.matProj->Set(proj);
+	gspass.matview->Set(view);
+}
+
+void Plutonium::DeferredRendererBP::BeginGdPass(const Matrix & proj, const Matrix & view)
+{
+	/* Set geometry pass global parameters. */
+	gdpass.shdr->Begin();
+	gdpass.matProj->Set(proj);
+	gdpass.matView->Set(view);
 }
 
 void Plutonium::DeferredRendererBP::BeginDirLightPass(Vector3 camPos)
@@ -504,36 +580,74 @@ void Plutonium::DeferredRendererBP::BeginPntLightPass(Vector3 camPos)
 void Plutonium::DeferredRendererBP::RenderModel(const StaticObject * model)
 {
 	/* Set model matrix. */
-	gpass.matMdl->Set(model->GetWorld());
+	gspass.matMdl->Set(model->GetWorld());
 
 	/* Loops through all shapes in the model. */
 	const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
 	for (size_t i = 0; i < shapes->size(); i++)
 	{
 		/* Render the current material if it's visible. */
-		MaterialBP *material = shapes->at(i).Material;
+		const MaterialBP *material = shapes->at(i).Material;
 		if (material->Visible)
 		{
 			Buffer *mesh = shapes->at(i).Mesh->GetVertexBuffer();
 
 			/* Set material attributes. */
-			gpass.mapAmbi->Set(material->Ambient);
-			gpass.mapDiff->Set(material->Diffuse);
-			gpass.mapSpec->Set(material->Specular);
-			gpass.mapAlpha->Set(material->Opacity);
-			gpass.mapBump->Set(material->Normal);
-			gpass.specExp->Set(material->SpecularExponent);
+			gspass.mapAmbi->Set(material->Ambient);
+			gspass.mapDiff->Set(material->Diffuse);
+			gspass.mapSpec->Set(material->Specular);
+			gspass.mapAlpha->Set(material->Opacity);
+			gspass.mapBump->Set(material->Normal);
+			gspass.specExp->Set(material->SpecularExponent);
 
 			/* Set mesh attributes. */
 			mesh->Bind();
-			gpass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-			gpass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-			gpass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-			gpass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+			gspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			gspass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+			gspass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+			gspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 			/* Render the shape to the GBuffer. */
 			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
 		}
+	}
+}
+
+void Plutonium::DeferredRendererBP::RenderModel(const DynamicObject * model)
+{
+	/* Set model matrix and inter frame mix amount. */
+	gdpass.matMdl->Set(model->GetWorld());
+	gdpass.amnt->Set(model->GetMixAmount());
+
+	const MaterialBP *material = model->GetModel()->GetMaterial();
+	if (material->Visible)
+	{
+		Buffer *curMesh = model->GetCurrentFrame()->GetVertexBuffer();
+		Buffer *nextMesh = model->GetNextFrame()->GetVertexBuffer();
+
+		/* Set material attributes. */
+		gdpass.mapAmbi->Set(material->Ambient);
+		gdpass.mapDiff->Set(material->Diffuse);
+		gdpass.mapSpec->Set(material->Specular);
+		gdpass.mapAlpha->Set(material->Opacity);
+		gdpass.mapBump->Set(material->Normal);
+		gdpass.specExp->Set(material->SpecularExponent);		
+
+		/* Set first mesh attributes. */
+		curMesh->Bind();
+		gdpass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+		gdpass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+		gdpass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+		gdpass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+		/* Set second mesh attributes. */
+		nextMesh->Bind();
+		gdpass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+		gdpass.norm2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+		gdpass.tan2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+
+		/* Render the shape to the GBuffer. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curMesh->GetElementCount()));
 	}
 }
 

@@ -6,6 +6,8 @@
 
 using namespace Plutonium;
 
+struct TestGame;
+
 struct HUD
 	: Menu
 {
@@ -20,10 +22,13 @@ protected:
 	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
 	Button *btnDayNight;
 	Slider *sldExposure;
+	TextBox *txtKnightAnim;
 
 	virtual void Initialize(void) override;
 	virtual void Create(void) override;
 
 private:
+	TestGame *tgame;
+
 	Label* CreateDefaultLabel(float y);
 };

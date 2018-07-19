@@ -13,7 +13,7 @@ Plutonium::DynamicObject::~DynamicObject(void)
 	parent->GetLoader()->Unload(model);
 }
 
-void Plutonium::DynamicObject::PlayAnimation(const char * name)
+bool Plutonium::DynamicObject::PlayAnimation(const char * name)
 {
 	for (size_t i = 0; i < model->animations.size(); i++)
 	{
@@ -30,11 +30,12 @@ void Plutonium::DynamicObject::PlayAnimation(const char * name)
 			frameMoveMod = _CrtGetPlaybackStep(info->Flags);
 			curFrame = frameMoveMod > 0 ? 0 : info->Frames.size() - 2;
 			nextFrame = curFrame + 1;
-			return;
+			return true;
 		}
 	}
 
-	ASSERT("Attempting to play unknown animation '%s'!", name);
+	LOG_WAR("Attempting to play unknown animation '%s'!", name);
+	return false;
 }
 
 void Plutonium::DynamicObject::Update(float dt)

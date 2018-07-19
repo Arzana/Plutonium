@@ -2,9 +2,10 @@
 #include "TestGame.h"
 #include <Core\Math\Interpolation.h>
 #include <Core\String.h>
+#include <Core\StringFunctions.h>
 
 HUD::HUD(Game *game)
-	: Menu(game)
+	: Menu(game), tgame(dynamic_cast<TestGame*>(game))
 {
 	Hide();
 }
@@ -31,7 +32,6 @@ void HUD::Create(void)
 	lblTime = CreateDefaultLabel(y);
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
-		const TestGame *tgame = dynamic_cast<TestGame*>(game);
 		text = "Time: ";
 		text += tgame->dayState;
 		text += ' ';
@@ -85,7 +85,6 @@ void HUD::Create(void)
 	btnDayNight->SetText(dynamic_cast<TestGame*>(game)->enableDayNight ? "Disable Day/Night Cycle" : "Enable Day/Night Cycle");
 	btnDayNight->LeftClicked.Add([&](const Button*, CursorHandler)
 	{
-		TestGame *tgame = dynamic_cast<TestGame*>(game);
 		if (tgame->enableDayNight) btnDayNight->SetText("Enable Day/Night Cycle");
 		else btnDayNight->SetText("Diable Day/Night Cycle");
 
@@ -94,11 +93,28 @@ void HUD::Create(void)
 
 	sldExposure = AddSlider();
 	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, btnDayNight->GetSize().Y * 2.0f);
-	sldExposure->SetValueMapped(dynamic_cast<TestGame*>(game)->renderer->Exposure, 0.0f, 10.0f);
+	sldExposure->SetValueMapped(tgame->renderer->Exposure, 0.0f, 10.0f);
 	sldExposure->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
 	{
-		dynamic_cast<TestGame*>(game)->renderer->Exposure = sender->GetValueMapped(0.0f, 10.0f);
+		tgame->renderer->Exposure = sender->GetValueMapped(0.0f, 10.0f);
 	});
+
+	if (tgame->knight)
+	{
+		txtKnightAnim = AddTextBox();
+		txtKnightAnim->SetAutoSize(true);
+		txtKnightAnim->SetBackColor(Color::Black() * 0.5f);
+		txtKnightAnim->SetTextColor(Color::White());
+		txtKnightAnim->SetAnchors(Anchors::BottomCenter);
+		txtKnightAnim->SetText("stand");
+		txtKnightAnim->Confirmed.Add([&](const TextBox *sender, EventArgs)
+		{
+			const char *anim = heapstr(sender->GetText());
+			if (tgame->knight->object->PlayAnimation(anim)) txtKnightAnim->SetBackColor(Color::Black() * 0.5f);
+			else txtKnightAnim->SetBackColor(Color::Yellow() * 0.5f);
+			free_s(anim);
+		});
+	}
 }
 
 Label * HUD::CreateDefaultLabel(float y)

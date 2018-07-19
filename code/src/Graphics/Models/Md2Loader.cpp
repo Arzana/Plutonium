@@ -360,7 +360,13 @@ void _CrtReadMd2Frames(FileReader *reader, const md2_header_t *header, Md2Loader
 	}
 }
 
-const Plutonium::Md2LoaderResult * Plutonium::_CrtLoadMd2(const char * path)
+inline void tryUpdateProgression(std::atomic<float> *progression, float mod)
+{
+	constexpr float ADDER = recip(6.0f);
+	if (progression) progression->store(progression->load() + ADDER * mod);
+}
+
+const Plutonium::Md2LoaderResult * Plutonium::_CrtLoadMd2(const char * path, std::atomic<float> * progression, float progressionMod)
 {
 	/* Create result and initialize file reader. */
 	Md2LoaderResult *result = new Md2LoaderResult();
@@ -371,11 +377,17 @@ const Plutonium::Md2LoaderResult * Plutonium::_CrtLoadMd2(const char * path)
 
 	/* Read and parse the file data. */
 	const md2_header_t header = _CrtReadMd2Header(&reader);
+	tryUpdateProgression(progression, progressionMod);
 	_CrtReadMd2TextureNames(&reader, &header, result);
+	tryUpdateProgression(progression, progressionMod);
 	_CrtReadMd2TextureCoords(&reader, &header, result);
+	tryUpdateProgression(progression, progressionMod);
 	_CrtReadMd2Triangles(&reader, &header, result);
+	tryUpdateProgression(progression, progressionMod);
 	_CrtReadMd2OpenGLCommands(&reader, &header, result);
+	tryUpdateProgression(progression, progressionMod);
 	_CrtReadMd2Frames(&reader, &header, result);
+	tryUpdateProgression(progression, progressionMod);
 
 	return result;
 }

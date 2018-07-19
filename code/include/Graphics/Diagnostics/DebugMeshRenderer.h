@@ -69,8 +69,6 @@ namespace Plutonium
 
 	private:
 		DebuggableValues mode;
-		Texture *defBmpMap;
-		Texture *defAlphaMap;
 
 		WireframeRenderer *wfrenderer;
 		NormalRenderer *nrenderer;

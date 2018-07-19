@@ -47,7 +47,7 @@ void Plutonium::StaticModel::Finalize(void)
 
 #include "Core\Stopwatch.h"
 
-StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * loader, std::atomic<float>* progression)
+StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * loader, std::atomic<float> * progression)
 {
 	constexpr float MOD = 0.7f;
 	Stopwatch sw = Stopwatch::StartNew();

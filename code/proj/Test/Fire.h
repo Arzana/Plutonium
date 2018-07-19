@@ -16,9 +16,9 @@ inline void InitFire(const char *Name, PlayBackFlags &flags, float &fps)
 
 struct Fire
 {
+public:
 	DynamicObject *object;
 	PointLight *light;
-	bool animationStarted;
 
 	Fire(Game *game, Vector3 pos, Color lightColor, float scale, int weight)
 		: animationStarted(false)
@@ -46,4 +46,7 @@ struct Fire
 		delete_s(object);
 		delete_s(light);
 	}
+
+private:
+	bool animationStarted;
 };
