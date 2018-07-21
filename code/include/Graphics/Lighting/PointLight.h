@@ -33,7 +33,7 @@ namespace Plutonium
 		{
 			Vector4 color = max(max(Ambient.ToVector4(), Diffuse.ToVector4()), Specular.ToVector4());
 			float lightMax = max(max(color.X, color.Y), color.Z);
-			return (-Linear + sqrtf(Linear * Linear - 4.0f * Quadratic * (Constant - (256.0f / 5.0f) * lightMax))) / (2.0f * Quadratic);
+			return (-Linear + sqrtf(Linear * Linear - 4.0f * Quadratic * (Constant - 256.0f * lightMax))) / (2.0f * Quadratic);
 		}
 
 		/* Sets the attenuation terms to specified values. */

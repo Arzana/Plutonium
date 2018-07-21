@@ -80,9 +80,10 @@ namespace Plutonium
 		struct
 		{
 			Shader *shdr;
-			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos, *matMdl;
+			Uniform *matProj, *matView, *matMdl, *screen;
+			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos;
 			Uniform *lpos, *c, *l, *q, *clrAmbi, *clrDiff, *clrSpec;
-			Attribute *pos, *uv;
+			Attribute *pos;
 
 			Mesh *sphere;
 		} ppass;
@@ -103,7 +104,7 @@ namespace Plutonium
 		void BeginGsPass(const Matrix &proj, const Matrix &view);
 		void BeginGdPass(const Matrix &proj, const Matrix &view);
 		void BeginDirLightPass(Vector3 camPos);
-		void BeginPntLightPass(Vector3 camPos);
+		void BeginPntLightPass(const Matrix &proj, const Matrix &view, Vector3 camPos);
 
 		void RenderModel(const StaticObject *model);
 		void RenderModel(const DynamicObject *model);

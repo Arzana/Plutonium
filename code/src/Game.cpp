@@ -81,7 +81,12 @@ void Plutonium::Game::Run(void)
 	Stopwatch sw = Stopwatch::StartNew();
 	DoInitialize();
 
-	/* Load first level. */
+	/* Load first level, disable vsyncs and fixed time step to improve invoke performance. */
+	LOG("Loading content for '%s', disabling fixed time step and synchronization with vertical retrace", wnd->title);
+	bool oldTixed = FixedTimeStep;
+	VSyncMode oldVsync = wnd->GetRetraceMode();
+	FixedTimeStep = false;
+	wnd->SetVerticalRetrace(VSyncMode::Disable);
 	loadPercentage.store(0.0f);
 	LoadContent();
 
@@ -95,12 +100,15 @@ void Plutonium::Game::Run(void)
 	while (GetLoadPercentage() < 1.0f || extraTicks < 10)
 	{
 		wnd->Update();
-		while (!Tick(wnd->HasFocus(), true));
+		while (!Tick(true, true));
 
 		if (GetLoadPercentage() >= 1.0f) ++extraTicks;
 	}
 
-	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.Milliseconds() * 0.001f);
+	/* Log the completiong of the loading process and reset the fixed time step and vsync mode. */
+	LOG_MSG("Finished initializing and loading content for '%s', took %Lf seconds.", wnd->title, sw.SecondsAccurate());
+	FixedTimeStep = oldTixed;
+	wnd->SetMode(oldVsync);
 
 	/* Excecute game loop. */
 	while (!wnd->Update())

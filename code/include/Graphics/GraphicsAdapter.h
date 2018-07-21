@@ -37,6 +37,12 @@ namespace Plutonium
 		void SetColorSourceBlend(_In_ BlendType blend);
 		/* Sets the destination color blend type. */
 		void SetColorDestinationBlend(_In_ BlendType blend);
+		/* Sets the source blend types. */
+		void SetSourceBlend(_In_ BlendType color, _In_ BlendType alpha);
+		/* Sets the destination blend types. */
+		void SetDestinationBlend(_In_ BlendType color, _In_ BlendType alpha);
+		/* Sets the global blend types. */
+		void SetBlend(_In_ BlendType source, _In_ BlendType destination);
 
 		/* Sets the way faces should be culled. */
 		void SetFaceCull(_In_ FaceCullState cull);
@@ -87,11 +93,13 @@ namespace Plutonium
 		const DeviceInfo *device;
 		Window *window;
 		BlendState abf, cbf;
+		BlendType ast, cst, adt, cdt;
 		StencilOperation sf, df, dp;
 
 		GraphicsAdapter(Window *window);
 
 		void SetDefaultBlendEq(void);
+		void SetDefaultBlendType(void);
 		void SetDefaultStencilOp(void);
 		void UpdateBlendEq(BlendState func);
 		void UpdateStencilOp(void);

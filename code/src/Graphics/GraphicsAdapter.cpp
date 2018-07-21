@@ -21,25 +21,43 @@ void Plutonium::GraphicsAdapter::SetColorBlendFunction(BlendState func)
 void Plutonium::GraphicsAdapter::SetAlphaSourceBlend(BlendType blend)
 {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, _CrtEnum2Int(blend));
+	glBlendFuncSeparate(_CrtEnum2Int(cst), _CrtEnum2Int(cdt), _CrtEnum2Int(ast = blend), _CrtEnum2Int(adt));
 }
 
 void Plutonium::GraphicsAdapter::SetAlphaDestinationBlend(BlendType blend)
 {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_DST_ALPHA, _CrtEnum2Int(blend));
+	glBlendFuncSeparate(_CrtEnum2Int(cst), _CrtEnum2Int(cdt), _CrtEnum2Int(ast), _CrtEnum2Int(adt = blend));
 }
 
 void Plutonium::GraphicsAdapter::SetColorSourceBlend(BlendType blend)
 {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_COLOR, _CrtEnum2Int(blend));
+	glBlendFuncSeparate(_CrtEnum2Int(cst = blend), _CrtEnum2Int(cdt), _CrtEnum2Int(ast), _CrtEnum2Int(adt));
 }
 
 void Plutonium::GraphicsAdapter::SetColorDestinationBlend(BlendType blend)
 {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_DST_COLOR, _CrtEnum2Int(blend));
+	glBlendFuncSeparate(_CrtEnum2Int(cst), _CrtEnum2Int(cdt = blend), _CrtEnum2Int(ast), _CrtEnum2Int(adt));
+}
+
+void Plutonium::GraphicsAdapter::SetSourceBlend(BlendType color, BlendType alpha)
+{
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(_CrtEnum2Int(cst = color), _CrtEnum2Int(cdt), _CrtEnum2Int(ast = alpha), _CrtEnum2Int(adt));
+}
+
+void Plutonium::GraphicsAdapter::SetDestinationBlend(BlendType color, BlendType alpha)
+{
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(_CrtEnum2Int(cst), _CrtEnum2Int(cdt = color), _CrtEnum2Int(ast), _CrtEnum2Int(adt = alpha));
+}
+
+void Plutonium::GraphicsAdapter::SetBlend(BlendType source, BlendType destination)
+{
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(_CrtEnum2Int(cst = source), _CrtEnum2Int(cdt = destination), _CrtEnum2Int(ast = source), _CrtEnum2Int(adt = destination));
 }
 
 void Plutonium::GraphicsAdapter::SetFaceCull(FaceCullState cull)
@@ -143,6 +161,7 @@ Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 
 	/* Set defaults. */
 	SetDefaultBlendEq();
+	SetDefaultBlendType();
 	SetDefaultStencilOp();
 	UpdateBlendEq(BlendState::None);
 	SetDepthTest(DepthState::LessOrEqual);
@@ -158,8 +177,26 @@ void Plutonium::GraphicsAdapter::SetDefaultBlendEq(void)
 	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &alphaBlend);
 
 	/* Set them in the adapter. */
-	cbf = static_cast<BlendState>(clrBlend);
-	abf = static_cast<BlendState>(alphaBlend);
+	cbf = _CrtInt2Enum<BlendState>(clrBlend);
+	abf = _CrtInt2Enum<BlendState>(alphaBlend);
+}
+
+void Plutonium::GraphicsAdapter::SetDefaultBlendType(void)
+{
+	/* OpenGL result values. */
+	GLint alphaSrc, alphaDest, clrSrc, clrDest;
+
+	/* Get current values from OpenGL. */
+	glGetIntegerv(GL_BLEND_SRC_ALPHA, &alphaSrc);
+	glGetIntegerv(GL_BLEND_DST_ALPHA, &alphaDest);
+	glGetIntegerv(GL_BLEND_SRC_RGB, &clrSrc);
+	glGetIntegerv(GL_BLEND_DST_RGB, &clrDest);
+
+	/* Set them in the adapter. */
+	ast = _CrtInt2Enum<BlendType>(alphaSrc);
+	adt = _CrtInt2Enum<BlendType>(alphaDest);
+	cst = _CrtInt2Enum<BlendType>(clrSrc);
+	cdt = _CrtInt2Enum<BlendType>(clrDest);
 }
 
 void Plutonium::GraphicsAdapter::SetDefaultStencilOp(void)

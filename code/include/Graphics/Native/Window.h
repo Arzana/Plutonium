@@ -88,6 +88,12 @@ namespace Plutonium
 			return wndMode;
 		}
 
+		/* Gets the current synchronize with vertical retrace mode. */
+		_Check_return_ inline VSyncMode GetRetraceMode(void) const
+		{
+			return swapMode;
+		}
+
 		/* Displayes the window and gives it focus. */
 		void Show(void) const;
 		/* Hides the window and revokes its focus. */

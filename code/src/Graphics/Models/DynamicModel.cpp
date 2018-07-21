@@ -75,7 +75,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	progression->store(1.0f);
 
 	/* Log creation. */
-	LOG("Finished loading model '%s' (%zu animation(s)).", reader.GetFileName(), result->animations.size());
+	LOG("Finished loading model '%s' (%zu animation(s) with %zu total frames).", reader.GetFileName(), result->animations.size(), meshes.size());
 	return result;
 }
 

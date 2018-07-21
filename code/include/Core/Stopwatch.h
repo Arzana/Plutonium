@@ -85,6 +85,12 @@ namespace Plutonium
 			return GetDuration<std::chrono::seconds>();
 		}
 
+		/* Gets the amount of seconds since End was called or now with great accutacy. */
+		_Check_return_ inline float SecondsAccurate(void) const
+		{
+			return static_cast<float>(Milliseconds()) * 0.001f;
+		}
+
 		/* Gets the amount of minutes since End was called or now. */
 		_Check_return_ inline long long Minutes(void) const
 		{

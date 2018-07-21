@@ -301,6 +301,8 @@ void Plutonium::Window::SetVerticalRetrace(VSyncMode mode)
 
 bool Plutonium::Window::Update(void)
 {
+	constexpr float TIMEOUT = 0.05f;
+
 	/* Make sure events are updated (mouse, keyboard, etc.). */
 	glfwPollEvents();
 
@@ -313,7 +315,13 @@ bool Plutonium::Window::Update(void)
 		toInvoke.pop();
 
 		/* If invoke calls take longer then 0.05f seconds break and invoke later to prevent lag on the main thread. */
-		if (invokeTimer->Seconds() > 0.05f) break;
+		if (invokeTimer->SecondsAccurate() > TIMEOUT)
+		{
+#if defined (DEBUG)
+			LOG_WAR("Window invoke queue is longer than %f seconds, processing another tick before continuing!", TIMEOUT);
+#endif
+			break;
+		}
 	}
 	invokeLock.unlock();
 

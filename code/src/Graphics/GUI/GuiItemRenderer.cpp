@@ -76,7 +76,7 @@ void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle
 void Plutonium::GuiItemRenderer::End(bool noBlending)
 {
 	/* Enable blending (default). */
-	if (!noBlending) device->SetAlphaSourceBlend(BlendType::ISrcAlpha);
+	if (!noBlending) device->SetBlend(BlendType::SrcAlpha, BlendType::ISrcAlpha);
 
 	/* Renders all queued GuiItems. */
 	RenderBasics(basicEarlyDrawQueue);

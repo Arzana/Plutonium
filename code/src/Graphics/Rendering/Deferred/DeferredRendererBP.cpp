@@ -3,8 +3,6 @@
 #include "Graphics\Materials\MaterialBP.h"
 #include "Graphics\Models\Shapes.h"
 
-//#define USE_LIGHT_VOLUME
-
 /*
 Deferred renderer works in three stages.
 
@@ -222,17 +220,15 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 constexpr const char *PPASS_VRTX_SHDR_SRC =
 	"#version 430 core																										\n"
 
+	"uniform mat4 Projection;																								\n"
+	"uniform mat4 View;																										\n"
 	"uniform mat4 Model;																									\n"
 
 	"in vec3 Position;																										\n"
-	"in vec2 ScreenCoordinate;																								\n"
-
-	"out vec2 Uv;																											\n"
 
 	"void main()																											\n"
 	"{																														\n"
-	"	Uv = ScreenCoordinate;																								\n"
-	"	gl_Position = Model * vec4(Position, 1.0f);																			\n"
+	"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
 	"}";
 
 constexpr const char *PPASS_FRAG_SHDR_SRC =
@@ -260,17 +256,17 @@ constexpr const char *PPASS_FRAG_SHDR_SRC =
 	"uniform GBuffer Geometry;																								\n"
 	"uniform PointLight Light;																								\n"
 	"uniform vec3 ViewPosition;																								\n"
-
-	"in vec2 Uv;																											\n"
+	"uniform vec2 ScreenSize;																								\n"
 
 	"out vec4 FragColor;																									\n"
 
 	"void main()																											\n"
 	"{																														\n"
-	"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
-	"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
-	"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
-	"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+	"	vec2 uv = gl_FragCoord.xy / ScreenSize;																				\n"
+	"	vec4 posSpec = texture(Geometry.PositionSpecular, uv);																\n"
+	"	vec4 normSpec = texture(Geometry.NormalSpecular, uv);																\n"
+	"	vec3 objAmbient = texture(Geometry.Ambient, uv).rgb;																\n"
+	"	vec3 objDiffuse = texture(Geometry.Diffuse, uv).rgb;																\n"
 
 	"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
 	"	vec3 lightDir = normalize(Light.Position - posSpec.xyz);															\n"
@@ -284,7 +280,7 @@ constexpr const char *PPASS_FRAG_SHDR_SRC =
 	"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient * attenuation;												\n"
 	"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * attenuation * intensity;									\n"
 	"	vec4 specular = normSpec.w * Light.Specular * attenuation * power;													\n"
-	"	FragColor = ambient + diffuse + specular;																			\n"
+	"	FragColor = ambient + diffuse + specular, vec4(1.0f);																\n"
 	"}";
 
 constexpr const char *FPASS_FRAG_SHDR_SRC =
@@ -365,6 +361,7 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	/* Setup GBuffer. */
 	device->SetRenderTarget(gbFbo);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
+	device->SetColorBlendFunction(BlendState::None);
 
 	/* Perform geometry pass to fill the GBuffer. */
 	BeginGsPass(projection, view);
@@ -387,6 +384,8 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	device->SetRenderTarget(hdrFbo);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
 	device->SetColorBlendFunction(BlendState::Additive);
+	device->SetBlend(BlendType::One, BlendType::One);
+	device->SetDepthOuput(false);
 
 	/* Add directional lights to the scene. */
 	BeginDirLightPass(camPos);
@@ -399,7 +398,7 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	dpass.shdr->End();
 
 	/* Add point lights to the scene. */
-	BeginPntLightPass(camPos);
+	BeginPntLightPass(projection, view, camPos);
 	while (queuePLights.size() > 0)
 	{
 		RenderPntLight(queuePLights.front());
@@ -410,6 +409,7 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	/* Setup default frame buffer and copy the depth buffer over from the G buffer. */
 	device->SetRenderTarget(nullptr);
 	device->SetColorBlendFunction(BlendState::None);
+	device->SetDepthOuput(true);
 	gbFbo->BlitDepth();
 
 	/* Final render pass to fix the fix the values for the display monitor. */
@@ -488,6 +488,10 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 void Plutonium::DeferredRendererBP::InitPPass(void)
 {
 	ppass.shdr = new Shader(PPASS_VRTX_SHDR_SRC, PPASS_FRAG_SHDR_SRC);
+	ppass.matProj = ppass.shdr->GetUniform("Projection");
+	ppass.matView = ppass.shdr->GetUniform("View");
+	ppass.matMdl = ppass.shdr->GetUniform("Model");
+	ppass.screen = ppass.shdr->GetUniform("ScreenSize");
 	ppass.normSpec = ppass.shdr->GetUniform("Geometry.NormalSpecular");
 	ppass.posSpec = ppass.shdr->GetUniform("Geometry.PositionSpecular");
 	ppass.ambi = ppass.shdr->GetUniform("Geometry.Ambient");
@@ -500,9 +504,7 @@ void Plutonium::DeferredRendererBP::InitPPass(void)
 	ppass.clrDiff = ppass.shdr->GetUniform("Light.Diffuse");
 	ppass.clrSpec = ppass.shdr->GetUniform("Light.Specular");
 	ppass.camPos = ppass.shdr->GetUniform("ViewPosition");
-	ppass.matMdl = ppass.shdr->GetUniform("Model");
 	ppass.pos = ppass.shdr->GetAttribute("Position");
-	ppass.uv = ppass.shdr->GetAttribute("ScreenCoordinate");
 
 	/* Initialize sphere used for point light rendering. */
 	ppass.sphere = new Mesh("Point light render spherer");
@@ -554,27 +556,23 @@ void Plutonium::DeferredRendererBP::BeginDirLightPass(Vector3 camPos)
 	dpass.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
 }
 
-void Plutonium::DeferredRendererBP::BeginPntLightPass(Vector3 camPos)
+void Plutonium::DeferredRendererBP::BeginPntLightPass(const Matrix & proj, const Matrix & view, Vector3 camPos)
 {
 	ppass.shdr->Begin();
 
 	/* Setup global uniforms. */
+	ppass.matProj->Set(proj);
+	ppass.matView->Set(view);
 	ppass.camPos->Set(camPos);
+	ppass.screen->Set(device->GetWindow()->GetClientBounds().Size);
 	ppass.normSpec->Set(normalSpec);
 	ppass.posSpec->Set(posSpec);
 	ppass.ambi->Set(ambient);
 	ppass.diff->Set(diffuse);
 
 	/* Setup mesh. */
-#if defined (USE_LIGHT_VOLUME)
 	ppass.sphere->GetVertexBuffer()->Bind();
 	ppass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-	ppass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
-#else
-	dpass.plane->Bind();
-	ppass.pos->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Position));
-	ppass.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
-#endif
 }
 
 void Plutonium::DeferredRendererBP::RenderModel(const StaticObject * model)
@@ -663,11 +661,7 @@ void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix &iview, const Di
 
 void Plutonium::DeferredRendererBP::RenderPntLight(const PointLight * light)
 {
-#if defined (USE_LIGHT_VOLUME)
 	ppass.matMdl->Set(Matrix::CreateTranslation(light->Position) * Matrix::CreateScalar(light->GetRadius()));
-#else
-	ppass.matMdl->Set(Matrix());
-#endif
 	ppass.lpos->Set(light->Position);
 	ppass.c->Set(light->Constant);
 	ppass.l->Set(light->Linear);
@@ -676,11 +670,7 @@ void Plutonium::DeferredRendererBP::RenderPntLight(const PointLight * light)
 	ppass.clrDiff->Set(light->Diffuse);
 	ppass.clrSpec->Set(light->Specular);
 
-#if defined (USE_LIGHT_VOLUME)
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(ppass.sphere->GetVertexBuffer()->GetElementCount()));
-#else
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(dpass.plane->GetElementCount()));
-#endif
 }
 
 void Plutonium::DeferredRendererBP::FixForMonitor(void)

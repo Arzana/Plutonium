@@ -113,8 +113,11 @@ void TestGame::Update(float dt)
 
 	/* Update scene. */
 	UpdateDayState(dt);
-	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
+#if defined (QUICK_MAP)
 	knight->Update(dt);
+#else
+	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
+#endif
 
 	/* Update camera. */
 	cam->Update(dt, hud->HasFocus() ? nullptr : GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
