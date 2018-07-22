@@ -20,7 +20,7 @@ public:
 
 protected:
 	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
-	Button *btnDayNight;
+	Button *btnDayNight, *btnVsync;
 	Slider *sldExposure;
 	TextBox *txtKnightAnim;
 
@@ -31,4 +31,5 @@ private:
 	TestGame *tgame;
 
 	Label* CreateDefaultLabel(float y);
+	Button *CreateDefaultButton(void);
 };

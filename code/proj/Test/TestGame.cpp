@@ -3,6 +3,7 @@
 #include <Graphics\Materials\MaterialBP.h>
 
 #define QUICK_MAP
+//#define BIG_MAP
 //#define DISABLE_VSYNC
 
 TestGame::TestGame(void)
@@ -41,18 +42,22 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	/* Define load weights. */
+	constexpr int MAP_WEIGHT = 55;
 	static constexpr int SKYBOX_WEIGHT = 5;
 	static constexpr int PER_FIRE_WEIGHT = 10;
 
 	/* Load static map. */
 #if defined (QUICK_MAP)
-	static constexpr int MAP_WEIGHT = 55;
 	constexpr float MAP_SCALE = 1.0f;
 	map = new StaticObject(this, "models/Ruin/ruin2_walled.obj", MAP_WEIGHT);
 #else
-	static constexpr int MAP_WEIGHT = 55;
+#if defined (BIG_MAP)
+	constexpr float MAP_SCALE = 1.0f;
+	map = new StaticObject(this, "models/SanMiguel/san-miguel-low-poly.obj", MAP_WEIGHT);
+#else
 	constexpr float MAP_SCALE = 0.03f;
 	map = new StaticObject(this, "models/Sponza/sponza.obj", MAP_WEIGHT);
+#endif
 #endif
 	map->SetScale(MAP_SCALE);
 

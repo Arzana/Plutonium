@@ -26,8 +26,9 @@ void HUD::Initialize(void)
 
 void HUD::Create(void)
 {
+	constexpr float OFFSET = 2.0f;
 	float y = 0.0f;
-	const float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace());
+	const float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace()) + OFFSET;
 
 	lblTime = CreateDefaultLabel(y);
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
@@ -72,27 +73,51 @@ void HUD::Create(void)
 	lblWorldDrawTime = CreateDefaultLabel(y);
 	lblWorldDrawTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
+		const float ms = static_cast<float>(game->GetGlobalRenderTime());
+
 		text = "World Draw Time: ";
-		text += to_string("%.2f", static_cast<float>(game->GetGlobalRenderTime()));
-		text += " ms";
+		text += to_string("%.2f", ms);
+		text += " ms (";
+		text += to_string("%.0f", 1.0f / ms * 1000.0f);
+		text += "Hz)";
 	}));
 
-	btnDayNight = AddButton();
-	btnDayNight->SetAutoSize(true);
-	btnDayNight->SetBackColor(Color::Black() * 0.5f);
-	btnDayNight->SetTextColor(Color::White());
+	btnDayNight = CreateDefaultButton();
 	btnDayNight->SetAnchors(Anchors::TopCenter);
 	btnDayNight->SetText(dynamic_cast<TestGame*>(game)->enableDayNight ? "Disable Day/Night Cycle" : "Enable Day/Night Cycle");
 	btnDayNight->LeftClicked.Add([&](const Button*, CursorHandler)
 	{
 		if (tgame->enableDayNight) btnDayNight->SetText("Enable Day/Night Cycle");
-		else btnDayNight->SetText("Diable Day/Night Cycle");
+		else btnDayNight->SetText("Disable Day/Night Cycle");
 
 		tgame->enableDayNight = !tgame->enableDayNight;
 	});
 
+	y = btnDayNight->GetSize().Y + OFFSET;
+
+	btnVsync = CreateDefaultButton();
+	btnVsync->SetAnchors(Anchors::TopCenter, 0.0f, y);
+	btnVsync->SetText(game->GetGraphics()->GetWindow()->GetRetraceMode() == VSyncMode::Enabled ? "Disable VSync" : "Enable VSync");
+	btnVsync->LeftClicked.Add([&](const Button*, CursorHandler)
+	{
+		Window *wnd = game->GetGraphics()->GetWindow();
+
+		if (wnd->GetRetraceMode() == VSyncMode::Enabled)
+		{
+			btnVsync->SetText("Enable VSync");
+			wnd->SetMode(VSyncMode::Disable);
+		}
+		else
+		{
+			btnVsync->SetText("Disable VSync");
+			wnd->SetMode(VSyncMode::Enabled);
+		}
+	});
+
+	y += btnVsync->GetSize().Y + OFFSET;
+
 	sldExposure = AddSlider();
-	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, btnDayNight->GetSize().Y * 2.0f);
+	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, y);
 	sldExposure->SetValueMapped(tgame->renderer->Exposure, 0.0f, 10.0f);
 	sldExposure->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
 	{
@@ -125,6 +150,19 @@ Label * HUD::CreateDefaultLabel(float y)
 	result->SetBackColor(Color::Black() * 0.5f);
 	result->SetTextColor(Color::White());
 	result->SetPosition(Vector2(0.0f, y));
+
+	return result;
+}
+
+Button * HUD::CreateDefaultButton(void)
+{
+	Button *result = AddButton();
+
+	result->SetAutoSize(true);
+	result->SetBackColor(Color::Black() * 0.5f);
+	result->SetTextColor(Color::White());
+	result->HoverEnter.Add([&](const GuiItem *sender, CursorHandler) { const_cast<GuiItem*>(sender)->SetBackColor(Color::Abbey() * 0.5f); });
+	result->HoverLeave.Add([&](const GuiItem *sender, CursorHandler) { const_cast<GuiItem*>(sender)->SetBackColor(Color::Black() * 0.5f); });
 
 	return result;
 }

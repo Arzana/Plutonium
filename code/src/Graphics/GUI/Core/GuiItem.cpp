@@ -198,7 +198,7 @@ void Plutonium::GuiItem::SetSize(Vector2 size)
 	ValueChangedEventArgs<Vector2> args(bounds.Size, size);
 	bounds.Size = size;
 	UpdateMesh();
-	if (anchor != Anchors::None) MoveRelative(anchor);
+	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
 	Resized.Post(this, args);
 }
 

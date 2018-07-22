@@ -44,11 +44,11 @@ namespace Plutonium
 		GraphicsAdapter *device;
 
 		RenderTarget *gbFbo, *hdrFbo;
-		const RenderTargetAttachment *normalSpec;	// [nx, ny, nz, s]
-		const RenderTargetAttachment *posSpec;		// [x, y, z, s]
-		const RenderTargetAttachment *ambient;		// [r, g, b]
-		const RenderTargetAttachment *diffuse;		// [r, g, b]
-		const RenderTargetAttachment *screen;		// [r, g, b, a]
+		const RenderTargetAttachment *normalSpec;	// [nx, ny, nz, s]	G-Buffer
+		const RenderTargetAttachment *posSpec;		// [x, y, z, s]		G-Buffer
+		const RenderTargetAttachment *ambient;		// [r, g, b]		G-Buffer
+		const RenderTargetAttachment *diffuse;		// [r, g, b]		G-Buffer
+		const RenderTargetAttachment *screen;		// [r, g, b, a]		HDR-Buffer
 
 		struct
 		{

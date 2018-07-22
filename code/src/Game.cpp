@@ -86,7 +86,7 @@ void Plutonium::Game::Run(void)
 	bool oldTixed = FixedTimeStep;
 	VSyncMode oldVsync = wnd->GetRetraceMode();
 	FixedTimeStep = false;
-	wnd->SetVerticalRetrace(VSyncMode::Disable);
+	wnd->SetMode(VSyncMode::Disable);
 	loadPercentage.store(0.0f);
 	LoadContent();
 

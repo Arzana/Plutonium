@@ -417,8 +417,8 @@ inline void SkipUseless(const char **line)
 	while (IS_SPACE(*line[0])) ++(*line);
 }
 
-/* Pushes the old mesh to the result and resets the current mesh. */
-inline void PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, bool keepName)
+/* Pushes the old mesh to the result and resets the current mesh, return whether the mesh was pushed. */
+inline bool PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, bool keepName)
 {
 	const char *name = heapstr(curMesh->Name);
 
@@ -433,8 +433,11 @@ inline void PushShapeIfNeeded(ObjLoaderResult *result, ObjLoaderMesh *curMesh, b
 
 		/* Keep the old name if requested. */
 		if (keepName) curMesh->Name = name;
+		return true;
 	}
-	else free_s(name);
+	
+	free_s(name);
+	return false;
 }
 #pragma endregion
 
@@ -740,9 +743,12 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 			/* Check if the material is already defined. */
 			if (curMesh->Material != -1)
 			{
-				/* Push the old shape to the result and log the creation of a new shape. */
-				LOG_WAR("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh->Name, result->Materials.at(curMesh->Material).Name, line);
-				PushShapeIfNeeded(result, curMesh, true);
+				/* Try to push the shape, we we succeed log a warning that the shape was split, otherwise it's proper use. */
+				size_t oldMtlIdx = curMesh->Material;
+				if (PushShapeIfNeeded(result, curMesh, true))
+				{
+					LOG_WAR("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh->Name, result->Materials.at(oldMtlIdx).Name, line);
+				}
 			}
 
 			/* Set the material Id to the correct material. */
@@ -758,36 +764,38 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult *result, Obj
 /* Handles the load material line. */
 inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderResult *result, std::vector<const char*> *loadedMaterialLibraries)
 {
-	/* Create buffer space for a maximum of 16 files. */
-	constexpr size_t BUFFER_LEN = 16;
-	char *buffer[BUFFER_LEN];
-	for (size_t i = 0; i < BUFFER_LEN; i++) buffer[i] = malloca_s(char, FILENAME_MAX);
-
-	/* Perform split and check for empty result. */
-	size_t fileCnt = spltstr(line, ' ', buffer, 0);
-	if (fileCnt < 1) LOG_WAR("No files defined in mtllib statement, use default material!");
-
-	/* Parse material library. */
-	for (size_t i = 0; i < fileCnt; i++)
+	/* Get the amount of libraries defined in the line. */
+	size_t size = cntchar(line, ' ') + 1;
+	if (size > 0)
 	{
-		/* Only load the material library if it is not yet loaded. */
-		bool alreadyLoaded = false;
-		for (size_t i = 0; i < loadedMaterialLibraries->size(); i++)
+		/* Allocate split buffer and split line into material definitions. */
+		char **buffer = mallocaa_s(char, size, FILENAME_MAX);
+		size_t fileCnt = spltstr(line, ' ', buffer, 0);
+
+		/* Parse material library. */
+		for (size_t i = 0; i < fileCnt; i++)
 		{
-			if (eqlstr(loadedMaterialLibraries->at(i), buffer[i]))
+			/* Only load the material library if it is not yet loaded. */
+			bool alreadyLoaded = false;
+			for (size_t i = 0; i < loadedMaterialLibraries->size(); i++)
 			{
-				alreadyLoaded = true;
-				break;
+				if (eqlstr(loadedMaterialLibraries->at(i), buffer[i]))
+				{
+					alreadyLoaded = true;
+					break;
+				}
+			}
+			if (!alreadyLoaded)
+			{
+				loadedMaterialLibraries->push_back(heapstr(buffer[i]));
+				LoadMaterialLibraryFromFile(dir, buffer[i], result);
 			}
 		}
-		if (!alreadyLoaded)
-		{
-			loadedMaterialLibraries->push_back(heapstr(buffer[i]));
-			LoadMaterialLibraryFromFile(dir, buffer[i], result);
-		}
 
-		freea_s(buffer[i]);
+		/* Free split buffer. */
+		freeaa_s(buffer, size);
 	}
+	else LOG_WAR("No files defined in mtllib statement, use default material!");
 }
 
 /* Handles the group name line. */
