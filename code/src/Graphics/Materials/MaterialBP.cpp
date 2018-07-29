@@ -76,6 +76,19 @@ Plutonium::MaterialBP::~MaterialBP(void)
 	ReleaseTexture(Normal);
 }
 
+Plutonium::MaterialBP * Plutonium::MaterialBP::CreateNoInfo(AssetLoader * loader)
+{
+	MaterialBP *result = new MaterialBP("Default", loader);
+
+	result->Ambient = result->CreateDefault("DefaultAmbient", Color::White());
+	result->Diffuse = result->CreateDefault("DefaultDiffuse", Color::White());
+	result->Specular = result->CreateDefault("DefaultSpecular", Color::White());
+	result->Opacity = result->CreateDefault("DefaultOpacity", Color::White());
+	result->Normal = result->CreateDefault("DefaultNormal", Color::Malibu());
+
+	return result;
+}
+
 void Plutonium::MaterialBP::InitConfig(const ObjLoaderTextureMap * texture, Color filter, TextureCreationOptions * output)
 {
 	output->SetWrapping(texture->ClampedCoords ? WrapMode::ClampToEdge : WrapMode::Repeat);

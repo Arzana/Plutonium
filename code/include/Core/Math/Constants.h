@@ -74,14 +74,21 @@ namespace Plutonium
 	template <>
 	_Check_return_ inline constexpr float minv<float>(void)
 	{
-		return FLT_MIN;
+		return -FLT_MAX;
 	}
 
 	/* Gets the minimum value of the specified type. */
 	template <>
 	_Check_return_ inline constexpr double minv<double>(void)
 	{
-		return DBL_MIN;
+		return -DBL_MAX;
+	}
+
+	/* Gets the minimum value of the specified type. */
+	template <>
+	_Check_return_ inline constexpr long double minv<long double>(void)
+	{
+		return -LDBL_MAX;
 	}
 
 	/* Gets the maximum value of the specified type. */
@@ -159,5 +166,12 @@ namespace Plutonium
 	_Check_return_ inline constexpr double maxv<double>(void)
 	{
 		return DBL_MAX;
+	}
+
+	/* Gets the maximum value of the specified type. */
+	template <>
+	_Check_return_ inline constexpr long double maxv<long double>(void)
+	{
+		return LDBL_MAX;
 	}
 }

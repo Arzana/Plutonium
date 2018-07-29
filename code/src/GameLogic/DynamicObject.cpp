@@ -85,6 +85,16 @@ void Plutonium::DynamicObject::OnLoadComplete(const AssetLoader *, DynamicModel 
 {
 	model = result;
 	Initialize();
+
+	for (size_t i = 0; i < result->animations.size(); i++)
+	{
+		const AnimationInfo *info = result->animations.at(i);
+		for (size_t j = 0; j < info->Frames.size(); j++)
+		{
+			bb = Box::Merge(bb, info->Frames.at(j)->GetBoundingBox());
+		}
+	}
+
 	parent->UpdateLoadPercentage(percentage);
 }
 

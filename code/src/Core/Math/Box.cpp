@@ -5,13 +5,16 @@ using namespace Plutonium;
 
 Box Plutonium::Box::Merge(const Box & first, const Box & second)
 {
+	if (first.IsEmpty()) return second;
+	if (second.IsEmpty()) return first;
+
 	const float r = max(first.GetRight(), second.GetRight());
 	const float l = min(first.GetLeft(), second.GetLeft());
-	const float t = min(first.GetTop(), second.GetTop());
-	const float d = max(first.GetBottom(), second.GetBottom());
-	const float f = min(first.GetFront(), second.GetFront());
+	const float t = max(first.GetTop(), second.GetTop());
+	const float d = min(first.GetBottom(), second.GetBottom());
 	const float b = max(first.GetBack(), second.GetBack());
-	return Box(l, t, f, r - l, d - t, b - f);
+	const float f = min(first.GetFront(), second.GetFront());
+	return Box(l, d, f, r - l, t - d, b - f);
 }
 
 void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
@@ -52,6 +55,11 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 		Position.Z += depth;
 		Size.Z -= depth;
 	}
+}
+
+void Plutonium::Box::Square(void)
+{
+	Size = Vector3(max(max(Size.X, Size.Y), Size.Z));
 }
 
 bool Plutonium::Box::Contains(Vector3 point) const

@@ -3,6 +3,7 @@
 #include <Core\Math\Interpolation.h>
 #include <Core\String.h>
 #include <Core\StringFunctions.h>
+#include <Graphics\Native\OpenGL.h>
 
 HUD::HUD(Game *game)
 	: Menu(game), tgame(dynamic_cast<TestGame*>(game))
@@ -49,6 +50,7 @@ void HUD::Create(void)
 		text += " Hz";
 	}));
 	y += yAdded;
+	
 
 	lblCpuRam = CreateDefaultLabel(y);
 	lblCpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
@@ -79,7 +81,9 @@ void HUD::Create(void)
 		text += to_string("%.2f", ms);
 		text += " ms (";
 		text += to_string("%.0f", 1.0f / ms * 1000.0f);
-		text += "Hz)";
+		text += "Hz, ";
+		text += std::to_string(_CrtGetDrawCalls());
+		text += "Draw Calls)";
 	}));
 
 	btnDayNight = CreateDefaultButton();

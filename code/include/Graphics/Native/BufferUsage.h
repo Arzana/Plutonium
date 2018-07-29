@@ -45,7 +45,7 @@ namespace Plutonium
 	};
 
 	/* Gets the string variant of a BufferUsage value. */
-	inline const char* _CrtGetBufferUsageStr(_In_ BufferUsage usage)
+	_Check_return_ inline const char* _CrtGetBufferUsageStr(_In_ BufferUsage usage)
 	{
 		switch (usage)
 		{

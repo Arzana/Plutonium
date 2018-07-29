@@ -183,6 +183,8 @@ namespace Plutonium
 
 		/* Calculates a matrix that defines the orientation of this matrix. */
 		_Check_return_ Matrix GetOrientation(void) const;
+		/* Gets the scale applied to this model. */
+		_Check_return_ Vector3 GetScale(void) const;
 		/* Calculates a matrix that defines the orientation and scale of this matrix. */
 		_Check_return_ Matrix GetStatic(void) const;
 		/* Calculates the determinant of the matrix. */

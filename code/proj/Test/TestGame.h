@@ -1,7 +1,6 @@
 #pragma once
 #include <Game.h>
 #include <Graphics\Rendering\Deferred\DeferredRendererBP.h>
-#include <Graphics\Diagnostics\DebugMeshRenderer.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
 #include <Components\Camera.h>
 #include <Graphics\Lighting\DirectionalLight.h>
@@ -43,12 +42,7 @@ protected:
 	virtual void Render(float dt);
 
 private:
-	/* Renderers. */
-	DebugMeshRenderer * dmrenderer;
 	SkyboxRenderer *sbrenderer;
-	DebuggableValues renderMode;
-
-	/* Menus */
 	LoadScreen *loadScreen;
 	HUD *hud;
 

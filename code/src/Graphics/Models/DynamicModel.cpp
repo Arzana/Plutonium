@@ -39,7 +39,7 @@ void Plutonium::DynamicModel::Finalize(void)
 DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader *loader, const char * texture, std::atomic<float> * progression)
 {
 	constexpr float RAW_MOD = 0.1f;
-	constexpr float MESH_MOD = 0.2f;
+	constexpr float MESH_MOD = 0.8f;
 
 	/* Create result. */
 	DynamicModel *result = new DynamicModel(loader);
@@ -55,7 +55,9 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	std::vector<Mesh*> meshes;
 	for (size_t i = 0; i < raw->frames.size(); i++)
 	{
-		meshes.push_back(Mesh::FromFile(raw, i));
+		Mesh *mesh = Mesh::FromFile(raw, i);
+		mesh->Finalize(loader->GetWindow()); // TODO: Remove!
+		meshes.push_back(mesh);
 		if (progression) progression->store(RAW_MOD + ((static_cast<float>(i) / raw->frames.size()) * MESH_MOD));
 	}
 
@@ -70,8 +72,6 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	/* Parse texture to result. */
 	result->name = heapstr(reader.GetFileNameWithoutExtension());
 	result->material = new MaterialBP(result->name, loader, nullptr, loader->LoadTexture(tex), nullptr, nullptr, nullptr);
-
-	result->Finalize();	// TODO: Remove!
 	progression->store(1.0f);
 
 	/* Log creation. */

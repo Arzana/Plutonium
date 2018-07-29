@@ -13,8 +13,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #if !defined (DEBUG)
 #define STBI_FAILURE_USERMSG
+#else
+#define STBIW_ASSERT(x)	ASSERT_IF(!(x), "STB image writer raised an error!")
 #endif
 
 #include <stb\stb_image.h>
@@ -80,7 +83,7 @@ void Plutonium::Texture::SetData(byte * data)
 	GenerateTexture(&data);
 }
 
-void Plutonium::Texture::SaveAsPng(const char * path, bool flipVertically)
+void Plutonium::Texture::SaveAsPng(const char * path, bool flipVertically) const
 {
 	/* Get texture data. */
 	ASSERT_IF(config.IsDepth, "Cannot save depth maps to as png!");

@@ -20,7 +20,7 @@ namespace Plutonium
 #endif
 
 		/* Initializes a material with default properties. */
-		Material(_In_ const char *name, _In_opt_ AssetLoader *loader);
+		Material(_In_ const char *name, _In_ AssetLoader *loader);
 		Material(_In_ const Material &other) = delete;
 		Material(_In_ Material &&other) = delete;
 		/* Releases the resources allocated with this material. */

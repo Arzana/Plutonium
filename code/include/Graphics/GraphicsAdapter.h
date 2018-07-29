@@ -10,6 +10,7 @@
 #include "Graphics\Native\DepthState.h"
 #include "Graphics\Native\StencilOperation.h"
 #include "Graphics\Native\ClearTargets.h"
+#include "Graphics\Native\PolygonModes.h"
 
 namespace Plutonium
 {
@@ -48,6 +49,9 @@ namespace Plutonium
 		void SetFaceCull(_In_ FaceCullState cull);
 		/* Sets the way front facing faces are determined. */
 		void SetFrontFace(_In_ FaceCullType func);
+		/* Sets the way the polygons should be rendered. */
+		void SetPolygonMode(_In_ PolygonModes mode, _In_opt_ FaceCullState face = FaceCullState::All);
+
 		/* Sets the operation to perform if the stencil test fails. */
 		void SetStencilFailOperation(_In_ StencilOperation operation);
 		/* Sets the operation to perform if the stencil test passes but the depth test fails. */

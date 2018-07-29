@@ -15,6 +15,7 @@ First stage:
 
 Second stage:
 - Perform direction light pass for each directional light (HDR).
+	- Render shadow map.
 	- Apply to full screen quad.
 	- Additively blend each light into HDR screen buffer.
 - Perform point light pass for each point light (HDR).
@@ -35,378 +36,512 @@ struct PlaneVertexFormat
 
 #pragma region Shader Sources
 constexpr const char *STATIC_GPASS_VRTX_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"struct FragInfo																										\n"
-	"{																														\n"
-	"	vec3 Position;																										\n"
-	"	vec2 Uv;																											\n"
-	"	mat3 TBN;																											\n"
-	"};																														\n"
+"struct FragInfo																										\n"
+"{																														\n"
+"	vec3 Position;																										\n"
+"	vec2 Uv;																											\n"
+"	mat3 TBN;																											\n"
+"};																														\n"
 
-	"uniform mat4 Projection;																								\n"
-	"uniform mat4 View;																										\n"
-	"uniform mat4 Model;																									\n"
+"uniform mat4 Projection;																								\n"
+"uniform mat4 View;																										\n"
+"uniform mat4 Model;																									\n"
 
-	"in vec3 Position;																										\n"
-	"in vec3 Normal;																										\n"
-	"in vec3 Tangent;																										\n"
-	"in vec2 Uv;																											\n"
+"in vec3 Position;																										\n"
+"in vec3 Normal;																										\n"
+"in vec3 Tangent;																										\n"
+"in vec2 Uv;																											\n"
 
-	"out FragInfo Frag;																										\n"
+"out FragInfo Frag;																										\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	Frag.Position = (Model * vec4(Position, 1.0f)).xyz;																	\n"
-	"	Frag.Uv = Uv;																										\n"
+"void main()																											\n"
+"{																														\n"
+"	Frag.Position = (Model * vec4(Position, 1.0f)).xyz;																	\n"
+"	Frag.Uv = Uv;																										\n"
 
-	"	vec3 t = normalize((Model * vec4(Tangent, 0.0f)).xyz);																\n"
-	"	vec3 n = normalize((Model * vec4(Normal, 0.0f)).xyz);																\n"
-	"	vec3 b = cross(n, t);																								\n"
-	"	Frag.TBN = mat3(t, b, n);																							\n"
+"	vec3 t = normalize((Model * vec4(Tangent, 0.0f)).xyz);																\n"
+"	vec3 n = normalize((Model * vec4(Normal, 0.0f)).xyz);																\n"
+"	vec3 b = cross(n, t);																								\n"
+"	Frag.TBN = mat3(t, b, n);																							\n"
 
-	"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
-	"}";
+"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
+"}";
 
 constexpr const char *ANIMATED_GPASS_VRTX_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"struct FragInfo																										\n"
-	"{																														\n"
-	"	vec3 Position;																										\n"
-	"	vec2 Uv;																											\n"
-	"	mat3 TBN;																											\n"
-	"};																														\n"
+"struct FragInfo																										\n"
+"{																														\n"
+"	vec3 Position;																										\n"
+"	vec2 Uv;																											\n"
+"	mat3 TBN;																											\n"
+"};																														\n"
 
-	"uniform mat4 Model;																									\n"
-	"uniform mat4 View;																										\n"
-	"uniform mat4 Projection;																								\n"
-	"uniform float Blending;																								\n"
+"uniform mat4 Model;																									\n"
+"uniform mat4 View;																										\n"
+"uniform mat4 Projection;																								\n"
+"uniform float Blending;																								\n"
 
-	"in vec3 Position1;																										\n"
-	"in vec3 Normal1;																										\n"
-	"in vec3 Tangent1;																										\n"
-	"in vec2 Uv;																											\n"
+"in vec3 Position1;																										\n"
+"in vec3 Normal1;																										\n"
+"in vec3 Tangent1;																										\n"
+"in vec2 Uv;																											\n"
 
-	"in vec3 Position2;																										\n"
-	"in vec3 Normal2;																										\n"
-	"in vec3 Tangent2;																										\n"
+"in vec3 Position2;																										\n"
+"in vec3 Normal2;																										\n"
+"in vec3 Tangent2;																										\n"
 
-	"out FragInfo Frag;																										\n"
+"out FragInfo Frag;																										\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	vec3 position = mix(Position1, Position2, Blending);																\n"
-	"	vec3 normal = normalize(Normal1 + Normal2);																			\n"
-	"	vec3 tangent = normalize(Tangent1 + Tangent2);																		\n"
+"void main()																											\n"
+"{																														\n"
+"	vec3 position = mix(Position1, Position2, Blending);																\n"
+"	vec3 normal = normalize(Normal1 + Normal2);																			\n"
+"	vec3 tangent = normalize(Tangent1 + Tangent2);																		\n"
 
-	"	Frag.Position = (Model * vec4(position, 1.0f)).xyz;																	\n"
-	"	Frag.Uv = Uv;																										\n"
+"	Frag.Position = (Model * vec4(position, 1.0f)).xyz;																	\n"
+"	Frag.Uv = Uv;																										\n"
 
-	"	vec3 t = normalize((Model * vec4(tangent, 0.0f)).xyz);																\n"
-	"	vec3 n = normalize((Model * vec4(normal, 0.0f)).xyz);																\n"
-	"	vec3 b = cross(n, t);																								\n"
-	"	Frag.TBN = mat3(t, b, n);																							\n"
+"	vec3 t = normalize((Model * vec4(tangent, 0.0f)).xyz);																\n"
+"	vec3 n = normalize((Model * vec4(normal, 0.0f)).xyz);																\n"
+"	vec3 b = cross(n, t);																								\n"
+"	Frag.TBN = mat3(t, b, n);																							\n"
 
-	"	gl_Position = Projection * View * Model * vec4(position, 1.0f);														\n"
-	"}";
+"	gl_Position = Projection * View * Model * vec4(position, 1.0f);														\n"
+"}";
 
 constexpr const char *GPASS_FRAG_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"struct FragInfo																										\n"
-	"{																														\n"
-	"	vec3 Position;																										\n"
-	"	vec2 Uv;																											\n"
-	"	mat3 TBN;																											\n"
-	"};																														\n"
+"struct FragInfo																										\n"
+"{																														\n"
+"	vec3 Position;																										\n"
+"	vec2 Uv;																											\n"
+"	mat3 TBN;																											\n"
+"};																														\n"
 
-	"struct Material																										\n"
-	"{																														\n"
-	"	sampler2D Ambient;																									\n"
-	"	sampler2D Diffuse;																									\n"
-	"	sampler2D Specular;																									\n"
-	"	sampler2D Opacity;																									\n"
-	"	sampler2D Normal;																									\n"
-	"	float SpecularExponent;																								\n"
-	"};																														\n"
+"struct Material																										\n"
+"{																														\n"
+"	sampler2D Ambient;																									\n"
+"	sampler2D Diffuse;																									\n"
+"	sampler2D Specular;																									\n"
+"	sampler2D Opacity;																									\n"
+"	sampler2D Normal;																									\n"
+"	float SpecularExponent;																								\n"
+"};																														\n"
 
-	"uniform Material Object;																								\n"
-	"uniform float GammaCorrection;																							\n"
-	"in FragInfo Frag;																										\n"
+"uniform Material Object;																								\n"
+"uniform float GammaCorrection;																							\n"
+"in FragInfo Frag;																										\n"
 
-	"out vec4 NormalSpecular;																								\n"
-	"out vec4 PositionSpecular;																								\n"
-	"out vec3 Ambient;																										\n"
-	"out vec3 Diffuse;																										\n"
+"out vec4 NormalSpecular;																								\n"
+"out vec4 PositionSpecular;																								\n"
+"out vec3 Ambient;																										\n"
+"out vec3 Diffuse;																										\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	vec4 diffuse = texture(Object.Diffuse, Frag.Uv);																	\n"
+"void main()																											\n"
+"{																														\n"
+"	vec4 diffuse = texture(Object.Diffuse, Frag.Uv);																	\n"
 
-	"	vec4 alpha = texture(Object.Opacity, Frag.Uv);																		\n"
-	"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f || diffuse.a < 0.1f) discard;			\n"
+"	vec4 alpha = texture(Object.Opacity, Frag.Uv);																		\n"
+"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f || diffuse.a < 0.1f) discard;			\n"
 
-	"	vec3 normal = texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f;													\n"
-	"	normal = Frag.TBN * normalize(normal);																				\n"
+"	vec3 normal = texture(Object.Normal, Frag.Uv).rgb * 2.0f - 1.0f;													\n"
+"	normal = Frag.TBN * normalize(normal);																				\n"
 
-	"	Ambient = texture(Object.Ambient, Frag.Uv).rgb;																		\n"
-	"	Diffuse = diffuse.rgb;																								\n"
-	"	NormalSpecular.xyz = normal;																						\n"
-	"	NormalSpecular.w = texture(Object.Specular, Frag.Uv).r;																\n"
-	"	PositionSpecular.xyz = Frag.Position;																				\n"
-	"	PositionSpecular.w = Object.SpecularExponent;																		\n"
-	"}";
+"	Ambient = texture(Object.Ambient, Frag.Uv).rgb;																		\n"
+"	Diffuse = diffuse.rgb;																								\n"
+"	NormalSpecular.xyz = normal;																						\n"
+"	NormalSpecular.w = texture(Object.Specular, Frag.Uv).r;																\n"
+"	PositionSpecular.xyz = Frag.Position;																				\n"
+"	PositionSpecular.w = Object.SpecularExponent;																		\n"
+"}";
 
 constexpr const char *PASS_VRTX_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"in vec3 Position;																										\n"
-	"in vec2 ScreenCoordinate;																								\n"
+"in vec3 Position;																										\n"
+"in vec2 ScreenCoordinate;																								\n"
 
-	"out vec2 Uv;																											\n"
+"out vec2 Uv;																											\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	Uv = ScreenCoordinate;																								\n"
-	"	gl_Position = vec4(Position, 1.0f);																					\n"
-	"}";
+"void main()																											\n"
+"{																														\n"
+"	Uv = ScreenCoordinate;																								\n"
+"	gl_Position = vec4(Position, 1.0f);																					\n"
+"}";
+
+constexpr const char *DSPASS_VRTX_SHDR_SRC =
+"#version 430 core																										\n"
+
+"uniform mat4 Model;																									\n"
+"uniform mat4 LightSpace;																								\n"
+
+"in vec3 Position;																										\n"
+"in vec2 Uv;																											\n"
+
+"out vec2 FragUv;																										\n"
+
+"void main()																											\n"
+"{																														\n"
+"	FragUv = Uv;																										\n"
+"	gl_Position = LightSpace * Model * vec4(Position, 1.0f);															\n"
+"}";
 
 constexpr const char *DPASS_FRAG_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"struct GBuffer																											\n"
-	"{																														\n"
-	"	sampler2D NormalSpecular;																							\n"
-	"	sampler2D PositionSpecular;																							\n"
-	"	sampler2D Ambient;																									\n"
-	"	sampler2D Diffuse;																									\n"
-	"};																														\n"
+"struct GBuffer																											\n"
+"{																														\n"
+"	sampler2D NormalSpecular;																							\n"
+"	sampler2D PositionSpecular;																							\n"
+"	sampler2D Ambient;																									\n"
+"	sampler2D Diffuse;																									\n"
+"};																														\n"
 
-	"struct DirectionalLight																								\n"
-	"{																														\n"
-	"	vec3 Direction;																										\n"
-	"	vec4 Ambient;																										\n"
-	"	vec4 Diffuse;																										\n"
-	"	vec4 Specular;																										\n"
-	"};																														\n"
+"struct DirectionalLight																								\n"
+"{																														\n"
+"	vec3 Direction;																										\n"
+"	vec4 Ambient;																										\n"
+"	vec4 Diffuse;																										\n"
+"	vec4 Specular;																										\n"
+"	mat4 LightSpace;																									\n"
+"	sampler2D Shadow;																									\n"
+"};																														\n"
 
-	"uniform GBuffer Geometry;																								\n"
-	"uniform DirectionalLight Light;																						\n"
-	"uniform vec3 ViewPosition;																								\n"
+"uniform GBuffer Geometry;																								\n"
+"uniform DirectionalLight Light;																						\n"
+"uniform vec3 ViewPosition;																								\n"
 
-	"in vec2 Uv;																											\n"
+"in vec2 Uv;																											\n"
 
-	"out vec4 FragColor;																									\n"
+"out vec4 FragColor;																									\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
-	"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
-	"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
-	"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+"float CalcShadowFactor(vec4 pos, vec3 normal)																			\n"
+"{																														\n"
+"	vec3 ndc = (pos.xyz / pos.w) * 0.5f + 0.5f;																			\n"
+"	if (ndc.z > 1.0f) return 0.0f;																						\n"
+"	float bias = max(0.05f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
+"	return texture(Light.Shadow, ndc.xy).x < ndc.z - bias ? 0.0f : 1.0f;												\n"
+"}																														\n"
 
-	"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
-	"	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
-	"	vec3 halfwayDir = normalize(Light.Direction + viewDir);																\n"
-	"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+"void main()																											\n"
+"{																														\n"
+"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
+"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
+"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
+"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+"	vec4 posInLight = Light.LightSpace * vec4(posSpec.xyz, 1.0f);														\n"
+"	float visibility = CalcShadowFactor(posInLight, normSpec.xyz);														\n"
 
-	"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient;																\n"
-	"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * intensity;													\n"
-	"	vec4 specular = normSpec.w * Light.Specular * power;																\n"
-	"	FragColor = ambient + diffuse + specular;																			\n"
-	"}";
+"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
+"	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
+"	vec3 halfwayDir = normalize(Light.Direction + viewDir);																\n"
+"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+
+"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient;																\n"
+"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * intensity;													\n"
+"	vec4 specular = normSpec.w * Light.Specular * power;																\n"
+"	FragColor = ambient + (visibility * (diffuse + specular));															\n"
+"}";
+
+
+constexpr const char* DSPASS_FRAG_SHDR_SRC =
+"#version 430 core																										\n"
+
+"uniform sampler2D Opacity;																								\n"
+"uniform sampler2D Diffuse;																								\n"
+
+"in vec2 FragUv;																										\n"
+
+"void main()																											\n"
+"{																														\n"
+"	vec4 alpha = texture(Opacity, FragUv);																				\n"
+"	float diffuse = texture(Diffuse, FragUv).a;																			\n"
+"	if ((alpha.r < 0.1f && alpha.g < 0.1f && alpha.r < 0.1f) || alpha.a < 0.1f || diffuse < 0.1f) discard;				\n"
+"	gl_FragDepth = gl_FragCoord.z;																						\n"
+"}";
 
 constexpr const char *PPASS_VRTX_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"uniform mat4 Projection;																								\n"
-	"uniform mat4 View;																										\n"
-	"uniform mat4 Model;																									\n"
+"uniform mat4 Projection;																								\n"
+"uniform mat4 View;																										\n"
+"uniform mat4 Model;																									\n"
 
-	"in vec3 Position;																										\n"
+"in vec3 Position;																										\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
-	"}";
+"void main()																											\n"
+"{																														\n"
+"	gl_Position = Projection * View * Model * vec4(Position, 1.0f);														\n"
+"}";
 
 constexpr const char *PPASS_FRAG_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"struct GBuffer																											\n"
-	"{																														\n"
-	"	sampler2D NormalSpecular;																							\n"
-	"	sampler2D PositionSpecular;																							\n"
-	"	sampler2D Ambient;																									\n"
-	"	sampler2D Diffuse;																									\n"
-	"};																														\n"
+"struct GBuffer																											\n"
+"{																														\n"
+"	sampler2D NormalSpecular;																							\n"
+"	sampler2D PositionSpecular;																							\n"
+"	sampler2D Ambient;																									\n"
+"	sampler2D Diffuse;																									\n"
+"};																														\n"
 
-	"struct PointLight																										\n"
-	"{																														\n"
-	"	vec3 Position;																										\n"
-	"	float Constant;																										\n"
-	"	float Linear;																										\n"
-	"	float Quadratic;																									\n"
-	"	vec4 Ambient;																										\n"
-	"	vec4 Diffuse;																										\n"
-	"	vec4 Specular;																										\n"
-	"};																														\n"
+"struct PointLight																										\n"
+"{																														\n"
+"	vec3 Position;																										\n"
+"	float Constant;																										\n"
+"	float Linear;																										\n"
+"	float Quadratic;																									\n"
+"	vec4 Ambient;																										\n"
+"	vec4 Diffuse;																										\n"
+"	vec4 Specular;																										\n"
+"};																														\n"
 
-	"uniform GBuffer Geometry;																								\n"
-	"uniform PointLight Light;																								\n"
-	"uniform vec3 ViewPosition;																								\n"
-	"uniform vec2 ScreenSize;																								\n"
+"uniform GBuffer Geometry;																								\n"
+"uniform PointLight Light;																								\n"
+"uniform vec3 ViewPosition;																								\n"
+"uniform vec2 ScreenSize;																								\n"
 
-	"out vec4 FragColor;																									\n"
+"out vec4 FragColor;																									\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	vec2 uv = gl_FragCoord.xy / ScreenSize;																				\n"
-	"	vec4 posSpec = texture(Geometry.PositionSpecular, uv);																\n"
-	"	vec4 normSpec = texture(Geometry.NormalSpecular, uv);																\n"
-	"	vec3 objAmbient = texture(Geometry.Ambient, uv).rgb;																\n"
-	"	vec3 objDiffuse = texture(Geometry.Diffuse, uv).rgb;																\n"
+"void main()																											\n"
+"{																														\n"
+"	vec2 uv = gl_FragCoord.xy / ScreenSize;																				\n"
+"	vec4 posSpec = texture(Geometry.PositionSpecular, uv);																\n"
+"	vec4 normSpec = texture(Geometry.NormalSpecular, uv);																\n"
+"	vec3 objAmbient = texture(Geometry.Ambient, uv).rgb;																\n"
+"	vec3 objDiffuse = texture(Geometry.Diffuse, uv).rgb;																\n"
 
-	"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
-	"	vec3 lightDir = normalize(Light.Position - posSpec.xyz);															\n"
-	"	float distance = length(Light.Position - posSpec.xyz);																\n"
+"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
+"	vec3 lightDir = normalize(Light.Position - posSpec.xyz);															\n"
+"	float distance = length(Light.Position - posSpec.xyz);																\n"
 
-	"	float intensity = max(0.0f, dot(normSpec.xyz, lightDir));															\n"
-	"	float attenuation = 1.0f / (Light.Constant + Light.Linear * distance + Light.Quadratic * distance * distance);		\n"
-	"	vec3 halfwayDir = normalize(lightDir + viewDir);																	\n"
-	"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+"	float intensity = max(0.0f, dot(normSpec.xyz, lightDir));															\n"
+"	float attenuation = 1.0f / (Light.Constant + Light.Linear * distance + Light.Quadratic * distance * distance);		\n"
+"	vec3 halfwayDir = normalize(lightDir + viewDir);																	\n"
+"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
 
-	"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient * attenuation;												\n"
-	"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * attenuation * intensity;									\n"
-	"	vec4 specular = normSpec.w * Light.Specular * attenuation * power;													\n"
-	"	FragColor = ambient + diffuse + specular, vec4(1.0f);																\n"
-	"}";
+"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient * attenuation;												\n"
+"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * attenuation * intensity;									\n"
+"	vec4 specular = normSpec.w * Light.Specular * attenuation * power;													\n"
+"	FragColor = ambient + diffuse + specular, vec4(1.0f);																\n"
+"}";
 
 constexpr const char *FPASS_FRAG_SHDR_SRC =
-	"#version 430 core																										\n"
+"#version 430 core																										\n"
 
-	"uniform sampler2D HdrBuffer;																							\n"
-	"uniform float GammaCorrection;																							\n"
-	"uniform float Exposure;																								\n"
+"uniform sampler2D HdrBuffer;																							\n"
+"uniform float GammaCorrection;																							\n"
+"uniform float Exposure;																								\n"
 
-	"in vec2 Uv;																											\n"
+"in vec2 Uv;																											\n"
 
-	"out vec4 FragColor;																									\n"
+"out vec4 FragColor;																									\n"
 
-	"void main()																											\n"
-	"{																														\n"
-	"	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
-	"	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
-	"	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
-	"	FragColor = vec4(corrected, 1.0f);																					\n"
-	"}";
+"void main()																											\n"
+"{																														\n"
+"	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
+"	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
+"	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
+"	FragColor = vec4(corrected, 1.0f);																					\n"
+"}";
+
+constexpr const char *WIRE_VRTX_SHDR_SRC =
+"#version 430 core																										\n"
+
+"uniform mat4 Model;																									\n"
+"uniform mat4 View;																										\n"
+"uniform mat4 Projection;																								\n"
+"uniform vec4 Color;																									\n"
+"uniform float Blending;																								\n"
+
+"in vec3 Position;																										\n"
+"in vec3 Position2;																										\n"
+
+"out vec3 Clr;																											\n"
+
+"void main()																											\n"
+"{																														\n"
+"	Clr = Color.rgb;																									\n"
+"	gl_Position = Projection * View * Model * vec4(mix(Position, Position2, Blending), 1.0);							\n"
+"}";
+
+constexpr const char *WIRE_FRAG_SHDR_SRC =
+"#version 430 core																										\n"
+
+"in vec3 Clr;																											\n"
+
+"out vec4 FragColor;																									\n"
+
+"void main()																											\n"
+"{																														\n"
+"	FragColor = vec4(Clr, 1.0f);																						\n"
+"}";
+
+constexpr const char *WN_FRAG_SHDR_SRC = 
+"#version 430 core																										\n"
+
+"uniform sampler2D NormalSpecular;																						\n"
+
+"in vec2 Uv;																											\n"
+
+"out vec4 FragColor;																									\n"
+
+"void main()																											\n"
+"{																														\n"
+"	vec3 worldNormal = texture(NormalSpecular, Uv).xyz;																	\n"
+"	vec3 rgbNormal = normalize(worldNormal * 0.5f + 0.5f);																\n"
+"	FragColor = vec4(rgbNormal, 1.0f);																					\n"
+"}";
+
+constexpr const char *AL_FRAG_SHDR_SRC =
+"#version 430 core																										\n"
+
+"uniform sampler2D Diffuse;																								\n"
+
+"in vec2 Uv;																											\n"
+
+"out vec4 FragColor;																									\n"
+
+"void main()																											\n"
+"{																														\n"
+"	FragColor = vec4(texture(Diffuse, Uv).rgb, 1.0f);																	\n"
+"}";
+
 #pragma endregion
 
-Plutonium::DeferredRendererBP::DeferredRendererBP(GraphicsAdapter * device)
-	: device(device), Exposure(1.0f)
+Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
+	: game(game), Exposure(1.0f), DisplayType(RenderType::Normal)
 {
 	/* Initialize G buffer. */
-	gbFbo = new RenderTarget(device);
+	gbFbo = new RenderTarget(game->GetGraphics(), true);
 	normalSpec = gbFbo->Attach("Normal / Specular map", AttachmentOutputType::HpVector4);
 	posSpec = gbFbo->Attach("Position / Specular exponent", AttachmentOutputType::HpVector4);
 	ambient = gbFbo->Attach("Ambient", AttachmentOutputType::RGB);
 	diffuse = gbFbo->Attach("Diffuse", AttachmentOutputType::RGB);
 	gbFbo->Finalize();
 
+	/* Initialize shader map buffer. */
+	shdFbo = new RenderTarget(game->GetGraphics(), false);
+	shadow = shdFbo->Attach("Depth", AttachmentOutputType::Depth);
+	shdFbo->Finalize();
+
 	/* Initialize HDR lighting intermediate buffer. */
-	hdrFbo = new RenderTarget(device);
+	hdrFbo = new RenderTarget(game->GetGraphics(), true);
 	screen = hdrFbo->Attach("HDR Output", AttachmentOutputType::LpVector4);
 	hdrFbo->Finalize();
 
+	InitMeshes();
 	InitGsPass();
 	InitGdPass();
+	InitDsPass();
 	InitDPass();
 	InitPPass();
 	InitFPass();
+	InitWire();
+	InitWNormal();
+	InitAlbedo();
 }
 
 Plutonium::DeferredRendererBP::~DeferredRendererBP(void)
 {
 	delete_s(gbFbo);
+	delete_s(shdFbo);
 	delete_s(hdrFbo);
+	delete_s(defMaterial);
+	delete_s(plane);
+	delete_s(sphere);
 	delete_s(gspass.shdr);
 	delete_s(gdpass.shdr);
+	delete_s(dspass.shdr);
 	delete_s(dpass.shdr);
 	delete_s(ppass.shdr);
+	delete_s(wire.shdr);
+	delete_s(wn.shdr);
+	delete_s(al.shdr);
 }
 
 void Plutonium::DeferredRendererBP::Add(const StaticObject * model)
 {
-	queuedModels.push(model);
+	queuedModels.push_back(model);
 }
 
 void Plutonium::DeferredRendererBP::Add(const DynamicObject * model)
 {
-	queuedAnimations.push(model);
+	queuedAnimations.push_back(model);
 }
 
 void Plutonium::DeferredRendererBP::Add(const DirectionalLight * light)
 {
-	queuedDLights.push(light);
+	queuedDLights.push_back(light);
 }
 
 void Plutonium::DeferredRendererBP::Add(const PointLight * light)
 {
-	queuePLights.push(light);
+	queuePLights.push_back(light);
 }
 
-void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matrix & view, Vector3 camPos)
+void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 {
+	GraphicsAdapter *device = game->GetGraphics();
+
 	/* Setup GBuffer. */
 	device->SetRenderTarget(gbFbo);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
 	device->SetColorBlendFunction(BlendState::None);
 
 	/* Perform geometry pass to fill the GBuffer. */
-	BeginGsPass(projection, view);
-	while (queuedModels.size() > 0)
+	BeginGsPass(cam->GetProjection(), cam->GetView());
+	if (DisplayType != RenderType::Lighting)
 	{
-		RenderModel(queuedModels.front());
-		queuedModels.pop();
+		for (size_t i = 0; i < queuedModels.size(); i++) RenderModel(cam, queuedModels.at(i), nullptr);
+	}
+	else
+	{
+		for (size_t i = 0; i < queuedModels.size(); i++) RenderModel(cam, queuedModels.at(i), defMaterial);
 	}
 	gspass.shdr->End();
 
-	BeginGdPass(projection, view);
-	while (queuedAnimations.size() > 0)
+	BeginGdPass(cam->GetProjection(), cam->GetView());
+	if (DisplayType != RenderType::Lighting)
 	{
-		RenderModel(queuedAnimations.front());
-		queuedAnimations.pop();
+		for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), nullptr);
+	}
+	else
+	{
+		for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), defMaterial);
 	}
 	gdpass.shdr->End();
-
+	
 	/* Setup HDR buffer for lighting. */
 	device->SetRenderTarget(hdrFbo);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
-	device->SetColorBlendFunction(BlendState::Additive);
-	device->SetBlend(BlendType::One, BlendType::One);
-	device->SetDepthOuput(false);
 
-	/* Add directional lights to the scene. */
-	BeginDirLightPass(camPos);
-	const Matrix iView = view.GetOrientation().GetInverse();
-	while (queuedDLights.size() > 0)
+	/* Render to HDR buffer is defined per render mode. */
+	switch (DisplayType)
 	{
-		RenderDirLight(iView, queuedDLights.front());
-		queuedDLights.pop();
+	case Plutonium::RenderType::Normal:
+	case Plutonium::RenderType::Lighting:
+		RenderNormal(cam);
+		break;
+	case Plutonium::RenderType::Wireframe:
+		RenderWireframe(cam->GetProjection(), cam->GetView());
+		break;
+	case Plutonium::RenderType::WorldNormals:
+		RenderWorldNormals();
+		break;
+	case Plutonium::RenderType::Albedo:
+		RenderAlbedo();
+		break;
+	default:
+		LOG_THROW("Display type is not supported!");
+		break;
 	}
-	dpass.shdr->End();
 
-	/* Add point lights to the scene. */
-	BeginPntLightPass(projection, view, camPos);
-	while (queuePLights.size() > 0)
-	{
-		RenderPntLight(queuePLights.front());
-		queuePLights.pop();
-	}
-	ppass.shdr->End();
-
-	/* Setup default frame buffer and copy the depth buffer over from the G buffer. */
+	/* Setup default frame buffer and copy the depth buffer over from the G buffer (or hdr buffer for wireframe mode). */
 	device->SetRenderTarget(nullptr);
 	device->SetColorBlendFunction(BlendState::None);
 	device->SetDepthOuput(true);
@@ -416,6 +551,34 @@ void Plutonium::DeferredRendererBP::Render(const Matrix & projection, const Matr
 	device->SetDepthOuput(false);
 	FixForMonitor();
 	device->SetDepthOuput(true);
+
+	/* Clear queues. */
+	queuedModels.clear();
+	queuedAnimations.clear();
+	queuedDLights.clear();
+	queuePLights.clear();
+}
+
+void Plutonium::DeferredRendererBP::InitMeshes(void)
+{
+	/* Initialize plane used for fully screen rendering. */
+	plane = new Buffer(game->GetGraphics()->GetWindow(), BindTarget::Array);
+	PlaneVertexFormat vertices[4] =
+	{
+		{ Vector3(-1.0f, 1.0f, 0.0f), Vector2(0.0f, 1.0f) },
+		{ Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f) },
+		{ Vector3(1.0f, 1.0f, 0.0f), Vector2(1.0f, 1.0f) },
+		{ Vector3(1.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f) }
+	};
+	plane->SetData(BufferUsage::StaticDraw, vertices, 4);
+
+	/* Initialize sphere used for point light rendering. */
+	sphere = new Mesh("Point light render spherer");
+	ShapeCreator::MakeSphere(sphere, 16, 16, 1.0f);
+	sphere->Finalize(game->GetGraphics()->GetWindow());
+
+	/* Initialize the default material. */
+	defMaterial = MaterialBP::CreateNoInfo(game->GetLoader());
 }
 
 void Plutonium::DeferredRendererBP::InitGsPass(void)
@@ -458,6 +621,17 @@ void Plutonium::DeferredRendererBP::InitGdPass(void)
 	gdpass.uv = gdpass.shdr->GetAttribute("Uv");
 }
 
+void Plutonium::DeferredRendererBP::InitDsPass(void)
+{
+	dspass.shdr = new Shader(DSPASS_VRTX_SHDR_SRC, DSPASS_FRAG_SHDR_SRC);
+	dspass.matLs = dspass.shdr->GetUniform("LightSpace");
+	dspass.matMdl = dspass.shdr->GetUniform("Model");
+	dspass.mapAlpha = dspass.shdr->GetUniform("Opacity");
+	dspass.mapDiff = dspass.shdr->GetUniform("Diffuse");
+	dspass.pos = dspass.shdr->GetAttribute("Position");
+	dspass.uv = dspass.shdr->GetAttribute("Uv");
+}
+
 void Plutonium::DeferredRendererBP::InitDPass(void)
 {
 	dpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, DPASS_FRAG_SHDR_SRC);
@@ -469,20 +643,11 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 	dpass.clrAmbi = dpass.shdr->GetUniform("Light.Ambient");
 	dpass.clrDiff = dpass.shdr->GetUniform("Light.Diffuse");
 	dpass.clrSpec = dpass.shdr->GetUniform("Light.Specular");
+	dpass.matLs = dpass.shdr->GetUniform("Light.LightSpace");
+	dpass.shadow = dpass.shdr->GetUniform("Light.Shadow");
 	dpass.camPos = dpass.shdr->GetUniform("ViewPosition");
 	dpass.pos = dpass.shdr->GetAttribute("Position");
 	dpass.uv = dpass.shdr->GetAttribute("ScreenCoordinate");
-
-	/* Initialize plane used for fully screen rendering. */
-	dpass.plane = new Buffer(device->GetWindow(), BindTarget::Array);
-	PlaneVertexFormat vertices[4] =
-	{
-		{ Vector3(-1.0f, 1.0f, 0.0f), Vector2(0.0f, 1.0f) },
-		{ Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 0.0f) },
-		{ Vector3(1.0f, 1.0f, 0.0f), Vector2(1.0f, 1.0f) },
-		{ Vector3(1.0f, -1.0f, 0.0f), Vector2(1.0f, 0.0f) }
-	};
-	dpass.plane->SetData(BufferUsage::StaticDraw, vertices, 4);
 }
 
 void Plutonium::DeferredRendererBP::InitPPass(void)
@@ -505,11 +670,6 @@ void Plutonium::DeferredRendererBP::InitPPass(void)
 	ppass.clrSpec = ppass.shdr->GetUniform("Light.Specular");
 	ppass.camPos = ppass.shdr->GetUniform("ViewPosition");
 	ppass.pos = ppass.shdr->GetAttribute("Position");
-
-	/* Initialize sphere used for point light rendering. */
-	ppass.sphere = new Mesh("Point light render spherer");
-	ShapeCreator::MakeSphere(ppass.sphere, 16, 16, 1.0f);
-	ppass.sphere->Finalize(device->GetWindow());
 }
 
 void Plutonium::DeferredRendererBP::InitFPass(void)
@@ -520,6 +680,174 @@ void Plutonium::DeferredRendererBP::InitFPass(void)
 	fpass.exposure = fpass.shdr->GetUniform("Exposure");
 	fpass.pos = fpass.shdr->GetAttribute("Position");
 	fpass.uv = fpass.shdr->GetAttribute("ScreenCoordinate");
+}
+
+void Plutonium::DeferredRendererBP::InitWire(void)
+{
+	wire.shdr = new Shader(WIRE_VRTX_SHDR_SRC, WIRE_FRAG_SHDR_SRC);
+	wire.matProj = wire.shdr->GetUniform("Projection");
+	wire.matView = wire.shdr->GetUniform("View");
+	wire.matMdl = wire.shdr->GetUniform("Model");
+	wire.clr = wire.shdr->GetUniform("Color");
+	wire.amnt = wire.shdr->GetUniform("Blending");
+	wire.pos = wire.shdr->GetAttribute("Position");
+	wire.pos2 = wire.shdr->GetAttribute("Position2");
+}
+
+void Plutonium::DeferredRendererBP::InitWNormal(void)
+{
+	wn.shdr = new Shader(PASS_VRTX_SHDR_SRC, WN_FRAG_SHDR_SRC);
+	wn.normSpec = wn.shdr->GetUniform("NormalSpecular");
+	wn.pos = wn.shdr->GetAttribute("Position");
+	wn.uv = wn.shdr->GetAttribute("ScreenCoordinate");
+}
+
+void Plutonium::DeferredRendererBP::InitAlbedo(void)
+{
+	al.shdr = new Shader(PASS_VRTX_SHDR_SRC, AL_FRAG_SHDR_SRC);
+	al.diff = al.shdr->GetUniform("Diffuse");
+	al.pos = al.shdr->GetAttribute("Position");
+	al.uv = al.shdr->GetAttribute("ScreenCoordinate");
+}
+
+void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
+{
+	/* Add directional lights to the scene. */
+	const Matrix iView = cam->GetView().GetOrientation().GetInverse();
+	for (size_t i = 0; i < queuedDLights.size(); i++)
+	{
+		const DirectionalLight *light = queuedDLights.at(i);
+
+		/* Render shadow map. */
+		BeginDirShadowPass();
+		Matrix ls = RenderDirLightShadow(light);
+		dspass.shdr->End();
+
+		/* Render lighting. */
+		BeginDirLightPass(cam->GetPosition());
+		RenderDirLight(ls, iView, light);
+		dpass.shdr->End();
+	}
+
+	/* Add point lights to the scene. */
+	BeginPntLightPass(cam->GetProjection(), cam->GetView(), cam->GetPosition());
+	for (size_t i = 0; i < queuePLights.size(); i++)
+	{
+		const PointLight *light = queuePLights.at(i);
+
+		/* Only render the light if it's light can be viewed. */
+		if (cam->GetClip()->IntersectionSphere(light->Position, light->GetRadius()))
+		{
+			RenderPntLight(light);
+		}
+	}
+	ppass.shdr->End();
+}
+
+void Plutonium::DeferredRendererBP::RenderWireframe(const Matrix & projection, const Matrix & view)
+{
+	/* Setup graphics device. */
+	game->GetGraphics()->SetPolygonMode(PolygonModes::Line);
+
+	/* Set global uniforms and initialize mix amounf to zero for static model pass. */
+	wire.shdr->Begin();
+	wire.matProj->Set(projection);
+	wire.matView->Set(view);
+	wire.amnt->Set(0.0f);
+
+	/* Render static models. */
+	for (size_t i = 0; i < queuedModels.size(); i++)
+	{
+		/* Set model matrix. */
+		const StaticObject *model = queuedModels.at(i);
+		wire.matMdl->Set(model->GetWorld());
+
+		/* Render all underlying shapes. */
+		const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
+		for (size_t j = 0; j < shapes->size(); j++)
+		{
+			/* Set color to the designated debug color on debug mode or red on release mode. */
+#if defined (DEBUG)
+			wire.clr->Set(shapes->at(j).Material->Debug);
+#else
+			wire.clr->Set(Color::Red());
+#endif
+
+			/* Set first and second position to the same mesh. */
+			Buffer *mesh = shapes->at(j).Mesh->GetVertexBuffer();
+			mesh->Bind();
+			wire.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			wire.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+
+			/* Render shape. */
+			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+		}
+	}
+
+	/* Render dynamic models. */
+	for (size_t i = 0; i < queuedAnimations.size(); i++)
+	{
+		/* Set model matrix and mix amount. */
+		const DynamicObject *model = queuedAnimations.at(i);
+		wire.matMdl->Set(model->GetWorld());
+		wire.amnt->Set(model->GetMixAmount());
+
+		/* Set color to the designated debug color on debug mode or yellow on release mode. */
+#if defined (DEBUG)
+		wire.clr->Set(model->GetModel()->GetMaterial()->Debug);
+#else
+		wire.clr->Set(Color::Yellow());
+#endif
+
+		/* Set first position to the current frame. */
+		Buffer *mesh1 = model->GetCurrentFrame()->GetVertexBuffer();
+		mesh1->Bind();
+		wire.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+
+		/* Set second position to the next frame. */
+		Buffer *mesh2 = model->GetNextFrame()->GetVertexBuffer();
+		mesh2->Bind();
+		wire.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+
+		/* Render shape. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh1->GetElementCount()));
+	}
+
+	/* Reset polygon mode and end shader. */
+	game->GetGraphics()->SetPolygonMode(PolygonModes::Normal);
+	wire.shdr->End();
+}
+
+void Plutonium::DeferredRendererBP::RenderWorldNormals(void)
+{
+	/* Setup shader. */
+	wn.shdr->Begin();
+	wn.normSpec->Set(normalSpec);
+
+	/* Set viewing plane. */
+	plane->Bind();
+	wn.pos->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Position));
+	wn.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
+
+	/* Render and end shader. */
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
+	wn.shdr->End();
+}
+
+void Plutonium::DeferredRendererBP::RenderAlbedo(void)
+{
+	/* Setup shader. */
+	al.shdr->Begin();
+	al.diff->Set(diffuse);
+
+	/* Set viewing plane. */
+	plane->Bind();
+	al.pos->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Position));
+	al.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
+
+	/* Render and end shader. */
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
+	al.shdr->End();
 }
 
 void Plutonium::DeferredRendererBP::BeginGsPass(const Matrix & proj, const Matrix & view)
@@ -538,9 +866,26 @@ void Plutonium::DeferredRendererBP::BeginGdPass(const Matrix & proj, const Matri
 	gdpass.matView->Set(view);
 }
 
+void Plutonium::DeferredRendererBP::BeginDirShadowPass(void)
+{
+	GraphicsAdapter *device = game->GetGraphics();
+
+	/* Setup OpenGL and shader. */
+	device->SetRenderTarget(shdFbo);
+	device->SetDepthOuput(true);
+	device->Clear(ClearTarget::Depth);
+	dspass.shdr->Begin();
+}
+
 void Plutonium::DeferredRendererBP::BeginDirLightPass(Vector3 camPos)
 {
-	/* Setup frame buffer and shader. */
+	GraphicsAdapter *device = game->GetGraphics();
+
+	/* Setup OpenGL and shader. */
+	device->SetRenderTarget(hdrFbo);
+	device->SetColorBlendFunction(BlendState::Additive);
+	device->SetBlend(BlendType::One, BlendType::One);
+	device->SetDepthOuput(false);
 	dpass.shdr->Begin();
 
 	/* Setup global uniforms. */
@@ -551,7 +896,7 @@ void Plutonium::DeferredRendererBP::BeginDirLightPass(Vector3 camPos)
 	dpass.diff->Set(diffuse);
 
 	/* Setup mesh. */
-	dpass.plane->Bind();
+	plane->Bind();
 	dpass.pos->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Position));
 	dpass.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
 }
@@ -564,99 +909,212 @@ void Plutonium::DeferredRendererBP::BeginPntLightPass(const Matrix & proj, const
 	ppass.matProj->Set(proj);
 	ppass.matView->Set(view);
 	ppass.camPos->Set(camPos);
-	ppass.screen->Set(device->GetWindow()->GetClientBounds().Size);
+	ppass.screen->Set(game->GetGraphics()->GetWindow()->GetClientBounds().Size);
 	ppass.normSpec->Set(normalSpec);
 	ppass.posSpec->Set(posSpec);
 	ppass.ambi->Set(ambient);
 	ppass.diff->Set(diffuse);
 
 	/* Setup mesh. */
-	ppass.sphere->GetVertexBuffer()->Bind();
+	sphere->GetVertexBuffer()->Bind();
 	ppass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 }
 
-void Plutonium::DeferredRendererBP::RenderModel(const StaticObject * model)
+void Plutonium::DeferredRendererBP::RenderModel(const Camera * cam, const StaticObject * model, const MaterialBP * overrideMaterial)
 {
-	/* Set model matrix. */
-	gspass.matMdl->Set(model->GetWorld());
-
-	/* Loops through all shapes in the model. */
-	const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
-	for (size_t i = 0; i < shapes->size(); i++)
+	/* Only render the model if it's visible by the camera. */
+	Box bb = model->GetBoundingBox();
+	if (cam->GetClip()->IntersectionBox(bb.Position, bb.Size))
 	{
-		/* Render the current material if it's visible. */
-		const MaterialBP *material = shapes->at(i).Material;
-		if (material->Visible)
+		/* Set model matrix. */
+		gspass.matMdl->Set(model->GetWorld());
+
+		/* Loops through all shapes in the model. */
+		const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
+		for (size_t i = 0; i < shapes->size(); i++)
 		{
-			Buffer *mesh = shapes->at(i).Mesh->GetVertexBuffer();
+			/* Render the current material if it's visible. */
+			const MaterialBP *material = shapes->at(i).Material;
+			if (material->Visible)
+			{
+				/* Only render the mesh if it's inside of the camera view. */
+				Mesh *mesh = shapes->at(i).Mesh;
+				bb = mesh->GetBoundingBox() * model->GetWorld();
+				if (cam->GetClip()->IntersectionBox(bb.Position, bb.Size))
+				{
+					Buffer *buffer = mesh->GetVertexBuffer();
 
-			/* Set material attributes. */
-			gspass.mapAmbi->Set(material->Ambient);
-			gspass.mapDiff->Set(material->Diffuse);
-			gspass.mapSpec->Set(material->Specular);
-			gspass.mapAlpha->Set(material->Opacity);
-			gspass.mapBump->Set(material->Normal);
-			gspass.specExp->Set(material->SpecularExponent);
+					/* Set material attributes. */
+					if (!overrideMaterial)
+					{
+						gspass.mapAmbi->Set(material->Ambient);
+						gspass.mapDiff->Set(material->Diffuse);
+						gspass.mapSpec->Set(material->Specular);
+						gspass.specExp->Set(material->SpecularExponent);
+					}
+					else
+					{
+						gspass.mapAmbi->Set(overrideMaterial->Ambient);
+						gspass.mapDiff->Set(overrideMaterial->Diffuse);
+						gspass.mapSpec->Set(overrideMaterial->Specular);
+						gspass.specExp->Set(overrideMaterial->SpecularExponent);
+					}
+					gspass.mapAlpha->Set(material->Opacity);
+					gspass.mapBump->Set(material->Normal);
 
-			/* Set mesh attributes. */
-			mesh->Bind();
-			gspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-			gspass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-			gspass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-			gspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+					/* Set mesh attributes. */
+					buffer->Bind();
+					gspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+					gspass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+					gspass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+					gspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
-			/* Render the shape to the GBuffer. */
-			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+					/* Render the shape to the GBuffer. */
+					glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
+				}
+			}
 		}
 	}
 }
 
-void Plutonium::DeferredRendererBP::RenderModel(const DynamicObject * model)
+void Plutonium::DeferredRendererBP::RenderModel(const Camera * cam, const DynamicObject * model, const MaterialBP * overrideMaterial)
 {
-	/* Set model matrix and inter frame mix amount. */
-	gdpass.matMdl->Set(model->GetWorld());
-	gdpass.amnt->Set(model->GetMixAmount());
-
-	const MaterialBP *material = model->GetModel()->GetMaterial();
-	if (material->Visible)
+	/* Only render the model if it's visible by the camera. */
+	Box bb = model->GetBoundingBox();
+	if (cam->GetClip()->IntersectionBox(bb.Position, bb.Size))
 	{
-		Buffer *curMesh = model->GetCurrentFrame()->GetVertexBuffer();
-		Buffer *nextMesh = model->GetNextFrame()->GetVertexBuffer();
+		/* Set model matrix and inter frame mix amount. */
+		gdpass.matMdl->Set(model->GetWorld());
+		gdpass.amnt->Set(model->GetMixAmount());
 
-		/* Set material attributes. */
-		gdpass.mapAmbi->Set(material->Ambient);
-		gdpass.mapDiff->Set(material->Diffuse);
-		gdpass.mapSpec->Set(material->Specular);
-		gdpass.mapAlpha->Set(material->Opacity);
-		gdpass.mapBump->Set(material->Normal);
-		gdpass.specExp->Set(material->SpecularExponent);		
+		const MaterialBP *material = model->GetModel()->GetMaterial();
+		if (material->Visible)
+		{
+			Buffer *curMesh = model->GetCurrentFrame()->GetVertexBuffer();
+			Buffer *nextMesh = model->GetNextFrame()->GetVertexBuffer();
 
-		/* Set first mesh attributes. */
-		curMesh->Bind();
-		gdpass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-		gdpass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-		gdpass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
-		gdpass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+			/* Set material attributes. */
+			if (!overrideMaterial)
+			{
+				gdpass.mapAmbi->Set(material->Ambient);
+				gdpass.mapDiff->Set(material->Diffuse);
+				gdpass.mapSpec->Set(material->Specular);
+				gdpass.specExp->Set(material->SpecularExponent);
+			}
+			else
+			{
+				gdpass.mapAmbi->Set(overrideMaterial->Ambient);
+				gdpass.mapDiff->Set(overrideMaterial->Diffuse);
+				gdpass.mapSpec->Set(overrideMaterial->Specular);
+				gdpass.specExp->Set(overrideMaterial->SpecularExponent);
+			}
+			gdpass.mapAlpha->Set(material->Opacity);
+			gdpass.mapBump->Set(material->Normal);
 
-		/* Set second mesh attributes. */
-		nextMesh->Bind();
-		gdpass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-		gdpass.norm2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
-		gdpass.tan2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+			/* Set first mesh attributes. */
+			curMesh->Bind();
+			gdpass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			gdpass.norm->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+			gdpass.tan->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+			gdpass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
-		/* Render the shape to the GBuffer. */
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curMesh->GetElementCount()));
+			/* Set second mesh attributes. */
+			nextMesh->Bind();
+			gdpass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			gdpass.norm2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Normal));
+			gdpass.tan2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Tangent));
+
+			/* Render the shape to the GBuffer. */
+			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(curMesh->GetElementCount()));
+		}
 	}
 }
 
-void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix &iview, const DirectionalLight * light)
+Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const DirectionalLight * light)
 {
-	dpass.dir->Set(normalize(light->Direction));
+	/* Create bounding box for the normal scene. */
+	Box bb;
+	for (size_t i = 0; i < queuedModels.size(); i++) bb = Box::Merge(bb, queuedModels.at(i)->GetBoundingBox());
+	for (size_t i = 0; i < queuedAnimations.size(); i++) bb = Box::Merge(bb, queuedAnimations.at(i)->GetBoundingBox());
+
+	/* Create view matrix from lights perspective. */
+	Matrix view = Matrix::CreateLookAt(bb.GetCenter(), bb.GetCenter() - light->Direction, Vector3::Up());
+	Box obb = (view * bb) * 1.5f;
+
+	/* Set the projection matrix to the scene bounding box in light space and set matrices. */
+	Matrix proj = Matrix::CreateOrtho(obb.GetLeft(), obb.GetRight(), obb.GetBottom(), obb.GetTop(), obb.GetFront(), obb.GetBack());
+	Matrix result = proj * view;
+	dspass.matLs->Set(result);
+
+	/* Render all static models to depth map. */
+	for (size_t i = 0; i < queuedModels.size(); i++)
+	{
+		/* Set model matrix. */
+		const StaticObject *model = queuedModels.at(i);
+		dspass.matMdl->Set(model->GetWorld());
+
+		const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
+		for (size_t j = 0; j < shapes->size(); j++)
+		{
+			const MaterialBP *material = shapes->at(j).Material;
+			if (material->Visible)
+			{
+				Buffer *mesh = shapes->at(j).Mesh->GetVertexBuffer();
+
+				/* Set material attributes. */
+				dspass.mapDiff->Set(material->Diffuse);
+				dspass.mapAlpha->Set(material->Opacity);
+
+				/* Set mesh attributes. */
+				mesh->Bind();
+				dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+				dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+				/* Render the shape to the shadow depth buffer. */
+				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+			}
+		}
+	}
+
+	/* Render all dynamic models to depth map. */
+	for (size_t i = 0; i < queuedAnimations.size(); i++)
+	{
+		/* Set model matrix. */
+		const DynamicObject *model = queuedAnimations.at(i);
+		dspass.matMdl->Set(model->GetWorld());
+
+		const MaterialBP *material = model->GetModel()->GetMaterial();
+		if (material->Visible)
+		{
+			Buffer *mesh = model->GetCurrentFrame()->GetVertexBuffer();
+
+			/* Set material attributes. */
+			dspass.mapDiff->Set(material->Diffuse);
+			dspass.mapAlpha->Set(material->Opacity);
+
+			/* Set mesh attributes. */
+			mesh->Bind();
+			dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+			dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+			/* Render the shape to the shadow depth buffer. */
+			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+		}
+	}
+
+	return result;
+}
+
+void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix &space, const Matrix &iview, const DirectionalLight * light)
+{
+	dpass.dir->Set(-normalize(light->Direction));
 	dpass.clrAmbi->Set(light->Ambient);
 	dpass.clrDiff->Set(light->Diffuse);
 	dpass.clrSpec->Set(light->Specular);
+	dpass.matLs->Set(space);
+	dpass.shadow->Set(shadow);
 
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(dpass.plane->GetElementCount()));
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
 }
 
 void Plutonium::DeferredRendererBP::RenderPntLight(const PointLight * light)
@@ -670,25 +1128,25 @@ void Plutonium::DeferredRendererBP::RenderPntLight(const PointLight * light)
 	ppass.clrDiff->Set(light->Diffuse);
 	ppass.clrSpec->Set(light->Specular);
 
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(ppass.sphere->GetVertexBuffer()->GetElementCount()));
+	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(sphere->GetVertexBuffer()->GetElementCount()));
 }
 
 void Plutonium::DeferredRendererBP::FixForMonitor(void)
 {
 	/* Start shader. */
 	fpass.shdr->Begin();
-	
+
 	/* Set uniforms. */
 	fpass.screen->Set(screen);
-	fpass.gamma->Set(device->GetWindow()->GetGraphicsDevice().GammaCorrection);
+	fpass.gamma->Set(game->GetGraphics()->GetWindow()->GetGraphicsDevice().GammaCorrection);
 	fpass.exposure->Set(Exposure);
 
 	/* Setup screen quad (use dpass quad plane). */
-	dpass.plane->Bind();
+	plane->Bind();
 	fpass.pos->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Position));
 	fpass.uv->Initialize(false, sizeof(PlaneVertexFormat), offset_ptr(PlaneVertexFormat, Uv));
 
 	/* Fix for monitor for each fragment and end shader. */
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(dpass.plane->GetElementCount()));
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
 	fpass.shdr->End();
 }

@@ -6,6 +6,8 @@ namespace Plutonium
 	/* Defines the types of interal formats used for a render target attachment. */
 	enum class AttachmentOutputType : GLint
 	{
+		/* Attachment stores the depth (float). */
+		Depth = GL_DEPTH_COMPONENT,
 		/* Attachment stores 3 unsigned bytes. */
 		RGB = GL_RGB,
 		/* Attachment stored 4 unsigned bytes. */
@@ -38,11 +40,22 @@ namespace Plutonium
 			return name;
 		}
 
+		/* Gets the assigned type of this render target attachment. */
+		_Check_return_ inline AttachmentOutputType GetType(void) const
+		{
+			return type;
+		}
+
+		/* Saves the tetxure as a specified file. */
+		void SaveAsPng(_In_ const char *path, _In_opt_ bool flipVertically = true) const;
+
 	private:
 		friend struct Uniform;
 		friend struct RenderTarget;
 
 		const char *name;
+		AttachmentOutputType type;
+		int32 width, height;
 		uint32 ptr;
 		GLenum attachment;
 

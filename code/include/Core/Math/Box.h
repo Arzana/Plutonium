@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector3.h"
+#include "Matrix.h"
 
 namespace Plutonium
 {
@@ -43,6 +43,22 @@ namespace Plutonium
 			return Position != b.Position || Size != b.Size;
 		}
 
+		/* Scales the box by a specified amount. */
+		_Check_return_ inline Box operator *(_In_ float scalar) const
+		{
+			Box result(Position, Size);
+			result.Inflate(fabsf(Size.X * scalar), fabsf(Size.Y * scalar), fabsf(Size.Z * scalar));
+			return result;
+		}
+
+		/* Transforms the box with the specified matrix. */
+		_Check_return_ inline Box operator *(_In_ const Matrix &m) const
+		{
+			Vector3 p1 = m * Position;
+			Vector3 p2 = m * (Position + Size);
+			return Box(p1, p2 - p1);
+		}
+
 		/* Gets whether the box has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
 		{
@@ -82,13 +98,13 @@ namespace Plutonium
 		/* Gets the topmost face of the box. */
 		_Check_return_ inline float GetTop(void) const
 		{
-			return Size.Y > 0.0f ? Position.Y : (Position.Y + Size.Y);
+			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
 		}
 
 		/* Gets the bottommost face of the box. */
 		_Check_return_ inline float GetBottom(void) const
 		{
-			return Size.Y > 0.0f ? (Position.Y + Size.Y) : Position.Y;
+			return Size.Y > 0.0f ?  Position.Y : (Position.Y + Size.Y);
 		}
 
 		/* Gets the frontmost face of the box. */
@@ -113,6 +129,8 @@ namespace Plutonium
 		_Check_return_ static Box Merge(_In_ const Box &first, _In_ const Box &second);
 		/* Expands the box from all faces by a specified amount. */
 		void Inflate(_In_ float horizontal, _In_ float vertical, _In_ float depth);
+		/* Squares out the box making the horizontal, verticel and depth equal to the highest of the three. */
+		void Square(void);
 		/* Checks whether a point is within the box. */
 		_Check_return_ bool Contains(_In_ Vector3 point) const;
 		/* Checks whether a box is fully within the box. */
@@ -122,4 +140,10 @@ namespace Plutonium
 		/* Gets the overlap of a box over the box. */
 		_Check_return_ Box GetOverlap(_In_ const Box &b) const;
 	};
+
+	/* Transforms the box with the specified matrix. */
+	_Check_return_ inline Box operator *(_In_ const Matrix &m, _In_ const Box &b)
+	{
+		return b * m;
+	}
 }

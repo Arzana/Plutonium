@@ -259,6 +259,12 @@ namespace Plutonium
 		return v * s;
 	}
 
+	/* Divides the vector by a scalar value. */
+	_Check_return_ inline Vector3 operator /(_In_ float s, _In_ Vector3 v)
+	{
+		return v / s;
+	}
+
 	/* Gets the absolute value of each vector component. */
 	_Check_return_ inline Vector3 abs(_In_ Vector3 v)
 	{

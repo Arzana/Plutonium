@@ -1,5 +1,6 @@
 #pragma once
 #include "Core\Math\Matrix.h"
+#include "Core\Math\Box.h"
 
 namespace Plutonium
 {
@@ -7,6 +8,12 @@ namespace Plutonium
 	struct WorldObject
 	{
 	public:
+		/* Gets a box defining the bounds of this object. */
+		_Check_return_ inline Box GetBoundingBox(void) const
+		{
+			return bb * transform;
+		}
+
 		/* Gets the world position of this object. */
 		_Check_return_ inline Vector3 GetPosition(void) const
 		{
@@ -31,6 +38,12 @@ namespace Plutonium
 			transform.SetOrientation(yaw, pitch, roll);
 		}
 
+		/* Sets the orientation of the object. */
+		inline virtual void SetOrientation(_In_ Vector3 orientation)
+		{
+			SetOrientation(orientation.X, orientation.Y, orientation.Z);
+		}
+
 		/* Teleports the object to a new position. */
 		virtual void Teleport(_In_ Vector3 pos)
 		{
@@ -46,9 +59,10 @@ namespace Plutonium
 	protected:
 		/* Initializes a new instance of a world object. */
 		WorldObject(void)
-			: transform()
+			: transform(), bb()
 		{}
 
 		Matrix transform;
+		Box bb;
 	};
 }

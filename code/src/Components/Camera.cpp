@@ -3,10 +3,11 @@
 
 Plutonium::Camera::Camera(WindowHandler wnd)
 	: wnd(wnd), actualPos(0.0f, 0.0f, 50.0f), 
-	target(), offset(0.0f, 0.0f, 0.5f),
+	target(), Offset(0.0f, 0.0f, 0.5f),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), 
 	MoveSpeed(100.0f), LookSpeed(6.0f),
-	near(0.1f), far(1000.0f), fov(PI4), orien()
+	near(0.1f), far(1000.0f), fov(PI4), 
+	orien()
 {
 	desiredPos = actualPos;
 	WindowResizeEventHandler(wnd, EventArgs());
@@ -22,7 +23,7 @@ void Plutonium::Camera::Update(float dt, const Matrix & obj2Follow)
 {
 	/* Update target and desired position. */
 	target = obj2Follow.GetTranslation();
-	desiredPos = obj2Follow * offset;
+	desiredPos = obj2Follow * Offset;
 
 	/* Update position and view matrix. */
 	UpdatePosition(dt);
@@ -89,6 +90,7 @@ void Plutonium::Camera::UpdateView(void)
 
 	/* Update view. */
 	view = Matrix::CreateLookAt(actualPos, target, orien.GetUp());
+	frustum = Frustum(proj * view);
 }
 
 void Plutonium::Camera::WindowResizeEventHandler(WindowHandler sender, EventArgs args)

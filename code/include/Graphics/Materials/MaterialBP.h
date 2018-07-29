@@ -37,6 +37,9 @@ namespace Plutonium
 		_Check_return_ MaterialBP& operator =(_In_ const MaterialBP &other) = delete;
 		_Check_return_ MaterialBP& operator =(_In_ MaterialBP &&other) = delete; 
 
+		/* Creates a material that defines a pass material, this material is meant to show lighting conditions (requires delete!). */
+		_Check_return_ static MaterialBP* CreateNoInfo(_In_ AssetLoader *loader);
+
 	private:
 		static void InitConfig(const ObjLoaderTextureMap *texture, Color filter, TextureCreationOptions *output);
 		Texture* CreateDefault(const char *name, Color filler);

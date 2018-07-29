@@ -277,8 +277,10 @@
     <ClInclude Include="..\..\include\Core\Math\Basics.h" />
     <ClInclude Include="..\..\include\Core\Math\Box.h" />
     <ClInclude Include="..\..\include\Core\Math\Constants.h" />
+    <ClInclude Include="..\..\include\Core\Math\Frustum.h" />
     <ClInclude Include="..\..\include\Core\Math\Interpolation.h" />
     <ClInclude Include="..\..\include\Core\Math\Matrix.h" />
+    <ClInclude Include="..\..\include\Core\Math\Plane.h" />
     <ClInclude Include="..\..\include\Core\Math\Rectangle.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector2.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
@@ -347,8 +349,10 @@
     <ClInclude Include="..\..\include\Graphics\Native\OpenGL.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLSources.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\PolygonModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTarget.h" />
     <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTargetAttachment.h" />
+    <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTargetStatus.h" />
     <ClInclude Include="..\..\include\Graphics\Native\StencilOperation.h" />
     <ClInclude Include="..\..\include\Graphics\Native\VSyncModes.h" />
     <ClInclude Include="..\..\include\Graphics\Native\Window.h" />

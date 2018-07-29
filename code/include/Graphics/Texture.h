@@ -52,7 +52,7 @@ namespace Plutonium
 		/* Sets the raw data of the texture to the specified data (data is expected to be Width*Height in size!). */
 		void SetData(_In_ byte *data);
 		/* Saves the tetxure as a specified file. */
-		void SaveAsPng(_In_ const char *path, _In_opt_ bool flipVertically = true);
+		void SaveAsPng(_In_ const char *path, _In_opt_ bool flipVertically = true) const;
 
 		/* Gets a copy of the underlying data specified by the texture (byte, float and Color are accepted types). */
 		template <typename _Ty>

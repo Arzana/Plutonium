@@ -1,6 +1,7 @@
 #pragma once
 #include "MeshVertexFormat.h"
 #include "Graphics\Native\Buffer.h"
+#include "Core\Math\Box.h"
 #include <vector>
 
 namespace Plutonium
@@ -28,6 +29,12 @@ namespace Plutonium
 		/* Pushes the vertices to the GPU and releases the resources on the CPU. */
 		void Finalize(_In_ WindowHandler wnd);
 
+		/* Gets the bounding box associated with this mesh. */
+		_Check_return_ inline Box GetBoundingBox(void) const
+		{
+			return bb;
+		}
+
 		/* Gets the ID for the vertex array buffer. */
 		_Check_return_ inline Buffer* GetVertexBuffer(void) const
 		{
@@ -54,6 +61,7 @@ namespace Plutonium
 		VertexFormat *vertices;
 		size_t vrtxCnt;
 		Buffer *buffer;
+		Box bb;
 
 		void SetBufferSizeInternal(_In_ size_t size);
 

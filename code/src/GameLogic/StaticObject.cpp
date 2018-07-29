@@ -20,5 +20,12 @@ Plutonium::StaticObject::~StaticObject(void)
 void Plutonium::StaticObject::OnLoadComplete(const AssetLoader *, StaticModel * result)
 {
 	model = result;
+
+	const std::vector<StaticModel::Shape> *shapes = result->GetShapes();
+	for (size_t i = 0; i < shapes->size(); i++)
+	{
+		bb = Box::Merge(bb, shapes->at(i).Mesh->GetBoundingBox());
+	}
+
 	parent->UpdateLoadPercentage(percentage);
 }

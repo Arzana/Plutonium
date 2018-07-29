@@ -56,6 +56,11 @@ namespace Plutonium
 	/* Counts how many times a specified character apears in a string. */
 	_Check_return_ size_t cntchar(_In_ const char32_t *src, _In_ char32_t delimiter);
 
+	/* Returns whether the source string contains the specified substring. */
+	_Check_return_ bool cntstr(_In_ const char *src, _In_ const char *predicate);
+	/* Returns whether the source string contains the specified substring. */
+	_Check_return_ bool cntstr(_In_ const char32_t *src, _In_ const char32_t *predicate);
+
 	/* Checks if the two specified strings are equal. */
 	_Check_return_ bool eqlstr(_In_ const char *str1, _In_ const char *str2);
 	/* Checks if the two specified strings are equal. */

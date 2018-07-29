@@ -1,7 +1,7 @@
 #pragma once
 #include "Input\Keyboard.h"
 #include "Input\Cursor.h"
-#include "Core\Math\Matrix.h"
+#include "Core\Math\Frustum.h"
 #include "Graphics\Native\Window.h"
 
 namespace Plutonium
@@ -20,6 +20,8 @@ namespace Plutonium
 		float MoveSpeed;
 		/* The viewing speed modifier of the camera. */
 		float LookSpeed;
+		/* The offset the camera will have from the viewing target. */
+		Vector3 Offset;
 
 		/* Initializes a new instance of a camera. */
 		Camera(_In_ WindowHandler wnd);
@@ -71,6 +73,12 @@ namespace Plutonium
 			return fov;
 		}
 
+		/* Gets the frustum used for frustum culling. */
+		_Check_return_ inline const Frustum* GetClip(void) const
+		{
+			return &frustum;
+		}
+
 		/* Sets the near clipping plane. */
 		void SetNear(_In_ float value);
 		/* Sets the far clipping plane. */
@@ -81,8 +89,9 @@ namespace Plutonium
 	private:
 		float near, far, fov;
 		Vector3 actualPos, desiredPos;
-		Vector3 target, offset;
+		Vector3 target;
 		Matrix view, proj, orien;
+		Frustum frustum;
 		WindowHandler wnd;
 
 		void UpdatePosition(float dt);

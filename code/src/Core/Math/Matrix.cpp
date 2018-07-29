@@ -123,6 +123,11 @@ Matrix Plutonium::Matrix::GetOrientation(void) const
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+Vector3 Plutonium::Matrix::GetScale(void) const
+{
+	return Vector3(GetRight().Length(), GetUp().Length(), GetBackward().Length());
+}
+
 Matrix Plutonium::Matrix::GetStatic(void) const
 {
 	/* Simply remove the translation. */

@@ -5,6 +5,9 @@ using namespace Plutonium;
 
 Rectangle Plutonium::Rectangle::Merge(const Rectangle & first, const Rectangle & second)
 {
+	if (first.IsEmpty()) return second;
+	if (second.IsEmpty()) return first;
+
 	const float r = max(first.GetRight(), second.GetRight());
 	const float l = min(first.GetLeft(), second.GetLeft());
 	const float t = min(first.GetTop(), second.GetTop());

@@ -772,6 +772,18 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\Deferred\DeferredRendererBP.h">
       <Filter>Header Files\Graphics\Rendering\Deferred</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\RenderTargets\RenderTargetStatus.h">
+      <Filter>Header Files\Graphics\Native\RenderTargets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Native\PolygonModes.h">
+      <Filter>Header Files\Graphics\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Plane.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Frustum.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">

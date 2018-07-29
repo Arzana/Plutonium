@@ -10,7 +10,7 @@ namespace Plutonium
 	{
 	public:
 		/* Initializes a new render target with a specified width and height. */
-		RenderTarget(_In_ GraphicsAdapter *device);
+		RenderTarget(_In_ GraphicsAdapter *device, bool attachDepthBuffer);
 		RenderTarget(_In_ const RenderTarget &value) = delete;
 		RenderTarget(_In_ RenderTarget &&value) = delete;
 		/* Releases the resources allocated by the render target. */
@@ -30,9 +30,11 @@ namespace Plutonium
 		friend struct GraphicsAdapter;
 
 		std::vector<RenderTargetAttachment*> attachments;
+		size_t drawBufferCnt;
 		uint32 ptrFbo, ptrRbo;
 		GraphicsAdapter *device;
 		int32 width, height;
+		bool finalized;
 
 		void AttachDepthBuffer(void);
 	};

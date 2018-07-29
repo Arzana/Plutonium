@@ -2,6 +2,7 @@
 #include "Core\Stopwatch.h"
 #include "Core\Diagnostics\StackTrace.h"
 #include "Core\Threading\ThreadUtils.h"
+#include "Graphics\Native\OpenGL.h"
 #include <glad\glad.h>
 #include <glfw3.h>
 #include <algorithm>
@@ -248,6 +249,9 @@ void Plutonium::Game::DoUpdate(float dt, bool loading)
 
 void Plutonium::Game::BeginRender(void)
 {
+	/* Reset the draw call counter. */
+	_CrtResetDrawCalls();
+
 	/* Disable alpha blending and enable culling. */
 	device->SetAlphaBlendFunction(BlendState::None);
 	device->SetDepthTest(DepthState::LessOrEqual);

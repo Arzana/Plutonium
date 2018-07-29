@@ -8,7 +8,7 @@
 using namespace Plutonium;
 
 Plutonium::Mesh::Mesh(const char * name)
-	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), buffer(nullptr)
+	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), buffer(nullptr), bb()
 {
 	LOG("Creating mesh '%s'.", name);
 }
@@ -31,6 +31,16 @@ void Plutonium::Mesh::Finalize(WindowHandler wnd)
 	/* Create GPU buffer. */
 	buffer = new Buffer(wnd, BindTarget::Array);
 	buffer->SetData(BufferUsage::StaticDraw, vertices, vrtxCnt);
+
+	/* Set bounding box. */
+	Vector3 p1(maxv<float>()), p2(minv<float>());
+	for (size_t i = 0; i < vrtxCnt; i++)
+	{
+		Vector3 cur = vertices[i].Position;
+		p1 = min(cur, p1);
+		p2 = max(cur, p2);
+	}
+	bb = Box(p1, p2 - p1);
 
 	/* Release CPU memory. */
 	free_s(vertices);

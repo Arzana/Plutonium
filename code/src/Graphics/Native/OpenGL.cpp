@@ -6,6 +6,10 @@
 #include "Core\EnumUtils.h"
 #include <glfw3.h>
 
+#if defined (DEBUG)
+#include "Core\StringFunctions.h"
+#endif
+
 #if defined(_WIN32)
 #include <Windows.h>
 
@@ -77,13 +81,15 @@ void GlfwErrorEventHandler(int code, const char *descr)
 }
 
 #if defined(DEBUG)
-uint64 lastGladFramePtr = 0;
+uint64 lastGladFramePtr = 0, drawCalls = 0;
 const char *lastGladFuncName = "";
 
-void GladPreGLCallEventHandler(const char *name, void *, int, ...)
+void GladPreGLCallEventHandler(const char *name, void*, int, ...)
 {
 	lastGladFramePtr = Plutonium::_CrtGetCallerPtr(3);
 	lastGladFuncName = name;
+
+	if (cntstr(name, "glDraw")) ++drawCalls;
 }
 #endif
 
@@ -207,6 +213,23 @@ bool IsWGLExtensionSupported(const char *extension)
 	return strstr(wglGetExtensionStringExt(), extension) != nullptr;
 }
 #endif
+
+size_t Plutonium::_CrtGetDrawCalls(void)
+{
+#if defined (DEBUG)
+	return drawCalls;
+#else
+	LOG_WAR_ONCE("Can only request number of draw calls on debug mode!");
+	return 0;
+#endif
+}
+
+void Plutonium::_CrtResetDrawCalls(void)
+{
+#if defined (DEBUG)
+	drawCalls = 0;
+#endif
+}
 
 void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 {

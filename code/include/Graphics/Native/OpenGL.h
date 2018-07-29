@@ -9,6 +9,10 @@ struct GLFWwindow;
 namespace Plutonium
 {
 	struct Window;
+	/* Gets the number of draw calls since the last reset. */
+	_Check_return_ size_t _CrtGetDrawCalls(void);
+	/* Resets the number of draw calls to zero. */
+	void _CrtResetDrawCalls(void);
 
 	/* Moves the terminal to a move favorable position (the first display that doesn't contain the window.). */
 	void _CrtDbgMoveTerminal(_In_ GLFWwindow *gameWindow);

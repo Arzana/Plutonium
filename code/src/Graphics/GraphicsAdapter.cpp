@@ -75,6 +75,11 @@ void Plutonium::GraphicsAdapter::SetFrontFace(FaceCullType func)
 	glFrontFace(_CrtEnum2Int(func));
 }
 
+void Plutonium::GraphicsAdapter::SetPolygonMode(PolygonModes mode, FaceCullState face)
+{
+	glPolygonMode(_CrtEnum2Int(face), _CrtEnum2Int(mode));
+}
+
 void Plutonium::GraphicsAdapter::SetStencilFailOperation(StencilOperation operation)
 {
 	sf = operation;
@@ -137,6 +142,7 @@ void Plutonium::GraphicsAdapter::SetRenderTarget(const RenderTarget * target)
 {
 	if (target)
 	{
+		ASSERT_IF(!target->finalized, "Cannot set render target to none finalized render target!");
 		glBindFramebuffer(GL_FRAMEBUFFER, target->ptrFbo);
 		glViewport(0, 0, static_cast<GLsizei>(target->width), static_cast<GLsizei>(target->height));
 	}
@@ -165,6 +171,22 @@ Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 	SetDefaultStencilOp();
 	UpdateBlendEq(BlendState::None);
 	SetDepthTest(DepthState::LessOrEqual);
+
+	/* Make sure pixels are tightly packed to avoid buffer overflows. */
+	GLint alignment;
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+	if (alignment != 1)
+	{
+		LOG("Unpacked pixels alignment is set to %d, resetting to 1.", alignment);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	}
+
+	glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
+	if (alignment != 1)
+	{
+		LOG("Packed pixels alignment is set to %d, resetting to 1.", alignment);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	}
 }
 
 void Plutonium::GraphicsAdapter::SetDefaultBlendEq(void)

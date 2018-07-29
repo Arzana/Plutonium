@@ -366,6 +366,26 @@ size_t Plutonium::cntchar(const char32_t * src, char32_t delimiter)
 	return result;
 }
 
+bool Plutonium::cntstr(const char * src, const char * predicate)
+{
+	return !strstr(src, predicate);
+}
+
+bool Plutonium::cntstr(const char32_t * src, const char32_t * predicate)
+{
+	char32_t c = *predicate;
+	char32_t t = *src;
+
+	/* Loop through all characters in the source string and only append the test character if they match. */
+	for (size_t i = 0, j = 0; i < t != U'\0' && c != U'\0'; i++, j++, t = src[i], c = predicate[j])
+	{
+		if (t != c) j = 0;
+	}
+
+	/* if the test character has reahed the end then we know the substring is present. */
+	return c == U'\0';
+}
+
 bool Plutonium::eqlstr(const char * str1, const char * str2)
 {
 	return !strcmp(str1, str2);
