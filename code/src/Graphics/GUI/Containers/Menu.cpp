@@ -217,7 +217,7 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 
 	const Font *font = loadedFonts.at(defaultFontIdx);
 	const char32 *string = heapwstr(text);	// TODO: Fix memory leak.
-	float lh = font->MeasureStringHeight(text);
+	float lh = static_cast<float>(font->GetLineSpace()) * (cntchar(text, '\n') + 1);
 
 	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
 	size_t len = strlen(string), size = len * 6;

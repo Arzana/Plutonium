@@ -75,42 +75,6 @@ Vector2 Plutonium::Font::MeasureString(const char32 * str) const
 	return Vector2(width, offset.Y + lineHeight);
 }
 
-float Plutonium::Font::MeasureStringHeight(const char * str) const
-{
-	char32 *wstr = heapwstr(str);
-	float result = MeasureStringHeight(wstr);
-	free_s(wstr);
-	return result;
-}
-
-float Plutonium::Font::MeasureStringHeight(const char32 * str) const
-{
-	/* Initialize result and temporary values. */
-	float lineHeight = static_cast<float>(lineSpace);
-	float y = 0;
-
-	/* Loop through all chars in the string. */
-	char32 c = *str;
-	for (size_t i = 0; c != '\0'; c = str[++i])
-	{
-		/* Handle newlines. */
-		if (c == '\r') continue;
-		if (c == '\n')
-		{
-			lineHeight = static_cast<float>(lineSpace);
-			y += static_cast<float>(lineSpace);
-			continue;
-		}
-
-		const Character *ch = GetCharOrDefault(static_cast<int32>(c));
-
-		/* Update height. */
-		if (ch->Size.Y > lineHeight) lineHeight = ch->Size.Y;
-	}
-
-	return y + lineHeight;
-}
-
 const Character * Plutonium::Font::GetCharOrDefault(char32 key) const
 {
 	/* Search through storage for specified character. */
@@ -175,7 +139,7 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	result->PopulateTextureMap(&info, scale);
 
 	/* Free file data and return result. */
-	LOG("Finished initializing %zu/%d characters, took %Lf seconds.", loaded, result->cnt, sw.Microseconds() * 0.000001L);
+	LOG("Finished initializing %zu/%zu characters, took %Lf seconds.", loaded, result->cnt, sw.Microseconds() * 0.000001L);
 	free_s(ttf_buffer);
 	return result;
 }

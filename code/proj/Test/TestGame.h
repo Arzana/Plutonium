@@ -24,7 +24,6 @@ public:
 
 	/* Display values. */
 	float sunAngle;
-	const char *dayState;
 	bool enableDayNight;
 
 	/* Renderers. */

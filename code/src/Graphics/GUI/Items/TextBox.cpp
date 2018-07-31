@@ -1,3 +1,5 @@
+#pragma warning (disable:4703)
+
 #include "Graphics\GUI\Items\TextBox.h"
 #include "Core\StringFunctions.h"
 #include "Core\Platform\Windows\RegistryFetcher.h"

@@ -291,52 +291,64 @@ void Plutonium::FileReader::Open(void)
 
 void Plutonium::FileReader::InitFileArgs(void)
 {
-	constexpr size_t DELIM_CNT = 2;
-	constexpr size_t BUFFER_LEN = 16;
+	/* Count the sub directories in the file path and add one for the file name. */
+	constexpr size_t DELIMITER_CNT = 2;
+	static char DELIMITERS[DELIMITER_CNT] = { '\\', '/' };
+	size_t subDirCnt = cntchar(fpath, DELIMITERS, DELIMITER_CNT);
 
 	/* Split the path in subsections of folders and the file. */
-	static char delimiters[DELIM_CNT] = { '\\', '/' };
-	char *buffer[BUFFER_LEN];
-	for (size_t i = 0; i < BUFFER_LEN; i++) buffer[i] = malloca_s(char, FILENAME_MAX);
-
-	size_t len = spltstr(fpath, delimiters, DELIM_CNT, buffer, 0);
-
-	/* Early out if the attribute split has failed. */
-	if (len < 1)
-	{
-		LOG_WAR("Could not get file attributes from path '%s'!", fpath);
-		return;
-	}
+	char **subDirs = mallocaa_s(char, subDirCnt + 1, FILENAME_MAX);
+	spltstr(fpath, DELIMITERS, DELIMITER_CNT, subDirs, 0);
 
 	/* Get the file name. */
-	fname = heapstr(buffer[len - 1]);
+	fname = heapstr(subDirs[subDirCnt]);
 
-	/* Get the file directory. */
-	if (len > 1)
+	/* Get the path if it's specified. */
+	if (subDirCnt > 0)
 	{
-		char mrgbuf[FILENAME_MAX];
-		mrgstr(const_cast<const char**>(buffer), len - 1, mrgbuf, '/');
-		len = strlen(mrgbuf);
-		mrgbuf[len] = '/';
-		mrgbuf[len + 1] = '\0';
-		fdir = heapstr(mrgbuf);
+		/* Allocate and populate merge buffer. */
+		char mrgBuffer[FILENAME_MAX];
+		mrgstr(const_cast<const char**>(subDirs), subDirCnt, mrgBuffer, '/');
+
+		/* Add final slash and push buffer to heap. */
+		size_t dirLen = strlen(mrgBuffer);
+		mrgBuffer[dirLen] = '/';
+		mrgBuffer[dirLen + 1] = '\0';
+		fdir = heapstr(mrgBuffer);
 	}
 	else fdir = heapstr("");
 
-	/* Split the name into the file name and extension. */
-	len = spltstr(fname, '.', buffer, 0);
+	/* Split the name into the file name and the extension. */
+	size_t nameAndExtCnt = cntchar(fname, '.');
+	char **nameAndExt = mallocaa_s(char, nameAndExtCnt + 1, FILENAME_MAX);
+	spltstr(fname, '.', nameAndExt, 0);
 
-	/* Early out if the attributes split has failed. */
-	if (len < 1)
+	/* Set the file name and extension. */
+	if (nameAndExtCnt > 0)
 	{
-		LOG_WAR("Could not get file extension from path '%s'!", fpath);
-		return;
+		/* Set file extension. */
+		fext = heapstr(nameAndExt[nameAndExtCnt]);
+
+		if (nameAndExtCnt > 1)
+		{
+			/* Handle case of dots in the file name. */
+			fnamenoext = malloc_s(char, strlen(fname) - strlen(fext));
+			mrgstr(const_cast<const char**>(nameAndExt), nameAndExtCnt - 1, const_cast<char*>(fnamenoext));
+		}
+		else
+		{
+			/* Easy file name just copy values. */
+			fnamenoext = heapstr(nameAndExt[0]);
+		}
+	}
+	else
+	{
+		/* No extension was present so just set it to empty. */
+		fnamenoext = heapstr(nameAndExt[0]);
+		fext = heapstr("");
 	}
 
-	/* Get raw file name and extension. */
-	fnamenoext = heapstr(buffer[0]);
-	fext = heapstr(buffer[len - 1]);
-
-	/* Free buffers. */
-	for (size_t i = 0; i < BUFFER_LEN; i++) freea_s(buffer[i]);
+	/* Free temporary buffers. */
+	freeaa_s(subDirs, subDirCnt + 1);
+	freeaa_s(nameAndExt, nameAndExtCnt + 1);
 }

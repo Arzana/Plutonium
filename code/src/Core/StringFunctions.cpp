@@ -15,23 +15,40 @@ size_t Plutonium::strlen(const char32_t * str)
 	if (!str) return 0;
 
 	size_t len = 0;
-	while (str[len] != '\0') ++len;
+	while (str[len] != U'\0') ++len;
 	return len;
+}
+
+void Plutonium::cpystr(const char * src, char * destination)
+{
+	char c = *src;
+	for (size_t i = 0; c != '\0'; i++, c = src[i]) destination[i] = src[i];
+}
+
+void Plutonium::cpystr(const char32_t * src, char32_t * destination)
+{
+	char32_t c = *src;
+	for (size_t i = 0; c != U'\0'; i++, c = src[i]) destination[i] = src[i];
 }
 
 void Plutonium::substr(const char * src, size_t start, size_t length, char * result)
 {
-	/* Copy the specified  path of the string over and add a null terminator. */
-	strncpy(result, src + start, length);
+	/* Copy the specified path of the string over and add a null terminator. */
+	for (size_t i = start, j = 0, end = start + length; i < end; i++, j++)
+	{
+		result[j] = src[i];
+	}
+
+	/* Add a null terminator. */
 	result[length] = '\0';
 }
 
 void Plutonium::substr(const char32_t * src, size_t start, size_t length, char32_t * result)
 {
 	/* Copy the specified  path of the string over. */
-	for (size_t i = start, end = start + length; i < end; i++)
+	for (size_t i = start, j = 0, end = start + length; i < end; i++, j++)
 	{
-		result[i] = src[i];
+		result[j] = src[i];
 	}
 
 	/* Add a null terminator. */
@@ -62,7 +79,7 @@ size_t Plutonium::spltstr(const char32_t * src, const char32_t specifier, char32
 {
 	/* Loop through all characters in the string. */
 	size_t length = 0, i = start, s = start;
-	for (char32_t c = src[i]; c != '\0'; c = src[++i])
+	for (char32_t c = src[i]; c != U'\0'; c = src[++i])
 	{
 		/* Check if the current character is the specifier. */
 		if (c == specifier)
@@ -106,7 +123,7 @@ size_t Plutonium::spltstr(const char32_t * src, const char32_t * specifiers, siz
 {
 	/* Loop through all characters in the string. */
 	size_t length = 0, i = start, s = start;
-	for (char32_t c = src[i]; c != '\0'; c = src[++i])
+	for (char32_t c = src[i]; c != U'\0'; c = src[++i])
 	{
 		/* Loop through all specifiers and check if the current character is one. */
 		for (size_t j = 0; j < argc; j++)
@@ -132,8 +149,8 @@ void Plutonium::mrgstr(const char * first, const char * second, char * result)
 	const size_t flen = strlen(first);
 
 	/* Copy over the strings and add null terminator. */
-	strcpy(result, first);
-	strcpy(result + flen, second);
+	cpystr(first, result);
+	cpystr(second, result + flen);
 	result[flen + strlen(second)] = '\0';
 }
 
@@ -157,9 +174,9 @@ void Plutonium::mrgstr(const char * first, const char * second, char * result, c
 	const size_t flen = strlen(first);
 
 	/* Copy over the strings, seperator and add null terminator. */
-	strcpy(result, first);
+	cpystr(first, result);
 	result[flen] = seperator;
-	strcpy(result + flen + 1, second);
+	cpystr(second, result + flen + 1);
 	result[flen + strlen(second) + 1] = '\0';
 }
 
@@ -186,7 +203,7 @@ void Plutonium::mrgstr(const char ** values, size_t argc, char * result)
 	{
 		/* Copy over the current string. */
 		const char *cur = values[i];
-		strcpy(result + len, cur);
+		cpystr(cur, result + len);
 		len += strlen(cur);
 	}
 
@@ -221,9 +238,9 @@ void Plutonium::mrgstr(const char ** values, size_t argc, char * result, char se
 	{
 		/* Copy over the current string and add seperator. */
 		const char *cur = values[i];
-		strcpy(result + len, cur);
+		cpystr(cur, result + len);
 		len += strlen(cur);
-		strcpy(result + len, &seperator);
+		cpystr(&seperator, result + len);
 	}
 
 	/* Replace last seperator with a null terminator. */
@@ -257,7 +274,8 @@ char * Plutonium::heapstr(const char * src)
 	char *result = malloc_s(char, len + 1);
 
 	/* Copy string to heap. */
-	strcpy(result, src);
+	for (size_t i = 0; i < len; i++) result[i] = src[i];
+
 	result[len] = '\0';
 	return result;
 }
@@ -292,7 +310,7 @@ char32_t * Plutonium::heapwstr(const char * src)
 
 	/* Copies string to heap. */
 	for (size_t i = 0; i < len; i++) result[i] = static_cast<char32_t>(src[i]);
-	result[len] = '\0';
+	result[len] = U'\0';
 	return result;
 }
 
@@ -304,7 +322,7 @@ char32_t * Plutonium::heapwstr(const char32_t * src)
 
 	/* Copies string to heap. */
 	for (size_t i = 0; i < len; i++) result[i] = src[i];
-	result[len] = '\0';
+	result[len] = U'\0';
 	return result;
 }
 
@@ -349,6 +367,25 @@ size_t Plutonium::cntchar(const char * src, char delimiter)
 	return result;
 }
 
+size_t Plutonium::cntchar(const char * src, char * delimiters, size_t argc)
+{
+	/* Default to zero. */
+	size_t result = 0;
+
+	/* Loop through string. */
+	char c = *src;
+	for (size_t i = 0; c != '\0'; i++, c = src[i])
+	{
+		for (size_t j = 0; j < argc; j++)
+		{
+			/* If cur is one of the delimiters add one to result. */
+			if (c == delimiters[j]) ++result;
+		}
+	}
+
+	return result;
+}
+
 size_t Plutonium::cntchar(const char32_t * src, char32_t delimiter)
 {
 	/* Default to zero. */
@@ -356,13 +393,31 @@ size_t Plutonium::cntchar(const char32_t * src, char32_t delimiter)
 
 	/* Loop through string. */
 	char32_t c = *src;
-	for (size_t i = 0; c != '\0'; i++, c = src[i])
+	for (size_t i = 0; c != U'\0'; i++, c = src[i])
 	{
 		/* If cur is delimiter add one to result. */
-		if (c == delimiter) result++;
+		if (c == delimiter) ++result;
 	}
 
-	/* Return result. */
+	return result;
+}
+
+size_t Plutonium::cntchar(const char32_t * src, char32_t * delimiters, size_t argc)
+{
+	/* Default to zero. */
+	size_t result = 0;
+
+	/* Loop through string. */
+	char32_t c = *src;
+	for (size_t i = 0; c != U'\0'; i++, c= src[i])
+	{
+		for (size_t j = 0; j < argc; j++)
+		{
+			/* If cur is one of the delimiters add one to result. */
+			if (c == delimiters[j]) ++result;
+		}
+	}
+
 	return result;
 }
 
@@ -398,7 +453,7 @@ bool Plutonium::eqlstr(const char32_t * str1, const char32_t * str2)
 		char32_t c1 = str1[i];
 
 		if (c1 != str2[i]) return false;
-		if (c1 == '\0') return true;
+		if (c1 == U'\0') return true;
 	}
 }
 

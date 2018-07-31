@@ -145,7 +145,7 @@ void Plutonium::Label::UpdateTextMesh(void)
 	size_t len = strlen(visibleText), size = len * 6;
 	if (len < 1) return;
 
-	float lh = font->MeasureStringHeight(visibleText);
+	float lh = static_cast<float>(font->GetLineSpace()) * (cntchar(visibleText, U'\n') + 1);
 	Vector4 *vertices = malloca_s(Vector4, size);
 
 	/* Increase buffered size if needed. */

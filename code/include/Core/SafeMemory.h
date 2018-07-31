@@ -5,32 +5,46 @@
 #include <type_traits>
 #include "Core\Diagnostics\Logging.h"
 
-/* Converts the specified pointer to a void pointer. */
-#define void_ptr(ptr)					reinterpret_cast<const void*>(ptr)
-/* Gets the byte offset to the specified member in the specified type as a void pointer. */
-#define offset_ptr(o, m)				void_ptr(offsetof(o, m))
+#if defined (DEBUG)
+/* Defines the function to use when allocating to the stack. */
+#define salloc								_malloca
+/* Defines the function to use when freeing memeory from the stack. */
+#define sfree								_freea
+#else
+#pragma message ("Dynamic stack memomory doesn't currently work on release mode, defaulting to heap memory for stack allocations!")
 
-#define mallocaa_s(type, size, amount)	Plutonium::_CrtMallocAS<type>(size, amount)
-#define freeaa_s(block, size)			Plutonium::_CrtFreeAS(&block, size)
+/* Defines the function to use when allocating to the stack. */
+#define salloc								malloc
+/* Defines the function to use when freeing memeory from the stack. */
+#define sfree								free
+#endif
+
+/* Converts the specified pointer to a void pointer. */
+#define void_ptr(ptr)						reinterpret_cast<const void*>(ptr)
+/* Gets the byte offset to the specified member in the specified type as a void pointer. */
+#define offset_ptr(o, m)					void_ptr(offsetof(o, m))
+
+#define mallocaa_s(type, elements, size)	Plutonium::_CrtMallocAS<type>(elements, size)
+#define freeaa_s(block, size)				Plutonium::_CrtFreeAS(&block, size)
 
 #if defined(DEBUG)
-#define malloc_s(type, size)			Plutonium::_CrtMallocH<type>(size)
-#define malloca_s(type, size)			Plutonium::_CrtMallocS<type>(size)
-#define realloc_s(type, block, size)	Plutonium::_CrtReallocH<type>(&block, size)
-#define calloc_s(type, size)			Plutonium::_CrtCallocH<type>(size)
+#define malloc_s(type, size)				Plutonium::_CrtMallocH<type>(size)
+#define malloca_s(type, size)				Plutonium::_CrtMallocS<type>(size)
+#define realloc_s(type, block, size)		Plutonium::_CrtReallocH<type>(&block, size)
+#define calloc_s(type, size)				Plutonium::_CrtCallocH<type>(size)
 
-#define free_s(block)					Plutonium::_CrtFreeH(&block)
-#define freea_s(block)					Plutonium::_CrtFreeS(&block)
-#define delete_s(block)					Plutonium::_CrtDelete(&block)
+#define free_s(block)						Plutonium::_CrtFreeH(&block)
+#define freea_s(block)						Plutonium::_CrtFreeS(&block)
+#define delete_s(block)						Plutonium::_CrtDelete(&block)
 #else
-#define malloc_s(type, size)			reinterpret_cast<type*>(malloc((size) * sizeof(type)))
-#define malloca_s(type, size)			reinterpret_cast<type*>(_malloca((size) * sizeof(type)))
-#define realloc_s(type, block, size)	(block = reinterpret_cast<type*>(realloc(block, (size) * sizeof(type))))
-#define calloc_s(type, size)			reinterpret_cast<type*>(calloc((size), sizeof(type)))
+#define malloc_s(type, size)				reinterpret_cast<type*>(malloc((size) * sizeof(type)))
+#define malloca_s(type, size)				reinterpret_cast<type*>(salloc((size) * sizeof(type)))
+#define realloc_s(type, block, size)		(block = reinterpret_cast<type*>(realloc(block, (size) * sizeof(type))))
+#define calloc_s(type, size)				reinterpret_cast<type*>(calloc((size), sizeof(type)))
 
-#define free_s(block)					free(const_cast<void*>(void_ptr(block)))
-#define freea_s(block)					_freea(const_cast<void*>(void_ptr(block)))
-#define delete_s(block)					delete block
+#define free_s(block)						free(const_cast<void*>(void_ptr(block)))
+#define freea_s(block)						sfree(const_cast<void*>(void_ptr(block)))
+#define delete_s(block)						delete block
 #endif	
 
 namespace Plutonium
@@ -63,7 +77,7 @@ namespace Plutonium
 		__try
 		{
 			/* Try allocate memory. */
-			result = _malloca(size);
+			result = salloc(size);
 		}
 		__except (1)
 		{
@@ -137,7 +151,7 @@ namespace Plutonium
 		LOG_THROW_IF(*block == nullptr, "Attempting to free nullptr!");
 
 		/* Try release and set to nullptr. */
-		_freea(const_cast<void*>(void_ptr(*block)));
+		sfree(const_cast<void*>(void_ptr(*block)));
 		*block = nullptr;
 	}
 

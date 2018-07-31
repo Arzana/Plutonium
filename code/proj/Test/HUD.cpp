@@ -35,8 +35,6 @@ void HUD::Create(void)
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "Time: ";
-		text += tgame->dayState;
-		text += ' ';
 		text += std::to_string(ipart(fmodf(6.0f + map(0.0f, 24.0f, tgame->sunAngle, 0.0f, TAU), 24.0f)));
 
 	}));

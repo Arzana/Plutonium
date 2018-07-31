@@ -583,7 +583,7 @@ void Plutonium::AssetLoader::UpdateState(void)
 {
 	/* Defines prefix and seperator. */
 	constexpr const char *PREFIX = "Loading: ";
-	constexpr const char *SEPERATOR = "> ";
+	constexpr const char *SEPERATOR = " > ";
 	const size_t SEPERATOR_LEN = strlen(SEPERATOR);
 	const size_t PREFIX_LEN = strlen(PREFIX);
 

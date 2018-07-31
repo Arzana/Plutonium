@@ -8,6 +8,11 @@ namespace Plutonium
 	/* Gets the length of the specified UTF32 string. */
 	_Check_return_ size_t strlen(_In_ const char32_t *str);
 
+	/* Copies the specified part of the source string to the specified destination. */
+	void cpystr(_In_ const char *src, _In_ char *destination);
+	/* Copies the specified part of the source string to the specified destination. */
+	void cpystr(_In_ const char32_t *src, _In_ char32_t *destination);
+
 	/* Gets a substring from the specified source string. */
 	void substr(_In_ const char *src, _In_ size_t start, _In_ size_t length, _Out_ char *result);
 	/* Gets a substring from the specified source string. */
@@ -53,8 +58,12 @@ namespace Plutonium
 
 	/* Counts how many times a specified character apears in a string. */
 	_Check_return_ size_t cntchar(_In_ const char *src, _In_ char delimiter);
+	/* Counts how many times the specified characters apear in a string. */
+	_Check_return_ size_t cntchar(_In_ const char *src, _In_ char *delimiters, _In_ size_t argc);
 	/* Counts how many times a specified character apears in a string. */
 	_Check_return_ size_t cntchar(_In_ const char32_t *src, _In_ char32_t delimiter);
+	/* Counts how many times the specified characters apear in a string. */
+	_Check_return_ size_t cntchar(_In_ const char32_t *src, _In_ char32_t *delimiters, _In_ size_t argc);
 
 	/* Returns whether the source string contains the specified substring. */
 	_Check_return_ bool cntstr(_In_ const char *src, _In_ const char *predicate);

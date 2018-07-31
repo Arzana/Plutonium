@@ -6,8 +6,8 @@
 //#define BIG_MAP
 
 TestGame::TestGame(void)
-	: Game(_CRT_NAMEOF_RAW(TestGame)), dayState("<NULL>"),
-	sunAngle(0.0f), knight(nullptr), enableDayNight(false)
+	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(0.0f), 
+	knight(nullptr), enableDayNight(false)
 {
 	GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 	GetCursor()->Disable();

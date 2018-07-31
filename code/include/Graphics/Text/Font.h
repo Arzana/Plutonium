@@ -21,10 +21,6 @@ namespace Plutonium
 		_Check_return_ Vector2 MeasureString(_In_ const char *str) const;
 		/* Measures the dimensions of the specified string as if it was rendered using this font. */
 		_Check_return_ Vector2 MeasureString(_In_ const char32 *str) const;
-		/* Measures only the height of the specified string as if it was rendered using this font. */
-		_Check_return_ float MeasureStringHeight(_In_ const char *str) const;
-		/* Measures only the height of the specified string as if it was rendered using this font. */
-		_Check_return_ float MeasureStringHeight(_In_ const char32 *str) const;
 		/* Gets the character info if the specified character in the font. */
 		_Check_return_ const Character* GetCharOrDefault(_In_ char32 key) const;
 
