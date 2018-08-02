@@ -8,6 +8,9 @@ namespace Plutonium
 	struct WorldObject
 	{
 	public:
+		/* Whether this object should cast a shadow. */
+		bool CastsShadows;
+
 		/* Gets a box defining the bounds of this object. */
 		_Check_return_ inline Box GetBoundingBox(void) const
 		{
@@ -59,7 +62,7 @@ namespace Plutonium
 	protected:
 		/* Initializes a new instance of a world object. */
 		WorldObject(void)
-			: transform(), bb()
+			: transform(), bb(), CastsShadows(true)
 		{}
 
 		Matrix transform;

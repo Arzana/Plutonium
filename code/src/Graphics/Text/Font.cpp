@@ -216,24 +216,25 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 
 void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
 {
+	/* Allocate RGBA storage for font map, calloc is used to make sure we have no random noise between glyphs. */
 	byte *data = calloc_s(byte, map->Width * map->Height * 4);
 	Vector2 b2uv = Vector2::One() / Vector2(static_cast<float>(map->Width), static_cast<float>(map->Height));
 
 	/* Loop through character defines by the font. */
-	int32 max = map->Width * map->Height;
 	for (int32 c = 0; c < cnt; c++)
 	{
 		/* Get current character from buffer. */
 		Character *cur = chars + c;
 
-		/* Render to temporary alpha buffer. */
+		/* Ignore glyphs that define no glyph face (space, tab, etc.). */
 		int32 outw = ipart(cur->Size.X), outh = ipart(cur->Size.Y);
 		if (outw < 1 || outh < 1) continue;
 
+		/* Render to temporary alpha buffer. */
 		byte *alphaBuffer = malloc_s(byte, outw * outh);
 		stbtt_MakeCodepointBitmap(info, alphaBuffer, outw, outh, outw, scale, scale, cur->Key);
 
-		/* Populate data. */
+		/* Populate RGBA buffer with glyph alpha values. */
 		constexpr byte cv = static_cast<byte>(255);
 		for (int32 y = 0; y < outh; y++)
 		{

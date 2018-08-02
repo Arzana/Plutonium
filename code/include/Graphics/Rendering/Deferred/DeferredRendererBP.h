@@ -165,9 +165,9 @@ namespace Plutonium
 		void BeginDirLightPass(Vector3 camPos);
 		void BeginPntLightPass(const Matrix &proj, const Matrix &view, Vector3 camPos);
 
-		void RenderModel(const Camera * cam, const StaticObject *model, const MaterialBP *overrideMaterial);
-		void RenderModel(const Camera * cam, const DynamicObject *model, const MaterialBP *overrideMaterial);
-		Matrix RenderDirLightShadow(const DirectionalLight *light);
+		void RenderModel(const Camera *cam, const StaticObject *model, const MaterialBP *overrideMaterial);
+		void RenderModel(const Camera *cam, const DynamicObject *model, const MaterialBP *overrideMaterial);
+		Matrix RenderDirLightShadow(const Camera *cam, const DirectionalLight *light);
 		void RenderDirLight(const Matrix &space, const Matrix &iview, const DirectionalLight *light);
 		void RenderPntLight(const PointLight *light);
 		void FixForMonitor(void);

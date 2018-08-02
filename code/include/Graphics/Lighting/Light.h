@@ -13,6 +13,8 @@ namespace Plutonium
 		Color Diffuse;
 		/* The specular color of the light. */
 		Color Specular;
+		/* Whether the light source will be used in shadow casting. */
+		bool CreatesShadows;
 
 		Light(_In_ const Light &value) = delete;
 		Light(_In_ Light &&value) = delete;
@@ -30,7 +32,7 @@ namespace Plutonium
 
 	protected:
 		Light(Color ambient = Color::Black(), Color diffuse = Color::Black(), Color specular = Color::Black())
-			: Ambient(ambient), Diffuse(diffuse), Specular(specular)
+			: Ambient(ambient), Diffuse(diffuse), Specular(specular), CreatesShadows(true)
 		{}
 	};
 }

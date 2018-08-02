@@ -381,7 +381,7 @@ constexpr const char *WIRE_FRAG_SHDR_SRC =
 "	FragColor = vec4(Clr, 1.0f);																						\n"
 "}";
 
-constexpr const char *WN_FRAG_SHDR_SRC = 
+constexpr const char *WN_FRAG_SHDR_SRC =
 "#version 430 core																										\n"
 
 "uniform sampler2D NormalSpecular;																						\n"
@@ -515,7 +515,7 @@ void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 		for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), defMaterial);
 	}
 	gdpass.shdr->End();
-	
+
 	/* Setup HDR buffer for lighting. */
 	device->SetRenderTarget(hdrFbo);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
@@ -720,7 +720,7 @@ void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 
 		/* Render shadow map. */
 		BeginDirShadowPass();
-		Matrix ls = RenderDirLightShadow(light);
+		Matrix ls = RenderDirLightShadow(cam, light);
 		dspass.shdr->End();
 
 		/* Render lighting. */
@@ -1030,7 +1030,7 @@ void Plutonium::DeferredRendererBP::RenderModel(const Camera * cam, const Dynami
 	}
 }
 
-Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const DirectionalLight * light)
+Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, const DirectionalLight * light)
 {
 	/* Create bounding box for the normal scene. */
 	Box bb;
@@ -1044,22 +1044,68 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Dire
 	/* Set the projection matrix to the scene bounding box in light space and set matrices. */
 	Matrix proj = Matrix::CreateOrtho(obb.GetLeft(), obb.GetRight(), obb.GetBottom(), obb.GetTop(), obb.GetFront(), obb.GetBack());
 	Matrix result = proj * view;
-	dspass.matLs->Set(result);
 
-	/* Render all static models to depth map. */
-	for (size_t i = 0; i < queuedModels.size(); i++)
+	/* Only render to the depth buffer if the light is allowed to create shadows. */
+	if (light->CreatesShadows)
 	{
-		/* Set model matrix. */
-		const StaticObject *model = queuedModels.at(i);
-		dspass.matMdl->Set(model->GetWorld());
+		dspass.matLs->Set(result);
 
-		const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
-		for (size_t j = 0; j < shapes->size(); j++)
+		/* Render all static models to depth map. */
+		for (size_t i = 0; i < queuedModels.size(); i++)
 		{
-			const MaterialBP *material = shapes->at(j).Material;
+			/* Only render the model if it is allowed to cast a shadow and is visible by the light. */
+			const StaticObject *model = queuedModels.at(i);
+			Box bb = model->GetBoundingBox();
+			if (!(model->CastsShadows && cam->GetClip()->IntersectionBox(bb.Position, bb.Size))) continue;
+
+			/* Set model matrix. */
+			dspass.matMdl->Set(model->GetWorld());
+
+			/* Loop through all shapes in the mode. */
+			const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
+			for (size_t j = 0; j < shapes->size(); j++)
+			{
+				const MaterialBP *material = shapes->at(j).Material;
+				if (material->Visible)
+				{
+					/* Only render the mesh if it's inside of the light view. */
+					Mesh *mesh = shapes->at(j).Mesh;
+					bb = mesh->GetBoundingBox() * model->GetWorld();
+					if (cam->GetClip()->IntersectionBox(bb.Position, bb.Size))
+					{
+						Buffer *buffer = mesh->GetVertexBuffer();
+
+						/* Set material attributes. */
+						dspass.mapDiff->Set(material->Diffuse);
+						dspass.mapAlpha->Set(material->Opacity);
+
+						/* Set mesh attributes. */
+						buffer->Bind();
+						dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+						dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+						/* Render the shape to the shadow depth buffer. */
+						glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(buffer->GetElementCount()));
+					}
+				}
+			}
+		}
+
+		/* Render all dynamic models to depth map. */
+		for (size_t i = 0; i < queuedAnimations.size(); i++)
+		{
+			/* Only render the model if it is allowed to cast a shadow and is visible by the light. */
+			const DynamicObject *model = queuedAnimations.at(i);
+			Box bb = model->GetBoundingBox();
+			if (!(model->CastsShadows && cam->GetClip()->IntersectionBox(bb.Position, bb.Size))) continue;
+
+			/* Set model matrix. */
+			dspass.matMdl->Set(model->GetWorld());
+
+			const MaterialBP *material = model->GetModel()->GetMaterial();
 			if (material->Visible)
 			{
-				Buffer *mesh = shapes->at(j).Mesh->GetVertexBuffer();
+				Buffer *mesh = model->GetCurrentFrame()->GetVertexBuffer();
 
 				/* Set material attributes. */
 				dspass.mapDiff->Set(material->Diffuse);
@@ -1073,32 +1119,6 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Dire
 				/* Render the shape to the shadow depth buffer. */
 				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
 			}
-		}
-	}
-
-	/* Render all dynamic models to depth map. */
-	for (size_t i = 0; i < queuedAnimations.size(); i++)
-	{
-		/* Set model matrix. */
-		const DynamicObject *model = queuedAnimations.at(i);
-		dspass.matMdl->Set(model->GetWorld());
-
-		const MaterialBP *material = model->GetModel()->GetMaterial();
-		if (material->Visible)
-		{
-			Buffer *mesh = model->GetCurrentFrame()->GetVertexBuffer();
-
-			/* Set material attributes. */
-			dspass.mapDiff->Set(material->Diffuse);
-			dspass.mapAlpha->Set(material->Opacity);
-
-			/* Set mesh attributes. */
-			mesh->Bind();
-			dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-			dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
-
-			/* Render the shape to the shadow depth buffer. */
-			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
 		}
 	}
 
