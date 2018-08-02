@@ -2,8 +2,8 @@
 #include <Graphics\Models\Shapes.h>
 #include <Graphics\Materials\MaterialBP.h>
 
-#define QUICK_MAP
-//#define BIG_MAP
+//#define QUICK_MAP
+#define BIG_MAP
 
 TestGame::TestGame(void)
 	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(0.0f), 

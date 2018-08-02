@@ -215,6 +215,12 @@ namespace Plutonium
 		return w.Angle() - v.Angle();
 	}
 
+	/* Gets a value indicating the clockwise direction of the three points, result < 0 if they are clockwise, result > 0 if they are counter clockwise and 0 if they are collinear. */
+	_Check_return_ inline float ccw(_In_ Vector2 p1, _In_ Vector2 p2, _In_ Vector2 p3)
+	{
+		return (p2.X - p1.X) * (p3.Y - p1.Y) - (p2.Y - p1.Y) * (p3.X - p1.X);
+	}
+
 	/* Gets the input vector restricted to the specified range. */
 	_Check_return_ inline Vector2 clamp(_In_ Vector2 v, _In_ Vector2 a, _In_ Vector2 b)
 	{

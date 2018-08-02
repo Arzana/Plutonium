@@ -195,6 +195,7 @@
     <ClCompile Include="..\..\src\Core\Math\Box.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Matrix.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\src\Core\Math\Triangulation.cpp" />
     <ClCompile Include="..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
     <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
@@ -282,6 +283,7 @@
     <ClInclude Include="..\..\include\Core\Math\Matrix.h" />
     <ClInclude Include="..\..\include\Core\Math\Plane.h" />
     <ClInclude Include="..\..\include\Core\Math\Rectangle.h" />
+    <ClInclude Include="..\..\include\Core\Math\Triangulation.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector2.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\include\Core\Math\Vector4.h" />

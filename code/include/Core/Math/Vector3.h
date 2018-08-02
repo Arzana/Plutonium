@@ -292,6 +292,12 @@ namespace Plutonium
 		return (w - v).Length();
 	}
 
+	/* Gets the squared distance between the two specified vectors. */
+	_Check_return_ inline float sqrdist(_In_ Vector3 v, _In_ Vector3 w)
+	{
+		return (w - v).LengthSquared();
+	}
+
 	/* Calculates the dot product of the two specified vectors. */
 	_Check_return_ inline float dot(_In_ Vector3 v, _In_ Vector3 w)
 	{

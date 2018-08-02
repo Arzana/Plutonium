@@ -4,6 +4,7 @@
 #include "Core\SafeMemory.h"
 #include "Core\StringFunctions.h"
 #include "Core\EnumUtils.h"
+#include "Core\Math\Triangulation.h"
 
 /*
 Syoyo Fujita.
@@ -611,11 +612,24 @@ bool TryParseTriple(const char **line, size_t vSize, size_t vnSize, size_t vtSiz
 	return true;
 }
 
-void TriangulateQuad(ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vertices)
+void TriangulatePolygon(ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vertices)
 {
+	/* Used to store the vertices whilst they are being triangulated. */
+	struct TmpVrtx
+	{
+		ObjLoaderVertex Vertex;
+		Vector3 Vector;
+
+		TmpVrtx(void)
+		{}
+
+		TmpVrtx(const ObjLoaderResult *result, ObjLoaderVertex vertex)
+			: Vertex(vertex), Vector(result->Vertices.at(vertex.Vertex))
+		{}
+	};
+
 	/* On debug mode check for valid inputs. */
 #if defined (DEBUG)
-	LOG_THROW_IF(vertices->size() != 4, "Input is not a valid quad, %zu vertices!", vertices->size());
 	for (size_t i = 0; i < vertices->size(); i++)
 	{
 		int64 j = vertices->at(i).Vertex;
@@ -623,48 +637,20 @@ void TriangulateQuad(ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vert
 	}
 #endif
 
-	/* Get indices. */
-	ObjLoaderVertex v1 = vertices->at(0);
-	ObjLoaderVertex v2 = vertices->at(1);
-	ObjLoaderVertex v3 = vertices->at(2);
-	ObjLoaderVertex v4 = vertices->at(3);
+	/* Populate temporary buffer needed for triangulation function. */
+	size_t size = (vertices->size() - 2) * 3;
+	TmpVrtx *buffer = malloca_s(TmpVrtx, size);
+	for (size_t i = 0; i < vertices->size(); i++) buffer[i] = TmpVrtx(result, vertices->at(i));
 
-	/* Get positions associated with indices. */
-	Vector3 p1 = result->Vertices.at(v1.Vertex);
-	Vector3 p2 = result->Vertices.at(v2.Vertex);
-	Vector3 p3 = result->Vertices.at(v3.Vertex);
-	Vector3 p4 = result->Vertices.at(v4.Vertex);
+	/* Use specialized faster function for quads. */
+	if (vertices->size() == 4) Triangulation::Quad(buffer, sizeof(TmpVrtx), offsetof(TmpVrtx, Vector));
+	else size = Triangulation::Convex(buffer, sizeof(TmpVrtx), offsetof(TmpVrtx, Vector), vertices->size());
 
-	/* Clear old values. */
+	/* Copy the triangulated vertexes back to the vertices list. */
 	vertices->clear();
-	vertices->reserve(6);
-
-	/* Calculate shortest distance. */
-	float d1 = dist(p1, p3);
-	float d2 = dist(p2, p4);
-
-	/* Split along b-d axis. */
-	if (d1 > d2)
-	{
-		vertices->push_back(v1);
-		vertices->push_back(v2);
-		vertices->push_back(v4);
-
-		vertices->push_back(v2);
-		vertices->push_back(v3);
-		vertices->push_back(v4);
-	}
-	/* Split along a-c axis. */
-	else
-	{
-		vertices->push_back(v1);
-		vertices->push_back(v2);
-		vertices->push_back(v3);
-
-		vertices->push_back(v1);
-		vertices->push_back(v3);
-		vertices->push_back(v4);
-	}
+	vertices->reserve(size);
+	for (size_t i = 0; i < size; i++) vertices->push_back(buffer[i].Vertex);
+	freea_s(buffer);
 }
 #pragma endregion
 
@@ -714,17 +700,27 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult *result, ObjLoaderM
 		line += strspn(line, " \t\r");
 	}
 
-	/* Check if we can triangulate the shape. */
-	if (face.size() < 3 || face.size() > 4)
+	/* On debug check if it's an invalid face. */
+#if defined (DEBUG)
+	if (face.size() < 3)
 	{
 		LOG_WAR("Cannot convert face with %zu vertices into triangles, skipping face!", face.size());
 		return;
 	}
+#endif
 
-	/* If shape is a quad, triangulate it and make sure to add the smoothing group for the new triangle. */
-	if (face.size() == 4)
+	/* Triangulate it and make sure to add the smoothing group for the new triangle if it's a polygon. */
+	if (face.size() > 3)
 	{
-		TriangulateQuad(result, &face);
+		TriangulatePolygon(result, &face);
+
+		/* Skip the face if the triangulation failed. */
+		if (face.size() < 1)
+		{
+			LOG_WAR("Failed to traingulate face, skipping face!");
+			return;
+		}
+
 		curMesh->SmoothingGroups.push_back(smoothingGroup);
 	}
 
