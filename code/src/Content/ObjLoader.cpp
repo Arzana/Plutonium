@@ -612,7 +612,7 @@ bool TryParseTriple(const char **line, size_t vSize, size_t vnSize, size_t vtSiz
 	return true;
 }
 
-void TriangulatePolygon(ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vertices)
+void TriangulatePolygon(const ObjLoaderResult *result, std::vector<ObjLoaderVertex> *vertices)
 {
 	/* Used to store the vertices whilst they are being triangulated. */
 	struct TmpVrtx

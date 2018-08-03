@@ -131,7 +131,7 @@ void Plutonium::Mesh::SetNormal(VertexFormat & vrtx1, VertexFormat & vrtx2, Vert
 	vrtx3.Normal = n;
 }
 
-Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
+Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx, bool recalcNormals)
 {
 	/* Get desired shape. */
 	const ObjLoaderMesh &mesh = buffer->Shapes.at(idx);
@@ -162,7 +162,7 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 			VertexFormat &vrtx2 = result->vertices[i - 1];
 			VertexFormat &vrtx3 = result->vertices[i];
 
-			if (redefineNormal)
+			if (redefineNormal || recalcNormals)
 			{
 				SetNormal(vrtx1, vrtx2, vrtx3);
 				redefineNormal = false;
@@ -176,7 +176,7 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx)
 	return result;
 }
 
-Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx)
+Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx, bool recalcNormals)
 {
 	/* Get desired shape. */
 	const md2_frame_t &frame = buffer->frames.at(idx);
@@ -200,8 +200,15 @@ Mesh * Plutonium::Mesh::FromFile(const Md2LoaderResult * buffer, size_t idx)
 			result->vertices[k].Texture = buffer->texcoords.at(trgl.texture_indices[j]);
 		}
 
+		VertexFormat &vrtx1 = result->vertices[k - 3];
+		VertexFormat &vrtx2 = result->vertices[k - 2];
+		VertexFormat &vrtx3 = result->vertices[k - 1];
+
+		/* Recalculate the face normal if required. */
+		if (recalcNormals) SetNormal(vrtx1, vrtx2, vrtx3);
+
 		/* Set tangent for the last three vertices. */
-		SetTangent(result->vertices[k - 3], result->vertices[k - 2], result->vertices[k - 1]);
+		SetTangent(vrtx1, vrtx2, vrtx3);
 	}
 
 	return result;

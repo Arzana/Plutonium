@@ -2,7 +2,15 @@
 #include "Input\Keyboard.h"
 #include "Input\Cursor.h"
 #include "Core\Math\Frustum.h"
-#include "Graphics\Native\Window.h"
+#include "Graphics\GraphicsAdapter.h"
+
+#if defined(far)
+#undef far
+#endif
+
+#if defined(near)
+#undef near
+#endif
 
 namespace Plutonium
 {
@@ -24,7 +32,7 @@ namespace Plutonium
 		Vector3 Offset;
 
 		/* Initializes a new instance of a camera. */
-		Camera(_In_ WindowHandler wnd);
+		Camera(_In_ GraphicsAdapter * device);
 		/* Releases the resources allocated by teh camera. */
 		~Camera(void);
 
@@ -32,6 +40,8 @@ namespace Plutonium
 		void Update(_In_ float dt, _In_ const Matrix &obj2Follow);
 		/* Updates the camera as a free camera. */
 		void Update(_In_ float dt, _In_ KeyHandler keys, _In_ CursorHandler cursor);
+		/* Converts the specified screen coordinate to world space. */
+		_Check_return_ Vector3 ScreenToWorldRay(_In_ Vector2 v) const;
 		/* Teleports the camera to a specified position. */
 		inline void Move(_In_ Vector3 position)
 		{
@@ -90,9 +100,12 @@ namespace Plutonium
 		float near, far, fov;
 		Vector3 actualPos, desiredPos;
 		Vector3 target;
-		Matrix view, proj, orien;
+		Matrix view, proj, iproj, orien;
 		Frustum frustum;
-		WindowHandler wnd;
+		GraphicsAdapter *device;
+
+		mutable bool iviewDirty;
+		mutable Matrix iview;
 
 		void UpdatePosition(float dt);
 		void UpdateView(void);

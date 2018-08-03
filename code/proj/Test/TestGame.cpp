@@ -2,8 +2,8 @@
 #include <Graphics\Models\Shapes.h>
 #include <Graphics\Materials\MaterialBP.h>
 
-//#define QUICK_MAP
-#define BIG_MAP
+#define QUICK_MAP
+//#define BIG_MAP
 
 TestGame::TestGame(void)
 	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(0.0f), 
@@ -27,7 +27,7 @@ void TestGame::Initialize(void)
 	GetKeyboard()->KeyPress.Add(this, &TestGame::SpecialKeyPress);
 
 	/* Initialize camera. */
-	cam = new Camera(GetGraphics()->GetWindow());
+	cam = new Camera(GetGraphics());
 	cam->Move(Vector3(0.0f, 5.0f, -3.0f));
 	cam->Yaw = PI2;
 }

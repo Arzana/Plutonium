@@ -96,6 +96,12 @@ namespace Plutonium
 			return bounds;
 		}
 
+		/* Gets the bounding box of the GuiItem. */
+		_Check_return_ virtual inline Rectangle GetBoundingBox(void) const
+		{
+			return bounds;
+		}
+
 		/* Gets the default value for the background color. */
 		_Check_return_ static inline Color GetDefaultBackColor(void)
 		{
@@ -123,7 +129,7 @@ namespace Plutonium
 		/* Gets the current height of the bounds as an integer value. */
 		_Check_return_ inline int32 GetHeight(void) const
 		{
-			return static_cast<int32>(bounds.GetHeight());
+			return static_cast<int32>(GetBoundingBox().GetHeight());
 		}
 
 		/* Gets the assigned name of the GuiItem. */
@@ -135,13 +141,13 @@ namespace Plutonium
 		/* Gets the current position of the GuiItem. */
 		_Check_return_ inline Vector2 GetPosition(void) const
 		{
-			return bounds.Position;
+			return GetBoundingBox().Position;
 		}
 
 		/* Gets the current size of the GuiItem. */
 		_Check_return_ inline Vector2 GetSize(void) const
 		{
-			return bounds.Size;
+			return GetBoundingBox().Size;
 		}
 
 		/* Gets whether the GuiItem is currently visible. */
@@ -153,19 +159,19 @@ namespace Plutonium
 		/* Gets the current widht of the bounds as an integer value. */
 		_Check_return_ inline int32 GetWidth(void) const
 		{
-			return static_cast<int32>(bounds.GetWidth());
+			return static_cast<int32>(GetBoundingBox().GetWidth());
 		}
 
 		/* Gets the current horizontal position of the GuiItem. */
 		_Check_return_ inline float GetX(void) const
 		{
-			return bounds.Position.X;
+			return GetBoundingBox().Position.X;
 		}
 
 		/* Gets the current vertical position of the GuiItem. */
 		_Check_return_ inline float GetY(void) const
 		{
-			return bounds.Position.Y;
+			return GetBoundingBox().Position.Y;
 		}
 
 		/* Gets whether the GuiItem can be focused. */

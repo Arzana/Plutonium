@@ -159,6 +159,7 @@ void Plutonium::Slider::OnRandomClick(const GuiItem *, CursorHandler cursor)
 void Plutonium::Slider::UpdateHolderBarPos(void)
 {
 	Vector2 offset;
+	Vector2 size = GetBounds().Size;
 
 	/*
 	We want the holder bar to never leave the defined bounds of the background (progress bar), 
@@ -169,23 +170,23 @@ void Plutonium::Slider::UpdateHolderBarPos(void)
 	switch (GetFillStyle())
 	{
 	case (FillStyle::LeftToRight):
-		offset = Vector2(lerp(0.0f, GetSize().X - holderBarBounds.GetWidth(), GetValue()), -holderBarBounds.GetHeight() * 0.5f + GetSize().Y * 0.5f);
+		offset = Vector2(lerp(0.0f, size.X - holderBarBounds.GetWidth(), GetValue()), -holderBarBounds.GetHeight() * 0.5f + size.Y * 0.5f);
 		break;
 	case (FillStyle::RightToLeft):
-		offset = Vector2(lerp(GetSize().X - holderBarBounds.GetWidth(), 0.0f, GetValue()), -holderBarBounds.GetHeight() * 0.5f + GetSize().Y * 0.5f);
+		offset = Vector2(lerp(size.X - holderBarBounds.GetWidth(), 0.0f, GetValue()), -holderBarBounds.GetHeight() * 0.5f + size.Y * 0.5f);
 		break;
 	case (FillStyle::TopToBottom):
-		offset = Vector2(-holderBarBounds.GetWidth() * 0.5f + GetSize().X * 0.5f, lerp(0.0f, GetSize().Y - holderBarBounds.GetHeight(), GetValue()));
+		offset = Vector2(-holderBarBounds.GetWidth() * 0.5f + size.X * 0.5f, lerp(0.0f, size.Y - holderBarBounds.GetHeight(), GetValue()));
 		break;
 	case (FillStyle::BottomToTop):
-		offset = Vector2(-holderBarBounds.GetWidth() * 0.5f + GetSize().X * 0.5f, lerp(GetSize().Y - holderBarBounds.GetHeight(), 0.0f, GetValue()));
+		offset = Vector2(-holderBarBounds.GetWidth() * 0.5f + size.X * 0.5f, lerp(size.Y - holderBarBounds.GetHeight(), 0.0f, GetValue()));
 		break;
 	default:
 		LOG_WAR("Cannot set holder bar position for set fill style!");
 		break;
 	}
 
-	holderBarBounds.Position = GetPosition() + offset;
+	holderBarBounds.Position = GetBounds().Position + offset;
 }
 
 void Plutonium::Slider::UpdateHolderBarMesh(void)

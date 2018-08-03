@@ -119,6 +119,7 @@ void Plutonium::GuiItem::SetAnchors(Anchors value, float xOffset, float yOffset)
 {
 	if (value == anchor) return;
 	LOG_THROW_IF(!_CrtIsAnchorValid(value), "Invalid anchor value passed!");
+
 	offsetFromAnchorPoint = Vector2(xOffset, yOffset);
 	if ((anchor = value) != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
 }
@@ -288,7 +289,9 @@ void Plutonium::GuiItem::WindowResizedHandler(WindowHandler, EventArgs)
 
 void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder)
 {
+	/* Make sure negative boundsing boxes are handeled correctly by adding half of the size change to the adder. */
 	Vector2 newPos = base;
+	adder += (GetBoundingBox().Size - bounds.Size) * 0.5f;
 
 	/* Checks whether the anchor is valid. */
 	if (_CrtIsAnchorWorkable(anchor))

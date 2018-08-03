@@ -256,6 +256,8 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 
 	/* Render debug string. */
 	renderer->RenderTextForeground(position, color, font, stringVbo);
+#else
+	LOG_WAR_ONCE("Drawing string directly is disabled on debug mode!");
 #endif
 }
 

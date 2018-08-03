@@ -54,6 +54,12 @@ namespace Plutonium
 			return Color::Abbey();
 		}
 
+		/* Gets the boundsing box of the GuiItem. */
+		_Check_return_ virtual inline Rectangle GetBoundingBox(void) const override
+		{
+			return Rectangle::Merge(ProgressBar::GetBoundingBox(), holderBarBounds);
+		}
+
 		/* Gets whether the holder bar should be drawn. */
 		_Check_return_ inline bool IsHolderBarEnabled(void) const
 		{

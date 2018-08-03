@@ -55,7 +55,7 @@ DynamicModel * Plutonium::DynamicModel::FromFile(const char * path, AssetLoader 
 	std::vector<Mesh*> meshes;
 	for (size_t i = 0; i < raw->frames.size(); i++)
 	{
-		Mesh *mesh = Mesh::FromFile(raw, i);
+		Mesh *mesh = Mesh::FromFile(raw, i, false);
 		mesh->Finalize(loader->GetWindow()); // TODO: Remove!
 		meshes.push_back(mesh);
 		if (progression) progression->store(RAW_MOD + ((static_cast<float>(i) / raw->frames.size()) * MESH_MOD));

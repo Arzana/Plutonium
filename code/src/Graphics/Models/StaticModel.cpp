@@ -6,7 +6,12 @@
 #include "Content\AssetLoader.h"
 #include "Graphics\Materials\MaterialBP.h"
 
+#if defined (DEBUG)
+#include "Core\Stopwatch.h"
+#endif
+
 constexpr bool PRE_SORT_MATERIALS = true;
+constexpr bool RECALC_NORMALS = false;
 
 using namespace Plutonium;
 
@@ -45,12 +50,12 @@ void Plutonium::StaticModel::Finalize(void)
 	}
 }
 
-#include "Core\Stopwatch.h"
-
 StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * loader, std::atomic<float> * progression)
 {
 	constexpr float MOD = 0.7f;
+#if defined (DEBUG)
 	Stopwatch sw = Stopwatch::StartNew();
+#endif
 
 	/* Load raw data. */
 	FileReader reader(path, true);
@@ -76,7 +81,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 			const ObjLoaderMaterial &material = shape.Material != -1 ? raw->Materials.at(shape.Material) : defMaterial;
 
 			/* Create final mesh. */
-			Mesh *mesh = Mesh::FromFile(raw, raw->Shapes.size() - 1);
+			Mesh *mesh = Mesh::FromFile(raw, raw->Shapes.size() - 1, RECALC_NORMALS);
 
 			/* Check if we can merge the mesh into another one to have on draw calls. */
 			int64 j = result->ContainsMaterial(material.Name);
@@ -108,7 +113,7 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 	result->Finalize();
 
 	/* Finalize loading. */
-	LOG_MSG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);
+	LOG("Finished loading model '%s', %zu/%zu distinct materials, took %f seconds.", reader.GetFileNameWithoutExtension(), result->shapes.size(), raw->Materials.size(), static_cast<float>(sw.Milliseconds()) * 0.001f);
 	delete_s(raw);
 	return result;
 }
