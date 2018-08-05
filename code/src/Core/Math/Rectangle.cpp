@@ -15,6 +15,13 @@ Rectangle Plutonium::Rectangle::Merge(const Rectangle & first, const Rectangle &
 	return Rectangle(l, t, r - l, b - t);
 }
 
+Vector2 Plutonium::Rectangle::Separate(const Rectangle & first, const Rectangle & second)
+{
+	Rectangle merge = Merge(first, second);
+	Rectangle overlap = first.GetOverlap(second);
+	return merge.Size - overlap.Size;
+}
+
 void Plutonium::Rectangle::Inflate(float horizontal, float vertical)
 {
 	horizontal *= 0.5f;

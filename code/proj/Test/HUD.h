@@ -23,6 +23,7 @@ protected:
 	Button *btnDayNight, *btnVsync;
 	Slider *sldExposure;
 	TextBox *txtKnightAnim;
+	GUIWindow *dbgWnd;
 
 	virtual void Initialize(void) override;
 	virtual void Create(void) override;

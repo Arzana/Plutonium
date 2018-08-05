@@ -11,7 +11,7 @@ Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	INIT_BUS(TextChanged), INIT_BUS(TextColorChanged), INIT_BUS(TextOffsetChanged), bindFunc()
 {
 	/* Initilaize text render position. */
-	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
+	OnMoved(this, ValueChangedEventArgs<Vector2>(GetAbsolutePosition(), GetAbsolutePosition()));
 	Moved.Add(this, &Label::OnMoved);
 	BackgroundImageChanged.Add([&](const GuiItem*, ValueChangedEventArgs<TextureHandler> args) { HandleAutoSize(); });
 
@@ -98,7 +98,8 @@ void Plutonium::Label::SetTextOffset(Vector2 offset)
 
 	ValueChangedEventArgs<Vector2> args(this->offset, offset);
 	this->offset = offset;
-	textPos = GetPosition() + offset;
+	const Vector2 baseOffset = -Vector2(0.0f, GetRoundingFactor() * 0.5f);
+	textPos = GetBounds().Position + baseOffset + offset;
 	HandleAutoSize();
 	TextOffsetChanged.Post(this, args);
 }
@@ -136,7 +137,7 @@ void Plutonium::Label::HandleAutoSize(void)
 void Plutonium::Label::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2> args)
 {
 	const Vector2 baseOffset = -Vector2(0.0f, GetRoundingFactor() * 0.5f);
-	textPos = args.NewValue + baseOffset + offset;
+	textPos = GetBounds().Position + baseOffset + offset;
 }
 
 void Plutonium::Label::UpdateTextMesh(void)

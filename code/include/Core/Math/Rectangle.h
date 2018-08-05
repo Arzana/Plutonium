@@ -93,6 +93,8 @@ namespace Plutonium
 
 		/* Creates a rectangle that contains the two input rectangles. */
 		_Check_return_ static Rectangle Merge(_In_ const Rectangle &first, _In_ const Rectangle &second);
+		/* Gets the non overlapping space of the two input rectangles. */
+		_Check_return_ static Vector2 Separate(_In_ const Rectangle &first, _In_ const Rectangle &second);
 		/* Expands the rectangle from all edges by a specified amount. */
 		void Inflate(_In_ float horizontal, _In_ float vertical);
 		/* Checks whether a point is within the rectangle. */

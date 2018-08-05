@@ -14,6 +14,7 @@ Plutonium::GuiItemRenderer::GuiItemRenderer(GraphicsAdapter * device)
 
 	/* Initialize shaders. */
 	InitBasicShader();
+	InitSplitShader();
 	InitTextShader();
 	InitBarShader();
 }
@@ -38,8 +39,25 @@ void Plutonium::GuiItemRenderer::RenderBackground(Rectangle bounds, float roundi
 		background ? background : defBackTex
 	};
 
-	if(lateCall) basicLateDrawQueue.push(args);
+	if (lateCall) basicLateDrawQueue.push(args);
 	else basicEarlyDrawQueue.push(args);
+}
+
+void Plutonium::GuiItemRenderer::RenderBackground(Rectangle bounds, float rounding, Color backColor, Color headerColor, TextureHandler background, const Buffer * mesh, float headerHeight)
+{
+	SplitGuiItemArgs args =
+	{
+		mesh,
+		device->ToOpenGL(bounds.Position),
+		bounds.Size,
+		rounding,
+		headerHeight,
+		backColor,
+		headerColor,
+		background ? background : defBackTex
+	};
+
+	splitDrawQueue.push(args);
 }
 
 void Plutonium::GuiItemRenderer::RenderTextForeground(Vector2 position, Color textColor, const Font * font, const Buffer * mesh)
@@ -61,7 +79,7 @@ void Plutonium::GuiItemRenderer::RenderBarForeground(Vector2 position, Rectangle
 	/* Make sure we convert the position to OpenGL coordinates. */
 	ProgressBarBarArgs args =
 	{
-		mesh, 
+		mesh,
 		device->ToOpenGL(position),
 		device->ToOpenGL(parentBounds.Position),
 		parentBounds.Size,
@@ -79,6 +97,7 @@ void Plutonium::GuiItemRenderer::End(bool noBlending)
 	if (!noBlending) device->SetBlend(BlendType::SrcAlpha, BlendType::ISrcAlpha);
 
 	/* Renders all queued GuiItems. */
+	RenderSplit();
 	RenderBasics(basicEarlyDrawQueue);
 	RenderText();
 	RenderBars();
@@ -116,6 +135,39 @@ void Plutonium::GuiItemRenderer::RenderBasics(std::queue<BasicGuiItemArgs> &queu
 	basic.shdr->End();
 }
 
+void Plutonium::GuiItemRenderer::RenderSplit(void)
+{
+	/* Set shader globals. */
+	split.shdr->Begin();
+	split.matProj->Set(projection);
+
+	/* Render all queued items. */
+	while (splitDrawQueue.size() > 0)
+	{
+		SplitGuiItemArgs cur = splitDrawQueue.front();
+		splitDrawQueue.pop();
+
+		/* Create or bus uniform to shader. */
+		split.matMdl->Set(Matrix::CreateTranslation(cur.Position.X, cur.Position.Y, 0.0f));
+		split.background->Set(cur.Background);
+		split.clrBack->Set(cur.BackgroundColor);
+		split.clrHdr->Set(cur.HeaderColor);
+		split.pos->Set(cur.Position);
+		split.size->Set(cur.Size);
+		split.rounding->Set(cur.Rounding);
+		split.hdrHeight->Set(cur.HeaderHeight);
+
+		/* Set position/uv attribute. */
+		cur.Mesh->Bind();
+		split.posUv->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
+
+		/* Render GuiItem. */
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur.Mesh->GetElementCount()));
+	}
+
+	split.shdr->End();
+}
+
 void Plutonium::GuiItemRenderer::RenderText(void)
 {
 	/* Set shader globals. */
@@ -132,7 +184,7 @@ void Plutonium::GuiItemRenderer::RenderText(void)
 		text.matMdl->Set(Matrix::CreateTranslation(cur.Position.X, cur.Position.Y, 0.0f));
 		text.map->Set(cur.Font->map);
 		text.clr->Set(cur.TextColor);
-		
+
 		/* Set position/uv attribute. */
 		cur.Mesh->Bind();
 		text.posUv->Initialize(false, sizeof(Vector4), offset_ptr(Vector4, X));
@@ -184,20 +236,20 @@ void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, 
 
 /* The vertex shader doesn't change for any shader so we save it globally. */
 constexpr const char *VRTX_SHDR_SRC =
-	"#version 430 core																	\n"
+"#version 430 core																	\n"
 
-	"uniform mat4 projection;															\n"
-	"uniform mat4 model;																\n"
+"uniform mat4 projection;															\n"
+"uniform mat4 model;																\n"
 
-	"in vec4 posUv;																		\n"
+"in vec4 posUv;																		\n"
 
-	"out vec2 uv;																		\n"
+"out vec2 uv;																		\n"
 
-	"void main()																		\n"
-	"{																					\n"
-	"	uv = posUv.zw;																	\n"
-	"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);					\n"
-	"}";
+"void main()																		\n"
+"{																					\n"
+"	uv = posUv.zw;																	\n"
+"	gl_Position = projection * model * vec4(posUv.xy, 0.0f, 1.0f);					\n"
+"}";
 
 void Plutonium::GuiItemRenderer::InitBasicShader(void)
 {
@@ -242,18 +294,69 @@ void Plutonium::GuiItemRenderer::InitBasicShader(void)
 	basic.posUv = basic.shdr->GetAttribute("posUv");
 }
 
+void Plutonium::GuiItemRenderer::InitSplitShader(void)
+{
+	constexpr const char *FRAG_SHDR_SRC =
+		"#version 430 core																\n"
+
+		"uniform sampler2D background;													\n"
+		"uniform vec4 backgroundFilter;													\n"
+		"uniform vec4 headerFilter;														\n"
+		"uniform float border;															\n"
+		"uniform float headerHeight;													\n"
+		"uniform vec2 size;																\n"
+		"uniform vec2 pos;																\n"
+
+		"in vec2 uv;																	\n"
+
+		"out vec4 fragColor;															\n"
+
+		"float RoundRect(vec2 pos)														\n"
+		"{																				\n"
+		"	vec2 radius = size / 2.0f - border;											\n"
+		"	return length(max(abs(pos) - radius, 0.0f)) - border;						\n"
+		"}																				\n"
+
+		"void main()																	\n"
+		"{																				\n"
+		"	vec2 center = pos + vec2(size.x, -size.y) / 2.0f;							\n"
+		"	if (RoundRect(gl_FragCoord.xy - center) <= 0.0f)							\n"
+		"	{																			\n"
+		"		vec4 texel = texture(background, uv);									\n"
+		"		if (gl_FragCoord.y < pos.y - headerHeight)								\n"
+		"		{																		\n"
+		"			fragColor = texel * backgroundFilter;								\n"
+		"		}																		\n"
+		"		else fragColor = texel * headerFilter;									\n"
+		"	}																			\n"
+		"	else fragColor = vec4(0.0f);												\n"
+		"}";
+
+	split.shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
+	split.matProj = split.shdr->GetUniform("projection");
+	split.matMdl = split.shdr->GetUniform("model");
+	split.background = split.shdr->GetUniform("background");
+	split.clrBack = split.shdr->GetUniform("backgroundFilter");
+	split.clrHdr = split.shdr->GetUniform("headerFilter");
+	split.rounding = split.shdr->GetUniform("border");
+	split.hdrHeight = split.shdr->GetUniform("headerHeight");
+	split.pos = split.shdr->GetUniform("pos");
+	split.size = split.shdr->GetUniform("size");
+	split.posUv = split.shdr->GetAttribute("posUv");
+}
+
 void Plutonium::GuiItemRenderer::InitTextShader(void)
 {
 	constexpr const char *FRAG_SHDR_SRC =
 		"#version 430 core																\n"
-		
+
 		"uniform sampler2D map;															\n"
 		"uniform vec4 color;															\n"
-		
+
 		"in vec2 uv;																	\n"
-		
+
 		"out vec4 fragColor;															\n"
-		
+
 		"void main()																	\n"
 		"{																				\n"
 		"	fragColor = texture(map, uv) * color;										\n"
@@ -271,15 +374,15 @@ void Plutonium::GuiItemRenderer::InitBarShader(void)
 {
 	constexpr const char *FRAG_SHDR_SRC =
 		"#version 430 core																\n"
-		
+
 		"uniform sampler2D bar;															\n"
 		"uniform vec4 color;															\n"
 		"uniform float border;															\n"
 		"uniform vec2 size;																\n"
 		"uniform vec2 pos;																\n"
-		
+
 		"in vec2 uv;																	\n"
-		
+
 		"out vec4 fragColor;															\n"
 
 		"float RoundRect(vec2 pos)														\n"

@@ -23,6 +23,8 @@ namespace Plutonium
 
 		/* Adds a basic item to the render queue. */
 		void RenderBackground(_In_ Rectangle bounds, _In_ float rounding, _In_ Color backColor, _In_ TextureHandler background, _In_ const Buffer *mesh, _In_ bool lateCall);
+		/* Adds a split basic item to the render queue. */
+		void RenderBackground(_In_ Rectangle bounds, _In_ float rounding, _In_ Color backColor, _In_ Color headerColor, _In_ TextureHandler background, _In_ const Buffer *mesh, _In_ float headerHeight);
 		/* Adds the Label text foregroung to the render queue. */
 		void RenderTextForeground(_In_ Vector2 position, _In_ Color textColor, _In_ const Font *font, _In_ const Buffer *mesh);
 		/* Adds the ProgressBar bar section to the render queue. */
@@ -41,6 +43,18 @@ namespace Plutonium
 			Vector2 Size;
 			float Rounding;
 			Color BackgroundColor;
+			TextureHandler Background;
+		};
+
+		struct SplitGuiItemArgs
+		{
+			const Buffer *Mesh;
+			Vector2 Position;
+			Vector2 Size;
+			float Rounding;
+			float HeaderHeight;
+			Color BackgroundColor;
+			Color HeaderColor;
 			TextureHandler Background;
 		};
 
@@ -76,6 +90,15 @@ namespace Plutonium
 		{
 			Shader *shdr;
 			Uniform *matMdl, *matProj;
+			Uniform *clrBack, *clrHdr, *background;
+			Uniform *rounding, *pos, *size, *hdrHeight;
+			Attribute *posUv;
+		} split;
+
+		struct
+		{
+			Shader *shdr;
+			Uniform *matMdl, *matProj;
 			Uniform *map, *clr;
 			Attribute *posUv;
 		} text;
@@ -92,14 +115,17 @@ namespace Plutonium
 		Texture *defBackTex;
 		std::queue<BasicGuiItemArgs> basicEarlyDrawQueue;
 		std::queue<BasicGuiItemArgs> basicLateDrawQueue;
+		std::queue<SplitGuiItemArgs> splitDrawQueue;
 		std::queue<LabelTextArgs> textDrawQueue;
 		std::queue<ProgressBarBarArgs> barDrawQueue;
 
 		void RenderBasics(std::queue<BasicGuiItemArgs> &queue);
+		void RenderSplit(void);
 		void RenderText(void);
 		void RenderBars(void);
 		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
 		void InitBasicShader(void);
+		void InitSplitShader(void);
 		void InitTextShader(void);
 		void InitBarShader(void);
 	};

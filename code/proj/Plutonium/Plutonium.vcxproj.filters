@@ -398,6 +398,12 @@
     <ClCompile Include="..\..\src\Core\Math\Triangulation.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\Container.cpp">
+      <Filter>Source Files\Graphics\GUI\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\GUIWindow.cpp">
+      <Filter>Source Files\Graphics\GUI\Containers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -789,6 +795,12 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Core\Math\Triangulation.h">
       <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\Container.h">
+      <Filter>Header Files\Graphics\GUI\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\GUIWindow.h">
+      <Filter>Header Files\Graphics\GUI\Containers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

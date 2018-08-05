@@ -38,11 +38,11 @@ void Plutonium::Slider::Update(float dt)
 	/* Only check for events if the slider is enabled. */
 	if (IsEnabled())
 	{
-		CursorHandler cursor = game->GetCursor();
-
 		/* If the holder bar is enabled; check for drag events. */
 		if (holderBarEnabled)
 		{
+			CursorHandler cursor = game->GetCursor();
+
 			/* Check if a drag event has started. */
 			if (cursor->LeftButton)
 			{

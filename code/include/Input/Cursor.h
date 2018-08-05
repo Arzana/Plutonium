@@ -42,6 +42,8 @@ namespace Plutonium
 
 		/* Gets the current position of the cursor. */
 		_Check_return_ Vector2 GetPosition(void) const;
+		/* Gets the delta movement of the cursor. */
+		_Check_return_ Vector2 GetDelta(void) const;
 		/* Gets whether the cursor is visible. */
 		_Check_return_ bool IsVisible(void) const;
 		/* Sets the cursor position, relative to the screen! */

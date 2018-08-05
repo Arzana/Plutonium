@@ -31,7 +31,15 @@ void HUD::Create(void)
 	float y = 0.0f;
 	const float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace()) + OFFSET;
 
+	dbgWnd = AddWindow();
+	dbgWnd->SetAnchors(Anchors::TopLeft);
+	dbgWnd->SetBackColor(Color::White() * 0.5f);
+	dbgWnd->SetHeaderColor(Color::Black() * 0.5f);
+	dbgWnd->SetHeaderTextColor(Color::White());
+	dbgWnd->SetTitle(U"Debug Window");
+
 	lblTime = CreateDefaultLabel(y);
+	dbgWnd->AddItem(lblTime);
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "Time: ";
@@ -41,6 +49,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblFps = CreateDefaultLabel(y);
+	dbgWnd->AddItem(lblFps);
 	lblFps->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "Fps (avrg): ";
@@ -51,6 +60,7 @@ void HUD::Create(void)
 	
 
 	lblCpuRam = CreateDefaultLabel(y);
+	dbgWnd->AddItem(lblCpuRam);
 	lblCpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "RAM: ";
@@ -61,6 +71,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblGpuRam = CreateDefaultLabel(y);
+	dbgWnd->AddItem(lblGpuRam);
 	lblGpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "GPU: ";
@@ -71,6 +82,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblWorldDrawTime = CreateDefaultLabel(y);
+	dbgWnd->AddItem(lblWorldDrawTime);
 	lblWorldDrawTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		const float ms = static_cast<float>(game->GetGlobalRenderTime());
@@ -149,7 +161,7 @@ Label * HUD::CreateDefaultLabel(float y)
 	Label *result = AddLabel();
 
 	result->SetAutoSize(true);
-	result->SetBackColor(Color::Black() * 0.5f);
+	result->SetBackColor(Color::Transparent());
 	result->SetTextColor(Color::White());
 	result->SetPosition(Vector2(0.0f, y));
 

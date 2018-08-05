@@ -9,7 +9,7 @@ using namespace Plutonium;
 constexpr size_t MAX_STR_LEN = 64;
 
 Plutonium::Menu::Menu(Game *game)
-	: GameComponent(game), defaultFontIdx(-1),
+	: GameComponent(game), Container(), defaultFontIdx(-1),
 	loadCnt(0), loadTarget(0), loadLock(), visible(true), callCreate(false)
 {
 	renderer = new GuiItemRenderer(game->GetGraphics());
@@ -26,18 +26,6 @@ Plutonium::Menu::~Menu(void)
 #if defined (DEBUG)
 	delete_s(stringVbo);
 #endif
-}
-
-GuiItem * Plutonium::Menu::GetControl(const char * name) const
-{
-	for (size_t i = 0; i < controlls.size(); i++)
-	{
-		GuiItem *cur = controlls.at(i);
-		if (eqlstr(cur->GetName(), name)) return cur;
-	}
-
-	LOG_WAR("Unable to find control '%s'!", name);
-	return nullptr;
 }
 
 void Plutonium::Menu::Hide(void)
@@ -64,12 +52,7 @@ int32 Plutonium::Menu::GetScreenHeight(void) const
 
 bool Plutonium::Menu::HasFocus(void) const
 {
-	for (size_t i = 0; i < controlls.size(); i++)
-	{
-		if (controlls.at(i)->IsFocused()) return true;
-	}
-
-	return false;
+	return Container::HasFocus();
 }
 
 const Font * Plutonium::Menu::GetDefaultFont(void) const
@@ -107,7 +90,7 @@ GuiItem * Plutonium::Menu::AddGuiItem(void)
 	LOG_INIT(GuiItem);
 
 	GuiItem *result = new GuiItem(game);
-	controlls.push_back(result);
+	AddItem(result);
 	return result;
 }
 
@@ -117,7 +100,7 @@ Label * Plutonium::Menu::AddLabel(const Font * font)
 	CheckFont(font);
 
 	Label *result = new Label(game, font ? font : loadedFonts.at(defaultFontIdx));
-	controlls.push_back(result);
+	AddItem(result);
 	return result;
 }
 
@@ -127,7 +110,7 @@ Button * Plutonium::Menu::AddButton(const Font * font)
 	CheckFont(font);
 
 	Button *result = new Button(game, font ? font : loadedFonts.at(defaultFontIdx));
-	controlls.push_back(result);
+	AddItem(result);
 	return result;
 }
 
@@ -136,7 +119,7 @@ ProgressBar * Plutonium::Menu::AddProgressBar(void)
 	LOG_INIT(ProgressBar);
 
 	ProgressBar *result = new ProgressBar(game);
-	controlls.push_back(result);
+	AddItem(result);
 	return result;
 }
 
@@ -145,7 +128,7 @@ Slider * Plutonium::Menu::AddSlider(void)
 	LOG_INIT(Slider);
 
 	Slider *result = new Slider(game);
-	controlls.push_back(result);
+	AddItem(result);
 	return result;
 }
 
@@ -156,7 +139,18 @@ TextBox * Plutonium::Menu::AddTextBox(const Font * font)
 
 	TextBox *result = new TextBox(game, font ? font : loadedFonts.at(defaultFontIdx));
 	result->GainedFocus.Add(this, &Menu::OnTextBoxGainFocus);
-	controlls.push_back(result);
+	AddItem(result);
+	return result;
+}
+
+GUIWindow * Plutonium::Menu::AddWindow(const Font * font)
+{
+	LOG_INIT(GUIWindow);
+	CheckFont(font);
+
+	GUIWindow *result = new GUIWindow(game, font ? font : loadedFonts.at(defaultFontIdx));
+	result->Closed.Add(this, &Menu::OnWindowClosed);
+	AddItem(result);
 	return result;
 }
 
@@ -270,18 +264,13 @@ void Plutonium::Menu::Initialize(void)
 void Plutonium::Menu::Update(float dt)
 {
 	GameComponent::Update(dt);
+	Container::Update(dt);
 
 	/* Call create once the loading is done. */
 	if (callCreate)
 	{
 		callCreate = false;
 		Create();
-	}
-
-	/* Update all GuiItems. */
-	for (size_t i = 0; i < controlls.size(); i++)
-	{
-		controlls.at(i)->Update(dt);
 	}
 }
 
@@ -290,13 +279,7 @@ void Plutonium::Menu::Render(float dt)
 	if (visible)
 	{
 		GameComponent::Render(dt);
-
-		/* Render all GuiItems if the loading is complete. */
-		for (size_t i = 0; i < controlls.size(); i++)
-		{
-			controlls.at(i)->Draw(renderer);
-		}
-
+		Container::Render(renderer);
 		renderer->End();
 	}
 }
@@ -304,9 +287,6 @@ void Plutonium::Menu::Render(float dt)
 void Plutonium::Menu::Finalize(void)
 {
 	GameComponent::Finalize();
-
-	for (size_t i = 0; i < controlls.size(); i++) delete_s(controlls.at(i));
-	controlls.clear();
 
 	for (size_t i = 0; i < loadedFonts.size(); i++)
 	{
@@ -335,9 +315,10 @@ void Plutonium::Menu::CheckFont(const Font * font) const
 
 void Plutonium::Menu::OnTextBoxGainFocus(const GuiItem * txt, EventArgs)
 {
-	for (size_t i = 0; i < controlls.size(); i++)
-	{
-		GuiItem *cur = controlls.at(i);
-		if (cur != txt) cur->ApplyFocus(false);
-	}
+	LoseFocusExceptOne(txt);
+}
+
+void Plutonium::Menu::OnWindowClosed(const GUIWindow * wnd, EventArgs)
+{
+	MarkForDelete(wnd);
 }

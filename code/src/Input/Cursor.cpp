@@ -111,6 +111,11 @@ Vector2 Plutonium::Cursor::GetPosition(void) const
 	return Vector2(static_cast<float>(X), static_cast<float>(Y));
 }
 
+Vector2 Plutonium::Cursor::GetDelta(void) const
+{
+	return Vector2(static_cast<float>(DeltaX), static_cast<float>(DeltaY));
+}
+
 bool Plutonium::Cursor::IsVisible(void) const
 {
 	return glfwGetInputMode(wnd->hndlr, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;

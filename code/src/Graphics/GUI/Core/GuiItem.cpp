@@ -7,9 +7,9 @@ Plutonium::GuiItem::GuiItem(Game * parent)
 
 Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	: game(parent), background(nullptr), focusedBackground(nullptr), backColor(GetDefaultBackColor()),
-	over(false), ldown(false), rdown(false), visible(false), enabled(false),
-	focusable(false), focused(false), anchor(Anchors::None),
-	roundingFactor(GetDefaultRoundingFactor()), bounds(bounds), name(heapstr("<Unnamed GuiItem>")),
+	over(false), ldown(false), rdown(false), visible(false), enabled(false), container(nullptr),
+	focusable(false), focused(false), anchor(Anchors::None), parent(nullptr),
+	roundingFactor(GetDefaultRoundingFactor()), name(heapstr("<Unnamed GuiItem>")),
 	suppressRefresh(false), suppressUpdate(false), suppressRender(false),
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
 	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter), INIT_BUS(FocusableChanged),
@@ -18,6 +18,8 @@ Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	INIT_BUS(LostFocus), INIT_BUS(FocusedImageChanged)
 {
 	/* Check for invalid bounds and show the GuiItem. */
+	position = bounds.Position;
+	this->bounds = Rectangle(position + GetBackgroundOffset(), bounds.Size);
 	CheckBounds(bounds.Size);
 
 	/* Initialize mesh. */
@@ -184,10 +186,10 @@ void Plutonium::GuiItem::SetName(const char * name)
 
 void Plutonium::GuiItem::SetPosition(Vector2 position)
 {
-	if (position == bounds.Position) return;
+	if (this->position == position) return;
 
-	ValueChangedEventArgs<Vector2> args(bounds.Position, position);
-	bounds.Position = position;
+	ValueChangedEventArgs<Vector2> args(this->position, position);
+	UpdatePosition(position);
 	Moved.Post(this, args);
 }
 
@@ -241,6 +243,22 @@ void Plutonium::GuiItem::SetRoundingFactor(float value)
 	roundingFactor = value;
 }
 
+void Plutonium::GuiItem::SetParent(const GuiItem * item)
+{
+	/* Make sure to add the handler to the parent moved event to make sure the absole position is updated. */
+	if (parent) parent->Moved.Remove(this, &GuiItem::ParentMovedHandler);
+	parent = item;
+	parent->Moved.Add(this, &GuiItem::ParentMovedHandler);
+
+	/* Update the anchors if needed, otherwise update the position. */
+	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
+	else
+	{
+		UpdatePosition(position);
+		Moved.Post(this, ValueChangedEventArgs<Vector2>(position, position));
+	}
+}
+
 void Plutonium::GuiItem::RenderGuiItem(GuiItemRenderer * renderer)
 {
 	renderer->RenderBackground(bounds, roundingFactor, backColor, focused ? focusedBackground : background, mesh, false);
@@ -274,6 +292,18 @@ void Plutonium::GuiItem::UpdateMesh(void)
 	mesh->SetData(data);
 }
 
+void Plutonium::GuiItem::UpdatePosition(Vector2 position)
+{
+	Vector2 offset = GetBackgroundOffset();
+
+	this->position = position;
+	if (offset.X < 0.0f) this->position.X -= offset.X;
+	if (offset.Y < 0.0f) this->position.Y -= offset.Y;
+
+	bounds.Position = this->position + GetBackgroundOffset();
+	if (parent) bounds.Position += parent->GetBoundingBox().Position;
+}
+
 void Plutonium::GuiItem::ApplyFocus(bool focused)
 {
 	if (!focusable || focused == this->focused) return;
@@ -287,31 +317,36 @@ void Plutonium::GuiItem::WindowResizedHandler(WindowHandler, EventArgs)
 	if (anchor != Anchors::None) MoveRelative(anchor);
 }
 
+void Plutonium::GuiItem::ParentMovedHandler(const GuiItem *sender, ValueChangedEventArgs<Vector2>)
+{
+	bounds.Position = sender->GetBoundingBox().Position + position + GetBackgroundOffset();
+	Moved.Post(this, ValueChangedEventArgs<Vector2>(position, position));
+}
+
 void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder)
 {
-	/* Make sure negative boundsing boxes are handeled correctly by adding half of the size change to the adder. */
 	Vector2 newPos = base;
-	adder += (GetBoundingBox().Size - bounds.Size) * 0.5f;
 
 	/* Checks whether the anchor is valid. */
 	if (_CrtIsAnchorWorkable(anchor))
 	{
-		const Rectangle vp = game->GetGraphics()->GetWindow()->GetClientBounds();
+		/* Use the parent's bounding box if a parent is set, otherwise; use the screen viewport. */
+		const Rectangle vp = parent ? parent->GetBoundingBox() : game->GetGraphics()->GetWindow()->GetClientBounds();
 
 		/* Check for horizontal anchors. */
 		if (_CrtEnumCheckFlag(anchor, Anchors::CenterWidth)) newPos.X = vp.GetWidth() / 2.0f - (GetWidth() >> 1);
-		if (_CrtEnumCheckFlag(anchor, Anchors::Left)) newPos.X = vp.GetLeft();
+		if (_CrtEnumCheckFlag(anchor, Anchors::Left)) newPos.X = 0.0f;
 		if (_CrtEnumCheckFlag(anchor, Anchors::Right)) newPos.X = vp.GetRight() - GetWidth();
 
 		/* Check for vertical anchors. */
 		if (_CrtEnumCheckFlag(anchor, Anchors::CenterHeight)) newPos.Y = vp.GetHeight() / 2.0f - (GetHeight() >> 1);
-		if (_CrtEnumCheckFlag(anchor, Anchors::Top)) newPos.Y = vp.GetTop();
+		if (_CrtEnumCheckFlag(anchor, Anchors::Top)) newPos.Y = 0.0f;
 		if (_CrtEnumCheckFlag(anchor, Anchors::Bottom)) newPos.Y = vp.GetBottom() - GetHeight();
 
 		newPos += adder;
 
 		/* Move GuiItem if needed. */
-		if (newPos != GetPosition()) SetPosition(newPos);
+		SetPosition(newPos);
 	}
 	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is invalid!");
 }

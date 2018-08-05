@@ -97,18 +97,20 @@ void Plutonium::ProgressBar::OnMoved(const GuiItem *, ValueChangedEventArgs<Vect
 	{
 	case FillStyle::LeftToRight:
 	case FillStyle::TopToBottom:
-		barPos = args.NewValue;
+		barPos = Vector2::Zero();
 		break;
 	case FillStyle::RightToLeft:
-		barPos = Vector2(lerp(args.NewValue.X, args.NewValue.X + GetWidth(), 1.0f - value), args.NewValue.Y);
+		barPos = Vector2(lerp(0.0f, GetSize().X, 1.0f - value), 0.0f);
 		break;
 	case FillStyle::BottomToTop:
-		barPos = Vector2(args.NewValue.X, lerp(args.NewValue.Y, args.NewValue.Y + GetHeight(), 1.0f - value));
+		barPos = Vector2(0.0f, lerp(0.0f, GetSize().Y, 1.0f - value));
 		break;
 	default:
 		LOG_WAR("Cannot set bar position for set fill style!");
 		break;
 	}
+
+	barPos += GetBounds().Position;
 }
 
 void Plutonium::ProgressBar::UpdateBarMesh(void)

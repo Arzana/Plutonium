@@ -7,6 +7,8 @@
 
 namespace Plutonium
 {
+	struct Container;
+
 	/* Defines the absolute base object for all GuiItems. */
 	struct GuiItem
 	{
@@ -129,7 +131,7 @@ namespace Plutonium
 		/* Gets the current height of the bounds as an integer value. */
 		_Check_return_ inline int32 GetHeight(void) const
 		{
-			return static_cast<int32>(GetBoundingBox().GetHeight());
+			return static_cast<int32>(GetMaxBounds().GetHeight());
 		}
 
 		/* Gets the assigned name of the GuiItem. */
@@ -141,13 +143,13 @@ namespace Plutonium
 		/* Gets the current position of the GuiItem. */
 		_Check_return_ inline Vector2 GetPosition(void) const
 		{
-			return GetBoundingBox().Position;
+			return GetMaxBounds().Position;
 		}
 
 		/* Gets the current size of the GuiItem. */
 		_Check_return_ inline Vector2 GetSize(void) const
 		{
-			return GetBoundingBox().Size;
+			return GetMaxBounds().Size;
 		}
 
 		/* Gets whether the GuiItem is currently visible. */
@@ -159,19 +161,19 @@ namespace Plutonium
 		/* Gets the current widht of the bounds as an integer value. */
 		_Check_return_ inline int32 GetWidth(void) const
 		{
-			return static_cast<int32>(GetBoundingBox().GetWidth());
+			return static_cast<int32>(GetMaxBounds().GetWidth());
 		}
 
 		/* Gets the current horizontal position of the GuiItem. */
 		_Check_return_ inline float GetX(void) const
 		{
-			return GetBoundingBox().Position.X;
+			return GetPosition().X;
 		}
 
 		/* Gets the current vertical position of the GuiItem. */
 		_Check_return_ inline float GetY(void) const
 		{
-			return GetBoundingBox().Position.Y;
+			return GetPosition().Y;
 		}
 
 		/* Gets whether the GuiItem can be focused. */
@@ -196,6 +198,18 @@ namespace Plutonium
 		_Check_return_ inline Vector2 GetOffsetFromAnchor(void) const
 		{
 			return offsetFromAnchorPoint;
+		}
+
+		/* Gets the current parent of this GuiItem, can be nullptr! */
+		_Check_return_ inline const GuiItem* GetParent(void) const
+		{
+			return parent;
+		}
+
+		/* Gets the absolute screen position. */
+		_Check_return_ inline virtual Vector2 GetAbsolutePosition(void) const
+		{
+			return parent ? (GetMaxBounds().Position + parent->GetAbsolutePosition()) : GetMaxBounds().Position;
 		}
 
 		/* Sets the anchor to the specified value, making sure the GuiItem always stays at the desired position if the parent or GuiItem resizes. */
@@ -230,6 +244,8 @@ namespace Plutonium
 		virtual void SetFocusable(_In_ bool value);
 		/* Sets the rounding factor used to give the GuiItem background rounded edges. */
 		virtual void SetRoundingFactor(_In_ float value);
+		/* Sets the parent of this GuiItem. */
+		virtual void SetParent(const GuiItem *item);
 
 	protected:
 		/* Suppresses all the refresh calls to this GuiItem until enabled again. */
@@ -272,22 +288,38 @@ namespace Plutonium
 			return mesh;
 		}
 
-	private:
-		friend struct Menu;
+		/* Gets the offset that shuold be used for the background bounds. */
+		_Check_return_ virtual inline Vector2 GetBackgroundOffset(void) const
+		{
+			return Vector2::Zero();
+		}
 
+	private:
+		friend struct Container;
+
+		const GuiItem *parent;
+		Container *container;
 		Buffer *mesh;
 		TextureHandler background, focusedBackground;
 		bool over, ldown, rdown, visible, enabled, focusable, focused;
 		Color backColor;
 		float roundingFactor;
+		Vector2 position;
 		Rectangle bounds;
 		const char *name;
 		Anchors anchor;
 		Vector2 offsetFromAnchorPoint;
 
+		inline Rectangle GetMaxBounds(void) const
+		{
+			return Rectangle::Merge(GetBoundingBox(), bounds);
+		}
+
 		void CheckBounds(Vector2 size);
 		void UpdateMesh(void);
+		void UpdatePosition(Vector2 position);
 		void WindowResizedHandler(WindowHandler, EventArgs);
+		void ParentMovedHandler(const GuiItem *sender, ValueChangedEventArgs<Vector2>);
 		void MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder);
 	};
 }

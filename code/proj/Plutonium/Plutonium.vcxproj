@@ -216,7 +216,9 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\Container.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp" />
+    <ClCompile Include="..\..\src\Graphics\GUI\Containers\GUIWindow.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\GuiItemRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Items\Button.cpp" />
@@ -312,7 +314,9 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\Container.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h" />
+    <ClInclude Include="..\..\include\Graphics\GUI\Containers\GUIWindow.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\GlyphRejectionArgs.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Core\CursorButtons.h" />

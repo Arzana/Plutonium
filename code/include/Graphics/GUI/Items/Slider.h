@@ -105,6 +105,12 @@ namespace Plutonium
 		/* Renderes the Slider to the renderer, used for internal item skipping. */
 		void RenderSlider(_In_ GuiItemRenderer *renderer);
 
+		/* Gets the offset that shuold be used for the background bounds. */
+		_Check_return_ virtual inline Vector2 GetBackgroundOffset(void) const override
+		{
+			return Vector2(0.0f, holderBarBounds.GetHeight() * 0.5f);
+		}
+
 	private:
 		bool holderBarEnabled, allowRandomClicks, dragInvoked;
 		Color holderBarColor;
