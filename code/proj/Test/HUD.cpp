@@ -31,15 +31,16 @@ void HUD::Create(void)
 	float y = 0.0f;
 	const float yAdded = static_cast<float>(GetDefaultFont()->GetLineSpace()) + OFFSET;
 
-	dbgWnd = AddWindow();
-	dbgWnd->SetAnchors(Anchors::TopLeft);
-	dbgWnd->SetBackColor(Color::White() * 0.5f);
-	dbgWnd->SetHeaderColor(Color::Black() * 0.5f);
-	dbgWnd->SetHeaderTextColor(Color::White());
-	dbgWnd->SetTitle(U"Debug Window");
+	wndDbg = AddWindow();
+	wndDbg->SetCloseResponse(true);
+	wndDbg->SetAnchors(Anchors::TopLeft);
+	wndDbg->SetBackColor(Color::White() * 0.5f);
+	wndDbg->SetHeaderColor(Color::Black() * 0.5f);
+	wndDbg->SetHeaderTextColor(Color::White());
+	wndDbg->SetTitle(U"Debug Window");
 
 	lblTime = CreateDefaultLabel(y);
-	dbgWnd->AddItem(lblTime);
+	wndDbg->AddItem(lblTime);
 	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "Time: ";
@@ -49,7 +50,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblFps = CreateDefaultLabel(y);
-	dbgWnd->AddItem(lblFps);
+	wndDbg->AddItem(lblFps);
 	lblFps->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "Fps (avrg): ";
@@ -60,7 +61,7 @@ void HUD::Create(void)
 	
 
 	lblCpuRam = CreateDefaultLabel(y);
-	dbgWnd->AddItem(lblCpuRam);
+	wndDbg->AddItem(lblCpuRam);
 	lblCpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "RAM: ";
@@ -71,7 +72,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblGpuRam = CreateDefaultLabel(y);
-	dbgWnd->AddItem(lblGpuRam);
+	wndDbg->AddItem(lblGpuRam);
 	lblGpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		text = "GPU: ";
@@ -82,7 +83,7 @@ void HUD::Create(void)
 	y += yAdded;
 
 	lblWorldDrawTime = CreateDefaultLabel(y);
-	dbgWnd->AddItem(lblWorldDrawTime);
+	wndDbg->AddItem(lblWorldDrawTime);
 	lblWorldDrawTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
 	{
 		const float ms = static_cast<float>(game->GetGlobalRenderTime());
@@ -153,6 +154,17 @@ void HUD::Create(void)
 			else txtKnightAnim->SetBackColor(Color::Yellow() * 0.5f);
 			free_s(anim);
 		});
+	}
+}
+
+void HUD::Update(float dt)
+{
+	Menu::Update(dt);
+
+	if (game->GetKeyboard()->IsKeyDown(Keys::OemTilde))
+	{
+		wndDbg->SetState(true);
+		wndDbg->SetVisibility(true);
 	}
 }
 

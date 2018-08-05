@@ -23,10 +23,11 @@ protected:
 	Button *btnDayNight, *btnVsync;
 	Slider *sldExposure;
 	TextBox *txtKnightAnim;
-	GUIWindow *dbgWnd;
+	GUIWindow *wndDbg;
 
 	virtual void Initialize(void) override;
 	virtual void Create(void) override;
+	virtual void Update(float dt) override;
 
 private:
 	TestGame *tgame;

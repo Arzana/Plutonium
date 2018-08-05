@@ -320,5 +320,10 @@ void Plutonium::Menu::OnTextBoxGainFocus(const GuiItem * txt, EventArgs)
 
 void Plutonium::Menu::OnWindowClosed(const GUIWindow * wnd, EventArgs)
 {
-	MarkForDelete(wnd);
+	if (wnd->ShouldHideUponClose())
+	{
+		const_cast<GUIWindow*>(wnd)->SetState(false);
+		const_cast<GUIWindow*>(wnd)->Hide();
+	}
+	else MarkForDelete(wnd);
 }

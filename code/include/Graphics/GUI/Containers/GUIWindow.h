@@ -67,6 +67,12 @@ namespace Plutonium
 			return autoSize;
 		}
 
+		/* Gets whether the window should be hiden once the closed event is proced instead of deleted. */
+		_Check_return_ inline bool ShouldHideUponClose(void) const
+		{
+			return hideOnClose;
+		}
+
 		/* gets the current color of the header bar. */
 		_Check_return_ inline Color GetHeaderColor(void) const
 		{
@@ -81,6 +87,10 @@ namespace Plutonium
 		void SetAllowDrag(_In_ bool allowed);
 		/* Sets whether the user is allowed to minimize the window. */
 		void SetAllowMinimize(_In_ bool allowed);
+		/* Sets whether the window should resize if the content exceeds the window size. */
+		void SetAutoSize(_In_ bool enabled);
+		/* Sets whether the window should be hiden instead of deleted once the user pressed the close button. */
+		void SetCloseResponse(_In_ bool hide);
 		/* Sets the color of the header bar. */
 		void SetHeaderColor(_In_ Color value);
 		/* Sets the color of the header text. */
@@ -103,7 +113,7 @@ namespace Plutonium
 		Label *lblName;
 		float hdrSpltH;
 		bool userCanDrag, userCanMinimize, autoSize;
-		bool dragInvoked, minimized;
+		bool dragInvoked, minimized, hideOnClose;
 		Color hdrClr;
 
 		void HandleAutoSize(void);

@@ -6,7 +6,7 @@ Plutonium::GUIWindow::GUIWindow(Game * parent, const Font * font)
 
 Plutonium::GUIWindow::GUIWindow(Game * parent, Rectangle bounds, const Font * font)
 	: GuiItem(parent, bounds), Container(), userCanDrag(true), hdrClr(GetDefaultHeaderColor()),
-	dragInvoked(false), hdrSpltH(0.0f), userCanMinimize(true), minimized(false), autoSize(true),
+	dragInvoked(false), hdrSpltH(0.0f), userCanMinimize(true), minimized(false), autoSize(true), hideOnClose(false),
 	INIT_BUS(Closed), INIT_BUS(DragStart), INIT_BUS(DragEnd), INIT_BUS(HeaderBarColorChanged)
 {
 	ASSERT_IF(!font, "Font cannot be null!");
@@ -135,6 +135,16 @@ void Plutonium::GUIWindow::SetAllowMinimize(bool allowed)
 	btnMin->SetState(allowed);
 	btnMin->SetVisibility(allowed);
 	if (minimized) minimized = allowed;
+}
+
+void Plutonium::GUIWindow::SetAutoSize(bool enabled)
+{
+	if (autoSize = enabled) HandleAutoSize();
+}
+
+void Plutonium::GUIWindow::SetCloseResponse(bool hide)
+{
+	hideOnClose = hide;
 }
 
 void Plutonium::GUIWindow::SetHeaderColor(Color value)
