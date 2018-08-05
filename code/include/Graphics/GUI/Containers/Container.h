@@ -41,6 +41,19 @@ namespace Plutonium
 		/* Applies a focus of value false to all GuiItems in the container except the one specified. */
 		void LoseFocusExceptOne(_In_ const GuiItem *exception);
 
+		/* Gets the amount of controlls handled by this Container. */
+		_Check_return_ inline size_t GetControlCount(void) const
+		{
+			return controlls.size();
+		}
+
+		/* Gets a control at the specified index. */
+		_Check_return_ inline GuiItem* GetControllAt(_In_ size_t idx) const
+		{
+			ASSERT_IF(idx >= GetControlCount(), "Index out of range!");
+			return std::get<1>(controlls.at(idx));
+		}
+
 	private:
 		std::vector<std::tuple<bool, GuiItem*>> controlls;
 

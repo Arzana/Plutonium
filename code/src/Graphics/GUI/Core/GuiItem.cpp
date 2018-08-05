@@ -14,7 +14,7 @@ Plutonium::GuiItem::GuiItem(Game * parent, Rectangle bounds)
 	INIT_BUS(BackColorChanged), INIT_BUS(BackgroundImageChanged), INIT_BUS(Clicked),
 	INIT_BUS(Finalized), INIT_BUS(Hover), INIT_BUS(HoverEnter), INIT_BUS(FocusableChanged),
 	INIT_BUS(HoverLeave), INIT_BUS(Moved), INIT_BUS(NameChanged), INIT_BUS(Resized),
-	INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged), INIT_BUS(GainedFocus), 
+	INIT_BUS(StateChanged), INIT_BUS(VisibilityChanged), INIT_BUS(GainedFocus),
 	INIT_BUS(LostFocus), INIT_BUS(FocusedImageChanged)
 {
 	/* Check for invalid bounds and show the GuiItem. */
@@ -245,10 +245,17 @@ void Plutonium::GuiItem::SetRoundingFactor(float value)
 
 void Plutonium::GuiItem::SetParent(const GuiItem * item)
 {
-	/* Make sure to add the handler to the parent moved event to make sure the absole position is updated. */
-	if (parent) parent->Moved.Remove(this, &GuiItem::ParentMovedHandler);
+	/* Make sure to remove the old event handlers from the GuiItem to avoid parent mismatch. */
+	if (parent)
+	{
+		parent->Moved.Remove(this, &GuiItem::ParentMovedHandler);
+		parent->Resized.Remove(this, &GuiItem::ParentResizedHandler);
+	}
+
+	/* Set the parent and add event handlers to make sure the position of the child is updated correctly. */
 	parent = item;
 	parent->Moved.Add(this, &GuiItem::ParentMovedHandler);
+	parent->Resized.Add(this, &GuiItem::ParentResizedHandler);
 
 	/* Update the anchors if needed, otherwise update the position. */
 	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
@@ -321,6 +328,11 @@ void Plutonium::GuiItem::ParentMovedHandler(const GuiItem *sender, ValueChangedE
 {
 	bounds.Position = sender->GetBoundingBox().Position + position + GetBackgroundOffset();
 	Moved.Post(this, ValueChangedEventArgs<Vector2>(position, position));
+}
+
+void Plutonium::GuiItem::ParentResizedHandler(const GuiItem *, ValueChangedEventArgs<Vector2>)
+{
+	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
 }
 
 void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder)

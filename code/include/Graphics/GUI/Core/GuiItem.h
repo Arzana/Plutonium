@@ -98,10 +98,16 @@ namespace Plutonium
 			return bounds;
 		}
 
-		/* Gets the bounding box of the GuiItem. */
+		/* Gets the bounding box of the GuiItem, used for anchoring. */
 		_Check_return_ virtual inline Rectangle GetBoundingBox(void) const
 		{
 			return bounds;
+		}
+
+		/* Gets the maximum bounds of the GuiItem, this includes the background bounds and the bounding box. */
+		_Check_return_ inline Rectangle GetMaxBounds(void) const
+		{
+			return Rectangle::Merge(GetBoundingBox(), bounds);
 		}
 
 		/* Gets the default value for the background color. */
@@ -206,12 +212,6 @@ namespace Plutonium
 			return parent;
 		}
 
-		/* Gets the absolute screen position. */
-		_Check_return_ inline virtual Vector2 GetAbsolutePosition(void) const
-		{
-			return parent ? (GetMaxBounds().Position + parent->GetAbsolutePosition()) : GetMaxBounds().Position;
-		}
-
 		/* Sets the anchor to the specified value, making sure the GuiItem always stays at the desired position if the parent or GuiItem resizes. */
 		virtual void SetAnchors(_In_ Anchors value, _In_opt_ float xOffset = 0.0f, _In_opt_ float yOffset = 0.0f);
 		/* Sets the color of the background to a new solid color, or (when a background image is set) changes the color filter of the background image. */
@@ -310,16 +310,12 @@ namespace Plutonium
 		Anchors anchor;
 		Vector2 offsetFromAnchorPoint;
 
-		inline Rectangle GetMaxBounds(void) const
-		{
-			return Rectangle::Merge(GetBoundingBox(), bounds);
-		}
-
 		void CheckBounds(Vector2 size);
 		void UpdateMesh(void);
 		void UpdatePosition(Vector2 position);
 		void WindowResizedHandler(WindowHandler, EventArgs);
 		void ParentMovedHandler(const GuiItem *sender, ValueChangedEventArgs<Vector2>);
+		void ParentResizedHandler(const GuiItem*, ValueChangedEventArgs<Vector2>);
 		void MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder);
 	};
 }

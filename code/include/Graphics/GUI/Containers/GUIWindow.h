@@ -34,7 +34,7 @@ namespace Plutonium
 		/* Gets the default value for the Window bounds. */
 		_Check_return_ static inline Rectangle GetDefaultBounds(void)
 		{
-			return Rectangle(0.0f, 0.0f, 250.0f, 500.0f);
+			return Rectangle(0.0f, 0.0f, 100.0f, 100.0f);
 		}
 
 		/* Gets the default color for the Window header bar. */
@@ -59,6 +59,12 @@ namespace Plutonium
 		_Check_return_ inline bool IsMinimizeable(void) const
 		{
 			return userCanMinimize;
+		}
+
+		/* Gets whether the window will resize if the controlls go out of bounds. */
+		_Check_return_ inline bool IsAutoSize(void) const
+		{
+			return autoSize;
 		}
 
 		/* gets the current color of the header bar. */
@@ -93,13 +99,16 @@ namespace Plutonium
 		}
 
 	private:
-		Button *btnExit, *btnMin;
+		Button * btnExit, *btnMin;
 		Label *lblName;
 		float hdrSpltH;
-		bool userCanDrag, userCanMinimize, dragInvoked, minimized;
+		bool userCanDrag, userCanMinimize, autoSize;
+		bool dragInvoked, minimized;
 		Color hdrClr;
 
+		void HandleAutoSize(void);
 		void UpdateHdrHeight(void);
+		void OnChildResized(const GuiItem*, ValueChangedEventArgs<Vector2>);
 		void OnExitButtonPressed(const Button*, CursorHandler);
 		void OnMinButtonPressed(const Button*, CursorHandler);
 	};

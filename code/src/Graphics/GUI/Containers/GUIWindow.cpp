@@ -6,7 +6,7 @@ Plutonium::GUIWindow::GUIWindow(Game * parent, const Font * font)
 
 Plutonium::GUIWindow::GUIWindow(Game * parent, Rectangle bounds, const Font * font)
 	: GuiItem(parent, bounds), Container(), userCanDrag(true), hdrClr(GetDefaultHeaderColor()),
-	dragInvoked(false), hdrSpltH(0.0f), userCanMinimize(true), minimized(false),
+	dragInvoked(false), hdrSpltH(0.0f), userCanMinimize(true), minimized(false), autoSize(true),
 	INIT_BUS(Closed), INIT_BUS(DragStart), INIT_BUS(DragEnd), INIT_BUS(HeaderBarColorChanged)
 {
 	ASSERT_IF(!font, "Font cannot be null!");
@@ -30,7 +30,7 @@ Plutonium::GUIWindow::GUIWindow(Game * parent, Rectangle bounds, const Font * fo
 	btnMin->DoubleClicked.Add(this, &GUIWindow::OnMinButtonPressed);
 	btnMin->LeftClicked.Add(this, &GUIWindow::OnMinButtonPressed);
 	btnMin->SetBackColor(Color::Transparent());
-	btnMin->SetTextOffset(Vector2(5.0f, 0.0f)); 
+	btnMin->SetTextOffset(Vector2(5.0f, 0.0f));
 	btnMin->SetName("WindowButtonMinimize");
 	btnMin->SetTextColor(Color::White());
 	btnMin->SetAutoSize(true);
@@ -81,7 +81,7 @@ void Plutonium::GUIWindow::Update(float dt)
 		/* Check if a drag event has started. */
 		if (cursor->LeftButton && userCanDrag)
 		{
-			if (!dragInvoked && Rectangle(GetAbsolutePosition(), Vector2(GetBounds().GetWidth(), hdrSpltH)).Contains(cursor->GetPosition()))
+			if (!dragInvoked && Rectangle(GetBounds().Position, Vector2(GetBounds().GetWidth(), hdrSpltH)).Contains(cursor->GetPosition()))
 			{
 				dragInvoked = true;
 				DragStart.Post(this, cursor);
@@ -154,6 +154,7 @@ void Plutonium::GUIWindow::SetHeaderTextColor(Color value)
 void Plutonium::GUIWindow::AddItem(GuiItem * item)
 {
 	item->SetParent(this);
+	item->Resized.Add(this, &GUIWindow::OnChildResized);
 	Container::AddItem(item);
 }
 
@@ -174,9 +175,38 @@ void Plutonium::GUIWindow::RenderWindow(GuiItemRenderer * renderer)
 	lblName->Draw(renderer);
 }
 
+void Plutonium::GUIWindow::HandleAutoSize(void)
+{
+	/* Only apply auto size if needed. */
+	if (autoSize)
+	{
+		/* Get a rectangle that contains all childs. */
+		Rectangle bb;
+		for (size_t i = 0; i < GetControlCount(); i++) bb = Rectangle::Merge(bb, GetControllAt(i)->GetMaxBounds());
+
+		/* Get the current size of the window and transform the dimentions of the rectangle into a single size value. */
+		Vector2 curSize = GetSize();
+		Vector2 dim = bb.Size - bb.Position + Vector2(0.0f, hdrSpltH);
+
+		/* Only change the size if the dimentions will be more than zero. */
+		if (dim != Vector2::Zero())
+		{
+			/* Make sure we only resize to make the window larger not smaller to avoid stuttering. */
+			if (dim.X > curSize.X && dim.Y > curSize.Y) SetSize(dim);
+			else if (dim.X > curSize.X) SetSize(Vector2(dim.X, curSize.Y));
+			else if (dim.Y > curSize.Y) SetSize(Vector2(curSize.X, dim.Y));
+		}
+	}
+}
+
 void Plutonium::GUIWindow::UpdateHdrHeight(void)
 {
 	hdrSpltH = max(lblName->GetSize().Y, max(btnExit->GetSize().Y, btnMin->GetSize().Y));
+}
+
+void Plutonium::GUIWindow::OnChildResized(const GuiItem *, ValueChangedEventArgs<Vector2>)
+{
+	HandleAutoSize();
 }
 
 void Plutonium::GUIWindow::OnExitButtonPressed(const Button *, CursorHandler)
