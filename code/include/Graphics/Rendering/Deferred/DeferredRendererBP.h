@@ -94,8 +94,8 @@ namespace Plutonium
 		struct
 		{
 			Shader *shdr;
-			Uniform *matLs, *matMdl, *mapAlpha, *mapDiff;
-			Attribute *pos, *uv;
+			Uniform *matLs, *matMdl, *mapAlpha, *mapDiff, *amnt;
+			Attribute *pos1, *pos2, *uv;
 		} dspass;
 
 		struct 

@@ -178,8 +178,10 @@ constexpr const char *DSPASS_VRTX_SHDR_SRC =
 
 "uniform mat4 Model;																									\n"
 "uniform mat4 LightSpace;																								\n"
+"uniform float Blending;																								\n"
 
-"in vec3 Position;																										\n"
+"in vec3 Position1;																										\n"
+"in vec3 Position2;																										\n"
 "in vec2 Uv;																											\n"
 
 "out vec2 FragUv;																										\n"
@@ -187,7 +189,7 @@ constexpr const char *DSPASS_VRTX_SHDR_SRC =
 "void main()																											\n"
 "{																														\n"
 "	FragUv = Uv;																										\n"
-"	gl_Position = LightSpace * Model * vec4(Position, 1.0f);															\n"
+"	gl_Position = LightSpace * Model * vec4(mix(Position1, Position2, Blending), 1.0f);									\n"
 "}";
 
 constexpr const char *DPASS_FRAG_SHDR_SRC =
@@ -458,7 +460,7 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 	gbFbo->Finalize();
 
 	/* Initialize shader map buffer. */
-	dshdFbo = new RenderTarget(game->GetGraphics(), false, 1024, 4096);
+	dshdFbo = new RenderTarget(game->GetGraphics(), false, 8192, 32768);
 	shadow = dshdFbo->Attach("Directional Light Depth", AttachmentOutputType::Depth);
 	dshdFbo->Finalize();
 
@@ -661,7 +663,9 @@ void Plutonium::DeferredRendererBP::InitDsPass(void)
 	dspass.matMdl = dspass.shdr->GetUniform("Model");
 	dspass.mapAlpha = dspass.shdr->GetUniform("Opacity");
 	dspass.mapDiff = dspass.shdr->GetUniform("Diffuse");
-	dspass.pos = dspass.shdr->GetAttribute("Position");
+	dspass.amnt = dspass.shdr->GetUniform("Blending");
+	dspass.pos1 = dspass.shdr->GetAttribute("Position1");
+	dspass.pos2 = dspass.shdr->GetAttribute("Position2");
 	dspass.uv = dspass.shdr->GetAttribute("Uv");
 }
 
@@ -1088,6 +1092,7 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 	if (light->CreatesShadows)
 	{
 		dspass.matLs->Set(result);
+		dspass.amnt->Set(0.0f);
 
 		/* Render all static models to depth map. */
 		for (size_t i = 0; i < queuedModels.size(); i++)
@@ -1120,7 +1125,8 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 
 						/* Set mesh attributes. */
 						buffer->Bind();
-						dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+						dspass.pos1->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+						dspass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 						dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
 						/* Render the shape to the shadow depth buffer. */
@@ -1140,23 +1146,28 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 
 			/* Set model matrix. */
 			dspass.matMdl->Set(model->GetWorld());
+			dspass.amnt->Set(model->GetMixAmount());
 
 			const MaterialBP *material = model->GetModel()->GetMaterial();
 			if (material->Visible)
 			{
-				Buffer *mesh = model->GetCurrentFrame()->GetVertexBuffer();
+				Buffer *cur = model->GetCurrentFrame()->GetVertexBuffer();
+				Buffer *next = model->GetNextFrame()->GetVertexBuffer();
 
 				/* Set material attributes. */
 				dspass.mapDiff->Set(material->Diffuse);
 				dspass.mapAlpha->Set(material->Opacity);
 
 				/* Set mesh attributes. */
-				mesh->Bind();
-				dspass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+				cur->Bind();
+				dspass.pos1->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 				dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
 
+				next->Bind();
+				dspass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+
 				/* Render the shape to the shadow depth buffer. */
-				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->GetElementCount()));
 			}
 		}
 	}
