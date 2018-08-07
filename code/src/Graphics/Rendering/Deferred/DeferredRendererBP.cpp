@@ -19,7 +19,7 @@ Second stage:
 	- Apply to full screen quad.
 	- Additively blend each light into HDR screen buffer.
 - Perform point light pass for each point light (HDR).
-	- Apply to full screen quad (later light volume (sphere) if I can get it working).
+	- Apply to light volume sphere.
 	- Additively blend each light into HDR screen buffer.
 
 Third stage:
@@ -355,30 +355,63 @@ constexpr const char *WIRE_VRTX_SHDR_SRC =
 "uniform mat4 Model;																									\n"
 "uniform mat4 View;																										\n"
 "uniform mat4 Projection;																								\n"
-"uniform vec4 Color;																									\n"
 "uniform float Blending;																								\n"
 
 "in vec3 Position;																										\n"
 "in vec3 Position2;																										\n"
+"in vec2 Uv;																											\n"
 
-"out vec3 Clr;																											\n"
+"out vec2 GeomUv;																										\n"
 
 "void main()																											\n"
 "{																														\n"
-"	Clr = Color.rgb;																									\n"
+"	GeomUv = Uv;																										\n"
 "	gl_Position = Projection * View * Model * vec4(mix(Position, Position2, Blending), 1.0);							\n"
+"}";
+
+constexpr const char *WIRE_GEOM_SHDR_SRC =
+"#version 430 core																										\n"
+
+"layout (triangles) in;																									\n"
+"layout (triangle_strip, max_vertices = 3) out;																			\n"
+
+"in vec2 GeomUv[];																										\n"
+
+"out vec2 FragUv;																										\n"
+"out noperspective vec3 WireFrameDist;																					\n"
+
+"void main()																											\n"
+"{																														\n"
+"	for (int i = 0; i < 3; i++)																							\n"
+"	{																													\n"
+"		gl_Position = gl_in[i].gl_Position;																				\n"
+"		FragUv = GeomUv[i];																									\n"
+"		WireFrameDist = vec3(0.0f);																						\n"
+"		WireFrameDist[i] = 1.0f;																						\n"
+
+"		EmitVertex();																									\n"
+"	}																													\n"
 "}";
 
 constexpr const char *WIRE_FRAG_SHDR_SRC =
 "#version 430 core																										\n"
 
-"in vec3 Clr;																											\n"
+"uniform vec4 Color;																									\n"
+"uniform sampler2D Diffuse;																								\n"
+
+"in vec2 FragUv;																										\n"
+"in vec3 WireFrameDist;																									\n"
 
 "out vec4 FragColor;																									\n"
 
 "void main()																											\n"
 "{																														\n"
-"	FragColor = vec4(Clr, 1.0f);																						\n"
+"	vec3 d = fwidth(WireFrameDist);																						\n"
+"	vec3 a = smoothstep(vec3(0.0f), d * 1.5f, WireFrameDist);															\n"
+"	float edgeFactor = min(min(a.x, a.y), a.z);																			\n"
+
+"	vec4 base = vec4(texture(Diffuse, FragUv).rgb, 0.5f);																\n"
+"	FragColor = mix(Color, base, edgeFactor);																			\n"
 "}";
 
 constexpr const char *WN_FRAG_SHDR_SRC =
@@ -425,9 +458,9 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 	gbFbo->Finalize();
 
 	/* Initialize shader map buffer. */
-	shdFbo = new RenderTarget(game->GetGraphics(), false);
-	shadow = shdFbo->Attach("Depth", AttachmentOutputType::Depth);
-	shdFbo->Finalize();
+	dshdFbo = new RenderTarget(game->GetGraphics(), false, 1024, 4096);
+	shadow = dshdFbo->Attach("Directional Light Depth", AttachmentOutputType::Depth);
+	dshdFbo->Finalize();
 
 	/* Initialize HDR lighting intermediate buffer. */
 	hdrFbo = new RenderTarget(game->GetGraphics(), true);
@@ -449,7 +482,7 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 Plutonium::DeferredRendererBP::~DeferredRendererBP(void)
 {
 	delete_s(gbFbo);
-	delete_s(shdFbo);
+	delete_s(dshdFbo);
 	delete_s(hdrFbo);
 	delete_s(defMaterial);
 	delete_s(plane);
@@ -643,8 +676,8 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 	dpass.clrAmbi = dpass.shdr->GetUniform("Light.Ambient");
 	dpass.clrDiff = dpass.shdr->GetUniform("Light.Diffuse");
 	dpass.clrSpec = dpass.shdr->GetUniform("Light.Specular");
-	dpass.matLs = dpass.shdr->GetUniform("Light.LightSpace");
-	dpass.shadow = dpass.shdr->GetUniform("Light.Shadow");
+	dpass.matView = dpass.shdr->GetUniform("Light.LightSpace");
+	dpass.mapShdw = dpass.shdr->GetUniform("Light.Shadow");
 	dpass.camPos = dpass.shdr->GetUniform("ViewPosition");
 	dpass.pos = dpass.shdr->GetAttribute("Position");
 	dpass.uv = dpass.shdr->GetAttribute("ScreenCoordinate");
@@ -684,14 +717,16 @@ void Plutonium::DeferredRendererBP::InitFPass(void)
 
 void Plutonium::DeferredRendererBP::InitWire(void)
 {
-	wire.shdr = new Shader(WIRE_VRTX_SHDR_SRC, WIRE_FRAG_SHDR_SRC);
+	wire.shdr = new Shader(WIRE_VRTX_SHDR_SRC, WIRE_GEOM_SHDR_SRC, WIRE_FRAG_SHDR_SRC);
 	wire.matProj = wire.shdr->GetUniform("Projection");
 	wire.matView = wire.shdr->GetUniform("View");
 	wire.matMdl = wire.shdr->GetUniform("Model");
 	wire.clr = wire.shdr->GetUniform("Color");
+	wire.mapDiff = wire.shdr->GetUniform("Diffuse");
 	wire.amnt = wire.shdr->GetUniform("Blending");
 	wire.pos = wire.shdr->GetAttribute("Position");
 	wire.pos2 = wire.shdr->GetAttribute("Position2");
+	wire.uv = wire.shdr->GetAttribute("Uv");
 }
 
 void Plutonium::DeferredRendererBP::InitWNormal(void)
@@ -713,7 +748,6 @@ void Plutonium::DeferredRendererBP::InitAlbedo(void)
 void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 {
 	/* Add directional lights to the scene. */
-	const Matrix iView = cam->GetView().GetOrientation().GetInverse();
 	for (size_t i = 0; i < queuedDLights.size(); i++)
 	{
 		const DirectionalLight *light = queuedDLights.at(i);
@@ -725,7 +759,7 @@ void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 
 		/* Render lighting. */
 		BeginDirLightPass(cam->GetPosition());
-		RenderDirLight(ls, iView, light);
+		RenderDirLight(ls, light);
 		dpass.shdr->End();
 	}
 
@@ -746,9 +780,6 @@ void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 
 void Plutonium::DeferredRendererBP::RenderWireframe(const Matrix & projection, const Matrix & view)
 {
-	/* Setup graphics device. */
-	game->GetGraphics()->SetPolygonMode(PolygonModes::Line);
-
 	/* Set global uniforms and initialize mix amounf to zero for static model pass. */
 	wire.shdr->Begin();
 	wire.matProj->Set(projection);
@@ -766,21 +797,28 @@ void Plutonium::DeferredRendererBP::RenderWireframe(const Matrix & projection, c
 		const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
 		for (size_t j = 0; j < shapes->size(); j++)
 		{
-			/* Set color to the designated debug color on debug mode or red on release mode. */
+			MaterialBP *material = shapes->at(j).Material;
+			if (material->Visible)
+			{
+				/* Set color to the designated debug color on debug mode or red on release mode. */
 #if defined (DEBUG)
-			wire.clr->Set(shapes->at(j).Material->Debug);
+				wire.clr->Set(shapes->at(j).Material->Debug);
 #else
-			wire.clr->Set(Color::Red());
+				wire.clr->Set(Color::Red());
 #endif
 
-			/* Set first and second position to the same mesh. */
-			Buffer *mesh = shapes->at(j).Mesh->GetVertexBuffer();
-			mesh->Bind();
-			wire.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-			wire.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+				wire.mapDiff->Set(material->Diffuse);
 
-			/* Render shape. */
-			glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+				/* Set first and second position to the same mesh. */
+				Buffer *mesh = shapes->at(j).Mesh->GetVertexBuffer();
+				mesh->Bind();
+				wire.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+				wire.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+				wire.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+				/* Render shape. */
+				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh->GetElementCount()));
+			}
 		}
 	}
 
@@ -799,6 +837,8 @@ void Plutonium::DeferredRendererBP::RenderWireframe(const Matrix & projection, c
 		wire.clr->Set(Color::Yellow());
 #endif
 
+		wire.mapDiff->Set(model->GetModel()->GetMaterial()->Diffuse);
+
 		/* Set first position to the current frame. */
 		Buffer *mesh1 = model->GetCurrentFrame()->GetVertexBuffer();
 		mesh1->Bind();
@@ -809,12 +849,12 @@ void Plutonium::DeferredRendererBP::RenderWireframe(const Matrix & projection, c
 		mesh2->Bind();
 		wire.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
 
+		wire.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
 		/* Render shape. */
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh1->GetElementCount()));
 	}
 
-	/* Reset polygon mode and end shader. */
-	game->GetGraphics()->SetPolygonMode(PolygonModes::Normal);
 	wire.shdr->End();
 }
 
@@ -871,7 +911,7 @@ void Plutonium::DeferredRendererBP::BeginDirShadowPass(void)
 	GraphicsAdapter *device = game->GetGraphics();
 
 	/* Setup OpenGL and shader. */
-	device->SetRenderTarget(shdFbo);
+	device->SetRenderTarget(dshdFbo);
 	device->SetDepthOuput(true);
 	device->Clear(ClearTarget::Depth);
 	dspass.shdr->Begin();
@@ -1041,7 +1081,6 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 	Matrix view = Matrix::CreateLookAt(bb.GetCenter(), bb.GetCenter() - light->Direction, Vector3::Up());
 	Box obb = (view * bb) * 1.5f;
 
-	/* Set the projection matrix to the scene bounding box in light space and set matrices. */
 	Matrix proj = Matrix::CreateOrtho(obb.GetLeft(), obb.GetRight(), obb.GetBottom(), obb.GetTop(), obb.GetFront(), obb.GetBack());
 	Matrix result = proj * view;
 
@@ -1125,14 +1164,14 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 	return result;
 }
 
-void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix &space, const Matrix &iview, const DirectionalLight * light)
+void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix & space, const DirectionalLight * light)
 {
 	dpass.dir->Set(-normalize(light->Direction));
 	dpass.clrAmbi->Set(light->Ambient);
 	dpass.clrDiff->Set(light->Diffuse);
 	dpass.clrSpec->Set(light->Specular);
-	dpass.matLs->Set(space);
-	dpass.shadow->Set(shadow);
+	dpass.matView->Set(space);
+	dpass.mapShdw->Set(shadow);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
 }

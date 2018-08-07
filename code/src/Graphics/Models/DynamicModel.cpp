@@ -25,13 +25,15 @@ Plutonium::DynamicModel::~DynamicModel(void)
 
 void Plutonium::DynamicModel::Finalize(void)
 {
+	WindowHandler wnd = loader->GetWindow();
+
 	/* Finalize all animation frames. */
 	for (size_t i = 0; i < animations.size(); i++)
 	{
 		AnimationInfo *info = animations.at(i);
 		for (size_t j = 0; j < info->Frames.size(); j++)
 		{
-			info->Frames.at(j)->Finalize(loader->GetWindow());
+			info->Frames.at(j)->Finalize(wnd);
 		}
 	}
 }

@@ -2,12 +2,12 @@
 #include "Graphics\GraphicsAdapter.h"
 #include "Graphics\Native\RenderTargets\RenderTargetStatus.h"
 
-Plutonium::RenderTarget::RenderTarget(GraphicsAdapter * device, bool attachDepthBuffer)
+Plutonium::RenderTarget::RenderTarget(GraphicsAdapter * device, bool attachDepthBuffer, int32 height, int32 width)
 	: device(device), drawBufferCnt(0), finalized(false)
 {
 	Rectangle viewport = device->GetWindow()->GetClientBounds();
-	width = static_cast<int32>(viewport.GetWidth());
-	height = static_cast<int32>(viewport.GetHeight());
+	this->width = width > 0 ? width : static_cast<int32>(viewport.GetWidth());
+	this->height = height > 0 ? height : static_cast<int32>(viewport.GetHeight());
 	glGenFramebuffers(1, &ptrFbo);
 
 	if (attachDepthBuffer) AttachDepthBuffer();
@@ -23,23 +23,18 @@ Plutonium::RenderTarget::~RenderTarget(void)
 	}
 }
 
-const Plutonium::RenderTargetAttachment * Plutonium::RenderTarget::Attach(const char * name, AttachmentOutputType type)
+const Plutonium::RenderTargetAttachment * Plutonium::RenderTarget::Attach(const char * name, AttachmentOutputType type, bool autoBind)
 {
-	/* Check for double depth buffer attachments. */
-	if (type == AttachmentOutputType::Depth)
-	{
-		for (size_t i = 0; i < attachments.size(); i++)
-		{
-			LOG_THROW_IF(attachments.at(i)->type == AttachmentOutputType::Depth, "Cannot attach two depth buffers to one render target!");
-		}
-	}
+	glBindFramebuffer(GL_FRAMEBUFFER, ptrFbo);
 
 	/* Create attachment and push it to the list. */
-	glBindFramebuffer(GL_FRAMEBUFFER, ptrFbo);
 	RenderTargetAttachment *result = new RenderTargetAttachment(name, type, type == AttachmentOutputType::Depth ? 0 : drawBufferCnt++, width, height);
 	attachments.push_back(result);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	/* Bind the attachment is swapping is not required (most buffers). */
+	if (autoBind) result->Bind();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return result;
 }
 
@@ -89,6 +84,30 @@ void Plutonium::RenderTarget::BlitDepth(void)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Plutonium::RenderTarget::BindForWriting(const RenderTargetAttachment * attachment)
+{
+	/* 
+	On debug mode, 
+	check if the supplied attachment is created using this render target. 
+	Also unbind all attached buffers to make sure error checking works.
+	*/
+#if defined (DEBUG)
+	bool notFound = true;
+	for (size_t i = 0; i < attachments.size(); i++)
+	{
+		RenderTargetAttachment *cur = attachments.at(i);
+		if (cur == attachment) notFound = false;
+		else cur->bound = false;
+	}
+
+	LOG_THROW_IF(notFound, "Specified attachment does not belong to this render target!");
+#endif
+
+	/* Set the draw buffer to this render target and bind the attachment. */
+	glBindFramebuffer(GL_FRAMEBUFFER, ptrFbo);
+	attachment->Bind();
 }
 
 void Plutonium::RenderTarget::AttachDepthBuffer(void)

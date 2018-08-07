@@ -62,13 +62,13 @@ namespace Plutonium
 		std::vector<const PointLight*> queuePLights;
 		Game *game;
 
-		RenderTarget *gbFbo, *hdrFbo, *shdFbo;
+		RenderTarget *gbFbo, *hdrFbo, *dshdFbo;
 		const RenderTargetAttachment *normalSpec;	// [nx, ny, nz, s]	G-Buffer
 		const RenderTargetAttachment *posSpec;		// [x, y, z, s]		G-Buffer
 		const RenderTargetAttachment *ambient;		// [r, g, b]		G-Buffer
 		const RenderTargetAttachment *diffuse;		// [r, g, b]		G-Buffer
 		const RenderTargetAttachment *screen;		// [r, g, b, a]		HDR-Buffer
-		const RenderTargetAttachment *shadow;		// [d]				Shadow depth buffer.
+		const RenderTargetAttachment *shadow;		// [d]				Shadow depth buffer (directional light).
 
 		Buffer *plane;
 		Mesh *sphere;
@@ -102,7 +102,7 @@ namespace Plutonium
 		{
 			Shader *shdr;
 			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos;
-			Uniform *dir, *clrAmbi, *clrDiff, *clrSpec, *matLs, *shadow;
+			Uniform *dir, *clrAmbi, *clrDiff, *clrSpec, *matView, *mapShdw;
 			Attribute *pos, *uv;
 		} dpass;
 
@@ -125,8 +125,8 @@ namespace Plutonium
 		struct
 		{
 			Shader *shdr;
-			Uniform *matMdl, *matView, *matProj, *clr, *amnt;
-			Attribute *pos, *pos2;
+			Uniform *matMdl, *matView, *matProj, *clr, *amnt, *mapDiff;
+			Attribute *pos, *pos2, *uv;
 		} wire;
 
 		struct
@@ -168,7 +168,7 @@ namespace Plutonium
 		void RenderModel(const Camera *cam, const StaticObject *model, const MaterialBP *overrideMaterial);
 		void RenderModel(const Camera *cam, const DynamicObject *model, const MaterialBP *overrideMaterial);
 		Matrix RenderDirLightShadow(const Camera *cam, const DirectionalLight *light);
-		void RenderDirLight(const Matrix &space, const Matrix &iview, const DirectionalLight *light);
+		void RenderDirLight(const Matrix &space, const DirectionalLight *light);
 		void RenderPntLight(const PointLight *light);
 		void FixForMonitor(void);
 	};

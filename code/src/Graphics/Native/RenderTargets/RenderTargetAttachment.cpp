@@ -88,7 +88,7 @@ void Plutonium::RenderTargetAttachment::SaveAsPng(const char * path, bool flipVe
 		/* Convert data to RGBA greyscale and hard set the channels to 4. */
 		data = _CrtToGreyscale(raw, size, false, true);
 		channels = 4;
-		
+
 		/* Free temporary buffer. */
 		freea_s(raw);
 	}
@@ -109,32 +109,36 @@ void Plutonium::RenderTargetAttachment::SaveAsPng(const char * path, bool flipVe
 
 Plutonium::RenderTargetAttachment::RenderTargetAttachment(const char * name, AttachmentOutputType type, size_t index, int32 width, int32 height)
 	: name(heapstr(name)), type(type), width(width), height(height)
+#if defined (DEBUG)
+	, bound(false)
+#endif
 {
+	/* Set the border and the attachment type. */
 	constexpr GLint border[] = { 1, 1, 1, 1 };
+	attachment = type == AttachmentOutputType::Depth ? GL_DEPTH_ATTACHMENT : static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + index);
 
 	/* Check if we can still allow another attachment. */
 	LOG_THROW_IF(index > GL_MAX_COLOR_ATTACHMENTS, "Exceeding attachment limit!");
 
-	/* Generate underlying texture with the specified parameters and bind it to the current frame buffer. */
+	/* Generate underlying texture with the specified parameters. */
 	glGenTextures(1, &ptr);
 	glBindTexture(GL_TEXTURE_2D, ptr);
 	glTexImage2D(GL_TEXTURE_2D, 0, _CrtEnum2Int(type), static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, getFormat(type), getType(type), nullptr);
+
+	/* Set the parameters for the underlying sampler. */
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+}
 
-	if (type == AttachmentOutputType::Depth)
-	{
-		attachment = 0;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ptr, 0);
-	}
-	else
-	{
-		attachment = static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + index);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, ptr, 0);
-	}
+void Plutonium::RenderTargetAttachment::Bind(void) const
+{
+#if defined (DEBUG)
+	bound = true;
+#endif
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, ptr, 0);
 }
 
 Plutonium::RenderTargetAttachment::~RenderTargetAttachment(void)

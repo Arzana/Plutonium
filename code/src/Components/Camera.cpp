@@ -65,18 +65,11 @@ Plutonium::Vector3 Plutonium::Camera::ScreenToWorldRay(Vector2 v) const
 	Vector4 w(v.X, v.Y, -1.0f, 1.0f);
 
 	/* Convert to clip space coordinate back to view space. */
-	w = iproj * w;
+	w = GetInverseProjection() * w;
 	w = Vector4(w.X, w.Y, -1.0f, 0.0f);
 
-	/* Recalculate inverse view matrix if needed. */
-	if (iviewDirty)
-	{
-		iviewDirty = false;
-		iview = view.GetInverse();
-	}
-
 	/* Converts the view space coordinate back to world space and return the normalized 3D part. */
-	w = iview * w;
+	w = GetInverseView() * w;
 	return normalize(Vector3(w.X, w.Y, w.Z));
 }
 

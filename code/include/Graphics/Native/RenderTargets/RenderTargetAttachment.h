@@ -59,6 +59,12 @@ namespace Plutonium
 		uint32 ptr;
 		GLenum attachment;
 
+#if defined (DEBUG)
+		mutable bool bound;
+#endif
+
 		RenderTargetAttachment(const char *name, AttachmentOutputType type, size_t index, int32 width, int32 height);
+
+		void Bind(void) const;
 	};
 }

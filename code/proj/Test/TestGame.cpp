@@ -72,7 +72,6 @@ void TestGame::LoadContent(void)
 
 	/* Setup lighting. */
 	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
-	sun->CreatesShadows = false;
 #if defined (QUICK_MAP)
 	knight = new Knight(this, Vector3::Up() * 3.0f, 0.1f, PER_FIRE_WEIGHT * 4);
 #elif !defined (BIG_MAP)

@@ -26,7 +26,8 @@ namespace Plutonium
 		friend const DeviceInfo* _CrtGetDeviceInfo(void);
 
 		DeviceInfo(void)
-			: DeviceVendor(nullptr), DeviceConfig(nullptr), DriverVersion(nullptr), ShaderVersion(nullptr), FrameBufferSize(0)
+			: DeviceVendor(nullptr), DeviceConfig(nullptr), DriverVersion(nullptr), ShaderVersion(nullptr), 
+			FrameBufferSize(0)
 		{}
 	};
 

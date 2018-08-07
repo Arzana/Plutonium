@@ -347,25 +347,25 @@ bool Plutonium::Shader::LinkProgram(void)
 	/* Link shader program. */
 	glLinkProgram(ptr);
 
+	/* On debug mode get the link log. */
+#if defined(DEBUG)
+	int32 logLen;
+	glGetProgramiv(ptr, GL_INFO_LOG_LENGTH, &logLen);
+	if (logLen > 1)
+	{
+		/* Log is availabe so log it to the output. */
+		char *log = malloc_s(char, logLen);
+		glGetProgramInfoLog(ptr, logLen, &logLen, log);
+		LOG_WAR("Shader Program link log:\n%s", log);
+		free_s(log);
+	}
+#endif
+
 	/* Get the link state of the shader program. */
 	int32 state;
 	glGetProgramiv(ptr, GL_LINK_STATUS, &state);
 	if (!state)
 	{
-		/* On debug mode get the link log. */
-#if defined(DEBUG)
-		int32 logLen;
-		glGetProgramiv(ptr, GL_INFO_LOG_LENGTH, &logLen);
-		if (logLen > 1)
-		{
-			/* Log is availabe so log it to the output. */
-			char *log = malloc_s(char, logLen);
-			glGetProgramInfoLog(ptr, logLen, &logLen, log);
-			LOG_WAR("Shader Program link log:\n%s", log);
-			free_s(log);
-		}
-#endif
-
 		LOG_THROW("Failed to link shader program!");
 		return false;
 	}

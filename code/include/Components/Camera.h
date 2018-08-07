@@ -53,10 +53,29 @@ namespace Plutonium
 		{
 			return view;
 		}
+
+		/* Gets the current inverse view matrix. */
+		_Check_return_ inline const Matrix& GetInverseView(void) const
+		{
+			if (iviewDirty)
+			{
+				iviewDirty = false;
+				iview = view.GetInverse();
+			}
+
+			return iview;
+		}
+
 		/* Gets the current projection matrix. */
 		_Check_return_ inline const Matrix& GetProjection(void) const
 		{
 			return proj;
+		}
+
+		/* Gets the current inverse projection matrix. */
+		_Check_return_ inline const Matrix& GetInverseProjection(void) const
+		{
+			return iproj;
 		}
 
 		/* Gets the position of the camera. */

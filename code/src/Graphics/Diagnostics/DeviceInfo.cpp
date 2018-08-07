@@ -35,7 +35,6 @@ const DeviceInfo * Plutonium::_CrtGetDeviceInfo(void)
 			GLint totalKb = 0;
 			glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalKb);
 			result->FrameBufferSize = totalKb * 1000ULL;
-			break;
 		}
 	}
 
