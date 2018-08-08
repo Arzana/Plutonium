@@ -39,6 +39,12 @@ namespace Plutonium
 			return dot(N, p) + D;
 		}
 
+		/* Checks whether the ray is intersection the plane. */
+		_Check_return_ inline bool IntersectionRay(_In_ Vector3 origin, _In_ Vector3 direction)
+		{
+			return (-(HalfSpace(origin) / dot(N, direction))) >= 0;
+		}
+
 		/* Gets whether the sphere is intersecting or is in front of the plane. */
 		_Check_return_ inline bool IntersectionSphere(_In_ Vector3 center, _In_ float radius) const
 		{

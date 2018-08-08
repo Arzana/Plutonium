@@ -245,10 +245,15 @@ void Plutonium::Window::SetMode(VSyncMode mode)
 	swapMode = mode;
 }
 
+bool Plutonium::Window::InvokeRequired(void) const
+{
+	return _CrtGetCurrentThreadId() != contextId;
+}
+
 void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> &func) const
 {
 	/* Only add to the invoke list if the current thread is not equal to the context thread. */
-	if (_CrtGetCurrentThreadId() == contextId)
+	if (!InvokeRequired())
 	{
 		func.HandlePost(this, EventArgs());
 		return;

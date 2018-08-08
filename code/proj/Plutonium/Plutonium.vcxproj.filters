@@ -114,12 +114,6 @@
     <Filter Include="Header Files\Graphics\Lighting">
       <UniqueIdentifier>{5ac68692-b2b9-4a25-851a-f411fbc33472}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Graphics\Diagnostics\ViewModes">
-      <UniqueIdentifier>{170138f3-19fd-4004-bd41-34038facd373}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\Diagnostics\ViewModes">
-      <UniqueIdentifier>{fb1229aa-ca7d-448c-b31a-8f2b6ec21d9c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Graphics\GUI">
       <UniqueIdentifier>{334665d7-1be2-4acf-b453-e9bc63c170a1}</UniqueIdentifier>
     </Filter>
@@ -326,23 +320,8 @@
     <ClCompile Include="..\..\src\Graphics\TextureOptions.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Renderer.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\NormalRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\LightingRenderer.cpp">
-      <Filter>Source Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\GUI\Core\GuiItem.cpp">
       <Filter>Source Files\Graphics\GUI\Core</Filter>
@@ -403,6 +382,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\GUIWindow.cpp">
       <Filter>Source Files\Graphics\GUI\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Graphics\Rendering\ShapeRenderer.cpp">
+      <Filter>Source Files\Graphics\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -670,29 +652,14 @@
     <ClInclude Include="..\..\include\Graphics\Rendering\SkyboxRenderer.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLSources.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Native\OpenGLMessageTypes.h">
       <Filter>Header Files\Graphics\Native</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Renderer.h">
       <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\NormalRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\LightingRenderer.h">
-      <Filter>Header Files\Graphics\Diagnostics\ViewModes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\GUI\Core\Anchors.h">
       <Filter>Header Files\Graphics\GUI\Core</Filter>
@@ -801,6 +768,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\GUIWindow.h">
       <Filter>Header Files\Graphics\GUI\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Graphics\Rendering\ShapeRenderer.h">
+      <Filter>Header Files\Graphics\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

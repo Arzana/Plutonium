@@ -480,6 +480,8 @@ void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLo
 
 Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, const TextureCreationOptions * config)
 {
+	ASSERT_IF(!wnd->InvokeRequired(), "Calling the direct loading API from the OpenGL context thread will deadlock the application!");
+
 	/* Create temporary storage. */
 	LoadResult<Texture> result;
 
@@ -493,6 +495,8 @@ Texture * Plutonium::AssetLoader::LoadTexture(const char * path, bool keep, cons
 
 Texture * Plutonium::AssetLoader::LoadTexture(const char * paths[6], bool keep, const TextureCreationOptions * config)
 {
+	ASSERT_IF(!wnd->InvokeRequired(), "Calling the direct loading API from the OpenGL context thread will deadlock the application!");
+
 	/* Create temporary storage. */
 	LoadResult<Texture> result;
 
@@ -506,6 +510,8 @@ Texture * Plutonium::AssetLoader::LoadTexture(const char * paths[6], bool keep, 
 
 StaticModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep)
 {
+	ASSERT_IF(!wnd->InvokeRequired(), "Calling the direct loading API from the OpenGL context thread will deadlock the application!");
+
 	/* Create temporary storage. */
 	LoadResult<StaticModel> result;
 
@@ -519,6 +525,8 @@ StaticModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep)
 
 DynamicModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep, const char * texture)
 {
+	ASSERT_IF(!wnd->InvokeRequired(), "Calling the direct loading API from the OpenGL context thread will deadlock the application!");
+
 	/* Create temporary storage. */
 	LoadResult<DynamicModel> result;
 
@@ -532,6 +540,8 @@ DynamicModel * Plutonium::AssetLoader::LoadModel(const char * path, bool keep, c
 
 Font * Plutonium::AssetLoader::LoadFont(const char * path, float scale, bool keep)
 {
+	ASSERT_IF(!wnd->InvokeRequired(), "Calling the direct loading API from the OpenGL context thread will deadlock the application!");
+
 	/* Create temporary storage. */
 	LoadResult<Font> result;
 

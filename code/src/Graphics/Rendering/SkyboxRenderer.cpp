@@ -3,8 +3,38 @@
 
 using namespace Plutonium;
 
+constexpr const char *VRTX_SHDR_SRC =
+"#version 430 core													\n"
+
+"uniform mat4 view;													\n"
+"uniform mat4 projection;											\n"
+
+"in vec3 position;													\n"
+
+"out vec3 angle;													\n"
+
+"void main()														\n"
+"{																	\n"
+"	angle = normalize(position);									\n"
+"	gl_Position = (projection * view * vec4(position, 1.0f)).xyww;	\n"
+"}";
+
+constexpr const char *FRAG_SHDR_SRC =
+"#version 430 core													\n"
+
+"uniform samplerCube skybox;										\n"
+
+"in vec3 angle;														\n"
+
+"out vec4 fragColor;												\n"
+
+"void main()														\n"
+"{																	\n"
+"	fragColor = texture(skybox, angle);								\n"
+"}";
+
 Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device)
-	: device(device)
+	: Renderer(new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC)), device(device)
 {
 	InitShader();
 
@@ -17,7 +47,6 @@ Plutonium::SkyboxRenderer::SkyboxRenderer(_In_ GraphicsAdapter *device)
 
 Plutonium::SkyboxRenderer::~SkyboxRenderer(void)
 {
-	delete_s(shdr);
 	delete_s(vbo);
 }
 
@@ -39,7 +68,7 @@ void Plutonium::SkyboxRenderer::Render(const Matrix & view, const Matrix & proj,
 void Plutonium::SkyboxRenderer::Begin(const Matrix & view, const Matrix & proj)
 {
 	/* Start shader and set transformations. */
-	shdr->Begin();
+	Renderer::Begin();
 	matView->Set(view.GetStatic());
 	matProj->Set(proj);
 
@@ -50,43 +79,14 @@ void Plutonium::SkyboxRenderer::Begin(const Matrix & view, const Matrix & proj)
 void Plutonium::SkyboxRenderer::End(void)
 {
 	/* End shader and enable depth output. */
-	shdr->End();
+	Renderer::End();
 	device->SetDepthOuput(true);
 }
 
 void Plutonium::SkyboxRenderer::InitShader(void)
 {
-	constexpr const char *VRTX_SHDR_SRC =
-		"#version 430 core													\n"
-		
-		"uniform mat4 view;													\n"
-		"uniform mat4 projection;											\n"
-		
-		"in vec3 position;													\n"
-		
-		"out vec3 angle;													\n"
-		
-		"void main()														\n"
-		"{																	\n"
-		"	angle = normalize(position);									\n"
-		"	gl_Position = (projection * view * vec4(position, 1.0f)).xyww;	\n"
-		"}";
+	const Shader *shdr = GetShader();
 
-	constexpr const char *FRAG_SHDR_SRC =
-		"#version 430 core													\n"
-		
-		"uniform samplerCube skybox;										\n"
-		
-		"in vec3 angle;														\n"
-		
-		"out vec4 fragColor;												\n"
-		
-		"void main()														\n"
-		"{																	\n"
-		"	fragColor = texture(skybox, angle);								\n"
-		"}";
-
-	shdr = new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC);
 	matView = shdr->GetUniform("view");
 	matProj = shdr->GetUniform("projection");
 	texture = shdr->GetUniform("skybox");

@@ -1,7 +1,12 @@
 #include "Core\Math\Box.h"
-#include "Core\Math\Basics.h"
+#include "Core\Math\VInterpolation.h"
 
 using namespace Plutonium;
+
+Box Plutonium::Box::Mix(const Box & first, const Box & second, float a)
+{
+	return Box(lerp(first.Position, second.Position, a), lerp(first.Size, second.Size, a));
+}
 
 Box Plutonium::Box::Merge(const Box & first, const Box & second)
 {
@@ -23,7 +28,7 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 	vertical *= 0.5f;
 	depth *= 0.5f;
 
-	if (Size.X > 0.0f)
+	if (Size.X >= 0.0f)
 	{
 		Position.X -= horizontal;
 		Size.X += horizontal;
@@ -34,7 +39,7 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 		Size.X -= horizontal;
 	}
 
-	if (Size.Y > 0.0f)
+	if (Size.Y >= 0.0f)
 	{
 		Position.Y -= vertical;
 		Size.Y += vertical;
@@ -45,7 +50,7 @@ void Plutonium::Box::Inflate(float horizontal, float vertical, float depth)
 		Size.Y -= vertical;
 	}
 
-	if (Size.Z > 0.0f)
+	if (Size.Z >= 0.0f)
 	{
 		Position.Z -= depth;
 		Size.Z += depth;
@@ -98,4 +103,45 @@ Box Plutonium::Box::GetOverlap(const Box & b) const
 	if (zs < zl) return Box();
 
 	return Box(xl, yl, zl, xs - xl, ys - yl, zs - zl);
+}
+
+bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, const Matrix & world, float * dist)
+{
+	/* http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/ */
+	float near = minv<float>();
+	float far = maxv<float>();
+
+	Vector3 max = Position + Size;
+	Vector3 delta = Position - origin;
+	Vector3 axis[3] = { world.GetRight(), world.GetUp(), world.GetBackward() };
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		Vector3 curAxis = normalize(axis[i]);
+
+		float e = dot(curAxis, delta);
+		float f = dot(curAxis, dir);
+
+		if (fabs(f) > EPSILON)
+		{
+			float t1 = (e + Position.f[i]) / f;
+			float t2 = (e + max.f[i]) / f;
+
+			if (t1 > t2)
+			{
+				float tmp = t1;
+				t1 = t2;
+				t2 = tmp;
+			}
+
+			if (t2 < far) far = t2;
+			if (t1 > near) near = t1;
+
+			if (far < near) return false;
+		}
+		else if (-e + Position.f[i] > 0.0f || -e + max.f[i] < 0.0f) return false;
+	}
+
+	if (dist) *dist = near;
+	return true;
 }

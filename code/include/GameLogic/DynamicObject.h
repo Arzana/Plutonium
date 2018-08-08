@@ -43,6 +43,8 @@ namespace Plutonium
 			return mixAmnt;
 		}
 
+		/* Gets the current bounding box of the model. */
+		_Check_return_ inline virtual Box GetBoundingBox(void) const override;
 		/* Plays a specified animation. */
 		_Check_return_ bool PlayAnimation(_In_ const char *name);
 		/* Updates the model. */

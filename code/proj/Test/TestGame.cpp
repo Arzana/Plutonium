@@ -22,6 +22,7 @@ void TestGame::Initialize(void)
 	/* Initialize renderers. */
 	renderer = new DeferredRendererBP(this);
 	sbrenderer = new SkyboxRenderer(GetGraphics());
+	srenderer = new ShapeRenderer(GetGraphics());
 
 	/* Bind keypress events. */
 	GetKeyboard()->KeyPress.Add(this, &TestGame::SpecialKeyPress);
@@ -101,6 +102,7 @@ void TestGame::Finalize(void)
 {
 	delete_s(renderer);
 	delete_s(sbrenderer);
+	delete_s(srenderer);
 	delete_s(cam);
 }
 
@@ -134,6 +136,9 @@ void TestGame::Render(float dt)
 	/* Render knight if needed. */
 #if defined(QUICK_MAP)
 	renderer->Add(knight->object);
+#if defined(DEBUG)
+	srenderer->AddBox(knight->object->GetBoundingBox());
+#endif
 #endif
 
 	/* Render all fires present in the scene. */
@@ -146,6 +151,12 @@ void TestGame::Render(float dt)
 	/* Render scene. */
 	renderer->Render(cam);
 	sbrenderer->Render(cam->GetView(), cam->GetProjection(), skybox);
+
+	/* Render debugging shapes. */
+#if defined (DEBUG)
+	srenderer->AddBox(map->GetBoundingBox());
+	srenderer->Render(cam->GetView(), cam->GetProjection());
+#endif
 }
 
 void TestGame::UpdateDayState(float dt)

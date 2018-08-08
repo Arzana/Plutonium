@@ -210,11 +210,6 @@
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugTextRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\DeviceInfo.cpp" />
     <ClCompile Include="..\..\src\Graphics\Diagnostics\FrameInfo.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\DebugMeshRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\LightingRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\NormalRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\UnlitRenderer.cpp" />
-    <ClCompile Include="..\..\src\Graphics\Diagnostics\ViewModes\WireframeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\GraphicsAdapter.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\Container.cpp" />
     <ClCompile Include="..\..\src\Graphics\GUI\Containers\Menu.cpp" />
@@ -241,6 +236,7 @@
     <ClCompile Include="..\..\src\Graphics\Native\Window.cpp" />
     <ClCompile Include="..\..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Attribute.cpp" />
+    <ClCompile Include="..\..\src\Graphics\Rendering\ShapeRenderer.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Deferred\DeferredRendererBP.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\Field.cpp" />
     <ClCompile Include="..\..\src\Graphics\Rendering\SkyboxRenderer.cpp" />
@@ -308,11 +304,6 @@
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugTextRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\DeviceInfo.h" />
     <ClInclude Include="..\..\include\Graphics\Diagnostics\FrameInfo.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\DebugMeshRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\LightingRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\NormalRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\UnlitRenderer.h" />
-    <ClInclude Include="..\..\include\Graphics\Diagnostics\ViewModes\WireframeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\GraphicsAdapter.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Container.h" />
     <ClInclude Include="..\..\include\Graphics\GUI\Containers\Menu.h" />
@@ -365,6 +356,7 @@
     <ClInclude Include="..\..\include\Graphics\Native\WindowModes.h" />
     <ClInclude Include="..\..\include\Graphics\Renderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Attribute.h" />
+    <ClInclude Include="..\..\include\Graphics\Rendering\ShapeRenderer.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Deferred\DeferredRendererBP.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\Field.h" />
     <ClInclude Include="..\..\include\Graphics\Rendering\FieldTypes.h" />

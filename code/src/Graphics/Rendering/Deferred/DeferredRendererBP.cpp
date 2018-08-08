@@ -460,7 +460,7 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 	gbFbo->Finalize();
 
 	/* Initialize shader map buffer. */
-	dshdFbo = new RenderTarget(game->GetGraphics(), false, 8192, 32768);
+	dshdFbo = new RenderTarget(game->GetGraphics(), false, 1024, 4096);
 	shadow = dshdFbo->Attach("Directional Light Depth", AttachmentOutputType::Depth);
 	dshdFbo->Finalize();
 
@@ -1083,7 +1083,7 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 
 	/* Create view matrix from lights perspective. */
 	Matrix view = Matrix::CreateLookAt(bb.GetCenter(), bb.GetCenter() - light->Direction, Vector3::Up());
-	Box obb = (view * bb) * 1.5f;
+	Box obb = bb * view;
 
 	Matrix proj = Matrix::CreateOrtho(obb.GetLeft(), obb.GetRight(), obb.GetBottom(), obb.GetTop(), obb.GetFront(), obb.GetBack());
 	Matrix result = proj * view;

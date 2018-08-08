@@ -46,8 +46,8 @@ namespace Plutonium
 		/* Scales the box by a specified amount. */
 		_Check_return_ inline Box operator *(_In_ float scalar) const
 		{
-			Box result(Position, Size);
-			result.Inflate(fabsf(Size.X * scalar), fabsf(Size.Y * scalar), fabsf(Size.Z * scalar));
+			Box result(Position + Size * 0.5f, Vector3::Zero());
+			result.Inflate(Size.X * scalar, Size.Y * scalar, Size.Z * scalar);
 			return result;
 		}
 
@@ -125,6 +125,8 @@ namespace Plutonium
 			return Position + Size * 0.5f;
 		}
 
+		/* Mixes the two boxes with a specified amount. */
+		_Check_return_ static Box Mix(_In_ const Box &first, _In_ const Box &second, _In_ float a);
 		/* Creates a box that contains the two input boxes. */
 		_Check_return_ static Box Merge(_In_ const Box &first, _In_ const Box &second);
 		/* Expands the box from all faces by a specified amount. */
@@ -139,6 +141,8 @@ namespace Plutonium
 		_Check_return_ bool Overlaps(_In_ const Box &b) const;
 		/* Gets the overlap of a box over the box. */
 		_Check_return_ Box GetOverlap(_In_ const Box &b) const;
+		/* Checks whether the specified ray has hit the bounding box, optionally outputs the distance of the hit. */
+		_Check_return_ bool HitTestRay(_In_ Vector3 origin, _In_ Vector3 dir, _In_ const Matrix &world, _Out_opt_ float *dist);
 	};
 
 	/* Transforms the box with the specified matrix. */

@@ -1,9 +1,10 @@
 #pragma once
-#include <Game.h>
 #include <Graphics\Rendering\Deferred\DeferredRendererBP.h>
 #include <Graphics\Rendering\SkyboxRenderer.h>
-#include <Components\Camera.h>
+#include <Graphics\Rendering\ShapeRenderer.h>
 #include <Graphics\Lighting\DirectionalLight.h>
+#include <Components\Camera.h>
+#include <Game.h>
 #include "Fire.h"
 #include "Knight.h"
 #include "HUD.h"
@@ -42,6 +43,7 @@ protected:
 
 private:
 	SkyboxRenderer *sbrenderer;
+	ShapeRenderer *srenderer;
 	LoadScreen *loadScreen;
 	HUD *hud;
 

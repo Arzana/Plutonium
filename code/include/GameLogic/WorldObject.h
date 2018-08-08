@@ -12,7 +12,7 @@ namespace Plutonium
 		bool CastsShadows;
 
 		/* Gets a box defining the bounds of this object. */
-		_Check_return_ inline Box GetBoundingBox(void) const
+		_Check_return_ inline virtual Box GetBoundingBox(void) const
 		{
 			return bb * transform;
 		}

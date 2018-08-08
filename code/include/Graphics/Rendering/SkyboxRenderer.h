@@ -1,11 +1,11 @@
 #pragma once
-#include "Graphics\Rendering\Shader.h"
-#include "Graphics\Native\Buffer.h"
+#include "Graphics\Renderer.h"
 #include "Graphics\GraphicsAdapter.h"
 
 namespace Plutonium
 {
 	struct SkyboxRenderer
+		: private Renderer
 	{
 		SkyboxRenderer(_In_ GraphicsAdapter *device);
 		SkyboxRenderer(_In_ const SkyboxRenderer &value) = delete;
@@ -19,7 +19,6 @@ namespace Plutonium
 		void Render(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ const Texture *skybox);
 
 	private:
-		Shader *shdr;
 		Uniform *matView, *matProj, *texture;
 		Attribute *pos;
 		Buffer *vbo;

@@ -32,6 +32,7 @@ namespace Plutonium
 		StaticModel *model;
 		float percentage;
 
+		void SetBoundingBox(void);
 		void OnLoadComplete(const AssetLoader*, StaticModel *result);
 	};
 }

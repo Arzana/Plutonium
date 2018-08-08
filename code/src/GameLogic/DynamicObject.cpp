@@ -13,6 +13,12 @@ Plutonium::DynamicObject::~DynamicObject(void)
 	parent->GetLoader()->Unload(model);
 }
 
+inline Plutonium::Box Plutonium::DynamicObject::GetBoundingBox(void) const
+{
+	Box bb = Box::Mix(GetCurrentFrame()->GetBoundingBox(), GetNextFrame()->GetBoundingBox(), mixAmnt);
+	return bb * GetWorld();
+}
+
 bool Plutonium::DynamicObject::PlayAnimation(const char * name)
 {
 	for (size_t i = 0; i < model->animations.size(); i++)
