@@ -105,7 +105,7 @@ Box Plutonium::Box::GetOverlap(const Box & b) const
 	return Box(xl, yl, zl, xs - xl, ys - yl, zs - zl);
 }
 
-bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, const Matrix & world, float * dist)
+bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, float * dist)
 {
 	/* http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/ */
 	float near = minv<float>();
@@ -113,14 +113,12 @@ bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, const Matrix & worl
 
 	Vector3 max = Position + Size;
 	Vector3 delta = Position - origin;
-	Vector3 axis[3] = { world.GetRight(), world.GetUp(), world.GetBackward() };
+	Vector3 axis[3] = { Vector3::UnitX(), Vector3::UnitY(), Vector3::UnitZ() };
 
 	for (size_t i = 0; i < 3; i++)
 	{
-		Vector3 curAxis = normalize(axis[i]);
-
-		float e = dot(curAxis, delta);
-		float f = dot(curAxis, dir);
+		float e = dot(axis[i], delta);
+		float f = dot(axis[i], dir);
 
 		if (fabs(f) > EPSILON)
 		{

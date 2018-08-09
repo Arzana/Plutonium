@@ -142,7 +142,7 @@ namespace Plutonium
 		/* Gets the overlap of a box over the box. */
 		_Check_return_ Box GetOverlap(_In_ const Box &b) const;
 		/* Checks whether the specified ray has hit the bounding box, optionally outputs the distance of the hit. */
-		_Check_return_ bool HitTestRay(_In_ Vector3 origin, _In_ Vector3 dir, _In_ const Matrix &world, _Out_opt_ float *dist);
+		_Check_return_ bool HitTestRay(_In_ Vector3 origin, _In_ Vector3 dir, _Out_opt_ float *dist);
 	};
 
 	/* Transforms the box with the specified matrix. */

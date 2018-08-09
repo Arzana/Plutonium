@@ -146,7 +146,7 @@ void Plutonium::Label::UpdateTextMesh(void)
 	size_t len = strlen(visibleText), size = len * 6;
 	if (len < 1) return;
 
-	float lh = static_cast<float>(font->GetLineSpace()) * (cntchar(visibleText, U'\n') + 1);
+	float lh = static_cast<float>(font->GetLineSpace());
 	Vector4 *vertices = malloca_s(Vector4, size);
 
 	/* Increase buffered size if needed. */
@@ -167,10 +167,22 @@ void Plutonium::Label::UpdateTextMesh(void)
 
 	float xAdder = 0.0f;
 	float yAdder = -lh;
-	for (size_t i = 0, j = 0; i < len; i++)
+	size_t j = 0;
+	for (size_t i = 0; i < len; i++)
 	{
+		char32 c = visibleText[i];
+
+		/* Hanlde newlines. */
+		if (c == U'\n')
+		{
+			xAdder = 0.0f;
+			yAdder -= lh;
+			continue;
+		}
+		else if (c == U'\r') continue;
+
 		/* Get current character. */
-		const Character *ch = font->GetCharOrDefault(visibleText[i]);
+		const Character *ch = font->GetCharOrDefault(c);
 
 		/* Defines components of the position vertices. */
 		float w = ch->Size.X;
@@ -189,10 +201,9 @@ void Plutonium::Label::UpdateTextMesh(void)
 		vertices[j++] = Vector4(x + w, y + h, br.X, tl.Y);
 
 		xAdder += ch->Advance;
-		if (ch->Key == U'\n') yAdder -= lh;
 	}
 
 	/* Create GPU side buffer. */
-	textMesh->SetData(vertices, size);
+	textMesh->SetData(vertices, j);
 	freea_s(vertices);
 }

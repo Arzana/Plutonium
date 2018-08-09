@@ -78,6 +78,12 @@ namespace Plutonium
 			return iproj;
 		}
 
+		/* Gets the current orientation matrix. */
+		_Check_return_ inline const Matrix& GetOrientation(void) const
+		{
+			return orien;
+		}
+
 		/* Gets the position of the camera. */
 		_Check_return_ inline Vector3 GetPosition(void) const
 		{

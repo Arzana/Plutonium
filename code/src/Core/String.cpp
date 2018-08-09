@@ -71,7 +71,7 @@ std::string Plutonium::to_string(const Matrix & value)
 
 	/* Convert value to string. */
 	const float *cmp = value.GetComponents();
-	snprintf(buffer, BUFFER_SIZE, "%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f",
+	snprintf(buffer, BUFFER_SIZE, "%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f",
 			cmp[0], cmp[4], cmp[8], cmp[12],
 			cmp[1], cmp[5], cmp[9], cmp[13],
 			cmp[2], cmp[6], cmp[10], cmp[14],

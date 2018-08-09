@@ -139,6 +139,7 @@ void Plutonium::Cursor::Hide(void)
 void Plutonium::Cursor::Show(void)
 {
 	glfwSetInputMode(wnd->hndlr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	UpdatePostion();
 }
 
 Plutonium::Cursor::Cursor(const Window * wnd)
@@ -153,6 +154,9 @@ Plutonium::Cursor::Cursor(const Window * wnd)
 	glfwSetCursorEnterCallback(wnd->hndlr, GlfwCursorFocusEventHandler);
 	glfwSetMouseButtonCallback(wnd->hndlr, GlfwCursorButtonEventHandler);
 	glfwSetScrollCallback(wnd->hndlr, GlfwCursorScrollEventHandler);
+
+	/* Set the position for the first tick. */
+	UpdatePostion();
 }
 
 void Plutonium::Cursor::Reset(void)
@@ -161,4 +165,12 @@ void Plutonium::Cursor::Reset(void)
 	ScrollWheel = Vector2::Zero();
 	DeltaX = 0;
 	DeltaY = 0;
+}
+
+void Plutonium::Cursor::UpdatePostion(void)
+{
+	double x, y;
+	glfwGetCursorPos(wnd->hndlr, &x, &y);
+	X = static_cast<int>(x);
+	Y = static_cast<int>(y);
 }

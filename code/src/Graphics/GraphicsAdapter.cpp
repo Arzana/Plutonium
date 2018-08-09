@@ -160,6 +160,14 @@ Plutonium::Vector2 Plutonium::GraphicsAdapter::ToOpenGL(Vector2 screenCoord)
 	return Vector2(screenCoord.X, window->GetClientBounds().Size.Y - screenCoord.Y);
 }
 
+Plutonium::Vector2 Plutonium::GraphicsAdapter::ToNDC(Vector2 screenCoord)
+{
+	Vector2 cs = window->GetClientBounds().Size;
+	float x = (2.0f * screenCoord.X) / cs.X - 1.0f;
+	float y = 1.0f - (2.0f * screenCoord.Y) / cs.Y;
+	return Vector2(x, y);
+}
+
 Plutonium::GraphicsAdapter::GraphicsAdapter(Window * window)
 	: window(window)
 {

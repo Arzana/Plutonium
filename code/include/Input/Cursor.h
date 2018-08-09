@@ -68,5 +68,6 @@ namespace Plutonium
 		Cursor(const Window *wnd);
 
 		void Reset(void);
+		void UpdatePostion(void);
 	} *CursorHandler;
 }

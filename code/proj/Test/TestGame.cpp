@@ -106,6 +106,8 @@ void TestGame::Finalize(void)
 	delete_s(cam);
 }
 
+#include <Core\String.h>
+
 void TestGame::Update(float dt)
 {
 	/* Update visible menus. */
@@ -114,14 +116,30 @@ void TestGame::Update(float dt)
 
 	/* Update scene. */
 	UpdateDayState(dt);
+	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
 #if defined (QUICK_MAP)
 	knight->Update(dt);
-#else
-	for (size_t i = 0; i < fires.size(); i++) fires.at(i)->Update(dt);
 #endif
 
 	/* Update camera. */
 	cam->Update(dt, hud->HasFocus() ? nullptr : GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
+
+	/* Testing. */
+#if defined(DEBUG)
+	if (GetCursor()->IsVisible())
+	{
+		float rayLength = 1.0f;
+		Vector3 pos = cam->GetPosition();
+		Vector3 frwd = cam->GetOrientation().GetForward();
+		Vector3 dir = cam->ScreenToWorldRay(GetCursor()->GetPosition());
+
+		if (knight->object->GetBoundingBox().HitTestRay(cam->GetPosition(), dir, nullptr))
+		{
+			srenderer->AddBox(knight->object->GetBoundingBox(), Color::Green());
+		}
+		else srenderer->AddBox(knight->object->GetBoundingBox(), Color::Red());
+	}
+#endif
 
 	/* Update input. */
 	if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
@@ -136,9 +154,6 @@ void TestGame::Render(float dt)
 	/* Render knight if needed. */
 #if defined(QUICK_MAP)
 	renderer->Add(knight->object);
-#if defined(DEBUG)
-	srenderer->AddBox(knight->object->GetBoundingBox());
-#endif
 #endif
 
 	/* Render all fires present in the scene. */

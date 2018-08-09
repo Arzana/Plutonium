@@ -90,6 +90,8 @@ namespace Plutonium
 
 		/* Converts a 2D vector from screen space (top-left origin) to OpenGL space (bottom-left origin). */
 		_Check_return_ Vector2 ToOpenGL(_In_ Vector2 screenCoord);
+		/* Converts a 2D vector from screen space (top-left origin) to normalized device coordinates. */
+		_Check_return_ Vector2 ToNDC(_In_ Vector2 screenCoord);
 
 	private:
 		friend struct Game;

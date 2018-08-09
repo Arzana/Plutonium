@@ -2,7 +2,7 @@
 #include "Core\Math\VInterpolation.h"
 
 Plutonium::Camera::Camera(GraphicsAdapter * device)
-	: device(device), actualPos(0.0f, 0.0f, 50.0f), 
+	: device(device), actualPos(), 
 	target(), Offset(0.0f, 0.0f, 0.5f),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), 
 	MoveSpeed(100.0f), LookSpeed(6.0f),
@@ -59,18 +59,18 @@ void Plutonium::Camera::Update(float dt, KeyHandler keys, CursorHandler cursor)
 Plutonium::Vector3 Plutonium::Camera::ScreenToWorldRay(Vector2 v) const
 {
 	/* Convert the screen coordinate to a normalized device coordinate. */
-	v = 2.0f * v / device->GetWindow()->GetClientBounds().Size - Vector2::One();
+	Vector2 ndc = device->ToNDC(v);
 	
-	/* Convert the ndc to clip space, because this is a directional ray we can save performance by just setting z. */
-	Vector4 w(v.X, v.Y, -1.0f, 1.0f);
+	/* Convert the ndc to clip space, z needs to be set to -1 to indicate the near plane and w needs to be set to 1 to indicate no change at the perspective divide. */
+	Vector4 clip(ndc.X, ndc.Y, -1.0f, 1.0f);
 
 	/* Convert to clip space coordinate back to view space. */
-	w = GetInverseProjection() * w;
-	w = Vector4(w.X, w.Y, -1.0f, 0.0f);
+	Vector4 eye = GetInverseProjection() * clip;
+	eye = Vector4(eye.X, eye.Y, -1.0f, 1.0f);
 
 	/* Converts the view space coordinate back to world space and return the normalized 3D part. */
-	w = GetInverseView() * w;
-	return normalize(Vector3(w.X, w.Y, w.Z));
+	Vector4 world = GetInverseView() * eye;
+	return normalize(world.XYZ - actualPos);
 }
 
 void Plutonium::Camera::SetNear(float value)

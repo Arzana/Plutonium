@@ -146,37 +146,46 @@ float Plutonium::Matrix::GetDeterminant(void) const
 {
 	return
 		f[0] * det33(f[5], f[9], f[13], f[6], f[10], f[14], f[7], f[11], f[15]) -
-		f[4] * det33(f[1], f[9], f[13], f[6], f[10], f[14], f[3], f[11], f[15]) +
-		f[8] * det33(f[1], f[5], f[13], f[2], f[6], f[14], f[3], f[7], f[15]) -
-		f[12] * det33(f[1], f[5], f[9], f[2], f[6], f[10], f[3], f[7], f[11]);
+		f[1] * det33(f[1], f[9], f[13], f[2], f[10], f[14], f[3], f[11], f[15]) +
+		f[2] * det33(f[1], f[5], f[13], f[2], f[6], f[14], f[3], f[7], f[15]) -
+		f[3] * det33(f[1], f[5], f[9], f[2], f[6], f[10], f[3], f[7], f[11]);
 }
 
 Matrix Plutonium::Matrix::GetInverse(void) const
 {
-	const float a = det33(f[5], f[9], f[13], f[6], f[10], f[14], f[7], f[11], f[15]);
-	const float e = det33(f[1], f[9], f[13], f[6], f[10], f[14], f[3], f[11], f[15]);
-	const float i = det33(f[1], f[5], f[13], f[2], f[6], f[14], f[3], f[7], f[15]);
-	const float m = det33(f[1], f[5], f[9], f[2], f[6], f[10], f[3], f[7], f[11]);
+	/* Inline calculate the matrix of minors needed for the determinant to save performance. */
+	const float a = det33(this->f[5], this->f[9], this->f[13], this->f[6], this->f[10], this->f[14], this->f[7], this->f[11], this->f[15]);
+	const float e = det33(this->f[1], this->f[9], this->f[13], this->f[2], this->f[10], this->f[14], this->f[3], this->f[11], this->f[15]);
+	const float i = det33(this->f[1], this->f[5], this->f[13], this->f[2], this->f[6], this->f[14], this->f[3], this->f[7], this->f[15]);
+	const float m = det33(this->f[1], this->f[5], this->f[9], this->f[2], this->f[6], this->f[10], this->f[3], this->f[7], this->f[11]);
 
+	/* Calculate determinant and if it's zero early out with an identity matrix. */
 	float det = f[0] * a - f[4] * e + f[8] * i - f[12] * m;
 	if (det == 0.0f) return Matrix();
 
-	const float b = -det33(f[4], f[8], f[12], f[6], f[10], f[14], f[7], f[11], f[15]);
-	const float c = det33(f[4], f[8], f[12], f[5], f[9], f[13], f[7], f[11], f[15]);
-	const float d = -det33(f[4], f[8], f[12], f[5], f[9], f[13], f[2], f[6], f[10]);
-	const float _f = -det33(f[0], f[8], f[12], f[2], f[10], f[14], f[3], f[11], f[15]);
-	const float g = -det33(f[0], f[8], f[12], f[1], f[9], f[13], f[3], f[11], f[15]);
-	const float h = det33(f[0], f[8], f[12], f[1], f[9], f[13], f[2], f[10], f[14]);
-	const float j = -det33(f[0], f[4], f[12], f[2], f[6], f[10], f[3], f[7], f[11]);
-	const float k = det33(f[0], f[4], f[12], f[1], f[5], f[9], f[2], f[7], f[15]);
-	const float l = -det33(f[0], f[4], f[12], f[1], f[5], f[13], f[2], f[6], f[14]);
-	const float n = det33(f[0], f[4], f[8], f[2], f[6], f[10], f[3], f[7], f[11]);
-	const float o = -det33(f[0], f[4], f[8], f[1], f[5], f[9], f[3], f[7], f[11]);
-	const float p = det33(f[0], f[4], f[8], f[1], f[5], f[9], f[2], f[6], f[10]);
+	/* Calculate matrix of minors for the full matrix (inline transposed). */
+	const float b = det33(this->f[4], this->f[8], this->f[12], this->f[6], this->f[10], this->f[14], this->f[7], this->f[11], this->f[15]);
+	const float c = det33(this->f[4], this->f[8], this->f[12], this->f[5], this->f[9], this->f[13], this->f[7], this->f[11], this->f[15]);
+	const float d = det33(this->f[4], this->f[8], this->f[12], this->f[5], this->f[9], this->f[13], this->f[6], this->f[10], this->f[14]);
+	const float f = det33(this->f[0], this->f[8], this->f[12], this->f[2], this->f[10], this->f[14], this->f[3], this->f[11], this->f[15]);
+	const float g = det33(this->f[0], this->f[8], this->f[12], this->f[1], this->f[9], this->f[13], this->f[3], this->f[11], this->f[15]);
+	const float h = det33(this->f[0], this->f[8], this->f[12], this->f[1], this->f[9], this->f[13], this->f[2], this->f[10], this->f[14]);
+	const float j = det33(this->f[0], this->f[4], this->f[12], this->f[2], this->f[6], this->f[14], this->f[3], this->f[7], this->f[15]);
+	const float k = det33(this->f[0], this->f[4], this->f[12], this->f[1], this->f[5], this->f[13], this->f[3], this->f[7], this->f[15]);
+	const float l = det33(this->f[0], this->f[4], this->f[12], this->f[1], this->f[5], this->f[13], this->f[2], this->f[6], this->f[14]);
+	const float n = det33(this->f[0], this->f[4], this->f[8], this->f[2], this->f[6], this->f[10], this->f[3], this->f[7], this->f[11]);
+	const float o = det33(this->f[0], this->f[4], this->f[8], this->f[1], this->f[5], this->f[9], this->f[3], this->f[7], this->f[11]);
+	const float p = det33(this->f[0], this->f[4], this->f[8], this->f[1], this->f[5], this->f[9], this->f[2], this->f[6], this->f[10]);
 
-	Matrix adj = Matrix(a, b, c, d, -e, _f, g, h, i, j, k, l, -m, n, o, p);
+	/* Construct the adjugate matrix by checkboarding the determinants. */
+	Matrix adj = Matrix(
+		+a, -b, +c, -d, 
+		-e, +f, -g, +h, 
+		+i, -j, +k, -l,
+		-m, +n, -o, +p);
+
+	/* Return the adjugate matrix multiplied by the inverse determinant. */
 	det = 1.0f / det;
-
 	return Matrix(adj.c1 * det, adj.c2 * det, adj.c3 * det, adj.c4 * det);
 }
 

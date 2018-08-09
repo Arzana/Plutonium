@@ -22,6 +22,14 @@ namespace Plutonium
 				/* The W component of the vector. */
 				float W;
 			};
+
+			struct 
+			{
+				/* The X, Y and Z component of the vector. */
+				Vector3 XYZ;
+				/* The W component of the vector. */
+				float W;
+			};
 		};
 
 		/* Initializes a new instance of a four dimentional  vector with all components set to zero. */
@@ -158,6 +166,13 @@ namespace Plutonium
 		_Check_return_ static inline Vector4 Zero()
 		{
 			static Vector4 result = Vector4();
+			return result;
+		}
+
+		/* [0, 0, 0, 1] */
+		_Check_return_ static inline Vector4 ZeroP()
+		{
+			static Vector4 result = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 			return result;
 		}
 

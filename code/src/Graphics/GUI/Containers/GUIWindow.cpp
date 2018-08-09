@@ -196,7 +196,7 @@ void Plutonium::GUIWindow::HandleAutoSize(void)
 
 		/* Get the current size of the window and transform the dimentions of the rectangle into a single size value. */
 		Vector2 curSize = GetSize();
-		Vector2 dim = bb.Size - bb.Position + Vector2(0.0f, hdrSpltH);
+		Vector2 dim = (bb.Size - bb.Position) + Vector2(0.0f, hdrSpltH);
 
 		/* Only change the size if the dimentions will be more than zero. */
 		if (dim != Vector2::Zero())

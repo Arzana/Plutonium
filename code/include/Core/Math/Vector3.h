@@ -322,6 +322,18 @@ namespace Plutonium
 		return v / v.Length();
 	}
 
+	/* Checks if two vectors are equal with a specfied error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ Vector3 v, _In_ Vector3 w, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyeql(v.X, w.X, tolerance) && nrlyeql(v.Y, w.Y, tolerance) && nrlyeql(v.Z, w.Z);
+	}
+
+	/* Gets the direction from a to b. */
+	_Check_return_ inline Vector3 dir(_In_ Vector3 a, _In_ Vector3 b)
+	{
+		return normalize(b - a);
+	}
+
 	/* Calculates the reflection vector of the specified input vector around the specified normal. */
 	_Check_return_ inline Vector3 reflect(_In_ Vector3 v, _In_ Vector3 n)
 	{

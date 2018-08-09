@@ -157,7 +157,7 @@ void Plutonium::ShapeRenderer::Render(const Matrix & view, const Matrix & projec
 void Plutonium::ShapeRenderer::AllocVbo(void)
 {
 	vbo = new Buffer(device->GetWindow(), BindTarget::Array);
-	vbo->SetData<VertexFormat>(BufferUsage::DynamicDraw, nullptr, maxLineCnt);
+	vbo->SetData<VertexFormat>(BufferUsage::DynamicDraw, nullptr, maxLineCnt << 1);
 }
 
 void Plutonium::ShapeRenderer::InitShader(void)
