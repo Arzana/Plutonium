@@ -67,6 +67,11 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	/* Disable OpenGL errors on release mode to increase performance. */
+#if !defined (DEBUG)
+	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+#endif
+
 	/* Make sure GLFW is initialized. */
 	if (_CrtInitGLFW() != GLFW_TRUE) return GLFW_FALSE;
 

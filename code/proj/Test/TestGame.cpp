@@ -128,9 +128,6 @@ void TestGame::Update(float dt)
 #if defined(DEBUG)
 	if (GetCursor()->IsVisible())
 	{
-		float rayLength = 1.0f;
-		Vector3 pos = cam->GetPosition();
-		Vector3 frwd = cam->GetOrientation().GetForward();
 		Vector3 dir = cam->ScreenToWorldRay(GetCursor()->GetPosition());
 
 		if (knight->object->GetBoundingBox().HitTestRay(cam->GetPosition(), dir, nullptr))

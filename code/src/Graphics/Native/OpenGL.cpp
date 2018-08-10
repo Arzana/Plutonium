@@ -18,6 +18,15 @@ typedef const char *(WINAPI * PfnWglGetExtensionsStringExtProc)(void);
 typedef bool (WINAPI * PfnWglSwapIntervalExtProc)(int);
 #endif
 
+/*
+Forces the use of the NVidia graphics card instead on onboard GPU.
+http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
+*/
+extern "C"
+{
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
+
 using namespace Plutonium;
 
 /* Whether GLFW has been initialized yet. */

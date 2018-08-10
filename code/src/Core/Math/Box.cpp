@@ -105,41 +105,73 @@ Box Plutonium::Box::GetOverlap(const Box & b) const
 	return Box(xl, yl, zl, xs - xl, ys - yl, zs - zl);
 }
 
-bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, float * dist)
+bool Plutonium::Box::HitTestRay(Vector3 origin, Vector3 dir, Vector3 * point)
 {
-	/* http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/ */
-	float near = minv<float>();
-	float far = maxv<float>();
+	enum Quadrant
+	{
+		Right,
+		Left,
+		Middle
+	};
 
-	Vector3 max = Position + Size;
-	Vector3 delta = Position - origin;
-	Vector3 axis[3] = { Vector3::UnitX(), Vector3::UnitY(), Vector3::UnitZ() };
+	float min[3] = { GetLeft(), GetBottom(), GetFront() };
+	float max[3] = { GetRight(), GetTop(), GetBack() };
 
+	bool inside = true;
+	Quadrant quadrant[3];
+	float candidatePlane[3];
+
+	/* Find the candidate planes. */
 	for (size_t i = 0; i < 3; i++)
 	{
-		float e = dot(axis[i], delta);
-		float f = dot(axis[i], dir);
-
-		if (fabs(f) > EPSILON)
+		if (origin.f[i] < min[i])
 		{
-			float t1 = (e + Position.f[i]) / f;
-			float t2 = (e + max.f[i]) / f;
-
-			if (t1 > t2)
-			{
-				float tmp = t1;
-				t1 = t2;
-				t2 = tmp;
-			}
-
-			if (t2 < far) far = t2;
-			if (t1 > near) near = t1;
-
-			if (far < near) return false;
+			quadrant[i] = Left;
+			candidatePlane[i] = min[i];
+			inside = false;
 		}
-		else if (-e + Position.f[i] > 0.0f || -e + max.f[i] < 0.0f) return false;
+		else if (origin.f[i] > max[i])
+		{
+			quadrant[i] = Right;
+			candidatePlane[i] = max[i];
+			inside = false;
+		}
+		else quadrant[i] = Middle;
 	}
 
-	if (dist) *dist = near;
+	/* Ray origionates from withing the box. */
+	if (inside)
+	{
+		if (point) *point = origin;
+		return true;
+	}
+
+	/* Calculate the T distance to candidate planes. */
+	float maxT[3];
+	for (size_t i = 0; i < 3; i++) maxT[i] = (quadrant[i] != Middle && dir.f[i] != 0.0f) ? ((candidatePlane[i] - origin.f[i]) / dir.f[i]) : -1.0f;
+
+	/* Get the index of the largest plane distance. */
+	size_t lplane = 0;
+	for (size_t i = 0; i < 3; i++)
+	{
+		if (maxT[lplane] < maxT[i]) lplane = i;
+	}
+
+	/* Check if the final candidate is actually inside the box. */
+	if (maxT[lplane] < 0.0f) return false;
+
+	float coord[3];
+	for (size_t i = 0; i < 3; i++)
+	{
+		if (lplane != i)
+		{
+			coord[i] = origin.f[i] + maxT[lplane] * dir.f[i];
+			if (coord[i] < min[i] || coord[i] > max[i]) return false;
+		}
+		else coord[i] = candidatePlane[i];
+	}
+
+	/* Ray has hit the box. */
+	if (point) *point = Vector3(coord[0], coord[1], coord[2]);
 	return true;
 }
