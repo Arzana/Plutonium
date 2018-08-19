@@ -125,6 +125,8 @@ namespace Plutonium
 		}
 
 		/* Creates an orthographics projection matrix. */
+		_Check_return_ static Matrix CreateOrtho(_In_ float width, _In_ float height, _In_ float near, _In_ float far);
+		/* Creates an orthographics projection matrix. */
 		_Check_return_ static Matrix CreateOrtho(_In_ float left, _In_ float right, _In_ float bottom, _In_ float top, _In_ float near, _In_ float far);
 		/* Creates a frustum projection matrix. */
 		_Check_return_ static Matrix CreateFrustum(_In_ float left, _In_ float right, _In_ float bottom, _In_ float top, _In_ float near, _In_ float far);

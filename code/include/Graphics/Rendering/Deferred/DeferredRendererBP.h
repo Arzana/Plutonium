@@ -31,6 +31,16 @@ namespace Plutonium
 	public:
 		/* Defines the exposure value used to render the sceen. */
 		float Exposure;
+		/* 
+		Defines a value (between zero and one) that will determine the mix between logarithmic and linear cascade split distances.
+		Zero being only linear and one being only logarithmic.
+		*/
+		float CascadeLambda;
+		/*
+		Defines the offset (in the direction of the light) given to directional light sources when rending their shadows.
+		Lower values mean that the shadows quality will be better but it might clip objects close to the center and larger shadows might not be taken into account.
+		*/
+		float LightOffset;
 		/* Defines how this renderer should render. */
 		RenderType DisplayType;
 
@@ -56,6 +66,8 @@ namespace Plutonium
 		void Render(_In_ const Camera *cam);
 
 	private:
+		static constexpr size_t CASCADE_CNT = 3;
+
 		std::vector<const StaticObject*> queuedModels;
 		std::vector<const DynamicObject*> queuedAnimations;
 		std::vector<const DirectionalLight*> queuedDLights;
@@ -63,12 +75,12 @@ namespace Plutonium
 		Game *game;
 
 		RenderTarget *gbFbo, *hdrFbo, *dshdFbo;
-		const RenderTargetAttachment *normalSpec;	// [nx, ny, nz, s]	G-Buffer
-		const RenderTargetAttachment *posSpec;		// [x, y, z, s]		G-Buffer
-		const RenderTargetAttachment *ambient;		// [r, g, b]		G-Buffer
-		const RenderTargetAttachment *diffuse;		// [r, g, b]		G-Buffer
-		const RenderTargetAttachment *screen;		// [r, g, b, a]		HDR-Buffer
-		const RenderTargetAttachment *shadow;		// [d]				Shadow depth buffer (directional light).
+		const RenderTargetAttachment *normalSpec;				// [nx, ny, nz, s]	G-Buffer
+		const RenderTargetAttachment *posSpec;					// [x, y, z, s]		G-Buffer
+		const RenderTargetAttachment *ambient;					// [r, g, b]		G-Buffer
+		const RenderTargetAttachment *diffuse;					// [r, g, b]		G-Buffer
+		const RenderTargetAttachment *screen;					// [r, g, b, a]		HDR-Buffer
+		const RenderTargetAttachment *cascades[CASCADE_CNT];	// [d]				Shadow depth buffer (directional light).
 
 		Buffer *plane;
 		Mesh *sphere;
@@ -102,7 +114,10 @@ namespace Plutonium
 		{
 			Shader *shdr;
 			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos;
-			Uniform *dir, *clrAmbi, *clrDiff, *clrSpec, *matView, *mapShdw;
+			Uniform *dir, *clrAmbi, *clrDiff, *clrSpec, *matView;
+			Uniform *matCasc1, *matCasc2, *matCasc3;
+			Uniform *end1, *end2, *end3;
+			Uniform *shdw1, *shdw2, *shdw3;
 			Attribute *pos, *uv;
 		} dpass;
 
@@ -165,10 +180,16 @@ namespace Plutonium
 		void BeginDirLightPass(Vector3 camPos);
 		void BeginPntLightPass(const Matrix &proj, const Matrix &view, Vector3 camPos);
 
+		void SetCascadeMax(const Camera *cam, float max[CASCADE_CNT]);
+		float GetFurthestZFromCam(const Camera *cam);
+		void SetCascadeEnds(const Camera *cam, std::vector<float> *ends);
+		Box CalcOrthoBox(const Camera *cam, float near, float far);
+		Matrix CalcDirLightVP(const Camera * cam, const Box &frustum, const DirectionalLight *light);
+
 		void RenderModel(const Camera *cam, const StaticObject *model, const MaterialBP *overrideMaterial);
 		void RenderModel(const Camera *cam, const DynamicObject *model, const MaterialBP *overrideMaterial);
-		Matrix RenderDirLightShadow(const Camera *cam, const DirectionalLight *light);
-		void RenderDirLight(const Matrix &space, const DirectionalLight *light);
+		void RenderDirLightShadow(const Camera *cam, const DirectionalLight *light, Matrix *spaces, std::vector<float> *ends);
+		void RenderDirLight(const Matrix &view, const DirectionalLight *light, Matrix *spaces, std::vector<float> *ends);
 		void RenderPntLight(const PointLight *light);
 		void FixForMonitor(void);
 	};

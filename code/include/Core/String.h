@@ -102,71 +102,131 @@ namespace Plutonium
 
 			return *this;
 		}
+		/* Concatinates the specified string into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ const _CharTy *value)
+		{
+			return operator+=(_string<_CharTy>(value));
+		}
+
+		/* Concatinates a single specified character to the string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ _CharTy value)
+		{
+			const size_t tLen = Length();
+
+			realloc_s(_CharTy, underlying, tLen + 2);
+			underlying[tLen] = value;
+			AddNullTerminator(tLen + 1);
+
+			return *this;
+		}
 
 		/* Concatinates the specified integer value into this string, returning the result. */
 		_Check_return_ _string<_CharTy>& operator +=(_In_ int32 value)
 		{
-			_string<_CharTy> buffer;
-
-			if constexpr (sizeof(_CharTy) > sizeof(char))
-			{
-				char tmp[sizeof(int32) * 8 + 1];
-				_itoa_s(value, tmp, 10);
-				buffer.underlying = heapwstr(tmp);
-			}
-			else
-			{
-				constexpr size_t size = sizeof(int32) * sizeof(_CharTy) * 8 + 1;
-				buffer.Allocate(size);
-				_itoa_s(value, buffer.underlying, size, 10);
-			}
-
-			return operator+=(buffer);
+			return operator+=(Format<12>("%d", value));
 		}
 
 		/* Concatinates the specified unsigned integer value into this string, returning the result. */
 		_Check_return_ _string<_CharTy>& operator +=(_In_ uint32 value)
 		{
-			_string<_CharTy> buffer;
-
-			if constexpr (sizeof(_CharTy) > sizeof(char))
-			{
-				char tmp[sizeof(uint32) * 8 + 1];
-				_ultoa_s(value, tmp, 10);
-				buffer.underlying = heapwstr(tmp);
-			}
-			else
-			{
-				constexpr size_t size = sizeof(uint32) * sizeof(_CharTy) * 8 + 1;
-				buffer.Allocate(size);
-				_ultoa(value, buffer.underlying, size, 10);
-			}
-
-			return operator+=(buffer);
+			return operator+=(Format<12>("%u", value));
 		}
 
 		/* Concatinates the specified long integer value into this string, returning the result. */
 		_Check_return_ _string<_CharTy>& operator +=(_In_ int64 value)
 		{
-			_string<_CharTy> buffer;
-			std::string tmp = std::to_string(value);
-
-			if constexpr (sizeof(_CharTy) > sizeof(char)) buffer.underlying = heapwstr(tmp.c_str());
-			else buffer.underlying = heaptr(tmp.c_str());
-
-			return operator+=(buffer);
+			return operator+=(Format<21>("%lld", value));
 		}
 
 		/* Concatinates the specified unsigned long integer value into this string, returning the result. */
 		_Check_return_ _string<_CharTy>& operator +=(_In_ uint64 value)
 		{
-			_string<_CharTy> buffer;
-			std::string tmp = std::to_string(value);
+			return operator+=(Format<21>("%llu", value));
+		}
 
-			if constexpr (sizeof(_CharTy) > sizeof(char)) buffer.underlying = heapwstr(tmp);
-			else buffer.underlying = heapstr(tmp.c_str());
+		/* Concatinates the specified floating point value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ float value)
+		{
+			return operator+=(Format<32>("%f", value));
+		}
 
-			return operator+=(buffer);
+		/* Concatinates the specified pointer value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ const void *value)
+		{
+			return operator+=(Format<19>("0x%p", value));
+		}
+
+		/* Concatinates the specified vector value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ Vector2 value)
+		{
+			return operator+=(Format<64>("[X:%f, Y:%f]", value.X, value.Y));
+		}
+
+		/* Concatinates the specified vector value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ Vector3 value)
+		{
+			return operator+=(Format<128>("[X:%f, Y:%f, Z:%f]", value.X, value.Y, value.Z));
+		}
+
+		/* Concatinates the specified vector value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ Vector4 value)
+		{
+			return operator+=(Format<160>("[X:%f, Y:%f, Z:%f, W:%f]", value.X, value.Y, value.Z, value.W));
+		}
+
+		/* Concatinates the specified matrix value into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& operator +=(_In_ const Matrix &value)
+		{
+			const float *f = value.GetComponents();
+			return operator+=(Format<512>("%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f",
+				f[0], f[4], f[8], f[12],
+				f[1], f[5], f[9], f[13],
+				f[2], f[6], f[10], f[14],
+				f[3], f[7], f[11], f[15]));
+		}
+
+		/* Concatinates the specified float with a specified format into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& AddFormattedFloat(_In_ const char *format, _In_ float value)
+		{
+			return operator+=(Format<32>(format, value));
+		}
+
+		/* Converts the specified amount of bytes to kilobytes and concatinates them into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& AddKiloBytes(_In_ uint64 bytes)
+		{
+			operator+=(b2kb(bytes));
+			if constexpr (sizeof(_CharTy) > sizeof(char)) return operator+=(U" KB");
+			else return operator+=(" KB");
+		}
+
+		/* Converts the specified amount of bytes to megabytes and concatinates them into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& AddMegaBytes(_In_ uint64 bytes)
+		{
+			operator+=(b2mb(bytes));
+			if constexpr (sizeof(_CharTy) > sizeof(char)) return operator+=(U" MB");
+			else return operator+=(" MB");
+		}
+
+		/* Converts the specified amount of bytes to gigabytes and concatinates them into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& AddGigaBytes(_In_ uint64 bytes)
+		{
+			operator+=(b2gb(bytes));
+			if constexpr (sizeof(_CharTy) > sizeof(char)) return operator+=(U" GB");
+			else return operator+=(" GB");
+		}
+
+		/* Converts the specified amount of bytes to a short string version and concatinates them into this string, returning the result. */
+		_Check_return_ _string<_CharTy>& AddShortBytes(_In_ uint64 bytes, _In_opt_ uint64 kbBoundry = 1000, _In_opt_ uint64 mbBoundry = 1000000, _In_opt_ uint64 gbBoundry = 1000000000)
+		{
+			if (bytes <= kbBoundry)
+			{
+				operator+=(bytes);
+				if constexpr (sizeof(_CharTy) > sizeof(char)) return operator+=(U" B");
+				else return operator+=(" B");
+			}
+			else if (bytes <= mbBoundry) return AddKiloBytes(bytes);
+			else if (bytes <= gbBoundry) return AddMegaBytes(bytes);
+			else return AddGigaBytes(bytes);
 		}
 
 		/* Gets the length of the string. */
@@ -177,6 +237,19 @@ namespace Plutonium
 
 	private:
 		_CharTy * underlying;
+
+		template <size_t _BufferSize, typename ... _ArgTy>
+		static inline _string<_CharTy> Format(const char *format, _ArgTy ... args)
+		{
+			char buffer[_BufferSize];
+			_string<_CharTy> result;
+
+			sprintf_s(buffer, format, args...);
+			if constexpr (sizeof(_CharTy) > sizeof(char)) result.underlying = heapwstr(buffer);
+			else result.underlying = heapstr(buffer);
+
+			return result;
+		}
 
 		inline void Allocate(size_t size)
 		{
@@ -203,25 +276,4 @@ namespace Plutonium
 	using string = _string<char>;
 	/* Defines a UTF-32 string. */
 	using ustring = _string<char32_t>;
-
-	/* Converts a pointer to a string form. */
-	_Check_return_ std::string to_string(_In_ const void *value);
-	/* Converts a floating point value to string form with a specified format. */
-	_Check_return_ std::string to_string(_In_ const char *format, float value);
-	/* Converts a 2D vector to a string form. */
-	_Check_return_ std::string to_string(_In_ Vector2 value);
-	/* Converts a 3D vector to a string form. */
-	_Check_return_ std::string to_string(_In_ Vector3 value);
-	/* Converts a 4D vector to a string form. */
-	_Check_return_ std::string to_string(_In_ Vector4 value);
-	/* Converts a matrix to a string form. */
-	_Check_return_ std::string to_string(_In_ const Matrix &value);
-	/* Converts bytes to a KB string format. */
-	_Check_return_ std::string b2kb_string(_In_ uint64 value);
-	/* Converts bytes to a MB string format. */
-	_Check_return_ std::string b2mb_string(_In_ uint64 value);
-	/* Converts bytes to a GB string format. */
-	_Check_return_ std::string b2gb_string(_In_ uint64 value);
-	/* Converts bytes to a short string format. */
-	_Check_return_ std::string b2short_string(_In_ uint64 value, _In_opt_ uint64 kbBoundry = 1000, _In_opt_ uint64 mbBoundry = 1000000, _In_opt_ uint64 gbBoundry = 1000000000);
 }

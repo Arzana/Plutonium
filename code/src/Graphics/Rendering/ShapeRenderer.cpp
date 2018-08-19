@@ -67,6 +67,13 @@ void Plutonium::ShapeRenderer::AddRay(Vector3 start, Vector3 end, Color clr)
 	++lineCnt;
 }
 
+void Plutonium::ShapeRenderer::AddMatrix(const Matrix & m, Color xClr, Color yClr, Color zClr)
+{
+	AddRay(m.GetTranslation(), m.GetTranslation() + m.GetRight(), xClr);
+	AddRay(m.GetTranslation(), m.GetTranslation() + m.GetUp(), yClr);
+	AddRay(m.GetTranslation(), m.GetTranslation() + m.GetBackward(), zClr);
+}
+
 void Plutonium::ShapeRenderer::AddCircle(Vector3 center, float radius, Color clr, int32 divs)
 {
 	float delta = PI / static_cast<float>(divs);
@@ -107,27 +114,55 @@ void Plutonium::ShapeRenderer::AddSphere(Vector3 center, float radius, Color xzC
 	}
 }
 
-void Plutonium::ShapeRenderer::AddBox(const Box & box, Color clr)
+void Plutonium::ShapeRenderer::AddAABB(const Box & box, Color clr)
 {
-	Vector3 ftr = box.Position + Vector3(box.Size.X, 0.0f, 0.0f);
-	Vector3 fbr = box.Position + Vector3(box.Size.X, box.Size.Y, 0.0f);
-	Vector3 fbl = box.Position + Vector3(0.0f, box.Size.Y, 0.0f);
-	Vector3 btl = box.Position + Vector3(0.0f, 0.0f, box.Size.Z);
-	Vector3 btr = box.Position + Vector3(box.Size.X, 0.0f, box.Size.Z);
-	Vector3 bbr = box.Position + box.Size;
-	Vector3 bbl = box.Position + Vector3(0.0f, box.Size.Y, box.Size.Z);
+	Vector3 ftl = box[0];
+	Vector3 ftr = box[1];
+	Vector3 fbr = box[2];
+	Vector3 fbl = box[3];
+	Vector3 btl = box[4];
+	Vector3 btr = box[5];
+	Vector3 bbr = box[6];
+	Vector3 bbl = box[7];
 
-	AddRay(box.Position, ftr, clr);
+	AddRay(ftl, ftr, clr);
 	AddRay(ftr, fbr, clr);
 	AddRay(fbr, fbl, clr);
-	AddRay(fbl, box.Position, clr);
+	AddRay(fbl, ftl, clr);
 
 	AddRay(btl, btr, clr);
 	AddRay(btr, bbr, clr);
 	AddRay(bbr, bbl, clr);
 	AddRay(bbl, btl, clr);
 
-	AddRay(box.Position, btl, clr);
+	AddRay(ftl, btl, clr);
+	AddRay(ftr, btr, clr);
+	AddRay(fbr, bbr, clr);
+	AddRay(fbl, bbl, clr);
+}
+
+void Plutonium::ShapeRenderer::AddOBB(const Box & box, const Matrix & orien, Color clr)
+{
+	Vector3 ftl = orien * box[0];
+	Vector3 ftr = orien * box[1];
+	Vector3 fbr = orien * box[2];
+	Vector3 fbl = orien * box[3];
+	Vector3 btl = orien * box[4];
+	Vector3 btr = orien * box[5];
+	Vector3 bbr = orien * box[6];
+	Vector3 bbl = orien * box[7];
+
+	AddRay(ftl, ftr, clr);
+	AddRay(ftr, fbr, clr);
+	AddRay(fbr, fbl, clr);
+	AddRay(fbl, ftl, clr);
+
+	AddRay(btl, btr, clr);
+	AddRay(btr, bbr, clr);
+	AddRay(bbr, bbl, clr);
+	AddRay(bbl, btl, clr);
+
+	AddRay(ftl, btl, clr);
 	AddRay(ftr, btr, clr);
 	AddRay(fbr, bbr, clr);
 	AddRay(fbl, bbl, clr);

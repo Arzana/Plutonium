@@ -41,77 +41,64 @@ void HUD::Create(void)
 
 	lblTime = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblTime);
-	lblTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblTime->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
-		text = "Time: ";
-		text += std::to_string(ipart(fmodf(6.0f + map(0.0f, 24.0f, tgame->sunAngle, 0.0f, TAU), 24.0f)));
+		text = U"Time: ";
+		text += ipart(fmodf(6.0f + map(0.0f, 24.0f, tgame->sunAngle, 0.0f, TAU), 24.0f));
 
 	}));
 	y += yAdded;
 
 	lblFps = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblFps);
-	lblFps->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblFps->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
-		text = "Fps (avrg): ";
-		text += std::to_string(ipart(fps->GetAverageHz()));
-		text += " Hz";
+		text = U"Fps (avrg): ";
+		text += ipart(fps->GetAverageHz());
+		text += U" Hz";
 	}));
 	y += yAdded;
 	
 
 	lblCpuRam = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblCpuRam);
-	lblCpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblCpuRam->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
-		text = "RAM: ";
-		text += b2short_string(ram->GetAverage());
-		text += " / ";
-		text += b2short_string(ram->GetOSBudget());
+		text = U"RAM: ";
+		text.AddShortBytes(ram->GetAverage());
+		text += U" / ";
+		text.AddShortBytes(ram->GetOSBudget());
 	}));
 	y += yAdded;
 
 	lblGpuRam = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblGpuRam);
-	lblGpuRam->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblGpuRam->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
-		text = "GPU: ";
-		text += b2short_string(vram->GetAverage());
-		text += " / ";
-		text += b2short_string(vram->GetOSBudget());
+		text = U"GPU: ";
+		text.AddShortBytes(vram->GetAverage());
+		text += U" / ";
+		text.AddShortBytes(vram->GetOSBudget());
 	}));
 	y += yAdded;
 
 	lblWorldDrawTime = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblWorldDrawTime);
-	lblWorldDrawTime->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblWorldDrawTime->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
 		const float ms = static_cast<float>(game->GetGlobalRenderTime());
 
-		text = "World Draw Time: ";
-		text += to_string("%.2f", ms);
-		text += " ms (";
-		text += to_string("%.0f", 1.0f / ms * 1000.0f);
-		text += "Hz, ";
-		text += std::to_string(_CrtGetDrawCalls());
-		text += "Draw Calls)";
+		text = U"World Draw Time: ";
+		text.AddFormattedFloat("%.2f", ms);
+		text += U" ms (";
+		text.AddFormattedFloat("%.0f", 1.0f / ms * 1000.0f);
+		text += U"Hz, ";
+		text += _CrtGetDrawCalls();
+		text += U"Draw Calls)";
 	}));
 
-	btnDayNight = CreateDefaultButton();
-	btnDayNight->SetAnchors(Anchors::TopCenter);
-	btnDayNight->SetText(dynamic_cast<TestGame*>(game)->enableDayNight ? "Disable Day/Night Cycle" : "Enable Day/Night Cycle");
-	btnDayNight->LeftClicked.Add([&](const Button*, CursorHandler)
-	{
-		if (tgame->enableDayNight) btnDayNight->SetText("Enable Day/Night Cycle");
-		else btnDayNight->SetText("Disable Day/Night Cycle");
-
-		tgame->enableDayNight = !tgame->enableDayNight;
-	});
-
-	y = btnDayNight->GetSize().Y + OFFSET;
-
 	btnVsync = CreateDefaultButton();
-	btnVsync->SetAnchors(Anchors::TopCenter, 0.0f, y);
+	btnVsync->SetAnchors(Anchors::TopCenter);
 	btnVsync->SetText(game->GetGraphics()->GetWindow()->GetRetraceMode() == VSyncMode::Enabled ? "Disable VSync" : "Enable VSync");
 	btnVsync->LeftClicked.Add([&](const Button*, CursorHandler)
 	{
@@ -129,7 +116,17 @@ void HUD::Create(void)
 		}
 	});
 
-	y += btnVsync->GetSize().Y + OFFSET;
+	y = btnVsync->GetSize().Y + OFFSET;
+
+	sldDayNight = AddSlider();
+	sldDayNight->SetAnchors(Anchors::TopCenter, 0.0f, y);
+	sldDayNight->SetValueMapped(tgame->dayNightSpeed, 0.0f, 25.0f);
+	sldDayNight->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
+	{
+		tgame->dayNightSpeed = sender->GetValueMapped(0.0f, 25.0f);
+	});
+
+	y += sldDayNight->GetSize().Y + OFFSET;
 
 	sldExposure = AddSlider();
 	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, y);

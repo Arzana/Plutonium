@@ -7,7 +7,9 @@ namespace Plutonium
 	enum class AttachmentOutputType : GLint
 	{
 		/* Attachment stores the depth (float). */
-		Depth = GL_DEPTH_COMPONENT,
+		LpDepth = GL_DEPTH_COMPONENT,
+		/* Attachment stores the depth (float). */
+		HpDepth = GL_DEPTH_COMPONENT32F,
 		/* Attachment stores 3 unsigned bytes. */
 		RGB = GL_RGB,
 		/* Attachment stored 4 unsigned bytes. */

@@ -22,10 +22,12 @@ void LoadScreen::Create(void)
 	lblLoaderState->SetAnchors(Anchors::TopLeft);
 	lblLoaderState->SetBackColor(Color::Transparent());
 	lblLoaderState->SetTextColor(Color::WhiteSmoke());
-	lblLoaderState->SetTextBind(Label::Binder([&](const Label*, std::string &text)
+	lblLoaderState->SetTextBind(Label::Binder([&](const Label*, ustring &text)
 	{
-		text = game->GetLoader()->GetState();
-		for (size_t i = 0; i < dotCnt; i++) text += '.';
+		const char32 *tmp = heapwstr(game->GetLoader()->GetState());
+		text = tmp;
+		for (size_t i = 0; i < dotCnt; i++) text += U'.';
+		free_s(tmp);
 	}));
 
 	pbSingle = AddProgressBar();

@@ -20,8 +20,8 @@ public:
 
 protected:
 	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
-	Button *btnDayNight, *btnVsync;
-	Slider *sldExposure;
+	Button *btnVsync;
+	Slider *sldDayNight, *sldExposure;
 	TextBox *txtKnightAnim;
 	GUIWindow *wndDbg;
 

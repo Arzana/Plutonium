@@ -42,6 +42,8 @@ namespace Plutonium
 		void Update(_In_ float dt, _In_ KeyHandler keys, _In_ CursorHandler cursor);
 		/* Converts the specified screen coordinate to world space. */
 		_Check_return_ Vector3 ScreenToWorldRay(_In_ Vector2 v) const;
+		/* Converts the specified screen coordinate to word space. */
+		_Check_return_ Vector3 ScreenToWorld(_In_ Vector2 v, _In_ float z) const;
 		/* Teleports the camera to a specified position. */
 		inline void Move(_In_ Vector3 position)
 		{

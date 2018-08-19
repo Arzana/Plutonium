@@ -12,7 +12,8 @@ GLenum getFormat(Plutonium::AttachmentOutputType type)
 {
 	switch (type)
 	{
-	case Plutonium::AttachmentOutputType::Depth:
+	case Plutonium::AttachmentOutputType::LpDepth:
+	case Plutonium::AttachmentOutputType::HpDepth:
 		return GL_DEPTH_COMPONENT;
 	case Plutonium::AttachmentOutputType::RGB:
 	case Plutonium::AttachmentOutputType::LpVector3:
@@ -35,7 +36,8 @@ GLenum getType(Plutonium::AttachmentOutputType type)
 	case Plutonium::AttachmentOutputType::RGB:
 	case Plutonium::AttachmentOutputType::RGBA:
 		return GL_UNSIGNED_BYTE;
-	case Plutonium::AttachmentOutputType::Depth:
+	case Plutonium::AttachmentOutputType::LpDepth:
+	case Plutonium::AttachmentOutputType::HpDepth:
 	case Plutonium::AttachmentOutputType::LpVector3:
 	case Plutonium::AttachmentOutputType::LpVector4:
 	case Plutonium::AttachmentOutputType::HpVector3:
@@ -51,7 +53,8 @@ size_t getChannels(Plutonium::AttachmentOutputType type)
 {
 	switch (type)
 	{
-	case Plutonium::AttachmentOutputType::Depth:
+	case Plutonium::AttachmentOutputType::LpDepth:
+	case Plutonium::AttachmentOutputType::HpDepth:
 		return 1;
 	case Plutonium::AttachmentOutputType::RGB:
 	case Plutonium::AttachmentOutputType::LpVector3:
@@ -104,7 +107,14 @@ void Plutonium::RenderTargetAttachment::SaveAsPng(const char * path, bool flipVe
 
 	/* Free buffer and assert if an error occured. */
 	freea_s(data);
-	ASSERT_IF(!result, "Unable to save render target attachment '%s' as '%s', reason: '%s'!", name, path, _CrtGetErrorString());
+	if (result)
+	{
+		LOG("Saved render target attachment '%s' as '%s'.", name, path);
+	}
+	else
+	{
+		ASSERT("Unable to save render target attachment '%s' as '%s', reason: '%s'!", name, path, _CrtGetErrorString());
+	}
 }
 
 Plutonium::RenderTargetAttachment::RenderTargetAttachment(const char * name, AttachmentOutputType type, size_t index, int32 width, int32 height)
@@ -115,7 +125,8 @@ Plutonium::RenderTargetAttachment::RenderTargetAttachment(const char * name, Att
 {
 	/* Set the border and the attachment type. */
 	constexpr GLint border[] = { 1, 1, 1, 1 };
-	attachment = type == AttachmentOutputType::Depth ? GL_DEPTH_ATTACHMENT : static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + index);
+	bool isDepth = type == AttachmentOutputType::LpDepth || type == AttachmentOutputType::HpDepth;
+	attachment = isDepth ? GL_DEPTH_ATTACHMENT : static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + index);
 
 	/* Check if we can still allow another attachment. */
 	LOG_THROW_IF(index > GL_MAX_COLOR_ATTACHMENTS, "Exceeding attachment limit!");

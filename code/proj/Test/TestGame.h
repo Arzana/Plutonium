@@ -24,8 +24,7 @@ public:
 	TextureHandler skybox;
 
 	/* Display values. */
-	float sunAngle;
-	bool enableDayNight;
+	float sunAngle, dayNightSpeed;
 
 	/* Renderers. */
 	DeferredRendererBP *renderer;

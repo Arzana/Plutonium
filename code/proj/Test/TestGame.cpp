@@ -1,13 +1,14 @@
 #include "TestGame.h"
 #include <Graphics\Models\Shapes.h>
 #include <Graphics\Materials\MaterialBP.h>
+#include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 
 #define QUICK_MAP
 //#define BIG_MAP
 
 TestGame::TestGame(void)
-	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(0.0f), 
-	knight(nullptr), enableDayNight(false)
+	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(TAU - PI4), 
+	knight(nullptr), dayNightSpeed(0.0f)
 {
 	GetGraphics()->GetWindow()->SetMode(WindowMode::BorderlessFullscreen);
 	GetCursor()->Disable();
@@ -72,7 +73,7 @@ void TestGame::LoadContent(void)
 	}));
 
 	/* Setup lighting. */
-	sun = new DirectionalLight(Vector3::FromRoll(sunAngle), Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
+	sun = new DirectionalLight(0.0f, 0.0f, sunAngle, Color(0.2f, 0.2f, 0.2f), Color::SunDay(), Color::White());
 #if defined (QUICK_MAP)
 	knight = new Knight(this, Vector3::Up() * 3.0f, 0.1f, PER_FIRE_WEIGHT * 4);
 #elif !defined (BIG_MAP)
@@ -106,8 +107,6 @@ void TestGame::Finalize(void)
 	delete_s(cam);
 }
 
-#include <Core\String.h>
-
 void TestGame::Update(float dt)
 {
 	/* Update visible menus. */
@@ -123,20 +122,6 @@ void TestGame::Update(float dt)
 
 	/* Update camera. */
 	cam->Update(dt, hud->HasFocus() ? nullptr : GetKeyboard(), GetCursor()->IsVisible() ? nullptr : GetCursor());
-
-	/* Testing. */
-#if defined(DEBUG)
-	if (GetCursor()->IsVisible())
-	{
-		Vector3 dir = cam->ScreenToWorldRay(GetCursor()->GetPosition());
-
-		if (knight->object->GetBoundingBox().HitTestRay(cam->GetPosition(), dir, nullptr))
-		{
-			srenderer->AddBox(knight->object->GetBoundingBox(), Color::Green());
-		}
-		else srenderer->AddBox(knight->object->GetBoundingBox(), Color::Red());
-	}
-#endif
 
 	/* Update input. */
 	if (GetKeyboard()->IsKeyDown(Keys::Escape)) Exit();
@@ -166,7 +151,14 @@ void TestGame::Render(float dt)
 
 	/* Render debugging shapes. */
 #if defined (DEBUG)
-	srenderer->AddBox(map->GetBoundingBox());
+	/* Render the direction indicator in the bottom left. */
+	float offset = 25.0f;
+	float rayLen = 0.01f;
+	Vector2 pos(offset, GetGraphics()->GetWindow()->GetClientBounds().GetHeight() - offset);
+	Matrix translation = Matrix::CreateTranslation(cam->ScreenToWorld(pos, cam->GetNear() + recip(rayLen)));
+	Matrix scale = Matrix::CreateScalar(rayLen);
+
+	srenderer->AddMatrix(translation * scale);
 	srenderer->Render(cam->GetView(), cam->GetProjection());
 #endif
 }
@@ -180,9 +172,8 @@ void TestGame::UpdateDayState(float dt)
 	constexpr float SUNRISE = TAU - 9.0f * DEG2RAD;
 
 	/* Update light orientation. */
-	if (enableDayNight) sunAngle = modrads(sunAngle += DEG2RAD * dt);
-	else sunAngle = modrads(-PI4);
-	sun->Direction = Vector3::FromRoll(sunAngle);
+	sunAngle = modrads(sunAngle += DEG2RAD * dt * dayNightSpeed);
+	sun->SetDirection(0.0f, 0.0f, sunAngle);
 
 	/* Update light color. */
 	sun->Diffuse = Color::SunDay();

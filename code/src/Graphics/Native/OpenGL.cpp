@@ -342,7 +342,7 @@ int Plutonium::_CrtInitGlad(void)
 
 	/* Add specific filters to the message API. */
 	_CrtAddLogRule(131185, OpenGLSource::Basic, OpenGLMsgType::Other, "Plutonium handles buffer creation messages");				// NVidea buffer creation messages.
-	_CrtAddLogRule(131154, OpenGLSource::Basic, OpenGLMsgType::Performance, "Video capture software is a know performance issue");	// Framebuffer captures used by video software.
+	_CrtAddLogRule(131154, OpenGLSource::Basic, OpenGLMsgType::Performance, "Video capture software is a known performance issue");	// Framebuffer captures used by video software.
 #endif
 
 	/* Log results. */

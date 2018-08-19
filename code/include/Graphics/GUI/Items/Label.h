@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics\GUI\Core\GuiItem.h"
 #include "Graphics\Text\Font.h"
+#include "Core\String.h"
 
 namespace Plutonium
 {
@@ -10,7 +11,7 @@ namespace Plutonium
 	{
 	public:
 		/* Defines a function used to set the value of the label each frame. */
-		using Binder = EventSubscriber<Label, std::string&>;
+		using Binder = EventSubscriber<Label, ustring&>;
 
 		/* Occurs when the text property is changed. */
 		EventBus<Label, ValueChangedEventArgs<const char32*>> TextChanged;

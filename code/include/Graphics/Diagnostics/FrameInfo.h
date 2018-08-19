@@ -55,7 +55,7 @@ namespace Plutonium
 		const float b = invert ? 0.0f : 255.0f;
 		const float c = static_cast<float>(lowest);
 		const float d = static_cast<float>(highest);
-		LOG("Converting to greyscale, input range: [%f-%f], output range: [0-255].", c, d);
+		LOG("Converting to greyscale, input range: [%f-%f].", c, d);
 
 		/* Convert the raw data to greyscale (RGBA format). */
 		byte *result = malloca_s(byte, size * 4);

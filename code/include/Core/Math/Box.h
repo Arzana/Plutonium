@@ -52,17 +52,20 @@ namespace Plutonium
 		}
 
 		/* Transforms the box with the specified matrix. */
-		_Check_return_ inline Box operator *(_In_ const Matrix &m) const
-		{
-			Vector3 p1 = m * Position;
-			Vector3 p2 = m * (Position + Size);
-			return Box(p1, p2 - p1);
-		}
+		_Check_return_ Box operator *(_In_ const Matrix &m) const;
+		/* Gets the corner at the specified index. */
+		_Check_return_ Vector3 operator [](_In_ size_t idx) const;
 
 		/* Gets whether the box has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
 		{
 			return Size == Vector3::Zero();
+		}
+
+		/* Gets whether the box has a size of zero and is at the position origin. */
+		_Check_return_ inline bool IsUseless(void) const
+		{
+			return Position == Vector3::Zero() && IsEmpty();
 		}
 
 		/* Gets the absolute width of the box. */
@@ -129,6 +132,8 @@ namespace Plutonium
 		_Check_return_ static Box Mix(_In_ const Box &first, _In_ const Box &second, _In_ float a);
 		/* Creates a box that contains the two input boxes. */
 		_Check_return_ static Box Merge(_In_ const Box &first, _In_ const Box &second);
+		/* Creates a box that contains the input box and the specified point. */
+		_Check_return_ static Box Merge(_In_ const Box &box, _In_ Vector3 point);
 		/* Expands the box from all faces by a specified amount. */
 		void Inflate(_In_ float horizontal, _In_ float vertical, _In_ float depth);
 		/* Squares out the box making the horizontal, verticel and depth equal to the highest of the three. */

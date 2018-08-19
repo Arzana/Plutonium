@@ -43,9 +43,9 @@ void Plutonium::Label::Update(float dt)
 		/* If the bind function is set; update the labels text. */
 		if (bindFunc != 0)
 		{
-			std::string result;
+			ustring result;
 			bindFunc.HandlePost(this, result);
-			SetText(result.c_str());
+			SetText(result);
 		}
 	}
 }

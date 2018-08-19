@@ -197,7 +197,6 @@
     <ClCompile Include="..\..\src\Core\Math\Rectangle.cpp" />
     <ClCompile Include="..\..\src\Core\Math\Triangulation.cpp" />
     <ClCompile Include="..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
-    <ClCompile Include="..\..\src\Core\String.cpp" />
     <ClCompile Include="..\..\src\Core\StringFunctions.cpp" />
     <ClCompile Include="..\..\src\Core\Threading\PuThread.cpp" />
     <ClCompile Include="..\..\src\Core\Threading\ThreadUtils.cpp" />

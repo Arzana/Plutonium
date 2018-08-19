@@ -28,7 +28,8 @@ const Plutonium::RenderTargetAttachment * Plutonium::RenderTarget::Attach(const 
 	glBindFramebuffer(GL_FRAMEBUFFER, ptrFbo);
 
 	/* Create attachment and push it to the list. */
-	RenderTargetAttachment *result = new RenderTargetAttachment(name, type, type == AttachmentOutputType::Depth ? 0 : drawBufferCnt++, width, height);
+	bool isDepth = type == AttachmentOutputType::LpDepth || type == AttachmentOutputType::HpDepth;
+	RenderTargetAttachment *result = new RenderTargetAttachment(name, type, isDepth ? 0 : drawBufferCnt++, width, height);
 	attachments.push_back(result);
 
 	/* Bind the attachment is swapping is not required (most buffers). */
@@ -56,7 +57,7 @@ void Plutonium::RenderTarget::Finalize(void)
 		{
 			/* Only add a buffer if it's not the depth attachment. */
 			const RenderTargetAttachment *cur = attachments.at(i);
-			if (cur->type != AttachmentOutputType::Depth) buffers[j++] = cur->attachment;
+			if (cur->type != AttachmentOutputType::LpDepth && cur->type != AttachmentOutputType::HpDepth) buffers[j++] = cur->attachment;
 		}
 
 		/* Push draw list to OpenGL. */

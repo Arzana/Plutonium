@@ -73,6 +73,24 @@ Plutonium::Vector3 Plutonium::Camera::ScreenToWorldRay(Vector2 v) const
 	return normalize(world.XYZ - actualPos);
 }
 
+Plutonium::Vector3 Plutonium::Camera::ScreenToWorld(Vector2 v, float z) const
+{
+	/* Convert the screen coordinate to a normalized device coordinate. */
+	Vector2 ndc = device->ToNDC(v);
+
+	/* Convert the ndc to clip space, the z component needs to be bound to the ndc space as well. */
+	Vector4 clip(ndc.X, ndc.Y, ilerp(GetNear(), GetFar(), z) - 1.0f, 1.0f);
+
+	/* Convert the clip space coordinate back to view space. */
+	Vector4 eye = GetInverseProjection() * clip;
+
+	/* Perform perspective division. */
+	eye /= eye.W;
+
+	/* The w component can be discarded because no world space coordinate would have one. */
+	return (GetInverseView() * eye).XYZ;
+}
+
 void Plutonium::Camera::SetNear(float value)
 {
 	if (value == near) return;
@@ -106,7 +124,7 @@ void Plutonium::Camera::UpdateView(void)
 	orien.SetOrientation(Yaw, Pitch, Roll);
 
 	/* Update view. */
-	view = Matrix::CreateLookAt(actualPos, target, orien.GetUp());
+	view = Matrix::CreateLookAt(target, actualPos, orien.GetUp());
 	frustum = Frustum(proj * view);
 	iviewDirty = true;
 }

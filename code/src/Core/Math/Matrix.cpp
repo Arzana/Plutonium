@@ -53,6 +53,15 @@ Matrix Plutonium::Matrix::CreateRotation(float yaw, float pitch, float roll)
 	return CreateRotationX(pitch) * CreateRotationY(yaw) * CreateRotationZ(roll);
 }
 
+Matrix Plutonium::Matrix::CreateOrtho(float width, float height, float near, float far)
+{
+	const float a = 2.0f / width;
+	const float f = 2.0f / height;
+	const float k = 2.0f / (far - near);
+
+	return Matrix(a, 0.0f, 0.0f, 0.0f, 0.0f, f, 0.0f, 0.0f, 0.0f, 0.0f, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Matrix Plutonium::Matrix::CreateOrtho(float left, float right, float bottom, float top, float near, float far)
 {
 	const float a = 2.0f / (right - left);
@@ -90,7 +99,7 @@ Matrix Plutonium::Matrix::CreatPerspective(float fovY, float aspr, float near, f
 
 Matrix Plutonium::Matrix::CreateLookAt(Vector3 pos, Vector3 target, Vector3 up)
 {
-	const Vector3 axisZ = normalize(pos - target);
+	const Vector3 axisZ = dir(pos, target);
 	const Vector3 axisX = normalize(cross(up, axisZ));
 	const Vector3 axisY = cross(axisZ, axisX);
 

@@ -2,6 +2,9 @@
 #include "Graphics\GraphicsAdapter.h"
 #include "Graphics\Materials\MaterialBP.h"
 #include "Graphics\Models\Shapes.h"
+#include "Core\Math\Interpolation.h"
+
+//#define VISUALIZE_CASCADES
 
 /*
 Deferred renderer works in three stages.
@@ -9,13 +12,14 @@ Deferred renderer works in three stages.
 First stage:
 - Accumilate all models that need to be rendered.
 	- Static Models
+	- Dynamic Models
 - Perform a G Buffer pass for each of them (LDR).
 	- Discard almost fully transparent fragments
 	- Save material properies into the G buffer.
 
 Second stage:
 - Perform direction light pass for each directional light (HDR).
-	- Render shadow map.
+	- Render shadow maps (PSSM).
 	- Apply to full screen quad.
 	- Additively blend each light into HDR screen buffer.
 - Perform point light pass for each point light (HDR).
@@ -177,7 +181,7 @@ constexpr const char *DSPASS_VRTX_SHDR_SRC =
 "#version 430 core																										\n"
 
 "uniform mat4 Model;																									\n"
-"uniform mat4 LightSpace;																								\n"
+"uniform mat4 CascadeSpace;																								\n"
 "uniform float Blending;																								\n"
 
 "in vec3 Position1;																										\n"
@@ -189,7 +193,7 @@ constexpr const char *DSPASS_VRTX_SHDR_SRC =
 "void main()																											\n"
 "{																														\n"
 "	FragUv = Uv;																										\n"
-"	gl_Position = LightSpace * Model * vec4(mix(Position1, Position2, Blending), 1.0f);									\n"
+"	gl_Position = CascadeSpace * Model * vec4(mix(Position1, Position2, Blending), 1.0f);								\n"
 "}";
 
 constexpr const char *DPASS_FRAG_SHDR_SRC =
@@ -209,24 +213,31 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "	vec4 Ambient;																										\n"
 "	vec4 Diffuse;																										\n"
 "	vec4 Specular;																										\n"
-"	mat4 LightSpace;																									\n"
-"	sampler2D Shadow;																									\n"
+"	mat4 CascadeSpace1;																									\n"
+"	sampler2D Cascade1;																									\n"
+"	float CascadeEnd1;																									\n"
+"	mat4 CascadeSpace2;																									\n"
+"	sampler2D Cascade2;																									\n"
+"	float CascadeEnd2;																									\n"
+"	mat4 CascadeSpace3;																									\n"
+"	sampler2D Cascade3;																									\n"
+"	float CascadeEnd3;																									\n"
 "};																														\n"
 
 "uniform GBuffer Geometry;																								\n"
 "uniform DirectionalLight Light;																						\n"
 "uniform vec3 ViewPosition;																								\n"
+"uniform mat4 View;																										\n"
 
 "in vec2 Uv;																											\n"
 
 "out vec4 FragColor;																									\n"
 
-"float CalcShadowFactor(vec4 pos, vec3 normal)																			\n"
+"float CalcShadowFactor(sampler2D cascade, vec4 pos, vec3 normal)														\n"
 "{																														\n"
 "	vec3 ndc = (pos.xyz / pos.w) * 0.5f + 0.5f;																			\n"
-"	if (ndc.z > 1.0f) return 0.0f;																						\n"
-"	float bias = max(0.05f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
-"	return texture(Light.Shadow, ndc.xy).x < ndc.z - bias ? 0.0f : 1.0f;												\n"
+"	float bias = max(0.005f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
+"	return texture(cascade, ndc.xy).x < ndc.z - bias ? 0.0f : 1.0f;														\n"
 "}																														\n"
 
 "void main()																											\n"
@@ -235,8 +246,31 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
 "	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
 "	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
-"	vec4 posInLight = Light.LightSpace * vec4(posSpec.xyz, 1.0f);														\n"
-"	float visibility = CalcShadowFactor(posInLight, normSpec.xyz);														\n"
+
+"	vec4 pos = vec4(posSpec.xyz, 1.0f);																					\n"
+"	float viewSpaceZ = -(View * pos).z;																					\n"
+"	float visibility = 0.0f;																							\n"
+"	if (viewSpaceZ <= Light.CascadeEnd1)																				\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade1, Light.CascadeSpace1 * pos, normSpec.xyz);							\n"
+#if defined(VISUALIZE_CASCADES)
+"		objAmbient = vec3(0.3f, 0.0f, 0.0f);																			\n"
+#endif
+"	}																													\n"
+"	else if (viewSpaceZ <= Light.CascadeEnd2)																			\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade2, Light.CascadeSpace2 * pos, normSpec.xyz);							\n"
+#if defined(VISUALIZE_CASCADES)
+"		objAmbient = vec3(0.0f, 0.3f, 0.0f);																			\n"
+#endif
+"	}																													\n"
+"	else if (viewSpaceZ <= Light.CascadeEnd3)																			\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade3, Light.CascadeSpace3 * pos, normSpec.xyz);							\n"
+#if defined(VISUALIZE_CASCADES)
+"		objAmbient = vec3(0.0f, 0.0f, 0.3f);																			\n"
+#endif
+"	}																													\n"
 
 "	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
 "	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
@@ -449,7 +483,7 @@ constexpr const char *AL_FRAG_SHDR_SRC =
 #pragma endregion
 
 Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
-	: game(game), Exposure(1.0f), DisplayType(RenderType::Normal)
+	: game(game), Exposure(1.0f), CascadeLambda(0.5f), LightOffset(1.0f), DisplayType(RenderType::Normal)
 {
 	/* Initialize G buffer. */
 	gbFbo = new RenderTarget(game->GetGraphics(), true);
@@ -461,7 +495,7 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 
 	/* Initialize shader map buffer. */
 	dshdFbo = new RenderTarget(game->GetGraphics(), false, 1024, 4096);
-	shadow = dshdFbo->Attach("Directional Light Depth", AttachmentOutputType::Depth);
+	for (size_t i = 0; i < CASCADE_CNT; i++) cascades[i] = dshdFbo->Attach("Directional Light Cascade Depth", AttachmentOutputType::HpDepth, i == 0);
 	dshdFbo->Finalize();
 
 	/* Initialize HDR lighting intermediate buffer. */
@@ -522,6 +556,7 @@ void Plutonium::DeferredRendererBP::Add(const PointLight * light)
 void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 {
 	GraphicsAdapter *device = game->GetGraphics();
+	const MaterialBP *usedMaterial = DisplayType != RenderType::Lighting ? nullptr : defMaterial;
 
 	/* Setup GBuffer. */
 	device->SetRenderTarget(gbFbo);
@@ -530,25 +565,11 @@ void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 
 	/* Perform geometry pass to fill the GBuffer. */
 	BeginGsPass(cam->GetProjection(), cam->GetView());
-	if (DisplayType != RenderType::Lighting)
-	{
-		for (size_t i = 0; i < queuedModels.size(); i++) RenderModel(cam, queuedModels.at(i), nullptr);
-	}
-	else
-	{
-		for (size_t i = 0; i < queuedModels.size(); i++) RenderModel(cam, queuedModels.at(i), defMaterial);
-	}
+	for (size_t i = 0; i < queuedModels.size(); i++) RenderModel(cam, queuedModels.at(i), usedMaterial);
 	gspass.shdr->End();
 
 	BeginGdPass(cam->GetProjection(), cam->GetView());
-	if (DisplayType != RenderType::Lighting)
-	{
-		for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), nullptr);
-	}
-	else
-	{
-		for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), defMaterial);
-	}
+	for (size_t i = 0; i < queuedAnimations.size(); i++) RenderModel(cam, queuedAnimations.at(i), usedMaterial);
 	gdpass.shdr->End();
 
 	/* Setup HDR buffer for lighting. */
@@ -594,6 +615,7 @@ void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 	queuePLights.clear();
 }
 
+#pragma region Initializers
 void Plutonium::DeferredRendererBP::InitMeshes(void)
 {
 	/* Initialize plane used for fully screen rendering. */
@@ -659,7 +681,7 @@ void Plutonium::DeferredRendererBP::InitGdPass(void)
 void Plutonium::DeferredRendererBP::InitDsPass(void)
 {
 	dspass.shdr = new Shader(DSPASS_VRTX_SHDR_SRC, DSPASS_FRAG_SHDR_SRC);
-	dspass.matLs = dspass.shdr->GetUniform("LightSpace");
+	dspass.matLs = dspass.shdr->GetUniform("CascadeSpace");
 	dspass.matMdl = dspass.shdr->GetUniform("Model");
 	dspass.mapAlpha = dspass.shdr->GetUniform("Opacity");
 	dspass.mapDiff = dspass.shdr->GetUniform("Diffuse");
@@ -680,8 +702,16 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 	dpass.clrAmbi = dpass.shdr->GetUniform("Light.Ambient");
 	dpass.clrDiff = dpass.shdr->GetUniform("Light.Diffuse");
 	dpass.clrSpec = dpass.shdr->GetUniform("Light.Specular");
-	dpass.matView = dpass.shdr->GetUniform("Light.LightSpace");
-	dpass.mapShdw = dpass.shdr->GetUniform("Light.Shadow");
+	dpass.matCasc1 = dpass.shdr->GetUniform("Light.CascadeSpace1");
+	dpass.matCasc2 = dpass.shdr->GetUniform("Light.CascadeSpace2");
+	dpass.matCasc3 = dpass.shdr->GetUniform("Light.CascadeSpace3");
+	dpass.end1 = dpass.shdr->GetUniform("Light.CascadeEnd1");
+	dpass.end2 = dpass.shdr->GetUniform("Light.CascadeEnd2");
+	dpass.end3 = dpass.shdr->GetUniform("Light.CascadeEnd3");
+	dpass.shdw1 = dpass.shdr->GetUniform("Light.Cascade1");
+	dpass.shdw2 = dpass.shdr->GetUniform("Light.Cascade2");
+	dpass.shdw3 = dpass.shdr->GetUniform("Light.Cascade3");
+	dpass.matView = dpass.shdr->GetUniform("View");
 	dpass.camPos = dpass.shdr->GetUniform("ViewPosition");
 	dpass.pos = dpass.shdr->GetAttribute("Position");
 	dpass.uv = dpass.shdr->GetAttribute("ScreenCoordinate");
@@ -748,6 +778,7 @@ void Plutonium::DeferredRendererBP::InitAlbedo(void)
 	al.pos = al.shdr->GetAttribute("Position");
 	al.uv = al.shdr->GetAttribute("ScreenCoordinate");
 }
+#pragma endregion
 
 void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 {
@@ -755,15 +786,17 @@ void Plutonium::DeferredRendererBP::RenderNormal(const Camera * cam)
 	for (size_t i = 0; i < queuedDLights.size(); i++)
 	{
 		const DirectionalLight *light = queuedDLights.at(i);
+		std::vector<float> ends;
+		Matrix spaces[CASCADE_CNT];
 
 		/* Render shadow map. */
 		BeginDirShadowPass();
-		Matrix ls = RenderDirLightShadow(cam, light);
+		RenderDirLightShadow(cam, light, spaces, &ends);
 		dspass.shdr->End();
 
 		/* Render lighting. */
 		BeginDirLightPass(cam->GetPosition());
-		RenderDirLight(ls, light);
+		RenderDirLight(cam->GetView(), light, spaces, &ends);
 		dpass.shdr->End();
 	}
 
@@ -917,7 +950,6 @@ void Plutonium::DeferredRendererBP::BeginDirShadowPass(void)
 	/* Setup OpenGL and shader. */
 	device->SetRenderTarget(dshdFbo);
 	device->SetDepthOuput(true);
-	device->Clear(ClearTarget::Depth);
 	dspass.shdr->Begin();
 }
 
@@ -962,6 +994,126 @@ void Plutonium::DeferredRendererBP::BeginPntLightPass(const Matrix & proj, const
 	/* Setup mesh. */
 	sphere->GetVertexBuffer()->Bind();
 	ppass.pos->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+}
+
+void Plutonium::DeferredRendererBP::SetCascadeMax(const Camera * cam, float max[CASCADE_CNT])
+{
+	for (size_t i = 1; i < CASCADE_CNT + 1; i++)
+	{
+		/* Get current amount value for logarithmic and linear scale. */
+		float a = static_cast<float>(i) / static_cast<float>(CASCADE_CNT);
+
+		/* Get current logarithmic and linear(uniform) value. */
+		float log = cam->GetNear() * powf(cam->GetFar(), a);
+		float uni = lerp(cam->GetNear(), cam->GetFar(), a);
+
+		/* Mix them using the lambda as the result. */
+		max[i - 1] = CascadeLambda * log + (1.0f - CascadeLambda) * uni;
+	}
+}
+
+float Plutonium::DeferredRendererBP::GetFurthestZFromCam(const Camera * cam)
+{
+	Box scene;
+
+	/* Add all static models to the scene bounding box if they cast a shadow. */
+	for (size_t i = 0; i < queuedModels.size(); i++)
+	{
+		const StaticObject *cur = queuedModels.at(i);
+		if (cur->CastsShadows) scene = Box::Merge(scene, cur->GetBoundingBox());
+	}
+
+	/* Add all animated models to the scene bounding box if they cast a shadow. */
+	for (size_t i = 0; i < queuedAnimations.size(); i++)
+	{
+		const DynamicObject *cur = queuedAnimations.at(i);
+		if (cur->CastsShadows) scene = Box::Merge(scene, cur->GetBoundingBox());
+	}
+
+	/* Calculate the furthest z coordinate in view space. */
+	float furthest = cam->GetNear();
+	for (size_t i = 0; i < 8; i++)
+	{
+		Vector3 corner = scene[i];
+		float z = -(cam->GetView() * corner).Z;
+		furthest = max(furthest, z);
+	}
+
+	/* Return the minimum of the cull distance and the bounding box max to ensure we don't render behind the frustum. */
+	return min(furthest, cam->GetFar());
+}
+
+void Plutonium::DeferredRendererBP::SetCascadeEnds(const Camera * cam, std::vector<float>* ends)
+{
+	float furthest = GetFurthestZFromCam(cam);
+	float max[CASCADE_CNT];
+	SetCascadeMax(cam, max);
+
+	/* Calculate how many cascades are actually needed (might save a shadow map render). */
+	size_t cascadeCnt = CASCADE_CNT; //1;
+	//for (size_t i = 0; i < CASCADE_CNT; i++)
+	//{
+	//	if (furthest >= max[i]) ++cascadeCnt;
+	//}
+
+	/* Calculate the needed ends of the frustum. */
+	ends->push_back(cam->GetNear());
+	for (size_t i = 1; i < cascadeCnt; i++)
+	{
+		float a = static_cast<float>(i) / static_cast<float>(cascadeCnt);
+		float log = cam->GetNear() * powf(furthest / cam->GetNear(), a);
+		float uni = lerp(cam->GetNear(), furthest, a);
+		ends->push_back(CascadeLambda * log + (1.0f - CascadeLambda) * uni);
+	}
+	ends->push_back(furthest);
+}
+
+Plutonium::Box Plutonium::DeferredRendererBP::CalcOrthoBox(const Camera * cam, float near, float far)
+{
+	/* Gets the camera tangent of the camera fov and the aspect ratio. */
+	float tanFov = tanf(cam->GetFov() * 0.5f);
+	float aspr = game->GetGraphics()->GetWindow()->AspectRatio();
+
+	/* Calculate the height and width of the near and far plane. */
+	float nh = tanFov * near;
+	float nw = nh * aspr;
+	float fh = tanFov * far;
+	float fw = fh * aspr;
+
+	/* Get the camera coordinate system. */
+	Vector3 right = cam->GetOrientation().GetRight();
+	Vector3 up = cam->GetOrientation().GetUp();
+	Vector3 back = cam->GetOrientation().GetForward();
+
+	/* Get the center of the near and far plane. */
+	Vector3 nc = cam->GetPosition() + back * near;
+	Vector3 fc = cam->GetPosition() + back * far;
+
+	/* Calculate the orthographic box corners. */
+	Box result;
+	result = Box::Merge(result, nc - right * nw - up * nh);
+	result = Box::Merge(result, nc - right * nw + up * nh);
+	result = Box::Merge(result, nc + right * nw - up * nh);
+	result = Box::Merge(result, nc + right * nw + up * nh);
+	result = Box::Merge(result, fc - right * fw - up * fh);
+	result = Box::Merge(result, fc - right * fw + up * fh);
+	result = Box::Merge(result, fc + right * fw - up * fh);
+	result = Box::Merge(result, fc + right * fw + up * fh);
+	return result;
+}
+
+Plutonium::Matrix Plutonium::DeferredRendererBP::CalcDirLightVP(const Camera * cam, const Box & frustum, const DirectionalLight * light)
+{
+	/* Create view matrix. */
+	Vector3 pos = frustum.GetCenter();
+	Matrix view = Matrix::CreateLookAt(pos, pos + light->GetDirection() * LightOffset, light->GetUp());
+
+	/* Create orthographic projection matrix. */
+	float d = max(frustum.Size.X, frustum.Size.Z);
+	Matrix proj = Matrix::CreateOrtho(d, d, cam->GetNear(), cam->GetFar());
+
+	/* Return light space matrix. */
+	return proj * view;
 }
 
 void Plutonium::DeferredRendererBP::RenderModel(const Camera * cam, const StaticObject * model, const MaterialBP * overrideMaterial)
@@ -1074,50 +1226,45 @@ void Plutonium::DeferredRendererBP::RenderModel(const Camera * cam, const Dynami
 	}
 }
 
-Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, const DirectionalLight * light)
+#include "Core\String.h"
+
+void Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, const DirectionalLight * light, Matrix * spaces, std::vector<float> * ends)
 {
-	/* Create bounding box for the normal scene. */
-	Box bb;
-	for (size_t i = 0; i < queuedModels.size(); i++) bb = Box::Merge(bb, queuedModels.at(i)->GetBoundingBox());
-	for (size_t i = 0; i < queuedAnimations.size(); i++) bb = Box::Merge(bb, queuedAnimations.at(i)->GetBoundingBox());
+	SetCascadeEnds(cam, ends);
 
-	/* Create view matrix from lights perspective. */
-	Matrix view = Matrix::CreateLookAt(bb.GetCenter(), bb.GetCenter() - light->Direction, Vector3::Up());
-	Box obb = bb * view;
-
-	Matrix proj = Matrix::CreateOrtho(obb.GetLeft(), obb.GetRight(), obb.GetBottom(), obb.GetTop(), obb.GetFront(), obb.GetBack());
-	Matrix result = proj * view;
-
-	/* Only render to the depth buffer if the light is allowed to create shadows. */
-	if (light->CreatesShadows)
+	/* Loop through cascades. */
+	for (size_t i = 0, j = 1; j < ends->size(); i++, j++)
 	{
-		dspass.matLs->Set(result);
-		dspass.amnt->Set(0.0f);
+		spaces[i] = CalcDirLightVP(cam, CalcOrthoBox(cam, ends->at(i), ends->at(j)), light);
 
-		/* Render all static models to depth map. */
-		for (size_t i = 0; i < queuedModels.size(); i++)
+		/* Set current cascade as the writing target and clear it. */
+		dshdFbo->BindForWriting(cascades[i]);
+		game->GetGraphics()->Clear(ClearTarget::Depth);
+
+		/* Only render to the depth buffer if the light is allowed to create shadows. */
+		if (light->CreatesShadows)
 		{
-			/* Only render the model if it is allowed to cast a shadow and is visible by the light. */
-			const StaticObject *model = queuedModels.at(i);
-			Box bb = model->GetBoundingBox();
-			if (!(model->CastsShadows && cam->GetClip()->IntersectionBox(bb.Position, bb.Size))) continue;
+			dspass.matLs->Set(spaces[i]);
+			dspass.amnt->Set(0.0f);
 
-			/* Set model matrix. */
-			dspass.matMdl->Set(model->GetWorld());
-
-			/* Loop through all shapes in the mode. */
-			const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
-			for (size_t j = 0; j < shapes->size(); j++)
+			/* Render all static models to depth map. */
+			for (size_t i = 0; i < queuedModels.size(); i++)
 			{
-				const MaterialBP *material = shapes->at(j).Material;
-				if (material->Visible)
+				/* Only render the model if it is allowed to cast a shadow. */
+				const StaticObject *model = queuedModels.at(i);
+				if (!model->CastsShadows) continue;
+
+				/* Set model matrix. */
+				dspass.matMdl->Set(model->GetWorld());
+
+				/* Loop through all shapes in the mode. */
+				const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
+				for (size_t j = 0; j < shapes->size(); j++)
 				{
-					/* Only render the mesh if it's inside of the light view. */
-					Mesh *mesh = shapes->at(j).Mesh;
-					bb = mesh->GetBoundingBox() * model->GetWorld();
-					if (cam->GetClip()->IntersectionBox(bb.Position, bb.Size))
+					const MaterialBP *material = shapes->at(j).Material;
+					if (material->Visible)
 					{
-						Buffer *buffer = mesh->GetVertexBuffer();
+						Buffer *buffer = shapes->at(j).Mesh->GetVertexBuffer();
 
 						/* Set material attributes. */
 						dspass.mapDiff->Set(material->Diffuse);
@@ -1134,55 +1281,60 @@ Plutonium::Matrix Plutonium::DeferredRendererBP::RenderDirLightShadow(const Came
 					}
 				}
 			}
-		}
 
-		/* Render all dynamic models to depth map. */
-		for (size_t i = 0; i < queuedAnimations.size(); i++)
-		{
-			/* Only render the model if it is allowed to cast a shadow and is visible by the light. */
-			const DynamicObject *model = queuedAnimations.at(i);
-			Box bb = model->GetBoundingBox();
-			if (!(model->CastsShadows && cam->GetClip()->IntersectionBox(bb.Position, bb.Size))) continue;
-
-			/* Set model matrix. */
-			dspass.matMdl->Set(model->GetWorld());
-			dspass.amnt->Set(model->GetMixAmount());
-
-			const MaterialBP *material = model->GetModel()->GetMaterial();
-			if (material->Visible)
+			/* Render all dynamic models to depth map. */
+			for (size_t i = 0; i < queuedAnimations.size(); i++)
 			{
-				Buffer *cur = model->GetCurrentFrame()->GetVertexBuffer();
-				Buffer *next = model->GetNextFrame()->GetVertexBuffer();
+				/* Only render the model if it is allowed to cast a shadow. */
+				const DynamicObject *model = queuedAnimations.at(i);
+				if (!model->CastsShadows) continue;
 
-				/* Set material attributes. */
-				dspass.mapDiff->Set(material->Diffuse);
-				dspass.mapAlpha->Set(material->Opacity);
+				/* Set model matrix. */
+				dspass.matMdl->Set(model->GetWorld());
+				dspass.amnt->Set(model->GetMixAmount());
 
-				/* Set mesh attributes. */
-				cur->Bind();
-				dspass.pos1->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
-				dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+				const MaterialBP *material = model->GetModel()->GetMaterial();
+				if (material->Visible)
+				{
+					Buffer *cur = model->GetCurrentFrame()->GetVertexBuffer();
+					Buffer *next = model->GetNextFrame()->GetVertexBuffer();
 
-				next->Bind();
-				dspass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+					/* Set material attributes. */
+					dspass.mapDiff->Set(material->Diffuse);
+					dspass.mapAlpha->Set(material->Opacity);
 
-				/* Render the shape to the shadow depth buffer. */
-				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->GetElementCount()));
+					/* Set mesh attributes. */
+					cur->Bind();
+					dspass.pos1->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+					dspass.uv->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Texture));
+
+					next->Bind();
+					dspass.pos2->Initialize(false, sizeof(VertexFormat), offset_ptr(VertexFormat, Position));
+
+					/* Render the shape to the shadow depth buffer. */
+					glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(cur->GetElementCount()));
+				}
 			}
 		}
 	}
-
-	return result;
 }
 
-void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix & space, const DirectionalLight * light)
+void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix & view, const DirectionalLight * light, Matrix * spaces, std::vector<float> * ends)
 {
-	dpass.dir->Set(-normalize(light->Direction));
+	dpass.dir->Set(-normalize(light->GetDirection()));
 	dpass.clrAmbi->Set(light->Ambient);
 	dpass.clrDiff->Set(light->Diffuse);
 	dpass.clrSpec->Set(light->Specular);
-	dpass.matView->Set(space);
-	dpass.mapShdw->Set(shadow);
+	dpass.matView->Set(view);
+	dpass.matCasc1->Set(spaces[0]);
+	dpass.matCasc2->Set(spaces[1]);
+	dpass.matCasc3->Set(spaces[2]);
+	dpass.end1->Set(ends->at(1));
+	dpass.end2->Set(ends->at(2));
+	dpass.end3->Set(ends->at(3));
+	dpass.shdw1->Set(cascades[0]);
+	dpass.shdw2->Set(cascades[1]);
+	dpass.shdw3->Set(cascades[2]);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(plane->GetElementCount()));
 }

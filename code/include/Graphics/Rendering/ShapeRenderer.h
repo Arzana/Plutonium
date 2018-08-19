@@ -22,12 +22,16 @@ namespace Plutonium
 
 		/* Adds a ray to the render queue. */
 		void AddRay(_In_ Vector3 start, _In_ Vector3 end, _In_opt_ Color clr = Color::Yellow());
+		/* Adds a matrix or coordinate system to the render queue. */
+		void AddMatrix(_In_ const Matrix &m, _In_opt_ Color xClr = Color::Green(), _In_opt_ Color yClr = Color::Blue(), _In_opt_ Color zClr = Color::Red());
 		/* Adds a circle to the render queue. */
 		void AddCircle(_In_ Vector3 center, _In_ float radius, _In_opt_ Color clr = Color::Green(), _In_opt_ int32 divs = 12);
 		/* Adds a sphere to the render queue. */
 		void AddSphere(_In_ Vector3 center, _In_ float radius, _In_opt_ Color xzClr = Color::Green(), _In_opt_ Color xyClr = Color::Blue(), _In_opt_ Color yzClr = Color::Red(), _In_opt_ int32 divs = 12);
 		/* Adds a box to the render queue. */
-		void AddBox(_In_ const Box& box, _In_opt_ Color clr = Color::Yellow());
+		void AddAABB(_In_ const Box &box, _In_opt_ Color clr = Color::Yellow());
+		/* Adds a box to the render queue. */
+		void AddOBB(_In_ const Box &box, _In_ const Matrix &orien, _In_opt_ Color clr = Color::Yellow());
 		/* Renders the queued primitives. */
 		void Render(_In_ const Matrix &view, _In_ const Matrix &projection);
 
