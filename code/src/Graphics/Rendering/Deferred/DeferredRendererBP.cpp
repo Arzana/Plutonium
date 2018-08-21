@@ -5,6 +5,7 @@
 #include "Core\Math\Interpolation.h"
 
 //#define VISUALIZE_CASCADES
+#define PCF
 
 /*
 Deferred renderer works in three stages.
@@ -237,7 +238,23 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "{																														\n"
 "	vec3 ndc = (pos.xyz / pos.w) * 0.5f + 0.5f;																			\n"
 "	float bias = max(0.005f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
+
+#if defined (PCF)
+"	float result = 0.0f;																								\n"
+"	vec2 texelSize = 1.0f / textureSize(cascade, 0);																	\n"
+"	for (float x = -1.5f; x <= 1.5f; x += 1.0f)																			\n"
+"	{																													\n"
+"		for (float y = -1.5f; y <= 1.5f; y += 1.0f)																		\n"
+"		{																												\n"
+"			float pcf = texture(cascade, ndc.xy + vec2(x, y) * texelSize).x;											\n"
+"			result += pcf < ndc.z - bias ? 0.0f : 1.0f;																	\n"
+"		}																												\n"
+"	}																													\n"
+
+"	return result / 16.0f;																								\n"
+#else
 "	return texture(cascade, ndc.xy).x < ndc.z - bias ? 0.0f : 1.0f;														\n"
+#endif
 "}																														\n"
 
 "void main()																											\n"

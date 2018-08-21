@@ -19,7 +19,7 @@ public:
 	HUD(Game *game);
 
 protected:
-	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime;
+	Label *lblTime, *lblFps, *lblCpuRam, *lblGpuRam, *lblWorldDrawTime, *lblExposure, *lblDayNight;
 	Button *btnVsync;
 	Slider *sldDayNight, *sldExposure;
 	TextBox *txtKnightAnim;
@@ -33,5 +33,5 @@ private:
 	TestGame *tgame;
 
 	Label* CreateDefaultLabel(float y);
-	Button *CreateDefaultButton(void);
+	Button *CreateDefaultButton(float y);
 };

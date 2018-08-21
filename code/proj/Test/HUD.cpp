@@ -16,9 +16,6 @@ void HUD::Initialize(void)
 	Menu::Initialize();
 
 	SetDefaultFont("fonts/OpenSans-Regular.ttf", 20.0f);
-	LoadTexture("textures/water.png");
-	LoadTexture("textures/stone.png");
-	LoadTexture("textures/uv.png");
 
 	game->AddComponent(fps = new FpsCounter(game));
 	game->AddComponent(ram = new RamCounter(game));
@@ -58,7 +55,7 @@ void HUD::Create(void)
 		text += U" Hz";
 	}));
 	y += yAdded;
-	
+
 
 	lblCpuRam = CreateDefaultLabel(y);
 	wndDbg->AddItem(lblCpuRam);
@@ -96,30 +93,36 @@ void HUD::Create(void)
 		text += _CrtGetDrawCalls();
 		text += U"Draw Calls)";
 	}));
+	y += yAdded;
 
-	btnVsync = CreateDefaultButton();
-	btnVsync->SetAnchors(Anchors::TopCenter);
-	btnVsync->SetText(game->GetGraphics()->GetWindow()->GetRetraceMode() == VSyncMode::Enabled ? "Disable VSync" : "Enable VSync");
+	btnVsync = CreateDefaultButton(y);
+	wndDbg->AddItem(btnVsync);
+	btnVsync->SetText(game->GetGraphics()->GetWindow()->GetRetraceMode() == VSyncMode::Enabled ? U"Disable VSync" : U"Enable VSync");
 	btnVsync->LeftClicked.Add([&](const Button*, CursorHandler)
 	{
 		Window *wnd = game->GetGraphics()->GetWindow();
 
 		if (wnd->GetRetraceMode() == VSyncMode::Enabled)
 		{
-			btnVsync->SetText("Enable VSync");
+			btnVsync->SetText(U"Enable VSync");
 			wnd->SetMode(VSyncMode::Disable);
 		}
 		else
 		{
-			btnVsync->SetText("Disable VSync");
+			btnVsync->SetText(U"Disable VSync");
 			wnd->SetMode(VSyncMode::Enabled);
 		}
 	});
 
-	y = btnVsync->GetSize().Y + OFFSET;
+	y += btnVsync->GetSize().Y + OFFSET;
+
+	lblDayNight = CreateDefaultLabel(y);
+	wndDbg->AddItem(lblDayNight);
+	lblDayNight->SetText(U"Day/Night speed: ");
 
 	sldDayNight = AddSlider();
-	sldDayNight->SetAnchors(Anchors::TopCenter, 0.0f, y);
+	wndDbg->AddItem(sldDayNight);
+	sldDayNight->SetPosition(Vector2(lblDayNight->GetSize().X + OFFSET, y));
 	sldDayNight->SetValueMapped(tgame->dayNightSpeed, 0.0f, 25.0f);
 	sldDayNight->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
 	{
@@ -128,8 +131,13 @@ void HUD::Create(void)
 
 	y += sldDayNight->GetSize().Y + OFFSET;
 
+	lblExposure = CreateDefaultLabel(y);
+	wndDbg->AddItem(lblExposure);
+	lblExposure->SetText(U"Exposure: ");
+
 	sldExposure = AddSlider();
-	sldExposure->SetAnchors(Anchors::TopCenter, 0.0f, y);
+	wndDbg->AddItem(sldExposure);
+	sldExposure->SetPosition(Vector2(lblDayNight->GetSize().X, y));
 	sldExposure->SetValueMapped(tgame->renderer->Exposure, 0.0f, 10.0f);
 	sldExposure->ValueChanged.Add([&](const ProgressBar *sender, ValueChangedEventArgs<float>)
 	{
@@ -177,13 +185,14 @@ Label * HUD::CreateDefaultLabel(float y)
 	return result;
 }
 
-Button * HUD::CreateDefaultButton(void)
+Button * HUD::CreateDefaultButton(float y)
 {
 	Button *result = AddButton();
 
 	result->SetAutoSize(true);
 	result->SetBackColor(Color::Black() * 0.5f);
 	result->SetTextColor(Color::White());
+	result->SetPosition(Vector2(0.0f, y));
 	result->HoverEnter.Add([&](const GuiItem *sender, CursorHandler) { const_cast<GuiItem*>(sender)->SetBackColor(Color::Abbey() * 0.5f); });
 	result->HoverLeave.Add([&](const GuiItem *sender, CursorHandler) { const_cast<GuiItem*>(sender)->SetBackColor(Color::Black() * 0.5f); });
 

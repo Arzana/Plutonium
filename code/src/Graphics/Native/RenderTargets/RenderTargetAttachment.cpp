@@ -137,8 +137,8 @@ Plutonium::RenderTargetAttachment::RenderTargetAttachment(const char * name, Att
 	glTexImage2D(GL_TEXTURE_2D, 0, _CrtEnum2Int(type), static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, getFormat(type), getType(type), nullptr);
 
 	/* Set the parameters for the underlying sampler. */
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, isDepth ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, isDepth ? GL_LINEAR : GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);

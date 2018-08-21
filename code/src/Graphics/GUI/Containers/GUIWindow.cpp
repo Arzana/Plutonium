@@ -166,6 +166,8 @@ void Plutonium::GUIWindow::AddItem(GuiItem * item)
 	item->SetParent(this);
 	item->Resized.Add(this, &GUIWindow::OnChildResized);
 	Container::AddItem(item);
+
+	HandleAutoSize();
 }
 
 void Plutonium::GUIWindow::RenderWindow(GuiItemRenderer * renderer)
