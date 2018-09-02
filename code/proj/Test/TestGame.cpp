@@ -189,6 +189,7 @@ void TestGame::SpecialKeyPress(WindowHandler, const KeyEventArgs args)
 	if (args.Key == Keys::D2 && args.Action == KeyState::Down) desired = RenderType::WorldNormals;
 	if (args.Key == Keys::D3 && args.Action == KeyState::Down) desired = RenderType::Albedo;
 	if (args.Key == Keys::D4 && args.Action == KeyState::Down) desired = RenderType::Lighting;
+	if (args.Key == Keys::D5 && args.Action == KeyState::Down) desired = RenderType::Shadows;
 
 	/* Check for changes in render mode. */
 	if (desired != RenderType::Normal) renderer->DisplayType = renderer->DisplayType == desired ? RenderType::Normal : desired;

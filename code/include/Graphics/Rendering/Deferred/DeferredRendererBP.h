@@ -22,7 +22,9 @@ namespace Plutonium
 		/* Renders only the albedo of the materials. */
 		Albedo,
 		/* Renders the scene with default materials. */
-		Lighting
+		Lighting,
+		/* Renders the scene with a mask showing the shadow map used by the fragment. */
+		Shadows
 	};
 
 	/* Defines a Blinn-Phong style deferred rendering handler. */
@@ -92,7 +94,7 @@ namespace Plutonium
 			Uniform *matProj, *matview, *matMdl, *specExp;
 			Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 			Attribute *pos, *norm, *tan, *uv;
-		} gspass;
+		} gspass;		// Static Geometry pass.
 
 		struct
 		{
@@ -101,25 +103,25 @@ namespace Plutonium
 			Uniform *mapAmbi, *mapDiff, *mapSpec, *mapAlpha, *mapBump;
 			Attribute *pos, *norm, *tan, *uv;
 			Attribute *pos2, *norm2, *tan2;
-		} gdpass;
+		} gdpass;		// Dynamic Geometry pass.
 
 		struct
 		{
 			Shader *shdr;
 			Uniform *matLs, *matMdl, *mapAlpha, *mapDiff, *amnt;
 			Attribute *pos1, *pos2, *uv;
-		} dspass;
+		} dspass;		// Directional Light Shadow Pass. 
 
 		struct 
 		{
 			Shader *shdr;
 			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos;
 			Uniform *dir, *clrAmbi, *clrDiff, *clrSpec, *matView;
-			Uniform *matCasc1, *matCasc2, *matCasc3;
+			Uniform *matCasc1, *matCasc2, *matCasc3, *multCasc;
 			Uniform *end1, *end2, *end3;
 			Uniform *shdw1, *shdw2, *shdw3;
 			Attribute *pos, *uv;
-		} dpass;
+		} dpass;		// Directional Light Pass.
 
 		struct
 		{
@@ -128,35 +130,35 @@ namespace Plutonium
 			Uniform *normSpec, *ambi, *diff, *posSpec, *camPos;
 			Uniform *lpos, *c, *l, *q, *clrAmbi, *clrDiff, *clrSpec;
 			Attribute *pos;
-		} ppass;
+		} ppass;		// Point Light Pass.
 
 		struct
 		{
 			Shader *shdr;
 			Uniform *screen, *gamma, *exposure;
 			Attribute *pos, *uv;
-		} fpass;
+		} fpass;		// Fix Values Pass.
 
 		struct
 		{
 			Shader *shdr;
 			Uniform *matMdl, *matView, *matProj, *clr, *amnt, *mapDiff;
 			Attribute *pos, *pos2, *uv;
-		} wire;
+		} wire;			// Debug WireFrame Pass.
 
 		struct
 		{
 			Shader *shdr;
 			Uniform *normSpec;
 			Attribute *pos, *uv;
-		} wn;
+		} wn;			// Debug World Normal Pass.
 
 		struct
 		{
 			Shader *shdr;
 			Uniform *diff;
 			Attribute *pos, *uv;
-		} al;
+		} al;			// Debug Albedo Pass.
 
 		void InitMeshes(void);	// Plane / sphere.
 		void InitGsPass(void);	// Static geometry.

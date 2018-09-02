@@ -4,7 +4,6 @@
 #include "Graphics\Models\Shapes.h"
 #include "Core\Math\Interpolation.h"
 
-//#define VISUALIZE_CASCADES
 #define PCF
 
 /*
@@ -20,8 +19,9 @@ First stage:
 
 Second stage:
 - Perform direction light pass for each directional light (HDR).
-	- Render shadow maps (PSSM).
+	- Render shadow maps (PSSM / CSM).
 	- Apply to full screen quad.
+	- PCF smooth shadows.
 	- Additively blend each light into HDR screen buffer.
 - Perform point light pass for each point light (HDR).
 	- Apply to light volume sphere.
@@ -229,6 +229,7 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "uniform DirectionalLight Light;																						\n"
 "uniform vec3 ViewPosition;																								\n"
 "uniform mat4 View;																										\n"
+"uniform float CascadeIntensity;																						\n"
 
 "in vec2 Uv;																											\n"
 
@@ -270,23 +271,17 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "	if (viewSpaceZ <= Light.CascadeEnd1)																				\n"
 "	{																													\n"
 "		visibility = CalcShadowFactor(Light.Cascade1, Light.CascadeSpace1 * pos, normSpec.xyz);							\n"
-#if defined(VISUALIZE_CASCADES)
-"		objAmbient = vec3(0.3f, 0.0f, 0.0f);																			\n"
-#endif
+"		objAmbient.r = max(CascadeIntensity, objAmbient.r);																\n"
 "	}																													\n"
 "	else if (viewSpaceZ <= Light.CascadeEnd2)																			\n"
 "	{																													\n"
 "		visibility = CalcShadowFactor(Light.Cascade2, Light.CascadeSpace2 * pos, normSpec.xyz);							\n"
-#if defined(VISUALIZE_CASCADES)
-"		objAmbient = vec3(0.0f, 0.3f, 0.0f);																			\n"
-#endif
+"		objAmbient.g = max(CascadeIntensity, objAmbient.g);																\n"
 "	}																													\n"
 "	else if (viewSpaceZ <= Light.CascadeEnd3)																			\n"
 "	{																													\n"
 "		visibility = CalcShadowFactor(Light.Cascade3, Light.CascadeSpace3 * pos, normSpec.xyz);							\n"
-#if defined(VISUALIZE_CASCADES)
-"		objAmbient = vec3(0.0f, 0.0f, 0.3f);																			\n"
-#endif
+"		objAmbient.b = max(CascadeIntensity, objAmbient.b);																\n"
 "	}																													\n"
 
 "	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
@@ -598,6 +593,7 @@ void Plutonium::DeferredRendererBP::Render(const Camera * cam)
 	{
 	case Plutonium::RenderType::Normal:
 	case Plutonium::RenderType::Lighting:
+	case Plutonium::RenderType::Shadows:
 		RenderNormal(cam);
 		break;
 	case Plutonium::RenderType::Wireframe:
@@ -729,6 +725,7 @@ void Plutonium::DeferredRendererBP::InitDPass(void)
 	dpass.shdw2 = dpass.shdr->GetUniform("Light.Cascade2");
 	dpass.shdw3 = dpass.shdr->GetUniform("Light.Cascade3");
 	dpass.matView = dpass.shdr->GetUniform("View");
+	dpass.multCasc = dpass.shdr->GetUniform("CascadeIntensity");
 	dpass.camPos = dpass.shdr->GetUniform("ViewPosition");
 	dpass.pos = dpass.shdr->GetAttribute("Position");
 	dpass.uv = dpass.shdr->GetAttribute("ScreenCoordinate");
@@ -987,6 +984,7 @@ void Plutonium::DeferredRendererBP::BeginDirLightPass(Vector3 camPos)
 	dpass.posSpec->Set(posSpec);
 	dpass.ambi->Set(ambient);
 	dpass.diff->Set(diffuse);
+	dpass.multCasc->Set(DisplayType != RenderType::Shadows ? 0.0f : 0.75f);
 
 	/* Setup mesh. */
 	plane->Bind();
