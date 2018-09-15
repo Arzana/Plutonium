@@ -133,6 +133,12 @@ void Plutonium::GraphicsAdapter::SetStencilOuput(uint32 mask)
 	glStencilMask(mask);
 }
 
+void Plutonium::GraphicsAdapter::SetClearColor(Color clr)
+{
+	Vector4 vc = clr.ToVector4();
+	glClearColor(vc.X, vc.Y, vc.Z, vc.W);
+}
+
 void Plutonium::GraphicsAdapter::Clear(ClearTarget target)
 {
 	glClear(_CrtEnum2Int(target));

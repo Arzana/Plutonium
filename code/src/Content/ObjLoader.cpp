@@ -1338,7 +1338,7 @@ void LoadMaterialLibraryFromFile(const char *dir, const char *name, ObjLoaderRes
 	char *path = malloca_s(char, FILENAME_MAX);
 	mrgstr(dir, name, path);
 	FileReader reader(path);
-
+	
 	/* Define current material. */
 	ObjLoaderMaterial material;
 	bool hasd = false, hastr = false;
@@ -1363,6 +1363,14 @@ ObjLoaderResult * Plutonium::_CrtLoadObjMtl(const char * path, std::atomic<float
 	/* Setup input and open obj file. */
 	ObjLoaderResult *result = new ObjLoaderResult();
 	FileReader reader(path);
+
+	/* Check if the file that is requested is an actual .obj file. */
+#if defined (DEBUG)
+	char *ext = malloca_s(char, Plutonium::strlen(reader.GetFileExtension()) + 1);
+	tolower(reader.GetFileExtension(), ext);
+	LOG_THROW_IF(!eqlstr(ext, "obj"), "Specified model must be an .obj file not an '%s' file", reader.GetFileExtension());
+	freea_s(ext);
+#endif
 
 	/* Defines current mesh and smoothing group. */
 	ObjLoaderMesh shape;

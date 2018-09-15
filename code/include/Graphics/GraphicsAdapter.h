@@ -71,6 +71,8 @@ namespace Plutonium
 		/* Sets the output mask for the stencil buffer. */
 		void SetStencilOuput(_In_ uint32 mask);
 
+		/* Sets the color used to clear the frame buffer. */
+		void SetClearColor(_In_ Color clr);
 		/* Clears the specified buffers. */
 		void Clear(_In_ ClearTarget target);
 		/* Sets the current render target (nullptr for window). */

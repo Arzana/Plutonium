@@ -79,4 +79,9 @@ namespace Plutonium
 	_Check_return_ bool nullorempty(_In_ const char *str);
 	/* Check if the specified string is either null or empty. */
 	_Check_return_ bool nullorempty(_In_ const char32_t *str);
+
+	/* Converts the specified string into an all lowercase string. */
+	void tolower(_In_ const char *src, _Out_ char *result);
+	/* Converts the specified string into an all lowercase string. */
+	void tolower(_In_ const char32_t *src, _Out_ char32_t *result);
 }

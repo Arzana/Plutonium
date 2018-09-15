@@ -23,6 +23,14 @@ Plutonium::Game::Game(const char * name)
 	targetElapTimeFocused(0.0166667f), targetElapTimeNoFocus(0.05f),	// Normal: 60 FPS, Out of focus: 20 FPS.
 	accumElapTime(0), maxElapTime(5), loadPercentage(-1.0f)				// Set buffer time objects.
 {
+	/* Seed the random number generator if it hasn't been seeded yet. */
+	static bool shouldSeedRand = true;
+	if (shouldSeedRand)
+	{
+		shouldSeedRand = false;
+		srand(static_cast<uint32>(time(0)));
+	}
+
 	/* Set the main thread name (I think game will always be made on the main thread). */
 	_CrtSetCurrentThreadName("main");
 
@@ -257,7 +265,6 @@ void Plutonium::Game::BeginRender(void)
 	device->SetDepthTest(DepthState::LessOrEqual);
 
 	/* Set clear color and clear window. */
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	device->Clear(ClearTarget::Color | ClearTarget::Depth);
 
 	/* Call game specific code. */

@@ -248,7 +248,7 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "		for (float y = -1.5f; y <= 1.5f; y += 1.0f)																		\n"
 "		{																												\n"
 "			float pcf = texture(cascade, ndc.xy + vec2(x, y) * texelSize).x;											\n"
-"			result += pcf < ndc.z - bias ? 0.0f : 1.0f;																	\n"
+"			result += pcf < ndc.z - bias ? 0.1f : 1.0f;																	\n"
 "		}																												\n"
 "	}																													\n"
 
@@ -1065,11 +1065,11 @@ void Plutonium::DeferredRendererBP::SetCascadeEnds(const Camera * cam, std::vect
 	SetCascadeMax(cam, max);
 
 	/* Calculate how many cascades are actually needed (might save a shadow map render). */
-	size_t cascadeCnt = CASCADE_CNT; //1;
-	//for (size_t i = 0; i < CASCADE_CNT; i++)
-	//{
-	//	if (furthest >= max[i]) ++cascadeCnt;
-	//}
+	size_t cascadeCnt = 1;
+	for (size_t i = 0; i < CASCADE_CNT - 1; i++)
+	{
+		if (furthest >= max[i]) ++cascadeCnt;
+	}
 
 	/* Calculate the needed ends of the frustum. */
 	ends->push_back(cam->GetNear());
@@ -1345,8 +1345,8 @@ void Plutonium::DeferredRendererBP::RenderDirLight(const Matrix & view, const Di
 	dpass.matCasc2->Set(spaces[1]);
 	dpass.matCasc3->Set(spaces[2]);
 	dpass.end1->Set(ends->at(1));
-	dpass.end2->Set(ends->at(2));
-	dpass.end3->Set(ends->at(3));
+	dpass.end2->Set(ends->size() > 2 ? ends->at(2) : maxv<float>());
+	dpass.end3->Set(ends->size() > 3 ? ends->at(3) : maxv<float>());
 	dpass.shdw1->Set(cascades[0]);
 	dpass.shdw2->Set(cascades[1]);
 	dpass.shdw3->Set(cascades[2]);

@@ -3,6 +3,7 @@
 #include "Core\StringFunctions.h"
 #include "Core\SafeMemory.h"
 #include <cstring>
+#include <ctype.h>
 
 size_t Plutonium::strlen(const char * str)
 {
@@ -465,4 +466,34 @@ bool Plutonium::nullorempty(const char * str)
 bool Plutonium::nullorempty(const char32_t * str)
 {
 	return strlen(str) < 1;
+}
+
+void Plutonium::tolower(const char * src, char * result)
+{
+	char c = *src;
+	size_t i = 0;
+
+	/* Loop through string and convert all characters to lowercase via c-function. */
+	for (; c != '\0'; i++, c = src[i])
+	{
+		result[i] = ::tolower(c);
+	}
+
+	/* Add null terminator. */
+	result[i] = '\0';
+}
+
+void Plutonium::tolower(const char32_t * src, char32_t * result)
+{
+	char32_t c = *src;
+	size_t i = 0;
+
+	/* Loop through string and convert all characters to lowercase via c-function. */
+	for (; c != U'\0'; i++, c = src[i])
+	{
+		result[i] = ::tolower(c);
+	}
+
+	/* Add null terminator. */
+	result[i] = U'\0';
 }

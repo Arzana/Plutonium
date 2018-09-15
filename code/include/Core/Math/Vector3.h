@@ -1,6 +1,5 @@
 #pragma once
-#include <sal.h>
-#include <Core\Math\Basics.h>
+#include "Vector2.h"
 
 namespace Plutonium
 {
@@ -18,6 +17,14 @@ namespace Plutonium
 				float X;
 				/* The Y component of the vector. */
 				float Y;
+				/* The Z component of the vector. */
+				float Z;
+			};
+
+			struct
+			{
+				/* The X and Y component of the vector. */
+				Vector2 XY;
 				/* The Z component of the vector. */
 				float Z;
 			};

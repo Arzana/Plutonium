@@ -9,9 +9,7 @@ using namespace Plutonium;
 
 Plutonium::Mesh::Mesh(const char * name)
 	: Name(heapstr(name)), vertices(nullptr), vrtxCnt(0), buffer(nullptr), bb()
-{
-	LOG("Creating mesh '%s'.", name);
-}
+{}
 
 Plutonium::Mesh::~Mesh(void) noexcept
 {
@@ -45,6 +43,8 @@ void Plutonium::Mesh::Finalize(WindowHandler wnd)
 	/* Release CPU memory. */
 	free_s(vertices);
 	vertices = nullptr;
+
+	LOG("Creating mesh '%s'.", Name);
 }
 
 void Plutonium::Mesh::SetBufferSize(size_t size)

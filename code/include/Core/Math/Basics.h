@@ -304,5 +304,10 @@ namespace Plutonium
 	{
 		return min + (rand() % (max + 1 - min));
 	}
+	/* Returns a random float between the specified minimum and maximum values. */
+	_Check_return_ inline float random(_In_ float min, _In_ float max)
+	{
+		return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
+	}
 #pragma endregion
 }
