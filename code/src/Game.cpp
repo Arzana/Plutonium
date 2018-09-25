@@ -57,6 +57,11 @@ Plutonium::Game::~Game(void)
 	for (size_t i = 0; i < components.size(); i++) delete_s(components.at(i));
 	components.clear();
 
+	/* Make sure the debugging symbols are freed. */
+#if defined(_WIN32)
+	_CrtFinalizeWinProcess();
+#endif
+
 	/* Make sure we finalize the logging pipeline last. */
 	_CrtFinalizeLog();
 }
@@ -235,11 +240,6 @@ void Plutonium::Game::DoFinalize(void)
 		cur->Finalize();
 		LOG_WAR_IF(cur->initialized, "Component at place %d failed to finalize!", cur->place);
 	}
-
-	/* Make sure the debugging symbols are freed. */
-#if defined(_WIN32)
-	_CrtFinalizeWinProcess();
-#endif
 }
 
 void Plutonium::Game::DoUpdate(float dt, bool loading)

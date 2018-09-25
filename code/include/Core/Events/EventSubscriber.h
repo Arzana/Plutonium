@@ -98,17 +98,25 @@ namespace Plutonium
 			return *this;
 		}
 
+		/* Warning is checked and code will work as intended. */
+#pragma warning (push)
+#pragma warning(disable:4458)
 		/* Checks whether the subscriber has the same ID. */
 		_Check_return_ inline bool operator ==(_In_ int64 id) const
 		{
 			return this->id == id;
 		}
+#pragma warning (pop)
 
+		/* Warning is checked and code will work as intended. */
+#pragma warning (push)
+#pragma warning(disable:4458)
 		/* Checks whether the subscriber has a different ID. */
 		_Check_return_ inline bool operator !=(_In_ int64 id) const
 		{
 			return this->id != id;
 		}
+#pragma warning (pop)
 
 		/* Gets an ID that can be used to compare event subscribers without creating one. */
 		_Check_return_ static inline int64 CreateComparableID(_In_ HandlerFuncType func)

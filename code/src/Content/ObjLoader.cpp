@@ -644,7 +644,7 @@ void TriangulatePolygon(const ObjLoaderResult *result, std::vector<ObjLoaderVert
 
 	/* Use specialized faster function for quads. */
 	if (vertices->size() == 4) Triangulation::Quad(buffer, sizeof(TmpVrtx), offsetof(TmpVrtx, Vector));
-	else size = Triangulation::Convex(buffer, sizeof(TmpVrtx), offsetof(TmpVrtx, Vector), vertices->size());
+	else size = Triangulation::Convex(buffer, sizeof(TmpVrtx), vertices->size());
 
 	/* Copy the triangulated vertexes back to the vertices list. */
 	vertices->clear();
@@ -773,9 +773,9 @@ inline void HandleLoadMaterialLine(const char *line, const char *dir, ObjLoaderR
 		{
 			/* Only load the material library if it is not yet loaded. */
 			bool alreadyLoaded = false;
-			for (size_t i = 0; i < loadedMaterialLibraries->size(); i++)
+			for (size_t j = 0; j < loadedMaterialLibraries->size(); j++)
 			{
-				if (eqlstr(loadedMaterialLibraries->at(i), buffer[i]))
+				if (eqlstr(loadedMaterialLibraries->at(j), buffer[i]))
 				{
 					alreadyLoaded = true;
 					break;

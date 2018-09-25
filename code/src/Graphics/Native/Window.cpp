@@ -80,7 +80,6 @@ int CreateNewWindow(GLFWwindow **hndlr, int w, int h, const char *title)
 	if (!*hndlr)
 	{
 		LOG_THROW("Failed to create new window '%s'!", title);
-		return GLFW_FALSE;
 	}
 
 	glfwMakeContextCurrent(*hndlr);
@@ -255,7 +254,7 @@ bool Plutonium::Window::InvokeRequired(void) const
 	return _CrtGetCurrentThreadId() != contextId;
 }
 
-void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> &func) const
+void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> func) const
 {
 	/* Only add to the invoke list if the current thread is not equal to the context thread. */
 	if (!InvokeRequired())
@@ -269,7 +268,7 @@ void Plutonium::Window::Invoke(EventSubscriber<Window, EventArgs> &func) const
 	invokeLock.unlock();
 }
 
-void Plutonium::Window::InvokeWait(EventSubscriber<Window, EventArgs>& func) const
+void Plutonium::Window::InvokeWait(EventSubscriber<Window, EventArgs> func) const
 {
 	std::atomic_bool invoked(false);
 	

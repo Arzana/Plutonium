@@ -20,7 +20,7 @@ Color Plutonium::Color::FromNonPremultiplied(int32 r, int32 g, int32 b, int32 a)
 
 	/* Multiply alpha over color. */
 	float v = a * CONV_MOD;
-	return Color(static_cast<byte>(ipart(r * v)), static_cast<byte>(ipart(g * v)), static_cast<byte>(ipart(b * v)), a);
+	return Color(static_cast<byte>(ipart(r * v)), static_cast<byte>(ipart(g * v)), static_cast<byte>(ipart(b * v)), static_cast<byte>(a));
 }
 
 Color Plutonium::Color::Lerp(Color a, Color b, float v)

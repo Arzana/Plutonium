@@ -11,6 +11,9 @@ namespace Plutonium
 			/* All components of the vector. */
 			float f[3];
 
+			/* This project is build to compile with the Microsoft compiler and that does allow this extension. */
+#pragma warning(push)
+#pragma warning(disable:4201)
 			struct
 			{
 				/* The X component of the vector. */
@@ -28,6 +31,7 @@ namespace Plutonium
 				/* The Z component of the vector. */
 				float Z;
 			};
+#pragma warning(pop)
 		};
 
 		/* Initializes a new instance of a three dimentional  vector with all components set to zero. */

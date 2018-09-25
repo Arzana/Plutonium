@@ -14,7 +14,7 @@ void Plutonium::DebugSpriteRenderer::AddDebugTexture(const Texture * sprite, Col
 	UpdateDrawPos(sprite->GetSize() * scale + spacing);
 }
 
-void Plutonium::DebugSpriteRenderer::Render(float dt)
+void Plutonium::DebugSpriteRenderer::Render(float)
 {
 	renderer->Begin();
 

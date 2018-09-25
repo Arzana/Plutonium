@@ -93,6 +93,9 @@ const char * Plutonium::AssetLoader::GetState(void) const
 	return result;
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::AssetLoader::SetRoot(const char * root)
 {
 	/* Safely sets the root directory (and size) to a copy of the specified path. */
@@ -102,6 +105,7 @@ void Plutonium::AssetLoader::SetRoot(const char * root)
 	rootLen = strlen(root);
 	lockRoot.unlock();
 }
+#pragma warning(pop)
 
 bool Plutonium::AssetLoader::Unload(TextureHandler texture)
 {
@@ -243,7 +247,7 @@ bool Plutonium::AssetLoader::Unload(const Font * font)
 	return false;
 }
 
-void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*> &callback, bool keep, const TextureCreationOptions * config)
+void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<AssetLoader, Texture*> callback, bool keep, const TextureCreationOptions * config)
 {
 	lockTex.lock();
 
@@ -289,7 +293,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * path, EventSubscriber<Asse
 	}
 }
 
-void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<AssetLoader, Texture*>& callback, bool keep, const TextureCreationOptions * config)
+void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<AssetLoader, Texture*> callback, bool keep, const TextureCreationOptions * config)
 {
 	lockTex.lock();
 
@@ -340,7 +344,7 @@ void Plutonium::AssetLoader::LoadTexture(const char * paths[6], EventSubscriber<
 	}
 }
 
-void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, StaticModel*> &callback, bool keep)
+void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, StaticModel*> callback, bool keep)
 {
 	lockSMod.lock();
 
@@ -386,7 +390,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	}
 }
 
-void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, DynamicModel*>& callback, bool keep, const char * texture)
+void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetLoader, DynamicModel*> callback, bool keep, const char * texture)
 {
 	lockDMod.lock();
 
@@ -432,7 +436,7 @@ void Plutonium::AssetLoader::LoadModel(const char * path, EventSubscriber<AssetL
 	}
 }
 
-void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLoader, Font*>& callback, float scale, bool keep)
+void Plutonium::AssetLoader::LoadFont(const char * path, EventSubscriber<AssetLoader, Font*> callback, float scale, bool keep)
 {
 	lockFont.lock();
 

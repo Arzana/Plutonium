@@ -113,8 +113,13 @@ namespace Plutonium
 		virtual void PreRender(void) {}
 		/* Renders the game. */
 		virtual void Render(_In_ float dt) = 0;
+
+		/* We still want to use to know what the arguments but we don't use them so we don't have to name them. */
+#pragma warning(push)
+#pragma warning(disable:4100)
 		/* Renders the loading screen when the percentage is updated. */
 		virtual void RenderLoad(_In_ float dt, _In_ float percentage) {}
+#pragma warning(pop)
 
 	private:
 		bool suppressUpdate, suppressRender;

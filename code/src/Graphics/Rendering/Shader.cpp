@@ -215,7 +215,6 @@ bool Plutonium::Shader::CompileShader(uint32 * shdr, ShaderType type, const char
 	{
 		/* Throw exception with source. */
 		LOG_THROW("Failed to compile %s shader!\nSOURCE:\n%s", _CrtGetShaderVisualType(type), src);
-		return false;
 	}
 
 	/* On debug log shader compile success. */
@@ -367,7 +366,6 @@ bool Plutonium::Shader::LinkProgram(void)
 	if (!state)
 	{
 		LOG_THROW("Failed to link shader program!");
-		return false;
 	}
 
 	/* On debug log shader link success. */

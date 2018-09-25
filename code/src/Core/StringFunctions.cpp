@@ -296,7 +296,7 @@ char * Plutonium::heapstr(const char32_t * src)
 #if defined (DEBUG)
 		LOG_WAR_IF(cur > UCHAR_MAX, "Lost char when converting from UTF-32 to ASCII!");
 #endif
-		result[i] = static_cast<char>(src[i]);
+		result[i] = static_cast<char>(cur);
 	}
 
 	result[len] = '\0';
@@ -476,7 +476,7 @@ void Plutonium::tolower(const char * src, char * result)
 	/* Loop through string and convert all characters to lowercase via c-function. */
 	for (; c != '\0'; i++, c = src[i])
 	{
-		result[i] = ::tolower(c);
+		result[i] = static_cast<char>(::tolower(c));
 	}
 
 	/* Add null terminator. */

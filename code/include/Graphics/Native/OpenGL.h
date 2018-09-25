@@ -26,4 +26,6 @@ namespace Plutonium
 	_Check_return_ void _CrtFinalizeGLFW(void);
 	/* Adds a message filter to the logging API. */
 	void _CrtAddLogRule(_In_ uint32 id, _In_ OpenGLSource api, OpenGLMsgType type, _In_ const char *reason);
+	/* Checks if the specified OpenGL extension is supported. */
+	bool _CrtExtensionSupported(_In_ const char *extension);
 }

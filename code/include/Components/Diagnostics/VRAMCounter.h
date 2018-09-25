@@ -25,18 +25,21 @@ namespace Plutonium
 
 	protected:
 		/* Sets value to to the result of memory stats. */
-		_Check_return_ virtual bool TryAppendBufferOnUpdate(_In_ float dt, _Out_ uint64 *value) const
+		_Check_return_ virtual bool TryAppendBufferOnUpdate(_In_ float, _Out_ uint64 *value) const
 		{
 			*value = _CrtGetUsedGPUMemory();
 			return true;
 		}
 
 		/* Returns false. */
-		_Check_return_ virtual bool TryAppendBUfferOnDraw(_In_ float dt, _Out_ uint64 *value) const
+		_Check_return_ virtual bool TryAppendBUfferOnDraw(_In_ float, _Out_ uint64*) const
 		{
 			return false;
 		}
 
+		/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 		/* Updates the display values. */
 		virtual void CalculateDisplayValues(_Out_ uint64 *avrg, _Out_ uint64 *worst, _Out_ uint64 *best) const
 		{
@@ -58,6 +61,7 @@ namespace Plutonium
 			/* Set average. */
 			*avrg = sum / buffer.size();
 		}
+#pragma warning(pop)
 
 		/* Updates the exclusive display values. */
 		virtual void CalculateExclusives(_Inout_ uint64 *exclusiveWorst, _Inout_ uint64 *exclusiveBest, _In_ const uint64 *lastWorst, _In_ const uint64 *lastBest) const

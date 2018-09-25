@@ -22,11 +22,14 @@ namespace Plutonium
 		template <typename _CTy>
 		using HandlerMethodType = void(_CTy::*)(const _STy *sender, _ArgTy ... args);
 
+#if defined(DEBUG)
 		/* Initializes a new instance of an event (name is only used on debug mode). */
 		EventBus(_In_ const char *name)
+			: callbacks(), name(name)
+#else 
+		/* Initializes a new instance of an event. */
+		EventBus(_In_ const char*)
 			: callbacks()
-#if defined(DEBUG)
-			, name(name)
 #endif
 		{}
 
@@ -81,7 +84,11 @@ namespace Plutonium
 		void Remove(_In_ HandlerFuncType func) const
 		{
 			int64 id = SubscriberType::CreateComparableID(func);
+#if defined(DEBUG)
 			size_t result = UnRegisterCallback(id);
+#else
+			UnRegisterCallback(id);
+#endif
 			LOG("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 
@@ -90,7 +97,11 @@ namespace Plutonium
 		void Remove(_In_ _CTy *obj, _In_ HandlerMethodType<_CTy> func) const
 		{
 			int64 id = SubscriberType::CreateComparableID(obj, func);
+#if defined(DEBUG)
 			size_t result = UnRegisterCallback(id);
+#else
+			UnRegisterCallback(id);
+#endif
 			LOG("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 

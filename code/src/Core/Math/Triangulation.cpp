@@ -68,7 +68,7 @@ void Plutonium::Triangulation::Quad(void * vertexes, size_t stride, size_t offse
 	freea_s(temp);
 }
 
-size_t Plutonium::Triangulation::Convex(void * vertexes, size_t stride, size_t offset, size_t count)
+size_t Plutonium::Triangulation::Convex(void * vertexes, size_t stride, size_t count)
 {
 	/* Check for invalid arguments. */
 	ASSERT_IF(!vertexes, "Vertex buffer cannot be null!");

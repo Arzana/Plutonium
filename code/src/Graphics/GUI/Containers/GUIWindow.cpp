@@ -137,10 +137,15 @@ void Plutonium::GUIWindow::SetAllowMinimize(bool allowed)
 	if (minimized) minimized = allowed;
 }
 
+/* Warning cause is checked and code is working as intended and assignment and and check are intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+#pragma warning(disable:4706)
 void Plutonium::GUIWindow::SetAutoSize(bool enabled)
 {
 	if (autoSize = enabled) HandleAutoSize();
 }
+#pragma warning(pop)
 
 void Plutonium::GUIWindow::SetCloseResponse(bool hide)
 {

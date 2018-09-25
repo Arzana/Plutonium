@@ -24,21 +24,25 @@ void Plutonium::GameComponent::Disable(void)
 	}
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GameComponent::SetUpdatePlace(int place)
 {
 	LOG_WAR_IF(initialized, "Cannot set the update place after the component is loaded!");
-	place = place;
+	this->place = place;
 }
+#pragma warning(pop)
 
 void Plutonium::GameComponent::Initialize(void)
 {
 	initialized = true;
 }
 
-void Plutonium::GameComponent::Update(float dt)
+void Plutonium::GameComponent::Update(float)
 {}
 
-void Plutonium::GameComponent::Render(float dt)
+void Plutonium::GameComponent::Render(float)
 {}
 
 void Plutonium::GameComponent::Finalize(void)

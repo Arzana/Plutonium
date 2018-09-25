@@ -225,10 +225,14 @@ namespace Plutonium
 		{
 			float f[16];
 
+			/* This project is build to compile with the Microsoft compiler and that does allow this extension. */
+#pragma warning(push)
+#pragma warning(disable:4201)
 			struct
 			{
 				Vector4 c1, c2, c3, c4;
 			};
+#pragma warning(pop)
 		};
 
 		Matrix(const Vector4 &c1, const Vector4 &c2, const Vector4 &c3, const Vector4 &c4)

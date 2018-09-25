@@ -131,7 +131,7 @@ namespace Plutonium
 		size_t charBufferSize;
 		Binder bindFunc;
 
-		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2> args);
+		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2>);
 		void UpdateTextMesh(void);
 	};
 }

@@ -274,6 +274,9 @@ void Plutonium::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
 	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) LOG_THROW("Unable to seek to position %zd in file '%s'!", amount, fname);
 }
 
+/* Assignment and check are intended. */
+#pragma warning(push)
+#pragma warning(disable:4706)
 void Plutonium::FileReader::Open(void)
 {
 	if (!open)
@@ -288,6 +291,7 @@ void Plutonium::FileReader::Open(void)
 	}
 	else LOG_WAR("Cannot open already opened file '%s'!", fname);
 }
+#pragma warning(pop)
 
 void Plutonium::FileReader::InitFileArgs(void)
 {

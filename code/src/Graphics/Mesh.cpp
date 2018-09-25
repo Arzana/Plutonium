@@ -143,16 +143,17 @@ Mesh * Plutonium::Mesh::FromFile(const ObjLoaderResult * buffer, size_t idx, boo
 
 	/* Copy vertices. */
 	bool redefineNormal = false;
-	for (size_t i = 0, j = 0; i < mesh.Indices.size(); i++, j++)
+	int32 j = 0;
+	for (size_t i = 0; i < mesh.Indices.size(); i++, j++)
 	{
-		const ObjLoaderVertex &idx = mesh.Indices.at(i);
+		const ObjLoaderVertex &indices = mesh.Indices.at(i);
 
 		/* Copy over the position and the texture coordinate. */
-		result->vertices[i].Position = buffer->Vertices.at(idx.Vertex);
-		result->vertices[i].Texture = buffer->TexCoords.at(idx.TexCoord);
+		result->vertices[i].Position = buffer->Vertices.at(indices.Vertex);
+		result->vertices[i].Texture = buffer->TexCoords.at(indices.TexCoord);
 
 		/* If a normal is present just copy it over otherwise specify that the normal needs to be redefined for this triangle. */
-		if (idx.Normal != -1) result->vertices[i].Normal = buffer->Normals.at(idx.Normal);
+		if (indices.Normal != -1) result->vertices[i].Normal = buffer->Normals.at(indices.Normal);
 		else redefineNormal = true;
 
 		/* Set tangent (and normal if needed) for the last three vertices. */

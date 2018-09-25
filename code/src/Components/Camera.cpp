@@ -129,7 +129,7 @@ void Plutonium::Camera::UpdateView(void)
 	iviewDirty = true;
 }
 
-void Plutonium::Camera::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
+void Plutonium::Camera::WindowResizeEventHandler(WindowHandler sender, EventArgs)
 {
 	proj = Matrix::CreatPerspective(fov, sender->AspectRatio(), near, far);
 	iproj = proj.GetInverse();

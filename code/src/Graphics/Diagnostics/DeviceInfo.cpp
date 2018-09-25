@@ -1,6 +1,7 @@
 #include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Core\StringFunctions.h"
 #include "Core\SafeMemory.h"
+#include "Graphics\Native\OpenGL.h"
 #include <glad\glad.h>
 
 #define GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX		0x9048
@@ -18,24 +19,16 @@ const DeviceInfo * Plutonium::_CrtGetDeviceInfo(void)
 	result->DriverVersion = heapstr((const char*)glGetString(GL_VERSION));
 	result->ShaderVersion = heapstr((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-	/* 
+	/*
 	To get the available GPU memory we must check for extension values.
 	Some NVidia cards define the GL_NVX_gpu_memory_info extension (> 195.XX drivers), we can use this to get the cards memory information.
 	*/
-	GLint extensionCount = 0;
-	glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-
-	for (GLint i = 0; i < extensionCount; i++)
+	if (_CrtExtensionSupported("GL_NVX_gpu_memory_info"))
 	{
-		/* Check if the device supports the needed extension. */
-		const char *cur = (const char*)glGetStringi(GL_EXTENSIONS, i);
-		if (eqlstr(cur, "GL_NVX_gpu_memory_info"))
-		{
-			/* Get the total available memory in KB and convert it to bytes and store it. */
-			GLint totalKb = 0;
-			glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalKb);
-			result->FrameBufferSize = totalKb * 1000ULL;
-		}
+		/* Get the total available memory in KB and convert it to bytes and store it. */
+		GLint totalKb = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalKb);
+		result->FrameBufferSize = totalKb * 1000ULL;
 	}
 
 	/* Log if we could not get the total frame buffer size. */

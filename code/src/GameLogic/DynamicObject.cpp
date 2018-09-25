@@ -15,8 +15,8 @@ Plutonium::DynamicObject::~DynamicObject(void)
 
 inline Plutonium::Box Plutonium::DynamicObject::GetBoundingBox(void) const
 {
-	Box bb = Box::Mix(GetCurrentFrame()->GetBoundingBox(), GetNextFrame()->GetBoundingBox(), mixAmnt);
-	return bb * GetWorld();
+	Box frameBB = Box::Mix(GetCurrentFrame()->GetBoundingBox(), GetNextFrame()->GetBoundingBox(), mixAmnt);
+	return frameBB * GetWorld();
 }
 
 bool Plutonium::DynamicObject::PlayAnimation(const char * name)
@@ -109,6 +109,10 @@ void Plutonium::DynamicObject::MoveFrame(void)
 	/* Get playing animation. */
 	AnimationInfo *info = model->animations.at(curAnim);
 
+	/* The values used within the switch are not named but are valid enum values. */
+#pragma warning(push)
+#pragma warning(disable:4063)
+
 	/* Get the flags without the lerping flag. */
 	switch (_CrtEnumRemoveFlag(info->Flags, PlayBackFlags::TimeBased))
 	{
@@ -196,4 +200,5 @@ void Plutonium::DynamicObject::MoveFrame(void)
 		else curFrame += frameMoveMod;
 		break;
 	}
+#pragma warning(pop)
 }

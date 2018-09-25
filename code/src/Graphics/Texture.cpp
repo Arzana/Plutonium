@@ -83,6 +83,9 @@ void Plutonium::Texture::SetData(byte * data)
 	GenerateTexture(&data);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::Texture::SaveAsPng(const char * path, bool flipVertically) const
 {
 	/* Get texture data. */
@@ -100,8 +103,9 @@ void Plutonium::Texture::SaveAsPng(const char * path, bool flipVertically) const
 	freea_s(data);
 
 	/* On debug throw is saving is not possible. */
-	ASSERT_IF(!result, "Unable to save texture(%s) as '%s', reason: %s!", name, path, _CrtGetErrorString());
+	LOG_WAR_IF(!result, "Unable to save texture(%s) as '%s', reason: %s!", name, path, _CrtGetErrorString());
 }
+#pragma warning (pop)
 
 Texture * Plutonium::Texture::FromFile(const char * path, WindowHandler wnd, const TextureCreationOptions * config)
 {
@@ -385,10 +389,9 @@ void Plutonium::Texture::GetDataAsRGBA(Color * buffer) const
 	ASSERT_IF(config.Type == TextureType::TextureCube, "Cannot get data from cube map at this point!");
 
 	/* Get raw data. */
-	byte *raw = malloca_s(byte, Width * Height * 3);
 	wnd->InvokeWait(Invoker([&](WindowHandler, EventArgs)
 	{
 		glBindTexture(GL_TEXTURE_2D, ptr);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	}));
 }

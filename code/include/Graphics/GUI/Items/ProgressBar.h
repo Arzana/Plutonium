@@ -94,7 +94,7 @@ namespace Plutonium
 		Vector2 barPos;
 		Buffer *barMesh;
 
-		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2> args);
+		void OnMoved(const GuiItem*, ValueChangedEventArgs<Vector2>);
 		void UpdateBarMesh(void);
 	};
 }

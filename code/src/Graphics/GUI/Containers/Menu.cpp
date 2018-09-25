@@ -204,9 +204,9 @@ void Plutonium::Menu::LoadTexture(const char * path, const TextureCreationOption
 	}), false, config);
 }
 
+#if defined(DEBUG)
 void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color color)
 {
-#if defined (DEBUG)
 	LOG_THROW_IF(defaultFontIdx == -1, "Unable to render debug text if no default font is specified!");
 
 	const Font *font = loadedFonts.at(defaultFontIdx);
@@ -250,10 +250,13 @@ void Plutonium::Menu::DrawString(Vector2 position, const char * text, Color colo
 
 	/* Render debug string. */
 	renderer->RenderTextForeground(position, color, font, stringVbo);
-#else
-	LOG_WAR_ONCE("Drawing string directly is disabled on debug mode!");
-#endif
 }
+#else
+void Plutonium::Menu::DrawString(Vector2, const char*, Color)
+{
+	LOG_WAR_ONCE("Drawing string directly is disabled on debug mode!");
+}
+#endif
 
 void Plutonium::Menu::Initialize(void)
 {

@@ -3,20 +3,9 @@
 #include "Graphics\Diagnostics\DeviceInfo.h"
 #include "Core\Diagnostics\StackTrace.h"
 #include "Core\Diagnostics\Logging.h"
+#include "Core\StringFunctions.h"
 #include "Core\EnumUtils.h"
 #include <glfw3.h>
-
-#if defined (DEBUG)
-#include "Core\StringFunctions.h"
-#endif
-
-#if defined(_WIN32)
-#include <Windows.h>
-
-/* Defines function signatures for Windows OS specific extensions. */
-typedef const char *(WINAPI * PfnWglGetExtensionsStringExtProc)(void);
-typedef bool (WINAPI * PfnWglSwapIntervalExtProc)(int);
-#endif
 
 /*
 Forces the use of the NVidia graphics card instead on onboard GPU.
@@ -102,7 +91,7 @@ void GladPreGLCallEventHandler(const char *name, void*, int, ...)
 }
 #endif
 
-void GladErrorEventHandler(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei len, const GLchar *msg, const void *userParam)
+void GladErrorEventHandler(GLenum src, GLenum type, GLuint, GLenum severity, GLsizei, const GLchar *msg, const void*)
 {
 	/* Geta human readable error source. */
 	const char *caller;
@@ -211,18 +200,6 @@ void GladPostGLCallEventHandler(const char *name, void *, int, ...)
 }
 #endif
 
-#if defined(_WIN32)
-/* Checks whether a Windows extension is supported. */
-bool IsWGLExtensionSupported(const char *extension)
-{
-	/* Gets the function needed for getting extension settings. */
-	PfnWglGetExtensionsStringExtProc wglGetExtensionStringExt = (PfnWglGetExtensionsStringExtProc)wglGetProcAddress("wglGetExtensionsStringEXT");
-
-	/* Checks whether the settings contains the extension. */
-	return strstr(wglGetExtensionStringExt(), extension) != nullptr;
-}
-#endif
-
 size_t Plutonium::_CrtGetDrawCalls(void)
 {
 #if defined (DEBUG)
@@ -287,15 +264,29 @@ void Plutonium::_CrtDbgMoveTerminal(GLFWwindow * gameWindow)
 	LOG_WAR("No improved terminal position found!");
 }
 
+/* Define extension function needed. */
+typedef void (APIENTRYP PfnWglSwapIntervalExtProc)(int interval);
+PfnWglSwapIntervalExtProc pu_wglSwapIntervalEXT;
+#define wglSwapIntervalEXT pu_impl_wglSwapIntervalEXT
+
+void APIENTRY pu_impl_wglSwapIntervalEXT(int interval)
+{
+#if defined(DEBUG)
+	GladPreGLCallEventHandler("wglSwapIntervalEXT", (void*)wglSwapIntervalEXT, 1, interval);
+#endif
+	pu_wglSwapIntervalEXT(interval);
+#if defined(DEBUG)
+	GladPostGLCallEventHandler("wglSwapIntervalEXT", (void*)wglSwapIntervalEXT, 1, interval);
+#endif
+}
+
 void Plutonium::_CrtSetSwapIntervalExt(int interval)
 {
-#if defined(_WIN32)
-	LOG_WAR_IF(!IsWGLExtensionSupported("WGL_EXT_swap_control"), "Cannot set Windows specific swap interal!");
-	PfnWglSwapIntervalExtProc wglSwapIntervalExt = (PfnWglSwapIntervalExtProc)wglGetProcAddress("wglSwapIntervalEXT");
-	wglSwapIntervalExt(interval);
-#else
-	LOG_WAR("Cannot set OS specific swap interval on this platform!");
-#endif
+	if (_CrtExtensionSupported("WGL_EXT_swap_control"))
+	{
+		wglSwapIntervalEXT(interval);
+	}
+	else LOG_WAR_ONCE("Swap control is not supported on this platform!");
 }
 
 int Plutonium::_CrtInitGLFW(void)
@@ -307,7 +298,6 @@ int Plutonium::_CrtInitGLFW(void)
 	if (glfwInit() != GLFW_TRUE)
 	{
 		LOG_THROW("Failed to initialize GLFW!");
-		return GLFW_FALSE;
 	}
 
 	/* Set error callback to make sure we log GLFW errors. */
@@ -329,7 +319,6 @@ int Plutonium::_CrtInitGlad(void)
 	if (!gladLoadGLLoader(GLADloadproc(glfwGetProcAddress)))
 	{
 		LOG_THROW("Failed to initialize Glad!");
-		return GLFW_FALSE;
 	}
 
 #if defined(DEBUG)
@@ -364,8 +353,28 @@ void Plutonium::_CrtFinalizeGLFW(void)
 	glfwTerminate();
 }
 
+#if defined(DEBUG)
 void Plutonium::_CrtAddLogRule(uint32 id, OpenGLSource api, OpenGLMsgType type, const char * reason)
+#else
+void Plutonium::_CrtAddLogRule(uint32 id, OpenGLSource api, OpenGLMsgType type, const char*)
+#endif
 {
 	glDebugMessageControl(_CrtEnum2Int(api), _CrtEnum2Int(type), GL_DONT_CARE, 1, &id, GL_FALSE);
 	LOG("Ingoring OpenGL message %u, reason: %s!", id, reason);
+}
+
+bool Plutonium::_CrtExtensionSupported(const char * extension)
+{
+	/* Get the amount of extensions on this system. */
+	GLint extensionCount = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+
+	for (GLint i = 0; i < extensionCount; i++)
+	{
+		/* Check if the device supports the needed extension. */
+		const char *cur = (const char*)glGetStringi(GL_EXTENSIONS, i);
+		if (eqlstr(cur, extension)) return true;
+	}
+
+	return false;
 }

@@ -215,12 +215,6 @@
     <ClCompile Include="..\..\src\Core\Diagnostics\StackTrace.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\deps\glad\Debug\src\glad_debug.c">
-      <Filter>Third Party Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\deps\glad\Release\src\glad_release.c">
-      <Filter>Third Party Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Color.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -382,6 +376,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\Graphics\Rendering\ShapeRenderer.cpp">
       <Filter>Source Files\Graphics\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\glad\Debug\src\glad.c">
+      <Filter>Third Party Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

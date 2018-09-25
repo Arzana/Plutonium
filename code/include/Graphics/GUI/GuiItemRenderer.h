@@ -123,7 +123,7 @@ namespace Plutonium
 		void RenderSplit(void);
 		void RenderText(void);
 		void RenderBars(void);
-		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
+		void WindowResizeEventHandler(WindowHandler sender, EventArgs);
 		void InitBasicShader(void);
 		void InitSplitShader(void);
 		void InitTextShader(void);

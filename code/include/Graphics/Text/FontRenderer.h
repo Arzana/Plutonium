@@ -80,7 +80,7 @@ namespace Plutonium
 		void UpdateVBO(Vector2 pos, const char32 *str);
 		void AddSingleString(Vector2 pos, const char *str, Color clr);
 		void AddSingleString(Vector2 pos, const char32 *str, Color clr);
-		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
+		void WindowResizeEventHandler(WindowHandler sender, EventArgs);
 		void ClearBuffer(void);
 		void OnLoadComplete(const AssetLoader*, Font *result);
 	};

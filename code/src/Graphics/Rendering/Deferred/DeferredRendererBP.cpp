@@ -1263,10 +1263,10 @@ void Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, con
 			dspass.amnt->Set(0.0f);
 
 			/* Render all static models to depth map. */
-			for (size_t i = 0; i < queuedModels.size(); i++)
+			for (size_t k = 0; k < queuedModels.size(); k++)
 			{
 				/* Only render the model if it is allowed to cast a shadow. */
-				const StaticObject *model = queuedModels.at(i);
+				const StaticObject *model = queuedModels.at(k);
 				if (!model->CastsShadows) continue;
 
 				/* Set model matrix. */
@@ -1274,12 +1274,12 @@ void Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, con
 
 				/* Loop through all shapes in the mode. */
 				const std::vector<StaticModel::Shape> *shapes = model->GetModel()->GetShapes();
-				for (size_t j = 0; j < shapes->size(); j++)
+				for (size_t l = 0; l < shapes->size(); l++)
 				{
-					const MaterialBP *material = shapes->at(j).Material;
+					const MaterialBP *material = shapes->at(l).Material;
 					if (material->Visible)
 					{
-						Buffer *buffer = shapes->at(j).Mesh->GetVertexBuffer();
+						Buffer *buffer = shapes->at(l).Mesh->GetVertexBuffer();
 
 						/* Set material attributes. */
 						dspass.mapDiff->Set(material->Diffuse);
@@ -1298,10 +1298,10 @@ void Plutonium::DeferredRendererBP::RenderDirLightShadow(const Camera * cam, con
 			}
 
 			/* Render all dynamic models to depth map. */
-			for (size_t i = 0; i < queuedAnimations.size(); i++)
+			for (size_t k = 0; k < queuedAnimations.size(); k++)
 			{
 				/* Only render the model if it is allowed to cast a shadow. */
-				const DynamicObject *model = queuedAnimations.at(i);
+				const DynamicObject *model = queuedAnimations.at(k);
 				if (!model->CastsShadows) continue;
 
 				/* Set model matrix. */

@@ -45,6 +45,9 @@ Plutonium::ShapeRenderer::~ShapeRenderer(void)
 	delete_s(vbo);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ShapeRenderer::AddRay(Vector3 start, Vector3 end, Color clr)
 {
 	/* Increase the GPU and CPU buffer if needed. */
@@ -66,6 +69,7 @@ void Plutonium::ShapeRenderer::AddRay(Vector3 start, Vector3 end, Color clr)
 
 	++lineCnt;
 }
+#pragma warning(pop)
 
 void Plutonium::ShapeRenderer::AddMatrix(const Matrix & m, Color xClr, Color yClr, Color zClr)
 {
@@ -74,6 +78,9 @@ void Plutonium::ShapeRenderer::AddMatrix(const Matrix & m, Color xClr, Color yCl
 	AddRay(m.GetTranslation(), m.GetTranslation() + m.GetBackward(), zClr);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ShapeRenderer::AddCircle(Vector3 center, float radius, Color clr, int32 divs)
 {
 	float delta = PI / static_cast<float>(divs);
@@ -86,6 +93,7 @@ void Plutonium::ShapeRenderer::AddCircle(Vector3 center, float radius, Color clr
 		v0 = v1;
 	}
 }
+#pragma warning(pop)
 
 void Plutonium::ShapeRenderer::AddSphere(Vector3 center, float radius, Color xzClr, Color xyClr, Color yzClr, int32 divs)
 {
@@ -114,6 +122,9 @@ void Plutonium::ShapeRenderer::AddSphere(Vector3 center, float radius, Color xzC
 	}
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ShapeRenderer::AddAABB(const Box & box, Color clr)
 {
 	Vector3 ftl = box[0];
@@ -140,7 +151,11 @@ void Plutonium::ShapeRenderer::AddAABB(const Box & box, Color clr)
 	AddRay(fbr, bbr, clr);
 	AddRay(fbl, bbl, clr);
 }
+#pragma warning(pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ShapeRenderer::AddOBB(const Box & box, const Matrix & orien, Color clr)
 {
 	Vector3 ftl = orien * box[0];
@@ -167,6 +182,7 @@ void Plutonium::ShapeRenderer::AddOBB(const Box & box, const Matrix & orien, Col
 	AddRay(fbr, bbr, clr);
 	AddRay(fbl, bbl, clr);
 }
+#pragma warning(pop)
 
 void Plutonium::ShapeRenderer::Render(const Matrix & view, const Matrix & projection)
 {
@@ -195,6 +211,9 @@ void Plutonium::ShapeRenderer::AllocVbo(void)
 	vbo->SetData<VertexFormat>(BufferUsage::DynamicDraw, nullptr, maxLineCnt << 1);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ShapeRenderer::InitShader(void)
 {
 	const Shader *shdr = GetShader();
@@ -204,3 +223,4 @@ void Plutonium::ShapeRenderer::InitShader(void)
 	pos = shdr->GetAttribute("Position");
 	clr = shdr->GetAttribute("Color");
 }
+#pragma warning(pop)

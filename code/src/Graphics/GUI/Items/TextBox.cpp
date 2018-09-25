@@ -142,6 +142,9 @@ void Plutonium::TextBox::SetFlickerInterval(float seconds)
 	flickerInterval = seconds;
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::TextBox::SetInputFlags(InputFlags flags)
 {
 	if (flags == this->flags) return;
@@ -149,8 +152,9 @@ void Plutonium::TextBox::SetInputFlags(InputFlags flags)
 
 	this->flags = flags;
 }
+#pragma warning (pop)
 
-void Plutonium::TextBox::SetMaximumLength(int32 length)
+void Plutonium::TextBox::SetMaximumLength(uint32 length)
 {
 	if (length == maxStringLength) return;
 	LOG_THROW_IF(strlen(GetText()) > 0, "Cannot change maximum string length after the text box has received input!");
@@ -187,17 +191,17 @@ void Plutonium::TextBox::HandleAutoSize(void)
 	{
 		/* Get the current size of the TextBox and the string (plus it's size). */
 		const Vector2 size = GetSize();
-		const char32 *text = GetVisualString();
-		const size_t len = strlen(text);
+		const char32 *visual = GetVisualString();
+		const size_t len = strlen(visual);
 
 		/* Create an uniform length string to make sure the TextBox doesn't resize if the focus indicator is removed. */
-		const char32 *uniformSizeText = text;
-		char32 *buffer;
+		const char32 *uniformSizeText = visual;
+		char32 *buffer = nullptr;
 		if (!showLine)
 		{
 			/* Add two in size for the invisible pipe character and the null terminator. */
 			buffer = malloca_s(char32, len + 2);
-			mrgstr(text, U" ", buffer);
+			mrgstr(visual, U" ", buffer);
 			buffer[len] = U'|';
 			uniformSizeText = buffer;
 		}
@@ -226,7 +230,7 @@ void Plutonium::TextBox::OnGlyphInput(WindowHandler, uint32 key)
 
 	bool oversized = maxStringLength > 0 && newLen > maxStringLength;
 	bool rejected = false;
-	GlyphType type;
+	GlyphType type = GlyphType::Unknown;
 
 #if defined (_WIN32)
 	/* Get glyph paramters. */
@@ -282,6 +286,9 @@ void Plutonium::TextBox::OnGlyphInput(WindowHandler, uint32 key)
 	}
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::TextBox::UpdateVisibleString(void)
 {
 	/* Get string paramters. */
@@ -313,3 +320,4 @@ void Plutonium::TextBox::UpdateVisibleString(void)
 	SetVisualString(buffer);
 	freea_s(buffer);
 }
+#pragma warning(pop)

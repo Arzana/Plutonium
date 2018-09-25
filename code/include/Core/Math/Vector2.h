@@ -12,6 +12,9 @@ namespace Plutonium
 			/* Both components of the vector. */
 			float f[2];
 
+			/* This project is build to compile with the Microsoft compiler and that does allow this extension. */
+#pragma warning(push)
+#pragma warning(disable:4201)
 			struct
 			{
 				/* The X component of the vector. */
@@ -19,6 +22,7 @@ namespace Plutonium
 				/* The Y component of the vector. */
 				float Y;
 			};
+#pragma warning(pop)
 		};
 
 		/* Initializes a new instance of a two dimentional vector with both components set to zero. */

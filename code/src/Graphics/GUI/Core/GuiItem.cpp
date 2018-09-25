@@ -49,7 +49,10 @@ void Plutonium::GuiItem::PerformClick(void)
 	Clicked.Post(this, game->GetCursor());
 }
 
-void Plutonium::GuiItem::Update(float dt)
+/* Assignment and check are intended. */
+#pragma warning(push)
+#pragma warning(disable:4706)
+void Plutonium::GuiItem::Update(float)
 {
 	/* Skip update call if requested. */
 	if (suppressUpdate)
@@ -94,16 +97,21 @@ void Plutonium::GuiItem::Update(float dt)
 		if (rdown && !cursor->RightButton) rdown = false;
 	}
 }
+#pragma warning(pop)
 
 void Plutonium::GuiItem::Draw(GuiItemRenderer * renderer)
 {
 	if (visible) RenderGuiItem(renderer);
 }
 
+/* Warning cause if checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::MoveRelative(Anchors anchor, float x, float y)
 {
 	MoveRelativeInternal(anchor, Vector2(x, y), Vector2::Zero());
 }
+#pragma warning(pop)
 
 void Plutonium::GuiItem::Show(void)
 {
@@ -153,12 +161,19 @@ void Plutonium::GuiItem::SetFocusedBackgroundImage(TextureHandler image)
 	FocusedImageChanged.Post(this, args);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::SetBounds(Rectangle bounds)
 {
 	SetPosition(bounds.Position);
 	SetSize(bounds.Size);
 }
+#pragma warning(pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::SetState(bool enabled)
 {
 	if (enabled == this->enabled) return;
@@ -167,12 +182,16 @@ void Plutonium::GuiItem::SetState(bool enabled)
 	this->enabled = enabled;
 	StateChanged.Post(this, args);
 }
+#pragma warning(pop)
 
 void Plutonium::GuiItem::SetHeight(int32 height)
 {
 	SetSize(Vector2(bounds.GetWidth(), static_cast<float>(height)));
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::SetName(const char * name)
 {
 	if (eqlstr(this->name, name)) return;
@@ -183,7 +202,11 @@ void Plutonium::GuiItem::SetName(const char * name)
 
 	free_s(const_cast<const char*>(args.OldValue));
 }
+#pragma warning(pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::SetPosition(Vector2 position)
 {
 	if (this->position == position) return;
@@ -192,6 +215,7 @@ void Plutonium::GuiItem::SetPosition(Vector2 position)
 	UpdatePosition(position);
 	Moved.Post(this, args);
 }
+#pragma warning(pop)
 
 void Plutonium::GuiItem::SetSize(Vector2 size)
 {
@@ -299,6 +323,9 @@ void Plutonium::GuiItem::UpdateMesh(void)
 	mesh->SetData(data);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::UpdatePosition(Vector2 position)
 {
 	Vector2 offset = GetBackgroundOffset();
@@ -311,6 +338,9 @@ void Plutonium::GuiItem::UpdatePosition(Vector2 position)
 	if (parent) bounds.Position += parent->GetBoundingBox().Position;
 }
 
+/* Assignment and check are intended. */
+#pragma warning(push)
+#pragma warning(disable:4706)
 void Plutonium::GuiItem::ApplyFocus(bool focused)
 {
 	if (!focusable || focused == this->focused) return;
@@ -318,6 +348,8 @@ void Plutonium::GuiItem::ApplyFocus(bool focused)
 	if (this->focused = focused) GainedFocus.Post(this, EventArgs());
 	else LostFocus.Post(this, EventArgs());
 }
+#pragma warning(pop)
+#pragma warning(pop)
 
 void Plutonium::GuiItem::WindowResizedHandler(WindowHandler, EventArgs)
 {
@@ -335,6 +367,9 @@ void Plutonium::GuiItem::ParentResizedHandler(const GuiItem *, ValueChangedEvent
 	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2::Zero(), offsetFromAnchorPoint);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vector2 adder)
 {
 	Vector2 newPos = base;
@@ -362,3 +397,4 @@ void Plutonium::GuiItem::MoveRelativeInternal(Anchors anchor, Vector2 base, Vect
 	}
 	else LOG_THROW_IF(!_CrtIsAnchorValid(anchor), "The anchor value is invalid!");
 }
+#pragma warning(pop)

@@ -24,11 +24,17 @@ namespace Plutonium
 
 		/* Starts rendering the specified scene. */
 		void Begin(void);
+
+		/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 		/* Renders the specified sprite. */
 		inline void Render(_In_ const Texture *sprite, _In_ Vector2 position, _In_opt_ Color color = Color::White(), _In_opt_ Vector2 scale = Vector2::One(), _In_opt_ float rotation = 0.0f)
 		{
 			Render(sprite, Rectangle(position, sprite->GetSize()), color, scale, rotation);
 		}
+#pragma warning(pop)
+
 		/* Renders the specified sprite. */
 		void Render(_In_ const Texture *sprite, _In_ Rectangle bounds, _In_opt_ Color color = Color::White(), _In_opt_ Vector2 scale = Vector2::One(), _In_opt_ float rotation = 0.0f);
 
@@ -41,7 +47,7 @@ namespace Plutonium
 		Buffer *mesh;
 		Matrix proj;
 
-		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
+		void WindowResizeEventHandler(WindowHandler sender, EventArgs);
 		void UpdateVBO(Vector2 size);
 	};
 }

@@ -62,18 +62,18 @@ namespace Plutonium
 		bool Unload(_In_ const Font *font);
 
 		/* Loads a specified texture, calls the callback after completion. */
-		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
+		void LoadTexture(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Texture*> callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
 		/* 
 		Loads a specified skybox, calls the callback after completion.
 		Expected texture order: right, left, top, bottom, front, back.
 		*/
-		void LoadTexture(_In_ const char *paths[6], _In_ EventSubscriber<AssetLoader, Texture*> &callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::DefaultCube);
+		void LoadTexture(_In_ const char *paths[6], _In_ EventSubscriber<AssetLoader, Texture*> callback, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::DefaultCube);
 		/* Loads a specified model, calls the callback after completion. */
-		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> &callback, _In_opt_ bool keep = false);
+		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, StaticModel*> callback, _In_opt_ bool keep = false);
 		/* Loads a specified model, calls the callback after completion. */
-		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, DynamicModel*> &callback, _In_opt_ bool keep = false, _In_opt_ const char *texture = nullptr);
+		void LoadModel(_In_ const char *path, _In_ EventSubscriber<AssetLoader, DynamicModel*> callback, _In_opt_ bool keep = false, _In_opt_ const char *texture = nullptr);
 		/* Loads a specified font, calls the callback after completion. */
-		void LoadFont(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Font*> &callback, _In_ float scale, _In_opt_ bool keep = false);
+		void LoadFont(_In_ const char *path, _In_ EventSubscriber<AssetLoader, Font*> callback, _In_ float scale, _In_opt_ bool keep = false);
 
 		/* Loads a specified texture and returns it. */
 		_Check_return_ Texture* LoadTexture(_In_ const char *path, _In_opt_ bool keep = false, _In_opt_ const TextureCreationOptions *config = &TextureCreationOptions::Default2D);
@@ -168,7 +168,7 @@ namespace Plutonium
 
 		WindowHandler wnd;
 		TickThread *ioThread;
-		int64 threadID;
+		uint64 threadID;
 		std::mutex lockRoot;
 		mutable std::mutex lockState;
 		std::mutex lockTex, lockSMod, lockDMod, lockFont;

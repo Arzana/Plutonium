@@ -83,6 +83,9 @@ void Plutonium::SkyboxRenderer::End(void)
 	device->SetDepthOuput(true);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::SkyboxRenderer::InitShader(void)
 {
 	const Shader *shdr = GetShader();
@@ -92,3 +95,4 @@ void Plutonium::SkyboxRenderer::InitShader(void)
 	texture = shdr->GetUniform("skybox");
 	pos = shdr->GetAttribute("position");
 }
+#pragma warning(pop)

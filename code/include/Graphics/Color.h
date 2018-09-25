@@ -10,6 +10,9 @@ namespace Plutonium
 	public:
 		union
 		{
+			/* This project is build to compile with the Microsoft compiler and that does allow this extension. */
+#pragma warning(push)
+#pragma warning(disable:4201)
 			struct
 			{
 				/* The red amount of this color. */
@@ -21,6 +24,7 @@ namespace Plutonium
 				/* The alpha (transparency) of this color. */
 				byte A;
 			};
+#pragma warning(pop)
 
 			/* The color as a 32 bit unsigned int. */
 			uint32 Packed;

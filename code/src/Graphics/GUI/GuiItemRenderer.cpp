@@ -227,7 +227,7 @@ void Plutonium::GuiItemRenderer::RenderBars(void)
 	bar.shdr->End();
 }
 
-void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
+void Plutonium::GuiItemRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs)
 {
 	/* Update the projection matrix. */
 	const Rectangle vp = sender->GetClientBounds();

@@ -136,6 +136,6 @@ namespace Plutonium
 
 		void UpdatePosition(float dt);
 		void UpdateView(void);
-		void WindowResizeEventHandler(WindowHandler sender, EventArgs args);
+		void WindowResizeEventHandler(WindowHandler sender, EventArgs);
 	};
 }

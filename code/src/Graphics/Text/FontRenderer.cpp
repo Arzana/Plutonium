@@ -37,6 +37,9 @@ Plutonium::FontRenderer::~FontRenderer(void)
 	parent->GetLoader()->Unload(font);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr)
 {
 	/* Make sure we don't allow string to be rendered when the font is not yet loaded. */
@@ -56,7 +59,11 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char * str, Color clr
 
 	freeaa_s(buffer, buffLen);
 }
+#pragma warning (pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::FontRenderer::AddString(Vector2 pos, const char32 * str, Color clr)
 {
 	/* Make sure we don't allow string to be rendered when the font is not yet loaded. */
@@ -76,6 +83,7 @@ void Plutonium::FontRenderer::AddString(Vector2 pos, const char32 * str, Color c
 
 	freeaa_s(buffer, buffLen);
 }
+#pragma warning(pop)
 
 void Plutonium::FontRenderer::Render(void)
 {
@@ -115,6 +123,9 @@ void Plutonium::FontRenderer::RenderString(LineInfo *info)
 	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vbo->GetElementCount()));
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char32 *str)
 {
 	/* Create CPU side vertices buffer. (6 vertices per quad of vector4 type per glyph). */
@@ -149,22 +160,31 @@ void Plutonium::FontRenderer::UpdateVBO(Vector2 pos, const char32 *str)
 	vbo->SetData(vertices, size);
 	freea_s(vertices);
 }
+#pragma warning(pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char * str, Color clr)
 {
 	/* Make sure we check for the maximum string length. */
 	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
 	strs.push_back(new LineInfo(str, pos, clr));
 }
+#pragma warning(pop)
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::FontRenderer::AddSingleString(Vector2 pos, const char32 * str, Color clr)
 {
 	/* Make sure we check for the maximum string length. */
 	LOG_THROW_IF(strlen(str) > MAX_STRING_LENGTH, "String '%s' if too long for the FontRenderer to handle!", str);
 	strs.push_back(new LineInfo(str, pos, clr));
 }
+#pragma warning(pop)
 
-void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
+void Plutonium::FontRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs)
 {
 	/* Update projection matrix. */
 	Rectangle viewport = sender->GetClientBounds();

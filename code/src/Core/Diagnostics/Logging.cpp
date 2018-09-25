@@ -30,7 +30,7 @@ std::mutex printLock;
 void _CrtUpdateType(LogType type)
 {
 	lastType = type;
-	int typeClr;
+	WORD typeClr;
 
 	switch (type)
 	{
@@ -270,7 +270,7 @@ void Plutonium::_CrtLogThrow(const char * msg, const char * file, const char * f
 	_CrtLogExc(3);
 
 	/* Make sure we halt excecution for all threads. */
-	throw;
+	throw std::exception(msg);
 }
 
 bool Plutonium::_CrtLogBacktrack(size_t amnt)

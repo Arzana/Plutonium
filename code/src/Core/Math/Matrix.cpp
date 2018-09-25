@@ -160,6 +160,9 @@ float Plutonium::Matrix::GetDeterminant(void) const
 		f[3] * det33(f[1], f[5], f[9], f[2], f[6], f[10], f[3], f[7], f[11]);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 Matrix Plutonium::Matrix::GetInverse(void) const
 {
 	/* Inline calculate the matrix of minors needed for the determinant to save performance. */
@@ -197,6 +200,7 @@ Matrix Plutonium::Matrix::GetInverse(void) const
 	det = 1.0f / det;
 	return Matrix(adj.c1 * det, adj.c2 * det, adj.c3 * det, adj.c4 * det);
 }
+#pragma warning(pop)
 
 Matrix Plutonium::Matrix::GetTranspose(void) const
 {
@@ -206,6 +210,9 @@ Matrix Plutonium::Matrix::GetTranspose(void) const
 				  c4.X, c4.Y, c4.Z, c4.W);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::Matrix::SetOrientation(float yaw, float pitch, float roll)
 {
 	const float cz = cosf(pitch);
@@ -229,6 +236,7 @@ void Plutonium::Matrix::SetOrientation(float yaw, float pitch, float roll)
 	c2 = Vector4(b, f, j, 0.0f) * GetUp().Length();
 	c3 = Vector4(c, g, k, 0.0f) * GetBackward().Length();
 }
+#pragma warning(pop)
 
 void Plutonium::Matrix::SetScale(float v)
 {

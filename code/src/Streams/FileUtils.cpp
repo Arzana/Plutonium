@@ -49,7 +49,7 @@ void Plutonium::_CrtCreateDirectory(const char * directory)
 
 	/* Attempt to create the directory and throw (on debug) is failed. */
 	bool successful = CreateDirectory(directory, nullptr);
-	ASSERT_IF(!successful, "Unable to create directory '%s', reason: %s!", directory, _CrtGetErrorString());
+	LOG_THROW_IF(!successful, "Unable to create directory '%s', reason: %s!", directory, _CrtGetErrorString());
 
 #else
 

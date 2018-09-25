@@ -35,6 +35,9 @@ constexpr const char *FRAG_SHDR_SRC =
 "	fragColor = texture(sprite, uv) * color;												\n"
 "}";
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 Plutonium::SpriteRenderer::SpriteRenderer(GraphicsAdapter * device)
 	: Renderer(new Shader(VRTX_SHDR_SRC, FRAG_SHDR_SRC)), device(device)
 {
@@ -58,6 +61,7 @@ Plutonium::SpriteRenderer::SpriteRenderer(GraphicsAdapter * device)
 	mesh = new Buffer(device->GetWindow(), BindTarget::Array);
 	mesh->SetData<Vector4>(BufferUsage::DynamicDraw, nullptr, 6);
 }
+#pragma warning(pop)
 
 Plutonium::SpriteRenderer::~SpriteRenderer(void)
 {
@@ -75,6 +79,9 @@ void Plutonium::SpriteRenderer::Begin(void)
 	matVp->Set(proj);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::SpriteRenderer::Render(const Texture * sprite, Rectangle bounds, Color color, Vector2 scale, float rotation)
 {
 	/* Construct model matrix. */
@@ -95,8 +102,9 @@ void Plutonium::SpriteRenderer::Render(const Texture * sprite, Rectangle bounds,
 	/* Render sprite. */
 	DrawTris(mesh->GetElementCount());
 }
+#pragma warning(pop)
 
-void Plutonium::SpriteRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs args)
+void Plutonium::SpriteRenderer::WindowResizeEventHandler(WindowHandler sender, EventArgs)
 {
 	/* Update projection matrix. */
 	Rectangle viewport = sender->GetClientBounds();

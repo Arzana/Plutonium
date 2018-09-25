@@ -37,6 +37,9 @@ void Plutonium::ProgressBar::Draw(GuiItemRenderer * renderer)
 	if (IsVisible()) RenderProgressBar(renderer);
 }
 
+/* Warning cause has been checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ProgressBar::SetFillStyle(FillStyle style)
 {
 	if (style == this->style) return;
@@ -48,12 +51,20 @@ void Plutonium::ProgressBar::SetFillStyle(FillStyle style)
 
 	FillStyleChanged.Post(this, args);
 }
+#pragma warning (pop)
 
+/* Warning cause has been checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ProgressBar::SetValueMapped(float value, float min, float max)
 {
 	SetValue(ilerp(min, max, value));
 }
+#pragma warning (pop)
 
+/* Warning cause has been checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::ProgressBar::SetValue(float value)
 {
 	if (value == this->value) return;
@@ -67,6 +78,7 @@ void Plutonium::ProgressBar::SetValue(float value)
 
 	ValueChanged.Post(this, args);
 }
+#pragma warning (pop)
 
 void Plutonium::ProgressBar::SetBarImage(TextureHandler image)
 {
@@ -91,7 +103,7 @@ void Plutonium::ProgressBar::RenderProgressBar(GuiItemRenderer * renderer)
 	renderer->RenderBarForeground(barPos, GetBounds(), GetRoundingFactor(), barColor, bar, barMesh);
 }
 
-void Plutonium::ProgressBar::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2> args)
+void Plutonium::ProgressBar::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2>)
 {
 	switch (style)
 	{

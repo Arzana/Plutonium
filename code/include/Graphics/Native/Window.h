@@ -111,9 +111,9 @@ namespace Plutonium
 		/* Gets whether the calling thread is equal to the OpenGL context thread. */
 		_Check_return_ bool InvokeRequired(void) const;
 		/* Invokes the specified function on the OpenGL context thread. */
-		void Invoke(_In_ EventSubscriber<Window, EventArgs> &func) const;
+		void Invoke(_In_ EventSubscriber<Window, EventArgs> func) const;
 		/* Invokes the specified function on the OpenGL context thread and waits for it to complete. */
-		void InvokeWait(_In_ EventSubscriber<Window, EventArgs> &func) const;
+		void InvokeWait(_In_ EventSubscriber<Window, EventArgs> func) const;
 		/* Gets the window associated with the active context. */
 		_Check_return_ static const Window* GetActiveContextWindow(void);
 

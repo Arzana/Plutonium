@@ -13,7 +13,7 @@ Plutonium::Label::Label(Game * parent, Rectangle bounds, const Font * font)
 	/* Initilaize text render position. */
 	OnMoved(this, ValueChangedEventArgs<Vector2>(GetPosition(), GetPosition()));
 	Moved.Add(this, &Label::OnMoved);
-	BackgroundImageChanged.Add([&](const GuiItem*, ValueChangedEventArgs<TextureHandler> args) { HandleAutoSize(); });
+	BackgroundImageChanged.Add([&](const GuiItem*, ValueChangedEventArgs<TextureHandler>) { HandleAutoSize(); });
 
 	/* Initialize text mesh. */
 	textMesh = new Buffer(parent->GetGraphics()->GetWindow(), BindTarget::Array);
@@ -56,11 +56,18 @@ void Plutonium::Label::Draw(GuiItemRenderer * renderer)
 	if (IsVisible()) RenderLabel(renderer);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4706)
 void Plutonium::Label::SetAutoSize(bool value)
 {
+	/* Assignment and check are intended. */
 	if (autoSize = value) HandleAutoSize();
 }
+#pragma warning(pop)
 
+/* Warning cause has been checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::Label::SetText(const char32 * text)
 {
 	if (eqlstr(this->text, text)) return;
@@ -82,6 +89,7 @@ void Plutonium::Label::SetText(const char * text)
 	SetText(str);
 	free_s(str);
 }
+#pragma warning(pop)
 
 void Plutonium::Label::SetTextColor(Color color)
 {
@@ -92,6 +100,9 @@ void Plutonium::Label::SetTextColor(Color color)
 	TextColorChanged.Post(this, args);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Plutonium::Label::SetTextOffset(Vector2 offset)
 {
 	if (this->offset == offset) return;
@@ -103,6 +114,7 @@ void Plutonium::Label::SetTextOffset(Vector2 offset)
 	HandleAutoSize();
 	TextOffsetChanged.Post(this, args);
 }
+#pragma warning(pop)
 
 void Plutonium::Label::SetTextBind(Binder & binder)
 {
@@ -134,7 +146,7 @@ void Plutonium::Label::HandleAutoSize(void)
 	}
 }
 
-void Plutonium::Label::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2> args)
+void Plutonium::Label::OnMoved(const GuiItem *, ValueChangedEventArgs<Vector2>)
 {
 	const Vector2 baseOffset = -Vector2(0.0f, GetRoundingFactor() * 0.5f);
 	textPos = GetBounds().Position + baseOffset + offset;

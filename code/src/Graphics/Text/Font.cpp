@@ -135,7 +135,11 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	Stopwatch sw = Stopwatch::StartNew();
 
 	/* Create character info and texture map. */
+#if defined(DEBUG)
 	size_t loaded = result->SetCharacterInfo(&info, wnd, scale);
+#else
+	result->SetCharacterInfo(&info, wnd, scale);
+#endif
 	result->PopulateTextureMap(&info, scale);
 
 	/* Free file data and return result. */

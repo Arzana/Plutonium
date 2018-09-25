@@ -15,7 +15,11 @@ std::mutex bufferLock;
 If this function is removed or the name is changed the stack trace logger needs to be updated!
 !!!!!!!!!! Remenber!!!!!!!!!!
 */
+#if defined(DEBUG)
 void Plutonium::_CrtPuThreadStart(uint32 id, const char *name)
+#else
+void Plutonium::_CrtPuThreadStart(uint32 id, const char*)
+#endif
 {
 	/* Start by setting the name of the thread on debug mode. */
 #if defined(DEBUG)

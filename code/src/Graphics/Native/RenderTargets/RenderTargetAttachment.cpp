@@ -8,6 +8,9 @@
 #include "Core\Diagnostics\StackTrace.h"
 #include <stb\stb_image_write.h>
 
+/* Default case will halt excecution and will therefor never need to return. */
+#pragma warning (push)
+#pragma warning (disable:4715)
 GLenum getFormat(Plutonium::AttachmentOutputType type)
 {
 	switch (type)
@@ -25,10 +28,13 @@ GLenum getFormat(Plutonium::AttachmentOutputType type)
 		return GL_RGBA;
 	default:
 		LOG_THROW("Cannot get format from attachment output type!");
-		return 0;
 	}
 }
+#pragma warning (pop)
 
+/* Default case will halt excecution and will therefor never need to return. */
+#pragma warning (push)
+#pragma warning (disable:4715)
 GLenum getType(Plutonium::AttachmentOutputType type)
 {
 	switch (type)
@@ -45,9 +51,9 @@ GLenum getType(Plutonium::AttachmentOutputType type)
 		return GL_FLOAT;
 	default:
 		LOG_THROW("Cannot get type from attachment output type!");
-		return 0;
 	}
 }
+#pragma warning (pop)
 
 size_t getChannels(Plutonium::AttachmentOutputType type)
 {

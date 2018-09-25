@@ -118,6 +118,9 @@ StaticModel * Plutonium::StaticModel::FromFile(const char * path, AssetLoader * 
 	return result;
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
 {
 	for (size_t i = 0; i < shapes.size(); i++)
@@ -127,3 +130,4 @@ int64 Plutonium::StaticModel::ContainsMaterial(const char * name)
 
 	return -1;
 }
+#pragma warning(pop)

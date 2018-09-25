@@ -2,7 +2,7 @@
 #include "Core\Diagnostics\Logging.h"
 
 Plutonium::Field::Field(void)
-	: ptr(-1), name("INVALID"), type(FieldType::Invalid)
+	: ptr(0), name("INVALID"), type(FieldType::Invalid)
 {}
 
 Plutonium::Field::Field(uint32 ptr, const char * name, int32 type)

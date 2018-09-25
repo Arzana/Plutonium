@@ -107,7 +107,7 @@ namespace Plutonium
 		/* Sets the flags indicating which characters are allowed to be added by the user. */
 		void SetInputFlags(_In_ InputFlags flags);
 		/* Sets the maximum allowed length of string in this text box. */
-		void SetMaximumLength(_In_ int32 length);
+		void SetMaximumLength(_In_ uint32 length);
 		/* Sets whether the user is allowed to add new lines to the string. */
 		void SetMultiLine(_In_ bool allow);
 		/* Sets the replacement character used to hide the origional string. */

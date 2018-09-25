@@ -102,10 +102,14 @@ void Plutonium::Slider::Draw(GuiItemRenderer * renderer)
 	if (IsVisible() && holderBarEnabled) RenderSlider(renderer);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::Slider::SetHolderBarState(bool enabled)
 {
 	holderBarEnabled = enabled;
 }
+#pragma warning (pop)
 
 void Plutonium::Slider::SetRandomClicks(bool allow)
 {
@@ -130,6 +134,9 @@ void Plutonium::Slider::SetHolderBarImage(TextureHandler image)
 	HolderBarImageChanged.Post(this, args);
 }
 
+/* Warning cause is checked and code is working as intended. */
+#pragma warning (push)
+#pragma warning (disable:4458)
 void Plutonium::Slider::SetHolderBarSize(Vector2 value)
 {
 	if (value == holderBarBounds.Size) return;
@@ -141,6 +148,7 @@ void Plutonium::Slider::SetHolderBarSize(Vector2 value)
 
 	HolderBarResized.Post(this, args);
 }
+#pragma warning (pop)
 
 void Plutonium::Slider::RenderSlider(GuiItemRenderer * renderer)
 {

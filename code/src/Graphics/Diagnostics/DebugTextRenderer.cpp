@@ -14,7 +14,7 @@ void Plutonium::DebugFontRenderer::AddDebugString(const char * str, Color clr)
 	UpdateDrawPos(renderer->GetFont()->MeasureString(str));
 }
 
-void Plutonium::DebugFontRenderer::Render(float dt)
+void Plutonium::DebugFontRenderer::Render(float)
 {
 	renderer->Render();
 	Reset();

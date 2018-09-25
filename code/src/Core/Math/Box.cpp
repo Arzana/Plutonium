@@ -25,8 +25,6 @@ Box Plutonium::Box::operator*(const Matrix & m) const
 
 Vector3 Plutonium::Box::operator[](size_t idx) const
 {
-	ASSERT_IF(idx > 7, "Corner index out of range!");
-
 	switch (idx)
 	{
 	case(0):	// Front Top Left
@@ -45,6 +43,9 @@ Vector3 Plutonium::Box::operator[](size_t idx) const
 		return Position + Size;
 	case(7):	// Back Bottom Left
 		return Position + Vector3(0.0f, Size.Y, Size.Z);
+	default:
+		ASSERT_IF(idx > 7, "Corner index out of range!");
+		return Vector3::Zero();
 	}
 }
 

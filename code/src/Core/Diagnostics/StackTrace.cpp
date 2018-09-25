@@ -107,7 +107,7 @@ uint64 Plutonium::_CrtGetCallerPtr(uint32 framesToSkip)
 
 	/* Get required stack frame. */
 	void *frames[1];
-	uint16 frameCnt = CaptureStackBackTrace(framesToSkip, 1, frames, nullptr);
+	CaptureStackBackTrace(framesToSkip, 1, frames, nullptr);
 	result = reinterpret_cast<uint64>(frames[0]);
 #else
 	LOG_WAR_ONCE("Cannot get caller address on this platform!");
