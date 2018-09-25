@@ -28,7 +28,7 @@ namespace Plutonium
 	};
 
 	/* Defines a Blinn-Phong style deferred rendering handler. */
-	struct DeferredRendererBP
+	class DeferredRendererBP
 	{
 	public:
 		/* Defines the exposure value used to render the sceen. */

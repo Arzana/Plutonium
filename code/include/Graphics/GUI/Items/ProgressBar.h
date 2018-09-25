@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines a filling bar to indicate progress. */
-	struct ProgressBar
+	class ProgressBar
 		: public GuiItem
 	{
 	public:

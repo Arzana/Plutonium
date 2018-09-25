@@ -4,9 +4,12 @@
 
 namespace Plutonium
 {
-	struct SkyboxRenderer
+	/* Defines a way of rendering cubemaps. */
+	class SkyboxRenderer
 		: private Renderer
 	{
+	public:
+		/* Initializes a new instance of a skybox renderer. */
 		SkyboxRenderer(_In_ GraphicsAdapter *device);
 		SkyboxRenderer(_In_ const SkyboxRenderer &value) = delete;
 		SkyboxRenderer(_In_ SkyboxRenderer &&value) = delete;
@@ -16,6 +19,7 @@ namespace Plutonium
 		_Check_return_ SkyboxRenderer& operator =(_In_ const SkyboxRenderer &other) = delete;
 		_Check_return_ SkyboxRenderer& operator =(_In_ SkyboxRenderer &&other) = delete;
 
+		/* Render the specified cube map to the screen. */
 		void Render(_In_ const Matrix &view, _In_ const Matrix &proj, _In_ const Texture *skybox);
 
 	private:

@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a user interactable label. */
-	struct TextBox
+	class TextBox
 		: public Label
 	{
 	public:

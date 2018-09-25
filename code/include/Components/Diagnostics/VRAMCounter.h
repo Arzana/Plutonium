@@ -5,8 +5,8 @@
 namespace Plutonium
 {
 	/* Provides a simple GPU RAM counter. */
-	struct VRamCounter
-		: Counter<uint64, uint64>
+	class VRamCounter
+		: public Counter<uint64, uint64>
 	{
 	public:
 		/* Initializes a new instance of a RAM counter. */

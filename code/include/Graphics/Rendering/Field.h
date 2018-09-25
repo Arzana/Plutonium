@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a base for a shader's field. */
-	struct Field
+	class Field
 	{
 		Field(_In_ const Field &value) = delete;
 		Field(_In_ Field &&value) = delete;
@@ -15,7 +15,7 @@ namespace Plutonium
 		_Check_return_ Field& operator = (_In_ Field &&other) = delete;
 
 	protected:
-		friend struct Shader;
+		friend class Shader;
 
 		/* The ID for this field. */
 		uint32 ptr;

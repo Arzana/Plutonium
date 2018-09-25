@@ -5,8 +5,8 @@
 namespace Plutonium
 {
 	/* Defines a static world object. */
-	struct StaticObject
-		: WorldObject
+	class StaticObject
+		: public WorldObject
 	{
 	public:
 		/* Initializes a new instance of a static object. */

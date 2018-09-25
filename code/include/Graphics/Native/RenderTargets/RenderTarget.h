@@ -3,10 +3,10 @@
 
 namespace Plutonium
 {
-	struct GraphicsAdapter;
+	class GraphicsAdapter;
 
 	/* Defines a frame buffer object used to handle render targets. */
-	struct RenderTarget
+	class RenderTarget
 	{
 	public:
 		/* Initializes a new render target with a specified width and height. */
@@ -29,7 +29,7 @@ namespace Plutonium
 		void BindForWriting(_In_ const RenderTargetAttachment *attachment);
 
 	private:
-		friend struct GraphicsAdapter;
+		friend class GraphicsAdapter;
 
 		std::vector<RenderTargetAttachment*> attachments;
 		size_t drawBufferCnt;

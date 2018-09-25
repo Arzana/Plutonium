@@ -7,10 +7,10 @@ struct GLFWwindow;
 
 namespace Plutonium
 {
-	struct Window;
+	class Window;
 
 	/* Defines a helper object for handling the cursor on a per window basis. */
-	typedef const struct Cursor
+	typedef const class Cursor
 	{
 	public:
 		/* The horizontal component of the cursor position. */
@@ -56,7 +56,7 @@ namespace Plutonium
 		void Show(void);
 
 	private:
-		friend struct Game;
+		friend class Game;
 		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
 		friend void GlfwCursorFocusEventHandler(GLFWwindow*, int);
 		friend void GlfwCursorButtonEventHandler(GLFWwindow*, int, int, int);

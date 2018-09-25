@@ -25,7 +25,7 @@ namespace Plutonium
 	};
 
 	/* Defines a sampler based attachment for a render target. */
-	struct RenderTargetAttachment
+	class RenderTargetAttachment
 	{
 	public:
 		RenderTargetAttachment(_In_ const RenderTargetAttachment &value) = delete;
@@ -52,8 +52,8 @@ namespace Plutonium
 		void SaveAsPng(_In_ const char *path, _In_opt_ bool flipVertically = true) const;
 
 	private:
-		friend struct Uniform;
-		friend struct RenderTarget;
+		friend class Uniform;
+		friend class RenderTarget;
 
 		const char *name;
 		AttachmentOutputType type;

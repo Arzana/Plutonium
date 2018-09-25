@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a basic renderer used to render primitive shapes. */
-	struct ShapeRenderer
+	class ShapeRenderer
 		: private Renderer
 	{
 	public:

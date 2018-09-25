@@ -6,7 +6,7 @@ struct stbtt_fontinfo;
 namespace Plutonium
 {
 	/* Defines a font that can be used to render characters. */
-	struct Font
+	class Font
 	{
 	public:
 		Font(_In_ const Font &value) = delete;
@@ -46,9 +46,9 @@ namespace Plutonium
 		const char *path;
 
 	private:
-		friend struct FontRenderer;
-		friend struct GuiItemRenderer;
-		friend struct AssetLoader;
+		friend class FontRenderer;
+		friend class GuiItemRenderer;
+		friend class AssetLoader;
 
 		Texture *map;
 		Character *chars;

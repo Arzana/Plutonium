@@ -5,8 +5,8 @@
 namespace Plutonium
 {
 	/* Provides a simple CPU RAM counter. */
-	struct RamCounter
-		: Counter<MemoryFrame, uint64>
+	class RamCounter
+		: public Counter<MemoryFrame, uint64>
 	{
 	public:
 		/* Initializes a new instance of a RAM counter. */

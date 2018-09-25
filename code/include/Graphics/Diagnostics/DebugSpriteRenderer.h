@@ -6,10 +6,10 @@
 
 namespace Plutonium
 {
-	struct SpriteRenderer;
+	class SpriteRenderer;
 
 	/* Provides ease of use debug sprite functionality. */
-	struct DebugSpriteRenderer
+	class DebugSpriteRenderer
 		: DebugRenderer
 	{
 	public:

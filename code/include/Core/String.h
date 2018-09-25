@@ -9,7 +9,7 @@
 namespace Plutonium
 {
 	template <typename _CharTy>
-	struct _string
+	class _string
 	{
 	public:
 		/* Initializes an empty instance of a string. */

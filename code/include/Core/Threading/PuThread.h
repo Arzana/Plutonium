@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a named thread object. */
-	struct PuThread
+	class PuThread
 	{
 	public:
 		/* Initializes a new instance of a named thread. */

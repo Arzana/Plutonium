@@ -6,8 +6,8 @@
 namespace Plutonium
 {
 	/* Defines a continually ticking thread. */
-	typedef const struct TickThread
-		: PuThread
+	typedef const class TickThread
+		: public PuThread
 	{
 	public:
 		/* Occurs before the tick routine is started. */

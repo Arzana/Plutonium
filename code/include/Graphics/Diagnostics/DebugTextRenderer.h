@@ -4,11 +4,11 @@
 
 namespace Plutonium
 {
-	struct FontRenderer;
+	class FontRenderer;
 
 	/* Provides ease of use debug text functionality. */
-	struct DebugFontRenderer
-		: DebugRenderer
+	class DebugFontRenderer
+		: public DebugRenderer
 	{
 	public:
 		/* Initializes a new instance of a debug font renderer. */

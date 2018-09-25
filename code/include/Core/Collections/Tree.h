@@ -6,7 +6,7 @@ namespace Plutonium
 {
 	/* Defines a generic size tree. */
 	template <typename _Ty>
-	struct Tree
+	class Tree
 	{
 	public:
 		/* Initializes a new instance of an empty tree. */

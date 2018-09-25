@@ -4,8 +4,9 @@
 namespace Plutonium
 {
 	/* Defines a base object for GuiItem container types. */
-	struct Container
+	class Container
 	{
+	public:
 		/* Initializes a new instance of a container base. */
 		Container(void);
 		Container(_In_ const Container &value) = delete;

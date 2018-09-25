@@ -6,8 +6,8 @@ namespace Plutonium
 {
 	/* Provides a simple base object for counters. */
 	template <typename _BufferedType, typename _DisplayType>
-	struct Counter
-		: GameComponent
+	class Counter
+		: public GameComponent
 	{
 	public:
 		/* Defines the type of this counter. */

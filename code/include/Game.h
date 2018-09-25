@@ -10,7 +10,7 @@
 namespace Plutonium
 {
 	/* Defines a game loop object. */
-	struct Game
+	class Game
 	{
 	public:
 		/* Whether or not the update rate is fixed. */

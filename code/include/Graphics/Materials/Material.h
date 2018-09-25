@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a base class for all material types. */
-	struct Material
+	class Material
 	{
 	public:
 		/* The name of this material. */

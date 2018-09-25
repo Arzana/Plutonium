@@ -12,8 +12,8 @@
 
 using namespace Plutonium;
 
-struct TestGame
-	: Game
+class TestGame
+	: public Game
 {
 public:
 	/* Scene. */

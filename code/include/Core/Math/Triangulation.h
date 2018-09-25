@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines functions for basic triangulation. */
-	struct Triangulation
+	class Triangulation
 	{
 	public:
 		/* Triangulates a quad into two triangles, input vertices must contains 4 vertices and output will always contain two objects. */

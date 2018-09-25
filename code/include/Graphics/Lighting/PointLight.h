@@ -4,9 +4,10 @@
 namespace Plutonium
 {
 	/* Defines a basic point light source. */
-	struct PointLight
-		: Light
+	class PointLight
+		: public Light
 	{
+	public:
 		/* Defines the world position of the light source. */
 		Vector3 Position;
 		/* Defines the constant attenuation value. */

@@ -11,10 +11,10 @@ struct GLFWwindow;
 
 namespace Plutonium
 { 
-	struct Stopwatch;
+	class Stopwatch;
 
 	/* Defines a window handler. */
-	typedef const struct Window
+	typedef const class Window
 	{
 	public:
 		/* Occures when the window is resized. */
@@ -118,9 +118,9 @@ namespace Plutonium
 		_Check_return_ static const Window* GetActiveContextWindow(void);
 
 	private:
-		friend struct Game;
-		friend struct Keyboard;
-		friend struct Cursor;
+		friend class Game;
+		friend class Keyboard;
+		friend class Cursor;
 		friend Cursor* GetCursorFromHndlr(GLFWwindow*);
 		friend Keyboard* GetKeyboardFromHndlr(GLFWwindow*);
 		friend Window* GetWndFromHndlr(GLFWwindow*);

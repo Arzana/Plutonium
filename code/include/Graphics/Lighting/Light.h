@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines the base class for a light source. */
-	struct Light
+	class Light
 	{
 	public:
 		/* The ambient color of the light. */

@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines a base object for renderers. */
-	struct Renderer
+	class Renderer
 	{
 	public:
 		Renderer(_In_ const Renderer &value) = delete;

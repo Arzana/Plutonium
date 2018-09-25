@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a Blinn-Phong material. */
-	struct MaterialBP
+	class MaterialBP
 		: public Material
 	{
 	public:

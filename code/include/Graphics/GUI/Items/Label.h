@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines an base or independent item for displaying text. */
-	struct Label
+	class Label
 		: public GuiItem
 	{
 	public:

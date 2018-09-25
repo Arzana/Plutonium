@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines a helper object for shader attributes. */
-	struct Attribute
+	class Attribute
 		: public Field
 	{
 	public:
@@ -34,7 +34,7 @@ namespace Plutonium
 		}
 
 	private:
-		friend struct Shader;
+		friend class Shader;
 
 		bool enabled;
 		int32 initType, initSize;

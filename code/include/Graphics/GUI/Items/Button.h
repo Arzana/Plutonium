@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines a base or indipendent button object. */
-	struct Button
+	class Button
 		: public Label
 	{
 	public:

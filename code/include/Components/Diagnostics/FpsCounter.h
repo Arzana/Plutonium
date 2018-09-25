@@ -4,8 +4,8 @@
 namespace Plutonium
 {
 	/* Provides a simple fps counter. */
-	struct FpsCounter
-		: Counter<float, float>
+	class FpsCounter
+		: public Counter<float, float>
 	{
 	public:
 		/* Initializes a new instance of an fps counter. */

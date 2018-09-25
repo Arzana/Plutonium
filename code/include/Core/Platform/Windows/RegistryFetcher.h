@@ -6,7 +6,7 @@ namespace Plutonium
 {
 #if defined (_WIN32)
 	/* Defines a structure that handles fetching values from the Windows registry. */
-	struct RegistryFetcher
+	class RegistryFetcher
 	{
 	public:
 		/* Attempts to read a DWORD (int32) from the registry. */

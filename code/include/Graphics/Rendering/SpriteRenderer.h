@@ -5,10 +5,10 @@
 
 namespace Plutonium
 {
-	struct Buffer;
+	class Buffer;
 
 	/* Defines a very basic sprite renderer. */
-	struct SpriteRenderer
+	class SpriteRenderer
 		: public Renderer
 	{
 	public:

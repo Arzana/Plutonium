@@ -6,10 +6,10 @@ struct GLFWwindow;
 
 namespace Plutonium
 {
-	struct Window;
+	class Window;
 
 	/* Defines a helper object for the keyboard on a per window basis. */
-	typedef const struct Keyboard
+	typedef const class Keyboard
 	{
 	public:
 		/* Occurs when a key event is raised. */
@@ -28,7 +28,7 @@ namespace Plutonium
 		_Check_return_ KeyState GetKey(_In_ Keys key) const;
 
 	private:
-		friend struct Game;
+		friend class Game;
 		friend Keyboard* GetKeyboardFromHndlr(GLFWwindow*);
 		friend void GlfwKeyInputEventHandler(GLFWwindow*, int, int, int, int);
 		friend void GlfwCharInputEventHandler(GLFWwindow*, uint32);

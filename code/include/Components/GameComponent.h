@@ -4,10 +4,10 @@
 
 namespace Plutonium
 {
-	struct Game;
+	class Game;
 
 	/* Defines a basic game component that needs to be updated and can be rendered. */
-	struct GameComponent
+	class GameComponent
 	{
 	public:
 		/* Indicates that this component should be actively updated (and drawn if desired) during load time. */
@@ -43,7 +43,7 @@ namespace Plutonium
 		virtual void Finalize(void);
 
 	private:
-		friend struct Game;
+		friend class Game;
 		friend bool ComponentSortPredicate(GameComponent *, GameComponent*);
 
 		bool initialized;

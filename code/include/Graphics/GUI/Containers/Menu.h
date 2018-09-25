@@ -6,10 +6,10 @@
 
 namespace Plutonium
 {
-	struct GuiItemRenderer;
+	class GuiItemRenderer;
 
 	/* Defines a manager object for GuiItems. */
-	struct Menu
+	class Menu
 		: public GameComponent, protected Container
 	{
 	public:

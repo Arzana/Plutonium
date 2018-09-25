@@ -9,10 +9,10 @@ namespace Plutonium
 	/* Defines a function template for a animation initializer function. */
 	using Initializer = void(*)(_In_ const char *Name, _Out_ PlayBackFlags &flags, _Out_ float &fps);
 
-	struct MaterialBP;
+	class MaterialBP;
 
 	/* Defines a basic animated model that can be placed in the world. */
-	struct DynamicModel
+	class DynamicModel
 	{
 	public:
 		DynamicModel(_In_ const DynamicModel &value) = delete;
@@ -45,10 +45,8 @@ namespace Plutonium
 		void Finalize(void);
 
 	private:
-		friend struct DynamicRenderer;
-		friend struct DynamicObject;
-		friend struct DebugMeshRenderer;
-		friend struct AssetLoader;
+		friend class DynamicObject;
+		friend class AssetLoader;
 
 		AssetLoader *loader;
 

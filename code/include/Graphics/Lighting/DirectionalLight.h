@@ -5,8 +5,8 @@
 namespace Plutonium
 {
 	/* Defines a basic directional light source. */
-	struct DirectionalLight
-		: Light
+	class DirectionalLight
+		: public Light
 	{
 	public:
 		/* Initializes a new instance of a directional light source. */

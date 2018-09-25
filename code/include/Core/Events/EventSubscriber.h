@@ -7,7 +7,7 @@ namespace Plutonium
 {
 	/* Provides an interface for an event subscriber. */
 	template <typename _STy, typename ... _ArgTy>
-	struct EventSubscriber
+	class EventSubscriber
 	{
 	public:
 		/* Defines a function style delegate. */

@@ -6,10 +6,10 @@
 
 using namespace Plutonium;
 
-struct TestGame;
+class TestGame;
 
-struct HUD
-	: Menu
+class HUD
+	: public Menu
 {
 public:
 	FpsCounter *fps;

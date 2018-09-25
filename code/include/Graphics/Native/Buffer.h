@@ -8,7 +8,7 @@
 namespace Plutonium
 {
 	/* Defines a GPU side buffer. */
-	struct Buffer
+	class Buffer
 	{
 	public:
 		/* Initializes a new instance of a GPU buffer. */

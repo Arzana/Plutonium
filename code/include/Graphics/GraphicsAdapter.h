@@ -15,7 +15,7 @@
 namespace Plutonium
 {
 	/* Defines the global graphics settings. */
-	struct GraphicsAdapter
+	class GraphicsAdapter
 	{
 	public:
 		GraphicsAdapter(_In_ const GraphicsAdapter &value) = delete;
@@ -96,7 +96,7 @@ namespace Plutonium
 		_Check_return_ Vector2 ToNDC(_In_ Vector2 screenCoord);
 
 	private:
-		friend struct Game;
+		friend class Game;
 
 		const DeviceInfo *device;
 		Window *window;

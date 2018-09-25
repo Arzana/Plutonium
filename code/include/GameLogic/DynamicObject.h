@@ -5,8 +5,8 @@
 namespace Plutonium
 {
 	/* Defines a dynamic world object. */
-	struct DynamicObject
-		: WorldObject
+	class DynamicObject
+		: public WorldObject
 	{
 	public:
 		/* Initializes a new instance of a dynamic object. */
@@ -51,9 +51,6 @@ namespace Plutonium
 		void Update(_In_ float dt);
 
 	private:
-		friend struct DynamicRenderer;
-		friend struct DebugMeshRenderer;
-
 		Game *parent;
 		DynamicModel *model;
 		float percentage;

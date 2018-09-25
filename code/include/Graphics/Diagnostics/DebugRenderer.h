@@ -4,8 +4,9 @@
 
 namespace Plutonium
 {
-	struct DebugRenderer
-		: GameComponent
+	/* Defines a base object for debug renderers. */
+	class DebugRenderer
+		: public GameComponent
 	{
 	public:
 		/* Initializes a new instance of a debug renderer base. */

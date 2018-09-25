@@ -3,7 +3,7 @@
 
 using namespace Plutonium;
 
-struct LoadScreen
+class LoadScreen
 	: public Menu
 {
 public:

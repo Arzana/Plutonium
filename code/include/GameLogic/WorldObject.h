@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines a base for object that can be placed in the game world. */
-	struct WorldObject
+	class WorldObject
 	{
 	public:
 		/* Whether this object should cast a shadow. */

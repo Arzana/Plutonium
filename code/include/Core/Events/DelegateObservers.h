@@ -5,8 +5,9 @@ namespace Plutonium
 {
 	/* provides a interface for a generic delegate. */
 	template <typename _STy, typename ... _ArgTy>
-	struct DelegateBase
+	class DelegateBase
 	{
+	public:
 		/* Defines a method for invoking this delegate. */
 		virtual void Invoke(_In_ const _STy *sender, _In_ _ArgTy ... args) = 0;
 		/* Defines a method for cloning the derived delegate (requires delete!). */
@@ -15,7 +16,7 @@ namespace Plutonium
 
 	/* Provides a structure for a function style generic delegate. */
 	template <typename _STy, typename ... _ArgTy>
-	struct DelegateFunc
+	class DelegateFunc
 		: public DelegateBase<_STy, _ArgTy...>
 	{
 	public:
@@ -45,7 +46,7 @@ namespace Plutonium
 
 	/* provides a structure for a method style generic delegate. */
 	template <typename _STy, typename _CTy, typename ... _ArgTy>
-	struct DelegateMethod
+	class DelegateMethod
 		: public DelegateBase<_STy, _ArgTy...>
 	{
 	public:
@@ -76,7 +77,7 @@ namespace Plutonium
 
 	/* Provides a structure for a lambda style generic delegate. */
 	template <typename _STy, typename _LTy, typename ... _ArgTy>
-	struct DelegateLambda
+	class DelegateLambda
 		: public DelegateBase<_STy, _ArgTy...>
 	{
 	public:

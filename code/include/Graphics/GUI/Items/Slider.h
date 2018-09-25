@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines a user changable progress bar. */
-	struct Slider
+	class Slider
 		: public ProgressBar
 	{
 	public:

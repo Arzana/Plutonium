@@ -5,12 +5,13 @@
 
 namespace Plutonium
 {
-	struct AssetLoader;
-	struct MaterialBP;
+	class AssetLoader;
+	class MaterialBP;
 
 	/* Defines a basic multitextured model that can be placed in the world. */
-	struct StaticModel
+	class StaticModel
 	{
+	public:
 		/* Defines a shape within the static model. */
 		struct Shape
 		{
@@ -50,9 +51,7 @@ namespace Plutonium
 		void Finalize(void);
 
 	private:
-		friend struct StaticRenderer;
-		friend struct DebugMeshRenderer;
-		friend struct AssetLoader;
+		friend class AssetLoader;
 
 		std::vector<Shape> shapes;
 		WindowHandler wnd;

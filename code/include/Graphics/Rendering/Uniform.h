@@ -7,7 +7,7 @@
 namespace Plutonium
 {
 	/* Defines a helper object for shader uniforms. */
-	struct Uniform
+	class Uniform
 		: public Field
 	{
 	public:
@@ -53,7 +53,7 @@ namespace Plutonium
 		}
 
 	private:
-		friend struct Shader;
+		friend class Shader;
 
 		int32 sampler;
 

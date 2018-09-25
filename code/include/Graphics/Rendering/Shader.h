@@ -7,7 +7,7 @@
 namespace Plutonium
 {
 	/* Defines a helper object for OpenGL shaders. */
-	struct Shader
+	class Shader
 	{
 	public:
 		/* Initializes a new instance of a shader with only a vertex shader. */

@@ -8,7 +8,7 @@
 namespace Plutonium
 {
 	/* Defines a renderer for all GuiItems. */
-	struct GuiItemRenderer
+	class GuiItemRenderer
 	{
 	public:
 		/* Initializes a new instance of a GuiItem renderer with a specified graphics device. */

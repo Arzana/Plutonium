@@ -13,11 +13,11 @@
 
 namespace Plutonium
 {
-	struct TickThread;
+	class TickThread;
 	struct EventArgs;
 
 	/* Defines a multi-threaded asset loader. */
-	struct AssetLoader
+	class AssetLoader
 	{
 	public:
 		/* Initializes a new instance of a asset loader with a specified root directory. */

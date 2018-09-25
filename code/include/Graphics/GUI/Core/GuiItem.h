@@ -7,10 +7,10 @@
 
 namespace Plutonium
 {
-	struct Container;
+	class Container;
 
 	/* Defines the absolute base object for all GuiItems. */
-	struct GuiItem
+	class GuiItem
 	{
 	public:
 		/* Occurs when the BackColor value is changed. */
@@ -295,7 +295,7 @@ namespace Plutonium
 		}
 
 	private:
-		friend struct Container;
+		friend class Container;
 
 		const GuiItem *parent;
 		Container *container;

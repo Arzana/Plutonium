@@ -4,7 +4,7 @@
 namespace Plutonium
 {
 	/* Defines a helper structure for creating position data meshes of pre-defined simple shapes. */
-	struct ShapeCreator
+	class ShapeCreator
 	{
 	public:
 		/* Populates the specified buffer with a plane. */

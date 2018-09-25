@@ -15,7 +15,7 @@
 namespace Plutonium
 {
 	/* Defines a basic follow and free camera. */
-	struct Camera
+	class Camera
 	{
 	public:
 		/* The yaw that the camera should have. */

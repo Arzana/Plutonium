@@ -6,7 +6,7 @@ struct _iobuf;
 namespace Plutonium
 {
 	/* Defines an object from reading raw data from file. */
-	struct FileReader
+	class FileReader
 		: public StreamReader
 	{
 	public:

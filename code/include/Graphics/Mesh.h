@@ -10,7 +10,7 @@ namespace Plutonium
 	struct Md2LoaderResult;
 
 	/* Defines a object for storing the vertex information for a single textured object. */
-	struct Mesh
+	class Mesh
 	{
 	public:
 		/* The name of the mesh defined by the file. */
@@ -55,8 +55,8 @@ namespace Plutonium
 		static void SetTangent(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
 
 	private:
-		friend struct StaticModel;
-		friend struct DynamicModel;
+		friend class StaticModel;
+		friend class DynamicModel;
 
 		VertexFormat *vertices;
 		size_t vrtxCnt;

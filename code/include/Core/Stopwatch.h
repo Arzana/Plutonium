@@ -5,7 +5,7 @@
 namespace Plutonium
 {
 	/* Defines a helper structure for easily measuring time. */
-	struct Stopwatch
+	class Stopwatch
 	{
 	public:
 

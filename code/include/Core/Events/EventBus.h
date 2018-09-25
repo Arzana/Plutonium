@@ -11,7 +11,7 @@ namespace Plutonium
 {
 	/* provides an interface for a subscribable event. */
 	template <typename _STy, typename ... _ArgTy>
-	struct EventBus
+	class EventBus
 	{
 	public:
 		/* The type of subscriber stored in this event. */

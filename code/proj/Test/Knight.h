@@ -106,7 +106,7 @@ inline void InitKnight(const char *Name, Plutonium::PlayBackFlags &flags, float 
 	else LOG_WAR("Unset Knight animation: %s!", Name);
 }
 
-struct Knight
+class Knight
 {
 public:
 	DynamicObject *object;

@@ -8,8 +8,9 @@
 namespace Plutonium
 {
 	/* Defines a basic 2D texture used in rendering. */
-	typedef const struct Texture
+	typedef const class Texture
 	{
+	public:
 		/* The width of the texture. */
 		const int32 Width;
 		/* The height of the texture. */
@@ -59,9 +60,9 @@ namespace Plutonium
 		_Check_return_ void GetData(_Out_ _Ty *buffer) const;
 
 	private:
-		friend struct Uniform;
-		friend struct AssetLoader;
-		friend struct RenderTarget;
+		friend class Uniform;
+		friend class AssetLoader;
+		friend class RenderTarget;
 
 		static constexpr size_t CUBEMAP_TEXTURE_COUNT = 6;
 

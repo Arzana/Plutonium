@@ -8,7 +8,7 @@
 namespace Plutonium
 {
 	/* Defines a helper object for rendering text. */
-	struct FontRenderer
+	class FontRenderer
 	{
 	public:
 		/* Initializes a new instance of a font renderer. */

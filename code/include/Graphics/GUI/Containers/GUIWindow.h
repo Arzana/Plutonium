@@ -5,9 +5,10 @@
 namespace Plutonium
 {
 	/* Defines a basic window control. */
-	struct GUIWindow
+	class GUIWindow
 		: public GuiItem, protected Container
 	{
+	public:
 		/* Occurs when the window close button is pressed. */
 		EventBus<GUIWindow, EventArgs> Closed;
 		/* Occurs when the user starts holding the header bar. */

@@ -6,7 +6,7 @@
 namespace Plutonium
 {
 	/* Defines a base object for reading raw bytes. */
-	struct StreamReader
+	class StreamReader
 	{
 	public:
 		StreamReader(_In_ const StreamReader &value) = delete;

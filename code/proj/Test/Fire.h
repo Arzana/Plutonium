@@ -14,7 +14,7 @@ inline void InitFire(const char *Name, PlayBackFlags &flags, float &fps)
 	else LOG_WAR("Unset Fire animation: %s!", Name);
 }
 
-struct Fire
+class Fire
 {
 public:
 	DynamicObject *object;

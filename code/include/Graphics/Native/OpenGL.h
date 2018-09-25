@@ -8,7 +8,8 @@ struct GLFWwindow;
 
 namespace Plutonium
 {
-	struct Window;
+	class Window;
+
 	/* Gets the number of draw calls since the last reset. */
 	_Check_return_ size_t _CrtGetDrawCalls(void);
 	/* Resets the number of draw calls to zero. */
