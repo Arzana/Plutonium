@@ -51,6 +51,8 @@ namespace Plutonium
 		_Check_return_ VertexFormat* GetVertexAt(_In_ size_t idx) const;
 		/* Merges a second mesh into this mesh. */
 		void Append(_In_ Mesh *other);
+		/* Initializes the normal component of the three specified vertices (triangle). */
+		static void SetNormal(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
 		/* Initializes the tangent component of the three specified vertices (triangle). */
 		static void SetTangent(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
 
@@ -64,8 +66,6 @@ namespace Plutonium
 		Box bb;
 
 		void SetBufferSizeInternal(_In_ size_t size);
-
-		static void SetNormal(_In_ VertexFormat &vrtx1, _In_ VertexFormat &vrtx2, _In_ VertexFormat &vrtx3);
 
 		static Mesh* FromFile(const ObjLoaderResult *buffer, size_t idx, bool recalcNormals);
 		static Mesh* FromFile(const Md2LoaderResult *buffer, size_t idx, bool recalcNormals);
