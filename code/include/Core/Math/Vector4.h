@@ -107,7 +107,7 @@ namespace Plutonium
 		}
 
 		/* Subtracts the input vector from the vector. */
-		inline Vector4 operator -=(_In_ Vector4 v)
+		_Check_return_ inline Vector4 operator -=(_In_ Vector4 v)
 		{
 			X -= v.X;
 			Y -= v.Y;
@@ -117,7 +117,7 @@ namespace Plutonium
 		}
 
 		/* Adds the input vector to the vector. */
-		inline Vector4 operator +=(_In_ Vector4 v)
+		_Check_return_ inline Vector4 operator +=(_In_ Vector4 v)
 		{
 			X += v.X;
 			Y += v.Y;
@@ -127,7 +127,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by a scalar value. */
-		inline Vector4 operator *=(_In_ float v)
+		_Check_return_ inline Vector4 operator *=(_In_ float v)
 		{
 			X *= v;
 			Y *= v;
@@ -137,7 +137,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by another vector. */
-		inline Vector4 operator *=(_In_ Vector4 v)
+		_Check_return_ inline Vector4 operator *=(_In_ Vector4 v)
 		{
 			X *= v.X;
 			Y *= v.Y;
@@ -147,13 +147,13 @@ namespace Plutonium
 		}
 
 		/* Divides the vector by a scalar value. */
-		inline Vector4 operator /=(_In_ float v)
+		_Check_return_ inline Vector4 operator /=(_In_ float v)
 		{
 			return operator*=(1.0f / v);
 		}
 
 		/* Divides the vector by another vector. */
-		inline Vector4 operator /=(_In_ Vector4 v)
+		_Check_return_ inline Vector4 operator /=(_In_ Vector4 v)
 		{
 			X /= v.X;
 			Y /= v.Y;

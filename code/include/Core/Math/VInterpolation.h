@@ -1,26 +1,32 @@
 #pragma once
 #include "Interpolation.h"
-#include "Vector2.h"
 #include "Vector4.h"
+#include "Quaternion.h"
 
 namespace Plutonium
 {
 	/* Performs nearest-neighbor interpolation between two specified points (a, b) with a specified amount (v). */
 	_Check_return_ inline Vector2 near(_In_ Vector2 a, _In_ Vector2 b, _In_ float v)
 	{
-		return Vector2(near(a.X, b.X, v), near(a.Y, b.Y, v));
+		return v < 0.5f ? a : b;
 	}
 
 	/* Performs nearest-neighbor interpolation between two specified points (a, b) with a specified amount (v). */
 	_Check_return_ inline Vector3 near(_In_ Vector3 a, _In_ Vector3 b, _In_ float v)
 	{
-		return Vector3(near(a.X, b.X, v), near(a.Y, b.Y, v), near(a.Z, b.Z, v));
+		return v < 0.5f ? a : b;
 	}
 
 	/* Performs nearest-neighbor interpolation between two specified points (a, b) with a specified amount (v). */
 	_Check_return_ inline Vector4 near(_In_ Vector4 a, _In_ Vector4 b, _In_ float v)
 	{
-		return Vector4(near(a.X, b.X, v), near(a.Y, b.Y, v), near(a.Z, b.Z, v), near(a.W, b.W, v));
+		return v < 0.5f ? a : b;
+	}
+
+	/* Performs nearest-neighbor interpolation between two specified rotations (a, b) with a specified amount (v). */
+	_Check_return_ inline Quaternion near(_In_ Quaternion a, _In_ Quaternion b, _In_ float v)
+	{
+		return v < 0.5f ? a : b;
 	}
 
 	/* Performs linear interpolation between two specified points (a, b) with a specified amount (v). */
@@ -41,24 +47,31 @@ namespace Plutonium
 		return Vector4(lerp(a.X, b.X, v), lerp(a.Y, b.Y, v), lerp(a.Z, b.Z, v), lerp(a.W, b.W, v));
 	}
 
+	/* Performs linear interpolation between two specified rotations (a, b) with a specified amount (v). */
+	_Check_return_ inline Quaternion lerp(_In_ Quaternion a, _In_ Quaternion b, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		return normalize(dot(a, b) >= 0.0f ? (a * iv + b * v) : (a * iv - b * a));
+	}
+
 	/* Performs inverse linear interpolation between two specified points (a, b) with a specified point (v). */
 	_Check_return_ inline float ilerp(_In_ Vector2 a, _In_ Vector2 b, _In_ Vector2 v)
 	{
-		Vector2 ab = b - a;
+		const Vector2 ab = b - a;
 		return dot(v - a, ab) / dot(ab, ab);
 	}
 
 	/* Performs inverse linear interpolation between two specified points (a, b) with a specified point (v). */
 	_Check_return_ inline float ilerp(_In_ Vector3 a, _In_ Vector3 b, _In_ Vector3 v)
 	{
-		Vector3 ab = b - a;
+		const Vector3 ab = b - a;
 		return dot(v - a, ab) / dot(ab, ab);
 	}
 
 	/* Performs inverse linear interpolation between two specified points (a, b) with a specified point (v). */
 	_Check_return_ inline float ilerp(_In_ Vector4 a, _In_ Vector4 b, _In_ Vector4 v)
 	{
-		Vector4 ab = b - a;
+		const Vector4 ab = b - a;
 		return dot(v - a, ab) / dot(ab, ab);
 	}
 

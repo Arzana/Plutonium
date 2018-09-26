@@ -53,6 +53,31 @@ Matrix Plutonium::Matrix::CreateRotation(float yaw, float pitch, float roll)
 	return CreateRotationX(pitch) * CreateRotationY(yaw) * CreateRotationZ(roll);
 }
 
+Matrix Plutonium::Matrix::CreateRotation(Quaternion quaternion)
+{
+	const float ii = sqr(quaternion.I);
+	const float jj = sqr(quaternion.J);
+	const float kk = sqr(quaternion.K);
+	const float ir = quaternion.I * quaternion.R;
+	const float ij = quaternion.I * quaternion.J;
+	const float kr = quaternion.K * quaternion.R;
+	const float ki = quaternion.K * quaternion.I;
+	const float jr = quaternion.J * quaternion.R;
+	const float jk = quaternion.J * quaternion.K;
+
+	const float a = 1.0f - 2.0f * (jj + kk);
+	const float b = 2.0f * (ij - kr);
+	const float c = 2.0f * (ki + jr);
+	const float e = 2.0f * (ij + kr);
+	const float f = 1.0f - 2.0f * (kk + ii);
+	const float g = 2.0f * (jk - ir);
+	const float i = 2.0f * (ki - jr);
+	const float j = 2.0f * (jk + ir);
+	const float k = 1.0f - 2.0f * (jj + ii);
+
+	return Matrix(a, b, c, 0.0f, e, f, g, 0.0f, i, j, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Matrix Plutonium::Matrix::CreateOrtho(float width, float height, float near, float far)
 {
 	const float a = 2.0f / width;

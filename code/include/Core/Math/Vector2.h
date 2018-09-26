@@ -83,7 +83,7 @@ namespace Plutonium
 		}
 
 		/* Subtracts the input vector from the vector. */
-		inline Vector2 operator -=(_In_ Vector2 v)
+		_Check_return_ inline Vector2 operator -=(_In_ Vector2 v)
 		{
 			X -= v.X;
 			Y -= v.Y;
@@ -91,7 +91,7 @@ namespace Plutonium
 		}
 
 		/* Adds the input vector to the vector. */
-		inline Vector2 operator +=(_In_ Vector2 v)
+		_Check_return_ inline Vector2 operator +=(_In_ Vector2 v)
 		{
 			X += v.X;
 			Y += v.Y;
@@ -99,7 +99,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by a scalar value. */
-		inline Vector2 operator *=(_In_ float v)
+		_Check_return_ inline Vector2 operator *=(_In_ float v)
 		{
 			X *= v;
 			Y *= v;
@@ -107,7 +107,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by another vector. */
-		inline Vector2 operator *=(_In_ Vector2 v)
+		_Check_return_ inline Vector2 operator *=(_In_ Vector2 v)
 		{
 			X *= v.X;
 			Y *= v.Y;
@@ -115,7 +115,7 @@ namespace Plutonium
 		}
 
 		/* Divides the vector by a scalar value. */
-		inline Vector2 operator /=(_In_ float v)
+		_Check_return_ inline Vector2 operator /=(_In_ float v)
 		{
 			X /= v;
 			Y /= v;
@@ -123,7 +123,7 @@ namespace Plutonium
 		}
 
 		/* Divides the vector by another vector. */
-		inline Vector2 operator /=(_In_ Vector2 v)
+		_Check_return_ inline Vector2 operator /=(_In_ Vector2 v)
 		{
 			X /= v.X;
 			Y /= v.Y;

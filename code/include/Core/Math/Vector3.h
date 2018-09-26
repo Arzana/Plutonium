@@ -92,7 +92,7 @@ namespace Plutonium
 		}
 
 		/* Subtracts the input vector from the vector. */
-		inline Vector3 operator -=(_In_ Vector3 v)
+		_Check_return_ inline Vector3 operator -=(_In_ Vector3 v)
 		{
 			X -= v.X;
 			Y -= v.Y;
@@ -101,7 +101,7 @@ namespace Plutonium
 		}
 
 		/* Adds the input vector to the vector. */
-		inline Vector3 operator +=(_In_ Vector3 v)
+		_Check_return_ inline Vector3 operator +=(_In_ Vector3 v)
 		{
 			X += v.X;
 			Y += v.Y;
@@ -110,7 +110,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by a scalar value. */
-		inline Vector3 operator *=(_In_ float v)
+		_Check_return_ inline Vector3 operator *=(_In_ float v)
 		{
 			X *= v;
 			Y *= v;
@@ -119,7 +119,7 @@ namespace Plutonium
 		}
 
 		/* Multiplies the vector by another vector. */
-		inline Vector3 operator *=(_In_ Vector3 v)
+		_Check_return_ inline Vector3 operator *=(_In_ Vector3 v)
 		{
 			X *= v.X;
 			Y *= v.Y;
@@ -128,13 +128,13 @@ namespace Plutonium
 		}
 
 		/* Divides the vector by a scalar value. */
-		inline Vector3 operator /=(_In_ float v)
+		_Check_return_ inline Vector3 operator /=(_In_ float v)
 		{
 			return operator*=(1.0f / v);
 		}
 
 		/* Divides the vector by another vector. */
-		inline Vector3 operator /=(_In_ Vector3 v)
+		_Check_return_ inline Vector3 operator /=(_In_ Vector3 v)
 		{
 			X /= v.X;
 			Y /= v.Y;

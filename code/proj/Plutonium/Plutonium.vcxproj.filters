@@ -380,6 +380,9 @@
     <ClCompile Include="..\..\deps\glad\Debug\src\glad.c">
       <Filter>Third Party Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Core\Math\Quaternion.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -765,6 +768,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\Graphics\Rendering\ShapeRenderer.h">
       <Filter>Header Files\Graphics\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\Core\Math\Quaternion.h">
+      <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,5 @@
 #pragma once
-#include "Vector2.h"
-#include "Vector3.h"
+#include "Quaternion.h"
 #include "Vector4.h"
 
 #if defined(near)
@@ -93,6 +92,8 @@ namespace Plutonium
 		_Check_return_ static Matrix CreateRotation(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a rotation matrix from euler angles. */
 		_Check_return_ static Matrix CreateRotation(_In_ float yaw, _In_ float pitch, _In_ float roll);
+		/* Creates a rotation matrix from a quaternion. */
+		_Check_return_ static Matrix CreateRotation(_In_ Quaternion quaternion);
 
 		/* Creates a rotation matrix around the X axis with an angle of theta. */
 		_Check_return_ static inline Matrix CreateRotationX(_In_ float theta)
