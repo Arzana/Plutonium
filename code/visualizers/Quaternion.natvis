@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Plutonium::Quaternion">
+    <DisplayString Condition="I == 0.0f &amp;&amp; J == 0.0f &amp;&amp; K &amp;&amp; 0.0f &amp;&amp; R == 1.0f">[Identity]</DisplayString>
+    <DisplayString>[I: {I}, J: {J}, K: {K}, Real: {R}]</DisplayString>
+  </Type>
+</AutoVisualizer>

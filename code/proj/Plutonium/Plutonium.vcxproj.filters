@@ -383,6 +383,9 @@
     <ClCompile Include="..\..\src\Core\Math\Quaternion.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Streams\BinaryReader.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\Core\Math\Basics.h">
@@ -772,6 +775,9 @@
     <ClInclude Include="..\..\include\Core\Math\Quaternion.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\Streams\BinaryReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\visualizers\Rectangle.natvis">
@@ -832,6 +838,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\visualizers\GuiItem.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\visualizers\Quaternion.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

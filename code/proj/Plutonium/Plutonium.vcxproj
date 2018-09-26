@@ -248,6 +248,7 @@
     <ClCompile Include="..\..\src\Graphics\Text\FontRenderer.cpp" />
     <ClCompile Include="..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\src\Input\Keyboard.cpp" />
+    <ClCompile Include="..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\src\Streams\FileReader.cpp" />
     <ClCompile Include="..\..\src\Streams\FileUtils.cpp" />
     <ClCompile Include="..\..\src\Streams\StringParsing.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="..\..\include\Input\KeyMods.h" />
     <ClInclude Include="..\..\include\Input\Keys.h" />
     <ClInclude Include="..\..\include\Input\KeyState.h" />
+    <ClInclude Include="..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\include\Streams\FileReader.h" />
     <ClInclude Include="..\..\include\Streams\FileUtils.h" />
     <ClInclude Include="..\..\include\Streams\SeekOrigin.h" />
@@ -397,6 +399,7 @@
     <Natvis Include="..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\visualizers\Mesh.natvis" />
     <Natvis Include="..\..\visualizers\Monitor.natvis" />
+    <Natvis Include="..\..\visualizers\Quaternion.natvis" />
     <Natvis Include="..\..\visualizers\Rectangle.natvis" />
     <Natvis Include="..\..\visualizers\Texture.natvis" />
     <Natvis Include="..\..\visualizers\Tree.natvis" />
