@@ -47,7 +47,7 @@ namespace Plutonium
 		RenderType DisplayType;
 
 		/* Initializes a new instance of a Blinn-Phong deferred rendering handler. */
-		DeferredRendererBP(_In_ Game *game);
+		DeferredRendererBP(_In_ Game *game, _In_opt_ bool fxaa = true, _In_opt_ bool softShadows = true);
 		DeferredRendererBP(_In_ const DeferredRendererBP &value) = delete;
 		DeferredRendererBP(_In_ DeferredRendererBP &&value) = delete;
 		/* Releases the resources allocated by the renderer. */
@@ -135,7 +135,7 @@ namespace Plutonium
 		struct
 		{
 			Shader *shdr;
-			Uniform *screen, *gamma, *exposure;
+			Uniform *screen, *gamma, *exposure, *texelStep;
 			Attribute *pos, *uv;
 		} fpass;		// Fix Values Pass.
 
@@ -160,16 +160,16 @@ namespace Plutonium
 			Attribute *pos, *uv;
 		} al;			// Debug Albedo Pass.
 
-		void InitMeshes(void);	// Plane / sphere.
-		void InitGsPass(void);	// Static geometry.
-		void InitGdPass(void);	// Animated geometry.
-		void InitDsPass(void);	// Directional light shadow.
-		void InitDPass(void);	// Directional light.
-		void InitPPass(void);	// Point light.
-		void InitFPass(void);	// Monitor fix.
-		void InitWire(void);	// Wireframe mode.
-		void InitWNormal(void);	// World normals mode.
-		void InitAlbedo(void);	// Albedo mode.
+		void InitMeshes(void);		// Plane / sphere.
+		void InitGsPass(void);		// Static geometry.
+		void InitGdPass(void);		// Animated geometry.
+		void InitDsPass(void);		// Directional light shadow.
+		void InitDPass(bool pcf);	// Directional light.
+		void InitPPass(void);		// Point light.
+		void InitFPass(bool fxaa);	// Monitor fix.
+		void InitWire(void);		// Wireframe mode.
+		void InitWNormal(void);		// World normals mode.
+		void InitAlbedo(void);		// Albedo mode.
 
 		void RenderNormal(const Camera *cam);
 		void RenderWireframe(const Matrix &projection, const Matrix &view);

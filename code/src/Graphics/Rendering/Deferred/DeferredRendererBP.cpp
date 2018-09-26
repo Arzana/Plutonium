@@ -239,23 +239,7 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "{																														\n"
 "	vec3 ndc = (pos.xyz / pos.w) * 0.5f + 0.5f;																			\n"
 "	float bias = max(0.005f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
-
-#if defined (PCF)
-"	float result = 0.0f;																								\n"
-"	vec2 texelSize = 1.0f / textureSize(cascade, 0);																	\n"
-"	for (float x = -1.5f; x <= 1.5f; x += 1.0f)																			\n"
-"	{																													\n"
-"		for (float y = -1.5f; y <= 1.5f; y += 1.0f)																		\n"
-"		{																												\n"
-"			float pcf = texture(cascade, ndc.xy + vec2(x, y) * texelSize).x;											\n"
-"			result += pcf < ndc.z - bias ? 0.1f : 1.0f;																	\n"
-"		}																												\n"
-"	}																													\n"
-
-"	return result / 16.0f;																								\n"
-#else
 "	return texture(cascade, ndc.xy).x < ndc.z - bias ? 0.0f : 1.0f;														\n"
-#endif
 "}																														\n"
 
 "void main()																											\n"
@@ -295,6 +279,99 @@ constexpr const char *DPASS_FRAG_SHDR_SRC =
 "	FragColor = ambient + (visibility * (diffuse + specular));															\n"
 "}";
 
+constexpr const char *DPASS_PCF_FRAG_SHDR_SRC =
+"#version 430 core																										\n"
+
+"struct GBuffer																											\n"
+"{																														\n"
+"	sampler2D NormalSpecular;																							\n"
+"	sampler2D PositionSpecular;																							\n"
+"	sampler2D Ambient;																									\n"
+"	sampler2D Diffuse;																									\n"
+"};																														\n"
+
+"struct DirectionalLight																								\n"
+"{																														\n"
+"	vec3 Direction;																										\n"
+"	vec4 Ambient;																										\n"
+"	vec4 Diffuse;																										\n"
+"	vec4 Specular;																										\n"
+"	mat4 CascadeSpace1;																									\n"
+"	sampler2D Cascade1;																									\n"
+"	float CascadeEnd1;																									\n"
+"	mat4 CascadeSpace2;																									\n"
+"	sampler2D Cascade2;																									\n"
+"	float CascadeEnd2;																									\n"
+"	mat4 CascadeSpace3;																									\n"
+"	sampler2D Cascade3;																									\n"
+"	float CascadeEnd3;																									\n"
+"};																														\n"
+
+"uniform GBuffer Geometry;																								\n"
+"uniform DirectionalLight Light;																						\n"
+"uniform vec3 ViewPosition;																								\n"
+"uniform mat4 View;																										\n"
+"uniform float CascadeIntensity;																						\n"
+
+"in vec2 Uv;																											\n"
+
+"out vec4 FragColor;																									\n"
+
+"float CalcShadowFactor(sampler2D cascade, vec4 pos, vec3 normal)														\n"
+"{																														\n"
+"	vec3 ndc = (pos.xyz / pos.w) * 0.5f + 0.5f;																			\n"
+"	float bias = max(0.005f * (1.0f - dot(normal, Light.Direction)), 0.005f);											\n"
+
+"	float result = 0.0f;																								\n"
+"	vec2 texelSize = 1.0f / textureSize(cascade, 0);																	\n"
+"	for (float x = -1.5f; x <= 1.5f; x += 1.0f)																			\n"
+"	{																													\n"
+"		for (float y = -1.5f; y <= 1.5f; y += 1.0f)																		\n"
+"		{																												\n"
+"			float pcf = texture(cascade, ndc.xy + vec2(x, y) * texelSize).x;											\n"
+"			result += pcf < ndc.z - bias ? 0.1f : 1.0f;																	\n"
+"		}																												\n"
+"	}																													\n"
+
+"	return result / 16.0f;																								\n"
+"}																														\n"
+
+"void main()																											\n"
+"{																														\n"
+"	vec4 posSpec = texture(Geometry.PositionSpecular, Uv);																\n"
+"	vec4 normSpec = texture(Geometry.NormalSpecular, Uv);																\n"
+"	vec3 objAmbient = texture(Geometry.Ambient, Uv).rgb;																\n"
+"	vec3 objDiffuse = texture(Geometry.Diffuse, Uv).rgb;																\n"
+
+"	vec4 pos = vec4(posSpec.xyz, 1.0f);																					\n"
+"	float viewSpaceZ = -(View * pos).z;																					\n"
+"	float visibility = 0.0f;																							\n"
+"	if (viewSpaceZ <= Light.CascadeEnd1)																				\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade1, Light.CascadeSpace1 * pos, normSpec.xyz);							\n"
+"		objAmbient.r = max(CascadeIntensity, objAmbient.r);																\n"
+"	}																													\n"
+"	else if (viewSpaceZ <= Light.CascadeEnd2)																			\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade2, Light.CascadeSpace2 * pos, normSpec.xyz);							\n"
+"		objAmbient.g = max(CascadeIntensity, objAmbient.g);																\n"
+"	}																													\n"
+"	else if (viewSpaceZ <= Light.CascadeEnd3)																			\n"
+"	{																													\n"
+"		visibility = CalcShadowFactor(Light.Cascade3, Light.CascadeSpace3 * pos, normSpec.xyz);							\n"
+"		objAmbient.b = max(CascadeIntensity, objAmbient.b);																\n"
+"	}																													\n"
+
+"	vec3 viewDir = normalize(ViewPosition - posSpec.xyz);																\n"
+"	float intensity = max(0.0f, dot(normSpec.xyz, Light.Direction));													\n"
+"	vec3 halfwayDir = normalize(Light.Direction + viewDir);																\n"
+"	float power = pow(max(0.0f, dot(normSpec.xyz, halfwayDir)), posSpec.w);												\n"
+
+"	vec4 ambient = vec4(objAmbient, 1.0f) * Light.Ambient;																\n"
+"	vec4 diffuse = vec4(objDiffuse, 1.0f) * Light.Diffuse * intensity;													\n"
+"	vec4 specular = normSpec.w * Light.Specular * power;																\n"
+"	FragColor = ambient + (visibility * (diffuse + specular));															\n"
+"}";
 
 constexpr const char* DSPASS_FRAG_SHDR_SRC =
 "#version 430 core																										\n"
@@ -381,6 +458,8 @@ constexpr const char *PPASS_FRAG_SHDR_SRC =
 constexpr const char *FPASS_FRAG_SHDR_SRC =
 "#version 430 core																										\n"
 
+"const vec3 ToLuma = vec3(0.229f, 0.587f, 0.114f);																		\n"
+
 "uniform sampler2D HdrBuffer;																							\n"
 "uniform float GammaCorrection;																							\n"
 "uniform float Exposure;																								\n"
@@ -392,6 +471,61 @@ constexpr const char *FPASS_FRAG_SHDR_SRC =
 "void main()																											\n"
 "{																														\n"
 "	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
+"	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
+"	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
+"	FragColor = vec4(corrected, 1.0f);																					\n"
+"}";
+
+constexpr const char *FPASS_FXAA_FRAG_SHDR_SRC =
+"#version 430 core																										\n"
+
+"const vec3 ToLuma = vec3(0.229f, 0.587f, 0.114f);																		\n"
+
+"uniform sampler2D HdrBuffer;																							\n"
+"uniform float GammaCorrection;																							\n"
+"uniform float Exposure;																								\n"
+"uniform vec2 TexelStep;																								\n"
+
+"in vec2 Uv;																											\n"
+
+"out vec4 FragColor;																									\n"
+
+"void main()																											\n"
+"{																														\n"
+"	vec3 hdr = texture(HdrBuffer, Uv).rgb;																				\n"
+"	vec3 hdrNW = textureOffset(HdrBuffer, Uv, ivec2(-1, 1)).rgb;														\n"
+"	vec3 hdrNE = textureOffset(HdrBuffer, Uv, ivec2(1, 1)).rgb;															\n"
+"	vec3 hdrSW = textureOffset(HdrBuffer, Uv, ivec2(-1, -1)).rgb;														\n"
+"	vec3 hdrSE = textureOffset(HdrBuffer, Uv, ivec2(1, -1)).rgb;														\n"
+
+"	float luma = dot(hdr, ToLuma);																						\n"
+"	float lumaNW = dot(hdrNW, ToLuma);																					\n"
+"	float lumaNE = dot(hdrNE, ToLuma);																					\n"
+"	float lumaSW = dot(hdrSW, ToLuma);																					\n"
+"	float lumaSE = dot(hdrSE, ToLuma);																					\n"
+
+"	float lumaMin = min(luma, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));											\n"
+"	float lumaMax = max(luma, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));											\n"
+
+"	if (lumaMax - lumaMin >= lumaMax * 0.5f)																			\n"
+"	{																													\n"
+"		vec2 sampleDir = vec2(-((-lumaNW + lumaNE) - (lumaSW + lumaSE)), (lumaNW + lumaSW) - (lumaNE + lumaSE));		\n"
+"		float reduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * 0.031f, 0.007f);										\n"
+"		float minSampleDir = 1.0f / (min(abs(sampleDir.x), abs(sampleDir.y)) + reduce);									\n"
+"		sampleDir = clamp(sampleDir * minSampleDir, vec2(-8.0f, -8.0f), vec2(8.0f, 8.0f)) * TexelStep;					\n"
+
+"		vec3 ihdrSample = texture(HdrBuffer, Uv + sampleDir * (1.0f / 3.0f - 0.5f)).rgb;								\n"
+"		vec3 hdrSample = texture(HdrBuffer, Uv + sampleDir * (2.0f / 3.0f - 0.5f)).rgb;									\n"
+"		vec3 hdrTwoTab = (hdrSample + ihdrSample) * 0.5f;																\n"
+
+"		vec3 ihdrSampleOut = texture(HdrBuffer, Uv + sampleDir * (0.0f / 3.0f - 0.5f)).rgb;								\n"
+"		vec3 hdrSampleOut = texture(HdrBuffer, Uv + sampleDir * (3.0f / 3.0f - 0.5f)).rgb;								\n"
+"		vec3 hdrFourTab = (hdrSampleOut + ihdrSampleOut) * 0.25f + hdrTwoTab * 0.5f;									\n"
+
+"		float lumaFourTab = dot(hdrFourTab, ToLuma);																	\n"
+"		hdr = (lumaFourTab < lumaMin || lumaFourTab > lumaMax) ? hdrTwoTab : hdrFourTab;								\n"
+"	}																													\n"
+
 "	vec3 mapped = vec3(1.0f) - exp(-hdr * Exposure);																	\n"
 "	vec3 corrected = pow(mapped, vec3(GammaCorrection));																\n"
 "	FragColor = vec4(corrected, 1.0f);																					\n"
@@ -494,7 +628,7 @@ constexpr const char *AL_FRAG_SHDR_SRC =
 
 #pragma endregion
 
-Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
+Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game, bool fxaa, bool softShadows)
 	: game(game), Exposure(1.0f), CascadeLambda(0.5f), LightOffset(1.0f), DisplayType(RenderType::Normal)
 {
 	/* Initialize G buffer. */
@@ -519,9 +653,9 @@ Plutonium::DeferredRendererBP::DeferredRendererBP(Game * game)
 	InitGsPass();
 	InitGdPass();
 	InitDsPass();
-	InitDPass();
+	InitDPass(softShadows);
 	InitPPass();
-	InitFPass();
+	InitFPass(fxaa);
 	InitWire();
 	InitWNormal();
 	InitAlbedo();
@@ -704,9 +838,9 @@ void Plutonium::DeferredRendererBP::InitDsPass(void)
 	dspass.uv = dspass.shdr->GetAttribute("Uv");
 }
 
-void Plutonium::DeferredRendererBP::InitDPass(void)
+void Plutonium::DeferredRendererBP::InitDPass(bool pcf)
 {
-	dpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, DPASS_FRAG_SHDR_SRC);
+	dpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, pcf ? DPASS_PCF_FRAG_SHDR_SRC : DPASS_FRAG_SHDR_SRC);
 	dpass.normSpec = dpass.shdr->GetUniform("Geometry.NormalSpecular");
 	dpass.posSpec = dpass.shdr->GetUniform("Geometry.PositionSpecular");
 	dpass.ambi = dpass.shdr->GetUniform("Geometry.Ambient");
@@ -753,12 +887,13 @@ void Plutonium::DeferredRendererBP::InitPPass(void)
 	ppass.pos = ppass.shdr->GetAttribute("Position");
 }
 
-void Plutonium::DeferredRendererBP::InitFPass(void)
+void Plutonium::DeferredRendererBP::InitFPass(bool fxaa)
 {
-	fpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, FPASS_FRAG_SHDR_SRC);
+	fpass.shdr = new Shader(PASS_VRTX_SHDR_SRC, fxaa ? FPASS_FXAA_FRAG_SHDR_SRC : FPASS_FRAG_SHDR_SRC);
 	fpass.screen = fpass.shdr->GetUniform("HdrBuffer");
 	fpass.gamma = fpass.shdr->GetUniform("GammaCorrection");
 	fpass.exposure = fpass.shdr->GetUniform("Exposure");
+	fpass.texelStep = fxaa ? fpass.shdr->GetUniform("TexelStep") : nullptr;
 	fpass.pos = fpass.shdr->GetAttribute("Position");
 	fpass.uv = fpass.shdr->GetAttribute("ScreenCoordinate");
 }
@@ -1376,6 +1511,7 @@ void Plutonium::DeferredRendererBP::FixForMonitor(void)
 	/* Set uniforms. */
 	fpass.screen->Set(screen);
 	fpass.gamma->Set(game->GetGraphics()->GetWindow()->GetGraphicsDevice().GammaCorrection);
+	if (fpass.texelStep) fpass.texelStep->Set(Vector2::One() / game->GetGraphics()->GetWindow()->GetClientBounds().Size);
 	fpass.exposure->Set(Exposure);
 
 	/* Setup screen quad (use dpass quad plane). */
