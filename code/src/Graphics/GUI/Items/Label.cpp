@@ -182,7 +182,7 @@ void Plutonium::Label::UpdateTextMesh(void)
 	size_t j = 0;
 	for (size_t i = 0; i < len; i++)
 	{
-		char32 c = visibleText[i];
+		const char32 c = visibleText[i];
 
 		/* Hanlde newlines. */
 		if (c == U'\n')
@@ -212,7 +212,8 @@ void Plutonium::Label::UpdateTextMesh(void)
 		vertices[j++] = Vector4(x + w, y, br.X, br.Y);
 		vertices[j++] = Vector4(x + w, y + h, br.X, tl.Y);
 
-		xAdder += ch->Advance;
+		xAdder += static_cast<float>(ch->Advance);
+		if (i + 1 < len) xAdder += font->GetKerning(c, visibleText[i + 1]);
 	}
 
 	/* Create GPU side buffer. */

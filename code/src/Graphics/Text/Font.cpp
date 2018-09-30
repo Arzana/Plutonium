@@ -13,8 +13,12 @@
 
 using namespace Plutonium;
 
+constexpr size_t TTF_BUFFER_SIZE = 1 << 20;
+
 Plutonium::Font::~Font(void) noexcept
 {
+	free_s(info);
+	free_s(rawData);
 	free_s(chars);
 	free_s(path);
 }
@@ -96,9 +100,17 @@ const Character * Plutonium::Font::GetCharOrDefault(char32 key) const
 	return chars + def;
 }
 
+float Plutonium::Font::GetKerning(char32 first, char32 second) const
+{
+	return static_cast<float>(stbtt_GetCodepointKernAdvance(info, first, second)) * scale;
+}
+
 Plutonium::Font::Font(void)
 	: chars(nullptr), cnt(0), def(0), lineSpace(0), size(0)
-{}
+{
+	info = malloc_s(stbtt_fontinfo, 1);
+	rawData = malloc_s(byte, TTF_BUFFER_SIZE);
+}
 
 Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wnd)
 {
@@ -109,26 +121,21 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 	result->path = heapstr(path);
 	result->name = heapstr(reader.GetFileNameWithoutExtension());
 
-	/* Initialize file content buffer. */
-	constexpr size_t TTF_BUFFER_SIZE = 1 << 20;
-	byte *ttf_buffer = malloc_s(byte, TTF_BUFFER_SIZE);
-
 	/* Load file into buffer. */
 #if defined(_WIN32)
 	FILE *file;
-	if (!fopen_s(&file, path, "rb")) fread(ttf_buffer, 1, TTF_BUFFER_SIZE, file);
+	if (!fopen_s(&file, path, "rb")) fread(result->rawData, 1, TTF_BUFFER_SIZE, file);
 	else LOG_THROW("Unable to read binary font file!");
 #else
 	fread(ttf_buffer, 1, TTF_BUFFER_SIZE, fopen(path), "rb");
 #endif
 
 	/* Get global font info. */
-	stbtt_fontinfo info;
-	stbtt_InitFont(&info, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0));
-	float scale = stbtt_ScaleForMappingEmToPixels(&info, size);
+	stbtt_InitFont(result->info, result->rawData, stbtt_GetFontOffsetForIndex(result->rawData, 0));
+	result->scale = stbtt_ScaleForMappingEmToPixels(result->info, size);
 
 	/* Initialize final character buffer. */
-	result->cnt = info.numGlyphs;
+	result->cnt = result->info->numGlyphs;
 	result->chars = malloc_s(Character, result->cnt);
 
 	/* Log start and start stopwatch. */
@@ -136,19 +143,18 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 
 	/* Create character info and texture map. */
 #if defined(DEBUG)
-	size_t loaded = result->SetCharacterInfo(&info, wnd, scale);
+	size_t loaded = result->SetCharacterInfo(wnd);
 #else
 	result->SetCharacterInfo(&info, wnd, scale);
 #endif
-	result->PopulateTextureMap(&info, scale);
+	result->PopulateTextureMap();
 
 	/* Free file data and return result. */
 	LOG("Finished initializing %zu/%zu characters, took %Lf seconds.", loaded, result->cnt, sw.Microseconds() * 0.000001L);
-	free_s(ttf_buffer);
 	return result;
 }
 
-size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wnd, float scale)
+size_t Plutonium::Font::SetCharacterInfo(WindowHandler wnd)
 {
 	/* Get global rendering info. */
 	int32 ascent, descent, lineGap;
@@ -218,7 +224,7 @@ size_t Plutonium::Font::SetCharacterInfo(stbtt_fontinfo * info, WindowHandler wn
 	return i;
 }
 
-void Plutonium::Font::PopulateTextureMap(stbtt_fontinfo * info, float scale)
+void Plutonium::Font::PopulateTextureMap(void)
 {
 	/* Allocate RGBA storage for font map, calloc is used to make sure we have no random noise between glyphs. */
 	byte *data = calloc_s(byte, map->Width * map->Height * 4);

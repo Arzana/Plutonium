@@ -23,6 +23,8 @@ namespace Plutonium
 		_Check_return_ Vector2 MeasureString(_In_ const char32 *str) const;
 		/* Gets the character info if the specified character in the font. */
 		_Check_return_ const Character* GetCharOrDefault(_In_ char32 key) const;
+		/* Gets the kerning advance from one glyph to another. */
+		_Check_return_ float GetKerning(_In_ char32 first, _In_ char32 second) const;
 
 		/* Gets the offset between lines. */
 		_Check_return_ inline int32 GetLineSpace(void) const
@@ -50,17 +52,20 @@ namespace Plutonium
 		friend class GuiItemRenderer;
 		friend class AssetLoader;
 
+		stbtt_fontinfo *info;
+		byte *rawData;
+
 		Texture *map;
 		Character *chars;
 		size_t cnt, def;
 		int32 lineSpace;
-		float size;
+		float size, scale;
 
 		Font(void);
 
 		static Font* FromFile(const char *path, float size, WindowHandler wnd);
 
-		size_t SetCharacterInfo(stbtt_fontinfo *info, WindowHandler wnd, float scale);
-		void PopulateTextureMap(stbtt_fontinfo *info, float scale);
+		size_t SetCharacterInfo(WindowHandler wnd);
+		void PopulateTextureMap(void);
 	};
 }
