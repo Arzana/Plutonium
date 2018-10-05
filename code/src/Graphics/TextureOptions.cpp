@@ -60,7 +60,7 @@ Plutonium::TextureCreationOptions::TextureCreationOptions(void)
 	: Type(TextureType::Texture2D), IsDepth(false), Filter(Color::White()),
 	HorizontalWrap(WrapMode::Repeat), VerticalWrap(WrapMode::Repeat), DepthWrap(WrapMode::Repeat),
 	MinFilter(ZoomFilter::Linear), MinFilterMipMap(ZoomFilter::LinearMipMapLinear), MagFilter(ZoomFilter::Linear),
-	Gain(0.0f), Range(1.0f), MipMapLevels(4)
+	Gain(0.0f), Range(1.0f), MipMapLevels(4), Anisotropy(16)
 {}
 
 bool Plutonium::TextureCreationOptions::operator!=(const TextureCreationOptions & other) const

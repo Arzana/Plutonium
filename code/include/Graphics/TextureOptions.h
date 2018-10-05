@@ -129,6 +129,8 @@ namespace Plutonium
 		Color Filter;
 		/* Defines the amount of mipmaps levels the texture should generate. */
 		int32 MipMapLevels;
+		/* Defines the levels of anisotropic filtering for the texture. */
+		uint32 Anisotropy;
 		/* Defines whether the texture should store its data as floats instead of bytes. */
 		bool IsDepth;
 

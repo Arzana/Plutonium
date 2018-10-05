@@ -13,6 +13,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define GL_TEXTURE_MAX_ANISOTROPY		0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY	0x84FF
 
 #if !defined (DEBUG)
 #define STBI_FAILURE_USERMSG
@@ -321,6 +323,19 @@ void Plutonium::Texture::SetPostDataTransferTextureOptions(void)
 
 	/* Generate desired mip maps. */
 	if (MipMapLevels) glGenerateMipmap(target);
+	
+	/* Set anisotropy filter. */
+	if (config.Anisotropy)
+	{
+		GLint maxLevels = 0;
+		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxLevels);
+		if (config.Anisotropy <= static_cast<uint32>(maxLevels)) glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY, static_cast<GLint>(config.Anisotropy));
+		else
+		{
+			LOG_WAR("Anisotropy filter of %zu in texture '%s' is not supported, lowering to %d!", config.Anisotropy, name, maxLevels);
+			glTexParameteri(target, GL_TEXTURE_MAX_ANISOTROPY, maxLevels);
+		}
+	}
 
 	/* Set texture use parameters. */
 	glTexParameteri(target, GL_TEXTURE_WRAP_S, _CrtEnum2Int(config.HorizontalWrap));
