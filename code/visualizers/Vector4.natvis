@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Pu::Vector4">
+    <DisplayString>[X: {X}, Y: {Y}, Z: {Z}, W: {W}]</DisplayString>
+    <Expand>
+      <Item Name="X">X</Item>
+      <Item Name="Y">Y</Item>
+      <Item Name="Z">Z</Item>
+      <Item Name="W">W</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

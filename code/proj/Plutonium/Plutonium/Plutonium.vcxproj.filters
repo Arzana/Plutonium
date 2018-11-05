@@ -1,0 +1,290 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{d1cf1090-3785-4c19-8a1c-1ad5abe2c660}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Math">
+      <UniqueIdentifier>{47ac3c81-3005-424f-aeeb-71577dfb3348}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{cb70935f-58c1-48bc-b06a-f3a84d61c588}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Math">
+      <UniqueIdentifier>{2f2921ac-19a3-4a39-94cb-9446f5c93ce6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Diagnostics">
+      <UniqueIdentifier>{440845c4-1d17-43a5-af7a-01e1604e6a10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Threading">
+      <UniqueIdentifier>{5e5de70e-81ff-4c9e-b268-09876c682a5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Diagnostics">
+      <UniqueIdentifier>{1f48e0a1-b3a7-4e40-84f8-4d01b38842d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Platform">
+      <UniqueIdentifier>{aa149adb-d5cb-4e78-a23c-4d426b189805}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Platform\Windows">
+      <UniqueIdentifier>{82becd5d-94aa-4f3f-a19a-503fae778640}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Threading">
+      <UniqueIdentifier>{f1d36903-9b46-4936-83e0-42b58a21bbf3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Streams">
+      <UniqueIdentifier>{a61a25a9-957a-464a-8f08-f22a73ee4131}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Collections">
+      <UniqueIdentifier>{1b1866c8-54de-4522-b431-8bbba27314cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Events">
+      <UniqueIdentifier>{ffb5b995-60d1-47fb-bfb5-ee842841456c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Platform">
+      <UniqueIdentifier>{be9f3820-f514-481a-8700-18bc28bbb76e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Platform\Windows">
+      <UniqueIdentifier>{9898203f-d841-4f0a-8555-45c37a2c3bce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Streams">
+      <UniqueIdentifier>{2e09d89c-a68b-4535-af8b-53eca378e05b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visualizers">
+      <UniqueIdentifier>{4787eeb9-1192-494f-91dc-a056f4f5e788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{23e1d488-e531-49b2-95ab-983d2444cbf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Vulkan">
+      <UniqueIdentifier>{bfb5382d-b179-4e6d-98e5-a926500ce791}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Vulkan\Native">
+      <UniqueIdentifier>{e993d04d-403f-4058-bd7f-3671230bc693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{c26c21d9-332f-4b24-a27c-70a74335cd28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Vulkan">
+      <UniqueIdentifier>{ea28216d-4fb0-4d42-b9f8-884ad3b659d6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Constants.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Basics.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector3.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector4.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\AABB.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Plane.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Frustum.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h">
+      <Filter>Header Files\Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\SafeMemory.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\FileUtils.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\Vector.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\DelegateObsevers.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\EventArgs.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\EventSubscriber.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\EventBus.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\ValueChangedEventArgs.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryFetcher.h">
+      <Filter>Header Files\Core\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h">
+      <Filter>Header Files\Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h">
+      <Filter>Header Files\Core\Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\EnumUtils.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\String.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\SeekOrigin.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\StreamReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\FileReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Conversion.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\BinaryReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanObjects.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\StackTrace.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp">
+      <Filter>Source Files\Core\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp">
+      <Filter>Source Files\Core\Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Streams\FileReader.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp">
+      <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\visualizers\Vector2.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\EventBus.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Matrix.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Rectangle.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Vector3.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Vector4.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\AABB.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+  </ItemGroup>
+</Project>

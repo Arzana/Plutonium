@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{7A4E82A6-2AED-4ECE-AC70-4336C1C3B7A8}</ProjectGuid>
+    <RootNamespace>Plutonium</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\Core\Collections\Vector.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h" />
+    <ClInclude Include="..\..\..\include\Core\EnumUtils.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\DelegateObsevers.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\EventArgs.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\EventBus.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\EventSubscriber.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\ValueChangedEventArgs.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\AABB.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Basics.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Constants.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Conversion.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Frustum.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Plane.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Vector2.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Vector3.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Vector4.h" />
+    <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryFetcher.h" />
+    <ClInclude Include="..\..\..\include\Core\SafeMemory.h" />
+    <ClInclude Include="..\..\..\include\Core\String.h" />
+    <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h" />
+    <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
+    <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanObjects.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h" />
+    <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
+    <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
+    <ClInclude Include="..\..\..\include\Streams\FileUtils.h" />
+    <ClInclude Include="..\..\..\include\Streams\SeekOrigin.h" />
+    <ClInclude Include="..\..\..\include\Streams\StreamReader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\StackTrace.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
+    <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
+    <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\..\..\visualizers\AABB.natvis" />
+    <Natvis Include="..\..\..\visualizers\EventBus.natvis" />
+    <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis" />
+    <Natvis Include="..\..\..\visualizers\Matrix.natvis" />
+    <Natvis Include="..\..\..\visualizers\Rectangle.natvis" />
+    <Natvis Include="..\..\..\visualizers\Vector2.natvis" />
+    <Natvis Include="..\..\..\visualizers\Vector3.natvis" />
+    <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
