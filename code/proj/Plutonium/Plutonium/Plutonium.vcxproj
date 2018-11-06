@@ -94,6 +94,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
@@ -111,6 +112,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
@@ -130,6 +132,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -153,6 +156,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -199,11 +203,13 @@
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanObjects.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileUtils.h" />
@@ -225,6 +231,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
   </ItemGroup>

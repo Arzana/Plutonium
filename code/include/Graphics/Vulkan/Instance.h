@@ -1,7 +1,7 @@
 #pragma once
-#include "Loader.h"
-#include "VulkanObjects.h"
-#include "Core/Collections/Vector.h"
+#include "PhysicalDevice.h"
+#include "Core/Events/EventBus.h"
+#include "Core/Events/EventArgs.h"
 
 namespace Pu
 {
@@ -9,10 +9,12 @@ namespace Pu
 	class VulkanInstance final
 	{
 	public:
+		/* Occurs when the Vulkan instance is destroyed. */
+		EventBus<const VulkanInstance, EventArgs> OnDestroy;
+
 		/* Initializes a new instance of a Vulkan instance. */
 		VulkanInstance(_In_ const char *applicationName, _In_opt_ int32 major = 0, _In_opt_ int32 minor = 0, _In_opt_ int32 patch = 0);
 		VulkanInstance(_In_ const VulkanInstance&) = delete;
-		/* Move constructor. */
 		VulkanInstance(_In_ VulkanInstance &&value);
 		/* Destroys the instance. */
 		~VulkanInstance(void) noexcept
@@ -21,22 +23,25 @@ namespace Pu
 		}
 
 		_Check_return_ VulkanInstance& operator =(_In_ const VulkanInstance&) = delete;
-		/* Moves the value of other into the vulkan instance. */
 		_Check_return_ VulkanInstance& operator =(_In_ VulkanInstance &&other);
 
 		/* Gets the maximum supported version of Vulkan supported by instance-level functionality. */
-		_Check_return_ static void GetSupportedVersion(_Out_ uint32 &major, _Out_ uint32 &minor, _Out_ uint32 &patch);
+		_Check_return_ static std::tuple<uint32, uint32, uint32> GetSupportedVersion(void);
 		/* Gets all extensions supported by a specified layer (UTF-8) or all implicity enabled extensions if layer is nullptr. */
 		_Check_return_ static vector<ExtensionProperties> GetSupportedExtensions(_In_ const char *layer);
 		/* Get all supported layers. */
 		_Check_return_ static vector<LayerProperties> GetSupportedLayers(void);
 
+		/* Gets all Vulkan-compatible physical devices. */
+		_Check_return_ vector<PhysicalDevice> GetPhysicalDevices(void) const;
+		/* Gets the handle of this instance. */
+		_Check_return_ inline InstanceHndl GetHandle(void) const
+		{
+			return hndl;
+		}
+
 	private:
-		using PFN_vkEnumerateInstanceVersion = Result(VKAPI_PTR)(uint32 *apiVersion);
-		using PFN_vkEnumerateInstanceExtensionProperties = Result(VKAPI_PTR)(const char *layerName, uint32 *propertyCount, ExtensionProperties *properties);
-		using PFN_vkEnumerateInstanceLayerProperties = Result(VKAPI_PTR)(uint32_t *propertyCount, LayerProperties *properties);
-		using PFN_vkCreateInstance = Result(VKAPI_PTR)(const InstanceCreateInfo *createInfo, const AllocationCallbacks *allocator, InstanceHndl *instance);
-		using PFN_vkDestroyInstance = void(VKAPI_PTR)(InstanceHndl instance, const AllocationCallbacks *allocator);
+		friend class PhysicalDevice;
 
 		static PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
 		static PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
@@ -45,6 +50,10 @@ namespace Pu
 
 		InstanceHndl hndl;
 		PFN_vkDestroyInstance vkDestroyInstance;
+		PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+		PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
+		PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+		PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 
 		static void LoadStaticProcs(void);
 

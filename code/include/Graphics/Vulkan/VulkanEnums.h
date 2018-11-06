@@ -10,7 +10,7 @@ namespace Pu
 	};
 
 	/* Defines the result codes returned by Vulkan. */
-	enum class Result
+	enum class VkApiResult
 	{
 		/* Command successfully completed. */
 		Success = 0,
@@ -876,6 +876,8 @@ namespace Pu
 	/* Defines the capabilities of queues in a queue family. */
 	enum class QueueFlag
 	{
+		/* No flags are set. */
+		None = 0x00000000,
 		/* Specifies that the queues in this queue family support graphics operations. */
 		Graphics = 0x00000001,
 		/* Specifies that the queues in this queue family support compute operations. */

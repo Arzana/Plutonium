@@ -30,9 +30,9 @@ namespace Pu
 
 		/* Initializes a new instance of an event subscriber. */
 		template <typename _CTy>
-		EventSubscriber(_CTy *cnt, HandlerMethodType<_CTy> func)
+		EventSubscriber(_CTy &cnt, HandlerMethodType<_CTy> func)
 		{
-			id = ComputeHash(cnt, func);
+			id = ComputeHash(&cnt, func);
 			hndlr = new DelegateMethod<_STy, _CTy, _ArgTy...>(cnt, func);
 		}
 
@@ -48,7 +48,7 @@ namespace Pu
 		EventSubscriber(_In_ const EventSubscriber<_STy, _ArgTy...> &value)
 			: id(value.id)
 		{
-			hndlr = value.hndlr.Copy();
+			hndlr = value.hndlr->Copy();
 		}
 
 		/* Moves the specified subscriber instance to a new instance. */
@@ -75,7 +75,7 @@ namespace Pu
 				if (hndlr) delete_s(hndlr);
 
 				id = other.id;
-				hndlr = other.hndlr.Copy();
+				hndlr = other.hndlr->Copy();
 			}
 
 			return *this;
@@ -121,9 +121,9 @@ namespace Pu
 
 		/* Gets an ID that can be used to compare subscribers without creating one. */
 		template <typename _CTy>
-		_Check_return_ static inline int64 CreateComparableID(_In_ const _CTy *cnt, _In_ HandlerMethodType<_CTy> func)
+		_Check_return_ static inline int64 CreateComparableID(_In_ const _CTy &cnt, _In_ HandlerMethodType<_CTy> func)
 		{
-			return ComputeHash(cnt, func);
+			return ComputeHash(&cnt, func);
 		}
 
 		/* Gets the ID of this subscriber. */

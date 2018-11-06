@@ -40,17 +40,22 @@ namespace Pu
 		{}
 
 		/* Copy constructor. */
-		vector(_In_ const vector &other, _In_ const allocator_t &alloc)
+		vector(_In_ const vector<_Ty> &other)
+			: vector_t(other)
+		{}
+
+		/* Allocator extended copy constructor. */
+		vector(_In_ const vector<_Ty> &other, _In_ const allocator_t &alloc)
 			: vector_t(other, alloc)
 		{}
 
 		/* Move constructor. */
-		vector(_In_ vector &&other) noexcept
+		vector(_In_ vector<_Ty> &&other) noexcept
 			: vector_t(std::move(other))
 		{}
 
 		/* Allocator extended move constructor. */
-		vector(_In_ vector &&other, _In_ const allocator_t &alloc)
+		vector(_In_ vector<_Ty> &&other, _In_ const allocator_t &alloc)
 			: vector_t(std::move(other), alloc)
 		{}
 

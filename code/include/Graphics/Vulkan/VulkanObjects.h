@@ -496,4 +496,23 @@ namespace Pu
 			ImplementationVersion(makeVersion(0, 0, 0)), Description(u8"")
 		{}
 	};
+
+	/* Defines information about a queue family. */
+	struct QueueFamilyProperties
+	{
+	public:
+		/* Specifies the capabilities of the queues in this queue family. */
+		QueueFlag Flags;
+		/* Specifies the amount of queus in the queue family. */
+		uint32 QueueCount;
+		/* Specifies the meaningful bits in the timestamps, valid range: [36, 64] or zero. */
+		uint32 TimestampValidBits;
+		/* Specified the minimum granularity supported for image transfer operations. */
+		Extent3D MinImageTransferGranularity;
+
+		/* Initializes an empty instance of a queue family properties object. */
+		QueueFamilyProperties(void)
+			: Flags(QueueFlag::None), QueueCount(0), TimestampValidBits(0), MinImageTransferGranularity()
+		{}
+	};
 }

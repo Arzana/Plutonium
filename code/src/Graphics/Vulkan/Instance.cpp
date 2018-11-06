@@ -1,14 +1,16 @@
 #include "Graphics/Vulkan/Instance.h"
+#include "Graphics/Vulkan/Loader.h"
 
 using namespace Pu;
 
-VulkanInstance::PFN_vkEnumerateInstanceVersion Pu::VulkanInstance::vkEnumerateInstanceVersion = nullptr;
-VulkanInstance::PFN_vkEnumerateInstanceExtensionProperties Pu::VulkanInstance::vkEnumerateInstanceExtensionProperties = nullptr;
-VulkanInstance::PFN_vkEnumerateInstanceLayerProperties Pu::VulkanInstance::vkEnumerateInstanceLayerProperties = nullptr;
-VulkanInstance::PFN_vkCreateInstance Pu::VulkanInstance::vkCreateInstance = nullptr;
+PFN_vkEnumerateInstanceVersion Pu::VulkanInstance::vkEnumerateInstanceVersion = nullptr;
+PFN_vkEnumerateInstanceExtensionProperties Pu::VulkanInstance::vkEnumerateInstanceExtensionProperties = nullptr;
+PFN_vkEnumerateInstanceLayerProperties Pu::VulkanInstance::vkEnumerateInstanceLayerProperties = nullptr;
+PFN_vkCreateInstance Pu::VulkanInstance::vkCreateInstance = nullptr;
 
 Pu::VulkanInstance::VulkanInstance(const char * applicationName, int32 major, int32 minor, int32 patch)
-	: hndl(nullptr), vkDestroyInstance(nullptr)
+	: hndl(nullptr), vkDestroyInstance(nullptr), vkEnumeratePhysicalDevices(nullptr),
+	OnDestroy("VulkanInstance::OnDestory")
 {
 	/* Make sure the create procedure is loaded. */
 	LoadStaticProcs();
@@ -18,44 +20,41 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, int32 major, in
 	const InstanceCreateInfo createInfo(&appInfo);
 
 	/* Create a new instance handle. */
-	const Result result = vkCreateInstance(&createInfo, nullptr, &hndl);
-	if (result != Result::Success) Log::Fatal("Unable to create Vulkan instance!");
+	const VkApiResult result = vkCreateInstance(&createInfo, nullptr, &hndl);
+	if (result != VkApiResult::Success) Log::Fatal("Unable to create Vulkan instance!");
 
 	/* Load the procedures needed for the instance. */
 	LoadInstanceProcs();
 }
 
 Pu::VulkanInstance::VulkanInstance(VulkanInstance && value)
+	: hndl(value.hndl), vkDestroyInstance(value.vkDestroyInstance), vkEnumeratePhysicalDevices(vkEnumeratePhysicalDevices),
+	OnDestroy(std::move(value.OnDestroy))
 {
-	if (value.hndl != hndl)
-	{
-		Destroy();
-
-		hndl = hndl;
-		vkDestroyInstance = value.vkDestroyInstance;
-
-		value.hndl = nullptr;
-		value.vkDestroyInstance = nullptr;
-	}
+	value.hndl = nullptr;
+	value.vkDestroyInstance = nullptr;
+	value.vkEnumeratePhysicalDevices = nullptr;
 }
 
-Pu::VulkanInstance & Pu::VulkanInstance::operator=(VulkanInstance && other)
+VulkanInstance & Pu::VulkanInstance::operator=(VulkanInstance && other)
 {
-	if (&other != this)
+	if (this != &other)
 	{
 		Destroy();
-
 		hndl = other.hndl;
 		vkDestroyInstance = other.vkDestroyInstance;
+		vkEnumeratePhysicalDevices = other.vkEnumeratePhysicalDevices;
+		OnDestroy = std::move(other.OnDestroy);
 
 		other.hndl = nullptr;
 		other.vkDestroyInstance = nullptr;
+		other.vkEnumeratePhysicalDevices = nullptr;
 	}
 
 	return *this;
 }
 
-void Pu::VulkanInstance::GetSupportedVersion(uint32 & major, uint32 & minor, uint32 & patch)
+std::tuple<uint32, uint32, uint32> Pu::VulkanInstance::GetSupportedVersion()
 {
 	/* Make sure the version enumerate procedure is loaded. */
 	LoadStaticProcs();
@@ -65,9 +64,7 @@ void Pu::VulkanInstance::GetSupportedVersion(uint32 & major, uint32 & minor, uin
 	vkEnumerateInstanceVersion(&version);
 
 	/* Set versions to appropriate values. */
-	major = getMajor(version);
-	minor = getMinor(version);
-	patch = getPatch(version);
+	return std::make_tuple(getMajor(version), getMinor(version), getPatch(version));
 }
 
 vector<ExtensionProperties> Pu::VulkanInstance::GetSupportedExtensions(const char * layer)
@@ -78,6 +75,9 @@ vector<ExtensionProperties> Pu::VulkanInstance::GetSupportedExtensions(const cha
 	/* Query the amount of properties defined. */
 	uint32 count;
 	vkEnumerateInstanceExtensionProperties(layer, &count, nullptr);
+
+	/* Early out if the count is less than one. */
+	if (count < 1) return vector<ExtensionProperties>();
 
 	/* Query all extension properties. */
 	vector<ExtensionProperties> result(count);
@@ -95,10 +95,33 @@ vector<LayerProperties> Pu::VulkanInstance::GetSupportedLayers(void)
 	uint32 count;
 	vkEnumerateInstanceLayerProperties(&count, nullptr);
 
+	/* Early out if the count is less than one. */
+	if (count < 1) return vector<LayerProperties>();
+
 	/* Query all layer properties. */
 	vector<LayerProperties> result(count);
 	vkEnumerateInstanceLayerProperties(&count, result.data());
 
+	return result;
+}
+
+vector<PhysicalDevice> Pu::VulkanInstance::GetPhysicalDevices(void) const
+{
+	/* Query the amount of physical devices available. */
+	uint32 count;
+	vkEnumeratePhysicalDevices(hndl, &count, nullptr);
+
+	/* Early out if the count is less than one. */
+	if (count < 1) return vector<PhysicalDevice>();
+
+	/* Query all physical device handles. */
+	vector<PhysicalDeviceHndl> raw(count);
+	vkEnumeratePhysicalDevices(hndl, &count, raw.data());
+
+	/* Convert the handles to objects and return. */
+	vector<PhysicalDevice> result;
+	VulkanInstance &self = *const_cast<VulkanInstance*>(this);
+	for (PhysicalDeviceHndl cur : raw) result.push_back(PhysicalDevice(self, cur));
 	return result;
 }
 
@@ -119,10 +142,15 @@ void Pu::VulkanInstance::LoadStaticProcs(void)
 
 void Pu::VulkanInstance::Destroy(void)
 {
+	OnDestroy.Post(*this, EventArgs());
 	if (hndl) vkDestroyInstance(hndl, nullptr);
 }
 
 void Pu::VulkanInstance::LoadInstanceProcs(void)
 {
-	vkDestroyInstance = VulkanLoader::LoadInstanceProc<PFN_vkDestroyInstance>(hndl, "vkDestroyInstance");
+	VK_LOAD_INSTANCE_PROC(hndl, vkEnumeratePhysicalDevices);
+	VK_LOAD_INSTANCE_PROC(hndl, vkDestroyInstance);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
 }

@@ -210,6 +210,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h">
       <Filter>Header Files\Graphics\Vulkan\Native</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -258,6 +264,9 @@
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

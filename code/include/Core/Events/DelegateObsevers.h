@@ -61,7 +61,7 @@ namespace Pu
 		/* Invokes this delegate. */
 		virtual inline void Invoke(_In_ _STy &sender, _In_ _ArgTy ... args) override
 		{
-			(obj->*hndlr)(sender, args...);
+			(obj.*hndlr)(sender, args...);
 		}
 
 		/* Copies this delegate (requires delete!). */

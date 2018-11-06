@@ -7,8 +7,9 @@
 #include <Windows.h>
 #endif
 
-#define VK_LOAD_EXPORT_PROC(name)	name = Pu::VulkanLoader::LoadExportProc<PFN_##name>(#name)
-#define VK_LOAD_GLOBAL_PROC(name)	name = Pu::VulkanLoader::LoadGlobalProc<PFN_##name>(#name)
+#define VK_LOAD_EXPORT_PROC(name)			name = Pu::VulkanLoader::LoadExportProc<PFN_##name>(#name)
+#define VK_LOAD_GLOBAL_PROC(name)			name = Pu::VulkanLoader::LoadGlobalProc<PFN_##name>(#name)
+#define VK_LOAD_INSTANCE_PROC(hndl, name)	name = Pu::VulkanLoader::LoadInstanceProc<PFN_##name>(hndl, #name)
 
 namespace Pu
 {

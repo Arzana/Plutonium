@@ -23,11 +23,47 @@ namespace Pu
 			: callbacks(), name(name)
 		{}
 
-		EventBus(_In_ const EventBus &value) = delete;
-		EventBus(_In_ EventBus &&value) = delete;
+		/* Initializes a new instance of an event bus as a copy of the specified bus. */
+		EventBus(_In_ const EventBus &value)
+			: name(value.name), callbacks(value.callbacks)
+		{}
 
-		_Check_return_ EventBus& operator =(_In_ const EventBus &other) = delete;
-		_Check_return_ EventBus& operator =(_In_ EventBus &&other) = delete;
+		/* Moves the specified subscriber instance to a new instance. */
+		EventBus(_In_ EventBus &&value)
+			: name(value.name)
+		{
+			callbacks = std::move(value.callbacks);
+
+			value.name = "";
+			value.callbacks.clear();
+		}
+
+		/* Copies the data from the specified bus to this bus. */
+		_Check_return_ EventBus& operator =(_In_ const EventBus &other)
+		{
+			if (this != &other)
+			{
+				name = other.name;
+				callbacks = vector<SubscriberType>(other.callbacks);
+			}
+
+			return *this;
+		}
+
+		/* Moves the data from the specified bus to this bus. */
+		_Check_return_ EventBus& operator =(_In_ EventBus &&other)
+		{
+			if (this != &other)
+			{
+				name = other.name;
+				callbacks = std::move(other.callbacks);
+
+				other.name = "";
+				other.callbacks.clear();
+			}
+
+			return *this;
+		}
 
 		/* Registers an event handler to this event. */
 		void operator +=(_In_ HandlerFuncType func)
