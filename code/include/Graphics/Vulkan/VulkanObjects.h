@@ -515,4 +515,77 @@ namespace Pu
 			: Flags(QueueFlag::None), QueueCount(0), TimestampValidBits(0), MinImageTransferGranularity()
 		{}
 	};
+
+	/* Defines information for creating new device queues. */
+	struct DeviceQueueCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies behaviour of the queue. */
+		DeviceQueueCreateFlag Flags;
+		/* Indicates the index of the queu family to create on this device. */
+		uint32 QueueFamilyIndex;
+		/* Specifies the amount of queues to create in the queue family. */
+		uint32 Count;
+		/* Specified (normalized) priorities of work that will be submitted to each created queue. */
+		const float *QueuePriorities;
+
+		/* Initializes an empty instance of a queue create information object. */
+		DeviceQueueCreateInfo(void)
+			: Type(StructureType::DeviceQueueCreateInfo), Next(nullptr),
+			Flags(DeviceQueueCreateFlag::None), QueueFamilyIndex(0),
+			Count(0), QueuePriorities(nullptr)
+		{}
+
+		/* Initializes a new instance of a queue create information object. */
+		DeviceQueueCreateInfo(_In_ uint32 familyIndex, _In_ uint32 count, _In_ const float *priorities, _In_opt_ DeviceQueueCreateFlag flags = DeviceQueueCreateFlag::None)
+			: Type (StructureType::DeviceQueueCreateInfo), Next(nullptr),
+			Flags(flags), QueueFamilyIndex(familyIndex), Count(count), QueuePriorities(priorities)
+		{}
+	};
+
+	/* Defines information for creating new logical devices. */
+	struct DeviceCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Must be zero. */
+		Flags Flags;
+		/* Specifies the amount to queue create information objects passed. */
+		uint32 QueueCreateInfoCount;
+		/* Specifies the information describing the queues that are requested to be created along with the logical device. */
+		const DeviceQueueCreateInfo *QueueCreateInfos;
+		/* Deprecated. */
+		uint32 EnabledLayerCount;
+		/* Deprecated. */
+		const char *const *EnabledLayerNames;
+		/* Specifies the amount of device extensions to enable. */
+		uint32 EnabledExtensionCount;
+		/* Specifies the extensions to enable for the created logical device. */
+		const char *const *EnabledExtensionNames;
+		/* Specifies the features to enable for the logical device or nullptr. */
+		const PhysicalDeviceFeatures *EnabledFeatures;
+
+		/* Creates an empty instance of the device creating information object. */
+		DeviceCreateInfo(void)
+			: Type(StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
+			QueueCreateInfoCount(0), QueueCreateInfos(nullptr), EnabledExtensionCount(0),
+			EnabledExtensionNames(nullptr), EnabledFeatures(nullptr)
+		{}
+
+		/* Creates a new instance of the device create information object. */
+		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ DeviceQueueCreateInfo *queueCreateInfos, 
+			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr, 
+			_In_opt_ const PhysicalDeviceFeatures *enabledFeatures = nullptr)
+			: Type (StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
+			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos), 
+			EnabledExtensionCount(enabledExtensionCount), EnabledExtensionNames(enabledExtensionNames), EnabledFeatures(enabledFeatures)
+		{}
+	};
 }

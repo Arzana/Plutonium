@@ -46,6 +46,22 @@ vector<QueueFamilyProperties> Pu::PhysicalDevice::GetQueueFamilies(void) const
 	return result;
 }
 
+LogicalDevice Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * createInfo) const
+{
+	/* Create new logical device. */
+	DeviceHndl device;
+	const VkApiResult result = parent.vkCreateDevice(hndl, createInfo, nullptr, &device);
+
+	/* Check for errors. */
+	if (result != VkApiResult::Success) Log::Fatal("Unable to create logical device!");
+
+	/* Log creation. */
+	const auto[major, minor, patch] = GetVulkanVersion();
+	Log::Message("Created new Vulkan v%u.%u.%u logical device on %s", major, minor, patch, GetName());
+
+	return LogicalDevice(parent.GetHandle(), device);
+}
+
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(parent)
 {

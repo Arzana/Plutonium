@@ -12,4 +12,6 @@ namespace Pu
 	using PFN_vkGetPhysicalDeviceProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceProperties *properties);
 	using PFN_vkGetPhysicalDeviceFeatures = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceFeatures *features);
 	using PFN_vkGetPhysicalDeviceQueueFamilyProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Inout_ uint32 *queueFamilyPropertyCount, _Out_ QueueFamilyProperties *queueFamilyProperties);
+	using PFN_vkCreateDevice = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ const DeviceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DeviceHndl *device);
+	using PFN_vkDestroyDevice = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_opt_ const AllocationCallbacks *allocator);
 }

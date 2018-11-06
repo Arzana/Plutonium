@@ -23,6 +23,9 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, int32 major, in
 	const VkApiResult result = vkCreateInstance(&createInfo, nullptr, &hndl);
 	if (result != VkApiResult::Success) Log::Fatal("Unable to create Vulkan instance!");
 
+	/* Add the instance to the procedure loader. */
+	VulkanLoader::GetInstance().AddDeviceProcAddr(hndl);
+
 	/* Load the procedures needed for the instance. */
 	LoadInstanceProcs();
 }
@@ -143,7 +146,13 @@ void Pu::VulkanInstance::LoadStaticProcs(void)
 void Pu::VulkanInstance::Destroy(void)
 {
 	OnDestroy.Post(*this, EventArgs());
-	if (hndl) vkDestroyInstance(hndl, nullptr);
+
+	if (hndl)
+	{
+		/* Remove the instance from the loader list and destory the instance. */
+		VulkanLoader::GetInstance().vkGetDeviceProcAddr.erase(hndl);
+		vkDestroyInstance(hndl, nullptr);
+	}
 }
 
 void Pu::VulkanInstance::LoadInstanceProcs(void)
@@ -153,4 +162,5 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
+	VK_LOAD_INSTANCE_PROC(hndl, vkCreateDevice);
 }

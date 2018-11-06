@@ -409,9 +409,7 @@ namespace Pu
 	/* Defines the set of image layouts. */
 	enum class ImageLayout
 	{
-		/* Does not support device access. */
 		Undefined = 0,
-		/* Supports all types of device access. */
 		General = 1,
 		ColorAttachmentOptimal = 2,
 		DepthStencilAttachmentOptimal = 3,
@@ -1247,5 +1245,14 @@ namespace Pu
 		Back = 0x00000002,
 		/* Specified that both sets of stencil state are updated. */
 		FrontAndBack = 0x00000003
+	};
+
+	/* Defines behaviour of the queue. */
+	enum class DeviceQueueCreateFlag
+	{
+		/* No flags are set. */
+		None = 0x00000000,
+		/* Specifies that the device queue is a protected-capable queue. */
+		ProtectedBit = 0x00000001
 	};
 }

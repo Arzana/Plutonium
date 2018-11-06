@@ -1,6 +1,6 @@
 #pragma once
 #include <tuple>
-#include "VulkanProcedres.h"
+#include "LogicalDevice.h"
 #include "Core/Collections/Vector.h"
 
 namespace Pu
@@ -13,15 +13,19 @@ namespace Pu
 	{
 	public:
 		PhysicalDevice(_In_ const PhysicalDevice&) = delete;
+		/* Move constructor. */
 		PhysicalDevice(_In_ PhysicalDevice &&value);
 		/* Releases the physical device. */
 		~PhysicalDevice(void);
 
 		_Check_return_ PhysicalDevice& operator =(_In_ const PhysicalDevice&) = delete;
+		/* Move assignment. */
 		_Check_return_ PhysicalDevice& operator =(_In_ PhysicalDevice &&other);
 
 		/* Gets the queue families available on this physical device. */
 		_Check_return_ vector<QueueFamilyProperties> GetQueueFamilies(void) const;
+		/* Creates a new logical device from this physical device. */
+		_Check_return_ LogicalDevice CreateLogicalDevice(_In_ const DeviceCreateInfo *createInfo) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const

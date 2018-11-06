@@ -15,6 +15,7 @@ namespace Pu
 		/* Initializes a new instance of a Vulkan instance. */
 		VulkanInstance(_In_ const char *applicationName, _In_opt_ int32 major = 0, _In_opt_ int32 minor = 0, _In_opt_ int32 patch = 0);
 		VulkanInstance(_In_ const VulkanInstance&) = delete;
+		/* Move constructor. */
 		VulkanInstance(_In_ VulkanInstance &&value);
 		/* Destroys the instance. */
 		~VulkanInstance(void) noexcept
@@ -23,6 +24,7 @@ namespace Pu
 		}
 
 		_Check_return_ VulkanInstance& operator =(_In_ const VulkanInstance&) = delete;
+		/* Move assignment. */
 		_Check_return_ VulkanInstance& operator =(_In_ VulkanInstance &&other);
 
 		/* Gets the maximum supported version of Vulkan supported by instance-level functionality. */
@@ -54,6 +56,7 @@ namespace Pu
 		PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 		PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
 		PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
+		PFN_vkCreateDevice vkCreateDevice;
 
 		static void LoadStaticProcs(void);
 
