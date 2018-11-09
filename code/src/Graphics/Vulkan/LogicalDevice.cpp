@@ -28,10 +28,37 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 	return *this;
 }
 
-Pu::LogicalDevice::LogicalDevice(InstanceHndl parent, DeviceHndl hndl)
+Pu::LogicalDevice::LogicalDevice(InstanceHndl parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo * queueCreateInfos)
 	: parent(parent), hndl(hndl)
 {
+	LoadDeviceProcs();
+
+	/* Preload all queues that where created with the logical device. */
+	for (uint32 i = 0; i < queueCreateInfoCount; i++)
+	{
+		const DeviceQueueCreateInfo *cur = queueCreateInfos + i;
+
+		for (uint32 j = 0; j < cur->Count; j++)
+		{
+			QueueHndl queue;
+			vkGetDeviceQueue(hndl, cur->QueueFamilyIndex, j, &queue);
+
+			std::map<uint32, vector<Queue>>::iterator it = queues.find(cur->QueueFamilyIndex);
+			if (it == queues.end())
+			{
+				vector<Queue> storage;
+				storage.push_back(Queue(queue));
+				queues.emplace(cur->QueueFamilyIndex, std::move(storage));
+			}
+			else it->second.push_back(Queue(queue));
+		}
+	}
+}
+
+void Pu::LogicalDevice::LoadDeviceProcs(void)
+{
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkDestroyDevice);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkGetDeviceQueue);
 }
 
 void Pu::LogicalDevice::Destory(void)

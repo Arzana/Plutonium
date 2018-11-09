@@ -101,6 +101,8 @@ namespace Pu
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Framebuffer);
 	/* Defines the handle to a command manager. */
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(CommandPool);
+	/* Defines the handle to a surface (extension). */
+	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Surface);
 
 	/* Defines the clamp value for level of detail none. */
 	constexpr float LoDClampNone = 1000.0f;
@@ -110,7 +112,7 @@ namespace Pu
 	constexpr uint32 RemainingArrayLayers = ~0U;
 	/* Used to set the memory range to the whole range. */
 	constexpr DeviceSize WholeSize = ~0ULL;
-	// TODO: add AttachmentUnusaed to AttachmentRefrence.
+	// TODO: add AttachmentUnused to AttachmentRefrence.
 	/*  Used to indicate that the queue family should be ignored. */
 	constexpr uint32 QueueFamilyIgnored = ~0U;
 	/* Used to indicate non clamped subpass scope */

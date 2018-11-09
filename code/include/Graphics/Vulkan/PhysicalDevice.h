@@ -1,7 +1,7 @@
 #pragma once
 #include <tuple>
 #include "LogicalDevice.h"
-#include "Core/Collections/Vector.h"
+#include "Surface.h"
 
 namespace Pu
 {
@@ -26,6 +26,16 @@ namespace Pu
 		_Check_return_ vector<QueueFamilyProperties> GetQueueFamilies(void) const;
 		/* Creates a new logical device from this physical device. */
 		_Check_return_ LogicalDevice CreateLogicalDevice(_In_ const DeviceCreateInfo *createInfo) const;
+		/* Gets all extensions supported by a specific layer (UTF-8) or all enabled extensions if the layer is nullptr or this physical device. */
+		_Check_return_ vector<ExtensionProperties> GetSupportedExtensions(_In_ const char *layer) const;
+		/* Checks whether a specific extension is supported. */
+		_Check_return_ bool IsExtensionSupported(_In_ const char *extension) const;
+		/* Checks whether specific extensions are supported. */
+		_Check_return_ bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions) const;
+		/* Checks whether this device supports Plutonium functionality. */
+		_Check_return_ bool SupportsPlutonium(void) const;
+		/* Checks whether a specific queue family of this physical device supports presenting images to the specified surface. */
+		_Check_return_ bool QueueFamilySupportsPresenting(_In_ uint32 queueFamilyIndex, _In_ const Surface &surface) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const

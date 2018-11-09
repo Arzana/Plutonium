@@ -104,18 +104,7 @@ namespace Pu
 			else LoadProcAddr();
 		}
 #else
-		void* libHndl;
-
-		VulkanLoader(void)
-			: libHndl(dlopen("libvulkan.so", RTLD_NOW))
-		{
-			/* Check if the vulkan so was loaded correctly. */
-			if (!libHndl)
-			{
-				Log::Fatal("Unable to load dynamic Vulkan link library!");
-			}
-			else LoadProcAddr();
-		}
+#error "Plutonium Vulkan loader currently doesn't work on this platform!"
 #endif
 
 		static inline VulkanLoader& GetInstance(void)

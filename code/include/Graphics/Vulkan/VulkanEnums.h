@@ -817,6 +817,8 @@ namespace Pu
 	/* Defines the bits that can be set to specify the intended usage of an image. */
 	enum class ImageUsageFlag
 	{
+		/* No flags are set. */
+		None = 0x00000000,
 		/* Specifies that the image can be used as the source of a transfer command. */
 		TransferSrc = 0x00000001,
 		/* Specified that the image can be used as the destination of a transfer command. */
@@ -1254,5 +1256,61 @@ namespace Pu
 		None = 0x00000000,
 		/* Specifies that the device queue is a protected-capable queue. */
 		ProtectedBit = 0x00000001
+	};
+
+	/* Defines surface presentation transformations. */
+	enum class SurfaceTransformFlag
+	{
+		/* No transformation is applied when presenting. */
+		Identity = 0x00000001,
+		/* The image is rotated 90 degrees clockwise. */
+		Rotate90 = 0x00000002,
+		/* The image is rotated 180 degrees clockwise. */
+		Rotate180 = 0x00000004,
+		/* The image is rotated 270 degrees clockwise. */
+		Rotate270 = 0x00000008,
+		/* The image is mirrored horizontally. */
+		MirrorHorizontal = 0x00000010,
+		/* The image is mirrored horizontally, then rotated 90 degrees clockwise. */
+		MirrorHorizontalRotate90 = 0x00000020,
+		/* The image is mirrored horizontally, then rotated 180 degrees clockwise. */
+		MirrorHorizontalRotate180 = 0x00000040,
+		/* The image is mirrored horizontally, then rotated 270 degrees clockwise. */
+		MirrorHorizontalRotate270 = 0x00000080,
+		/* The presentation transform is not specified. */
+		Inherit = 0x00000100
+	};
+
+	/* Defines how the alpha channel in an image should be handled. */
+	enum class CompositeAlphaFlag
+	{
+		/* The alpha channel (if it exists) is ignored. */
+		Opaque = 0x00000001,
+		/* The alpha channel (if it exists) of the images are respected. The non-alpha channels of the image are expected to already be multipled by the alpha. */
+		PreMultiplied = 0x00000002,
+		/* The alpha channel (if it exists) of the images are respected. The non-alpha channels of the image are not expected to already be mutiplied by the alpha. */
+		PostMultiplied = 0x00000004,
+		/* The alpha composition is handled by the native window system commands. */
+		Inherit = 0x00000008
+	};
+
+	/* Defines different types of color space. */
+	enum class ColorSpace
+	{
+		/* Non-linear sRGB color space. */
+		SRGB = 0,
+	};
+
+	/* Defines types of image present modes. */
+	enum class PresentMode
+	{
+		/* The presentation engine doesn't wait for a vertical blanking period to update the current image. */
+		Immediate = 0,
+		/* The presentation engine waits for a vertical blanking period to update the current image. Only the newest presentation is kept in the queue. */
+		MailBox = 1,
+		/* The presentation engine waits for a vertical blanking period to update the current image. The new entry is added to the back of the queue. */
+		FiFo = 2,
+		/* The presentation engine generally waits for a vertical blanking period to update the current image. The new entry is added to the back of the queue. */
+		FiFoRelaxed = 3
 	};
 }

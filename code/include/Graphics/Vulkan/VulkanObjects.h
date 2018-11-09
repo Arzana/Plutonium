@@ -1,6 +1,10 @@
 #pragma once
 #include "VulkanFunctions.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace Pu
 {
 	/* Defines application info. */
@@ -24,9 +28,7 @@ namespace Pu
 
 		/* Initializes an empty instance of an application information object. */
 		ApplicationInfo(void)
-			: Type(StructureType::ApplicationInfo), Next(nullptr),
-			ApplicationName(nullptr), ApplicationVersion(0),
-			EngineName(nullptr), EngineVersion(0), ApiVersion(makeVersion(0, 0, 0))
+			: ApplicationInfo(nullptr, 0, 0, 0, nullptr, 0, 0, 0)
 		{}
 
 		/* Initializes a new instance of an application info object. */
@@ -54,11 +56,11 @@ namespace Pu
 		/* The number of global layers to enable. */
 		uint32 EnabledLayerCount;
 		/* A null terminated UTF-8 string with size of EnabledLayerCount that contains the names of layers to enabled for the created instance. */
-		const char *EnabledLayerNames;
+		const char * const*EnabledLayerNames;
 		/* The number of global extensions to enable. */
 		uint32 EnabledExtensionCount;
 		/* A null terminated UTF-8 string with size of EnabledExtensionCount that contains the names of extensions to enabled for the created instance. */
-		const char *EnabledExtensionNames;
+		const char * const*EnabledExtensionNames;
 
 		/* Initializes an empty instance of an instance create information object.  */
 		InstanceCreateInfo(void)
@@ -260,6 +262,26 @@ namespace Pu
 		{}
 	};
 
+	/* Defines a two-dimensional extent. */
+	struct Extent2D
+	{
+	public:
+		/* The width of the extent. */
+		uint32 Width;
+		/* The height of the extent. */
+		uint32 Height;
+
+		/* Initializes an empty instance of an 2D extent object. */
+		Extent2D(void)
+			: Width(0), Height(0)
+		{}
+
+		/* Initializes a new instace of a 2D extent object. */
+		Extent2D(_In_ uint32 width, _In_ uint32 height)
+			: Width(width), Height(height)
+		{}
+	};
+
 	/* Defines a three-dimensional extent. */
 	struct Extent3D
 	{
@@ -271,9 +293,14 @@ namespace Pu
 		/* The depth of the extent. */
 		uint32 Depth;
 
-		/* Initializes an empty instance of an 3D extend object. */
+		/* Initializes an empty instance of an 3D extent object. */
 		Extent3D(void)
 			: Width(0), Height(0), Depth(0)
+		{}
+
+		/* Initializes a new instace of a 3D extent object. */
+		Extent3D(_In_ uint32 width, _In_ uint32 height, _In_ uint32 depth)
+			: Width(width), Height(height), Depth(depth)
 		{}
 	};
 
@@ -535,9 +562,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a queue create information object. */
 		DeviceQueueCreateInfo(void)
-			: Type(StructureType::DeviceQueueCreateInfo), Next(nullptr),
-			Flags(DeviceQueueCreateFlag::None), QueueFamilyIndex(0),
-			Count(0), QueuePriorities(nullptr)
+			: DeviceQueueCreateInfo(0, 0, nullptr)
 		{}
 
 		/* Initializes a new instance of a queue create information object. */
@@ -574,9 +599,7 @@ namespace Pu
 
 		/* Creates an empty instance of the device creating information object. */
 		DeviceCreateInfo(void)
-			: Type(StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
-			QueueCreateInfoCount(0), QueueCreateInfos(nullptr), EnabledExtensionCount(0),
-			EnabledExtensionNames(nullptr), EnabledFeatures(nullptr)
+			: DeviceCreateInfo(0, nullptr)
 		{}
 
 		/* Creates a new instance of the device create information object. */
@@ -588,4 +611,87 @@ namespace Pu
 			EnabledExtensionCount(enabledExtensionCount), EnabledExtensionNames(enabledExtensionNames), EnabledFeatures(enabledFeatures)
 		{}
 	};
+
+	/* Defines the capabilities of a surface. */
+	struct SurfaceCapabilities
+	{
+	public:
+		/* The minimum number of images the specified device supports for a swapchain. */
+		uint32 MinImageCount;
+		/* The maximum number of images the specified device supports for a swapchain. */
+		uint32 MaxImageCount;
+		/* The current width and height of the surface.  */
+		Extent2D CurrentExtent;
+		/* The smallest valid width and height of the surface. */
+		Extent2D MinImageExtent;
+		/* The largest valid width and height of the surface. */
+		Extent2D MaxImageExtent;
+		/* The maximum number of layers a swapchain image can have. */
+		uint32 MaxImageArrayLayers;
+		/* Specifies the supported surface transforms for the surface. */
+		SurfaceTransformFlag SupportedTransforms;
+		/* Specifies the current surface transform. */
+		SurfaceTransformFlag CurrentTransform;
+		/* Specifies the supported alpha composition models. */
+		CompositeAlphaFlag SupportedCompositeAlpha;
+		/* Specifies the way applications can use the presentable images of a swapchain created for the surface. */
+		ImageUsageFlag SupportedUsages;
+
+		/* Initializes an empty instance of the surface capabilities object. */
+		SurfaceCapabilities(void)
+			: MinImageCount(0), MaxImageCount(0), CurrentExtent(), MinImageExtent(), MaxImageExtent(),
+			MaxImageArrayLayers(0), SupportedTransforms(SurfaceTransformFlag::Identity), CurrentTransform(SurfaceTransformFlag::Identity),
+			SupportedCompositeAlpha(CompositeAlphaFlag::Inherit), SupportedUsages(ImageUsageFlag::None)
+		{}
+
+		/* Checks whether the current extent is determined by the extent of the swapchain targeting the surface. */
+		_Check_return_ inline bool IsExtentAuto(void) const
+		{
+			return CurrentExtent.Width == 0xFFFFFFFF && CurrentExtent.Height == 0xFFFFFFFF;
+		}
+	};
+
+	/* Defines the surface pixel format. */
+	struct SurfaceFormat
+	{
+	public:
+		/* The color format compatible with the surface. */
+		Format Format;
+		/* The color space compatible with the surface. */
+		ColorSpace ColorSpace;
+
+		/* Initializes an empty instance of a surface pixel format object. */
+		SurfaceFormat(void)
+			: Format(Format::Undefined), ColorSpace(ColorSpace::SRGB)
+		{}
+	};
+
+#ifdef _WIN32
+	/* Defines the information required to create a surface on the Windows platform. */
+	struct Win32SurfaceCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* The handle to the instance. */
+		HINSTANCE Instance;
+		/* The handle to the window. */
+		HWND Window;
+
+		/* Initializes a default instance of the surface create info object. */
+		Win32SurfaceCreateInfo(void)
+			: Win32SurfaceCreateInfo(nullptr, nullptr)
+		{}
+
+		/* Initializes a new instance of te surface create info object. */
+		Win32SurfaceCreateInfo(_In_ HINSTANCE hinstance, _In_ HWND hwnd)
+			: Type(StructureType::Win32SurfaceCreateInfoKhr), Next(nullptr),
+			Flags(0), Instance(hinstance), Window(hwnd)
+		{}
+	};
+#endif
 }

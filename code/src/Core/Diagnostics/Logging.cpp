@@ -195,10 +195,6 @@ void Pu::Log::LogExc(const char * msg, const char * format, va_list args)
 		/* Lock logger. */
 		printLock.lock();
 
-		/* Check if new line needs to be added. */
-		if (shouldAddLinePrefix) LogLinePrefix(LogType::Error);
-		shouldAddLinePrefix = true;
-
 		/* Log to output and add newline if needed. */
 		vprintf(format, args);
 		if (format[len - 1] != '\n') printf("\n");

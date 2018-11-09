@@ -201,10 +201,16 @@
     <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h" />
@@ -231,9 +237,13 @@
     <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
   </ItemGroup>

@@ -8,7 +8,7 @@ PFN_vkEnumerateInstanceExtensionProperties Pu::VulkanInstance::vkEnumerateInstan
 PFN_vkEnumerateInstanceLayerProperties Pu::VulkanInstance::vkEnumerateInstanceLayerProperties = nullptr;
 PFN_vkCreateInstance Pu::VulkanInstance::vkCreateInstance = nullptr;
 
-Pu::VulkanInstance::VulkanInstance(const char * applicationName, int32 major, int32 minor, int32 patch)
+Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initializer_list<const char*> extensions, int32 major, int32 minor, int32 patch)
 	: hndl(nullptr), vkDestroyInstance(nullptr), vkEnumeratePhysicalDevices(nullptr),
 	OnDestroy("VulkanInstance::OnDestory")
 {
@@ -17,7 +17,9 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, int32 major, in
 
 	/* Create application info and instance info. */
 	const ApplicationInfo appInfo(applicationName, major, minor, patch, u8"Plutonium", 0, 1, 0);
-	const InstanceCreateInfo createInfo(&appInfo);
+	InstanceCreateInfo createInfo(&appInfo);
+	createInfo.EnabledExtensionCount = static_cast<uint32>(extensions.size());
+	createInfo.EnabledExtensionNames = extensions.begin();
 
 	/* Create a new instance handle. */
 	const VkApiResult result = vkCreateInstance(&createInfo, nullptr, &hndl);
@@ -108,6 +110,35 @@ vector<LayerProperties> Pu::VulkanInstance::GetSupportedLayers(void)
 	return result;
 }
 
+bool Pu::VulkanInstance::IsExtensionSupported(const char * extension)
+{
+	const vector<ExtensionProperties> properties = GetSupportedExtensions(nullptr);
+	return properties.contains(extension, [](const ExtensionProperties &prop, const char *userParam)
+	{
+		return !strcmp(prop.ExtensionName, userParam);
+	});
+}
+
+bool Pu::VulkanInstance::AreExtensionsSupported(std::initializer_list<const char*> extensions)
+{
+	const vector<ExtensionProperties> properties = GetSupportedExtensions(nullptr);
+
+	size_t found = 0;
+	for (const char *extension : extensions)
+	{
+		for (const ExtensionProperties &prop : properties)
+		{
+			if (!strcmp(prop.ExtensionName, extension))
+			{
+				++found;
+				break;
+			}
+		}
+	}
+
+	return found >= extensions.size();
+}
+
 vector<PhysicalDevice> Pu::VulkanInstance::GetPhysicalDevices(void) const
 {
 	/* Query the amount of physical devices available. */
@@ -157,10 +188,24 @@ void Pu::VulkanInstance::Destroy(void)
 
 void Pu::VulkanInstance::LoadInstanceProcs(void)
 {
+	/* Physical device related functions. */
 	VK_LOAD_INSTANCE_PROC(hndl, vkEnumeratePhysicalDevices);
 	VK_LOAD_INSTANCE_PROC(hndl, vkDestroyInstance);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
+
+	/* Device related functions. */
 	VK_LOAD_INSTANCE_PROC(hndl, vkCreateDevice);
+	VK_LOAD_INSTANCE_PROC(hndl, vkEnumerateDeviceExtensionProperties);
+
+	/* Surface extension functions. */
+	VK_LOAD_INSTANCE_PROC(hndl, vkDestroySurfaceKHR);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceSupportKHR);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceFormatsKHR);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfacePresentModesKHR);
+#ifdef _WIN32
+	VK_LOAD_INSTANCE_PROC(hndl, vkCreateWin32SurfaceKHR);
+#endif
 }

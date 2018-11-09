@@ -79,6 +79,18 @@
     <Filter Include="Source Files\Graphics\Vulkan">
       <UniqueIdentifier>{ea28216d-4fb0-4d42-b9f8-884ad3b659d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Platform">
+      <UniqueIdentifier>{2ebb0e98-9023-496b-aa15-ae780d4125a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Platform\Windows">
+      <UniqueIdentifier>{56f79d1e-add2-42b7-acc1-d5437e7336db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Platform">
+      <UniqueIdentifier>{5816ed28-9e65-4f58-bec6-f52b2c8e8e3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Platform\Windows">
+      <UniqueIdentifier>{b33c7b35-5f16-4d5e-be8d-abd1592ff7d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -219,6 +231,24 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h">
+      <Filter>Header Files\Graphics\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h">
+      <Filter>Header Files\Graphics\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h">
+      <Filter>Header Files\Graphics\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h">
+      <Filter>Header Files\Graphics\Platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -274,6 +304,18 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp">
+      <Filter>Source Files\Graphics\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp">
+      <Filter>Source Files\Graphics\Platform\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

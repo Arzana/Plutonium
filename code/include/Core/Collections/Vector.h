@@ -105,6 +105,19 @@ namespace Pu
 			return iteratorOf(element) != vector_t::end();
 		}
 
+		/* Checks whether any element in the vector conforms to the predicate. */
+		template <typename _ParamTy, class _PredicateTy>
+		_Check_return_ inline bool contains(_In_ _ParamTy &userParam, _In_ _PredicateTy predicate) const
+		{
+			const size_t len = vector_t::size();
+			for (size_t i = 0; i < len; i++)
+			{
+				if (predicate((*this)[i], userParam)) return true;
+			}
+
+			return false;
+		}
+
 		/* Removes an element the specified interator index. */
 		inline void removeAt(_In_ const_iterator it)
 		{
