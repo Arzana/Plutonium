@@ -1,4 +1,5 @@
 #include <Graphics/Platform/Windows/Win32Window.h>
+#include <Graphics/Vulkan/Semaphore.h>
 #include <Core/Diagnostics/Logging.h>
 #include <Core/EnumUtils.h>
 

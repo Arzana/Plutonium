@@ -123,7 +123,7 @@ void Pu::Win32Window::Move(Vector2 newLocation)
 	UpdateClientArea();
 }
 
-void Pu::Win32Window::SetMode(WindowMode mode)
+void Pu::Win32Window::SetMode(WindowMode newMode)
 {
 }
 

@@ -1,6 +1,5 @@
 #pragma once
-#include "VulkanGlobals.h"
-#include <sal.h>
+#include "PhysicalDevice.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -25,6 +24,13 @@ namespace Pu
 		_Check_return_ Surface& operator =(_In_ const Surface&) = delete;
 		/* Move assignment. */
 		_Check_return_ Surface& operator =(_In_ Surface &&other);
+
+		/* Gets the capabilities of a surface for a specific physical device. */
+		_Check_return_ SurfaceCapabilities GetCapabilities(_In_ const PhysicalDevice &physicalDevice) const;
+		/* Gets the supported surface formats for a specific physical device. */
+		_Check_return_ vector<SurfaceFormat> GetSupportedFormats(_In_ const PhysicalDevice &physicalDevice) const;
+		/* Gets the supported present modes for a specified physical device. */
+		_Check_return_ vector<PresentMode> GetSupportedPresentModes(_In_ const PhysicalDevice &physicalDevice) const;
 
 	private:
 		friend class PhysicalDevice;

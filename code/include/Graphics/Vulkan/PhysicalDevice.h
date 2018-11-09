@@ -117,6 +117,7 @@ namespace Pu
 
 	private:
 		friend class VulkanInstance;
+		friend class Surface;
 
 		VulkanInstance &parent;
 		PhysicalDeviceHndl hndl;

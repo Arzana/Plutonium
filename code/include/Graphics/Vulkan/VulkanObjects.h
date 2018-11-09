@@ -280,6 +280,12 @@ namespace Pu
 		Extent2D(_In_ uint32 width, _In_ uint32 height)
 			: Width(width), Height(height)
 		{}
+
+		/* Checks whether the left side is smaller than the right side. */
+		_Check_return_ inline bool operator <(_In_ const Extent2D &other) const
+		{
+			return Width < other.Width && Height < other.Height;
+		}
 	};
 
 	/* Defines a three-dimensional extent. */
@@ -756,6 +762,22 @@ namespace Pu
 			WaitSemaphoreCount(0), WaitSemaphores(nullptr),
 			SwapchainCount(swapchainCount), Swapchains(swapchain),
 			ImageIndeces(imageIndeces), result(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a semaphore. */
+	struct SemaphoreCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+
+		SemaphoreCreateInfo(void)
+			: Type(StructureType::SemaphoreCreateInfo), Next(nullptr), Flags(0)
 		{}
 	};
 

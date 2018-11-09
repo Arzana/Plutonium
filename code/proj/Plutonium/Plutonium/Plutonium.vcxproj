@@ -210,7 +210,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h" />
@@ -243,7 +245,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
   </ItemGroup>

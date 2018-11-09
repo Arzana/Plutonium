@@ -58,7 +58,7 @@ namespace Pu
 		/* Moves the window to the specified location. */
 		virtual void Move(_In_ Vector2 newLocation) override;
 		/* Sets the display mode of the window. */
-		virtual void SetMode(_In_ WindowMode mode) override;
+		virtual void SetMode(_In_ WindowMode newMode) override;
 
 	protected:
 		/* Gets the surface to render to. */

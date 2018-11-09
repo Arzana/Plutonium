@@ -30,6 +30,8 @@ namespace Pu
 
 	private:
 		friend class PhysicalDevice;
+		friend class Semaphore;
+		friend class Swapchain;
 
 		InstanceHndl parent;
 		DeviceHndl hndl;
@@ -42,6 +44,8 @@ namespace Pu
 		PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
 		PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
 		PFN_vkQueuePresentKHR vkQueuePresentKHR;
+		PFN_vkCreateSemaphore vkCreateSemaphore;
+		PFN_vkDestroySemaphore vkDestroySemaphore;
 
 		LogicalDevice(InstanceHndl parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

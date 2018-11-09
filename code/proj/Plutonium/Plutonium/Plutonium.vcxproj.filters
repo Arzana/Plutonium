@@ -249,6 +249,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h">
       <Filter>Header Files\Graphics\Platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -316,6 +322,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp">
       <Filter>Source Files\Graphics\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

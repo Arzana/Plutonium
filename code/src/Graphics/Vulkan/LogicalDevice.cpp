@@ -67,6 +67,10 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkGetSwapchainImagesKHR);
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkAcquireNextImageKHR);
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkQueuePresentKHR);
+
+	/* Semaphore related functions. */
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkCreateSemaphore);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkDestroySemaphore);
 }
 
 void Pu::LogicalDevice::Destory(void)
