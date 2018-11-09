@@ -103,6 +103,8 @@ namespace Pu
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(CommandPool);
 	/* Defines the handle to a surface (extension). */
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Surface);
+	/* Defines the handle to a swapchain (extension). */
+	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Swapchain);
 
 	/* Defines the clamp value for level of detail none. */
 	constexpr float LoDClampNone = 1000.0f;

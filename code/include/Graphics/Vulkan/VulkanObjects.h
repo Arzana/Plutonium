@@ -666,6 +666,99 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information required to create a swapchain. */
+	struct SwapchainCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* The surface that the swapchain will present to. */
+		SurfaceHndl Surface;
+		/* Specifies the minimum number of presentable images that the application needs. */
+		uint32 MinImageCount;
+		/* Specifies the pixel format for the presentable images. */
+		Format ImageFormat;
+		/* Specifies the color space of the presentable images. */
+		ColorSpace ImageColorSpace;
+		/* the size (in pixels) of the swapchain images. */
+		Extent2D ImageExtent;
+		/* The number of views in a multiview/stereo surface. */
+		uint32 ImageArrayLayers;
+		/* Specifies how the application will use the swapchain's presentable images. */
+		ImageUsageFlag ImageUsage;
+		/* Specifies the sharing mode for the presentable images. */
+		SharingMode ImageSharingMode;
+		/* The number of queue families having access to the images of the swapchain. */
+		uint32 QueueFamilyIndexCount;
+		/* The queue families having access to the images of the swapchain. */
+		const uint32 *QueueFamilyIndeces;
+		/* Specifies the transform applied to the presentable images when presenting. */
+		SurfaceTransformFlag Transform;
+		/* Specifies the alpha composition mode of the images. */
+		CompositeAlphaFlag CompositeAlpha;
+		/* Specifies the presentation mode the swapchain will use. */
+		PresentMode PresentMode;
+		/* Specifies whether the Vulkan implementation is allowed to discard rendering operataions that affect regions of the surface which are not visible. */
+		Bool32 Clipped;
+		/* Specifies an optional swapchain that will be replaced with the new one. */
+		SwapchainHndl OldSwapChain;
+
+		/* Initializes an empty instance of a swapchain creation info object. */
+		SwapchainCreateInfo(void)
+			: SwapchainCreateInfo(nullptr, Extent2D())
+		{}
+
+		/* Initializes a new instance of the swapchain creation info object. */
+		SwapchainCreateInfo(_In_ SurfaceHndl surface, _In_ Extent2D size)
+			: Type(StructureType::SwapChainCreateInfoKhr), Next(nullptr), Flags(0),
+			Surface(surface), MinImageCount(1), ImageFormat(Format::Undefined),
+			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(0),
+			ImageUsage(ImageUsageFlag::None), ImageSharingMode(SharingMode::Exclusive),
+			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlag::Identity),
+			CompositeAlpha(CompositeAlphaFlag::Opaque), PresentMode(PresentMode::MailBox),
+			Clipped(true), OldSwapChain(nullptr)
+		{}
+	};
+
+	/* Defines information for presenting images. */
+	struct PresentInfo
+	{
+	public:
+		/* The type of this structure. */
+		StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the number of semaphores to wait for before issuing the present request. */
+		uint32 WaitSemaphoreCount;
+		/* Specified the semaphores the wait for before issuing the present request. */
+		const SemaphoreHndl *WaitSemaphores;
+		/* Specifies the number of swapchains being presented to by this command. */
+		uint32 SwapchainCount;
+		/* Specifies the unique swapchains being presented to.  */
+		const SwapchainHndl *Swapchains;
+		/* Specifies the images to present or the corresponding swapchain. */
+		const uint32 *ImageIndeces;
+		/* The result of the operation per specified spawchain. */
+		VkApiResult *result;
+
+		/* Initializes an empty instance of the present info object. */
+		PresentInfo(void)
+			: PresentInfo(0, nullptr, nullptr)
+		{}
+
+		/* Initializes a new instance of the present info object. */
+		PresentInfo(_In_ uint32 swapchainCount, _In_ const SwapchainHndl *swapchain, _In_ const uint32 *imageIndeces)
+			: Type(StructureType::PresentInfoKhr), Next(nullptr),
+			WaitSemaphoreCount(0), WaitSemaphores(nullptr),
+			SwapchainCount(swapchainCount), Swapchains(swapchain),
+			ImageIndeces(imageIndeces), result(nullptr)
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

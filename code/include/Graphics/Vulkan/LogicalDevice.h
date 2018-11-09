@@ -36,7 +36,12 @@ namespace Pu
 		std::map<uint32, vector<Queue>> queues;
 
 		PFN_vkDestroyDevice vkDestroyDevice;
-		PFN_vkGetDeviceQueue vkGetDeviceQueue;		
+		PFN_vkGetDeviceQueue vkGetDeviceQueue;
+		PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+		PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
+		PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+		PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+		PFN_vkQueuePresentKHR vkQueuePresentKHR;
 
 		LogicalDevice(InstanceHndl parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

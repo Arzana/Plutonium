@@ -21,6 +21,11 @@ namespace Pu
 	using PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ SurfaceHndl surface, _Out_ SurfaceCapabilities *surfaceCapabilities);
 	using PFN_vkGetPhysicalDeviceSurfaceFormatsKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ SurfaceHndl surface, _Inout_ uint32 *surfaceFormatCount, _Out_ SurfaceFormat *surfaceFormats);
 	using PFN_vkGetPhysicalDeviceSurfacePresentModesKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ SurfaceHndl surface, _Inout_ uint32 *presentModeCount, _Out_ PresentMode *presentModes);
+	using PFN_vkCreateSwapchainKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const SwapchainCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SwapchainHndl *swapChain);
+	using PFN_vkDestroySwapchainKHR = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkGetSwapchainImagesKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain, _Inout_ uint32 *swapchainImageCount, _Out_ ImageHndl *swapchainImages);
+	using PFN_vkAcquireNextImageKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain, _In_ uint64 timeout, _In_opt_ SemaphoreHndl semaphore, _In_opt_ FenceHndl fence, _Out_ uint32 *imageIndex);
+	using PFN_vkQueuePresentKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ QueueHndl queue, _In_ const PresentInfo *presentInfo);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

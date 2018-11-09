@@ -57,8 +57,16 @@ Pu::LogicalDevice::LogicalDevice(InstanceHndl parent, DeviceHndl hndl, uint32 qu
 
 void Pu::LogicalDevice::LoadDeviceProcs(void)
 {
+	/* Logical device related functions. */
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkDestroyDevice);
 	VK_LOAD_DEVICE_PROC(parent, hndl, vkGetDeviceQueue);
+
+	/* Swapchain related functions. */
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkCreateSwapchainKHR);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkDestroySwapchainKHR);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkGetSwapchainImagesKHR);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkAcquireNextImageKHR);
+	VK_LOAD_DEVICE_PROC(parent, hndl, vkQueuePresentKHR);
 }
 
 void Pu::LogicalDevice::Destory(void)

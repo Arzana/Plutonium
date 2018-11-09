@@ -27,8 +27,8 @@ int main(int, char**)
 			const auto queuefamilies = device.GetQueueFamilies();
 			for (decltype(auto) family : queuefamilies)
 			{
-				if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Graphics) &&
-					device.QueueFamilySupportsPresenting(selectedFamily, wnd->GetSurfaceH()))
+				if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Graphics) /*&&
+					device.QueueFamilySupportsPresenting(selectedFamily, wnd->GetSurfaceH())*/)
 				{
 					break;
 				}
