@@ -1,7 +1,6 @@
 #pragma once
 #include <tuple>
 #include "LogicalDevice.h"
-#include "Surface.h"
 
 namespace Pu
 {
@@ -34,8 +33,6 @@ namespace Pu
 		_Check_return_ bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions) const;
 		/* Checks whether this device supports Plutonium functionality. */
 		_Check_return_ bool SupportsPlutonium(void) const;
-		/* Checks whether a specific queue family of this physical device supports presenting images to the specified surface. */
-		_Check_return_ bool QueueFamilySupportsPresenting(_In_ uint32 queueFamilyIndex, _In_ const Surface &surface) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const
@@ -117,6 +114,7 @@ namespace Pu
 
 	private:
 		friend class VulkanInstance;
+		friend class LogicalDevice;
 		friend class Surface;
 
 		VulkanInstance &parent;

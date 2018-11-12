@@ -59,7 +59,7 @@ LogicalDevice Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * c
 	const auto[major, minor, patch] = GetVulkanVersion();
 	Log::Message("Created new Vulkan v%u.%u.%u logical device on %s", major, minor, patch, GetName());
 
-	return LogicalDevice(parent.hndl, device, createInfo->QueueCreateInfoCount, createInfo->QueueCreateInfos);
+	return LogicalDevice(const_cast<PhysicalDevice&>(*this), device, createInfo->QueueCreateInfoCount, createInfo->QueueCreateInfos);
 }
 
 vector<ExtensionProperties> Pu::PhysicalDevice::GetSupportedExtensions(const char * layer) const
@@ -110,13 +110,6 @@ bool Pu::PhysicalDevice::AreExtensionsSupported(std::initializer_list<const char
 bool Pu::PhysicalDevice::SupportsPlutonium(void) const
 {
 	return IsExtensionSupported(u8"VK_KHR_swapchain");
-}
-
-bool Pu::PhysicalDevice::QueueFamilySupportsPresenting(uint32 queueFamilyIndex, const Surface & surface) const
-{
-	Bool32 result;
-	parent.vkGetPhysicalDeviceSurfaceSupportKHR(hndl, queueFamilyIndex, surface.hndl, &result);
-	return result;
 }
 
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)

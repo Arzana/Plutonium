@@ -67,6 +67,8 @@ namespace Pu
 		}
 
 	protected:
+		friend class GameWindow;
+
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);
 

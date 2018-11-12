@@ -23,6 +23,9 @@ namespace Pu
 		_Check_return_ Semaphore& operator =(_In_ Semaphore &&other);
 
 	private:
+		friend class Swapchain;
+		friend class Queue;
+
 		LogicalDevice &parent;
 		SemaphoreHndl hndl;
 

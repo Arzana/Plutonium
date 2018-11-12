@@ -1,5 +1,6 @@
 #ifdef _WIN32
 #include "Graphics/Platform/Windows/Win32Window.h"
+#include "Graphics/Vulkan/Surface.h"
 #include "Core/Diagnostics/DbgUtils.h"
 
 static Pu::vector<Pu::Win32Window*> activeWindows;

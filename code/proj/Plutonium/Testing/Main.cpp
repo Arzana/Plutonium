@@ -1,5 +1,5 @@
 #include <Graphics/Platform/Windows/Win32Window.h>
-#include <Graphics/Vulkan/Semaphore.h>
+#include <Graphics/Platform/GameWindow.h>
 #include <Core/Diagnostics/Logging.h>
 #include <Core/EnumUtils.h>
 
@@ -7,24 +7,24 @@ using namespace Pu;
 
 int main(int, char**)
 {
+	/* Create Vulkan instance. */
 	if (!VulkanInstance::AreExtensionsSupported({ u8"VK_KHR_surface", u8"VK_KHR_win32_surface" })) Log::Fatal("Platform doesn't support surface extension!");
-
 	VulkanInstance instance("VulkanTesting", { u8"VK_KHR_surface", u8"VK_KHR_win32_surface" });
+
+	/* Create window. */
 	NativeWindow *wnd = new Win32Window(instance, "TestGame", Vector2(600.0f));
 	wnd->Show();
 
 	constexpr float priorities[1] = { 1.0f };
 	constexpr const char *deviceExtensions[1] = { u8"VK_KHR_swapchain" };
-	DeviceQueueCreateInfo queueInfo;
-	DeviceCreateInfo deviceInfo;
-	size_t selectedDevice = 0;
+	size_t selectedDevice = 0, selectedFamily = 0;
 
+	/* Get best physical device. */
 	const auto devices = instance.GetPhysicalDevices();
 	for (decltype(auto) device : devices)
 	{
 		if (device.GetType() == PhysicalDeviceType::DiscreteGpu && device.SupportsPlutonium())
 		{
-			uint32 selectedFamily = 0;
 			const auto queuefamilies = device.GetQueueFamilies();
 			for (decltype(auto) family : queuefamilies)
 			{
@@ -37,21 +37,29 @@ int main(int, char**)
 			}
 
 			if (selectedFamily >= queuefamilies.size()) Log::Fatal("Cannot create logical device without graphics queue!");
-
-			queueInfo = DeviceQueueCreateInfo(selectedFamily, 1, priorities);
-			deviceInfo = DeviceCreateInfo(1, &queueInfo);
 			break;
 		}
 		
 		++selectedDevice;
 	}
 
+	DeviceQueueCreateInfo queueInfo(selectedFamily, 1, priorities);
+	DeviceCreateInfo deviceInfo(1, &queueInfo);
+
+	/* Ceate logical device. */
 	if (selectedDevice >= devices.size()) Log::Fatal("No usable GPU found!");
 	deviceInfo.EnabledExtensionCount = 1;
 	deviceInfo.EnabledExtensionNames = deviceExtensions;
-
 	LogicalDevice device = devices.at(selectedDevice).CreateLogicalDevice(&deviceInfo);
 
+	/* Create game window. */
+	GameWindow *gameWnd = new GameWindow(*wnd, device);
+	while (wnd->testUpdate())
+	{
+		gameWnd->TestRun();
+	}
+
+	delete_s(gameWnd);
 	delete_s(wnd);
 	Log::PressAnyKeyToContinue();
 	return 0;

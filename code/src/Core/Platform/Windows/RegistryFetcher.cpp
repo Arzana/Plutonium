@@ -1,9 +1,8 @@
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"
 #include "Core/Platform/Windows/RegistryFetcher.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
-
-#ifdef _WIN32
-#include <Windows.h>
 
 bool Pu::RegistryFetcher::TryReadInt32(const char * key, const char * subKey, int32 & result)
 {

@@ -1,11 +1,13 @@
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"
+#include <DbgHelp.h>
+#endif
+
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Collections/Vector.h"
 
 #ifdef _WIN32
-#include <Windows.h>
-#include <DbgHelp.h>
-
 Pu::vector<HANDLE> initializedProcesses;
 #endif
 

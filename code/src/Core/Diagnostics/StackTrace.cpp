@@ -1,12 +1,12 @@
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"
+#include <DbgHelp.h>
+#endif
+
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/SafeMemory.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <DbgHelp.h>
-#endif
 
 using namespace Pu;
 

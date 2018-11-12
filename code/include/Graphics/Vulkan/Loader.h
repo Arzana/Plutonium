@@ -1,12 +1,9 @@
 #pragma once
+#include "Core/Platform/Windows/Windows.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "VulkanFunctions.h"
 #include <map>
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 #define VK_LOAD_EXPORT_PROC(name)					name = Pu::VulkanLoader::LoadExportProc<PFN_##name>(#name)
 #define VK_LOAD_GLOBAL_PROC(name)					name = Pu::VulkanLoader::LoadGlobalProc<PFN_##name>(#name)

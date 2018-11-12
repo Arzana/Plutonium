@@ -1,17 +1,17 @@
 #pragma warning(disable:4996)
 
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"
+#include <conio.h>		// Press ANY key to continue.
+#endif
+
+
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/SafeMemory.h"
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
-
-#ifdef _WIN32
-#include <Windows.h>	// Console colors.
-#include <conio.h>		// Press ANY key to continue.
-#endif
-
 using namespace Pu;
 
 void Pu::Log::Verbose(const char * format, ...)

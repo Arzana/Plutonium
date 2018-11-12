@@ -43,6 +43,7 @@ namespace Pu
 
 	private:
 		friend class PhysicalDevice;
+		friend class LogicalDevice;
 		friend class Surface;
 
 		static PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;

@@ -1,14 +1,14 @@
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"	// GetCurrentProcessId, OpenProcess, CloseHandle, GetThreadDescription.
+#include <Psapi.h>							// GetModuleBaseName
+#include <comdef.h>							// wchar_t to char
+#endif
+
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Streams/FileUtils.h"
-
-#ifdef _WIN32
-#include <Windows.h>	// GetCurrentProcessId, OpenProcess, CloseHandle, GetThreadDescription.
-#include <Psapi.h>		// GetModuleBaseName
-#include <comdef.h>		// wchar_t to char
-#endif
 
 using namespace Pu;
 

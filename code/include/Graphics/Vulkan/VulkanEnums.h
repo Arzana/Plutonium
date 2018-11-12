@@ -118,11 +118,11 @@ namespace Pu
 		CommandPoolCreateInfo = 39,
 		CommandBufferAllocateInfo = 40,
 		CommandBufferInheritanceInfo = 41,
-		CommandBufferBeginINfo = 42,
+		CommandBufferBeginInfo = 42,
 		RenderPassBeginInfo = 43,
-		BufferMemoryBarries = 44,
-		ImageMemoryBarries = 45,
-		MemoryBarries = 46,
+		BufferMemoryBarrier = 44,
+		ImageMemoryBarrier = 45,
+		MemoryBarrier = 46,
 		LoaderInstanceCreateInfo = 47,
 		LoaderDeviceCreateInfo = 48,
 		SwapChainCreateInfoKhr = 1000001000,
@@ -416,7 +416,7 @@ namespace Pu
 		DepthStencilReadOnlyOptimal = 4,
 		ShaderReadOnlyOptimal = 5,
 		TransferSrcOptimal = 6,
-		TransfetDstOptimal = 7,
+		TransferDstOptimal = 7,
 		Preinitialized = 8,
 		DepthReadOnlyStencilAttachmentOptimal = 1000117000,
 		DepthAttachmentStencilReadOnlyOptimal = 1000117001,
@@ -958,6 +958,8 @@ namespace Pu
 	/* Defines the aspects of an image for purposes such as indentifying a subresource. */
 	enum class ImageAspectFlag
 	{
+		/* No flags where set. */
+		None = 0x00000000,
 		/* Specifies the color aspect. */
 		Color = 0x00000001,
 		/* Specifies the depth aspect. */
@@ -996,6 +998,8 @@ namespace Pu
 	/* Defines the queried pipeline statistics. */
 	enum class QueryPipelineStatisticFlag
 	{
+		/* No flags where set. */
+		None = 0x00000000,
 		/* Specifies that queries managed by the pool will count the number of vertices processed by the input assembly stage. */
 		InputAssemblyVertices = 0x00000001,
 		/* Specifies that queries managed by the pool will count the number of primitives processed by the input assembly stage. */
@@ -1148,6 +1152,8 @@ namespace Pu
 	/* Defines the memory access types that will participate in a memory dependency. */
 	enum class AccessFlag
 	{
+		/* No flags where set. */
+		None = 0x00000000,
 		/* Specifies read access to an indirect command structure read as part of an indirect drawing or dispatch command. */
 		InirectCommandRead = 0x00000001,
 		/* Specifies read access to an index buffer as part of an indexed drawing command. */
@@ -1187,6 +1193,8 @@ namespace Pu
 	/* Defines how execution and memory dependencies are formed. */
 	enum class DependencyFlag
 	{
+		/* No flags where set. */
+		None = 0x00000001,
 		/* Specifies that dependencies will be framebuffer-local. */
 		ByRegion = 0x00000001,
 		/* Specifies that dependencies are non-device-local. */
@@ -1198,6 +1206,8 @@ namespace Pu
 	/* Defines the usage behaviour for a command pool. */
 	enum class CommandPoolCreateFlag
 	{
+		/* No flags have been set. */
+		None = 0x00000000,
 		/* Specifies hat command buffers allocated from the pool will be short-lived. */
 		Transient = 0x00000001,
 		/* Allows any command buffer allocated from a pool to be individually reset. */
@@ -1227,6 +1237,8 @@ namespace Pu
 	/* Defines the specific constraints on a query. */
 	enum class QueryControlFlag
 	{
+		/* No flags where set. */
+		None = 0x00000000,
 		/* Specifies the precision of occlusion queries. */
 		Precise = 0x00000001
 	};

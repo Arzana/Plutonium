@@ -1,9 +1,6 @@
 #pragma once
+#include "Core/Platform/Windows/Windows.h"
 #include "VulkanFunctions.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 namespace Pu
 {
@@ -12,7 +9,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* A null terminated UTF-8 string containing the name of the application or nullptr. */
@@ -46,7 +43,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure  */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Reserved for future use. */
@@ -554,7 +551,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies behaviour of the queue. */
@@ -583,7 +580,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Must be zero. */
@@ -677,7 +674,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Reserved. */
@@ -721,7 +718,7 @@ namespace Pu
 		/* Initializes a new instance of the swapchain creation info object. */
 		SwapchainCreateInfo(_In_ SurfaceHndl surface, _In_ Extent2D size)
 			: Type(StructureType::SwapChainCreateInfoKhr), Next(nullptr), Flags(0),
-			Surface(surface), MinImageCount(1), ImageFormat(Format::Undefined),
+			Surface(surface), MinImageCount(2), ImageFormat(Format::Undefined),
 			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(0),
 			ImageUsage(ImageUsageFlag::None), ImageSharingMode(SharingMode::Exclusive),
 			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlag::Identity),
@@ -735,7 +732,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the number of semaphores to wait for before issuing the present request. */
@@ -770,7 +767,7 @@ namespace Pu
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Reserved. */
@@ -781,13 +778,289 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information required to perform a queue submit operation. */
+	struct SubmitInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the number of semaphores upon which to wait before executing the command buffers. */
+		uint32 WaitSemaphoreCount;
+		/* Specifies the semaphores upon which to wait before executing the command buffers. */
+		const SemaphoreHndl *WaitSemaphores;
+		/* Specifies pipeline stages at which each corresponding semaphore wait will occur. */
+		const PipelineStageFlag *WaitDstStageMask;
+		/* Specifies the amount of command buffers to execute in the batch. */
+		uint32 CommandBufferCount;
+		/* Specified the command buffers to execute in the batch. */
+		const CommandBufferHndl *CommandBuffers;
+		/* Specifies the number of semaphores to be signaled once the commands have completed execution. */
+		uint32 SignalSemaphoreCount;
+		/* Specifies the semaphores to be signaled once the command have completed executing. */
+		const SemaphoreHndl *SignalSemaphores;
+
+		/* initializes an empty instance of the queue submit info object. */
+		SubmitInfo(void)
+			: Type(StructureType::SubmitInfo), Next(nullptr), WaitSemaphoreCount(0),
+			WaitSemaphores(nullptr), WaitDstStageMask(nullptr), CommandBufferCount(0),
+			CommandBuffers(nullptr), SignalSemaphoreCount(0), SignalSemaphores(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a new command pool. */
+	struct CommandPoolCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Indicates usage behaviour for the pool and command buffers allocated from it. */
+		CommandPoolCreateFlag Flags;
+		/* Specifies the designated queue family. */
+		uint32 QueueFamilyIndex;
+
+		/* Initializes an empty instance of the command pool create info object. */
+		CommandPoolCreateInfo(void)
+			: CommandPoolCreateInfo(0)
+		{}
+
+		/* Initializes a new instance of the command pool create info object. */
+		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex)
+			: Type(StructureType::CommandPoolCreateInfo), Next(nullptr),
+			Flags(CommandPoolCreateFlag::None), QueueFamilyIndex(queueFamilyIndex)
+		{}
+	};
+
+	/* Defines the information required to allocate a new command buffer. */
+	struct CommandBufferAllocateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* The command pool from which the command buffers are allocated. */
+		CommandPoolHndl CommandPool;
+		/* Specifies the level of the command buffers. */
+		CommandBufferLevel Level;
+		/* Specifies the amount of command buffers to allocate from the pool. */
+		uint32 CommandBufferCount;
+
+		/* Initializes an empty instance of the command buffer allocation info object. */
+		CommandBufferAllocateInfo(void)
+			: CommandBufferAllocateInfo(nullptr, 0)
+		{}
+
+		/* Initializes a new instance of the command buffer allocation info object. */
+		CommandBufferAllocateInfo(_In_ CommandPoolHndl commandPool, _In_ uint32 count)
+			: Type(StructureType::CommandBufferAllocateInfo), Next(nullptr),
+			CommandPool(commandPool), Level(CommandBufferLevel::Primary), CommandBufferCount(count)
+		{}
+	};
+
+	/* Defines the inheritance information for secondary conmmand buffers. */
+	struct CommandBufferInheritanceInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies which renderpass the command buffer will be compatible with. */
+		RenderPassHndl RenderPass;
+		/* Specifies the index of the subpass within the render pass that the command buffer will be executed within. */
+		uint32 Subpass;
+		/* Specifies the framebuffer that the command buffer will render to. */
+		FramebufferHndl FrameBuffer;
+		/* Specifies whether the command buffer can be executed while an occlusion query is active in the primary command buffer. */
+		Bool32 OcclusionQueryEnable;
+		/* Specifies the flags that can be used by an active occlusion query in the primary command buffer. */
+		QueryControlFlag QueryFlags;
+		/* Specifies the statistics that can be counted by an active query. */
+		QueryPipelineStatisticFlag PipelineStatistics;
+
+		/* Initializes an empty instance of a secondary command buffer inheritance info object. */
+		CommandBufferInheritanceInfo(void)
+			: CommandBufferInheritanceInfo(nullptr)
+		{}
+
+		/* Initializes a new instance of a secondaly command buffer inheritance info object. */
+		CommandBufferInheritanceInfo(_In_ RenderPassHndl renderPass)
+			: Type(StructureType::CommandBufferInheritanceInfo), Next(nullptr), RenderPass(renderPass),
+			Subpass(0), FrameBuffer(nullptr), OcclusionQueryEnable(false), 
+			QueryFlags(QueryControlFlag::None), PipelineStatistics(QueryPipelineStatisticFlag::None)
+		{}
+	};
+
+	/* Defines a command buffer begin operation. */
+	struct CommandBufferBeginInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the usage of the command buffer. */
+		CommandBufferUsageFlag Flags;
+		/* Specifies extra information for secondary command buffers. */
+		const CommandBufferInheritanceInfo *InheritanceInfo;
+
+		/* Initializes a new instance of the command buffer begin info object. */
+		CommandBufferBeginInfo(void)
+			: Type(StructureType::CommandBufferBeginInfo), Next(nullptr),
+			Flags(CommandBufferUsageFlag::SimultaneousUse), InheritanceInfo(nullptr)
+		{}
+	};
+
+	/*  Defines an image subresource range. */
+	struct ImageSubresourceRange
+	{
+	public:
+		/* Specifies which aspect(s) of the image are included in the view. */
+		ImageAspectFlag AspectMask;
+		/* Specifies the first mipmap level accessible to the view. */
+		uint32 BaseMipLevel;
+		/* Specifies the number of mipmap levels accessible to the view. */
+		uint32 LevelCount;
+		/* Specifies the first array layer accessible to the view. */
+		uint32 BaseArraylayer;
+		/* Specifies the number of array layers accessible to the view. */
+		uint32 LayerCount;
+
+		/* Initializes an empty instance of the image subresrouce range object. */
+		ImageSubresourceRange(void)
+			: ImageSubresourceRange(ImageAspectFlag::None)
+		{}
+
+		/* Initializes a new instace of the image subresource range object. */
+		ImageSubresourceRange(_In_ ImageAspectFlag aspect)
+			: AspectMask(aspect), BaseMipLevel(0),
+			LevelCount(1), BaseArraylayer(0), LayerCount(1)
+		{}
+	};
+
+	/* Defines the required information of an image memory barrier. */
+	struct ImageMemoryBarrier
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the access mask for the source. */
+		AccessFlag SrcAccessMask;
+		/* Specifies the access mask for the destination. */
+		AccessFlag DstAccessMask;
+		/* Specifies the old image layout. */
+		ImageLayout OldLayout;
+		/* Specifies the new image layout. */
+		ImageLayout NewLayout;
+		/* Specifies the queue family index for the source. */
+		uint32 SrcQueueFamilyIndex;
+		/* Specifies the queue family index for the destination. */
+		uint32 DstQueueFamilyIndex;
+		/* Specifies the image affected by this barrier. */
+		ImageHndl Image;
+		/* Specifies the sub range affected by this barrier. */
+		ImageSubresourceRange SubresourceRange;
+
+		/* Initializes an empty instance of the image memory barrier object. */
+		ImageMemoryBarrier(void)
+			: ImageMemoryBarrier(nullptr)
+		{}
+
+		/* Initializes a new instance of the image memory barrier object. */
+		ImageMemoryBarrier(_In_ ImageHndl image)
+			: Type(StructureType::ImageMemoryBarrier), Next(nullptr),
+			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
+			OldLayout(ImageLayout::Undefined), NewLayout(ImageLayout::Undefined),
+			SrcQueueFamilyIndex(0), DstQueueFamilyIndex(0), Image(image), SubresourceRange()
+		{}
+	};
+
+	/* Defines a clear color value. */
+	union ClearColorValue
+	{
+		/* Used when the format of the image is one of the numeric formats. */
+		float float32[4];
+		/* Used when the format of the image is SINT. */
+		int32 int32[4];
+		/* Used when the format of the image is UINT. */
+		uint32 uint32[4];
+	};
+
+	/* Defines a global memory barrier. */
+	struct MemoryBarrier
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the source access mask. */
+		AccessFlag SrcAccessMask;
+		/* Specifies the destination access mask. */
+		AccessFlag DstAccessMask;
+
+		/* Initializes an empty instance of a global memory barrier. */
+		MemoryBarrier()
+			: MemoryBarrier(AccessFlag::None, AccessFlag::None) 
+		{}
+
+		/* Initializes a new instance of a global memory barrier. */
+		MemoryBarrier(_In_ AccessFlag src, _In_ AccessFlag dst)
+			: Type(StructureType::MemoryBarrier), Next(nullptr),
+			SrcAccessMask(src), DstAccessMask(dst)
+		{}
+	};
+
+	/* Defines a buffer memory barrier. */
+	struct BufferMemoryBarrier
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the access mask for the source. */
+		AccessFlag SrcAccessMask;
+		/* Specifies the access mask for the destination. */
+		AccessFlag DstAccessMask;
+		/* Specifies the queue family index for the source. */
+		uint32 SrcQueueFamilyIndex;
+		/* Specifies the queue family index for the destination. */
+		uint32 DstQueueFamilyIndex;
+		/* Specifies the buffer whose memory is affected by the barrier. */
+		BufferHndl Buffer;
+		/* Specifies the offset (in bytes) from where to start. */
+		DeviceSize Offset;
+		/* Specifies the size (in bytes) of the affected area. */
+		DeviceSize Size;
+
+		/* Initializes an empty instance of the buffer memory barrier object. */
+		BufferMemoryBarrier(void)
+			: BufferMemoryBarrier(nullptr, 0, 0)
+		{}
+
+		/* Initializes a new instance of the buffer memory barrier object. */
+		BufferMemoryBarrier(_In_ BufferHndl buffer, _In_opt_ DeviceSize offset = 0, _In_opt_ DeviceSize size = WholeSize)
+			: Type(StructureType::BufferMemoryBarrier), Next(nullptr),
+			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
+			SrcQueueFamilyIndex(0), DstQueueFamilyIndex(0), Buffer(buffer),
+			Offset(offset), Size(size)
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo
 	{
 	public:
 		/* The type of this structure. */
-		StructureType Type;
+		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Reserved. */

@@ -63,6 +63,13 @@ vector<PresentMode> Pu::Surface::GetSupportedPresentModes(const PhysicalDevice &
 	return result;
 }
 
+bool Pu::Surface::QueueFamilySupportsPresenting(uint32 queueFamilyIndex, const PhysicalDevice & physicalDevice) const
+{
+	Bool32 result;
+	parent.vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.hndl, queueFamilyIndex, hndl, &result);
+	return result;
+}
+
 #ifdef _WIN32
 Pu::Surface::Surface(VulkanInstance & parent, HINSTANCE hinstance, HWND hwnd)
 	: parent(parent)

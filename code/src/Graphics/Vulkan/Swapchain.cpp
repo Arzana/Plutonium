@@ -2,13 +2,21 @@
 #include "Core/Diagnostics/Logging.h"
 #include "Core/EnumUtils.h"
 
-Pu::Swapchain::Swapchain(LogicalDevice & device, const PhysicalDevice & physicalDevice, const Surface & surface, SwapchainCreateInfo & createInfo)
+Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const SwapchainCreateInfo & createInfo)
 	: parent(device)
 {
-	if (!CanCreate(physicalDevice, surface, createInfo)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
+	/* Check if the information specified is correct. */
+	if (!CanCreate(device.GetPhysicalDevice(), surface, createInfo)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
 
+	/* Create swapchain. */
 	const VkApiResult result = parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl);
 	if (result != VkApiResult::Success) Log::Fatal("Unable to create swapchain!");
+
+	/* Acquire images within swapchain. */
+	uint32 imageCount;
+	parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr);
+	images.resize(imageCount);
+	parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, images.data());
 }
 
 Pu::Swapchain::Swapchain(Swapchain && value)
@@ -31,7 +39,7 @@ Pu::Swapchain & Pu::Swapchain::operator=(Swapchain && other)
 	return *this;
 }
 
-bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surface & surface, SwapchainCreateInfo & createInfo)
+bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surface & surface, const SwapchainCreateInfo & createInfo)
 {
 	/* Get required checking properties. */
 	const SurfaceCapabilities capabilities = surface.GetCapabilities(physicalDevice);
@@ -39,7 +47,7 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 	const vector<PresentMode> presentModes = surface.GetSupportedPresentModes(physicalDevice);
 
 	/* Perform image count and array layer checks. */
-	if (createInfo.MinImageCount > capabilities.MinImageCount) return false;
+	if (capabilities.MinImageCount > createInfo.MinImageCount) return false;
 	if (createInfo.ImageArrayLayers > capabilities.MaxImageArrayLayers) return false;
 
 	/* Check if format is supported. */
@@ -82,6 +90,14 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 	
 	/* All checks passed so return true. */
 	return true;
+}
+
+Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout) const
+{
+	uint32 image;
+	const VkApiResult result = parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image);
+	if (result != VkApiResult::Success) Log::Fatal("Unable to request next image from swapchain!");
+	return image;
 }
 
 void Pu::Swapchain::Destroy(void)

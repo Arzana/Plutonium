@@ -1,11 +1,11 @@
+#ifdef _WIN32
+#include "Core/Platform/Windows/Windows.h"
+#include <Psapi.h>
+#endif
+
 #include "Core/Diagnostics/Memory.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <Psapi.h>
-#endif
 
 using namespace Pu;
 

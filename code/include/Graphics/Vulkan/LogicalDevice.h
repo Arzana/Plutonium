@@ -1,10 +1,13 @@
 #pragma once
 #include <map>
 #include "Queue.h"
+#include "VulkanProcedres.h"
 #include "Core/Collections/Vector.h"
 
 namespace Pu
 {
+	class PhysicalDevice;
+
 	/* Defines a Vulkan logical device. */
 	class LogicalDevice
 	{
@@ -28,12 +31,22 @@ namespace Pu
 			return queues.at(familyIndex).at(queueIndex);
 		}
 
+		/* Gets the physical device the logical device was created on. */
+		_Check_return_ inline const PhysicalDevice& GetPhysicalDevice(void) const
+		{
+			return parent;
+		}
+
 	private:
 		friend class PhysicalDevice;
 		friend class Semaphore;
 		friend class Swapchain;
+		friend class CommandPool;
+		friend class Queue;
+		friend class CommandBuffer;
+		friend class GameWindow;
 
-		InstanceHndl parent;
+		PhysicalDevice &parent;
 		DeviceHndl hndl;
 		std::map<uint32, vector<Queue>> queues;
 
@@ -44,10 +57,18 @@ namespace Pu
 		PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
 		PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
 		PFN_vkQueuePresentKHR vkQueuePresentKHR;
+		PFN_vkQueueSubmit vkQueueSubmit;
 		PFN_vkCreateSemaphore vkCreateSemaphore;
 		PFN_vkDestroySemaphore vkDestroySemaphore;
+		PFN_vkCreateCommandPool vkCreateCommandPool;
+		PFN_vkDestroyCommandPool vkDestroyCommandPool;
+		PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
+		PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
+		PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+		PFN_vkCmdClearColorImage vkCmdClearColorImage;
+		PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 
-		LogicalDevice(InstanceHndl parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
+		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 
 		void LoadDeviceProcs(void);
 		void Destory(void);
