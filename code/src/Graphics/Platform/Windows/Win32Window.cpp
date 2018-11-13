@@ -152,7 +152,19 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		if (window->hndl == hWnd) return window->HandleProc(message, wParam, lParam);
 	}
 
-	Log::Warning("Unknown window received at WndProc!");
+	/* 
+	Only log an unknow warning if it's not one of the specified messages.
+	These messages occur before the window handle is returned and thusly we cannot match it to a window yet.
+	- WM_CREATE:		Sent to incidate a new window to be created by CreateWindowEx or CreateWindow.
+	- WM_GETMINMAXINFO:	Sent when the size or positio of a window is about to change.
+	- WM_NCCREATE:		Sent prior to the WM_CREATE message.
+	- WM_NCCALCSIZE:	Sent when the size and position of the client area must be calculated.
+	*/
+	if (message != WM_CREATE && message != WM_GETMINMAXINFO && message != WM_NCCREATE && message != WM_NCCALCSIZE)
+	{
+		Log::Warning("Unknown window received at WndProc!");
+	}
+
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 

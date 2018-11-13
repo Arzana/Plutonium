@@ -34,6 +34,7 @@ namespace Pu
 	using PFN_vkFreeCommandBuffers = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ CommandPoolHndl commandPool, _In_ uint32 commandBufferCount, _In_ const CommandBufferHndl *commandBuffers);
 	using PFN_vkQueueSubmit = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ QueueHndl queue, _In_ uint32 submitCount, _In_ const SubmitInfo *submits, _In_opt_ FenceHndl fence);
 	using PFN_vkBeginCommandBuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ const CommandBufferBeginInfo *beginInfo);
+	using PFN_vkEndCommandBuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
 	using PFN_vkCmdClearColorImage = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl image, _In_ ImageLayout imageLayout, _In_ ClearColorValue color, uint32 rangeCount, const ImageSubresourceRange *ranges);
 	using PFN_vkCmdPipelineBarrier = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ uint32 memoryBarrierCount, _In_opt_ const MemoryBarrier *memoryBarriers, _In_ uint32 bufferMemoryBarrierCount, _In_opt_ BufferMemoryBarrier *bufferMemoryBarriers, _In_ uint32 imageMemoryBarrierCount, _In_opt_ const ImageMemoryBarrier *imageMemoryBarriers);
 

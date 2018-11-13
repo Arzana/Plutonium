@@ -1,4 +1,11 @@
 #pragma once
+#include "Core/Diagnostics/Logging.h"
+
+#ifdef _DEBUG
+#define VK_VALIDATE(result, proc)	Pu::ValidateVkApiResult(result, #proc)
+#else
+#define VK_VALIDATE(result, proc)	result
+#endif
 
 namespace Pu
 {
@@ -44,7 +51,7 @@ namespace Pu
 		/* A requested feature is not supported. */
 		FeatureNotPresent = -8,
 		/* The requested version of Vulkan is not supported. */
-		IncomparibleDriver = -9,
+		IncompatibleDriver = -9,
 		/* To many objects of the type have been created. */
 		TooManyObjects = -10,
 		/* A requested format is not supported on this device. */
@@ -1325,4 +1332,114 @@ namespace Pu
 		/* The presentation engine generally waits for a vertical blanking period to update the current image. The new entry is added to the back of the queue. */
 		FiFoRelaxed = 3
 	};
+
+	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)
+	{
+		/* Remove PFN_ prefix and KHR suffix. */
+		procedure.remove({ "PFN_", "KHR" });
+
+		const char *code = "";
+		bool raise = true;
+
+		/* Convert result to string and check whether it needs to raise. */
+		switch (result)
+		{
+		case Pu::VkApiResult::Success:
+			return;
+		case Pu::VkApiResult::NotReady:
+			raise = false;
+			code = "Not ready";
+			break;
+		case Pu::VkApiResult::Timeout:
+			raise = false;
+			code = "Timeout";
+			break;
+		case Pu::VkApiResult::EventSet:
+			raise = false;
+			code = "Event signaled";
+			break;
+		case Pu::VkApiResult::EventReset:
+			raise = false;
+			code = "Event unsignaled";
+			break;
+		case Pu::VkApiResult::Incomplete:
+			raise = false;
+			code = "Incomplete";
+			break;
+		case Pu::VkApiResult::SuboptimalKhr:
+			raise = false;
+			code = "Suboptimal swapchain";
+			break;
+		case Pu::VkApiResult::HostOutOfMemory:
+			code = "Host out of memory";
+			break;
+		case Pu::VkApiResult::OutOfDeviceMemory:
+			code = "Out of device memory";
+			break;
+		case Pu::VkApiResult::InitializationFailed:
+			code = "Initialization failed";
+			break;
+		case Pu::VkApiResult::DeviceLost:
+			code = "Device lost";
+			break;
+		case Pu::VkApiResult::MemoryMapFailed:
+			code = "Memory mapping failed";
+			break;
+		case Pu::VkApiResult::LayerNotPresent:
+			code = "Layer not present";
+			break;
+		case Pu::VkApiResult::ExtensionNotPresent:
+			code = "Extension not present";
+			break;
+		case Pu::VkApiResult::FeatureNotPresent:
+			code = "Feature not present";
+			break;
+		case Pu::VkApiResult::IncompatibleDriver:
+			code = "Incompatible driver";
+			break;
+		case Pu::VkApiResult::TooManyObjects:
+			code = "Too many objects";
+			break;
+		case Pu::VkApiResult::FormatNotSupported:
+			code = "Format not supported";
+			break;
+		case Pu::VkApiResult::FragmentedPool:
+			code = "Fragmented pool";
+			break;
+		case Pu::VkApiResult::OutOfPoolMemory:
+			code = "Out of pool memory";
+			break;
+		case Pu::VkApiResult::InvalidExternalHandle:
+			code = "Invalid external handle";
+			break;
+		case Pu::VkApiResult::SurfaceLostKhr:
+			code = "Surface lost";
+			break;
+		case Pu::VkApiResult::NativeWindowInUseKhr:
+			code = "Native window in use";
+			break;
+		case Pu::VkApiResult::OutOfDateKhr:
+			code = "Out of date";
+			break;
+		case Pu::VkApiResult::IncompatibleDisplayKhr:
+			code = "Incompatible display";
+			break;
+		case Pu::VkApiResult::ValidationFailedExt:
+			code = "Validation failed";
+			break;
+		case Pu::VkApiResult::InvalidShaderNv:
+			code = "Invalid shader";
+			break;
+		case Pu::VkApiResult::FragmentationExt:
+			code = "Fragmentation";
+			break;
+		case Pu::VkApiResult::NotPermittedExt:
+			code = "Not premitted";
+			break;
+		}
+
+		/* Log findings if needed. */
+		if (raise) Log::Fatal("Procedure %s failed with error code '%s'!", procedure.c_str(), code);
+		else Log::Warning("Procedure %s produced non-success code '%s'!", procedure.c_str(), code);
+	}
 }

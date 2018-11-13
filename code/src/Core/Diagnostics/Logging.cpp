@@ -8,6 +8,7 @@
 
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
+#include "Core/Diagnostics/DbgUtils.h"
 #include "Core/SafeMemory.h"
 #include <cstdio>
 #include <ctime>
@@ -77,6 +78,28 @@ void Pu::Log::ResizeIfNeeded(uint32 width)
 	Warning("Cannot resize console buffer on this platform!");
 #endif
 }
+
+void Pu::Log::Move(int32 x, int32 y)
+{
+#ifdef _WIN32
+	/* Get the window handle for the terminal. */
+	const HWND terminalHndl = GetConsoleWindow();
+	if (!terminalHndl)
+	{
+		Log::Warning("Could not get Win32 terminal handle!");
+		return;
+	}
+
+	/* Move the terminal. */
+	if (SetWindowPos(terminalHndl, HWND_TOP, x, y, 0, 0, SWP_NOSIZE))
+	{
+		const string error = _CrtGetErrorString();
+		Log::Error("Unable to move Win32 terminal to [%d, %d], reason: '%s'!", error.c_str());
+	}
+#else
+	Warning("Moving the output window is not supported on this platform!");
+#endif
+	}
 
 bool Pu::Log::BackTrack(uint32 amount)
 {

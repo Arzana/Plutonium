@@ -4,7 +4,7 @@
 using namespace Pu;
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr)
+	: native(native), device(device), swapchain(nullptr), queueIndex(0)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::UpdateSwapchainSize);
@@ -15,23 +15,22 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	const vector<QueueFamilyProperties> queueFamilies = physicalDevice.GetQueueFamilies();
 
 	/* Get queue family used to present images on the swapchain. */
-	uint32 familyIndex = 0;
 	for (const QueueFamilyProperties &prop : queueFamilies)
 	{
 		/* Check if the queue family supports graphics operation and if it supports presenting. */
 		if (_CrtEnumCheckFlag(prop.Flags, QueueFlag::Graphics) &&
-			native.GetSurface().QueueFamilySupportsPresenting(familyIndex, physicalDevice))
+			native.GetSurface().QueueFamilySupportsPresenting(queueIndex, physicalDevice))
 		{
 			break;
 		}
 
-		++familyIndex;
+		++queueIndex;
 	}
 
-	if (familyIndex >= queueFamilies.size()) Log::Fatal("Cannot find queue that is viable for the swapchain!");
+	if (queueIndex >= queueFamilies.size()) Log::Fatal("Cannot find queue that is viable for the swapchain!");
 
 	/* Create new command pool. */
-	pool = new CommandPool(device, familyIndex);
+	pool = new CommandPool(device, queueIndex);
 
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < 2; i++)
@@ -41,10 +40,8 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 
 	/*
 	Image available semaphore.
-	Wait semaphore.
 	Render finish semaphore.
 	*/
-	semaphores.push_back(Semaphore(device));
 	semaphores.push_back(Semaphore(device));
 	semaphores.push_back(Semaphore(device));
 }
@@ -59,14 +56,6 @@ Pu::GameWindow::~GameWindow(void)
 	delete_s(swapchain);
 }
 
-void Pu::GameWindow::SwapBuffers(void)
-{
-	Queue &queue = device.GetQueue(queueIndex, 0);
-	const uint32 imageIdx = swapchain->NextImage(semaphores[0]);
-	queue.Submit(semaphores[1], buffers[imageIdx], semaphores[2]);
-	queue.Present(semaphores[2], *swapchain, imageIdx);
-}
-
 void Pu::GameWindow::UpdateSwapchainSize(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
 {
 	CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)));
@@ -74,7 +63,7 @@ void Pu::GameWindow::UpdateSwapchainSize(const NativeWindow &, ValueChangedEvent
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size)
 {
-	Swapchain *old = swapchain;
+	const Swapchain *old = swapchain;
 
 	/* Create swapchain information for a general LDR color RT. */
 	SwapchainCreateInfo info(native.GetSurface().hndl, size);
@@ -91,44 +80,46 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size)
 
 void Pu::GameWindow::BeginRender(void)
 {
+	/* Defines const data. */
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
+	static const CommandBufferBeginInfo beginInfo;
 
-	uint32 i = 0;
-	for (const CommandBuffer &buffer : buffers)
-	{
-		/* Begin command buffer. */
-		const CommandBufferBeginInfo begin;
-		device.vkBeginCommandBuffer(buffer.hndl, &begin);
+	/* Request next image from swapchain and begin it's command buffer. */
+	curImgIdx = swapchain->NextImage(semaphores[0]);
+	const CommandBufferHndl curCmdbuff = buffers[curImgIdx].hndl;
+	VK_VALIDATE(device.vkBeginCommandBuffer(curCmdbuff, &beginInfo), PFN_vkBeginCommandBuffer);
 
-		/* Transfer image so we can write to it. */
-		ImageMemoryBarrier barrier(GetImage(i++));
-		barrier.SrcAccessMask = AccessFlag::MemoryRead;
-		barrier.DstAccessMask = AccessFlag::TransferWrite;
-		barrier.NewLayout = ImageLayout::TransferDstOptimal;
-		barrier.SrcQueueFamilyIndex = queueIndex;
-		barrier.DstQueueFamilyIndex = queueIndex;
-		barrier.SubresourceRange = range;
-		device.vkCmdPipelineBarrier(buffer.hndl, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
-			DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
-	}
+	/* Transfer present image to a writable image. */
+	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
+	barrier.SrcAccessMask = AccessFlag::MemoryRead;
+	barrier.DstAccessMask = AccessFlag::TransferWrite;
+	barrier.NewLayout = ImageLayout::TransferDstOptimal;
+	barrier.SubresourceRange = range;
+	device.vkCmdPipelineBarrier(curCmdbuff, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
+		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 void Pu::GameWindow::EndRender(void)
 {
+	/* Defines const data. */
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
+	const CommandBufferHndl curCmdbuff = buffers[curImgIdx].hndl;
 
-	for (uint32 i = 0; i < buffers.size(); i++)
-	{
-		/* Transfer image back so they can be presented. */
-		ImageMemoryBarrier barrier(GetImage(i));
-		barrier.SrcAccessMask = AccessFlag::TransferWrite;
-		barrier.DstAccessMask = AccessFlag::MemoryRead;
-		barrier.OldLayout = ImageLayout::TransferDstOptimal;
-		barrier.NewLayout = ImageLayout::PresentSrcKhr;
-		barrier.SrcQueueFamilyIndex = queueIndex;
-		barrier.DstQueueFamilyIndex = queueIndex;
-		barrier.SubresourceRange = range;
-		device.vkCmdPipelineBarrier(buffers[i].hndl, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
-			DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
-	}
+	/* Transfer writable image back to present mode. */
+	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
+	barrier.SrcAccessMask = AccessFlag::TransferWrite;
+	barrier.DstAccessMask = AccessFlag::MemoryRead;
+	barrier.OldLayout = ImageLayout::TransferDstOptimal;
+	barrier.NewLayout = ImageLayout::PresentSrcKhr;
+	barrier.SubresourceRange = range;
+	device.vkCmdPipelineBarrier(curCmdbuff, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
+		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	/* End the command buffer gather. */
+	VK_VALIDATE(device.vkEndCommandBuffer(curCmdbuff), PFN_vkEndCommandBuffer);
+
+	/* Submit the command buffer to the render queue and present the queue. */
+	Queue &queue = device.GetQueue(queueIndex, 0);
+	queue.Submit(semaphores[0], GetCommandBuffer(), semaphores[1]);
+	queue.Present(semaphores[1], *swapchain, curImgIdx);
 }

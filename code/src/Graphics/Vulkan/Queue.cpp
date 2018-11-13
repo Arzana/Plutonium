@@ -40,8 +40,7 @@ void Pu::Queue::Submit(const Semaphore & waitSemaphore, const CommandBuffer & co
 	info.SignalSemaphores = &signalSemaphore.hndl;
 
 	/* Submit command buffer. */
-	const VkApiResult result = parent.vkQueueSubmit(hndl, 1, &info, nullptr);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to submit to queue!");
+	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, nullptr), PFN_vkQueueSubmit);
 }
 
 void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapchain, uint32 image)
@@ -52,8 +51,7 @@ void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	info.WaitSemaphores = &waitSemaphore.hndl;
 
 	/* Present image. */
-	const VkApiResult result = parent.vkQueuePresentKHR(hndl, &info);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to present image from specified swapchain!");
+	VK_VALIDATE(parent.vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
 }
 
 Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl)

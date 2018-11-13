@@ -27,10 +27,7 @@ SurfaceCapabilities Pu::Surface::GetCapabilities(const PhysicalDevice & physical
 {
 	/* Request capabilities. */
 	SurfaceCapabilities capabilities;
-	const VkApiResult result = parent.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.hndl, hndl, &capabilities);
-
-	/* Error check and return. */
-	if (result != VkApiResult::Success) Log::Fatal("Could not request surface capabilities for specified physical device!");
+	VK_VALIDATE(parent.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.hndl, hndl, &capabilities), PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 	return capabilities;
 }
 
@@ -76,8 +73,7 @@ Pu::Surface::Surface(VulkanInstance & parent, HINSTANCE hinstance, HWND hwnd)
 {
 	/* Create new surface. */
 	const Win32SurfaceCreateInfo info(hinstance, hwnd);
-	const VkApiResult result = parent.vkCreateWin32SurfaceKHR(parent.hndl, &info, nullptr, &hndl);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create surface for Win32 window!");
+	VK_VALIDATE(parent.vkCreateWin32SurfaceKHR(parent.hndl, &info, nullptr, &hndl), PFN_vkCreateWin32SurfaceKHR);
 }
 #endif
 

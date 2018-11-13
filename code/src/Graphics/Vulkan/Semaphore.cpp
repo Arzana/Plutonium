@@ -5,8 +5,7 @@ Pu::Semaphore::Semaphore(LogicalDevice & device)
 	: parent(device)
 {
 	const SemaphoreCreateInfo info;
-	const VkApiResult result = parent.vkCreateSemaphore(parent.hndl, &info, nullptr, &hndl);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create semaphor!");
+	VK_VALIDATE(parent.vkCreateSemaphore(parent.hndl, &info, nullptr, &hndl), PFN_vkCreateSemaphore);
 }
 
 Pu::Semaphore::Semaphore(Semaphore && value)

@@ -94,6 +94,10 @@ byte * Pu::Color::ToArray(void) const
 
 ClearColorValue Pu::Color::ToClearColor(void) const
 {
+	/* 
+	ToVector4 returns with the format BGRA which is what the surface expects 
+	but clear color is always RGBA so we must rearange the order.
+	*/
 	const Vector4 color = ToVector4();
-	return { color.X, color.Y, color.Z, color.W };
+	return { color.Z, color.Y, color.X, color.W };
 }

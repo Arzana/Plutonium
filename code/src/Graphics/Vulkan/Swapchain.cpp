@@ -9,14 +9,13 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 	if (!CanCreate(device.GetPhysicalDevice(), surface, createInfo)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
 
 	/* Create swapchain. */
-	const VkApiResult result = parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create swapchain!");
+	VK_VALIDATE(parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);
 
 	/* Acquire images within swapchain. */
 	uint32 imageCount;
-	parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr);
+	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr), PFN_vkGetSwapchainImagesKHR);
 	images.resize(imageCount);
-	parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, images.data());
+	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, images.data()), PFN_vkGetSwapchainImagesKHR);
 }
 
 Pu::Swapchain::Swapchain(Swapchain && value)
@@ -95,8 +94,7 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout) const
 {
 	uint32 image;
-	const VkApiResult result = parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to request next image from swapchain!");
+	VK_VALIDATE(parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
 	return image;
 }
 

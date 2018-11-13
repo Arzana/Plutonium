@@ -22,8 +22,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	createInfo.EnabledExtensionNames = extensions.begin();
 
 	/* Create a new instance handle. */
-	const VkApiResult result = vkCreateInstance(&createInfo, nullptr, &hndl);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create Vulkan instance!");
+	VK_VALIDATE(vkCreateInstance(&createInfo, nullptr, &hndl), PFN_vkCreateInstance);
 
 	/* Add the instance to the procedure loader. */
 	VulkanLoader::GetInstance().AddDeviceProcAddr(hndl);

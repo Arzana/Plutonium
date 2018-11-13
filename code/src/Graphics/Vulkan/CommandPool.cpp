@@ -5,8 +5,7 @@ Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex)
 	: parent(device)
 {
 	const CommandPoolCreateInfo createInfo(queueFamilyIndex);
-	const VkApiResult result = parent.vkCreateCommandPool(parent.hndl, &createInfo, nullptr, &hndl);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create command pool!");
+	VK_VALIDATE(parent.vkCreateCommandPool(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateCommandPool);
 }
 
 Pu::CommandPool::CommandPool(CommandPool && value)
@@ -36,8 +35,7 @@ Pu::CommandBuffer Pu::CommandPool::AllocateCommandBuffer(void) const
 	CommandBufferHndl commandBuffer;
 
 	/* Allocate new buffer. */
-	const VkApiResult result = parent.vkAllocateCommandBuffers(parent.hndl, &allocInfo, &commandBuffer);
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create command buffer!");
+	VK_VALIDATE(parent.vkAllocateCommandBuffers(parent.hndl, &allocInfo, &commandBuffer), PFN_vkAllocateCommandBuffers);
 
 	/* Return new buffer object. */
 	return CommandBuffer(const_cast<CommandPool&>(*this), commandBuffer);

@@ -12,6 +12,7 @@ namespace Pu
 	public:
 		using string_t = typename std::basic_string<_CharTy>;
 		using allocator_t = typename string_t::allocator_type;
+		using size_type = typename string_t::size_type;
 
 		/* Initializes an empty instance of a Plutonium string. */
 		basic_string(void) noexcept(noexcept(allocator_t()))
@@ -192,6 +193,19 @@ namespace Pu
 		inline void remove(_In_ std::initializer_list<_CharTy> init)
 		{
 			for (_CharTy ch : init) remove(ch);
+		}
+
+		/* Removes a spefic substring from the string. */
+		inline void remove(_In_ string_t substr)
+		{
+			const size_type offset = string_t::find(substr);
+			if (offset != string_t::npos) string_t::erase(offset, substr.length());
+		}
+
+		/* Removes the specified substrings from the string. */
+		inline void remove(_In_ std::initializer_list<string_t> init)
+		{
+			for (string_t str : init) remove(str);
 		}
 
 		/* Gets a lower-case variant of the string. */

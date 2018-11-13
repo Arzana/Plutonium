@@ -22,36 +22,19 @@ namespace Pu
 		_Check_return_ GameWindow& operator =(_In_ const GameWindow&) = delete;
 		_Check_return_ GameWindow& operator =(_In_ GameWindow&&) = delete;
 
-		/* Gets the amount of command buffers specified. */
-		_Check_return_ inline size_t GetCommandBufferCount(void) const
+		/* Gets the current command buffer. */
+		_Check_return_ inline CommandBuffer& GetCommandBuffer(void)
 		{
-			return buffers.size();
-		}
-
-		/* Gets the command buffer at the specified index. */
-		_Check_return_ inline CommandBuffer& GetCommandBuffer(_In_ uint32 index)
-		{
-			return buffers.at(index);
-		}
-
-		/* Gets the image handle at the specified index. */
-		_Check_return_ inline ImageHndl GetImage(_In_ uint32 index) const
-		{
-			return swapchain->GetImage(index);
+			return buffers[curImgIdx];
 		}
 
 		void TestRun()
 		{
 			BeginRender();
 
-			uint32 i = 0;
-			for (CommandBuffer &buffer : buffers)
-			{
-				buffer.ClearImage(GetImage(i++), Color::Orange());
-			}
+			GetCommandBuffer().ClearImage(swapchain->GetImage(curImgIdx), Color::Orange());
 
 			EndRender();
-			SwapBuffers();
 		}
 
 	private:
@@ -59,11 +42,10 @@ namespace Pu
 		LogicalDevice &device;
 		Swapchain *swapchain;
 		CommandPool *pool;
-		uint32 queueIndex;
+		uint32 queueIndex, curImgIdx;
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;
 
-		void SwapBuffers(void);
 		void UpdateSwapchainSize(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
 		void CreateSwapchain(Extent2D size);
 		void BeginRender(void);

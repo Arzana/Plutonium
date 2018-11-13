@@ -50,10 +50,7 @@ LogicalDevice Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * c
 {
 	/* Create new logical device. */
 	DeviceHndl device;
-	const VkApiResult result = parent.vkCreateDevice(hndl, createInfo, nullptr, &device);
-
-	/* Check for errors. */
-	if (result != VkApiResult::Success) Log::Fatal("Unable to create logical device!");
+	VK_VALIDATE(parent.vkCreateDevice(hndl, createInfo, nullptr, &device), PFN_vkCreateDevice);
 
 	/* Log creation. */
 	const auto[major, minor, patch] = GetVulkanVersion();

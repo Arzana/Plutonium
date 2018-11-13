@@ -23,7 +23,7 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 
 void Pu::CommandBuffer::ClearImage(ImageHndl image, Color color, ImageLayout layout)
 {
-	const ImageSubresourceRange range(ImageAspectFlag::Color);
+	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 	parent.parent.vkCmdClearColorImage(hndl, image, layout, color.ToClearColor(), 1, &range);
 }
 

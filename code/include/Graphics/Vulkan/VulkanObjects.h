@@ -719,7 +719,7 @@ namespace Pu
 		SwapchainCreateInfo(_In_ SurfaceHndl surface, _In_ Extent2D size)
 			: Type(StructureType::SwapChainCreateInfoKhr), Next(nullptr), Flags(0),
 			Surface(surface), MinImageCount(2), ImageFormat(Format::Undefined),
-			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(0),
+			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(1),
 			ImageUsage(ImageUsageFlag::None), ImageSharingMode(SharingMode::Exclusive),
 			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlag::Identity),
 			CompositeAlpha(CompositeAlphaFlag::Opaque), PresentMode(PresentMode::MailBox),
@@ -969,15 +969,15 @@ namespace Pu
 
 		/* Initializes an empty instance of the image memory barrier object. */
 		ImageMemoryBarrier(void)
-			: ImageMemoryBarrier(nullptr)
+			: ImageMemoryBarrier(nullptr, 0)
 		{}
 
 		/* Initializes a new instance of the image memory barrier object. */
-		ImageMemoryBarrier(_In_ ImageHndl image)
+		ImageMemoryBarrier(_In_ ImageHndl image, _In_ uint32 queueFamilyIdx)
 			: Type(StructureType::ImageMemoryBarrier), Next(nullptr),
 			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
 			OldLayout(ImageLayout::Undefined), NewLayout(ImageLayout::Undefined),
-			SrcQueueFamilyIndex(0), DstQueueFamilyIndex(0), Image(image), SubresourceRange()
+			SrcQueueFamilyIndex(queueFamilyIdx), DstQueueFamilyIndex(queueFamilyIdx), Image(image), SubresourceRange()
 		{}
 	};
 

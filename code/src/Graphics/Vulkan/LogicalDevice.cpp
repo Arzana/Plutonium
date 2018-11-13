@@ -80,6 +80,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkAllocateCommandBuffers);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkFreeCommandBuffers);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkBeginCommandBuffer);
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkEndCommandBuffer);
 
 	/* Commands. */
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCmdClearColorImage);
@@ -88,8 +89,5 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 
 void Pu::LogicalDevice::Destory(void)
 {
-	if (hndl)
-	{
-		vkDestroyDevice(hndl, nullptr);
-	}
+	if (hndl) vkDestroyDevice(hndl, nullptr);
 }

@@ -65,6 +65,7 @@ namespace Pu
 		PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
 		PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
 		PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+		PFN_vkEndCommandBuffer vkEndCommandBuffer;
 		PFN_vkCmdClearColorImage vkCmdClearColorImage;
 		PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 
