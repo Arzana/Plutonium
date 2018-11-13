@@ -33,9 +33,12 @@ namespace Pu
 
 		CommandPool &parent;
 		CommandBufferHndl hndl;
+		bool beginCalled;
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 
+		void Begin(void);
+		void End(void);
 		void Free(void);
 	};
 }

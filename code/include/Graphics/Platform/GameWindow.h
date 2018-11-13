@@ -48,6 +48,8 @@ namespace Pu
 
 		void UpdateSwapchainSize(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
 		void CreateSwapchain(Extent2D size);
+		void MakeSwapchainImageWritable(void);
+		void MakeImagePresentable(void);
 		void BeginRender(void);
 		void EndRender(void);
 	};

@@ -60,6 +60,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyDevice);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkGetDeviceQueue);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkQueueSubmit);
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDeviceWaitIdle);
 
 	/* Swapchain related functions. */
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSwapchainKHR);
@@ -89,5 +90,9 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 
 void Pu::LogicalDevice::Destory(void)
 {
-	if (hndl) vkDestroyDevice(hndl, nullptr);
+	if (hndl)
+	{
+		VK_VALIDATE(vkDeviceWaitIdle(hndl), PFN_vkDeviceWaitIdle);
+		vkDestroyDevice(hndl, nullptr);
+	}
 }

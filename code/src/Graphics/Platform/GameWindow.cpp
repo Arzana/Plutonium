@@ -78,16 +78,9 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size)
 	if (old) delete_s(old);
 }
 
-void Pu::GameWindow::BeginRender(void)
+void Pu::GameWindow::MakeSwapchainImageWritable(void)
 {
-	/* Defines const data. */
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
-	static const CommandBufferBeginInfo beginInfo;
-
-	/* Request next image from swapchain and begin it's command buffer. */
-	curImgIdx = swapchain->NextImage(semaphores[0]);
-	const CommandBufferHndl curCmdbuff = buffers[curImgIdx].hndl;
-	VK_VALIDATE(device.vkBeginCommandBuffer(curCmdbuff, &beginInfo), PFN_vkBeginCommandBuffer);
 
 	/* Transfer present image to a writable image. */
 	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
@@ -95,15 +88,13 @@ void Pu::GameWindow::BeginRender(void)
 	barrier.DstAccessMask = AccessFlag::TransferWrite;
 	barrier.NewLayout = ImageLayout::TransferDstOptimal;
 	barrier.SubresourceRange = range;
-	device.vkCmdPipelineBarrier(curCmdbuff, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
+	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
 		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
-void Pu::GameWindow::EndRender(void)
+void Pu::GameWindow::MakeImagePresentable(void)
 {
-	/* Defines const data. */
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
-	const CommandBufferHndl curCmdbuff = buffers[curImgIdx].hndl;
 
 	/* Transfer writable image back to present mode. */
 	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
@@ -112,11 +103,29 @@ void Pu::GameWindow::EndRender(void)
 	barrier.OldLayout = ImageLayout::TransferDstOptimal;
 	barrier.NewLayout = ImageLayout::PresentSrcKhr;
 	barrier.SubresourceRange = range;
-	device.vkCmdPipelineBarrier(curCmdbuff, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
+	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
 		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
+}
+
+void Pu::GameWindow::BeginRender(void)
+{
+	/* Request new image from the swapchain. */
+	curImgIdx = swapchain->NextImage(semaphores[0]);
+
+	/* Enable command buffer. */
+	GetCommandBuffer().Begin();
+
+	/* Make swapchain image writable for following user command. */
+	MakeSwapchainImageWritable();
+}
+
+void Pu::GameWindow::EndRender(void)
+{
+	/* Make swapchain image presentable again for the window. */
+	MakeImagePresentable();
 
 	/* End the command buffer gather. */
-	VK_VALIDATE(device.vkEndCommandBuffer(curCmdbuff), PFN_vkEndCommandBuffer);
+	GetCommandBuffer().End();
 
 	/* Submit the command buffer to the render queue and present the queue. */
 	Queue &queue = device.GetQueue(queueIndex, 0);
