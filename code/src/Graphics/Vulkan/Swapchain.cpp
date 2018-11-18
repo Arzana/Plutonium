@@ -3,7 +3,7 @@
 #include "Core/EnumUtils.h"
 
 Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const SwapchainCreateInfo & createInfo)
-	: parent(device)
+	: parent(device), format(createInfo.ImageFormat)
 {
 	/* Check if the information specified is correct. */
 	if (!CanCreate(device.GetPhysicalDevice(), surface, createInfo)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
@@ -19,7 +19,7 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 }
 
 Pu::Swapchain::Swapchain(Swapchain && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), format(value.format)
 {
 	value.hndl = nullptr;
 }

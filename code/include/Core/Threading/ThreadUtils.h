@@ -19,4 +19,8 @@ namespace Pu
 	}
 	/* Sets the current thread's description. */
 	void _CrtSetCurrentThreadName(_In_ const char *name);
+	/* Gets the enviroment variable with the specified name and returns their components. */
+	_Check_return_ vector<string> _CrtGetEnviromentVariables(_In_ const char *name);
+	/* Creates a process (checks path if not found right away) for a specified amount of time or until it finishes. */
+	_Check_return_ bool _CrtRunProcess(_In_ const char *name, char *arguments, _In_ string &output , _In_opt_ uint64 timeout = maxv<uint64>());
 }

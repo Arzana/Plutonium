@@ -1054,6 +1054,160 @@ namespace Pu
 		{}
 	};
 
+	/* Defines information that describes an attachment. */
+	struct AttachmentDescription
+	{
+	public:
+		/* Specifies additional properties of the attachment. */
+		AttachmentDescriptionFlag Flags;
+		/* Specifies the format of the image view that will be used for the attachment. */
+		Format Format;
+		/* Specified the amount of samples of the image. */
+		SampleCountFlag Samples;
+		/* Specifies how the color and depth components should be treated at the beginning of the subpass. */
+		AttachmentLoadOp LoadOp;
+		/* Specifies what should be done with the color and depth components after the subpass. */
+		AttachmentStoreOp StoreOp;
+		/* Specifies how the stencil component (if present) should be treated at the beginning of the subpass. */
+		AttachmentLoadOp StencilLoadOp;
+		/* Specifies what should be done with stencil comoponent (if present) after the subpass. */
+		AttachmentStoreOp StencilStoreOp;
+		/* Specifies the initial layout of the image subresource. */
+		ImageLayout InitialLayout;
+		/* Specifies the layout of the image subresource after the subpass. */
+		ImageLayout FinalLayout;
+
+		/* Initializes an empty instance of the attachment description object. */
+		AttachmentDescription(void)
+			: AttachmentDescription(Format::Undefined, ImageLayout::Undefined, ImageLayout::Undefined)
+		{}
+
+		/* Initializes a new instance of the attachment description object. */
+		AttachmentDescription(_In_ Pu::Format format, _In_ ImageLayout initialLayout, _In_ ImageLayout finalLayout)
+			: Flags(AttachmentDescriptionFlag::None), Format(format), Samples(SampleCountFlag::Pixel1Bit),
+			LoadOp(AttachmentLoadOp::Clear), StoreOp(AttachmentStoreOp::Store),
+			StencilLoadOp(AttachmentLoadOp::DontCare), StencilStoreOp(AttachmentStoreOp::DontCare),
+			InitialLayout(initialLayout), FinalLayout(finalLayout)
+		{}
+	};
+
+	/* Defines a refrence to a specified attachment. */
+	struct AttachmentReference
+	{
+	public:
+		/* The index of the attachment of the render pass. */
+		uint32 Attachment;
+		/* Specifies the layout the attachment uses during the subpass. */
+		ImageLayout Layout;
+
+		/* Initializes an empty instance of a attachment refrence. */
+		AttachmentReference(void)
+			: AttachmentReference(0, ImageLayout::Undefined)
+		{}
+
+		/* Initializes a new instance of a attachment reference. */
+		AttachmentReference(_In_ uint32 attachmentIndex, _In_ ImageLayout layout)
+			: Attachment(attachmentIndex), Layout(layout)
+		{}
+	};
+
+	/* Defines information describing a subpass. */
+	struct SubpassDescription
+	{
+	public:
+		/* Specifies the usage of the subpass. */
+		SubpassDescriptionFlag Flags;
+		/* Specifies whether this is a compute or graphics subpass. */
+		PipelineBindPoint BindPoint;
+		/* Specifies the amount of input attachments. */
+		uint32 InputAttachmentCount;
+		/* Specifies which of the render pass's attachments can be read in the fragment shader stage. */
+		const AttachmentReference *InputAttachments;
+		/* Specifies the amount of color attachments. */
+		uint32 ColorAttachmentCount;
+		/* Specifies which of the render pass's attachments will be used as color attachments in the subpass. */
+		const AttachmentReference *ColorAttachments;
+		/* Specifies which of the render pass's attachments are resolved at the end of the subpass. */
+		const AttachmentReference *ResolveAttachments;
+		/* Specifies which attachment will be used for depth/stencil data. */
+		const AttachmentReference *DepthStencilAttachment;
+		/* Specifies the amount of preserved attachments. */
+		uint32 PreserveAttachmentCount;
+		/* Specifies which attachments are not used by a subpass, but whose contents must be preserved throughout the subpass. */
+		const AttachmentReference *PreserveAttachments;
+
+		/* Initializes an empty instance of a subpass description object. */
+		SubpassDescription(void)
+			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
+			InputAttachmentCount(0), InputAttachments(nullptr), ColorAttachmentCount(0),
+			ColorAttachments(nullptr), ResolveAttachments(nullptr), DepthStencilAttachment(nullptr),
+			PreserveAttachmentCount(0), PreserveAttachments(nullptr)
+		{}
+	};
+
+	/* Defines a subpass dependency. */
+	struct SubpassDependency
+	{
+	public:
+		/* Specifies the index of the first subpass in the dependency. */
+		uint32 SrcSubpass;
+		/* Specifies the index of the seconds subpass in the dependency. */
+		uint32 DstSubpass;
+		/* Specifies the source stage mask. */
+		PipelineStageFlag SrcStageMask;
+		/* Specifies the destination stage mask. */
+		PipelineStageFlag DstStageMask;
+		/* Specifies the source access. */
+		AccessFlag SrcAccessMask;
+		/* Specifies the destination access. */
+		AccessFlag DstAcccessMask;
+		/* Specifies optional parameters for the subpass dependency.  */
+		DependencyFlag DependencyFlags;
+
+		/* Initializes an empty instance of a subpass dependency. */
+		SubpassDependency(void)
+			: SubpassDependency(0, 0)
+		{}
+
+		/* Initializes a new instance of a subpass dependency. */
+		SubpassDependency(_In_ uint32 source, _In_ uint32 destination)
+			: SrcSubpass(source), DstSubpass(destination), 
+			SrcStageMask(PipelineStageFlag::AllCommands), DstStageMask(PipelineStageFlag::AllCommands),
+			SrcAccessMask(AccessFlag::None), DstAcccessMask(AccessFlag::None), DependencyFlags(DependencyFlag::None)
+		{}
+	};
+
+	/* Defines the information required to create a render pass. */
+	struct RenderPassCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the amount of attachments used by this render pass. */
+		uint32 AttachmentCount;
+		/* Specifies the attachments used by this render pass. */
+		const AttachmentDescription *Attachments;
+		/* Specifies the amount of subpasses to create for this render pass. */
+		uint32 SubpassCount;
+		/* Specifies the subpasses for this render pass. */
+		const SubpassDescription *Subpasses;
+		/* Specifies the amount of dependencies between pairs of subpasses. */
+		uint32 DependencyCount;
+		/* Specifies the dependenciers between pairs of subpasses. */
+		const SubpassDependency *Dependencies;
+
+		/* Initializes a new instance of the render pass create info object. */
+		RenderPassCreateInfo(void)
+			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
+			AttachmentCount(0), Attachments(nullptr), SubpassCount(0), Subpasses(nullptr),
+			DependencyCount(0), Dependencies(nullptr)
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

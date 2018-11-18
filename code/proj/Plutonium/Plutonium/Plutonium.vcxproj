@@ -215,6 +215,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
@@ -226,8 +227,10 @@
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileUtils.h" />
+    <ClInclude Include="..\..\..\include\Streams\FileWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\SeekOrigin.h" />
     <ClInclude Include="..\..\..\include\Streams\StreamReader.h" />
+    <ClInclude Include="..\..\..\include\Streams\StreamWriter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
@@ -254,10 +257,12 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
+    <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\AABB.natvis" />
@@ -268,6 +273,11 @@
     <Natvis Include="..\..\..\visualizers\Vector2.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector3.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\assets\shaders\Triangle.frag" />
+    <None Include="..\..\..\assets\shaders\Triangle.vert" />
+    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

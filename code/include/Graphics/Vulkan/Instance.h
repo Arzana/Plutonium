@@ -73,5 +73,9 @@ namespace Pu
 
 		void Destroy(void);
 		void LoadInstanceProcs(void);
+		
+#ifdef _DEBUG
+		void LogAvailableExtensionsAndLayers(void) const;
+#endif
 	};
 }

@@ -14,12 +14,12 @@ namespace Pu
 #pragma warning(disable:4201)
 			struct
 			{
-				/* The blue amount of this color. */
-				byte B;
-				/* The green amount of this color. */
-				byte G;
 				/* The red amount of this color. */
 				byte R;
+				/* The green amount of this color. */
+				byte G;
+				/* The blue amount of this color. */
+				byte B;
 				/* The alpha (transparency) of this color. */
 				byte A;
 			};

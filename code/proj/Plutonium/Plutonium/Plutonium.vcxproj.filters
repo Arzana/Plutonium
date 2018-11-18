@@ -91,6 +91,12 @@
     <Filter Include="Source Files\Graphics\Platform\Windows">
       <UniqueIdentifier>{b33c7b35-5f16-4d5e-be8d-abd1592ff7d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Vulkan\SPIR-V">
+      <UniqueIdentifier>{627c541d-dc8e-4543-9fdd-79ba835b0af2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Vulkan\SPIR-V">
+      <UniqueIdentifier>{39781373-c1ac-42c5-8a00-380992b0ee5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -234,9 +240,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h">
-      <Filter>Header Files\Graphics\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h">
       <Filter>Header Files\Graphics\Platform</Filter>
     </ClInclude>
@@ -266,6 +269,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\Windows.h">
       <Filter>Header Files\Core\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\StreamWriter.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\FileWriter.h">
+      <Filter>Header Files\Streams</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -353,6 +368,12 @@
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp">
+      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -379,5 +400,16 @@
     <Natvis Include="..\..\..\visualizers\AABB.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Triangle.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Triangle.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

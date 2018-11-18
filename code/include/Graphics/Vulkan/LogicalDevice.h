@@ -69,6 +69,8 @@ namespace Pu
 		PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
 		PFN_vkCmdClearColorImage vkCmdClearColorImage;
 		PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+		PFN_vkCreateRenderPass vkCreateRenderPass;
+		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

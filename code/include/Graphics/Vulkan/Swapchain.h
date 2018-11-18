@@ -36,6 +36,12 @@ namespace Pu
 			return images.at(index);
 		}
 
+		/* Gets the underlying format of the swapchain images. */
+		_Check_return_ inline Format GetImageFormat(void) const
+		{
+			return format;
+		}
+
 	private:
 		friend class Queue;
 		friend class GameWindow;
@@ -43,6 +49,7 @@ namespace Pu
 		LogicalDevice &parent;
 		SwapchainHndl hndl;
 		vector<ImageHndl> images;
+		Format format;
 
 		void Destroy(void);
 	};

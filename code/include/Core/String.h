@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <algorithm>
+#include "Core/Math/Basics.h"
+#include "Core/Collections/Vector.h"
 
 namespace Pu
 {
@@ -196,14 +198,14 @@ namespace Pu
 		}
 
 		/* Removes a spefic substring from the string. */
-		inline void remove(_In_ string_t substr)
+		inline void remove(_In_ basic_string<_CharTy> substr)
 		{
 			const size_type offset = string_t::find(substr);
 			if (offset != string_t::npos) string_t::erase(offset, substr.length());
 		}
 
 		/* Removes the specified substrings from the string. */
-		inline void remove(_In_ std::initializer_list<string_t> init)
+		inline void remove(_In_ std::initializer_list<basic_string<_CharTy>> init)
 		{
 			for (string_t str : init) remove(str);
 		}
@@ -211,19 +213,91 @@ namespace Pu
 		/* Gets a lower-case variant of the string. */
 		_Check_return_ inline basic_string<_CharTy> toLower(void) const
 		{
-			return transformCopy([](_CharTy ch) 
+			return transformCopy([](_CharTy ch)
 			{
-				return static_cast<_CharTy>(tolower(static_cast<int>(ch))); 
+				return static_cast<_CharTy>(tolower(static_cast<int>(ch)));
 			});
 		}
 
 		/* Gets a upper-case variant of the string. */
 		_Check_return_ inline basic_string<_CharTy> toUpper(void) const
 		{
-			return transformCopy([](_CharTy ch) 
+			return transformCopy([](_CharTy ch)
 			{
 				return static_cast<_CharTy>(toupper(static_cast<int>(ch)));
 			});
+		}
+
+		/* Gets the last offset of the substring, starting from the specified position (if not npos). */
+		_Check_return_ inline size_type find_last_of(_In_ const basic_string<_CharTy> &str, _In_opt_ size_type pos = string_t::npos) const noexcept
+		{
+			return string_t::find_last_of(str, pos);
+		}
+
+		/* Gets the last offset of the substring, starting from the specified position (if not npos). */
+		_Check_return_ inline size_type find_last_of(_In_ const char *s, _In_opt_ size_type pos = string_t::npos) const
+		{
+			return string_t::find_last_of(s, pos);
+		}
+
+		/* Gets the last offset of the substring, starting from the specified position and up until the specified count. */
+		_Check_return_ inline size_type find_last_of(_In_ const char *s, _In_ size_type pos, size_type n) const
+		{
+			return string_t::find_last_of(s, pos, n);
+		}
+
+		/* Gets the last offset of the char, starting from the specified position (if not npos). */
+		_Check_return_ inline size_type find_last_of(_In_ char c, _In_opt_ size_type pos = string_t::npos) const noexcept
+		{
+			return string_t::find_last_of(c, pos);
+		}
+
+		/* Gets the last offset of any of the specified chars, starting from the specified position (if not npos). */
+		_Check_return_ inline size_type find_last_of(_In_ std::initializer_list<_CharTy> init, _In_opt_ size_type pos = string_t::npos) const
+		{
+			size_type result = minv<size_type>();
+
+			for (const _CharTy c : init)
+			{
+				const size_type off = find_last_of(c, pos);
+				if (off != string_t::npos) result = max(result, off);
+			}
+
+			return result;
+		}
+
+		/* Splits the string into substrings using the specified seperator. */
+		_Check_return_ inline vector<basic_string<_CharTy>> split(_In_ _CharTy seperator) const noexcept
+		{
+			vector<basic_string<_CharTy>> result;
+			size_type prev = 0, pos = 0;
+
+			while ((pos = string_t::find(seperator, pos)) != string_t::npos)
+			{
+				result.emplace_back(string_t::substr(prev, pos - prev));
+				prev = ++pos;
+			}
+
+			const size_type len = string_t::length();
+			if (len != prev) result.emplace_back(string_t::substr(prev, len - prev));
+			return result;
+		}
+
+		/* Splits the string into substrings using the specified seperator. */
+		_Check_return_ inline vector<basic_string<_CharTy>> split(_In_ const basic_string<_CharTy> &seperator) const noexcept
+		{
+			vector<basic_string<_CharTy>> result;
+			size_type prev = 0, pos = 0;
+
+			while ((pos = string_t::find(seperator, pos)) != string_t::npos)
+			{
+				result.emplace_back(string_t::substr(prev, pos - prev));
+				prev = ++pos;
+			}
+
+			const size_type len = string_t::length();
+			if (len != prev) result.emplace_back(string_t::substr(prev, len - prev));
+			return result;
 		}
 
 	private:

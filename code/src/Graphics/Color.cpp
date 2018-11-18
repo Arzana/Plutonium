@@ -84,7 +84,7 @@ Color Pu::Color::operator*(Color other) const
 
 Vector4 Pu::Color::ToVector4(void) const
 {
-	return Vector4(B * CONV_MOD, G * CONV_MOD, R * CONV_MOD, A * CONV_MOD);
+	return Vector4(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD, A * CONV_MOD);
 }
 
 byte * Pu::Color::ToArray(void) const
@@ -94,10 +94,6 @@ byte * Pu::Color::ToArray(void) const
 
 ClearColorValue Pu::Color::ToClearColor(void) const
 {
-	/* 
-	ToVector4 returns with the format BGRA which is what the surface expects 
-	but clear color is always RGBA so we must rearange the order.
-	*/
 	const Vector4 color = ToVector4();
-	return { color.Z, color.Y, color.X, color.W };
+	return { color.X, color.Y, color.Z, color.W };
 }

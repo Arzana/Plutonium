@@ -1152,6 +1152,8 @@ namespace Pu
 	/* Defines additional properties of attachments. */
 	enum class AttachmentDescriptionFlag
 	{
+		/* No flags where set. */
+		None = 0x00000001,
 		/* Specifies that the attachment aliases the same device memory as other attachments. */
 		MayAlias = 0x00000001
 	};
@@ -1331,6 +1333,17 @@ namespace Pu
 		FiFo = 2,
 		/* The presentation engine generally waits for a vertical blanking period to update the current image. The new entry is added to the back of the queue. */
 		FiFoRelaxed = 3
+	};
+
+	/* Defines the usage of a subpass. */
+	enum class SubpassDescriptionFlag
+	{
+		/* No flags where set. */
+		None = 0x00000000,
+		/* Shaders compiled for this subpass write the attributes for all views in a single invocation of each vertex processing stage. */
+		PerViewAttributes = 0x00000001,
+		/* Shaders compiled for this subpass use per-view positions which only differ in value in the x component. */
+		PerViewPositionXOnly = 0x00000002
 	};
 
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)

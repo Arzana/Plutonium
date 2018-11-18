@@ -2,13 +2,17 @@
 #include <Graphics/Platform/GameWindow.h>
 #include <Core/Diagnostics/Logging.h>
 #include <Core/EnumUtils.h>
+#include <Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h>
+#include <Core/Threading/ThreadUtils.h>
 
 using namespace Pu;
 
 int main(int, char**)
 {
+	string dst = SPIRV::FromGLSLPath("../assets/shaders/Triangle.vert");
+
+
 	/* Create Vulkan instance. */
-	if (!VulkanInstance::AreExtensionsSupported({ u8"VK_KHR_surface", u8"VK_KHR_win32_surface" })) Log::Fatal("Platform doesn't support surface extension!");
 	VulkanInstance instance("VulkanTesting", { u8"VK_KHR_surface", u8"VK_KHR_win32_surface" });
 
 	/* Create window. */

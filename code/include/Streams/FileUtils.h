@@ -24,16 +24,16 @@ namespace Pu
 	/* Gets the file name from a string. */
 	_Check_return_ inline string _CrtGetFileName(_In_ string path)
 	{
-		size_t offset = max(path.find_last_of('/'), path.find_last_of('\\'));
+		size_t offset = path.find_last_of({ '/', '\\' });
 		if (offset == string::npos) offset = 0;
 
-		return path.substr(offset, path.length() - offset);
+		return path.substr(offset + 1, path.length() - offset);
 	}
 
 	/* Gets the file name from a string (without extension). */
 	_Check_return_ inline string _CrtGetFileNameWithoutExtension(_In_ string path)
 	{
-		size_t offset = max(path.find_last_of('/'), path.find_last_of('\\'));
+		size_t offset = path.find_last_of({ '/', '\\' });
 		if (offset == string::npos) offset = 0;
 
 		size_t extLen = path.length() - path.find_last_of('.');
@@ -45,7 +45,7 @@ namespace Pu
 	/* Gets the file directory from a string. */
 	_Check_return_ inline string _CrtGetFileDirectory(_In_ string path)
 	{
-		const size_t len = max(path.find_last_of('/'), path.find_last_of('\\'));
+		const size_t len = path.find_last_of({ '/', '\\' });
 		return len != string::npos ? path.substr(0, len) : "";
 	}
 }

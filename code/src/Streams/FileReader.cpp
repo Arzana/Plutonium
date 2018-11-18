@@ -2,6 +2,8 @@
 #include "Streams/FileUtils.h"
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/Logging.h"
+#include "Core/Diagnostics/DbgUtils.h"
+#include "Core/Platform/Windows/Windows.h"
 #include <cstdio>
 #include <cstring>
 
@@ -14,22 +16,15 @@ Pu::FileReader::FileReader(const char * path)
 }
 
 Pu::FileReader::FileReader(const FileReader & value)
-	: open(false), hndlr(nullptr)
+	: fpath(value.fpath), open(false), hndlr(nullptr)
 {
-	/* Copy over the file attributes. */
-	fpath = value.fpath;
-
 	/* Open a new file handle if needed. */
 	if (value.open) Open();
 }
 
 Pu::FileReader::FileReader(FileReader && value)
+	: fpath(std::move(value.fpath)), open(value.open), hndlr(value.hndlr)
 {
-	/* Move file attributes and file handle. */
-	fpath = std::move(value.fpath);
-	open = value.open;
-	hndlr = value.hndlr;
-
 	/* Clear moved attributes. */
 	value.fpath.clear();
 	value.open = false;
@@ -67,7 +62,7 @@ FileReader & Pu::FileReader::operator=(FileReader && other)
 		if (open) Close();
 
 		/* Move file attributes and file handle. */
-		fpath = other.fpath;
+		fpath = std::move(other.fpath);
 		open = other.open;
 		hndlr = other.hndlr;
 
@@ -80,6 +75,28 @@ FileReader & Pu::FileReader::operator=(FileReader && other)
 	return *this;
 }
 
+string Pu::FileReader::GetCurrentDirectory(void)
+{
+#ifdef _WIN32
+	/* Get raw directory. */
+	TCHAR buffer[FILENAME_MAX];
+	const DWORD len = WinGetCurrentDirectory(FILENAME_MAX, buffer);
+
+	/* Error check. */
+	if (!len)
+	{
+		const string error = _CrtGetErrorString();
+		Log::Error("Failed to get working directory (%s)!", error.c_str());
+	}
+
+	/* Return string varient for variable memory release. */
+	return string(buffer);
+#else
+	Log::Warning("Cannot get working directory on this platform!");
+	return "";
+#endif
+}
+
 void Pu::FileReader::Close(void)
 {
 	const string fname = _CrtGetFileName(fpath);
@@ -87,7 +104,7 @@ void Pu::FileReader::Close(void)
 	if (open)
 	{
 		/* Attempt to close the file. */
-		if (fclose(hndlr) == EOF) Log::Error("Unable to close file '%s'!", fname.c_str());
+		if (fclose(hndlr) == EOF) Log::Error("Unable to close file '%s' (%s)!", fname.c_str(), FileError().c_str());
 		else
 		{
 			open = false;
@@ -222,7 +239,7 @@ int64 Pu::FileReader::GetSize(void) const
 
 void Pu::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
 {
-	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%s'!", amount, _CrtGetFileName(fpath).c_str());
+	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%s' (%s)!", amount, _CrtGetFileName(fpath).c_str(), FileError().c_str());
 }
 
 void Pu::FileReader::Open(void)
@@ -237,9 +254,14 @@ void Pu::FileReader::Open(void)
 			open = true;
 			Log::Verbose("Successfully opened file '%s'.", fname.c_str());
 		}
-		else Log::Fatal("Failed to open file '%s'!", fname.c_str());
+		else Log::Error("Failed to open file '%s' (%s)!", fname.c_str(), FileError().c_str());
 	}
 	else Log::Warning("Cannot open already opened file '%s'!", fname.c_str());
+}
+
+string Pu::FileReader::FileError(void) const
+{
+	return _CrtFormatError(ferror(hndlr));
 }
 
 void Pu::FileReader::FileNotOpen(void)

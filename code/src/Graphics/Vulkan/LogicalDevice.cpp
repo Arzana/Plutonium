@@ -63,11 +63,15 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDeviceWaitIdle);
 
 	/* Swapchain related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSwapchainKHR);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroySwapchainKHR);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkGetSwapchainImagesKHR);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkAcquireNextImageKHR);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkQueuePresentKHR);
+	if (parent.IsExtensionSupported(u8"VK_KHR_swapchain"))
+	{
+		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSwapchainKHR);
+		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroySwapchainKHR);
+		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkGetSwapchainImagesKHR);
+		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkAcquireNextImageKHR);
+		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkQueuePresentKHR);
+	}
+	else Log::Warning("%s doesn't support required swapchain extension!", parent.GetName());
 
 	/* Semaphore related functions. */
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSemaphore);
@@ -86,6 +90,10 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	/* Commands. */
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCmdClearColorImage);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCmdPipelineBarrier);
+	
+	/* Render pass related functions. */
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateRenderPass);
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyRenderPass);
 }
 
 void Pu::LogicalDevice::Destory(void)

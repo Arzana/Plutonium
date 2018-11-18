@@ -15,6 +15,10 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	/* Make sure the create procedure is loaded. */
 	LoadStaticProcs();
 
+#ifdef _DEBUG
+	LogAvailableExtensionsAndLayers();
+#endif
+
 	/* Create application info and instance info. */
 	const ApplicationInfo appInfo(applicationName, major, minor, patch, u8"Plutonium", 0, 1, 0);
 	InstanceCreateInfo createInfo(&appInfo);
@@ -199,12 +203,55 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	VK_LOAD_INSTANCE_PROC(hndl, vkEnumerateDeviceExtensionProperties);
 
 	/* Surface extension functions. */
-	VK_LOAD_INSTANCE_PROC(hndl, vkDestroySurfaceKHR);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceSupportKHR);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceFormatsKHR);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfacePresentModesKHR);
+	if (IsExtensionSupported(u8"VK_KHR_surface"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkDestroySurfaceKHR);
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceSupportKHR);
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceFormatsKHR);
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfacePresentModesKHR);
+	}
+	else Log::Warning("Surface extension is not supported on this platform!");
+
 #ifdef _WIN32
-	VK_LOAD_INSTANCE_PROC(hndl, vkCreateWin32SurfaceKHR);
+	if (IsExtensionSupported(u8"VK_KHR_win32_surface"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkCreateWin32SurfaceKHR);
+	}
+	else Log::Warning("Win32 Create surface extension is not supported by the graphics driver!");
 #endif
 }
+
+#ifdef _DEBUG
+void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
+{
+	static bool logged = false;
+
+	/* Only log extensions once. */
+	if (!logged)
+	{
+		logged = true;
+		const string barStr(64, '-');
+
+		/* Log the extension between lines to make sure they are easily visible. */
+		Log::Verbose(barStr.c_str());
+
+		const vector<ExtensionProperties> extensions = GetSupportedExtensions(nullptr);
+		for (const ExtensionProperties &extension : extensions)
+		{
+			Log::Verbose("Extension %s (v%u.%u.%u) available.", extension.ExtensionName, getMajor(extension.SpecVersion), getMinor(extension.SpecVersion), getPatch(extension.SpecVersion));
+		}
+
+		Log::Verbose(barStr.c_str());
+
+		/* Log the layers too bewteen lines. */
+		const vector<LayerProperties> layers = GetSupportedLayers();
+		for (const LayerProperties &layer : layers)
+		{
+			Log::Verbose("Layer %s (v%u.%u.%u) available.", layer.LayerName, getMajor(layer.ImplementationVersion), getMinor(layer.ImplementationVersion), getPatch(layer.ImplementationVersion));
+		}
+
+		Log::Verbose(barStr.c_str());
+	}
+}
+#endif

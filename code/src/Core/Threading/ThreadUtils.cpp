@@ -12,6 +12,14 @@
 
 using namespace Pu;
 
+template <typename _Ty>
+static inline _Ty&& CreateZeroStruct()
+{
+	_Ty result;
+	ZeroMemory(&result, sizeof(_Ty));
+	return std::move(result);
+}
+
 uint64 Pu::_CrtGetCurrentProcessId(void)
 {
 #if defined(_WIN32)
@@ -118,5 +126,128 @@ void Pu::_CrtSetCurrentThreadName(const char * name)
 
 #else
 	Log::Error("Cannot set thread name on this platform!");
+#endif
+}
+
+vector<string> Pu::_CrtGetEnviromentVariables(const char * name)
+{
+	/* Gets the raw enviroment variables. */
+	char *raw;
+	size_t len;
+	const errno_t result = _dupenv_s(&raw, &len, name);
+
+	/* Check for error. */
+	if (result != NO_ERROR)
+	{
+		const string error = _CrtFormatError(result);
+		Log::Error("Unable to get enviroment variables (%s)!", error.c_str());
+		free(raw);
+	}
+	else
+	{
+		/* Free the raw string and return the split varient of the variables for ease of use. */
+		const string str(raw);
+		free(raw);
+		return str.split(';');
+	}
+}
+
+bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, uint64 timeout)
+{
+	/* Get OS path variables. */
+	const vector<string> pathDirs = _CrtGetEnviromentVariables("Path");
+	const size_t maxIdx = pathDirs.size() - 1;
+	string dir = "";
+	size_t nextDirIdx = 0;
+
+#ifdef _WIN32
+	/* Create security object used to redirect STDOUT. */
+	SECURITY_ATTRIBUTES sAttr = CreateZeroStruct<SECURITY_ATTRIBUTES>();
+	sAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sAttr.bInheritHandle = true;
+
+	/* Create pipe for child process's STDOUT. */
+	HANDLE childStdOutRead = nullptr, childStdOutWrite = nullptr;
+	if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &sAttr, 0))
+	{
+		const string error = _CrtGetErrorString();
+		Log::Warning("Unable to create read and write pipe for child process STDOUT (%s)!", error.c_str());
+	}
+
+	/* Ensure that the read handle to the pipe for STDOUT is not inherited. */
+	if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
+	{
+		const string error = _CrtGetErrorString();
+		Log::Warning("Unable to ensure STDOUT is not inherited (%s)!", error.c_str());
+	}
+
+	/* Create startup information object. */
+	STARTUPINFO sInfo = CreateZeroStruct<STARTUPINFO>();
+	sInfo.cb = sizeof(STARTUPINFO);
+	sInfo.hStdError = childStdOutWrite;
+	sInfo.hStdOutput = childStdOutWrite;
+	if (childStdOutWrite) sInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+	/* Create process information object. */
+	PROCESS_INFORMATION pInfo = CreateZeroStruct<PROCESS_INFORMATION>();
+
+	/* Try to start the process, first from it's name and then for each directory defined in system path. */
+	bool started = false;
+	do
+	{
+		const string pname = dir.length() > 0 ? dir + '\\' + name : name;
+		const string argv = pname + ' ' + arguments;
+
+		started = CreateProcess(
+			pname.c_str(),
+			const_cast<char*>(argv.c_str()),	// Can crash if we run on UNICODE mode, but we don't so fix later.
+			nullptr,
+			nullptr,
+			childStdOutWrite != nullptr,
+			0,
+			nullptr,
+			nullptr,
+			&sInfo, &pInfo);
+
+		if (nextDirIdx < maxIdx)
+		{
+			dir = pathDirs.at(nextDirIdx);
+			++nextDirIdx;
+		}
+	} while (!started && nextDirIdx < maxIdx);
+
+	/* If the process was successfully started, let it run and delete it's handle after the timeout. */
+	if (started)
+	{
+		WaitForSingleObject(pInfo.hProcess, static_cast<DWORD>(timeout));
+
+		/* Get the STDOUT buffer size. */
+		DWORD requiredSize, read = 0;
+		if (!PeekNamedPipe(childStdOutRead, nullptr, 0, nullptr, &requiredSize, nullptr))
+		{
+			const string error = _CrtGetErrorString();
+			Log::Warning("Unable to request STDOUT pipe size (%s)!", error.c_str());
+		}
+
+		/* Reserve space for log and read the log. */
+		output.resize(requiredSize);
+		if (!ReadFile(childStdOutRead, output.data(), requiredSize, &read, nullptr))
+		{
+			const string error = _CrtGetErrorString();
+			Log::Warning("Unable to read from STDOUT pipe (%s)!", error.c_str());
+		}
+
+		CloseHandle(pInfo.hProcess);
+		CloseHandle(pInfo.hThread);
+		return true;
+	}
+
+	/* Process creation failed so log error and return false. */
+	const string error = _CrtGetErrorString();
+	Log::Error("Unable to start process '%s' (%s)!", name, error.c_str());
+	return false;
+#else
+	Log::Warning("Creating child processes is not supported on this platform!");
+	return false;
 #endif
 }

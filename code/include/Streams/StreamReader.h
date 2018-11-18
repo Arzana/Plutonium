@@ -8,11 +8,14 @@ namespace Pu
 	class StreamReader
 	{
 	public:
-		StreamReader(_In_ const StreamReader &value) = delete;
-		StreamReader(_In_ StreamReader &&value) = delete;
+		StreamReader(_In_ const StreamReader&) = delete;
+		StreamReader(_In_ StreamReader&&) = delete;
+		/* Releases the resources allocated by the stream writer. */
+		virtual ~StreamReader(void) noexcept
+		{}
 
-		_Check_return_ StreamReader& operator =(const StreamReader &other) = delete;
-		_Check_return_ StreamReader& operator =(StreamReader &&other) = delete;
+		_Check_return_ StreamReader& operator =(const StreamReader&) = delete;
+		_Check_return_ StreamReader& operator =(StreamReader&&) = delete;
 
 		/*
 		Reads the next byte from the stream.
