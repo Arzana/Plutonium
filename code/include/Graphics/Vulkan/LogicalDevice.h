@@ -45,6 +45,7 @@ namespace Pu
 		friend class Queue;
 		friend class CommandBuffer;
 		friend class GameWindow;
+		friend class Subpass;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -71,6 +72,8 @@ namespace Pu
 		PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
+		PFN_vkCreateShaderModule vkCreateShaderModule;
+		PFN_vkDestroyShaderModule vkDestroyShaderModule;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

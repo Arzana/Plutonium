@@ -18,7 +18,7 @@ namespace Pu
 	_Check_return_ inline string _CrtGetFileExtension(_In_ string path)
 	{
 		const size_t offset = path.find_last_of('.');
-		return offset != string::npos ? path.substr(offset, path.length() - offset) : "";
+		return offset != string::npos ? path.substr(offset + 1, path.length() - offset - 1) : "";
 	}
 
 	/* Gets the file name from a string. */

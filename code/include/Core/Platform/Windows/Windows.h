@@ -18,26 +18,23 @@ This breaks code as we define a type safe one ourselves.
 #undef MemoryBarrier
 #endif
 
+/* Used to switch between unicode and ASCII functions. */
+#ifdef UNICODE
+#define ASCII_UNICODE(ascii, unicode)	unicode	
+#else
+#define ASCII_UNICODE(ascii, unicode)	ascii
+#endif
+
 /* The name create directory is used in the FileWriter so we need to undefine it if windows defines it. */
 #ifdef CreateDirectory
 #undef CreateDirectory
-
-#ifdef UNICODE
-#define WinCreateDirectory  CreateDirectoryW
-#else
-#define WinCreateDirectory  CreateDirectoryA
-#endif
+#define WinCreateDirectory				ASCII_UNICODE(CreateDirectoryA, CreateDirectoryW)
 #endif
 
 /* The name get current direcoty is used in the FileReader so we need to undefine it if windows defines it. */
 #ifdef GetCurrentDirectory
 #undef GetCurrentDirectory
-
-#ifdef UNICODE
-#define WinGetCurrentDirectory  GetCurrentDirectoryW
-#else
-#define WinGetCurrentDirectory  GetCurrentDirectoryA
-#endif
+#define WinGetCurrentDirectory			ASCII_UNICODE(GetCurrentDirectoryA, GetCurrentDirectoryW)
 #endif
 
 #endif

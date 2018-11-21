@@ -140,13 +140,25 @@ namespace Pu
 		/* Checks if the input string is equal to the source string. */
 		_Check_return_ inline bool operator ==(_In_ const basic_string<_CharTy> &other) const
 		{
-			return string_t::operator==(other);
+			return std::operator==(*this, other);
+		}
+
+		/* Checks if the input string is equal to the source string. */
+		_Check_return_ inline bool operator ==(_In_ const _CharTy *other) const
+		{
+			return std::operator==(*this, other);
 		}
 
 		/* Checks if the input string differs from the source string. */
 		_Check_return_ inline bool operator !=(_In_ const basic_string<_CharTy> &other) const
 		{
-			return string_t::operator!=(other);
+			return std::operator!=(*this, other);
+		}
+
+		/* Checks if the input string differs from the source string. */
+		_Check_return_ inline bool operator !=(_In_ const _CharTy *other) const
+		{
+			return std::operator!=(*this, other);
 		}
 
 		/* Appends string str. */

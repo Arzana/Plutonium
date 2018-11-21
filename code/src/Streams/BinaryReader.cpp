@@ -171,14 +171,14 @@ bool Pu::BinaryReader::CheckOverflow(size_t bytesNeeded, bool raise)
 bool Pu::BinaryReader::ReadBool(void)
 {
 	const bool result = PeekBool();
-	position += 1;
+	position += sizeof(bool);
 	return result;
 }
 
 byte Pu::BinaryReader::ReadByte(void)
 {
 	const byte result = PeekByte();
-	position += 1;
+	position += sizeof(byte);
 	return result;
 }
 

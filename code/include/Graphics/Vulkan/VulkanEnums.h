@@ -1098,6 +1098,8 @@ namespace Pu
 	/* Defines the shader stages. */
 	enum class ShaderStageFlag
 	{
+		/* Shader stage is unknown. */
+		Unknown = 0x00000000,
 		/* Specifies the vertex stage. */
 		Vertex = 0x00000001,
 		/* Specifies the tessellation control stage. */

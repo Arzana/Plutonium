@@ -1,6 +1,9 @@
 #version 460 core
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+
+layout (location = 0) in vec2 Uv;
+layout (location = 0) uniform vec4 Diffuse;
 
 void main()
 {

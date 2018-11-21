@@ -1208,6 +1208,33 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information required to create a new shader module. */
+	struct ShaderModuleCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the size (in bytes) of the code. */
+		size_t CodeSize;
+		/* Specifies the SPIR-V code used to create the shader module. */
+		const uint32 *Code;
+
+		/* Creates an empty instance of the shader module create info object. */
+		ShaderModuleCreateInfo(void)
+			: ShaderModuleCreateInfo("")
+		{}
+
+		/* Initializes a new instance of the shader module create info object. */
+		ShaderModuleCreateInfo(_In_ string code)
+			: Type(StructureType::ShaderModuleCreateInfo), Next(nullptr), Flags(0),
+			CodeSize(code.length()), Code(reinterpret_cast<const uint32*>(code.data()))
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

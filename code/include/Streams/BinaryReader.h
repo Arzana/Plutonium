@@ -107,6 +107,24 @@ namespace Pu
 		Seeks the stream, increasing it's read position by a sepcified amount.
 		*/
 		virtual void Seek(_In_ SeekOrigin from, _In_ int64 amount);
+		/* Advances the reading position as if reading a the specified type. */
+		template <typename _Ty>
+		inline void Advance(void)
+		{
+			Seek(SeekOrigin::Current, static_cast<int64>(sizeof(_Ty)));
+		}
+
+		/* Gets the size (in bytes) of the binary stream. */
+		inline size_t GetSize(void) const
+		{
+			return size;
+		}
+
+		/* Gets the current read position (in bytes) of the reader. */
+		inline size_t GetLocation(void) const
+		{
+			return position;
+		}
 
 	private:
 		const byte *data;

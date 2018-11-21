@@ -142,6 +142,7 @@ vector<string> Pu::_CrtGetEnviromentVariables(const char * name)
 		const string error = _CrtFormatError(result);
 		Log::Error("Unable to get enviroment variables (%s)!", error.c_str());
 		free(raw);
+		return vector<string>();
 	}
 	else
 	{
@@ -170,18 +171,16 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	HANDLE childStdOutRead = nullptr, childStdOutWrite = nullptr;
 	if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &sAttr, 0))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Warning("Unable to create read and write pipe for child process STDOUT (%s)!", error.c_str());
+		Log::Warning("Unable to create read and write pipe for child process STDOUT (%s)!", _CrtGetErrorString().c_str());
 	}
 
 	/* Ensure that the read handle to the pipe for STDOUT is not inherited. */
 	if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Warning("Unable to ensure STDOUT is not inherited (%s)!", error.c_str());
+		Log::Warning("Unable to ensure STDOUT is not inherited (%s)!", _CrtGetErrorString().c_str());
 	}
 
-	/* Create startup information object. */
+	/* Specify that the child should use the specified STDOUT handles. */
 	STARTUPINFO sInfo = CreateZeroStruct<STARTUPINFO>();
 	sInfo.cb = sizeof(STARTUPINFO);
 	sInfo.hStdError = childStdOutWrite;
@@ -195,6 +194,7 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	bool started = false;
 	do
 	{
+		/* Create the final process name and add it to the argument list as the first argument (C expects this). */
 		const string pname = dir.length() > 0 ? dir + '\\' + name : name;
 		const string argv = pname + ' ' + arguments;
 
@@ -219,32 +219,34 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	/* If the process was successfully started, let it run and delete it's handle after the timeout. */
 	if (started)
 	{
-		WaitForSingleObject(pInfo.hProcess, static_cast<DWORD>(timeout));
-
-		/* Get the STDOUT buffer size. */
-		DWORD requiredSize, read = 0;
-		if (!PeekNamedPipe(childStdOutRead, nullptr, 0, nullptr, &requiredSize, nullptr))
+		/* Wait for the process to exit or until the timeout has passed.. */
+		const DWORD waitResult = WaitForSingleObject(pInfo.hProcess, static_cast<DWORD>(timeout));
+		if (waitResult == WAIT_OBJECT_0)
 		{
-			const string error = _CrtGetErrorString();
-			Log::Warning("Unable to request STDOUT pipe size (%s)!", error.c_str());
+			/* Get the STDOUT buffer size. */
+			DWORD requiredSize, read = 0;
+			if (PeekNamedPipe(childStdOutRead, nullptr, 0, nullptr, &requiredSize, nullptr))
+			{
+				/* Reserve space for log and read the log. */
+				output.resize(requiredSize);
+				if (!ReadFile(childStdOutRead, output.data(), requiredSize, &read, nullptr))
+				{
+					Log::Warning("Unable to read from STDOUT pipe (%s)!", _CrtGetErrorString().c_str());
+				}
+			}
+			else Log::Warning("Unable to request STDOUT pipe size (%s)!", _CrtGetErrorString().c_str());
 		}
+		else if (waitResult == WAIT_TIMEOUT) Log::Warning("Child process '%s' has timed out, releasing handle!", name);
+		else if (waitResult == WAIT_FAILED)	Log::Error("Child process '%s' has crashed (%s)!", name, _CrtGetErrorString().c_str());
 
-		/* Reserve space for log and read the log. */
-		output.resize(requiredSize);
-		if (!ReadFile(childStdOutRead, output.data(), requiredSize, &read, nullptr))
-		{
-			const string error = _CrtGetErrorString();
-			Log::Warning("Unable to read from STDOUT pipe (%s)!", error.c_str());
-		}
-
+		/* Close handles to the child. */
 		CloseHandle(pInfo.hProcess);
 		CloseHandle(pInfo.hThread);
 		return true;
 	}
 
 	/* Process creation failed so log error and return false. */
-	const string error = _CrtGetErrorString();
-	Log::Error("Unable to start process '%s' (%s)!", name, error.c_str());
+	Log::Error("Unable to start process '%s' (%s)!", name, _CrtGetErrorString().c_str());
 	return false;
 #else
 	Log::Warning("Creating child processes is not supported on this platform!");

@@ -6,6 +6,7 @@
 #include "Core/Platform/Windows/Windows.h"
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 
 using namespace Pu;
 
@@ -95,6 +96,11 @@ string Pu::FileReader::GetCurrentDirectory(void)
 	Log::Warning("Cannot get working directory on this platform!");
 	return "";
 #endif
+}
+
+bool Pu::FileReader::FileExists(const char * path)
+{
+	return std::filesystem::exists(path);
 }
 
 void Pu::FileReader::Close(void)
@@ -254,7 +260,7 @@ void Pu::FileReader::Open(void)
 			open = true;
 			Log::Verbose("Successfully opened file '%s'.", fname.c_str());
 		}
-		else Log::Error("Failed to open file '%s' (%s)!", fname.c_str(), FileError().c_str());
+		else Log::Error("Failed to open file '%s' (%s)!", fname.c_str(), _CrtGetErrorString().c_str());
 	}
 	else Log::Warning("Cannot open already opened file '%s'!", fname.c_str());
 }

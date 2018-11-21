@@ -216,6 +216,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
@@ -258,6 +259,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />

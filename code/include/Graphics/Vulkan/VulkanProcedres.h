@@ -40,6 +40,8 @@ namespace Pu
 	using PFN_vkCmdPipelineBarrier = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ uint32 memoryBarrierCount, _In_opt_ const MemoryBarrier *memoryBarriers, _In_ uint32 bufferMemoryBarrierCount, _In_opt_ BufferMemoryBarrier *bufferMemoryBarriers, _In_ uint32 imageMemoryBarrierCount, _In_opt_ const ImageMemoryBarrier *imageMemoryBarriers);
 	using PFN_vkCreateRenderPass = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const RenderPassCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ RenderPassHndl *renderPass);
 	using PFN_vkDestroyRenderPass = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ RenderPassHndl renderPass, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateShaderModule = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const ShaderModuleCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ ShaderModuleHndl *shaderModule);
+	using PFN_vkDestroyShaderModule = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ ShaderModuleHndl shaderModule, _In_opt_ const AllocationCallbacks *allocator);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

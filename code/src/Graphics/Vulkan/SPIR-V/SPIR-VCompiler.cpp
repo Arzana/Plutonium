@@ -11,21 +11,20 @@ using namespace Pu;
 bool Pu::SPIRV::loaded = false;
 string Pu::SPIRV::glslUtils = "";
 
-string Pu::SPIRV::FromGLSL(const string & src)
-{
-	return "";
-}
-
 string Pu::SPIRV::FromGLSLPath(const string & path)
 {
 	/* Make sure the directory is created. */
 	FileWriter::CreateDirectory(BIN_DIR);
 	const string curDir = FileReader::GetCurrentDirectory() + '\\';
 
-	/* Create arguments for the validator. */
+	/* 
+	Create arguments for the validator. 
+	-V: Indicates that a SPIR-V binary shuold be created with the latest version.
+	-o: Specifies the output path.
+	*/
 	const string fname = _CrtGetFileName(path);
 	const string output = curDir + BIN_DIR + fname + ".spv";
-	const string args = "-V -H -o \"" + output + "\" \"" + curDir + path + '\"';
+	const string args = "-V -o \"" + output + "\" \"" + curDir + path + '\"';
 	string log;
 
 	/* Run the validator. */
@@ -33,19 +32,26 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	HandleGLSLValidateLog(log);
 
 	/* Log either success or failure. */
-	if (succeeded) Log::Verbose("Compiled GLSL source '%s' to SPIR-V.", fname.c_str());
-	else Log::Error("Unable to compile GLSL source to SPIR-V (Could not run validator)!");
-
-	return "";
+	if (succeeded)
+	{
+		Log::Verbose("Compiled GLSL source '%s' to SPIR-V.", fname.c_str());
+		return output;
+	}
+	else
+	{
+		Log::Error("Unable to compile GLSL source to SPIR-V (Could not run validator)!");
+		return "";
+	}
 }
 
 void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
 {
-	/* Split the log into it's lines. */
+	/* Split the log into it's lines and remove empty lines. */
 	vector<string> lines = log.split("\r\n");
+	lines.remove("\n");
 
 	/* Only log if something has been logged. */
-	if (lines.size() > 0)
+	if (lines.size() > 1)
 	{
 		/* Log header. */
 		Log::Verbose("glslangValidator log:");

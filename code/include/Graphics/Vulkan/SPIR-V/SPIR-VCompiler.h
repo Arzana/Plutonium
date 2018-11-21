@@ -7,8 +7,6 @@ namespace Pu
 	class SPIRV
 	{
 	public:
-		/* Converts from GLSL source code to a SPIR-V source. */
-		_Check_return_ static string FromGLSL(_In_ const string &src);
 		/* Converts from a GLSL code file to SPIR-V source. */
 		_Check_return_ static string FromGLSLPath(_In_ const string &path);
 

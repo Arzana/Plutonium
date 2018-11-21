@@ -27,6 +27,8 @@ namespace Pu
 
 		/* Get the current (or working) directory. */
 		_Check_return_ static string GetCurrentDirectory(void);
+		/* Checks whether the specified file exists. */
+		_Check_return_ static bool FileExists(_In_ const char *path);
 
 		/* Gets whether the stream can be used. */
 		_Check_return_ inline bool IsOpen(void) const

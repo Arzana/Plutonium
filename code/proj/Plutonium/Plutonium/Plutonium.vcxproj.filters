@@ -282,6 +282,9 @@
     <ClInclude Include="..\..\..\include\Streams\FileWriter.h">
       <Filter>Header Files\Streams</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -373,6 +376,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp">
       <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

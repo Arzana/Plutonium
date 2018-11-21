@@ -94,6 +94,10 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	/* Render pass related functions. */
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateRenderPass);
 	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyRenderPass);
+
+	/* Shader module related functions. */
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateShaderModule);
+	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyShaderModule);
 }
 
 void Pu::LogicalDevice::Destory(void)
