@@ -170,7 +170,9 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\Core\Collections\Vector.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\vector.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
@@ -215,7 +217,10 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIRV.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h" />
@@ -259,6 +264,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />

@@ -97,6 +97,9 @@
     <Filter Include="Source Files\Graphics\Vulkan\SPIR-V">
       <UniqueIdentifier>{39781373-c1ac-42c5-8a00-380992b0ee5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Threading\Tasks">
+      <UniqueIdentifier>{f273e481-f0a2-452d-966a-98b1ba9294b6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -152,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\FileUtils.h">
       <Filter>Header Files\Streams</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Collections\Vector.h">
-      <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
@@ -285,6 +285,24 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIRV.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\squeue.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\pool.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\vector.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -378,6 +396,9 @@
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp">
       <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClCompile>
   </ItemGroup>

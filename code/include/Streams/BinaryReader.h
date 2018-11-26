@@ -126,6 +126,12 @@ namespace Pu
 			return position;
 		}
 
+		/* Gets the underlying data stream. */
+		inline const void *GetData(void) const
+		{
+			return data;
+		}
+
 	private:
 		const byte *data;
 		size_t size, position;

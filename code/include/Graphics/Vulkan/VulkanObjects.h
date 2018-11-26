@@ -1225,13 +1225,13 @@ namespace Pu
 
 		/* Creates an empty instance of the shader module create info object. */
 		ShaderModuleCreateInfo(void)
-			: ShaderModuleCreateInfo("")
+			: ShaderModuleCreateInfo(0, nullptr)
 		{}
 
 		/* Initializes a new instance of the shader module create info object. */
-		ShaderModuleCreateInfo(_In_ string code)
+		ShaderModuleCreateInfo(_In_ size_t size, _In_ const void *code)
 			: Type(StructureType::ShaderModuleCreateInfo), Next(nullptr), Flags(0),
-			CodeSize(code.length()), Code(reinterpret_cast<const uint32*>(code.data()))
+			CodeSize(size), Code(reinterpret_cast<const uint32*>(code))
 		{}
 	};
 
