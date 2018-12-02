@@ -8,6 +8,8 @@
 
 using namespace Pu;
 
+//#define LOG_HUMAN_READABLE_SPIRV
+
 bool Pu::SPIRV::loaded = false;
 string Pu::SPIRV::glslUtils = "";
 
@@ -24,7 +26,11 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	*/
 	const string fname = _CrtGetFileName(path);
 	const string output = curDir + BIN_DIR + fname + ".spv";
+#ifdef LOG_HUMAN_READABLE_SPIRV
+	const string args = "-V -H -o \"" + output + "\" \"" + curDir + path + '\"';
+#else
 	const string args = "-V -o \"" + output + "\" \"" + curDir + path + '\"';
+#endif
 	string log;
 
 	/* Run the validator. */
@@ -50,7 +56,12 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
 	vector<string> lines = log.split("\r\n");
 	lines.remove("\n");
 
-	/* Only log if something has been logged. */
+	/*
+	Only log if something has been logged.
+	There are only two one line messages:
+	- File cannot be opened (we search for a compiled version later so that will crash if this is the case).
+	- Echo back file path (useless message).
+	*/
 	if (lines.size() > 1)
 	{
 		/* Log header. */

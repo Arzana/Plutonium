@@ -24,6 +24,8 @@ namespace Pu
 		};
 
 		Task(_In_ Task&&) = delete;
+		/* Releases the resources associated with the task. */
+		virtual ~Task(void) {}
 
 		_Check_return_ Task& operator =(_In_ const Task&) = delete;
 		_Check_return_ Task& operator =(_In_ Task&&) = delete;
@@ -42,6 +44,9 @@ namespace Pu
 			return childCnt.load();
 		}
 
+		/* Sets the parent task of this task. */
+		void SetParent(_In_ Task &task);
+
 	protected:
 		friend class TaskScheduler;
 
@@ -50,9 +55,12 @@ namespace Pu
 		/* Specifies the parent task. */
 		Task* parent;
 
+		/* Initializes an empty instance of a task. */
 		Task(void);
+		/* Initializes a task as a child of another task. */
 		Task(_In_ Task &parent);
 
+		/* Marks a child task as complete, used mainly by the scheduler. */
 		void MarkChildAsComplete(_In_ Task &child);
 
 	private:

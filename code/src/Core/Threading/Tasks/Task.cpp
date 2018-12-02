@@ -6,8 +6,16 @@ Pu::Task::Task(void)
 {}
 
 Pu::Task::Task(Task & parent)
-	: scheduler(nullptr), parent(&parent), childCnt(0)
-{}
+	: scheduler(nullptr), childCnt(0)
+{
+	SetParent(parent);
+}
+
+void Pu::Task::SetParent(Task & task)
+{
+	parent = &task;
+	++task.childCnt;
+}
 
 void Pu::Task::MarkChildAsComplete(Task & child)
 {

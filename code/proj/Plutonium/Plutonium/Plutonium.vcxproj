@@ -220,7 +220,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h" />
@@ -268,6 +270,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
@@ -282,6 +285,7 @@
     <Natvis Include="..\..\..\visualizers\AABB.natvis" />
     <Natvis Include="..\..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis" />
+    <Natvis Include="..\..\..\visualizers\FieldInfo.natvis" />
     <Natvis Include="..\..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\..\visualizers\Rectangle.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector2.natvis" />

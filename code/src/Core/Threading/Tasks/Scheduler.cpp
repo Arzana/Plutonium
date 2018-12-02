@@ -7,7 +7,7 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 	for (size_t i = 0; i < threadCnt; i++)
 	{
 		/* Set constant name. */
-		string name("PuWorker");
+		string name("PuWrkr");
 		name += std::to_string(i);
 
 		/* Create worker thread. */
@@ -16,7 +16,7 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 
 		/* Push threads to buffers. */
 		tasks.emplace_back(sdeque<Task*>());
-		waits.emplace_back(sdeque<std::pair<Task*, Task::Result>>());
+		waits.emplace_back(std::map<Task*, Task::Result>());
 		threads.emplace_back(worker);
 
 		/* Start thread. */
@@ -51,7 +51,8 @@ size_t Pu::TaskScheduler::ChooseThread(void) const
 
 	for (size_t i = 0; i < threads.size(); i++)
 	{
-		const size_t curSize = tasks.at(i).size();
+		/* Count both queued tasks and waiting tasks. */
+		const size_t curSize = tasks[i].size() + waits[i].size();
 		if (curSize < lowestCnt)
 		{
 			lowestCnt = curSize;
@@ -59,6 +60,7 @@ size_t Pu::TaskScheduler::ChooseThread(void) const
 		}
 	}
 
+	/* Should only occur if the user descides zero threads is enough. */
 #ifdef _DEBUG
 	if (lowestIdx == -1)
 	{
@@ -99,14 +101,14 @@ bool Pu::TaskScheduler::ThreadTryWait(size_t idx)
 	/* Check if any tasks are waiting for sub tasks. */
 	if (waits[idx].empty()) return false;
 
-	for (size_t i = 0; i < waits.size(); i++)
+	for (const std::pair<Task*, Task::Result> &cur : waits[idx])
 	{
-		/* Check if the tasks still has active childs. */
-		Task* cur = waits[idx][i].first;
-		if (cur->GetChildCount()) continue;
+		/* Check if the task still has active childs. */
+		if (cur.first->GetChildCount()) continue;
+		waits[idx].erase(cur.first);
 
 		/* The current task has no more active childs, so continue. */
-		HandleTaskResult(idx, cur, cur->Continue());
+		HandleTaskResult(idx, cur.first, cur.first->Continue());
 		return true;
 	}
 
@@ -116,13 +118,16 @@ bool Pu::TaskScheduler::ThreadTryWait(size_t idx)
 
 bool Pu::TaskScheduler::ThreadTryRun(size_t idx)
 {
-	/* Check if any tasks are in the queue. */
-	if (tasks[idx].empty()) return false;
+	/* Check if a task can be pulled from the back of the queue. */
+	Task *task;
+	if (tasks[idx].try_pop_back(task))
+	{
+		/* Run task. */
+		HandleTaskResult(idx, task, task->Execute());
+		return true;
+	}
 
-	/* Get the task that was added last to hopefully still have the cache page available. */
-	Task* task = tasks[idx].pop_back();
-	HandleTaskResult(idx, task, task->Execute());
-	return true;
+	return false;
 }
 
 bool Pu::TaskScheduler::ThreadTrySteal(size_t idx)
@@ -133,7 +138,7 @@ bool Pu::TaskScheduler::ThreadTrySteal(size_t idx)
 		if (i == idx) continue;
 
 		/* Check if a task can be stolen from the front of the queue. */
-		Task *task = nullptr;
+		Task *task;
 		if (tasks[i].try_pop_front(task))
 		{
 			/* Run the stolen task and return. */
@@ -150,6 +155,9 @@ void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result r
 {
 	/* If an immediate continuation task is set then just append that to our queue. */
 	if (result.Continuation) tasks[idx].push_back(result.Continuation);
+
+	/* If the tasks has childs that needs waiting upon, push it to the wait list. */
+	if (task->GetChildCount() > 0) waits[idx].emplace(task, result);
 
 	/* Mark the child as completed if needed. */
 	if (task->GetChildCount() < 1 && task->parent) task->parent->MarkChildAsComplete(*task);

@@ -4,26 +4,20 @@
 #include "Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
-Pu::Subpass::Subpass(LogicalDevice & device, const char * path)
+const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
+
+Pu::Subpass::Subpass(LogicalDevice & device)
+	: parent(device), hndl(nullptr), stage(ShaderStageFlag::Unknown), loaded(false)
+{}
+
+Pu::Subpass::Subpass(LogicalDevice & device, const string & path)
 	: parent(device)
 {
-	const string ext = _CrtGetFileExtension(path);
-	if (ext == "spv")
-	{
-		/* If the input shader is already defined as binary just load it. */
-		Create(path);
-		SetStage(_CrtGetFileExtension(string(path, strlen(path) - 4)));
-	}
-	else
-	{
-		/* First compile the shader to SPIR-V and then load it. */
-		Create(SPIRV::FromGLSLPath(path));
-		SetStage(ext);
-	}
+	Load(path);
 }
 
 Pu::Subpass::Subpass(Subpass && value)
-	: parent(value.parent), hndl(value.hndl), stage(value.stage)
+	: parent(value.parent), hndl(value.hndl), stage(value.stage), fields(std::move(value.fields)), loaded(value.IsLoaded())
 {
 	value.hndl = nullptr;
 }
@@ -36,11 +30,45 @@ Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
 		parent = std::move(other.parent);
 		hndl = other.hndl;
 		stage = other.stage;
+		fields = std::move(other.fields);
+		loaded.store(other.IsLoaded());
 
 		other.hndl = nullptr;
+		other.loaded.store(false);
 	}
 
 	return *this;
+}
+
+const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
+{
+	for (const FieldInfo &cur : fields)
+	{
+		if (name == cur.Name) return cur;
+	}
+
+	return invalid;
+}
+
+void Pu::Subpass::Load(const string & path)
+{
+	const string ext = _CrtGetFileExtension(path);
+	if (ext == "spv")
+	{
+		/* If the input shader is already defined as binary just load it. */
+		Create(path);
+		SetStage(_CrtGetFileExtension(string(path, path.length() - 4)));
+	}
+	else
+	{
+		/* First compile the shader to SPIR-V and then load it. */
+		Create(SPIRV::FromGLSLPath(path));
+		SetStage(ext);
+	}
+
+	/* Set the information of the subpass. */
+	SetFieldInfo();
+	loaded.store(true);
 }
 
 void Pu::Subpass::Create(const string & path)
@@ -59,6 +87,21 @@ void Pu::Subpass::Create(const string & path)
 		spvr.HandleAllModules(SPIRVReader::ModuleHandler(*this, &Subpass::HandleModule));
 	}
 	else Log::Fatal("Unable to load shader module!");
+}
+
+void Pu::Subpass::SetFieldInfo(void)
+{
+	/* Create field information for all fields. */
+	for (const auto&[id, typeId, storage] : variables)
+	{
+		fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage);
+	}
+
+	/* Clear the temporary buffers. */
+	names.clear();
+	typedefs.clear();
+	types.clear();
+	variables.clear();
 }
 
 void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
@@ -185,4 +228,14 @@ void Pu::Subpass::SetStage(const string & ext)
 void Pu::Subpass::Destroy(void)
 {
 	if (hndl) parent.vkDestroyShaderModule(parent.hndl, hndl, nullptr);
+}
+
+Pu::Subpass::LoadTask::LoadTask(Subpass & result, const string & path)
+	: result(result), path(path)
+{}
+
+Pu::Task::Result Pu::Subpass::LoadTask::Execute(void)
+{
+	result.Load(path);
+	return Result();
 }

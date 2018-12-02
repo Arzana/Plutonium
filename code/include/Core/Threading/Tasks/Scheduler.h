@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include "Core/Collections/sdeque.h"
 #include "Core/Threading/Tasks/Task.h"
 #include "Core/Threading/PuThread.h"
@@ -13,7 +14,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a task scheduler with a specified amount of channels. */
-		TaskScheduler(_In_ size_t threadCnt = PuThread::GetMaxConcurrent());
+		TaskScheduler(_In_ size_t threadCnt = PuThread::GetMaxConcurrent() - 1);
 		TaskScheduler(_In_ const TaskScheduler&) = delete;
 		TaskScheduler(_In_ TaskScheduler&&) = delete;
 		/* Releases the resources allocated by the scheduler. */
@@ -28,7 +29,7 @@ namespace Pu
 	private: 
 		vector<TickThread*> threads;
 		vector<sdeque<Task*>> tasks;
-		vector<sdeque<std::pair<Task*, Task::Result>>> waits;
+		vector<std::map<Task*, Task::Result>> waits;
 
 		size_t ChooseThread(void) const;
 		void ThreadTick(TickThread&, UserEventArgs args);

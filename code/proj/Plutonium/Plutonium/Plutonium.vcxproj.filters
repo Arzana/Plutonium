@@ -318,6 +318,12 @@
     <ClInclude Include="..\..\..\include\Core\Events\UserEventArgs.h">
       <Filter>Header Files\Core\Events</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -422,6 +428,9 @@
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp">
       <Filter>Source Files\Core\Threading\Tasks</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Renderpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -446,6 +455,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\AABB.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\FieldInfo.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

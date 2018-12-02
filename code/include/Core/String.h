@@ -267,12 +267,12 @@ namespace Pu
 		/* Gets the last offset of any of the specified chars, starting from the specified position (if not npos). */
 		_Check_return_ inline size_type find_last_of(_In_ std::initializer_list<_CharTy> init, _In_opt_ size_type pos = string_t::npos) const
 		{
-			size_type result = minv<size_type>();
+			size_type result = string_t::npos;
 
 			for (const _CharTy c : init)
 			{
 				const size_type off = find_last_of(c, pos);
-				if (off != string_t::npos) result = max(result, off);
+				if (off != string_t::npos) result = result != string_t::npos ? max(result, off) : off;
 			}
 
 			return result;

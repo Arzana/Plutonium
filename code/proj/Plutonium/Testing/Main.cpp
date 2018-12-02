@@ -3,6 +3,9 @@
 #include <Core/Diagnostics/Logging.h>
 #include <Core/EnumUtils.h>
 
+#include <Core/Threading/Tasks/Scheduler.h>
+#include <Graphics/Vulkan/Renderpass.h>
+
 using namespace Pu;
 
 int main(int, char**)
@@ -16,7 +19,8 @@ int main(int, char**)
 
 	constexpr float priorities[1] = { 1.0f };
 	constexpr const char *deviceExtensions[1] = { u8"VK_KHR_swapchain" };
-	size_t selectedDevice = 0, selectedFamily = 0;
+	size_t selectedDevice = 0;
+	uint32 selectedFamily = 0;
 
 	/* Get best physical device. */
 	const auto devices = instance.GetPhysicalDevices();
@@ -50,6 +54,13 @@ int main(int, char**)
 	deviceInfo.EnabledExtensionCount = 1;
 	deviceInfo.EnabledExtensionNames = deviceExtensions;
 	LogicalDevice device = devices.at(selectedDevice).CreateLogicalDevice(&deviceInfo);
+
+	TaskScheduler scheduler;
+	Renderpass renderpass(device);
+	Renderpass::LoadTask loader(renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/Triangle.frag" });
+	scheduler.Spawn(loader);
+
+	while (!renderpass.IsLoaded()) {}
 
 	/* Create game window. */
 	GameWindow *gameWnd = new GameWindow(*wnd, device);

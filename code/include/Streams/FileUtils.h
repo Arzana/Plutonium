@@ -25,7 +25,7 @@ namespace Pu
 	_Check_return_ inline string _CrtGetFileName(_In_ string path)
 	{
 		size_t offset = path.find_last_of({ '/', '\\' });
-		if (offset == string::npos) offset = 0;
+		if (offset == string::npos) offset = static_cast<size_t>(-1);
 
 		return path.substr(offset + 1, path.length() - offset);
 	}

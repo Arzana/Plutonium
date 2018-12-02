@@ -30,6 +30,12 @@ namespace Pu
 		/* Acquires the next image index available in the swapchain. */
 		_Check_return_ uint32 NextImage(_In_ const Semaphore &semaphore, _In_opt_ uint64 timeout = 16666666) const;
 
+		/* Gets the attachment information for one of the swapchain images. */
+		_Check_return_ inline const AttachmentDescription& GetAttachmentDescription(void) const
+		{
+			return attachmentDesc;
+		}
+
 		/* Gets the image handle at the specified index. */
 		_Check_return_ inline ImageHndl GetImage(_In_ uint32 index) const
 		{
@@ -50,6 +56,7 @@ namespace Pu
 		SwapchainHndl hndl;
 		vector<ImageHndl> images;
 		Format format;
+		AttachmentDescription attachmentDesc;
 
 		void Destroy(void);
 	};
