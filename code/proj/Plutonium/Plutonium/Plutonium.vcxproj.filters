@@ -100,6 +100,9 @@
     <Filter Include="Header Files\Core\Threading\Tasks">
       <UniqueIdentifier>{f273e481-f0a2-452d-966a-98b1ba9294b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Core\Threading\Tasks">
+      <UniqueIdentifier>{b41e4f64-42a6-4e78-b07b-a3a133e0930a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -303,6 +306,18 @@
     <ClInclude Include="..\..\..\include\Core\Collections\vector.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Task.h">
+      <Filter>Header Files\Core\Threading\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Scheduler.h">
+      <Filter>Header Files\Core\Threading\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Events\UserEventArgs.h">
+      <Filter>Header Files\Core\Events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -400,6 +415,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp">
       <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Task.cpp">
+      <Filter>Source Files\Core\Threading\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp">
+      <Filter>Source Files\Core\Threading\Tasks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

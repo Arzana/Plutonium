@@ -1,8 +1,8 @@
 #include "Core/Threading/TickThread.h"
 #include "Core/Threading/ThreadUtils.h"
 
-Pu::TickThread::TickThread(const char * name, uint32 cooldown)
-	: PuThread(name), cooldown(cooldown),
+Pu::TickThread::TickThread(const char * name, uint32 cooldown, const void * param)
+	: PuThread(name), cooldown(cooldown), args(param),
 	Initialize("TickThreadInitialize"), Tick("TickThreadTick"), Terminate("TickThreadTerminate")
 {
 	allow.store(true);
@@ -30,12 +30,12 @@ void Pu::TickThread::_CrtPuThreadMain(void)
 
 	/* Initialize running thread. */
 	Log::Verbose("Initializing thread: %s.", name.c_str());
-	Initialize.Post(self, EventArgs());
+	Initialize.Post(self, args);
 
 	/* Run until Stop is called. */
 	while (allow.load())
 	{
-		Tick.Post(self, EventArgs());
+		Tick.Post(self, args);
 
 		/* Make sure we don't update too often. */
 		if (cooldown) std::this_thread::sleep_for(std::chrono::milliseconds(cooldown));
@@ -43,5 +43,5 @@ void Pu::TickThread::_CrtPuThreadMain(void)
 
 	/* Finalize running thread. */
 	Log::Verbose("Terminating thread: %s.", name.c_str());
-	Terminate.Post(self, EventArgs());
+	Terminate.Post(self, args);
 }

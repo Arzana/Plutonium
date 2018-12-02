@@ -30,6 +30,8 @@ namespace Pu
 
 		/* Commands the caller thread to sleep for a specified amount of time. */
 		static void Sleep(_In_ uint64 milliseconds);
+		/* Gets the maximum amount of concurrent threads supported. */
+		static size_t GetMaxConcurrent(void);
 
 	protected:
 		/* Entry point for the thread, gets called after Start on the underlying thread. */

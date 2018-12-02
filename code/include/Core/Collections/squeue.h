@@ -17,11 +17,11 @@ namespace Pu
 			: queue_t()
 		{}
 		/* Copy constructor. */
-		squeue(_In_ const squeue &value)
+		squeue(_In_ const squeue<_Ty> &value)
 			: queue_t(value)
 		{}
 		/* Move constructor. */
-		squeue(_In_ squeue &&value)
+		squeue(_In_ squeue<_Ty> &&value)
 			: queue_t(std::move(value)), lock(std::move(value.lock))
 		{}
 
@@ -41,121 +41,101 @@ namespace Pu
 		/* Gets the element at the front of the queue. */
 		_Check_return_ inline _Ty& front(void)
 		{
-			EnterReadLock();
+			lock.lock();
 			_Ty& elem = queue_t::front();
-			LeaveReadLock();
+			lock.unlock();
 			return elem;
 		}
 
 		/* Gets the element at the front of the queue. */
 		_Check_return_ inline const _Ty& front(void) const
 		{
-			EnterReadLock();
+			lock.lock();
 			const _Ty& elem = queue_t::front();
-			LeaveReadLock();
+			lock.unlock();
 			return elem;
 		}
 
 		/* Gets the element at the back of the queue. */
 		_Check_return_ inline _Ty& back(void)
 		{
-			EnterReadLock();
+			lock.lock();
 			_Ty& elem = queue_t::back();
-			LeaveReadLock();
+			lock.unlock();
 			return elem;
 		}
 
 		/* Gets the element at the back of the queue. */
 		_Check_return_ inline const _Ty& back(void) const
 		{
-			EnterReadLock();
+			lock.lock();
 			const _Ty& elem = queue_t::back();
-			LeaveReadLock();
+			lock.unlock();
 			return elem;
 		}
 
 		/* Gets whether the queue is empty. */
 		_Check_return_ inline bool empty(void) const
 		{
-			EnterReadLock();
+			lock.lock();
 			const bool isEmpty = queue_t::empty();
-			LeaveReadLock();
+			lock.unlock();
 			return isEmpty;
 		}
 
 		/* Gets the amount of elements in the queue. */
 		_Check_return_ size_t inline size(void) const
 		{
-			EnterReadLock();
+			lock.lock();
 			const size_t size = queue_t::size();
-			LeaveReadLock();
+			lock.unlock();
 			return size;
 		}
 
 		/* Pushes a new element to the back of the queue. */
 		void push(_In_ const _Ty &value)
 		{
-			EnterWriteLock();
+			lock.lock_shared();
 			queue_t::push(value);
-			LeaveWriteLock();
+			lock.unlock_shared();
 		}
 
 		/* Pushes a new element to the back of the queue. */
 		void push(_In_ _Ty &&value)
 		{
-			EnterWriteLock();
+			lock.lock_shared();
 			queue_t::push(std::move(value));
-			LeaveWriteLock();
+			lock.unlock_shared();
 		}
 
 		/* Pushes a unspecified amount of elements to the back of the queue. */
 		template <typename ..._ValTy>
 		void push(_In_ _ValTy &&...values)
 		{
-			EnterWriteLock();
+			lock.lock_shared();
 			queue_t::emplace(std::move(values)...);
-			LeaveWriteLock();
+			lock.unlock_shared();
 		}
 
 		/* Removes the element at the front of the queue. */
 		void pop(void)
 		{
-			EnterWriteLock();
+			lock.lock_shared();
 			queue_t::pop();
-			LeaveWriteLock();
+			lock.unlock_shared();
 		}
 
 		/* Removes the element at the front of the queue and return it. */
 		_Check_return_ _Ty& pop_front(void)
 		{
-			EnterWriteLock();
+			lock.lock_shared();
 			_Ty &elem = queue_t::front();
 			queue_t::pop();
-			LeaveWriteLock();
+			lock.unlock_shared();
 			return elem;
 		}
 
 	private: 
 		mutable std::shared_mutex lock;
-
-		inline void EnterReadLock(void) const
-		{
-			lock.lock();
-		}
-
-		inline void EnterWriteLock(void)
-		{
-			lock.lock_shared();
-		}
-
-		inline void LeaveReadLock(void) const
-		{
-			lock.unlock();
-		}
-
-		inline void LeaveWriteLock(void)
-		{
-			lock.unlock_shared();
-		}
 	};
 }

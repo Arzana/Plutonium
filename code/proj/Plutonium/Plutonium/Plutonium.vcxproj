@@ -171,6 +171,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\vector.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="..\..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Events\EventBus.h" />
     <ClInclude Include="..\..\..\include\Core\Events\EventSubscriber.h" />
+    <ClInclude Include="..\..\..\include\Core\Events\UserEventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Events\ValueChangedEventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Math\AABB.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Basics.h" />
@@ -202,6 +204,8 @@
     <ClInclude Include="..\..\..\include\Core\SafeMemory.h" />
     <ClInclude Include="..\..\..\include\Core\String.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h" />
+    <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Scheduler.h" />
+    <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Task.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
@@ -250,6 +254,8 @@
     <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Task.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />

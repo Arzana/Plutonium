@@ -98,7 +98,6 @@ namespace Pu
 		_Ty& recycle(_ArgsTy &&...args)
 		{
 			ptr_t raw = heap.pop_front();
-			alloc_t::destroy(allocator, raw);
 			*raw = _Ty(args...);
 			return *raw;
 		}

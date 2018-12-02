@@ -133,3 +133,8 @@ void Pu::PuThread::Sleep(uint64 milliseconds)
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
+
+size_t Pu::PuThread::GetMaxConcurrent(void)
+{
+	return std::thread::hardware_concurrency();
+}

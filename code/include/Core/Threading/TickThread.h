@@ -1,24 +1,24 @@
 #pragma once
 #include "Core\Events\EventBus.h"
-#include "Core\Events\EventArgs.h"
+#include "Core\Events\UserEventArgs.h"
 #include "PuThread.h"
 
 namespace Pu
 {
 	/* Defines a continually ticking thread. */
-	struct TickThread
-		: PuThread
+	class TickThread
+		: public PuThread
 	{
 	public:
 		/* Occurs before the tick routine is started. */
-		EventBus<const TickThread, EventArgs> Initialize;
+		EventBus<const TickThread, UserEventArgs> Initialize;
 		/* Called untill a stop is requested. */
-		EventBus<TickThread, EventArgs> Tick;
+		EventBus<TickThread, UserEventArgs> Tick;
 		/* Occurs after the tick routine has stopped. */
-		EventBus<const TickThread, EventArgs> Terminate;
+		EventBus<const TickThread, UserEventArgs> Terminate;
 
 		/* Initializes and starts a new instance of a continually ticking thread (cooldown is in milliseconds). */
-		TickThread(_In_ const char *name, _In_opt_ uint32 cooldown = 0);
+		TickThread(_In_ const char *name, _In_opt_ uint32 cooldown = 0, _In_opt_ const void *param = nullptr);
 		TickThread(_In_ const TickThread &value) = delete;
 		TickThread(_In_ TickThread &&value) = delete;
 		/* Stops the thread (if needed) and releases the resources allocated. */
@@ -30,7 +30,7 @@ namespace Pu
 		/* Requests the thread to stop excecution. */
 		void Stop(void);
 		/* Requests the thread to stop excecution and waits for the thread to terminate. */
-	 	_Check_return_ bool StopWait(void);
+		_Check_return_ bool StopWait(void);
 
 	protected:
 		/* Entry point for the thread. */
@@ -39,5 +39,6 @@ namespace Pu
 	private:
 		mutable std::atomic_bool allow;
 		const uint32 cooldown;
+		const UserEventArgs args;
 	};
 }
