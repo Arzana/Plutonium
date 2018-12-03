@@ -1457,4 +1457,26 @@ namespace Pu
 		if (raise) Log::Fatal("Procedure %s failed with error code '%s'!", procedure.c_str(), code);
 		else Log::Warning("Procedure %s produced non-success code '%s'!", procedure.c_str(), code);
 	}
+
+	/* Converts a shader stage flag to string. */
+	_Check_return_ inline const char* to_string(_In_ ShaderStageFlag stage)
+	{
+		switch (stage)
+		{
+		case ShaderStageFlag::Vertex:
+			return "Vertex";
+		case ShaderStageFlag::TessellationControl:
+			return "Tessellation control";
+		case ShaderStageFlag::TessellationEvaluation:
+			return "Tessellation evaluation";
+		case ShaderStageFlag::Geometry:
+			return "Geometry";
+		case ShaderStageFlag::Fragment:
+			return "Fragment";
+		case ShaderStageFlag::Compute:
+			return "Compute";
+		default:
+			return "Unknown";
+		}
+	}
 }

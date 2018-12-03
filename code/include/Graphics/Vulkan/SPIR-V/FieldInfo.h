@@ -17,21 +17,23 @@ namespace Pu
 		FieldTypes Type;
 		/* Specifies how the type is being used by the shader. */
 		spv::StorageClass Storage;
+		/* Specifies the location (or handler) of this field. */
+		uint32 Location;
 
 		/* Initializes an invalid instance of the fieldinfo object. */
 		FieldInfo(void)
-			: Id(0), Name(), Type(FieldTypes::Invalid), Storage(spv::StorageClass::Max)
+			: Id(0), Name(), Type(FieldTypes::Invalid), Storage(spv::StorageClass::Max), Location(0)
 		{}
 		
 		/* Initializes a new instance of the fieldinfo object. */
-		FieldInfo(spv::Id id, string &&name, FieldTypes type, spv::StorageClass storage)
-			: Id(id), Name(name), Type(type), Storage(storage)
+		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldTypes type, _In_ spv::StorageClass storage, _In_ uint32 location)
+			: Id(id), Name(name), Type(type), Storage(storage), Location(location)
 		{}
 
-		/* Gets whether this instance is a valid instance. */
+		/* Gets whether the field type is valid. */
 		_Check_return_ inline bool IsValid(void) const
 		{
-			return !Name.empty() && Type != FieldTypes::Invalid;
+			return Storage != spv::StorageClass::Max;
 		}
 	};
 }

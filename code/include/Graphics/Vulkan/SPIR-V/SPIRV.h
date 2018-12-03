@@ -1255,3 +1255,108 @@ namespace spv
 		return Pu::_CrtEnumBitOr(a, b);
 	}
 }
+
+namespace Pu
+{
+	/* Gets a human readable version of the SPIR-V decoration enum. */
+	_Check_return_ inline const char* to_string(spv::Decoration decoration)
+	{
+		switch (decoration)
+		{
+		case spv::Decoration::RelaxedPrecision:
+			return "Relaxed precision";
+		case spv::Decoration::SpecId:
+			return "Specialization ID";
+		case spv::Decoration::Block:
+			return "Block";
+		case spv::Decoration::BufferBlock:
+			return "Buffer block";
+		case spv::Decoration::RowMajor:
+			return "Row major";
+		case spv::Decoration::ColMajor:
+			return "Column major";
+		case spv::Decoration::ArrayStride:
+			return "Array stride";
+		case spv::Decoration::MatrixStride:
+			return "Matrix stride";
+		case spv::Decoration::GLSLShared:
+			return "GLSL shared";
+		case spv::Decoration::GLSLPacked:
+			return "GLSL packed";
+		case spv::Decoration::CPacked:
+			return "C packed";
+		case spv::Decoration::BuiltIn:
+			return "Build in";
+		case spv::Decoration::NoPerspective:
+			return "No perspective";
+		case spv::Decoration::Flat:
+			return "Flat";
+		case spv::Decoration::Patch:
+			return "Patch";
+		case spv::Decoration::Centroid:
+			return "Centroid";
+		case spv::Decoration::Sample:
+			return "Sample";
+		case spv::Decoration::Invariant:
+			return "invariant";
+		case spv::Decoration::Restrict:
+			return "Restrict";
+		case spv::Decoration::Aliased:
+			return "Aliased";
+		case spv::Decoration::Volatile:
+			return "Volatile";
+		case spv::Decoration::Constant:
+			return "Constant";
+		case spv::Decoration::Coherent:
+			return "Cohert";
+		case spv::Decoration::NonWritable:
+			return "Non-writable";
+		case spv::Decoration::NonReadable:
+			return "Non-readable";
+		case spv::Decoration::Uniform:
+			return "Uniform";
+		case spv::Decoration::SaturatedConversion:
+			return "Saturated conversion";
+		case spv::Decoration::Stream:
+			return "Stream";
+		case spv::Decoration::Location:
+			return "Location";
+		case spv::Decoration::Component:
+			return "Component";
+		case spv::Decoration::Index:
+			return "Index";
+		case spv::Decoration::Binding:
+			return "Binding";
+		case spv::Decoration::DescriptorSet:
+			return "Descriptor set";
+		case spv::Decoration::Offset:
+			return "Offset";
+		case spv::Decoration::XfbBuffer:
+			return "Transform-feedback buffer";
+		case spv::Decoration::XfbStride:
+			return "Transform-feedback stride";
+		case spv::Decoration::FuncParamAttr:
+			return "Function parameter attribute";
+		case spv::Decoration::FPRoundingMode:
+			return "Floating point rounding mode";
+		case spv::Decoration::FPFastMathMode:
+			return "Floating point fast math mode";
+		case spv::Decoration::LinkageAttributes:
+			return "Linkage attributes";
+		case spv::Decoration::NoContraction:
+			return "No contraction";
+		case spv::Decoration::InputAttachmentIndex:
+			return "Input attachment index";
+		case spv::Decoration::Alignment:
+			return "Alignment";
+		case spv::Decoration::MaxByteOffset:
+			return "Max byte offset";
+		case spv::Decoration::AlignmentId:
+			return "Alignment ID";
+		case spv::Decoration::MaxByteOffsetId:
+			return "Max byte offset ID";
+		default:
+			return "Unknown";
+		}
+	}
+}

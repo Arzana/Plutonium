@@ -2,6 +2,7 @@
 #include "Graphics/Vulkan/LogicalDevice.h"
 #include "Core/Threading/Tasks/Task.h"
 #include "FieldInfo.h"
+#include "Decoration.h"
 
 namespace Pu
 {
@@ -66,7 +67,7 @@ namespace Pu
 		}
 
 		/* Gets the information for the field at the specified index. */
-		_Check_return_ inline const FieldInfo& Getfield(_In_ size_t idx) const
+		_Check_return_ inline const FieldInfo& GetField(_In_ size_t idx) const
 		{
 			return fields.size() > idx ? fields[idx] : invalid;
 		}
@@ -86,13 +87,16 @@ namespace Pu
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, spv::Id> typedefs;
 		std::map<spv::Id, FieldTypes> types;
+		std::map<spv::Id, Decoration> decorations;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
 		void Load(const string &path);
 		void Create(const string &path);
 		void SetFieldInfo(void);
+		bool ShouldHandleField(spv::Id id, spv::Id typeId);
 		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t);
 		void HandleName(SPIRVReader &reader);
+		void HandleDecorate(SPIRVReader &reader);
 		void HandleType(SPIRVReader &reader);
 		void HandleInt(SPIRVReader &reader);
 		void HandleFloat(SPIRVReader &reader);

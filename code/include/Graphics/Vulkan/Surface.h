@@ -6,6 +6,7 @@ namespace Pu
 {
 	class VulkanInstance;
 
+	/* Defines an surface and its capabilities. */
 	class Surface
 	{
 	public:

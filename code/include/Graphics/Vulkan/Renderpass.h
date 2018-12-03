@@ -51,7 +51,11 @@ namespace Pu
 		RenderPassHndl hndl;
 		vector<Subpass> subpasses;
 		std::atomic_bool loaded;
+		bool usable;
 
 		void Link(void);
+		bool CheckIO(const Subpass &a, const Subpass &b) const;
+		void LinkSucceeded(void);
+		void LinkFailed(void);
 	};
 }

@@ -5,6 +5,7 @@
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
 const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
+constexpr const char *KEY_LOCATION = "Location";
 
 Pu::Subpass::Subpass(LogicalDevice & device)
 	: parent(device), hndl(nullptr), stage(ShaderStageFlag::Unknown), loaded(false)
@@ -94,14 +95,34 @@ void Pu::Subpass::SetFieldInfo(void)
 	/* Create field information for all fields. */
 	for (const auto&[id, typeId, storage] : variables)
 	{
-		fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage);
+		/* Skip variables that have no name or have a none supported type. */
+		if (ShouldHandleField(id, typeId))
+		{
+			fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage, decorations[id].Numbers[KEY_LOCATION]);
+		}
 	}
 
 	/* Clear the temporary buffers. */
 	names.clear();
+	decorations.clear();
 	typedefs.clear();
 	types.clear();
 	variables.clear();
+}
+
+bool Pu::Subpass::ShouldHandleField(spv::Id id, spv::Id typeId)
+{
+	/* Variables without a name are sometimes defined by SPIR-V but we have no use for them. */
+	if (names[id].empty()) return false;
+
+	/* We can only handle a subset of the types, so ignore the ones that we didn't load. */
+	if (types.find(typedefs[typeId]) == types.end()) return false;
+
+	/* User defined variables need to have a location, all others must be build in variables, which we can skip. */
+	if (decorations.find(id) == decorations.end()) return false;
+	if (decorations[id].Numbers.find(KEY_LOCATION) == decorations[id].Numbers.end()) return false;
+
+	return true;
 }
 
 void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
@@ -111,6 +132,9 @@ void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
 	{
 	case (spv::Op::OpName):
 		HandleName(reader);
+		break;
+	case (spv::Op::OpDecorate):
+		HandleDecorate(reader);
 		break;
 	case (spv::Op::OpTypePointer):
 		HandleType(reader);
@@ -138,6 +162,26 @@ void Pu::Subpass::HandleName(SPIRVReader & reader)
 	const spv::Id target = reader.ReadWord();
 	const string name = reader.ReadLiteralString();
 	names.emplace(target, name);
+}
+
+void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
+{
+	/* Read the target and create the decoration object. */
+	const spv::Id target = reader.ReadWord();
+	Decoration result(_CrtInt2Enum<spv::Decoration>(reader.ReadWord()));
+
+	switch (result.Type)
+	{
+	case (spv::Decoration::Location):	// Location decoration stores a single literal number.
+		result.Numbers.emplace(KEY_LOCATION, reader.ReadWord());
+		break;
+	default:							// Just log that we don't hanle the decoration at this point.
+		Log::Warning("Unable to handle decoration type '%s' at this point!", to_string(result.Type));
+		return;
+	}
+
+	/* Only push if the decoration type was handled. */
+	decorations.emplace(target, result);
 }
 
 void Pu::Subpass::HandleType(SPIRVReader & reader)

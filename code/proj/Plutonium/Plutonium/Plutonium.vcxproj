@@ -222,6 +222,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />

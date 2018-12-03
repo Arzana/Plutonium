@@ -324,6 +324,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
