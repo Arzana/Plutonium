@@ -610,6 +610,7 @@ namespace Pu
 			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr, 
 			_In_opt_ const PhysicalDeviceFeatures *enabledFeatures = nullptr)
 			: Type (StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
+			EnabledLayerCount(0), EnabledLayerNames(nullptr),
 			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos), 
 			EnabledExtensionCount(enabledExtensionCount), EnabledExtensionNames(enabledExtensionNames), EnabledFeatures(enabledFeatures)
 		{}
@@ -1200,10 +1201,18 @@ namespace Pu
 		/* Specifies the dependenciers between pairs of subpasses. */
 		const SubpassDependency *Dependencies;
 
-		/* Initializes a new instance of the render pass create info object. */
+		/* Initializes an empty instance of the render pass create info object. */
 		RenderPassCreateInfo(void)
 			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
 			AttachmentCount(0), Attachments(nullptr), SubpassCount(0), Subpasses(nullptr),
+			DependencyCount(0), Dependencies(nullptr)
+		{}
+
+		/* Initializes a new instance of the render pass create info object. */
+		RenderPassCreateInfo(_In_ const vector<AttachmentDescription> &attachments, _In_ const vector<SubpassDescription> &subpasses)
+			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
+			AttachmentCount(static_cast<uint32>(attachments.size())), Attachments(attachments.data()),
+			SubpassCount(static_cast<uint32>(subpasses.size())), Subpasses(subpasses.data()),
 			DependencyCount(0), Dependencies(nullptr)
 		{}
 	};
@@ -1232,6 +1241,797 @@ namespace Pu
 		ShaderModuleCreateInfo(_In_ size_t size, _In_ const void *code)
 			: Type(StructureType::ShaderModuleCreateInfo), Next(nullptr), Flags(0),
 			CodeSize(size), Code(reinterpret_cast<const uint32*>(code))
+		{}
+	};
+
+	/* Defines a color component mapping. */
+	struct ComponentMapping
+	{
+	public:
+		/* Specifies the component value placed in the R component. */
+		ComponentSwizzle R;
+		/* Specifies the component value placed in the G component. */
+		ComponentSwizzle G;
+		/* Specifies the component value placed in the B component. */
+		ComponentSwizzle B;
+		/* Specifies the component value placed in the A component. */
+		ComponentSwizzle A;
+
+		/* Initializes a default instance of a component mapping. */
+		ComponentMapping(void)
+			: ComponentMapping(ComponentSwizzle::Identity, ComponentSwizzle::Identity, ComponentSwizzle::Identity, ComponentSwizzle::Identity)
+		{}
+
+		/* Initializes a new instance of a component mapping with all components specified. */
+		ComponentMapping(_In_ ComponentSwizzle r, _In_ ComponentSwizzle g, _In_ ComponentSwizzle b, _In_ ComponentSwizzle a)
+			: R(r), G(g), B(b), A(a)
+		{}
+	};
+
+	/* Defines the information required to create a image view. */
+	struct ImageViewCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the image on which the view will be created. */
+		ImageHndl Image;
+		/*Specifies the type of image view.  */
+		ImageViewType ViewType;
+		/* Specifies the format and type used to interpret texel blocks. */
+		Format Format;
+		/* Specifies a remapping of color components. */
+		ComponentMapping Components;
+		/* Specifies the set of mipmap levels and array layers to be accessible to the view. */
+		ImageSubresourceRange SubresourceRange;
+
+		/* Initializes an empty instance of the image view create info object. */
+		ImageViewCreateInfo(void)
+			: ImageViewCreateInfo(nullptr, ImageViewType::Image2D, Format::Undefined)
+		{}
+
+		/* Initializes a new instance of an image view create info object. */
+		ImageViewCreateInfo(_In_ ImageHndl image, _In_ ImageViewType type, _In_ Pu::Format format)
+			: Type(StructureType::ImageViewCreateInfo), Next(nullptr), Flags(0),
+			Image(image), ViewType(type), Format(format), Components(), SubresourceRange()
+		{}
+	};
+
+	/* Defines the information required to create a framebuffer. */
+	struct FramebufferCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies what renderpass the framebuffer will be compatible with. */
+		RenderPassHndl RenderPass;
+		/* Specifies the amount of image view attachments. */
+		uint32 AttachmentCount;
+		/* Specifies the image views corresponding to the render pass attachments. */
+		const ImageViewHndl *Attachments;
+		/* Specifies the width of the framebuffer. */
+		uint32 Width;
+		/* Specifies the height of the framebuffer. */
+		uint32 Height;
+		/* Specifies the layers of the framebuffer. */
+		uint32 Layers;
+
+		/* Initializes an empty instance of the framebuffer create info object. */
+		FramebufferCreateInfo(void)
+			: FramebufferCreateInfo(nullptr, 0, 0)
+		{}
+
+		/* Initializes a new instance of the framebuffer create info object. */
+		FramebufferCreateInfo(_In_ RenderPassHndl renderpass, _In_ uint32 width, _In_ uint32 height)
+			: Type(StructureType::FramebufferCreateInfo), Next(nullptr), Flags(0),
+			RenderPass(renderpass), AttachmentCount(0), Attachments(nullptr),
+			Width(width), Height(height), Layers(1)
+		{}
+	};
+
+	/* Defines a specialization map entry. */
+	struct SpecializationMapEntry
+	{
+	public:
+		/* Specifies the ID of the specialization constant in SPIR-V. */
+		uint32 ConstantID;
+		/* Specifies the offset (in bytes) of the constant value within the supplied data buffer. */
+		uint32 Offset;
+		/* Specifies the size (in bytes) of the constant value within the supplied data buffer. */
+		size_t Size;
+
+		/* Initializes an empty instance of a specialization map entry object. */
+		SpecializationMapEntry(void)
+			: SpecializationMapEntry(0, 0, 0)
+		{}
+
+		/* Initializes a new instance of a specialization map entry object. */
+		SpecializationMapEntry(_In_ uint32 id, _In_ uint32 offset, _In_ size_t size)
+			: ConstantID(id), Offset(offset), Size(size)
+		{}
+	};
+
+	/* Defines information about specialization. */
+	struct SpecializationInfo
+	{
+	public:
+		/* Specifies the number of map entries. */
+		uint32 MapEntryCount;
+		/* Specifies all entries in the supplied data buffer. */
+		const SpecializationMapEntry *MapEntries;
+		/* Specifies the size (in bytes) of the supplied data buffer. */
+		size_t DataSize;
+		/* Specifies the actual constant value to specialize with. */
+		const void *Data;
+
+		/* Initializes an ampty instance of the specialization info object. */
+		SpecializationInfo(void)
+			: SpecializationInfo(0, nullptr)
+		{}
+
+		/* Initializes a new instance of the specialization info object. */
+		SpecializationInfo(_In_ size_t size, _In_ const void *data)
+			: MapEntryCount(0), MapEntries(nullptr), DataSize(size), Data(data)
+		{}
+	};
+
+	/* Defines the information of a pipeline shader stage. */
+	struct PipelineShaderStageCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the single pipeline stage. */
+		ShaderStageFlag Stage;
+		/* Specifies the object that contains the shader for this stage. */
+		ShaderModuleHndl Module;
+		/* Specifies a null-terminated UTF-8 string with the entry point name of the shader. */
+		const char *Name;
+		/* Specifies optional specialization information. */
+		const SpecializationInfo *SpecializationInfo;
+
+		/* Initializes a empty instance of the pipeline shader stage create info object. */
+		PipelineShaderStageCreateInfo(void)
+			: PipelineShaderStageCreateInfo(ShaderStageFlag::Unknown, nullptr)
+		{}
+
+		/* Initializes a new instance of the pipeline shader stage create info object. */
+		PipelineShaderStageCreateInfo(_In_ ShaderStageFlag stage, _In_ ShaderModuleHndl moduleHndl)
+			: Type(StructureType::PipelineShaderStageCreateInfo), Next(nullptr), Flags(0),
+			Stage(stage), Module(moduleHndl), Name("main"), SpecializationInfo(nullptr)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineShaderStageCreateInfo& operator =(_In_ const PipelineShaderStageCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Stage = other.Stage;
+				Module = other.Module;
+				Name = other.Name;
+				SpecializationInfo = other.SpecializationInfo;
+			}
+
+			return *this;
+		}
+	};
+
+	/* Defines how a vertex input should be bound. */
+	struct VertexInputBindingDescription
+	{
+	public:
+		/* Specifies the binding number of the vertex input. */
+		uint32 Binding;
+		/* Specifies the distance (in bytes) between two consecutive elements. */
+		uint32 Stride;
+		/* Specifies whether the vertex attribute addressing is bound to the vertex index or the instance index. */
+		VertexInputRate InputRate;
+
+		/* Initializes an empty instance of a vertex input binding description. */
+		VertexInputBindingDescription(void)
+			: VertexInputBindingDescription(0, 0)
+		{}
+
+		/* Initializes a new instance of a vertex input binding description. */
+		VertexInputBindingDescription(_In_ uint32 binding, _In_ uint32 stride)
+			: Binding(binding), Stride(stride), InputRate(VertexInputRate::Vertex)
+		{}
+	};
+
+	/* Defines the attributes of a vertex input. */
+	struct VertexInputAttributeDescription
+	{
+	public:
+		/* Specifies the location number of this attribute. */
+		uint32 Location;
+		/* Specifies the binding number of the attribute. */
+		uint32 Binding;
+		/* Specifies the size and type of the vertex attribute. */
+		Format Format;
+		/* Specifies the offset (in bytes) of the relative start of an element. */
+		uint32 Offset;
+
+		/* Initializes an empty instance of the vertex input attribute description object. */
+		VertexInputAttributeDescription(void)
+			: VertexInputAttributeDescription(0, 0, Format::Undefined, 0)
+		{}
+
+		/* Initializes a new instance of the vertex input attribute description object. */
+		VertexInputAttributeDescription(_In_ uint32 location, _In_ uint32 binding, _In_ Pu::Format format, _In_ uint32 offset)
+			: Location(location), Binding(binding), Format(format), Offset(offset)
+		{}
+	};
+
+	/* Defines the information of a pipeline vertex input. */
+	struct PipelineVertexInputStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the amount of vertex binding descriptions provided. */
+		uint32 VertexBindingDescriptionCount;
+		/* Specifies the vertex bindings. */
+		const VertexInputBindingDescription *VertexBindingDescriptions;
+		/* Specifies the amount of vertex attribute descriptions provided. */
+		uint32 VertexAttributeDescriptionCount;
+		/* Specifies the vertex attributes. */
+		const VertexInputAttributeDescription *VertexAttributeDescriptions;
+
+		/* Initializes an empty instance of a pipeline vertex input state create info object. */
+		PipelineVertexInputStateCreateInfo(void)
+			: Type(StructureType::PipelineVertexInputStateCreateInfo), Next(nullptr), Flags(0),
+			VertexBindingDescriptionCount(0), VertexBindingDescriptions(nullptr),
+			VertexAttributeDescriptionCount(0), VertexAttributeDescriptions(nullptr)
+		{}
+	};
+
+	/* Defines the information of a pipeline assembly state. */
+	struct PipelineInputAssemblyStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies which primitve topology to use. */
+		PrimitiveTopology Topology;
+		/* Specifies whether a special index value is treated as restarting the assembly of primitives. */
+		Bool32 PrimitiveRestartEnable;
+
+		/* Initializes an empty instance of the pipeline input assembly state create info object.  */
+		PipelineInputAssemblyStateCreateInfo(void)
+			: PipelineInputAssemblyStateCreateInfo(PrimitiveTopology::PointList)
+		{}
+
+		/* Initializes a new instance of the pipeline input assembly state create info object. */
+		PipelineInputAssemblyStateCreateInfo(_In_ PrimitiveTopology topology)
+			: Type(StructureType::PipelineInputAssemblyStateCreateInfo), Next(nullptr), Flags(0),
+			Topology(topology), PrimitiveRestartEnable(false)
+		{}
+	};
+
+	/* Defines the information for a pipeline tessellation state. */
+	struct PipelineTessellationStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* The number of control points per patch. */
+		uint32 PathControlPoints;
+
+		/* Initializes an empty instance of the pipeline tessellation state create info object. */
+		PipelineTessellationStateCreateInfo(void)
+			: PipelineTessellationStateCreateInfo(0)
+		{}
+
+		/* Initializes a new instance of a pipline tessellation state create info object. */
+		PipelineTessellationStateCreateInfo(_In_ uint32 pathControlPoints)
+			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(nullptr), Flags(0),
+			PathControlPoints(pathControlPoints)
+		{}
+	};
+
+	/* Defines a two-dimensional offset. */
+	struct Offset2D
+	{
+	public:
+		/* The horizontal component. */
+		int32 X;
+		/* The vertical component. */
+		int32 Y;
+
+		/* Initializes an empty instance of an offset. */
+		Offset2D(void)
+			: Offset2D(0, 0)
+		{}
+
+		/* Initializes a new instance of an offset. */
+		Offset2D(_In_ int32 x, _In_ int32 y)
+			: X(x), Y(y)
+		{}
+	};
+
+	/* Defines a two-dimensional subregion. */
+	struct Rect2D
+	{
+	public:
+		/* Specifies the rectangles offset. */
+		Offset2D Offset;
+		/* Specifies the rectnagles extent. */
+		Extent2D Extent;
+
+		/* Initializes an empty instance of a rectangle. */
+		Rect2D(void)
+			: Rect2D(0, 0, 0, 0)
+		{}
+
+		/* Initializes a new instance of a rectangle. */
+		Rect2D(_In_ Extent2D extent)
+			: Rect2D(Offset2D(), extent)
+		{}
+
+		/* Initializes a new instance of a rectangle. */
+		Rect2D(_In_ uint32 w, _In_ uint32 h)
+			: Rect2D(0, 0, w, h)
+		{}
+
+		/* Initializes a new instance of a rectangle. */
+		Rect2D(_In_ Offset2D offset, _In_ Extent2D extent)
+			: Offset(offset), Extent(extent)
+		{}
+
+		/* Initializes a new instance of a rectangle. */
+		Rect2D(_In_ int32 x, _In_ int32 y, _In_ uint32 w, _In_ uint32 h)
+			: Offset(x, y), Extent(w, h)
+		{}
+	};
+
+	/* Defines a Vulkan compatible viewport. */
+	struct Viewport
+	{
+	public:
+		/* Specifies left left-most coordinate of the viewport. */
+		float X;
+		/* Specifies the top-most coordinate of the viewport. */
+		float Y;
+		/* Specifies the width of the viewport. */
+		float Width;
+		/* Specifies the height of the viewport. */
+		float Height;
+		/* Specifies the minimum depth range of the viewport. */
+		float MinDepth;
+		/* Specifies the maximum depth range of the viewport. */
+		float MaxDepth;
+
+		/* Initializes an empty instance of a viewport. */
+		Viewport(void)
+			: Viewport(0.0f, 0.0f)
+		{}
+
+		/* Initializes a new instance of a viewport object. */
+		Viewport(_In_ float w, _In_ float h)
+			: X(0.0f), Y(0.0f), Width(w), Height(h), MinDepth(0.0f), MaxDepth(1.0f)
+		{}
+
+		/* Gets the position of the viewport. */
+		_Check_return_ inline Extent2D GetPosition(void) const
+		{
+			return Extent2D(static_cast<uint32>(X), static_cast<uint32>(Y));
+		}
+
+		/* Gets the size of the viewport. */
+		_Check_return_ inline Extent2D GetSize(void) const
+		{
+			return Extent2D(static_cast<uint32>(Width), static_cast<uint32>(Height));
+		}
+
+		/* Gets the default scissor area for this viewport. */
+		_Check_return_ inline Rect2D GetScissor(void) const
+		{
+			return Rect2D(static_cast<int32>(X), static_cast<int32>(Y), static_cast<uint32>(Width), static_cast<uint32>(Height));
+		}
+	};
+
+	/* Defines the information for a pipeline viewport. */
+	struct PipelineViewportStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the number of viewports used by the pipeline. */
+		uint32 ViewportCount;
+		/* Specifies the viewports used by the pipeline. */
+		const Viewport *Viewports;
+		/* Specifies the number of scissors used by the pipeline. */
+		uint32 ScissorCount;
+		/* Specifies the scissors used by the pipeline. */
+		const Rect2D *Scissors;
+
+		/* Initializes an empty instance of a pipeline viewport state create info object. */
+		PipelineViewportStateCreateInfo(void)
+			: Type(StructureType::PipelineViewportStateCreateInfo), Next(nullptr), Flags(0),
+			ViewportCount(0), Viewports(nullptr), ScissorCount(0), Scissors(nullptr)
+		{}
+
+		/* Initializes a new instance of a pipeline viewport state create info object. */
+		PipelineViewportStateCreateInfo(_In_ const Viewport &viewport, _In_ const Rect2D &scissor)
+			: Type(StructureType::PipelineViewportStateCreateInfo), Next(nullptr), Flags(0),
+			ViewportCount(1), Viewports(&viewport), ScissorCount(1), Scissors(&scissor)
+		{}
+	};
+
+	/* Defines the information for a pipeline rasterizer. */
+	struct PipelineRasterizationStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies whether depth values outside the depth range should be rasterized. */
+		Bool32 DepthClampEnable;
+		/* Specifies whether to diactivate fragment generation. */
+		Bool32 RasterizerDiscardEnable;
+		/* Specifies how a polygon should be rasterized. */
+		PolygonMode PolygonMode;
+		/* Specifies which polygons to cull. */
+		CullModeFlag CullMode;
+		/* Specifies what to consider the front face of a polygon. */
+		FrontFace FrontFace;
+		/* Specifies whether depth biasing is enabled. */
+		Bool32 DepthBiasEnable;
+		/* Specifies the constant factor added to each depth value when biasing is enabled. */
+		float DepthBiasConstantFactor;
+		/* Specifies the maximum value of bias that can be applied to a depth value. */
+		float DepthBiasClamp;
+		/* Specifies the slope factor applied to depth when biasing is enabled. */
+		float DepthBiasSlopeFactor;
+		/* Specifies the width of rasterized lines. */
+		float LineWidth;
+
+		/* Initializes an empty instance of the pipeline rasterization state create info object. */
+		PipelineRasterizationStateCreateInfo(void)
+			: PipelineRasterizationStateCreateInfo(CullModeFlag::None)
+		{}
+
+		/* Initializes a new instance of the pipeline rasterization state create info object. */
+		PipelineRasterizationStateCreateInfo(_In_ CullModeFlag cullMode)
+			: Type(StructureType::PipelineRasterizationStateCreateInfo), Next(nullptr), Flags(0),
+			DepthClampEnable(false), RasterizerDiscardEnable(false), PolygonMode(PolygonMode::Fill),
+			CullMode(cullMode), FrontFace(FrontFace::CounterClockwise), DepthBiasEnable(false),
+			DepthBiasConstantFactor(0.0f), DepthBiasClamp(0.0f), DepthBiasSlopeFactor(0.0f), LineWidth(1.0f)
+		{}
+	};
+
+	/* Defines the information for a pipeline multisample state. */
+	struct PipelineMultisampleStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the number of samples to use per pixel. */
+		SampleCountFlag RasterizationSamples;
+		/* Specifies whether shading should occur per sample rather than per fragment. */
+		Bool32 SampleShading;
+		/* Specifies the minimum number of unique sample locations to use during fragment shading. */
+		float MinSampleShading;
+		/* Specifies static coverage sample masks. */
+		const SampleMask *SampleMask;
+		/* Specifies whether fragment's alpha value should be used for coverage. */
+		Bool32 AlphaToCoverageEnable;
+		/* Specifies whether fragment's alpha value should be replaced with one. */
+		Bool32 AlphaToOneEnable;
+
+		/* Initializes an empty instance of a pipeline multisample state create info object. */
+		PipelineMultisampleStateCreateInfo(void)
+			: PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit)
+		{}
+
+		/* Initializes a new instance of a pipeline multisample create info object. */
+		PipelineMultisampleStateCreateInfo(_In_ SampleCountFlag samples)
+			: Type(StructureType::PipelineMultiSampleStateCreateInfo), Next(nullptr), Flags(0),
+			RasterizationSamples(samples), SampleShading(false), MinSampleShading(0.0f),
+			SampleMask(nullptr), AlphaToCoverageEnable(false), AlphaToOneEnable(false)
+		{}
+	};
+
+	/* Defines how stencil testing should be performed. */
+	struct StencilOpState
+	{
+	public:
+		/* Specifies what action to perform on samples that fail the stencil test. */
+		StencilOp FailOp;
+		/* Specifies what action to perform on samples that pass both the depth and stencil test. */
+		StencilOp PassOp;
+		/* Specifies what action to perform on samples that fail the depth test. */
+		StencilOp DepthFailOp;
+		/* Specifies the comparison operator used in the stencil test. */
+		CompareOp CompareOp;
+		/* Specifies which bits of the stencil value participate in the stencil test. */
+		uint32 CompareMask;
+		/* Specifies which bits of the stencil value are updated by the stencil test. */
+		uint32 WriteMask;
+		/* Specifies an unsigned integer used in stencil comparison. */
+		uint32 Reference;
+
+		/* Initializes an empty instance of the stencil operation state object. */
+		StencilOpState(void)
+			: FailOp(StencilOp::Keep), PassOp(StencilOp::Keep), DepthFailOp(StencilOp::Keep),
+			CompareOp(CompareOp::Never), CompareMask(0), WriteMask(0), Reference(0)
+		{}
+	};
+
+	/* Defines the information for a pipeline depth/stencil state. */
+	struct PipelineDepthStencilStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies whether depth testing is enabled. */
+		Bool32 DepthTestEnable;
+		/* Specifies whether writing depth values is enabled (this is always disabled is DepthTestEnable is false). */
+		Bool32 DepthWriteEnable;
+		/* Specifies the comparison operator used in depth testing. */
+		CompareOp DepthCompareOp;
+		/* Specifies whether depth bounds testing is enabled. */
+		Bool32 DepthBoundsTestEnable;
+		/* Specifies whether stencil testing is enabled. */
+		Bool32 StencilTestEnable;
+		/* Specifies how the stencil test should be performed for front facing primitives. */
+		StencilOpState Front;
+		/* Specifies how the stencil test should be performed for back facing primitives. */
+		StencilOpState Back;
+		/* Specifies the minimum value for depth bounds testing. */
+		float MinDepthBounds;
+		/* Specifies the maximum value for depth bounds testing. */
+		float MaxDepthBounds;
+
+		/* Initializes an empty instance of the pipeline depth/stencil state create info object. */
+		PipelineDepthStencilStateCreateInfo(void)
+			: Type(StructureType::PipelineDepthStencilStateCreateInfo), Next(nullptr), Flags(0),
+			DepthTestEnable(true), DepthWriteEnable(true), DepthCompareOp(CompareOp::LessOrEqual),
+			DepthBoundsTestEnable(false), StencilTestEnable(false), MinDepthBounds(0.0f), MaxDepthBounds(0.0f)
+		{}
+	};
+
+	/* Defines the information for a pipeline color blend attachment state. */
+	struct PipelineColorBlendAttachmentState
+	{
+	public:
+		/* Specifies if blending is enabled. */
+		Bool32 BlendEnable;
+		/* Specifies the blending factor for the incoming color. */
+		BlendFactor SrcColorBlendFactor;
+		/* Specifies the blending for the stored color. */
+		BlendFactor DstColorBlendFactor;
+		/* Specifies the operation to perform on the color. */
+		BlendOp ColorBlendOp;
+		/* Specifies the blending factor for the incoming alpha. */
+		BlendFactor SrcAlphaBlendFactor;
+		/* Specifies the blending factor for the stored alpha. */
+		BlendFactor DstAlphaBlendFactor;
+		/* Specifies the operation to perform on the alpha. */
+		BlendOp AlphaBlendOp;
+		/* Specifies which components are enabled for writing. */
+		ColorComponentFlag ColorWriteMask;
+
+		/* Initializes an empty instance of a pipeline color blend attachment state. */
+		PipelineColorBlendAttachmentState(void)
+			: BlendEnable(false), ColorWriteMask(ColorComponentFlag::RGBA),
+			SrcColorBlendFactor(BlendFactor::One), DstColorBlendFactor(BlendFactor::Zero), ColorBlendOp(BlendOp::Add),
+			SrcAlphaBlendFactor(BlendFactor::One), DstAlphaBlendFactor(BlendFactor::Zero), AlphaBlendOp(BlendOp::Add)
+		{}
+	};
+
+	/* Defines the information for a pipeline color blend state. */
+	struct PipelineColorBlendStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies whether logical operations are enabled. */
+		Bool32 LogicOpEnable;
+		/* Specifies the logical operation to perform. */
+		LogicOp LogicOp;
+		/* Specifies the amount of attachments specified. */
+		uint32 AttachmentCount;
+		/* Specifies the parameters for each color blending attachment. */
+		const PipelineColorBlendAttachmentState *Attachments;
+		/* Specifies the constant color used for some blend factors. */
+		float BlendConstants[4];
+
+		/* Initializes an empty instance of the pipeline color blend state create info object. */
+		PipelineColorBlendStateCreateInfo(void)
+			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(nullptr), Flags(0),
+			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(1), Attachments(nullptr),
+			BlendConstants{ 0.0f, 0.0f, 0.0f, 0.0f }
+		{}
+
+		/* Initializes a new instance of the pipeline color blend state create info object. */
+		PipelineColorBlendStateCreateInfo(_In_ const PipelineColorBlendAttachmentState &state)
+			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(nullptr), Flags(0),
+			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(1), Attachments(&state),
+			BlendConstants{0.0f, 0.0f, 0.0f, 0.0f}
+		{}
+	};
+
+	/* Defines the information for a pipeline dynamic state. */
+	struct PipelineDynamicStateCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the amount of elements in the DynamicStates field. */
+		uint32 DynamicStateCount;
+		/* Specifies which pieces of pipeline state will use the values from dynamic state commands. */
+		const DynamicState *DynamicStates;
+
+		/* Initializes an empty instance of the pipeline dynamic state create info object. */
+		PipelineDynamicStateCreateInfo(void)
+			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(nullptr), Flags(0),
+			DynamicStateCount(0), DynamicStates(nullptr)
+		{}
+
+		/* Initializes a new instance of a pipeline dynamic state create info object. */
+		PipelineDynamicStateCreateInfo(_In_ const vector<DynamicState> &dynamicStates)
+			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(nullptr), Flags(0),
+			DynamicStateCount(static_cast<uint32>(dynamicStates.size())), DynamicStates(dynamicStates.data())
+		{}
+	};
+
+	/* Defines a push constant range. */
+	struct PushConstantRange
+	{
+	public:
+		/* Specifies the shader stages that will acces a range of push constants. */
+		ShaderStageFlag StageFlags;
+		/* Specifies the offset (in bytes) of the range (must be a multiple of 4!). */
+		uint32 Offset;
+		/* Specifies the size (in bytes) of the range (must be a multiple of 4!). */
+		uint32 Size;
+
+		/* Initializes an empty instance of a push constant range object. */
+		PushConstantRange(void)
+			: PushConstantRange(ShaderStageFlag::Unknown, 0, 0)
+		{}
+
+		/* Initializes a new instance of a push constant range object. */
+		PushConstantRange(_In_ ShaderStageFlag stages, _In_ uint32 offset, _In_ uint32 size)
+			: StageFlags(stages), Offset(offset), Size(size)
+		{}
+	};
+
+	/* Defines the information for a pipeline layout. */
+	struct PipelineLayoutCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the amount of set layouts provided. */
+		uint32 SetLayoutCount;
+		/* Specifies the desciptor set layouts. */
+		const DescriptorSetLayoutHndl *SetLayouts;
+		/* Specifies the amount of push constants provided. */
+		uint32 PushConstantRangeCount;
+		/* Specifies the push constants. */
+		const PushConstantRange *PushConstantRanges;
+
+		/* Initializes an empty instance of the pipeline layout create info object. */
+		PipelineLayoutCreateInfo(void)
+			: Type(StructureType::PipelineLayourCreateInfo), Next(nullptr), Flags(0),
+			SetLayoutCount(0), SetLayouts(nullptr), PushConstantRangeCount(0), PushConstantRanges(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a graphics pipeline. */
+	struct GraphicsPipelineCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies how the pipeline should be generated. */
+		PipelineCreateFlag Flags;
+		/* Specifies the amount of entries in the Stages field. */
+		uint32 StageCount;
+		/* Specifies the shader stages included in the pipeline. */
+		const PipelineShaderStageCreateInfo *Stages;
+		/* Specifies the vertex input for the pipeline (ignored if a mesh shader stage is present). */
+		const PipelineVertexInputStateCreateInfo *VertexInputState;
+		/* Specifies the input assembly behaviour. */
+		const PipelineInputAssemblyStateCreateInfo *InputAssemblyState;
+		/* Specifies aditional tessellation information (ignored if no tessellation control and evaluation stage are present). */
+		const PipelineTessellationStateCreateInfo *TessellationState;
+		/* Specifies the pipelines viewport (ignored if rasterization is disabled). */
+		const PipelineViewportStateCreateInfo *ViewportState;
+		/* Specifies how the pipeline should rasterize. */
+		const PipelineRasterizationStateCreateInfo *RasterizationState;
+		/* Specifies how the pipeline should multisample (ignored if rasterization is disabled). */
+		const PipelineMultisampleStateCreateInfo *MultisampleState;
+		/* Specifies how depth and stencil attachments should be used (ignored if rasterization is disabled or if no depth/stencil attachment is used). */
+		const PipelineDepthStencilStateCreateInfo *DepthStencilState;
+		/* Specifies how color blending should be handled (ignored if rasterization is diabled or if no color attachment is used). */
+		const PipelineColorBlendStateCreateInfo *ColorBlendState;
+		/* Specifies the point at which the pipeline can be dynamically changed. */
+		const PipelineDynamicStateCreateInfo *DynamicState;
+		/* Specifies the binding locations used by both the pipeline and descriptor sets. */
+		PipelineLayoutHndl Layout;
+		/* Specifies the renderpass enviroment for the pipeline. */
+		RenderPassHndl Renderpass;
+		/* Specifies the index of the subpass in the render pass where this pipeline will be used. */
+		uint32 Subpass;
+		/* Specifies the parent pipeline. */
+		PipelineHndl BasePipelineHandle;
+		/* Specifies which create info to derive from. */
+		int32 BasePipelineIndex;
+
+		/* Initializes an empty instance of a graphics pipeline create info object. */
+		GraphicsPipelineCreateInfo(void)
+			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
+			StageCount(0), Stages(nullptr), VertexInputState(nullptr), InputAssemblyState(nullptr), ViewportState(nullptr),
+			RasterizationState(nullptr), MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr),
+			DynamicState(nullptr), Layout(nullptr), Renderpass(nullptr), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
+		{}
+
+		/* Initializes a new instance of a graphics pipeline create info object. */
+		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ const PipelineVertexInputStateCreateInfo &vertexInput, 
+			_In_ const PipelineInputAssemblyStateCreateInfo &inputAssembly, _In_ const PipelineViewportStateCreateInfo &viewport, 
+			_In_ const PipelineRasterizationStateCreateInfo &rasterization, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
+			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
+			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(&vertexInput),
+			InputAssemblyState(&inputAssembly), ViewportState(&viewport), RasterizationState(&rasterization), 
+			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
+			Layout(layout), Renderpass(renderpass), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
 	};
 

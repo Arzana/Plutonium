@@ -46,6 +46,9 @@ namespace Pu
 		friend class CommandBuffer;
 		friend class GameWindow;
 		friend class Subpass;
+		friend class Renderpass;
+		friend class ImageView;
+		friend class Framebuffer;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -74,6 +77,14 @@ namespace Pu
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
 		PFN_vkDestroyShaderModule vkDestroyShaderModule;
+		PFN_vkCreateImageView vkCreateImageView;
+		PFN_vkDestroyImageView vkDestroyImageView;
+		PFN_vkCreateFramebuffer vkCreateFramebuffer;
+		PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
+		PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
+		PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
+		PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+		PFN_vkDestroyPipeline vkDestroyPipeline;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

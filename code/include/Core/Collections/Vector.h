@@ -9,8 +9,11 @@ namespace Pu
 		: public std::vector<_Ty>
 	{
 	public:
+		/* Defines the underlying vector type. */
 		using vector_t = typename std::vector<_Ty>;
+		/* Defines the allocator type. */
 		using allocator_t = typename vector_t::allocator_type;
+		/* Defines a constant iterator type. */
 		using const_iterator = typename vector_t::const_iterator;
 
 		/* Initializes an empty instance of a Plutonium vector. */
@@ -106,13 +109,12 @@ namespace Pu
 		}
 
 		/* Checks whether any element in the vector conforms to the predicate. */
-		template <typename _ParamTy, class _PredicateTy>
+		template <typename _ParamTy, typename _PredicateTy>
 		_Check_return_ inline bool contains(_In_ _ParamTy &userParam, _In_ _PredicateTy predicate) const
 		{
-			const size_t len = vector_t::size();
-			for (size_t i = 0; i < len; i++)
+			for (const _Ty &cur : *this)
 			{
-				if (predicate((*this)[i], userParam)) return true;
+				if (predicate(cur, userParam)) return true;
 			}
 
 			return false;
@@ -147,7 +149,7 @@ namespace Pu
 		}
 
 		/* Removes all element that satisfy the predicate. */
-		template <typename _ParamTy, class _PredicateTy>
+		template <typename _ParamTy, typename _PredicateTy>
 		_Check_return_ inline size_t removeAll(const _ParamTy &userParam, _In_ _PredicateTy predicate)
 		{
 			const size_t len = vector_t::size();
@@ -159,6 +161,20 @@ namespace Pu
 			}
 
 			return len - vector_t::size();
+		}
+
+		/* Transforms each element into a new form. */
+		template <typename _ResultTy, typename _SelectorTy>
+		_Check_return_ inline vector<_ResultTy> select(_In_ _SelectorTy selector) const
+		{
+			vector<_ResultTy> result;
+
+			for (const _Ty &cur : *this)
+			{
+				result.emplace_back(selector(cur));
+			}
+
+			return result;
 		}
 
 	private:

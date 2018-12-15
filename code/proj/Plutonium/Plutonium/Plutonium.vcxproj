@@ -170,6 +170,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
@@ -215,20 +216,25 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\ImageView.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Subpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIRV.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Swapchain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
@@ -246,6 +252,7 @@
     <ClInclude Include="..\..\..\include\Streams\StreamWriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\Application.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />
@@ -267,15 +274,18 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\ImageView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />

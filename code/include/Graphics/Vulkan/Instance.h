@@ -38,8 +38,17 @@ namespace Pu
 		/* Checks whether specific extensions are supported. */
 		_Check_return_ static bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions);
 
-		/* Gets all Vulkan-compatible physical devices. */
-		_Check_return_ vector<PhysicalDevice> GetPhysicalDevices(void) const;
+		/* Gets the amount of physical devices capable of Vulkan on this machine. */
+		_Check_return_ inline size_t GetPhysicalDeviceCount(void) const
+		{
+			return physicalDevices.size();
+		}
+
+		/* Gets the physical device at the specified index. */
+		_Check_return_ inline const PhysicalDevice& GetPhysicalDevice(_In_ size_t idx) const
+		{
+			return physicalDevices.at(idx);
+		}
 
 	private:
 		friend class PhysicalDevice;
@@ -52,6 +61,8 @@ namespace Pu
 		static PFN_vkCreateInstance vkCreateInstance;
 
 		InstanceHndl hndl;
+		vector<PhysicalDevice> physicalDevices;
+
 		PFN_vkDestroyInstance vkDestroyInstance;
 		PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 		PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
@@ -73,6 +84,7 @@ namespace Pu
 
 		void Destroy(void);
 		void LoadInstanceProcs(void);
+		void GetPhysicalDevices(void);
 		
 #ifdef _DEBUG
 		void LogAvailableExtensionsAndLayers(void) const;

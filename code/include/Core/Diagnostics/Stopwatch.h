@@ -67,20 +67,26 @@ namespace Pu
 			end = clock::time_point();
 		}
 
+		/* Gets the amount of nanoseconds since End was called or now. */
+		_Check_return_ inline int64 Nanoseconds(void) const
+		{
+			return GetDuration<std::chrono::nanoseconds>();
+		}
+
 		/* Gets the amount of microseconds since End was called or now. */
-		_Check_return_ inline long long Microseconds(void) const
+		_Check_return_ inline int64 Microseconds(void) const
 		{
 			return GetDuration<std::chrono::microseconds>();
 		}
 
 		/* Gets the amount of milliseconds since End was called or now. */
-		_Check_return_ inline long long Milliseconds(void) const
+		_Check_return_ inline int64 Milliseconds(void) const
 		{
 			return GetDuration<std::chrono::milliseconds>();
 		}
 
 		/* Gets the amount of seconds since End was called or now. */
-		_Check_return_ inline long long Seconds(void) const
+		_Check_return_ inline int64 Seconds(void) const
 		{
 			return GetDuration<std::chrono::seconds>();
 		}
@@ -88,11 +94,11 @@ namespace Pu
 		/* Gets the amount of seconds since End was called or now with great accutacy. */
 		_Check_return_ inline float SecondsAccurate(void) const
 		{
-			return static_cast<float>(Milliseconds()) * 0.001f;
+			return static_cast<float>(Nanoseconds()) * 0.000000001f;
 		}
 
 		/* Gets the amount of minutes since End was called or now. */
-		_Check_return_ inline long long Minutes(void) const
+		_Check_return_ inline int64 Minutes(void) const
 		{
 			return GetDuration<std::chrono::minutes>();
 		}
@@ -108,7 +114,7 @@ namespace Pu
 
 		/* Gets the amount of clock ticks since End was called or now. */
 		template <typename _Ty>
-		_Check_return_ inline long long GetDuration(void) const
+		_Check_return_ inline int64 GetDuration(void) const
 		{
 #ifdef _DEBUG
 			if (!startCalled) Log::Warning("Cannot get time of stopwatch that hasn't been started!");

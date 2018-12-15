@@ -24,22 +24,17 @@ namespace Pu
 	/* Gets the file name from a string. */
 	_Check_return_ inline string _CrtGetFileName(_In_ string path)
 	{
-		size_t offset = path.find_last_of({ '/', '\\' });
-		if (offset == string::npos) offset = static_cast<size_t>(-1);
-
-		return path.substr(offset + 1, path.length() - offset);
+		const size_t start = path.find_last_of({ '/', '\\' }) + 1;
+		return path.substr(start, path.length() - start);
 	}
 
 	/* Gets the file name from a string (without extension). */
 	_Check_return_ inline string _CrtGetFileNameWithoutExtension(_In_ string path)
 	{
-		size_t offset = path.find_last_of({ '/', '\\' });
-		if (offset == string::npos) offset = 0;
-
-		size_t extLen = path.length() - path.find_last_of('.');
-		if (extLen == string::npos) extLen = 0;
-
-		return path.substr(offset, path.length() - offset - extLen);
+		const size_t start = path.find_last_of({ '/', '\\' }) + 1;
+		size_t end = path.find_last_of('.');
+		if (end == string::npos) end = path.length();
+		return path.substr(start, end - start);
 	}
 
 	/* Gets the file directory from a string. */

@@ -17,6 +17,13 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 	images.resize(imageCount);
 	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, images.data()), PFN_vkGetSwapchainImagesKHR);
 
+	/* Create image views. */
+	for (uint32 i = 0; i < imageCount; i++)
+	{
+		const ImageViewCreateInfo viewCreateInfo(images[i], ImageViewType::Image2D, format);
+		views.emplace_back(parent, viewCreateInfo);
+	}
+
 	/* Set the description used later to link images to render passes. */
 	attachmentDesc = AttachmentDescription(createInfo.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
 	//TODO: enable this once the screen gets fully rendered and not just parts of it. attachmentDesc.LoadOp = AttachmentLoadOp::DontCare;

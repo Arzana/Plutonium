@@ -31,8 +31,9 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	/* Add the instance to the procedure loader. */
 	VulkanLoader::GetInstance().AddDeviceProcAddr(hndl);
 
-	/* Load the procedures needed for the instance. */
+	/* Load the procedures needed for the instance and get all physical devices. */
 	LoadInstanceProcs();
+	GetPhysicalDevices();
 }
 
 Pu::VulkanInstance::VulkanInstance(VulkanInstance && value)
@@ -142,24 +143,21 @@ bool Pu::VulkanInstance::AreExtensionsSupported(std::initializer_list<const char
 	return found >= extensions.size();
 }
 
-vector<PhysicalDevice> Pu::VulkanInstance::GetPhysicalDevices(void) const
+void Pu::VulkanInstance::GetPhysicalDevices(void)
 {
 	/* Query the amount of physical devices available. */
 	uint32 count;
 	vkEnumeratePhysicalDevices(hndl, &count, nullptr);
 
 	/* Early out if the count is less than one. */
-	if (count < 1) return vector<PhysicalDevice>();
+	if (count < 1) return;
 
 	/* Query all physical device handles. */
 	vector<PhysicalDeviceHndl> raw(count);
 	vkEnumeratePhysicalDevices(hndl, &count, raw.data());
 
 	/* Convert the handles to objects and return. */
-	vector<PhysicalDevice> result;
-	VulkanInstance &self = *const_cast<VulkanInstance*>(this);
-	for (PhysicalDeviceHndl cur : raw) result.push_back(PhysicalDevice(self, cur));
-	return result;
+	for (PhysicalDeviceHndl cur : raw) physicalDevices.emplace_back(PhysicalDevice(*this, cur));
 }
 
 void Pu::VulkanInstance::LoadStaticProcs(void)

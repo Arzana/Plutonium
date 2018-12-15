@@ -42,6 +42,14 @@ namespace Pu
 	using PFN_vkDestroyRenderPass = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ RenderPassHndl renderPass, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCreateShaderModule = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const ShaderModuleCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ ShaderModuleHndl *shaderModule);
 	using PFN_vkDestroyShaderModule = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ ShaderModuleHndl shaderModule, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateImageView = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const ImageViewCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ ImageViewHndl *view);
+	using PFN_vkDestroyImageView = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ ImageViewHndl view, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateFramebuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, const FramebufferCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ FramebufferHndl *framebuffer);
+	using PFN_vkDestroyFramebuffer = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ FramebufferHndl framebuffer, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreatePipelineLayout = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineLayoutCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineLayoutHndl pipelineLayout);
+	using PFN_vkDestroyPipelineLayout = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineLayoutHndl pipelineLayout, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateGraphicsPipelines = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_opt_ PipelineCacheHndl pipelineCache, _In_ uint32 createInfoCount, _In_ const GraphicsPipelineCreateInfo *createInfos, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineHndl *pipelines);
+	using PFN_vkDestroyPipeline = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineHndl pipeline, _In_opt_ const AllocationCallbacks *allocator);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

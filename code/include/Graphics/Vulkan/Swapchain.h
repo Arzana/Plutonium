@@ -1,5 +1,5 @@
 #pragma once
-#include "LogicalDevice.h"
+#include "ImageView.h"
 #include "Surface.h"
 #include "Semaphore.h"
 
@@ -42,6 +42,12 @@ namespace Pu
 			return images.at(index);
 		}
 
+		/* Gets the image view at the specified index. */
+		_Check_return_ inline const ImageView& GetImageView(_In_ uint32 index) const
+		{
+			return views.at(index);
+		}
+
 		/* Gets the underlying format of the swapchain images. */
 		_Check_return_ inline Format GetImageFormat(void) const
 		{
@@ -55,6 +61,7 @@ namespace Pu
 		LogicalDevice &parent;
 		SwapchainHndl hndl;
 		vector<ImageHndl> images;
+		vector<ImageView> views;
 		Format format;
 		AttachmentDescription attachmentDesc;
 

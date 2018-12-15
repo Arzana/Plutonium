@@ -10,11 +10,12 @@ Pu::TickThread::TickThread(const char * name, uint32 cooldown, const void * para
 
 Pu::TickThread::~TickThread(void) noexcept
 {
+	Stop();
 }
 
 void Pu::TickThread::Stop(void)
 {
-	StopWait();
+	allow.store(false);
 }
 
 bool Pu::TickThread::StopWait(void)

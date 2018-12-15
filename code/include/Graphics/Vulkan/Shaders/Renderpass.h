@@ -1,5 +1,7 @@
 #pragma once
-#include "Graphics/Vulkan/SPIR-V/Subpass.h"
+#include "Subpass.h"
+#include "Output.h"
+#include "Core/Events/EventBus.h"
 
 namespace Pu
 {
@@ -29,6 +31,9 @@ namespace Pu
 			vector<Subpass::LoadTask*> children;
 		};
 
+		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
+		EventBus<Renderpass, EventArgs> OnAttachmentLink;
+
 		Renderpass(_In_ LogicalDevice &device);
 		/* Initializes a new render pass from the specified subpasses. */
 		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);
@@ -46,12 +51,17 @@ namespace Pu
 			return loaded.load();
 		}
 
+		/* Gets the specified shader output. */
+		_Check_return_ Output& GetOutput(_In_ const string &name);
+
 	private:
-		LogicalDevice &parent;
+		LogicalDevice &device;
 		RenderPassHndl hndl;
-		vector<Subpass> subpasses;
 		std::atomic_bool loaded;
 		bool usable;
+
+		vector<Subpass> subpasses;
+		vector<Output> outputs;
 
 		void Link(void);
 		bool CheckIO(const Subpass &a, const Subpass &b) const;

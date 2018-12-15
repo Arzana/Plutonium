@@ -8,7 +8,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::UpdateSwapchainSize);
-	CreateSwapchain(Extent2D(ipart(native.GetClientBounds().Size.X), ipart(native.GetClientBounds().Size.Y)));
+	CreateSwapchain(native.GetClientBounds().GetSize());
 
 	/* Get physical device and it's queue families. */
 	const PhysicalDevice &physicalDevice = device.GetPhysicalDevice();

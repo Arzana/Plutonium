@@ -1,8 +1,8 @@
 #pragma once
 #include "Graphics/Vulkan/LogicalDevice.h"
 #include "Core/Threading/Tasks/Task.h"
-#include "FieldInfo.h"
-#include "Decoration.h"
+#include "Graphics/Vulkan/SPIR-V/FieldInfo.h"
+#include "Graphics/Vulkan/SPIR-V/Decoration.h"
 
 namespace Pu
 {
@@ -51,7 +51,13 @@ namespace Pu
 		/* Gets the type (or stage) of this shader module. */
 		_Check_return_ inline ShaderStageFlag GetType(void) const
 		{
-			return stage;
+			return info.Stage;
+		}
+
+		/* Gets the name assigned to this shader module. */
+		_Check_return_ inline const string& GetName(void) const
+		{
+			return name;
 		}
 
 		/* Gets whether the subpass has been loaded. */
@@ -79,10 +85,10 @@ namespace Pu
 		const static FieldInfo invalid;
 
 		LogicalDevice &parent;
-		ShaderModuleHndl hndl;
-		ShaderStageFlag stage;
+		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
 		std::atomic_bool loaded;
+		string name;
 
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, spv::Id> typedefs;
@@ -103,7 +109,7 @@ namespace Pu
 		void HandleVector(SPIRVReader &reader);
 		void HandleMatrix(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);
-		void SetStage(const string &ext);
+		void SetInfo(const string &ext);
 		void Destroy(void);
 	};
 }

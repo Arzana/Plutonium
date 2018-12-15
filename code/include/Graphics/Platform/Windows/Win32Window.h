@@ -36,15 +36,27 @@ namespace Pu
 		}
 
 		/* Gets the graphics bounds of the window. */
-		_Check_return_ virtual const Rectangle& GetClientBounds(void) const override
+		_Check_return_ virtual inline const Viewport& GetClientBounds(void) const override
 		{
 			return vp;
 		}
 
 		/* Gets the current mode of the window. */
-		_Check_return_ virtual WindowMode GetWindowMode(void) const override 
+		_Check_return_ virtual inline WindowMode GetWindowMode(void) const override 
 		{
 			return mode;
+		}
+
+		/* Gets whether the window has focus. */
+		_Check_return_ virtual inline bool HasFocus(void) const override
+		{
+			return focused;
+		}
+
+		/* Gets the physical location of the window. */
+		_Check_return_ inline Vector2 GetPosition(void) const
+		{
+			return pos;
 		}
 
 		/* Displays the window and gives it focus. */
@@ -75,7 +87,8 @@ namespace Pu
 		HINSTANCE instance;
 		HWND hndl;
 		const char *title;
-		Rectangle vp;
+		Viewport vp;
+		Vector2 pos;
 		WindowMode mode;
 		bool shouldClose, focused;
 

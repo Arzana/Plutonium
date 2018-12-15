@@ -46,7 +46,7 @@ vector<QueueFamilyProperties> Pu::PhysicalDevice::GetQueueFamilies(void) const
 	return result;
 }
 
-LogicalDevice Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * createInfo) const
+LogicalDevice * Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * createInfo) const
 {
 	/* Create new logical device. */
 	DeviceHndl device;
@@ -56,7 +56,7 @@ LogicalDevice Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * c
 	const auto[major, minor, patch] = GetVulkanVersion();
 	Log::Message("Created new Vulkan v%u.%u.%u logical device on %s", major, minor, patch, GetName());
 
-	return LogicalDevice(const_cast<PhysicalDevice&>(*this), device, createInfo->QueueCreateInfoCount, createInfo->QueueCreateInfos);
+	return new LogicalDevice(const_cast<PhysicalDevice&>(*this), device, createInfo->QueueCreateInfoCount, createInfo->QueueCreateInfos);
 }
 
 vector<ExtensionProperties> Pu::PhysicalDevice::GetSupportedExtensions(const char * layer) const

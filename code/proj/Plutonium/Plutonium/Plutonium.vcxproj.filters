@@ -103,6 +103,12 @@
     <Filter Include="Source Files\Core\Threading\Tasks">
       <UniqueIdentifier>{b41e4f64-42a6-4e78-b07b-a3a133e0930a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Vulkan\Shaders">
+      <UniqueIdentifier>{008bd278-b811-4e70-93c1-ccf3449188c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Vulkan\Shaders">
+      <UniqueIdentifier>{98e87426-7c93-4a08-90e2-c3aa69d2289e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -285,9 +291,6 @@
     <ClInclude Include="..\..\..\include\Streams\FileWriter.h">
       <Filter>Header Files\Streams</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Subpass.h">
-      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
@@ -321,11 +324,32 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Renderpass.h">
-      <Filter>Header Files\Graphics\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Subpass.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\ImageView.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Application.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -419,9 +443,6 @@
     <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp">
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\Subpass.cpp">
-      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp">
       <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClCompile>
@@ -431,8 +452,23 @@
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp">
       <Filter>Source Files\Core\Threading\Tasks</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Renderpass.cpp">
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\ImageView.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Application.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -496,9 +496,7 @@ namespace Pu
 		/* Polygons are rendered as lines. */
 		Line = 1,
 		/* Polygons are rendered as points. */
-		Point = 2,
-		/* Polygons are rendered as rasterized polygons modified to consider a sample within the primitive. */
-		FillRectangleNv = 1000153000
+		Point = 2
 	};
 
 	/* Defines which side to consider the front face of a triangle. */
@@ -653,6 +651,7 @@ namespace Pu
 		Max = 4
 	};
 
+	/* Defines the locations avialble for dynamic changes in a pipelne. */
 	enum class DynamicState
 	{
 		ViewPort = 0,
@@ -1083,6 +1082,8 @@ namespace Pu
 	/* Defines how a pipeline is created. */
 	enum class PipelineCreateFlag
 	{
+		/* No flags where set. */
+		None = 0x00000000,
 		/* Specifies that the pipeline will not be optimized. */
 		DisableOptimization = 0x00000001,
 		/* Specifies that the pipeline to be created is allowed to be a parent of a pipeline. */
@@ -1141,7 +1142,11 @@ namespace Pu
 		/* Specifies that the Blue value is written to the color attachment. */
 		B = 0x00000004,
 		/* Specifies that the Alpha value is written to the color attachment. */
-		A = 0x00000008
+		A = 0x00000008,
+		/* Specifies that the red green and blue values are written to the color attachment. */
+		RGB = R | G | B,
+		/* Specifies that all components are writen to the color attachment. */
+		RGBA = R | G | B | A
 	};
 
 	/* Defines the operations available on a descriptor pool. */

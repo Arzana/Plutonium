@@ -1,4 +1,4 @@
-#include "Graphics/Vulkan/SPIR-V/Subpass.h"
+#include "Graphics/Vulkan/Shaders/Subpass.h"
 #include "Streams/FileUtils.h"
 #include "Streams/FileReader.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h"
@@ -8,7 +8,7 @@ const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
 constexpr const char *KEY_LOCATION = "Location";
 
 Pu::Subpass::Subpass(LogicalDevice & device)
-	: parent(device), hndl(nullptr), stage(ShaderStageFlag::Unknown), loaded(false)
+	: parent(device), loaded(false)
 {}
 
 Pu::Subpass::Subpass(LogicalDevice & device, const string & path)
@@ -18,9 +18,9 @@ Pu::Subpass::Subpass(LogicalDevice & device, const string & path)
 }
 
 Pu::Subpass::Subpass(Subpass && value)
-	: parent(value.parent), hndl(value.hndl), stage(value.stage), fields(std::move(value.fields)), loaded(value.IsLoaded())
+	: parent(value.parent), info(value.info), fields(std::move(value.fields)), loaded(value.IsLoaded())
 {
-	value.hndl = nullptr;
+	value.info.Module = nullptr;
 }
 
 Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
@@ -29,18 +29,20 @@ Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
 	{
 		Destroy();
 		parent = std::move(other.parent);
-		hndl = other.hndl;
-		stage = other.stage;
+		info = other.info;
 		fields = std::move(other.fields);
 		loaded.store(other.IsLoaded());
 
-		other.hndl = nullptr;
+		other.info.Module = nullptr;
 		other.loaded.store(false);
 	}
 
 	return *this;
 }
 
+/* Name hides class member, checked and caused no unexpected behaviour. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
 {
 	for (const FieldInfo &cur : fields)
@@ -50,21 +52,24 @@ const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
 
 	return invalid;
 }
+#pragma warning(pop)
 
 void Pu::Subpass::Load(const string & path)
 {
 	const string ext = _CrtGetFileExtension(path);
+	name = _CrtGetFileNameWithoutExtension(path);
+
 	if (ext == "spv")
 	{
 		/* If the input shader is already defined as binary just load it. */
 		Create(path);
-		SetStage(_CrtGetFileExtension(string(path, path.length() - 4)));
+		SetInfo(_CrtGetFileExtension(string(path, path.length() - 4)));
 	}
 	else
 	{
 		/* First compile the shader to SPIR-V and then load it. */
 		Create(SPIRV::FromGLSLPath(path));
-		SetStage(ext);
+		SetInfo(ext);
 	}
 
 	/* Set the information of the subpass. */
@@ -82,7 +87,7 @@ void Pu::Subpass::Create(const string & path)
 
 		/* Compile the SPIR-V shader module. */
 		ShaderModuleCreateInfo createInfo(spvr.GetStream().GetSize(), spvr.GetStream().GetData());
-		VK_VALIDATE(parent.vkCreateShaderModule(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateShaderModule);
+		VK_VALIDATE(parent.vkCreateShaderModule(parent.hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
 
 		/* Perform reflection to get the inputs and outputs. */
 		spvr.HandleAllModules(SPIRVReader::ModuleHandler(*this, &Subpass::HandleModule));
@@ -160,8 +165,8 @@ void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
 void Pu::Subpass::HandleName(SPIRVReader & reader)
 {
 	const spv::Id target = reader.ReadWord();
-	const string name = reader.ReadLiteralString();
-	names.emplace(target, name);
+	const string str = reader.ReadLiteralString();
+	names.emplace(target, str);
 }
 
 void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
@@ -258,20 +263,19 @@ void Pu::Subpass::HandleVariable(SPIRVReader & reader)
 	variables.emplace_back(std::make_tuple(resultId, resultType, storageClass));
 }
 
-void Pu::Subpass::SetStage(const string & ext)
+void Pu::Subpass::SetInfo(const string & ext)
 {
-	if (ext == "vert") stage = ShaderStageFlag::Vertex;
-	else if (ext == "tesc") stage = ShaderStageFlag::TessellationControl;
-	else if (ext == "tese") stage = ShaderStageFlag::TessellationEvaluation;
-	else if (ext == "geom") stage = ShaderStageFlag::Geometry;
-	else if (ext == "frag") stage = ShaderStageFlag::Fragment;
-	else if (ext == "comp") stage = ShaderStageFlag::Compute;
-	else stage = ShaderStageFlag::Unknown;
+	if (ext == "vert") info.Stage = ShaderStageFlag::Vertex;
+	else if (ext == "tesc") info.Stage = ShaderStageFlag::TessellationControl;
+	else if (ext == "tese") info.Stage = ShaderStageFlag::TessellationEvaluation;
+	else if (ext == "geom") info.Stage = ShaderStageFlag::Geometry;
+	else if (ext == "frag") info.Stage = ShaderStageFlag::Fragment;
+	else if (ext == "comp") info.Stage = ShaderStageFlag::Compute;
 }
 
 void Pu::Subpass::Destroy(void)
 {
-	if (hndl) parent.vkDestroyShaderModule(parent.hndl, hndl, nullptr);
+	if (info.Module) parent.vkDestroyShaderModule(parent.hndl, info.Module, nullptr);
 }
 
 Pu::Subpass::LoadTask::LoadTask(Subpass & result, const string & path)

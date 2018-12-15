@@ -1258,8 +1258,44 @@ namespace spv
 
 namespace Pu
 {
+	/* Gets a human readable version of the SPIR-V storage class enum. */
+	_Check_return_ inline const char* to_string(_In_ spv::StorageClass storage)
+	{
+		switch (storage)
+		{
+		case spv::StorageClass::UniformConstant:
+			return "Uniform constant";
+		case spv::StorageClass::Input:
+			return "Input";
+		case spv::StorageClass::Uniform:
+			return "Uniform";
+		case spv::StorageClass::Output:
+			return "Output";
+		case spv::StorageClass::Workgroup:
+			return "Workgroup";
+		case spv::StorageClass::CrossWorkgroup:
+			return "Cross workgroup";
+		case spv::StorageClass::Private:
+			return "Private";
+		case spv::StorageClass::Function:
+			return "Function";
+		case spv::StorageClass::Generic:
+			return "Generic";
+		case spv::StorageClass::PushConstant:
+			return "Push constant";
+		case spv::StorageClass::AtomicCounter:
+			return "Atomic counter";
+		case spv::StorageClass::Image:
+			return "Image";
+		case spv::StorageClass::StorageBuffer:
+			return "Storage buffer";
+		default:
+			return "Unknown";
+		}
+	}
+
 	/* Gets a human readable version of the SPIR-V decoration enum. */
-	_Check_return_ inline const char* to_string(spv::Decoration decoration)
+	_Check_return_ inline const char* to_string(_In_ spv::Decoration decoration)
 	{
 		switch (decoration)
 		{

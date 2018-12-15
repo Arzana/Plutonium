@@ -1,18 +1,21 @@
-#include "Graphics/Vulkan/Renderpass.h"
+#include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
-	: parent(device), hndl(nullptr), loaded(false), usable(false)
+	: device(device), hndl(nullptr), loaded(false), usable(false),
+	OnAttachmentLink("RenderpassOnAttachmentLink")
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
-	: parent(device), subpasses(std::move(subpasses)), usable(false)
+	: device(device), subpasses(std::move(subpasses)), usable(false),
+	OnAttachmentLink("RenderpassOnAttachmentLink")
 {
 	Link();
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
-	: parent(value.parent), hndl(value.hndl), subpasses(std::move(value.subpasses)), loaded(value.IsLoaded()), usable(value.usable)
+	: device(value.device), hndl(value.hndl), subpasses(std::move(value.subpasses)),
+	loaded(value.IsLoaded()), usable(value.usable), OnAttachmentLink(std::move(value.OnAttachmentLink))
 {
 	value.hndl = nullptr;
 }
@@ -21,11 +24,12 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 {
 	if (this != &other)
 	{
-		parent = std::move(other.parent);
+		device = std::move(other.device);
 		hndl = other.hndl;
 		subpasses = std::move(other.subpasses);
 		loaded.store(other.IsLoaded());
 		usable = other.usable;
+		OnAttachmentLink = std::move(other.OnAttachmentLink);
 
 		other.hndl = nullptr;
 		other.loaded.store(false);
@@ -33,6 +37,16 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 	}
 
 	return *this;
+}
+
+Pu::Output & Pu::Renderpass::GetOutput(const string & name)
+{
+	for (Output &cur : outputs)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find output field '%s'!", name.c_str());
 }
 
 void Pu::Renderpass::Link(void)
@@ -55,7 +69,62 @@ void Pu::Renderpass::Link(void)
 		}
 	}
 
-	//TODO: load attribute and uniform handlers and actually create render pass.
+	/* Save a variable for how many attachment references are made. */
+	uint32 referenceCnt = 0;
+
+	/* Load all outputs. */
+	const Subpass &outputPass = subpasses.back();
+	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
+	{
+		const FieldInfo &info = outputPass.GetField(i);
+		if (info.Storage == spv::StorageClass::Output) outputs.push_back(Output(info, referenceCnt++));
+	}
+
+	// TODO: load all attributes and uniforms
+
+	/* Set all attachment references for the subpass. */
+	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
+	for (const Output &cur : outputs)
+	{
+		switch (cur.type)
+		{
+		case (OutputUsage::Color):
+			colorAttachments.push_back(cur.reference);
+			if (cur.resolve) resolveAttachments.push_back(cur.reference);
+			break;
+		case (OutputUsage::DepthStencil):
+			depthStencilAttachments.push_back(cur.reference);
+			break;
+		case (OutputUsage::Preserve):
+			preserveAttachments.push_back(cur.reference);
+			break;
+		}
+	}
+
+	vector<SubpassDescription> subpassDescriptions;
+	vector<AttachmentDescription> attachmentDescriptions;
+
+	// TODO: actually add descriptions based on shader information.
+	// Temporary block.
+	/*--------------------------------------------------------------------------------------------------------------*/
+	SubpassDescription temp;
+	temp.ColorAttachmentCount = colorAttachments.size();
+	temp.ColorAttachments = colorAttachments.data();
+	subpassDescriptions.push_back(temp);
+	/*--------------------------------------------------------------------------------------------------------------*/
+
+	/* Give user the opertunity to set descriptions for all used fields. */
+	OnAttachmentLink.Post(*this, EventArgs());
+
+	/* Copy descriptions from the outputs to the attachmentDescription buffer. */
+	for (const Output &output : outputs)
+	{
+		attachmentDescriptions.emplace_back(output.description);
+	}
+
+	/* Link the subpasses into a render pass. */
+	RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions);
+	VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
 
 	LinkSucceeded();
 }
@@ -128,6 +197,17 @@ void Pu::Renderpass::LinkSucceeded(void)
 {
 	usable = true;
 	loaded.store(true);
+
+#ifdef _DEBUG
+	string modules;
+	for (const Subpass &pass : subpasses)
+	{
+		modules += pass.GetName();
+		if (pass.GetType() != ShaderStageFlag::Fragment) modules += " -> ";
+	}
+
+	Log::Verbose("Successfully linked render pass: %s.", modules.c_str());
+#endif
 }
 
 void Pu::Renderpass::LinkFailed(void)
@@ -144,7 +224,7 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 {
 	/* We need to pre add the subpassed because vector resizing created bad refrences. */
 	size_t i = 0;
-	for (; i < paths.size(); i++) result.subpasses.emplace_back(result.parent);
+	for (; i < paths.size(); i++) result.subpasses.emplace_back(result.device);
 
 	i = 0;
 	for (const char *cur : paths)

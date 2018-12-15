@@ -1,6 +1,7 @@
 #pragma once
-#include "Core/Math/Rectangle.h"
+#include "Core/Math/Vector2.h"
 #include "Core/Events/EventBus.h"
+#include "Graphics/Vulkan/VulkanObjects.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "WindowMode.h"
 
@@ -37,15 +38,17 @@ namespace Pu
 		/* Gets the displayed title of this window. */
 		_Check_return_ virtual const char* GetTitle(void) const = 0;
 		/* Gets the graphics bounds of the window. */
-		_Check_return_ virtual const Rectangle& GetClientBounds(void) const = 0;
+		_Check_return_ virtual const Viewport& GetClientBounds(void) const = 0;
 		/* Gets the current mode of the window. */
 		_Check_return_ virtual WindowMode GetWindowMode(void) const = 0;
+		/* Gets whether the window has focus. */
+		_Check_return_ virtual bool HasFocus(void) const = 0;
 
 		/* Gets the aspect ratio of the window. */
 		_Check_return_ inline bool GetAspectRatio(void) const
 		{
-			const Rectangle &vp = GetClientBounds();
-			return vp.GetWidth() / vp.GetHeight();
+			const Viewport &vp = GetClientBounds();
+			return vp.Width / vp.Height;
 		}
 
 		/* Displays the window and gives it focus. */
@@ -61,13 +64,9 @@ namespace Pu
 		/* Sets the display mode of the window. */
 		virtual void SetMode(_In_ WindowMode mode) = 0;
 
-		inline bool testUpdate(void)
-		{
-			return Update();
-		}
-
 	protected:
 		friend class GameWindow;
+		friend class Application;
 
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);

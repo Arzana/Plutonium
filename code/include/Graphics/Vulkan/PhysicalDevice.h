@@ -23,8 +23,8 @@ namespace Pu
 
 		/* Gets the queue families available on this physical device. */
 		_Check_return_ vector<QueueFamilyProperties> GetQueueFamilies(void) const;
-		/* Creates a new logical device from this physical device. */
-		_Check_return_ LogicalDevice CreateLogicalDevice(_In_ const DeviceCreateInfo *createInfo) const;
+		/* Creates a new logical device from this physical device (requires delete!). */
+		_Check_return_ LogicalDevice* CreateLogicalDevice(_In_ const DeviceCreateInfo *createInfo) const;
 		/* Gets all extensions supported by a specific layer (UTF-8) or all enabled extensions if the layer is nullptr or this physical device. */
 		_Check_return_ vector<ExtensionProperties> GetSupportedExtensions(_In_ const char *layer) const;
 		/* Checks whether a specific extension is supported. */

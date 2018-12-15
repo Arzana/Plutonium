@@ -28,16 +28,33 @@ namespace Pu
 			return buffers[curImgIdx];
 		}
 
-		void TestRun()
+		/* Gets the swapchain used by the game window. */
+		_Check_return_ inline const Swapchain& GetSwapchain(void) const
 		{
-			BeginRender();
+			return *swapchain;
+		}
 
-			GetCommandBuffer().ClearImage(swapchain->GetImage(curImgIdx), Color::Orange());
+		/* Gets the current image used to present to the surface. */
+		_Check_return_ inline ImageHndl GetCurrentImage(void) const
+		{
+			return swapchain->images[curImgIdx];
+		}
 
-			EndRender();
+		/* Gets the native window used by the game window. */
+		_Check_return_ inline NativeWindow& GetNative(void)
+		{
+			return native;
+		}
+
+		/* Gets the native window used by the game window. */
+		_Check_return_ inline const NativeWindow& GetNative(void) const
+		{
+			return native;
 		}
 
 	private:
+		friend class Application;
+
 		NativeWindow &native;
 		LogicalDevice &device;
 		Swapchain *swapchain;

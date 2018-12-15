@@ -16,7 +16,7 @@ static constexpr int GetHighWord(LPARAM lParam)
 }
 
 Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector2 size)
-	: NativeWindow(), title(title), vp(size), mode(WindowMode::Windowed), shouldClose(false), AllowAltF4(true), focused(false)
+	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed), shouldClose(false), AllowAltF4(true), focused(false)
 {
 	/* Push this window as an active window. */
 	activeWindows.push_back(this);
@@ -49,7 +49,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector
 	}
 
 	/* Create new window. */
-	hndl = CreateWindow(title, title, WS_OVERLAPPEDWINDOW, 0, 0, ipart(vp.GetWidth()), ipart(vp.GetHeight()), nullptr, nullptr, instance, nullptr);
+	hndl = CreateWindow(title, title, WS_OVERLAPPEDWINDOW, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
 	if (!hndl)
 	{
 		const string error = _CrtGetErrorString();
@@ -114,13 +114,14 @@ void Pu::Win32Window::Close(void)
 
 void Pu::Win32Window::Resize(Vector2 newSize)
 {
-	vp.Size = newSize;
+	vp.Width = newSize.X;
+	vp.Height = newSize.Y;
 	UpdateClientArea();
 }
 
 void Pu::Win32Window::Move(Vector2 newLocation)
 {
-	vp.Position = newLocation;
+	pos = newLocation;
 	UpdateClientArea();
 }
 
@@ -170,21 +171,22 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 void Pu::Win32Window::Move(int x, int y)
 {
-	ValueChangedEventArgs args(vp.Position, Vector2(static_cast<float>(x), static_cast<float>(y)));
-	vp.Position = args.NewValue;
+	ValueChangedEventArgs args(pos, Vector2(static_cast<float>(x), static_cast<float>(y)));
+	pos = args.NewValue;
 	OnLocationChanged.Post(*this, args);
 }
 
 void Pu::Win32Window::Resize(int w, int h)
 {
-	ValueChangedEventArgs args(vp.Size, Vector2(static_cast<float>(w), static_cast<float>(h)));
-	vp.Size = args.NewValue;
+	ValueChangedEventArgs args(Vector2(vp.Width, vp.Height), Vector2(static_cast<float>(w), static_cast<float>(h)));
+	vp.Width = args.NewValue.X;
+	vp.Height = args.NewValue.Y;
 	OnSizeChanged.Post(*this, args);
 }
 
 void Pu::Win32Window::UpdateClientArea(void)
 {
-	if (SetWindowPos(hndl, HWND_TOP, ipart(vp.Position.X), ipart(vp.Position.Y), ipart(vp.GetWidth()), ipart(vp.GetHeight()), 0))
+	if (SetWindowPos(hndl, HWND_TOP, ipart(pos.X), ipart(pos.Y), ipart(vp.Width), ipart(vp.Height), 0))
 	{
 		Log::Warning("Win32 window client area update failed!");
 	}
@@ -202,6 +204,15 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case (WM_SIZE):
 		Resize(GetLowWord(lParam), GetHighWord(lParam));
+		return 0;
+	case (WM_SETFOCUS):
+		focused = true;
+		return 0;
+	case (WM_KILLFOCUS):
+		focused = false;
+		return 0;
+	case (WM_ACTIVATE):
+		focused = GetLowWord(wParam) != WA_INACTIVE;
 		return 0;
 	case (WM_SYSCOMMAND):
 		return HandleSysCmd(wParam, lParam);

@@ -4,6 +4,9 @@
 
 using namespace Pu;
 
+/* Ease of use define for loading within the logical device class. */
+#define LOAD_DEVICE_PROC(name)	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, name)
+
 Pu::LogicalDevice::LogicalDevice(LogicalDevice && value)
 	: parent(value.parent), hndl(value.hndl), vkDestroyDevice(value.vkDestroyDevice)
 {
@@ -19,6 +22,8 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 		parent = std::move(other.parent);
 		hndl = other.hndl;
 		vkDestroyDevice = other.vkDestroyDevice;
+		/* Make sure to reload the device procs. */
+		LoadDeviceProcs();
 
 		other.hndl = nullptr;
 		other.vkDestroyDevice = nullptr;
@@ -57,47 +62,61 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint3
 void Pu::LogicalDevice::LoadDeviceProcs(void)
 {
 	/* Logical device related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyDevice);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkGetDeviceQueue);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkQueueSubmit);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDeviceWaitIdle);
+	LOAD_DEVICE_PROC(vkDestroyDevice);
+	LOAD_DEVICE_PROC(vkGetDeviceQueue);
+	LOAD_DEVICE_PROC(vkQueueSubmit);
+	LOAD_DEVICE_PROC(vkDeviceWaitIdle);
 
 	/* Swapchain related functions. */
 	if (parent.IsExtensionSupported(u8"VK_KHR_swapchain"))
 	{
-		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSwapchainKHR);
-		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroySwapchainKHR);
-		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkGetSwapchainImagesKHR);
-		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkAcquireNextImageKHR);
-		VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkQueuePresentKHR);
+		LOAD_DEVICE_PROC(vkCreateSwapchainKHR);
+		LOAD_DEVICE_PROC(vkDestroySwapchainKHR);
+		LOAD_DEVICE_PROC(vkGetSwapchainImagesKHR);
+		LOAD_DEVICE_PROC(vkAcquireNextImageKHR);
+		LOAD_DEVICE_PROC(vkQueuePresentKHR);
 	}
 	else Log::Warning("%s doesn't support required swapchain extension!", parent.GetName());
 
 	/* Semaphore related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateSemaphore);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroySemaphore);
+	LOAD_DEVICE_PROC(vkCreateSemaphore);
+	LOAD_DEVICE_PROC(vkDestroySemaphore);
 
 	/* Command pool related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateCommandPool);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyCommandPool);
+	LOAD_DEVICE_PROC(vkCreateCommandPool);
+	LOAD_DEVICE_PROC(vkDestroyCommandPool);
 
 	/* Command buffer related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkAllocateCommandBuffers);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkFreeCommandBuffers);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkBeginCommandBuffer);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkEndCommandBuffer);
+	LOAD_DEVICE_PROC(vkAllocateCommandBuffers);
+	LOAD_DEVICE_PROC(vkFreeCommandBuffers);
+	LOAD_DEVICE_PROC(vkBeginCommandBuffer);
+	LOAD_DEVICE_PROC(vkEndCommandBuffer);
 
 	/* Commands. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCmdClearColorImage);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCmdPipelineBarrier);
+	LOAD_DEVICE_PROC(vkCmdClearColorImage);
+	LOAD_DEVICE_PROC(vkCmdPipelineBarrier);
 	
 	/* Render pass related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateRenderPass);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyRenderPass);
+	LOAD_DEVICE_PROC(vkCreateRenderPass);
+	LOAD_DEVICE_PROC(vkDestroyRenderPass);
 
 	/* Shader module related functions. */
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkCreateShaderModule);
-	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, vkDestroyShaderModule);
+	LOAD_DEVICE_PROC(vkCreateShaderModule);
+	LOAD_DEVICE_PROC(vkDestroyShaderModule);
+
+	/* Image view related functions. */
+	LOAD_DEVICE_PROC(vkCreateImageView);
+	LOAD_DEVICE_PROC(vkDestroyImageView);
+
+	/* Framebuffer related functions. */
+	LOAD_DEVICE_PROC(vkCreateFramebuffer);
+	LOAD_DEVICE_PROC(vkDestroyFramebuffer);
+
+	/* Graphics pipeline related functions. */
+	LOAD_DEVICE_PROC(vkCreatePipelineLayout);
+	LOAD_DEVICE_PROC(vkDestroyPipelineLayout);
+	LOAD_DEVICE_PROC(vkCreateGraphicsPipelines);
+	LOAD_DEVICE_PROC(vkDestroyPipeline);
 }
 
 void Pu::LogicalDevice::Destory(void)
