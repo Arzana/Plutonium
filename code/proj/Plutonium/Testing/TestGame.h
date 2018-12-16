@@ -20,7 +20,7 @@ protected:
 	virtual void UnLoadContent(void) {}
 	virtual void Finalize(void);
 	virtual void Update(float) {}
-	virtual void Render(float);
+	virtual void Render(float dt);
 	virtual void RenderLoad(float) {}
 
 private: 

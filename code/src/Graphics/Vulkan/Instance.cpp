@@ -177,6 +177,7 @@ void Pu::VulkanInstance::LoadStaticProcs(void)
 
 void Pu::VulkanInstance::Destroy(void)
 {
+	physicalDevices.clear();
 	OnDestroy.Post(*this, EventArgs());
 
 	if (hndl)
@@ -229,27 +230,38 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 	if (!logged)
 	{
 		logged = true;
-		const string barStr(64, '-');
+		const string barStr = string(64, '-') + '\n';
 
-		/* Log the extension between lines to make sure they are easily visible. */
-		Log::Verbose(barStr.c_str());
+		/* Log everything in one message so other threads can't interfere. */
+		string msg = '\n' + barStr;
 
 		const vector<ExtensionProperties> extensions = GetSupportedExtensions(nullptr);
 		for (const ExtensionProperties &extension : extensions)
 		{
-			Log::Verbose("Extension %s (v%u.%u.%u) available.", extension.ExtensionName, getMajor(extension.SpecVersion), getMinor(extension.SpecVersion), getPatch(extension.SpecVersion));
+			msg += "Extension ";
+			msg += extension.ExtensionName;
+			msg += " (";
+			msg += std::to_string(getMajor(extension.SpecVersion)) += '.';
+			msg += std::to_string(getMinor(extension.SpecVersion)) += '.';
+			msg += std::to_string(getPatch(extension.SpecVersion)) += ") available.\n";
 		}
 
-		Log::Verbose(barStr.c_str());
+		msg += barStr;
 
 		/* Log the layers too bewteen lines. */
 		const vector<LayerProperties> layers = GetSupportedLayers();
 		for (const LayerProperties &layer : layers)
 		{
-			Log::Verbose("Layer %s (v%u.%u.%u) available.", layer.LayerName, getMajor(layer.ImplementationVersion), getMinor(layer.ImplementationVersion), getPatch(layer.ImplementationVersion));
+			msg += "Layer ";
+			msg += layer.LayerName;
+			msg += " (";
+			msg += std::to_string(getMajor(layer.ImplementationVersion)) += '.';
+			msg += std::to_string(getMinor(layer.ImplementationVersion)) += '.';
+			msg += std::to_string(getPatch(layer.ImplementationVersion)) += ") available.\n";
 		}
 
-		Log::Verbose(barStr.c_str());
+		msg += barStr;
+		Log::Verbose(msg.c_str());
 	}
 }
 #endif

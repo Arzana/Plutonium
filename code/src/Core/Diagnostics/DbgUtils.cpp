@@ -78,3 +78,21 @@ void Pu::_CrtFinalizeWinProcess(void)
 	initializedProcesses.clear();
 }
 #endif
+
+#ifdef _DEBUG
+void Pu::_CrtMoveDebugTerminal(const NativeWindow & wnd)
+{
+	const Offset2D wndPos = wnd.GetClientBounds().GetPosition();
+	for (const Display &cur : Display::GetAll())
+	{
+		const Rect2D vp = cur.GetClientBounds();
+
+		if (!vp.Contains(wndPos))
+		{
+			Log::Move(vp.Offset.X, vp.Offset.Y);
+			Log::Resize(vp.Extent.Width, vp.Extent.Height);
+			return;
+		}
+	}
+}
+#endif

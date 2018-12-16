@@ -1607,6 +1607,17 @@ namespace Pu
 		Rect2D(_In_ int32 x, _In_ int32 y, _In_ uint32 w, _In_ uint32 h)
 			: Offset(x, y), Extent(w, h)
 		{}
+
+		/* Checks whether the specified point is inside the rectangle. */
+		_Check_return_ inline bool Contains(_In_ Offset2D point) const
+		{
+			const int32 left = Offset.X;
+			const int32 right = left + Extent.Width;
+			const int32 top = Offset.Y;
+			const int32 bottom = top + Extent.Height;
+
+			return left <= point.X && right >= point.X && top <= point.Y && bottom >= point.Y;
+		}
 	};
 
 	/* Defines a Vulkan compatible viewport. */
@@ -1637,9 +1648,9 @@ namespace Pu
 		{}
 
 		/* Gets the position of the viewport. */
-		_Check_return_ inline Extent2D GetPosition(void) const
+		_Check_return_ inline Offset2D GetPosition(void) const
 		{
-			return Extent2D(static_cast<uint32>(X), static_cast<uint32>(Y));
+			return Offset2D(static_cast<int32>(X), static_cast<int32>(Y));
 		}
 
 		/* Gets the size of the viewport. */

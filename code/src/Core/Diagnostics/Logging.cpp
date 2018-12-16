@@ -5,7 +5,6 @@
 #include <conio.h>		// Press ANY key to continue.
 #endif
 
-
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
@@ -57,7 +56,7 @@ void Pu::Log::Fatal(const char * format, ...)
 	va_end(args);
 }
 
-void Pu::Log::ResizeIfNeeded(uint32 width)
+void Pu::Log::SetBufferWidth(uint32 width)
 {
 #if defined(_WIN32)
 	/* Get terminal handle. */
@@ -91,15 +90,37 @@ void Pu::Log::Move(int32 x, int32 y)
 	}
 
 	/* Move the terminal. */
-	if (SetWindowPos(terminalHndl, HWND_TOP, x, y, 0, 0, SWP_NOSIZE))
+	if (!SetWindowPos(terminalHndl, HWND_TOP, x, y, 0, 0, SWP_NOSIZE))
 	{
 		const string error = _CrtGetErrorString();
-		Log::Error("Unable to move Win32 terminal to [%d, %d], reason: '%s'!", error.c_str());
+		Log::Error("Unable to move Win32 terminal to [%d, %d], reason: '%s'!", x, y, error.c_str());
 	}
 #else
 	Warning("Moving the output window is not supported on this platform!");
 #endif
 	}
+
+void Pu::Log::Resize(uint32 w, uint32 h)
+{
+#ifdef _WIN32
+	/* Get the window handle for the terminal. */
+	const HWND terminalHndl = GetConsoleWindow();
+	if (!terminalHndl)
+	{
+		Log::Warning("Could not get Win32 terminal handle!");
+		return;
+	}
+
+	/* Resize the terminal. */
+	if (!SetWindowPos(terminalHndl, HWND_TOP, 0, 0, w, h, SWP_NOMOVE))
+	{
+		const string error = _CrtGetErrorString();
+		Log::Error("Unable to resize Win32 terminal to %ux%u, reason: '%s'!", w, h, error.c_str());
+	}
+#else
+	Warning("Resizing the output window is not supported on this platform!");
+#endif
+}
 
 bool Pu::Log::BackTrack(uint32 amount)
 {
@@ -244,7 +265,7 @@ Pu::Log::Log(void)
 	: shouldAddLinePrefix(true), suppressLogging(false),
 	lastType(LogType::None), typeStr("")
 {
-	ResizeIfNeeded(1024);
+	SetBufferWidth(1024);
 }
 
 Log & Pu::Log::GetInstance(void)

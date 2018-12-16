@@ -351,6 +351,9 @@
     <ClInclude Include="..\..\..\include\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
+      <Filter>Header Files\Graphics\Platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -469,6 +472,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Application.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp">
+      <Filter>Source Files\Graphics\Platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

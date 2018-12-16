@@ -35,7 +35,7 @@ void TestGame::Finalize(void)
 	delete renderpass;
 }
 
-void TestGame::Render(float)
+void TestGame::Render(float dt)
 {
 	GetWindow().GetCommandBuffer().ClearImage(GetWindow().GetCurrentImage(), Color::Orange());
 }

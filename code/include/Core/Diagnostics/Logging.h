@@ -47,9 +47,11 @@ namespace Pu
 		static void Fatal(_In_ const char *format, _In_opt_ ...);
 
 		/* Makes sure that the output buffer is large enough to fit strings with the specified length. */
-		static void ResizeIfNeeded(_In_ uint32 width);
+		static void SetBufferWidth(_In_ uint32 width);
 		/* Moves the output window to a specified location. */
 		static void Move(_In_ int32 x, _In_ int32 y);
+		/* Resized the output window to a specified size. */
+		static void Resize(_In_ uint32 w, _In_ uint32 h);
 		/* Attempts to set the render position of the output back a specified amount of places. */
 		_Check_return_ static bool BackTrack(_In_ uint32 amount);
 		/* Queues a "Press any key to continue..." message to the buffer and waits for the user to press any key. */

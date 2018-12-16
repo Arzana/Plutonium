@@ -99,16 +99,19 @@ void Pu::TaskScheduler::ThreadTick(TickThread &, UserEventArgs args)
 bool Pu::TaskScheduler::ThreadTryWait(size_t idx)
 {
 	/* Check if any tasks are waiting for sub tasks. */
-	if (waits[idx].empty()) return false;
+	std::map<Task*, Task::Result> &list = waits[idx];
+	if (list.empty()) return false;
 
-	for (const std::pair<Task*, Task::Result> &cur : waits[idx])
+	for (const auto&[task, result] : list)
 	{
 		/* Check if the task still has active childs. */
-		if (cur.first->GetChildCount()) continue;
-		waits[idx].erase(cur.first);
+		if (task->GetChildCount()) continue;
 
 		/* The current task has no more active childs, so continue. */
-		HandleTaskResult(idx, cur.first, cur.first->Continue());
+		HandleTaskResult(idx, task, task->Continue());
+
+		/* Erase task for wait list and return to make sure we don't invalidate the for loop. */
+		list.erase(task);
 		return true;
 	}
 

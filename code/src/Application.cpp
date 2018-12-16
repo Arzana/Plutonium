@@ -74,7 +74,7 @@ void Pu::Application::InitializePlutonium(void)
 	_CrtSetCurrentThreadName("PuMain");
 }
 
-void Pu::Application::InitializeVulkan(const string & name)
+void Pu::Application::InitializeVulkan(void)
 {
 	/* Create the Vulkan instance, ew need the surface extensions for the native window. */
 	instance = new VulkanInstance(name.c_str(),
@@ -196,11 +196,16 @@ bool Pu::Application::Tick(bool loading)
 
 void Pu::Application::DoInitialize(void)
 {
-	InitializeVulkan(name);
+	InitializeVulkan();
 
 	/* Window must be show at least once to give the correct size to the swapchain. */
 	wnd->Show();
 	gameWnd = new GameWindow(*wnd, *device);
+
+	/* Move the log window out of the way on debug mode. */
+#ifdef _DEBUG
+	_CrtMoveDebugTerminal(*wnd);
+#endif
 
 	Initialize();
 }

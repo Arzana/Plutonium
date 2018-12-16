@@ -210,6 +210,7 @@
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
@@ -269,6 +270,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />

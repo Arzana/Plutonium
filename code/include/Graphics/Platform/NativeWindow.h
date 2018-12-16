@@ -4,6 +4,7 @@
 #include "Graphics/Vulkan/VulkanObjects.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "WindowMode.h"
+#include "Display.h"
 
 namespace Pu
 {
@@ -49,6 +50,12 @@ namespace Pu
 		{
 			const Viewport &vp = GetClientBounds();
 			return vp.Width / vp.Height;
+		}
+
+		/* Gets the display that houses the window. */
+		_Check_return_ inline const Display& GetDisplay(void) const
+		{
+			return Display::GetDisplayAt(GetClientBounds().GetPosition());
 		}
 
 		/* Displays the window and gives it focus. */

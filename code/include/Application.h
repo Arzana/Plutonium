@@ -120,7 +120,7 @@ namespace Pu
 
 		static void InitializePlutonium(void);
 
-		void InitializeVulkan(const string &name);
+		void InitializeVulkan(void);
 		bool Tick(bool loading);
 		void DoInitialize(void);
 		void DoLoadContent(void);
