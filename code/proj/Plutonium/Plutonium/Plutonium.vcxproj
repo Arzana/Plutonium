@@ -226,6 +226,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp" />

@@ -1,4 +1,5 @@
 #include "TestGame.h"
+#include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 
 using namespace Pu;
 
@@ -23,6 +24,10 @@ void TestGame::Initialize(void)
 	ProcessTask(loader);
 
 	while (!renderpass->IsLoaded()) {}
+
+	pipeline = new GraphicsPipeline(GetDevice(), *renderpass);
+	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
+	pipeline->Finalize();
 }
 
 void TestGame::LoadContent(void)
@@ -32,10 +37,19 @@ void TestGame::LoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	delete pipeline;
 	delete renderpass;
 }
 
-void TestGame::Render(float dt)
+void TestGame::Render(float, CommandBuffer & cmdBuffer)
 {
-	GetWindow().GetCommandBuffer().ClearImage(GetWindow().GetCurrentImage(), Color::Orange());
+	vector<const ImageView*> views;
+	views.push_back(&GetWindow().GetCurrentImageView());
+	const Extent2D dimensions = GetWindow().GetNative().GetClientBounds().GetSize();
+	Framebuffer framebuffer(GetDevice(), *renderpass, dimensions, views);
+
+	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, Rect2D(dimensions), SubpassContents::Inline);
+	cmdBuffer.BindGraphicsPipeline(*pipeline);
+	cmdBuffer.Draw(3, 1, 0, 0);
+	cmdBuffer.EndRenderPass();
 }

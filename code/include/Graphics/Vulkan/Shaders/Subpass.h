@@ -82,6 +82,8 @@ namespace Pu
 		_Check_return_ const FieldInfo& GetField(_In_ const string &name) const;
 
 	private:
+		friend class GraphicsPipeline;
+
 		const static FieldInfo invalid;
 
 		LogicalDevice &parent;

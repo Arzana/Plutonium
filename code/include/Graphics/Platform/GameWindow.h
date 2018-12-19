@@ -40,6 +40,12 @@ namespace Pu
 			return swapchain->images[curImgIdx];
 		}
 
+		/* Gets the current image view used to present to the surface. */
+		_Check_return_ inline const ImageView& GetCurrentImageView(void) const
+		{
+			return swapchain->views[curImgIdx];
+		}
+
 		/* Gets the native window used by the game window. */
 		_Check_return_ inline NativeWindow& GetNative(void)
 		{

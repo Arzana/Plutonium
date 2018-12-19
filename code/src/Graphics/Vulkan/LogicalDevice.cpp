@@ -95,6 +95,10 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	/* Commands. */
 	LOAD_DEVICE_PROC(vkCmdClearColorImage);
 	LOAD_DEVICE_PROC(vkCmdPipelineBarrier);
+	LOAD_DEVICE_PROC(vkCmdBeginRenderPass);
+	LOAD_DEVICE_PROC(vkCmdBindPipeline);
+	LOAD_DEVICE_PROC(vkCmdDraw);
+	LOAD_DEVICE_PROC(vkCmdEndRenderPass);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

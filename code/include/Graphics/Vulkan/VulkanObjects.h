@@ -2029,7 +2029,7 @@ namespace Pu
 		/* Initializes an empty instance of a graphics pipeline create info object. */
 		GraphicsPipelineCreateInfo(void)
 			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
-			StageCount(0), Stages(nullptr), VertexInputState(nullptr), InputAssemblyState(nullptr), ViewportState(nullptr),
+			StageCount(0), Stages(nullptr), VertexInputState(nullptr), InputAssemblyState(nullptr), TessellationState(nullptr), ViewportState(nullptr),
 			RasterizationState(nullptr), MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr),
 			DynamicState(nullptr), Layout(nullptr), Renderpass(nullptr), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
@@ -2037,12 +2037,73 @@ namespace Pu
 		/* Initializes a new instance of a graphics pipeline create info object. */
 		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ const PipelineVertexInputStateCreateInfo &vertexInput, 
 			_In_ const PipelineInputAssemblyStateCreateInfo &inputAssembly, _In_ const PipelineViewportStateCreateInfo &viewport, 
-			_In_ const PipelineRasterizationStateCreateInfo &rasterization, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
+			_In_ const PipelineRasterizationStateCreateInfo &rasterization, _In_ const PipelineMultisampleStateCreateInfo &multisample,
+			_In_ const PipelineColorBlendStateCreateInfo &colorBlend, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
 			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
 			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(&vertexInput),
-			InputAssemblyState(&inputAssembly), ViewportState(&viewport), RasterizationState(&rasterization), 
-			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
+			InputAssemblyState(&inputAssembly), ViewportState(&viewport), TessellationState(nullptr), RasterizationState(&rasterization), 
+			MultisampleState(&multisample), DepthStencilState(nullptr), ColorBlendState(&colorBlend), DynamicState(nullptr),
 			Layout(layout), Renderpass(renderpass), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
+		{}
+	};
+
+	/* Defines the value used to clear a depth/stencil buffer. */
+	struct ClearDepthStencilValue
+	{
+	public:
+		/* Specifies the clear value for the depth aspect. */
+		float Depth;
+		/* Specifies the clear value for the stencil aspect. */
+		uint32 Stencil;
+
+		/* Initializes an empty instance of the clear depth/stencil object. */
+		ClearDepthStencilValue(void)
+			: ClearDepthStencilValue(0.0f, 0)
+		{}
+
+		/* Initializes a new instance of the clear depth/stencil object. */
+		ClearDepthStencilValue(_In_ float depth, _In_ uint32 stencil)
+			: Depth(depth), Stencil(stencil)
+		{}
+	};
+
+	/* Defines how an attachment should be cleared. */
+	union ClearValue
+	{
+		/* Specifies the color clear value. */
+		ClearColorValue Color;
+		/* Specifies the depth/stencil clear value. */
+		ClearDepthStencilValue DepthStencil;
+	};
+
+	/* Defines the information required to start a render pass. */
+	struct RenderPassBeginInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* The render pass to start. */
+		RenderPassHndl RenderPass;
+		/* The framebuffer that contains the attachments used in the render pass. */
+		FramebufferHndl Framebuffer;
+		/* The area that is affected by the render pass. */
+		Rect2D RenderArea;
+		/* The amount of value in the ClearValues field. */
+		uint32 ClearValueCount;
+		/* Specifies how each attachment should be cleared. */
+		const ClearValue *ClearValues;
+
+		/* Initializes an empty instance of a render pass begin info object. */
+		RenderPassBeginInfo(void)
+			: RenderPassBeginInfo(nullptr, nullptr, Rect2D())
+		{}
+
+		/* Initializes a new instance of a render pass begin info object. */
+		RenderPassBeginInfo(_In_ RenderPassHndl renderPass, _In_ FramebufferHndl framebuffer, _In_ Rect2D renderArea)
+			: Type(StructureType::RenderPassBeginInfo), Next(nullptr), RenderPass(renderPass),
+			Framebuffer(framebuffer), RenderArea(renderArea), ClearValueCount(0), ClearValues(nullptr)
 		{}
 	};
 

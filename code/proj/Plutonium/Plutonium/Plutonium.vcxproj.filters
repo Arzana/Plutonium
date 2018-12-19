@@ -354,6 +354,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
       <Filter>Header Files\Graphics\Platform</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -475,6 +478,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp">
       <Filter>Source Files\Graphics\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,5 @@
 #pragma once
 #include <Application.h>
-#include <Graphics/Vulkan/Shaders/Renderpass.h>
 
 class TestGame
 	: public Pu::Application
@@ -20,9 +19,10 @@ protected:
 	virtual void UnLoadContent(void) {}
 	virtual void Finalize(void);
 	virtual void Update(float) {}
-	virtual void Render(float dt);
+	virtual void Render(float, Pu::CommandBuffer &cmdBuffer);
 	virtual void RenderLoad(float) {}
 
 private: 
 	Pu::Renderpass *renderpass;
+	Pu::GraphicsPipeline *pipeline;
 };

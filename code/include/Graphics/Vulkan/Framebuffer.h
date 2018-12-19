@@ -1,5 +1,5 @@
 #pragma once
-#include "LogicalDevice.h"
+#include "Graphics/Vulkan/Shaders/Renderpass.h"
 
 namespace Pu
 {
@@ -9,6 +9,8 @@ namespace Pu
 	class Framebuffer
 	{
 	public:
+		/* Initializes a new instance of a framebuffer. */
+		Framebuffer(_In_ LogicalDevice &device, _In_ const Renderpass &renderPass, _In_ Extent2D dimensions, _In_ const vector<const ImageView*> &attachments);
 		Framebuffer(_In_ const Framebuffer&) = delete;
 		/* Move constructor. */
 		Framebuffer(_In_ Framebuffer &&value);
@@ -23,10 +25,11 @@ namespace Pu
 		_Check_return_ Framebuffer& operator =(_In_ Framebuffer &&other);
 
 	private:
+		friend class CommandBuffer;
+		friend class Renderpass;
+
 		FramebufferHndl hndl;
 		LogicalDevice &parent;
-
-		Framebuffer(LogicalDevice &device, RenderPassHndl renderPass, Extent2D dimensions, vector<ImageView*> attachments);
 
 		void Destroy(void);
 	};

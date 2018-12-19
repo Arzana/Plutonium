@@ -2,6 +2,7 @@
 #include "Subpass.h"
 #include "Output.h"
 #include "Core/Events/EventBus.h"
+#include "Core/Events/EventArgs.h"
 
 namespace Pu
 {
@@ -40,6 +41,11 @@ namespace Pu
 		Renderpass(_In_ const Renderpass&) = delete;
 		/* Move contructor. */
 		Renderpass(_In_ Renderpass &&value);
+		/* Destroys the render pass. */
+		~Renderpass(void)
+		{
+			Destroy();
+		}
 
 		_Check_return_ Renderpass& operator =(_In_ const Renderpass&) = delete;
 		/* Move assignment. */
@@ -55,6 +61,10 @@ namespace Pu
 		_Check_return_ Output& GetOutput(_In_ const string &name);
 
 	private:
+		friend class GraphicsPipeline;
+		friend class CommandBuffer;
+		friend class Framebuffer;
+
 		LogicalDevice &device;
 		RenderPassHndl hndl;
 		std::atomic_bool loaded;
@@ -67,5 +77,6 @@ namespace Pu
 		bool CheckIO(const Subpass &a, const Subpass &b) const;
 		void LinkSucceeded(void);
 		void LinkFailed(void);
+		void Destroy(void);
 	};
 }

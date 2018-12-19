@@ -1,6 +1,18 @@
 #include "Graphics/Vulkan/Framebuffer.h"
 #include "Graphics/Vulkan/ImageView.h"
 
+Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPass, Extent2D dimensions, const vector<const ImageView*>& attachments)
+	: parent(device)
+{
+	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
+
+	FramebufferCreateInfo createInfo(renderPass.hndl, dimensions.Width, dimensions.Height);
+	createInfo.AttachmentCount = static_cast<uint32>(attachments.size());
+	createInfo.Attachments = handles.data();
+
+	VK_VALIDATE(parent.vkCreateFramebuffer(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
+}
+
 Pu::Framebuffer::Framebuffer(Framebuffer && value)
 	: parent(value.parent), hndl(value.hndl)
 {
@@ -20,18 +32,6 @@ Pu::Framebuffer & Pu::Framebuffer::operator=(Framebuffer && other)
 	}
 
 	return *this;
-}
-
-Pu::Framebuffer::Framebuffer(LogicalDevice & device, RenderPassHndl renderPass, Extent2D dimensions, vector<ImageView*> attachments)
-	: parent(device)
-{
-	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
-
-	FramebufferCreateInfo createInfo(renderPass, dimensions.Width, dimensions.Height);
-	createInfo.AttachmentCount = static_cast<uint32>(attachments.size());
-	createInfo.Attachments = handles.data();
-
-	VK_VALIDATE(parent.vkCreateFramebuffer(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
 }
 
 void Pu::Framebuffer::Destroy(void)

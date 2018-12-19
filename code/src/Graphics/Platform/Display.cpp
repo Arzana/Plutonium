@@ -93,7 +93,7 @@ void Pu::Display::FindDisplays(void)
 	{
 		const string error = _CrtGetErrorString();
 		Log::Error("Unable to get physical monitors, reason: '%s'!", error.c_str());
-}
+	}
 #else
 	Log::Warning("Unable to get monitor information on this platform!");
 #endif

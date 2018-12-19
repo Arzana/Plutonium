@@ -49,6 +49,7 @@ namespace Pu
 		friend class Renderpass;
 		friend class ImageView;
 		friend class Framebuffer;
+		friend class GraphicsPipeline;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -73,6 +74,10 @@ namespace Pu
 		PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
 		PFN_vkCmdClearColorImage vkCmdClearColorImage;
 		PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+		PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+		PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
+		PFN_vkCmdDraw vkCmdDraw;
+		PFN_vkCmdBindPipeline vkCmdBindPipeline;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

@@ -33,6 +33,37 @@ void Pu::CommandBuffer::ClearImage(ImageHndl image, Color color, ImageLayout lay
 	else Log::Warning("Cannot clear image on non-started CommandBuffer!");
 }
 
+void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
+{
+	RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
+
+	/* TODO: TEMP */
+	info.ClearValueCount = 1;
+	ClearValue value = { Color::Orange().ToClearColor() };
+	info.ClearValues = &value;
+	
+	if (beginCalled) parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
+	else Log::Warning("Cannot begin render pass on non-started CommandBuffer!");
+}
+
+void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
+{
+	if (beginCalled) parent.parent.vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
+	else Log::Warning("Cannot bind graphics pipeline on non-started CommandBuffer!");
+}
+
+void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
+{
+	if (beginCalled) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
+	else Log::Warning("Cannot draw on non-started CommandBuffer!");
+}
+
+void Pu::CommandBuffer::EndRenderPass(void)
+{
+	if (beginCalled) parent.parent.vkCmdEndRenderPass(hndl);
+	else Log::Warning("Cannot end render pass on non-started CommandBuffer!");
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(pool), hndl(hndl), beginCalled(false)
 {}

@@ -241,7 +241,7 @@ void Pu::Application::BeginRender(void)
 void Pu::Application::DoRender(float dt)
 {
 	BeginRender();
-	Render(dt);
+	Render(dt, gameWnd->GetCommandBuffer());
 	EndRender();
 }
 

@@ -97,7 +97,7 @@ namespace Pu
 		/* Called before every render call. */
 		virtual void PreRender(void) {}
 		/* Renders the application. */
-		virtual void Render(_In_ float dt) = 0;
+		virtual void Render(_In_ float dt, _In_ CommandBuffer &cmdBuffer) = 0;
 		/* Renders the appication (during load time). */
 		virtual void RenderLoad(_In_ float dt) = 0;
 		/* Called after every render call. */

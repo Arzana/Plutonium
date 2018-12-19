@@ -46,10 +46,14 @@ namespace Pu
 	using PFN_vkDestroyImageView = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ ImageViewHndl view, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCreateFramebuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, const FramebufferCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ FramebufferHndl *framebuffer);
 	using PFN_vkDestroyFramebuffer = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ FramebufferHndl framebuffer, _In_opt_ const AllocationCallbacks *allocator);
-	using PFN_vkCreatePipelineLayout = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineLayoutCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineLayoutHndl pipelineLayout);
+	using PFN_vkCreatePipelineLayout = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineLayoutCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineLayoutHndl *pipelineLayout);
 	using PFN_vkDestroyPipelineLayout = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineLayoutHndl pipelineLayout, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCreateGraphicsPipelines = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_opt_ PipelineCacheHndl pipelineCache, _In_ uint32 createInfoCount, _In_ const GraphicsPipelineCreateInfo *createInfos, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineHndl *pipelines);
 	using PFN_vkDestroyPipeline = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineHndl pipeline, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCmdBeginRenderPass = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ const RenderPassBeginInfo *renderPassBegin, _In_ SubpassContents contents);
+	using PFN_vkCmdBindPipeline = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineBindPoint pipelineBindPoint, _In_ PipelineHndl pipeline);
+	using PFN_vkCmdDraw = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
+	using PFN_vkCmdEndRenderPass = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

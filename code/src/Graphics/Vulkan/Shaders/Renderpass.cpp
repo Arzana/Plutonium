@@ -24,6 +24,8 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 {
 	if (this != &other)
 	{
+		Destroy();
+
 		device = std::move(other.device);
 		hndl = other.hndl;
 		subpasses = std::move(other.subpasses);
@@ -214,6 +216,11 @@ void Pu::Renderpass::LinkFailed(void)
 {
 	usable = false;
 	loaded.store(true);
+}
+
+void Pu::Renderpass::Destroy(void)
+{
+	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, std::initializer_list<const char*> subpasses)
