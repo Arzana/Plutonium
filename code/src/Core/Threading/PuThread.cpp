@@ -1,9 +1,8 @@
 #include "Core/Threading/PuThread.h"
 #include "Core/Threading/ThreadUtils.h"
+#include "Core/Diagnostics/Logging.h"
 #include "Core/Collections/Vector.h"
 #include "Core/Math/Basics.h"
-#include "Core/SafeMemory.h"
-#include <mutex>
 
 using namespace Pu;
 
@@ -77,7 +76,7 @@ Pu::PuThread::~PuThread(void) noexcept
 
 	/* Wait for the thread to end and delete thread object. */
 	Wait();
-	delete_s(thread);
+	delete thread;
 }
 
 void Pu::PuThread::Start(void)

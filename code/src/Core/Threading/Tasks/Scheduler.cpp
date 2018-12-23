@@ -1,5 +1,6 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Core/Threading/TickThread.h"
+#include "Core/Diagnostics/Logging.h"
 
 Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 {
@@ -11,7 +12,7 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 		name += std::to_string(i);
 
 		/* Create worker thread. */
-		TickThread *worker = new TickThread(name.c_str(), 0, void_ptr(i));
+		TickThread *worker = new TickThread(name.c_str(), 0, reinterpret_cast<const void*>(i));
 		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
 
 		/* Push threads to buffers. */

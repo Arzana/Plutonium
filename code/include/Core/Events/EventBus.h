@@ -16,7 +16,7 @@ namespace Pu
 		using HandlerFuncType = typename SubscriberType::HandlerFuncType;
 		/* Defines a method style delegate. */
 		template <typename _CTy>
-		using HandlerMethodType = void(_CTy::*)(_STy &sender, _ArgTy ... args);
+		using HandlerMethodType = typename SubscriberType::template HandlerMethodType<_CTy>;
 
 		/* Initializes a new instance of an event (name is only used on debug mode). */
 		EventBus(_In_ const char *name)

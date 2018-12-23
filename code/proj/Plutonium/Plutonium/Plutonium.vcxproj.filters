@@ -156,9 +156,6 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\SafeMemory.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>

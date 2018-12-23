@@ -15,6 +15,8 @@ namespace Pu
 
 		_Check_return_ GraphicsPipeline& operator =(_In_ const GraphicsPipeline&) = delete;
 
+#pragma warning(push)
+#pragma warning(disable:4458)
 		inline void SetViewport(_In_ const Viewport &viewport)
 		{
 			SetViewport(viewport, viewport.GetScissor());
@@ -25,6 +27,7 @@ namespace Pu
 			this->viewport = viewport;
 			this->scissor = scissor;
 		}
+#pragma warning(pop)
 
 		void Finalize(void);
 

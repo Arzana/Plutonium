@@ -8,7 +8,6 @@
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
-#include "Core/SafeMemory.h"
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>

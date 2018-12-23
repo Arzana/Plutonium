@@ -6,7 +6,6 @@
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Threading/ThreadUtils.h"
-#include "Core/SafeMemory.h"
 
 using namespace Pu;
 
@@ -42,11 +41,11 @@ bool Pu::StackFrame::GetCallerInfoFromHndl(uint64 hndl, StackFrame & frame)
 	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
+	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
 	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
 	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
 
 	/* We don't use displacement but the function needs it. */
@@ -83,9 +82,9 @@ bool Pu::StackFrame::GetCallerInfoFromHndl(uint64 hndl, StackFrame & frame)
 		partiallyFailed = true;
 	}
 
-	free_s(infoSymbol);
-	free_s(infoFile);
-	free_s(infoModule);
+	free(infoSymbol);
+	delete infoFile;
+	delete infoModule;
 #else
 	Log::Error("Cannot get caller frame information on this platform!");
 #endif
@@ -108,11 +107,11 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
+	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
 	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
 	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
 
 	/* We don't use displacement but the function needs it. */
@@ -178,9 +177,9 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 		}
 	}
 
-	free_s(infoSymbol);
-	free_s(infoFile);
-	free_s(infoModule);
+	free(infoSymbol);
+	delete infoFile;
+	delete infoModule;
 #else
 	Log::Error("Cannot get caller information on this platform!");
 #endif
@@ -205,11 +204,11 @@ bool Pu::StackFrame::GetStackTrace(int32 framesToSkip, vector<StackFrame>& frame
 	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = malloc_s(IMAGEHLP_LINE64, 1);
+	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
 	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = malloc_s(IMAGEHLP_MODULE64, 1);
+	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
 	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
 
 	/* We don't use displacement but the function needs it. */
@@ -241,9 +240,9 @@ bool Pu::StackFrame::GetStackTrace(int32 framesToSkip, vector<StackFrame>& frame
 		frames.push_back(frame);
 	}
 
-	free_s(infoSymbol);
-	free_s(infoFile);
-	free_s(infoModule);
+	free(infoSymbol);
+	delete infoFile;
+	delete infoModule;
 #else
 	Log::Error("Cannot get stack trace on this platform!");
 #endif

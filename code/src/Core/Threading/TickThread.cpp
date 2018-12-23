@@ -1,5 +1,6 @@
 #include "Core/Threading/TickThread.h"
 #include "Core/Threading/ThreadUtils.h"
+#include "Core/Diagnostics/Logging.h"
 
 Pu::TickThread::TickThread(const char * name, uint32 cooldown, const void * param)
 	: PuThread(name), cooldown(cooldown), args(param),

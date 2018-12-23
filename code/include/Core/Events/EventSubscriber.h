@@ -1,7 +1,6 @@
 #pragma once
 #include "Core\Math\Constants.h"
 #include "DelegateObsevers.h"
-#include "Core\SafeMemory.h"
 
 namespace Pu
 {
@@ -14,7 +13,7 @@ namespace Pu
 		using HandlerFuncType = typename DelegateFunc<_STy, _ArgTy...>::HandlerType;
 		/* Defines a method style delegate. */
 		template <typename _CTy>
-		using HandlerMethodType = void(_CTy::*)(_In_ _STy &sender, _In_ _ArgTy ... args);
+		using HandlerMethodType = typename DelegateMethod<_STy, _CTy, _ArgTy...>::HandlerType;
 
 		/* Initializes an empty instance of an event subscriber. */
 		EventSubscriber(void)
@@ -64,7 +63,7 @@ namespace Pu
 		/* Releases the resources of the event subscriber. */
 		~EventSubscriber(void) noexcept
 		{
-			if (hndlr) delete_s(hndlr);
+			if (hndlr) delete hndlr;
 		}
 
 		/* Copies the data from the specified subscriber to this subscriber. */
@@ -72,7 +71,7 @@ namespace Pu
 		{
 			if (this != &other)
 			{
-				if (hndlr) delete_s(hndlr);
+				if (hndlr) delete hndlr;
 
 				id = other.id;
 				hndlr = other.hndlr->Copy();
@@ -86,7 +85,7 @@ namespace Pu
 		{
 			if (this != &other)
 			{
-				if (hndlr) delete_s(hndlr);
+				if (hndlr) delete hndlr;
 
 				id = other.id;
 				hndlr = other.hndlr;
@@ -142,7 +141,7 @@ namespace Pu
 		int64 id;
 		DelegateBase<_STy, _ArgTy...> *hndlr;
 
-		static int64 ComputeHash(const void *arg1, const void *arg2)
+		static int64 ComputeRawHash(const void *arg1, const void *arg2)
 		{
 			const int64 first = static_cast<int64>(reinterpret_cast<intptr_t>(arg1));
 			const int64 second = static_cast<int64>(reinterpret_cast<intptr_t>(arg2));
@@ -151,13 +150,13 @@ namespace Pu
 
 		static int64 ComputeHash(HandlerFuncType func)
 		{
-			return ComputeHash(nullptr, void_ptr(func));
+			return ComputeRawHash(nullptr, reinterpret_cast<const void*>(func));
 		}
 
 		template <typename _CTy>
 		static int64 ComputeHash(const _CTy *cnt, HandlerMethodType<_CTy> func)
 		{
-			return ComputeHash(void_ptr(cnt), (const void*&)func);
+			return ComputeRawHash(cnt, (const void*&)func);
 		}
 	};
 }

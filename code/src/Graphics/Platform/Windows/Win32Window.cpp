@@ -63,7 +63,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector
 Pu::Win32Window::~Win32Window(void)
 {
 	/* Destroy handles. */
-	delete_s(surface);
+	delete surface;
 	if (hndl) DestroyWindow(hndl);
 	if (instance) UnregisterClass(title, instance);
 

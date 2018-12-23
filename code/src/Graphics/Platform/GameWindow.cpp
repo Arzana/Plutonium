@@ -52,8 +52,8 @@ Pu::GameWindow::~GameWindow(void)
 
 	semaphores.clear();
 	buffers.clear();
-	delete_s(pool);
-	delete_s(swapchain);
+	delete pool;
+	delete swapchain;
 }
 
 void Pu::GameWindow::UpdateSwapchainSize(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
@@ -75,7 +75,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size)
 
 	/* Create new swapchain. */
 	swapchain = new Swapchain(device, native.GetSurface(), info);
-	if (old) delete_s(old);
+	if (old) delete old;
 }
 
 void Pu::GameWindow::MakeSwapchainImageWritable(void)
