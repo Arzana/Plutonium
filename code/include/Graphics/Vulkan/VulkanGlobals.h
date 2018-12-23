@@ -114,7 +114,6 @@ namespace Pu
 	constexpr uint32 RemainingArrayLayers = ~0U;
 	/* Used to set the memory range to the whole range. */
 	constexpr DeviceSize WholeSize = ~0ULL;
-	// TODO: add AttachmentUnused to AttachmentRefrence.
 	/*  Used to indicate that the queue family should be ignored. */
 	constexpr uint32 QueueFamilyIgnored = ~0U;
 	/* Used to indicate non clamped subpass scope */

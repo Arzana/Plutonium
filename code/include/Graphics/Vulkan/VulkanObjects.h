@@ -1096,6 +1096,9 @@ namespace Pu
 	struct AttachmentReference
 	{
 	public:
+		/* Defines an attachment pointer that indicates that the attachment reference is not in use. */
+		static constexpr const AttachmentReference *Unused = reinterpret_cast<const AttachmentReference*>(static_cast<uint64>(~0U));
+
 		/* The index of the attachment of the render pass. */
 		uint32 Attachment;
 		/* Specifies the layout the attachment uses during the subpass. */

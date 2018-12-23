@@ -1,5 +1,5 @@
 #include "Streams/BinaryReader.h"
-#include "Core/SafeMemory.h"
+#include "Core/Diagnostics/Logging.h"
 #include <cstring>
 
 using namespace Pu;
@@ -35,85 +35,85 @@ byte Pu::BinaryReader::PeekByte(void)
 int8 Pu::BinaryReader::PeekSByte(void)
 {
 	CheckOverflow(sizeof(int8), true);
-	return *reinterpret_cast<const int8*>(void_ptr(data + position));
+	return *reinterpret_cast<const int8*>(data + position);
 }
 
 int16 Pu::BinaryReader::PeekInt16(void)
 {
 	CheckOverflow(sizeof(int16), true);
-	return *reinterpret_cast<const int16*>(void_ptr(data + position));
+	return *reinterpret_cast<const int16*>(data + position);
 }
 
 uint16 Pu::BinaryReader::PeekUInt16(void)
 {
 	CheckOverflow(sizeof(uint16), true);
-	return *reinterpret_cast<const uint16*>(void_ptr(data + position));
+	return *reinterpret_cast<const uint16*>(data + position);
 }
 
 int32 Pu::BinaryReader::PeekInt32(void)
 {
 	CheckOverflow(sizeof(int32), true);
-	return *reinterpret_cast<const int32*>(void_ptr(data + position));
+	return *reinterpret_cast<const int32*>(data + position);
 }
 
 uint32 Pu::BinaryReader::PeekUInt32(void)
 {
 	CheckOverflow(4, true);
-	return *reinterpret_cast<const uint32*>(void_ptr(data + position));
+	return *reinterpret_cast<const uint32*>(data + position);
 }
 
 int64 Pu::BinaryReader::PeekInt64(void)
 {
 	CheckOverflow(sizeof(int64), true);
-	return *reinterpret_cast<const int64*>(void_ptr(data + position));
+	return *reinterpret_cast<const int64*>(data + position);
 }
 
 uint64 Pu::BinaryReader::PeekUInt64(void)
 {
 	CheckOverflow(sizeof(uint64), true);
-	return *reinterpret_cast<const uint64*>(void_ptr(data + position));
+	return *reinterpret_cast<const uint64*>(data + position);
 }
 
 float Pu::BinaryReader::PeekSingle(void)
 {
 	CheckOverflow(sizeof(float), true);
-	return *reinterpret_cast<const float*>(void_ptr(data + position));
+	return *reinterpret_cast<const float*>(data + position);
 }
 
 double Pu::BinaryReader::PeekDouble(void)
 {
 	CheckOverflow(sizeof(double), true);
-	return *reinterpret_cast<const double*>(void_ptr(data + position));
+	return *reinterpret_cast<const double*>(data + position);
 }
 
 Vector2 Pu::BinaryReader::PeekVector2(void)
 {
 	CheckOverflow(sizeof(Vector2), true);
-	return *reinterpret_cast<const Vector2*>(void_ptr(data + position));
+	return *reinterpret_cast<const Vector2*>(data + position);
 }
 
 Vector3 Pu::BinaryReader::PeekVector3(void)
 {
 	CheckOverflow(sizeof(Vector3), true);
-	return *reinterpret_cast<const Vector3*>(void_ptr(data + position));
+	return *reinterpret_cast<const Vector3*>(data + position);
 }
 
 Vector4 Pu::BinaryReader::PeekVector4(void)
 {
 	CheckOverflow(sizeof(Vector4), true);
-	return *reinterpret_cast<const Vector4*>(void_ptr(data + position));
+	return *reinterpret_cast<const Vector4*>(data + position);
 }
 
 Quaternion Pu::BinaryReader::PeekQuaternion(void)
 {
 	CheckOverflow(sizeof(Quaternion), true);
-	return *reinterpret_cast<const Quaternion*>(void_ptr(data + position));
+	return *reinterpret_cast<const Quaternion*>(data + position);
 }
 
 Matrix Pu::BinaryReader::PeekMatrix(void)
 {
 	CheckOverflow(sizeof(Matrix), true);
-	return *reinterpret_cast<const Matrix*>(void_ptr(data + position));
+	return *reinterpret_cast<const Matrix*>(data + position);
 }
 
 int32 Pu::BinaryReader::Peek(void)
