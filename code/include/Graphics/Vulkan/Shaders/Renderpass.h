@@ -59,6 +59,8 @@ namespace Pu
 
 		/* Gets the specified shader output. */
 		_Check_return_ Output& GetOutput(_In_ const string &name);
+		/* Gets the specified shader output. */
+		_Check_return_ const Output& GetOutput(_In_ const string &name) const;
 
 	private:
 		friend class GraphicsPipeline;

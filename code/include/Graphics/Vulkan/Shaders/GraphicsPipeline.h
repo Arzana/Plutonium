@@ -3,11 +3,14 @@
 
 namespace Pu
 {
+	/* Defines the enviroment for a single render pass. */
 	class GraphicsPipeline
 	{
 	public:
+		/* Initializes a new instance of a graphics pipeline for the specified render pass. */
 		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
+		/* Destroys the graphics pipeline. */
 		~GraphicsPipeline(void)
 		{
 			Destroy();
@@ -17,18 +20,19 @@ namespace Pu
 
 #pragma warning(push)
 #pragma warning(disable:4458)
+		/* Sets the viewport parameters of the graphics pipeline. */
 		inline void SetViewport(_In_ const Viewport &viewport)
 		{
 			SetViewport(viewport, viewport.GetScissor());
 		}
 
-		inline void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor)
-		{
-			this->viewport = viewport;
-			this->scissor = scissor;
-		}
+		/* Sets the viewport and scissor rectangle parameters of the graphics pipeline. */
+		void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor);
 #pragma warning(pop)
 
+		/* Gets the blending state for a specific color blend attachment. */
+		_Check_return_ PipelineColorBlendAttachmentState& GetBlendStateFor(_In_ const string &name);
+		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
 		void Finalize(void);
 
 	private:
@@ -43,6 +47,8 @@ namespace Pu
 		PipelineDepthStencilStateCreateInfo *depthStencil;
 		PipelineColorBlendStateCreateInfo *colorBlend;
 		PipelineDynamicStateCreateInfo *dynamicState;
+
+		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
 
 		LogicalDevice &parent;
 		const Renderpass &renderpass;

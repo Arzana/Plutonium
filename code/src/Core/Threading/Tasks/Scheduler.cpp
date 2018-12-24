@@ -27,15 +27,23 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 
 Pu::TaskScheduler::~TaskScheduler(void)
 {
-	/* Stop all threads. */
-	while (!threads.empty())
-	{
-		TickThread *cur = threads.back();
-		threads.pop_back();
+	/* Create buffer so we can wait for all threads to stop in parallel instead of in sequence. */
+	vector<PuThread*> waitList;
+	waitList.reserve(threads.size());
 
-		cur->StopWait();
-		delete cur;
+	/* Signal stop command to threads and append them to a wait list. */
+	for (TickThread *cur : threads)
+	{
+		cur->Stop();
+		waitList.push_back(cur);
 	}
+
+	/* Wait for all threads to stop excecution. */
+	PuThread::WaitAll(waitList);
+
+	/* Release memory allocated by the threads. */
+	for (TickThread *cur : threads) delete cur;
+	threads.clear();
 }
 
 void Pu::TaskScheduler::Spawn(Task & task)

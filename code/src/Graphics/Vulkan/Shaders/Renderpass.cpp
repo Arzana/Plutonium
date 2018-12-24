@@ -51,6 +51,16 @@ Pu::Output & Pu::Renderpass::GetOutput(const string & name)
 	Log::Fatal("Unable to find output field '%s'!", name.c_str());
 }
 
+const Pu::Output & Pu::Renderpass::GetOutput(const string & name) const
+{
+	for (const Output &cur : outputs)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find output field '%s'!", name.c_str());
+}
+
 void Pu::Renderpass::Link(void)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */

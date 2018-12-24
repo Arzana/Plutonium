@@ -1,7 +1,6 @@
 #include "Core/Threading/PuThread.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Logging.h"
-#include "Core/Collections/Vector.h"
 #include "Core/Math/Basics.h"
 
 using namespace Pu;
@@ -12,7 +11,7 @@ static std::mutex bufferLock;
 /*
 !!!!!!!!!! Remember !!!!!!!!!!
 If this function is removed or the name is changed the stack trace logger needs to be updated!
-!!!!!!!!!! Remenber!!!!!!!!!!
+!!!!!!!!!! Remember !!!!!!!!!!
 */
 void Pu::_CrtPuThreadStart(uint32 id, const char *name)
 {
@@ -136,4 +135,16 @@ void Pu::PuThread::Sleep(uint64 milliseconds)
 size_t Pu::PuThread::GetMaxConcurrent(void)
 {
 	return std::thread::hardware_concurrency();
+}
+
+bool Pu::PuThread::WaitAll(const vector<PuThread*> & threads)
+{
+	bool noDetaches = true;
+
+	for (const PuThread * thread : threads)
+	{
+		noDetaches = noDetaches && thread->Wait();
+	}
+
+	return noDetaches;
 }

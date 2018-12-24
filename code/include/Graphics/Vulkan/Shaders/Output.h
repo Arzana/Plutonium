@@ -29,6 +29,7 @@ namespace Pu
 
 	private:
 		friend class Renderpass;
+		friend class GraphicsPipeline;
 
 		bool resolve;
 		OutputUsage type;

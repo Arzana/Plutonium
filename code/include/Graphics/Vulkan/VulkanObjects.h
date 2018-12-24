@@ -1903,10 +1903,10 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of the pipeline color blend state create info object. */
-		PipelineColorBlendStateCreateInfo(_In_ const PipelineColorBlendAttachmentState &state)
+		PipelineColorBlendStateCreateInfo(_In_ const vector<PipelineColorBlendAttachmentState> &states)
 			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(nullptr), Flags(0),
-			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(1), Attachments(&state),
-			BlendConstants{0.0f, 0.0f, 0.0f, 0.0f}
+			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(static_cast<uint32>(states.size())), 
+			Attachments(states.data()), BlendConstants{0.0f, 0.0f, 0.0f, 0.0f}
 		{}
 	};
 

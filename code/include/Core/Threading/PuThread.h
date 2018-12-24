@@ -1,5 +1,6 @@
 #pragma once
 #include "Core\Math\Constants.h"
+#include "Core/Collections/vector.h"
 #include <thread>
 #include <atomic>
 
@@ -32,6 +33,12 @@ namespace Pu
 		static void Sleep(_In_ uint64 milliseconds);
 		/* Gets the maximum amount of concurrent threads supported. */
 		static size_t GetMaxConcurrent(void);
+		/*
+		Waits for the specified threads to stop excecution. 
+		Retuns true if all threads were safelty stopped.
+		Returns false if a thread had to be deteched to stop.
+		*/
+		_Check_return_ static bool WaitAll(_In_ const vector<PuThread*> &threads);
 
 	protected:
 		/* Entry point for the thread, gets called after Start on the underlying thread. */
