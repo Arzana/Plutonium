@@ -28,13 +28,14 @@ namespace Pu
 
 		private:
 			Renderpass &result;
-			std::initializer_list<const char*> paths;
+			vector<const char*> paths;
 			vector<Subpass::LoadTask*> children;
 		};
 
 		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
 		EventBus<Renderpass, EventArgs> OnAttachmentLink;
 
+		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);
 		/* Initializes a new render pass from the specified subpasses. */
 		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);

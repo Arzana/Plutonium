@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include "Core/Collections/vector.h"
+#include "Core/Diagnostics/Logging.h"
 
 namespace Pu
 {
@@ -25,7 +26,12 @@ namespace Pu
 
 		Task(_In_ Task&&) = delete;
 		/* Releases the resources associated with the task. */
-		virtual ~Task(void) {}
+		virtual ~Task(void) 
+		{
+#ifdef _DEBUG
+			if (!completed.load()) Log::Warning("Task is being destroyed before being completed!");
+#endif
+		}
 
 		_Check_return_ Task& operator =(_In_ const Task&) = delete;
 		_Check_return_ Task& operator =(_In_ Task&&) = delete;
@@ -65,5 +71,8 @@ namespace Pu
 
 	private:
 		std::atomic_size_t childCnt;
+#ifdef _DEBUG
+		std::atomic_bool completed;
+#endif
 	};
 }

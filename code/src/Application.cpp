@@ -40,7 +40,7 @@ void Pu::Application::Run(void)
 	while (!loaded.load())
 	{
 		/* Check if used wants to close the window during load time. */
-		if (wnd->Update()) return;
+		if (!wnd->Update()) return;
 
 		/* Tick application. */
 		while (!Tick(true));

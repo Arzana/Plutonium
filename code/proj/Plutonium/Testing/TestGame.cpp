@@ -3,6 +3,8 @@
 
 using namespace Pu;
 
+GraphicsPipeline::LoadTask *loader;
+
 TestGame::TestGame(void)
 	: Application("TestGame"), renderpass(nullptr)
 {}
@@ -20,31 +22,27 @@ void TestGame::Initialize(void)
 		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
 	};
 
-	Renderpass::LoadTask loader(*renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/Triangle.frag" });
-	ProcessTask(loader);
-
-	while (!renderpass->IsLoaded()) {}
-
-	pipeline = new GraphicsPipeline(GetDevice(), *renderpass);
-	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
-	pipeline->Finalize();
-
-	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow &wnd, ValueChangedEventArgs<Vector2>)
+	pipeline = new GraphicsPipeline(GetDevice());
+	pipeline->PostInitialize += [&](GraphicsPipeline &pipeline, EventArgs)
 	{
-		pipeline->SetViewport(wnd.GetClientBounds());
-		pipeline->Finalize();
+		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
+		pipeline.Finalize();
+
+		TempMarkDoneLoading();
 	};
+
+	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/Triangle.frag" });
+	ProcessTask(*loader);
 }
 
 void TestGame::LoadContent(void)
-{
-	TempMarkDoneLoading();
-}
+{}
 
 void TestGame::Finalize(void)
 {
 	delete pipeline;
 	delete renderpass;
+	delete loader;
 }
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)

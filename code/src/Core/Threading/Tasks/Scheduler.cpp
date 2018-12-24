@@ -16,8 +16,8 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
 
 		/* Push threads to buffers. */
-		tasks.emplace_back(sdeque<Task*>());
-		waits.emplace_back(std::map<Task*, Task::Result>());
+		tasks.emplace_back();
+		waits.emplace_back();
 		threads.emplace_back(worker);
 
 		/* Start thread. */
@@ -173,4 +173,9 @@ void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result r
 
 	/* Mark the child as completed if needed. */
 	if (task->GetChildCount() < 1 && task->parent) task->parent->MarkChildAsComplete(*task);
+
+	/* Mark the task as completed on debug mode. */
+#ifdef _DEBUG
+	if (!result.Continuation && task->GetChildCount() < 1) task->completed.store(true);
+#endif
 }

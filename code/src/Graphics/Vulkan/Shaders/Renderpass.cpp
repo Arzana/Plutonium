@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
+#include "..\..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: device(device), hndl(nullptr), loaded(false), usable(false),
@@ -235,7 +236,7 @@ void Pu::Renderpass::Destroy(void)
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, std::initializer_list<const char*> subpasses)
-	: result(result), paths(std::move(subpasses))
+	: result(result), paths(subpasses)
 {}
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
