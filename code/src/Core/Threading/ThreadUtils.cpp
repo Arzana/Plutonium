@@ -242,7 +242,7 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 		/* Close handles to the child. */
 		CloseHandle(pInfo.hProcess);
 		CloseHandle(pInfo.hThread);
-		return true;
+		return waitResult == WAIT_OBJECT_0;
 	}
 
 	/* Process creation failed so log error and return false. */

@@ -1,5 +1,5 @@
 #pragma once
-#include "Core\Math\Constants.h"
+#include "Core/Math/Constants.h"
 #include "Core/Collections/vector.h"
 #include <thread>
 #include <atomic>

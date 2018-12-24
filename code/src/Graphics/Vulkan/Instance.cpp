@@ -16,7 +16,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	LoadStaticProcs();
 
 #ifdef _DEBUG
-	LogAvailableExtensionsAndLayers();
+	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
 #endif
 
 	/* Create application info and instance info. */

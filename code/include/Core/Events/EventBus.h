@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Collections/Vector.h"
 #include "EventSubscriber.h"
+#include "Config.h"
 #include <mutex>
 
 namespace Pu
@@ -91,7 +92,7 @@ namespace Pu
 			lock.lock();
 			callbacks.push_back(sub);
 			lock.unlock();
-			Log::Verbose("Registered callback(%llX) to event %s.", sub.GetID(), name);
+			if constexpr (EventBusLogging) Log::Verbose("Registered callback(%llX) to event %s.", sub.GetID(), name);
 		}
 
 		/* Registers an event handler to this event. */
@@ -102,7 +103,7 @@ namespace Pu
 			lock.lock();
 			callbacks.push_back(sub);
 			lock.unlock();
-			Log::Verbose("Registered callback(%llX) to event %s.", sub.GetID(), name);
+			if constexpr (EventBusLogging) Log::Verbose("Registered callback(%llX) to event %s.", sub.GetID(), name);
 		}
 
 		/* Registers an event handler to this event. */
@@ -113,7 +114,7 @@ namespace Pu
 			lock.lock();
 			callbacks.push_back(sub);
 			lock.unlock();
-			Log::Verbose("Registered callback(lambda) to event %s.", name);
+			if constexpr (EventBusLogging) Log::Verbose("Registered callback(lambda) to event %s.", name);
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -121,7 +122,7 @@ namespace Pu
 		{
 			const int64 id = SubscriberType::CreateComparableID(func);
 			const size_t result = UnRegisterCallback(id);
-			Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+			if constexpr (EventBusLogging) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -130,7 +131,7 @@ namespace Pu
 		{
 			const int64 id = SubscriberType::CreateComparableID(obj, func);
 			const size_t result = UnRegisterCallback(id);
-			Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+			if constexpr (EventBusLogging) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
 		}
 
 		/* Posts an event to all registered subscribers. */

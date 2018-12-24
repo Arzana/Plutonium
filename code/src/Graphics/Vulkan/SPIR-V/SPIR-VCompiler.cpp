@@ -5,10 +5,9 @@
 #include "Streams/FileUtils.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/VulkanGlobals.h"
+#include "Config.h"
 
 using namespace Pu;
-
-//#define LOG_HUMAN_READABLE_SPIRV
 
 bool Pu::SPIRV::loaded = false;
 string Pu::SPIRV::glslUtils = "";
@@ -22,19 +21,17 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	/* 
 	Create arguments for the validator. 
 	-V: Indicates that a SPIR-V binary shuold be created with the latest version.
+	-H: Specifies that the validator should print a human readable version of the result.
 	-o: Specifies the output path.
 	*/
 	const string fname = _CrtGetFileName(path);
 	const string output = curDir + BIN_DIR + fname + ".spv";
-#ifdef LOG_HUMAN_READABLE_SPIRV
-	const string args = "-V -H -o \"" + output + "\" \"" + curDir + path + '\"';
-#else
-	const string args = "-V -o \"" + output + "\" \"" + curDir + path + '\"';
-#endif
+
+	const string args = (SpirVCompilerLogHumanReadable ? "-V -H -o \"" : "-V -o \"") + output + "\" \"" + curDir + path + '\"';
 	string log;
 
 	/* Run the validator. */
-	const bool succeeded = _CrtRunProcess("glslangValidator.exe", const_cast<char*>(args.c_str()), log);
+	const bool succeeded = _CrtRunProcess("glslangValidator.exe", const_cast<char*>(args.c_str()), log, SpirVCompilerTimeout);
 	HandleGLSLValidateLog(log);
 
 	/* Log either success or failure. */
@@ -45,7 +42,7 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	}
 	else
 	{
-		Log::Error("Unable to compile GLSL source to SPIR-V (Could not run validator)!");
+		Log::Error("Unable to compile GLSL source '%s' to SPIR-V (Could not run validator)!", fname.c_str());
 		return "";
 	}
 }
@@ -54,7 +51,7 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
 {
 	/* Split the log into it's lines and remove empty lines. */
 	vector<string> lines = log.split("\r\n");
-	lines.remove("\n");
+	lines.tryRemove("\n");
 
 	/*
 	Only log if something has been logged.
@@ -74,9 +71,12 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
 			line.remove('\n');
 			if (line.length() > 0)
 			{
-				/* If the message has 'ERROR: ' in it log it as an error, otherwise just verbose. */
-				const size_t off = line.find("ERROR: ");
-				if (off != string::npos) Log::Error(line.c_str() + off + 7);
+				/* If the message has 'ERROR: ' or 'WARNING: ' in it log it as an error or warning, otherwise just verbose. */
+				const size_t errorOff = line.find("ERROR: ");
+				const size_t warnOff = line.find("WARNING: ");
+
+				if (errorOff != string::npos) Log::Error(line.c_str() + errorOff + 7);
+				else if (warnOff != string::npos) Log::Warning(line.c_str() + warnOff + 9);
 				else Log::Verbose(line.c_str());
 			}
 		}

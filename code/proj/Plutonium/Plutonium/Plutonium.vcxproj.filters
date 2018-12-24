@@ -354,6 +354,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -516,7 +519,10 @@
     <None Include="..\..\..\assets\shaders\Triangle.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\Triangle.frag">
+    <None Include="..\..\..\assets\shaders\VertexColor.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\VertexColor.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

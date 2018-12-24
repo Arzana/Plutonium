@@ -10,8 +10,8 @@
 
 Pu::Application::Application(const string & name)
 	: IsFixedTimeStep(true), suppressUpdate(false), suppressRender(false), name(name),
-	targetElapTimeFocused(1.0f / 60.0f), targetElapTimeBackground(1.0f / 20.0f),
-	maxElapTime(5.0f), accumElapTime(0.0f), gameTime(), device(nullptr), loaded(false)
+	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
+	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), loaded(false)
 {
 	InitializePlutonium();
 	scheduler = new TaskScheduler();

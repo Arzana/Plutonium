@@ -138,8 +138,9 @@ void Pu::Renderpass::Link(void)
 
 	/* Link the subpasses into a render pass. */
 	RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions);
+	createInfo.DependencyCount = static_cast<uint32>(dependencies.size());
+	createInfo.Dependencies = dependencies.data();
 	VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
-
 	LinkSucceeded();
 }
 

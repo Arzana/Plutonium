@@ -212,9 +212,12 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			printf("| %-64s\n", cur.FileName.c_str());
 
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */
-			if (strstr(cur.FunctionName.c_str(), "_CrtPuThreadStart")) suppressLog = true;
-			if (!strcmp(cur.FunctionName.c_str(), "main")) suppressLog = true;
-			if (suppressLog) printf("		[External Code]\n");
+			if constexpr (!LoggerExternalsVisible)
+			{
+				if (strstr(cur.FunctionName.c_str(), "_CrtPuThreadStart")) suppressLog = true;
+				if (!strcmp(cur.FunctionName.c_str(), "main")) suppressLog = true;
+				if (suppressLog) printf("		[External Code]\n");
+			}
 		}
 	}
 

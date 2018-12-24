@@ -20,6 +20,22 @@ void TestGame::Initialize(void)
 	renderpass->OnAttachmentLink += [&](Renderpass &renderpass, EventArgs)
 	{
 		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+
+		SubpassDependency dependency(SubpassExternal, 0);
+		dependency.SrcStageMask = PipelineStageFlag::BottomOfPipe;
+		dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
+		dependency.SrcAccessMask = AccessFlag::MemoryRead;
+		dependency.DstAcccessMask = AccessFlag::ColorAttachmentWrite;
+		dependency.DependencyFlags = DependencyFlag::ByRegion;
+		renderpass.AddDependency(dependency);
+
+		dependency = SubpassDependency(0, SubpassExternal);
+		dependency.SrcStageMask = PipelineStageFlag::ColorAttachmentOutput;
+		dependency.DstStageMask = PipelineStageFlag::BottomOfPipe;
+		dependency.SrcAccessMask = AccessFlag::ColorAttachmentWrite;
+		dependency.DstAcccessMask = AccessFlag::MemoryRead;
+		dependency.DependencyFlags = DependencyFlag::ByRegion;
+		renderpass.AddDependency(dependency);
 	};
 
 	pipeline = new GraphicsPipeline(GetDevice());
@@ -31,7 +47,7 @@ void TestGame::Initialize(void)
 		TempMarkDoneLoading();
 	};
 
-	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/Triangle.frag" });
+	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/VertexColor.frag" });
 	ProcessTask(*loader);
 }
 

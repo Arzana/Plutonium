@@ -2,6 +2,7 @@
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Math/Basics.h"
+#include "Config.h"
 
 using namespace Pu;
 
@@ -34,7 +35,7 @@ void Pu::_CrtPuThreadStart(uint32 id, const char *name)
 			bufferLock.unlock();
 
 			/* Wait for the thread to be started. */
-			while (!cur->started.load()) PuThread::Sleep(100);
+			while (!cur->started.load()) PuThread::Sleep(ThreadStartWaitInterval);
 
 			/* Launch the thread object's main. */
 			cur->_CrtPuThreadMain();
@@ -99,25 +100,21 @@ bool Pu::PuThread::Wait(void) const
 	if (thread->joinable()) thread->join();
 	else
 	{
-		/* Define the sleep time as 0.1 seconds and the detach threshold as 5 seconds. */
-		constexpr uint64 SLEEP_TIME = 100;
-		constexpr uint64 SLEEP_MAX = 5000;
-
 		/* Wait untill stopped is set. */
 		uint64 elapsed = 0;
 		while (!stopped.load())
 		{
 			/* Sleep to make sure we don't overload the CPU. */
-			PuThread::Sleep(SLEEP_TIME);
+			PuThread::Sleep(ThreadWaitSleepTime);
 
 			/* Check if threshold is reached. */
-			if ((elapsed += SLEEP_TIME) > SLEEP_MAX)
+			if ((elapsed += ThreadWaitSleepTime) > ThreadWaitMax)
 			{
 				/*
 				This should not occur but it's build in to make sure threads always safely stop.
 				So if it does occur make sure we log it to the user so they can fix the issue.
 				*/
-				Log::Warning("Thread %zu took longer then %lu milliseconds to stop after wait command, detaching thread!", id, SLEEP_MAX);
+				Log::Warning("Thread %zu took longer then %lu milliseconds to stop after wait command, detaching thread!", id, ThreadWaitMax);
 				thread->detach();
 				return false;
 			}

@@ -58,6 +58,12 @@ namespace Pu
 			return loaded.load();
 		}
 
+		/* Adds a dependency to this rener pass. */
+		inline void AddDependency(_In_ const SubpassDependency &dependency)
+		{
+			dependencies.push_back(dependency);
+		}
+
 		/* Gets the specified shader output. */
 		_Check_return_ Output& GetOutput(_In_ const string &name);
 		/* Gets the specified shader output. */
@@ -76,6 +82,7 @@ namespace Pu
 		vector<Subpass> subpasses;
 		vector<Output> outputs;
 		vector<ClearValue> clearValues;
+		vector<SubpassDependency> dependencies;
 
 		void Link(void);
 		bool CheckIO(const Subpass &a, const Subpass &b) const;

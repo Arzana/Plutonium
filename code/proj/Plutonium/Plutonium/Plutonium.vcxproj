@@ -171,6 +171,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Application.h" />
+    <ClInclude Include="..\..\..\include\Config.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
@@ -307,8 +308,9 @@
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\assets\shaders\Triangle.frag" />
+    <None Include="..\..\..\assets\shaders\VertexColor.frag" />
     <None Include="..\..\..\assets\shaders\Triangle.vert" />
+    <None Include="..\..\..\assets\shaders\VertexColor.vert" />
     <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

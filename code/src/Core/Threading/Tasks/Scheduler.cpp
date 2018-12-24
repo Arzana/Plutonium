@@ -144,18 +144,21 @@ bool Pu::TaskScheduler::ThreadTryRun(size_t idx)
 
 bool Pu::TaskScheduler::ThreadTrySteal(size_t idx)
 {
-	/* Loop through all other threads to see if they have tasks available. */
-	for (size_t i = 0; i < threads.size(); i++)
+	if constexpr (TaskSchedulerStealing)
 	{
-		if (i == idx) continue;
-
-		/* Check if a task can be stolen from the front of the queue. */
-		Task *task;
-		if (tasks[i].try_pop_front(task))
+		/* Loop through all other threads to see if they have tasks available. */
+		for (size_t i = 0; i < threads.size(); i++)
 		{
-			/* Run the stolen task and return. */
-			HandleTaskResult(idx, task, task->Execute());
-			return true;
+			if (i == idx) continue;
+
+			/* Check if a task can be stolen from the front of the queue. */
+			Task *task;
+			if (tasks[i].try_pop_front(task))
+			{
+				/* Run the stolen task and return. */
+				HandleTaskResult(idx, task, task->Execute());
+				return true;
+			}
 		}
 	}
 
