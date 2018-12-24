@@ -24,6 +24,12 @@ namespace Pu
 			if (type == OutputUsage::Color) resolve = multisample;
 		}
 
+		/* Sets how this output should be cleared before use. */
+		inline void SetClearValue(_In_ ClearValue value)
+		{
+			clear = value;
+		}
+
 		/* Sets the output to the specified swapchain format. */
 		void SetDescription(_In_ const Swapchain &swapchain);
 
@@ -33,6 +39,7 @@ namespace Pu
 
 		bool resolve;
 		OutputUsage type;
+		ClearValue clear;
 		AttachmentReference reference;
 		AttachmentDescription description;
 

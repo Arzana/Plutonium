@@ -10,13 +10,12 @@ namespace Pu
 		/* Initializes a new instance of a graphics pipeline for the specified render pass. */
 		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
+		GraphicsPipeline(_In_ GraphicsPipeline&&) = delete;
 		/* Destroys the graphics pipeline. */
-		~GraphicsPipeline(void)
-		{
-			Destroy();
-		}
+		~GraphicsPipeline(void);
 
 		_Check_return_ GraphicsPipeline& operator =(_In_ const GraphicsPipeline&) = delete;
+		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline&&) = delete;
 
 #pragma warning(push)
 #pragma warning(disable:4458)
@@ -27,7 +26,11 @@ namespace Pu
 		}
 
 		/* Sets the viewport and scissor rectangle parameters of the graphics pipeline. */
-		void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor);
+		inline void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor)
+		{
+			this->viewport = viewport;
+			this->scissor = scissor;
+		}
 #pragma warning(pop)
 
 		/* Gets the blending state for a specific color blend attachment. */

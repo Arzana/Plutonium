@@ -132,6 +132,7 @@ void Pu::Renderpass::Link(void)
 	for (const Output &output : outputs)
 	{
 		attachmentDescriptions.emplace_back(output.description);
+		clearValues.push_back(output.clear);
 	}
 
 	/* Link the subpasses into a render pass. */

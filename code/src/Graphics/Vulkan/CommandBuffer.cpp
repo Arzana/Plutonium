@@ -36,11 +36,8 @@ void Pu::CommandBuffer::ClearImage(ImageHndl image, Color color, ImageLayout lay
 void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
 {
 	RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
-
-	/* TODO: TEMP */
-	info.ClearValueCount = 1;
-	ClearValue value = { Color::Orange().ToClearColor() };
-	info.ClearValues = &value;
+	info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
+	info.ClearValues = renderPass.clearValues.data();
 	
 	if (beginCalled) parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
 	else Log::Warning("Cannot begin render pass on non-started CommandBuffer!");

@@ -1,8 +1,8 @@
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 
 Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass)
-	: parent(device), renderpass(renderpass), tessellation(nullptr), multisample(nullptr),
-	depthStencil(nullptr), colorBlend(nullptr), dynamicState(nullptr), hndl(nullptr)
+	: parent(device), renderpass(renderpass), tessellation(nullptr),
+	depthStencil(nullptr), dynamicState(nullptr), hndl(nullptr)
 {
 	/* Add blend attachment for all color outputs. */
 	for (const Output &cur : renderpass.outputs)
@@ -19,19 +19,17 @@ Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass 
 	colorBlend = new PipelineColorBlendStateCreateInfo(colorBlendAttachments);
 }
 
-/* viewport and scissor hide class memebers, this has been checked and doesn't cause issues. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-void Pu::GraphicsPipeline::SetViewport(const Viewport & viewport, Rect2D scissor)
+Pu::GraphicsPipeline::~GraphicsPipeline(void)
 {
-	if (hndl) Log::Error("Cannot make changes to graphics pipeline after it has been finalized!");
-	else
-	{
-		this->viewport = viewport;
-		this->scissor = scissor;
-	}
+	Destroy();
+
+	delete vertexInput;
+	delete inputAssembly;
+	delete display;
+	delete rasterizer;
+	delete multisample;
+	delete colorBlend;
 }
-#pragma warning(pop)
 
 Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(const string & name)
 {
@@ -53,11 +51,11 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(c
 
 void Pu::GraphicsPipeline::Finalize(void)
 {
-	/* Make sure we don't finalize multiple times! */
+	/* If finalize is called a second time; first destroy the old one. */
 	if (hndl)
 	{
-		Log::Error("Cannot finalize a graphics pipeline multiple times!");
-		return;
+		Log::Warning("Recreating graphics pipeline, may cause lag!");
+		Destroy();
 	}
 
 	/* Create shader stage buffer. */
@@ -82,12 +80,5 @@ void Pu::GraphicsPipeline::Destroy(void)
 	{
 		parent.vkDestroyPipeline(parent.hndl, hndl, nullptr);
 		parent.vkDestroyPipelineLayout(parent.hndl, layoutHndl, nullptr);
-
-		delete vertexInput;
-		delete inputAssembly;
-		delete display;
-		delete rasterizer;
-		delete multisample;
-		delete colorBlend;
 	}
 }

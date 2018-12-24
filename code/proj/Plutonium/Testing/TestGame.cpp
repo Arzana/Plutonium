@@ -28,6 +28,12 @@ void TestGame::Initialize(void)
 	pipeline = new GraphicsPipeline(GetDevice(), *renderpass);
 	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	pipeline->Finalize();
+
+	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow &wnd, ValueChangedEventArgs<Vector2>)
+	{
+		pipeline->SetViewport(wnd.GetClientBounds());
+		pipeline->Finalize();
+	};
 }
 
 void TestGame::LoadContent(void)

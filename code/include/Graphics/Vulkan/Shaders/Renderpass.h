@@ -74,6 +74,7 @@ namespace Pu
 
 		vector<Subpass> subpasses;
 		vector<Output> outputs;
+		vector<ClearValue> clearValues;
 
 		void Link(void);
 		bool CheckIO(const Subpass &a, const Subpass &b) const;
