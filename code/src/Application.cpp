@@ -80,8 +80,11 @@ void Pu::Application::InitializeVulkan(void)
 	instance = new VulkanInstance(name.c_str(),
 		{
 			u8"VK_KHR_surface",
+#ifdef _DEBUG
+			u8"VK_EXT_debug_utils",
+#endif
 #ifdef _WIN32
-			u8"VK_KHR_win32_surface"
+			u8"VK_KHR_win32_surface",
 #endif
 		});
 

@@ -1,8 +1,8 @@
 #pragma once
-#include "VulkanGlobals.h"
 #include "Shaders/GraphicsPipeline.h"
 #include "Graphics/Color.h"
-#include "Graphics/Vulkan/Framebuffer.h"
+#include "Framebuffer.h"
+#include "Fence.h"
 
 namespace Pu
 {
@@ -12,14 +12,26 @@ namespace Pu
 	class CommandBuffer
 	{
 	public:
+		/* Defines all possible states of a command buffer. */
+		enum class State
+		{
+			/* Indicates the default state of the command buffer. */
+			Initial,
+			/* Indicates the command buffer is able to record commands. */
+			Recording,
+			/* Indicates that the command buffer can be submitted, reset or recorded into another command buffer. */
+			Executable,
+			/* Indicates the command buffer has been submitted to a queue and is pending result. */
+			Pending,
+			/* Indicates an invalid state of the command buffer. */
+			Invalid
+		};
+
 		CommandBuffer(_In_ const CommandBuffer&) = delete;
 		/* Move constructor. */
 		CommandBuffer(_In_ CommandBuffer &&value);
 		/* Frees the command buffer. */
-		~CommandBuffer(void)
-		{
-			Free();
-		}
+		~CommandBuffer(void);
 
 		_Check_return_ CommandBuffer& operator =(_In_ const CommandBuffer&) = delete;
 		/* Move assignment. */
@@ -42,8 +54,9 @@ namespace Pu
 		friend class GameWindow;
 
 		CommandPool &parent;
+		Fence *submitFence;
 		CommandBufferHndl hndl;
-		bool beginCalled;
+		State state;
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 

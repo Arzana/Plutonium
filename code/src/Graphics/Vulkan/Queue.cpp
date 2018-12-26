@@ -26,7 +26,7 @@ Queue & Pu::Queue::operator=(Queue && other)
 	return *this;
 }
 
-void Pu::Queue::Submit(const Semaphore & waitSemaphore, const CommandBuffer & commandBuffer, const Semaphore & signalSemaphore)
+void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandBuffer, const Semaphore & signalSemaphore)
 {
 	/* Create submit information. */
 	const PipelineStageFlag mask = PipelineStageFlag::Transfer;
@@ -40,7 +40,8 @@ void Pu::Queue::Submit(const Semaphore & waitSemaphore, const CommandBuffer & co
 	info.SignalSemaphores = &signalSemaphore.hndl;
 
 	/* Submit command buffer. */
-	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, nullptr), PFN_vkQueueSubmit);
+	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
 void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapchain, uint32 image)

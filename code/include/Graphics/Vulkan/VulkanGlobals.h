@@ -10,7 +10,7 @@
 #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object)	using object##Hndl = void*
 #else
 /* Defines a non dispatchable handle. */
-#define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object)	using object##Hndl = uint64_t
+#define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object)	using object##Hndl = uint64
 #endif
 
 namespace Pu
@@ -105,6 +105,8 @@ namespace Pu
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Surface);
 	/* Defines the handle to a swapchain (extension). */
 	VK_DEFINE_NON_DISPATCHABLE_HANDLE(Swapchain);
+	/* Defines the handle to a debug utils messenger. */
+	VK_DEFINE_NON_DISPATCHABLE_HANDLE(DebugUtilsMessenger);
 
 	/* Defines the clamp value for level of detail none. */
 	constexpr float LoDClampNone = 1000.0f;

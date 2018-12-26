@@ -831,7 +831,7 @@ namespace Pu
 		/* Initializes a new instance of the command pool create info object. */
 		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex)
 			: Type(StructureType::CommandPoolCreateInfo), Next(nullptr),
-			Flags(CommandPoolCreateFlag::None), QueueFamilyIndex(queueFamilyIndex)
+			Flags(CommandPoolCreateFlag::ResetCommandBuffer), QueueFamilyIndex(queueFamilyIndex)
 		{}
 	};
 
@@ -933,7 +933,7 @@ namespace Pu
 
 		/* Initializes an empty instance of the image subresrouce range object. */
 		ImageSubresourceRange(void)
-			: ImageSubresourceRange(ImageAspectFlag::None)
+			: ImageSubresourceRange(ImageAspectFlag::Color)
 		{}
 
 		/* Initializes a new instace of the image subresource range object. */
@@ -2107,6 +2107,139 @@ namespace Pu
 		RenderPassBeginInfo(_In_ RenderPassHndl renderPass, _In_ FramebufferHndl framebuffer, _In_ Rect2D renderArea)
 			: Type(StructureType::RenderPassBeginInfo), Next(nullptr), RenderPass(renderPass),
 			Framebuffer(framebuffer), RenderArea(renderArea), ClearValueCount(0), ClearValues(nullptr)
+		{}
+	};
+
+	/* Defines the parameters of a label region. */
+	struct DebugUtilsLabel
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies a null-terminate UTF-8 string that contains the name of the label. */
+		const char *LabelName;
+		/* Specifies an optional RGBA color value associated with the label. */
+		float Color[4];
+
+		/* Initializes an empty instance of a label region. */
+		DebugUtilsLabel(void)
+			: Type(StructureType::DebugUtilsLabelExt), Next(nullptr),
+			LabelName(nullptr), Color{0.0f, 0.0f, 0.0f, 0.0f}
+		{}
+	};
+
+	/* Defines the information needed to name an object. */
+	struct DebugUtilsObjectNameInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the type of the object to be named. */
+		ObjectType ObjectType;
+		/* Specifies the handle to the object. */
+		uint64 ObjectHandle;
+		/* Specifies a null-terminated UTF-8 name to appply to the object. */
+		const char *ObjectName;
+
+		/* Initializes an empty instance of a object name object. */
+		DebugUtilsObjectNameInfo(void)
+			: Type(StructureType::DebugUtilsObjectNameInfoExt), Next(nullptr),
+			ObjectType(ObjectType::Unknown), ObjectHandle(0), ObjectName(nullptr)
+		{}
+	};
+
+	/* Defines information to the debug utils messanger callback function. */
+	struct DebugUtilsMessengerCallbackData
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the particular message ID. */
+		const char *MessageIdName;
+		/* Specifies the ID that triggered the message. */
+		int32 MessageIdNumber;
+		/* Specifies the details of the trigger conditions. */
+		const char *Message;
+		/* Specifies the amount of elements in the queue labels array. */
+		uint32 QueueLabelCount;
+		/* Specifies the active queues at the time the callback was triggered. */
+		const DebugUtilsLabel *QueueLabels;
+		/* Specifies the amount of elements in the command buffer labels array. */
+		uint32 CmdBufLabelCount;
+		/* Specifies the active command buffers at the time the callback was triggered. */
+		const DebugUtilsLabel *CmdBufLabels;
+		/* Specifies the amount of elements in the objects array. */
+		uint32 ObjectCount;
+		/* Specifies the objects related the the detected issue. */
+		const DebugUtilsObjectNameInfo *Objects;
+
+		/* Initializes an empty instance of the debug utils messanger callback data object. */
+		DebugUtilsMessengerCallbackData(void)
+			: Type(StructureType::DebugUtilsMessangerCallbackDataExt), Next(nullptr), Flags(0),
+			MessageIdName(nullptr), MessageIdNumber(0), Message(nullptr), QueueLabelCount(0),
+			QueueLabels(nullptr), CmdBufLabelCount(0), CmdBufLabels(nullptr), ObjectCount(0), Objects(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a debug message callback. */
+	struct DebugUtilsMessengerCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies which severity of event(s) will cause this callback to be invoked. */
+		DebugUtilsMessageSeverityFlag MessageSeverity;
+		/* Specifeis which type of event(s) will cause this callback to be invoked. */
+		DebugUtilsMessageTypeFlag MessageType;
+		/* Specifies the function to be called upon event trigger. */
+		DebugUtilsMessengerCallback UserCallback;
+		/* Specifies user data passed to the callback. */
+		void *UserData;
+
+		/* Initializes an empty instance of the debug utils messenger create info object. */
+		DebugUtilsMessengerCreateInfo(void)
+			: DebugUtilsMessengerCreateInfo(nullptr)
+		{}
+
+		/* Initializes a new instance of a debug utils messenger create info object. */
+		DebugUtilsMessengerCreateInfo(_In_ DebugUtilsMessengerCallback callback)
+			: Type(StructureType::DebugUtilsMessengerCreateInfoExt), Next(nullptr), Flags(0),
+			MessageSeverity(DebugUtilsMessageSeverityFlag::All), MessageType(DebugUtilsMessageTypeFlag::All),
+			UserCallback(callback), UserData(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a new fence. */
+	struct FenceCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the initial state and behavior of the fence. */
+		FenceCreateFlag Flags;
+
+		/* Initializes an empty instance of the fence create info object. */
+		FenceCreateInfo(void)
+			: FenceCreateInfo(FenceCreateFlag::None)
+		{}
+
+		/* Initializes a new instanace of the fence create info object. */
+		FenceCreateInfo(_In_ FenceCreateFlag flags)
+			: Type(StructureType::FenceCreateInfo), Next(nullptr), Flags(flags)
 		{}
 	};
 

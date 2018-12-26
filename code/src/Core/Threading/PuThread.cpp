@@ -96,8 +96,8 @@ void Pu::PuThread::Start(void)
 
 bool Pu::PuThread::Wait(void) const
 {
-	/* If available use the threads build in wait system. */
-	if (thread->joinable()) thread->join();
+	/* If we don't wait timeout functionality and the thread is joinable then just use that. */
+	if (thread->joinable() && ThreadWaitMax == 0) thread->join();
 	else
 	{
 		/* Wait untill stopped is set. */
@@ -114,11 +114,14 @@ bool Pu::PuThread::Wait(void) const
 				This should not occur but it's build in to make sure threads always safely stop.
 				So if it does occur make sure we log it to the user so they can fix the issue.
 				*/
-				Log::Warning("Thread %zu took longer then %lu milliseconds to stop after wait command, detaching thread!", id, ThreadWaitMax);
+				Log::Warning("Thread %zu took longer than %lu milliseconds to stop after wait command, detaching thread!", id, ThreadWaitMax);
 				thread->detach();
 				return false;
 			}
 		}
+
+		/* Make sure the thread is synchronized if needed. */
+		if (thread->joinable()) thread->join();
 	}
 
 	return true;

@@ -217,6 +217,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\ImageView.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
@@ -277,6 +278,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\ImageView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
@@ -298,6 +300,7 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\AABB.natvis" />
+    <Natvis Include="..\..\..\visualizers\CommandBuffer.natvis" />
     <Natvis Include="..\..\..\visualizers\EventBus.natvis" />
     <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis" />
     <Natvis Include="..\..\..\visualizers\FieldInfo.natvis" />

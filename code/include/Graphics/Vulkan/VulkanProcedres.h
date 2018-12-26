@@ -54,6 +54,13 @@ namespace Pu
 	using PFN_vkCmdBindPipeline = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineBindPoint pipelineBindPoint, _In_ PipelineHndl pipeline);
 	using PFN_vkCmdDraw = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 	using PFN_vkCmdEndRenderPass = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
+	using PFN_vkCreateDebugUtilsMessengerEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const DebugUtilsMessengerCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DebugUtilsMessengerHndl *messenger);
+	using PFN_vkDestroyDebugUtilsMessengerEXT = void(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ DebugUtilsMessengerHndl messenger, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateFence = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const FenceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ FenceHndl *fence);
+	using PFN_vkDestroyFence = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ FenceHndl fence, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkGetFenceStatus = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ FenceHndl fence);
+	using PFN_vkResetFences = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 fenceCount, _In_ const FenceHndl *fences);
+	using PFN_vkWaitForFences = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 fenceCount, _In_ const FenceHndl *fences, _In_ Bool32 waitAll, _In_ uint64 timeout);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

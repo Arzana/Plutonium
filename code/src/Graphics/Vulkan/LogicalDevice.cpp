@@ -8,10 +8,12 @@ using namespace Pu;
 #define LOAD_DEVICE_PROC(name)	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, name)
 
 Pu::LogicalDevice::LogicalDevice(LogicalDevice && value)
-	: parent(value.parent), hndl(value.hndl), vkDestroyDevice(value.vkDestroyDevice)
+	: parent(value.parent), hndl(value.hndl), queues(std::move(value.queues))
 {
+	/* Make sure to reload the device procs. */
+	LoadDeviceProcs();
+
 	value.hndl = nullptr;
-	value.vkDestroyDevice = nullptr;
 }
 
 LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
@@ -20,13 +22,13 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 	{
 		Destory();
 		parent = std::move(other.parent);
+		queues = std::move(other.queues);
 		hndl = other.hndl;
-		vkDestroyDevice = other.vkDestroyDevice;
+
 		/* Make sure to reload the device procs. */
 		LoadDeviceProcs();
 
 		other.hndl = nullptr;
-		other.vkDestroyDevice = nullptr;
 	}
 
 	return *this;
@@ -121,6 +123,13 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkDestroyPipelineLayout);
 	LOAD_DEVICE_PROC(vkCreateGraphicsPipelines);
 	LOAD_DEVICE_PROC(vkDestroyPipeline);
+
+	/* Fence related functions. */
+	LOAD_DEVICE_PROC(vkCreateFence);
+	LOAD_DEVICE_PROC(vkDestroyFence);
+	LOAD_DEVICE_PROC(vkGetFenceStatus);
+	LOAD_DEVICE_PROC(vkResetFences);
+	LOAD_DEVICE_PROC(vkWaitForFences);
 }
 
 void Pu::LogicalDevice::Destory(void)

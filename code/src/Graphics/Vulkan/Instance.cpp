@@ -25,6 +25,11 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	createInfo.EnabledExtensionCount = static_cast<uint32>(extensions.size());
 	createInfo.EnabledExtensionNames = extensions.begin();
 
+	/* TODO: REMOVE! */
+	static const char *layer = "VK_LAYER_LUNARG_standard_validation";
+	createInfo.EnabledLayerCount = 1;
+	createInfo.EnabledLayerNames = &layer;
+
 	/* Create a new instance handle. */
 	VK_VALIDATE(vkCreateInstance(&createInfo, nullptr, &hndl), PFN_vkCreateInstance);
 
@@ -34,6 +39,11 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	/* Load the procedures needed for the instance and get all physical devices. */
 	LoadInstanceProcs();
 	GetPhysicalDevices();
+
+	/* If needed setup the debug layer. */
+#ifdef _DEBUG
+	SetUpDebugLayer();
+#endif
 }
 
 Pu::VulkanInstance::VulkanInstance(VulkanInstance && value)
@@ -180,6 +190,10 @@ void Pu::VulkanInstance::Destroy(void)
 	physicalDevices.clear();
 	OnDestroy.Post(*this, EventArgs());
 
+#ifdef _DEBUG
+	if (msgHndl) vkDestroyDebugUtilsMessengerEXT(hndl, msgHndl, nullptr);
+#endif
+
 	if (hndl)
 	{
 		/* Remove the instance from the loader list and destory the instance. */
@@ -219,9 +233,41 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	}
 	else Log::Warning("Win32 Create surface extension is not supported by the graphics driver!");
 #endif
+
+	/* Debug utilities functions. */
+	if (IsExtensionSupported(u8"VK_EXT_debug_utils"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkCreateDebugUtilsMessengerEXT);
+		VK_LOAD_INSTANCE_PROC(hndl, vkDestroyDebugUtilsMessengerEXT);
+	}
+	else Log::Warning("Debug utilities is not supported on this platform!");
 }
 
 #ifdef _DEBUG
+VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData * data, void *)
+{
+	switch (severity)
+	{
+	case Pu::DebugUtilsMessageSeverityFlag::Info:
+		//Log::Message(data->Message);
+		break;
+	case Pu::DebugUtilsMessageSeverityFlag::Warning:
+		Log::Warning(data->Message);
+		break;
+	case Pu::DebugUtilsMessageSeverityFlag::Error:
+		Log::Error(data->Message);
+		break;
+	}
+
+	return false;
+}
+
+void Pu::VulkanInstance::SetUpDebugLayer(void)
+{
+	DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
+	VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);
+}
+
 void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 {
 	static bool logged = false;

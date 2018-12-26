@@ -50,6 +50,7 @@ namespace Pu
 		friend class ImageView;
 		friend class Framebuffer;
 		friend class GraphicsPipeline;
+		friend class Fence;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -90,6 +91,11 @@ namespace Pu
 		PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
 		PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
 		PFN_vkDestroyPipeline vkDestroyPipeline;
+		PFN_vkCreateFence vkCreateFence;
+		PFN_vkDestroyFence vkDestroyFence;
+		PFN_vkGetFenceStatus vkGetFenceStatus;
+		PFN_vkResetFences vkResetFences;
+		PFN_vkWaitForFences vkWaitForFences;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

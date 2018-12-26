@@ -18,21 +18,22 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	FileWriter::CreateDirectory(BIN_DIR);
 	const string curDir = FileReader::GetCurrentDirectory() + '\\';
 
-	/* 
-	Create arguments for the validator. 
+	/*
+	Create arguments for the validator.
 	-V: Indicates that a SPIR-V binary shuold be created with the latest version.
 	-H: Specifies that the validator should print a human readable version of the result.
 	-o: Specifies the output path.
 	*/
 	const string fname = _CrtGetFileName(path);
+	const string input = curDir + path;
 	const string output = curDir + BIN_DIR + fname + ".spv";
 
-	const string args = (SpirVCompilerLogHumanReadable ? "-V -H -o \"" : "-V -o \"") + output + "\" \"" + curDir + path + '\"';
+	const string args = (SpirVCompilerLogHumanReadable ? "-V -H -o \"" : "-V -o \"") + output + "\" \"" + input + '\"';
 	string log;
 
 	/* Run the validator. */
 	const bool succeeded = _CrtRunProcess("glslangValidator.exe", const_cast<char*>(args.c_str()), log, SpirVCompilerTimeout);
-	HandleGLSLValidateLog(log);
+	HandleGLSLValidateLog(log, input);
 
 	/* Log either success or failure. */
 	if (succeeded)
@@ -47,7 +48,7 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	}
 }
 
-void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
+void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
 {
 	/* Split the log into it's lines and remove empty lines. */
 	vector<string> lines = log.split("\r\n");
@@ -61,28 +62,25 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log)
 	*/
 	if (lines.size() > 1)
 	{
+		const string line = string(64, '-') + '\n';
+
 		/* Log header. */
-		Log::Verbose("glslangValidator log:");
-		Log::Verbose(string(64, '-').c_str());
+		string msg = "glslangValidator log for '" + path + ":\n";
+		msg += line;
 
 		for (string &line : lines)
 		{
-			/* Remove leading newlines. */
+			/* Remove the path as it's appended to all lines also remove any leading newlines. */
 			line.remove('\n');
-			if (line.length() > 0)
-			{
-				/* If the message has 'ERROR: ' or 'WARNING: ' in it log it as an error or warning, otherwise just verbose. */
-				const size_t errorOff = line.find("ERROR: ");
-				const size_t warnOff = line.find("WARNING: ");
+			line.remove(path);
 
-				if (errorOff != string::npos) Log::Error(line.c_str() + errorOff + 7);
-				else if (warnOff != string::npos) Log::Warning(line.c_str() + warnOff + 9);
-				else Log::Verbose(line.c_str());
-			}
+			/* Only log if useful information is left in the line. */
+			if (line.length() > 1) msg += line += '\n';
 		}
 
 		/* Log footer. */
-		Log::Verbose(string(64, '-').c_str());
+		msg += line;
+		Log::Verbose(msg.c_str());
 	}
 }
 

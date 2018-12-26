@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/EnumUtils.h"
 #include "Core/Diagnostics/Logging.h"
 
 #ifdef _DEBUG
@@ -144,6 +145,10 @@ namespace Pu
 		AndroidSurfaceCreateInfoKhr = 1000008000,
 		Win32SurfaceCreateInfoKhr = 1000009000,
 		DebugReportCreateInfoExt = 1000011000,
+		DebugUtilsLabelExt = 1000128002,
+		DebugUtilsObjectNameInfoExt = 1000128000,
+		DebugUtilsMessangerCallbackDataExt = 1000128003,
+		DebugUtilsMessengerCreateInfoExt = 1000128004,
 	};
 
 	/* Defines the lifetime of a system allocation. */
@@ -964,8 +969,6 @@ namespace Pu
 	/* Defines the aspects of an image for purposes such as indentifying a subresource. */
 	enum class ImageAspectFlag
 	{
-		/* No flags where set. */
-		None = 0x00000000,
 		/* Specifies the color aspect. */
 		Color = 0x00000001,
 		/* Specifies the depth aspect. */
@@ -997,6 +1000,8 @@ namespace Pu
 	/* Defines the initial state and behaviour of a fence. */
 	enum class FenceCreateFlag
 	{
+		/* No flags were set. */
+		None = 0x00000000,
 		/* Specifies that the fence object is created in the signaled state. */
 		Signaled = 0x00000001
 	};
@@ -1004,7 +1009,7 @@ namespace Pu
 	/* Defines the queried pipeline statistics. */
 	enum class QueryPipelineStatisticFlag
 	{
-		/* No flags where set. */
+		/* No flags were set. */
 		None = 0x00000000,
 		/* Specifies that queries managed by the pool will count the number of vertices processed by the input assembly stage. */
 		InputAssemblyVertices = 0x00000001,
@@ -1345,13 +1350,91 @@ namespace Pu
 	/* Defines the usage of a subpass. */
 	enum class SubpassDescriptionFlag
 	{
-		/* No flags where set. */
+		/* No flags were set. */
 		None = 0x00000000,
 		/* Shaders compiled for this subpass write the attributes for all views in a single invocation of each vertex processing stage. */
 		PerViewAttributes = 0x00000001,
 		/* Shaders compiled for this subpass use per-view positions which only differ in value in the x component. */
 		PerViewPositionXOnly = 0x00000002
 	};
+
+	/* Defines the types of message severities in the debug extension. */
+	enum class DebugUtilsMessageSeverityFlag
+	{
+		/* No flags were set. */
+		None = 0x00000000,
+		/* Indicates all diagnostic messages. */
+		Verbose = 0x00000001,
+		/* Indicates an informational message. */
+		Info = 0x00000010,
+		/* Indicates that the use of Vulkan may expose an app bug. */
+		Warning = 0x00000100,
+		/* Indicates that the app is causes undefined results. */
+		Error = 0x00001000,
+		/* All flags are set. */
+		All = Verbose | Info | Warning | Error,
+	};
+
+	/* Defines the type of message event. */
+	enum class DebugUtilsMessageTypeFlag
+	{
+		/* No flags were set. */
+		None = 0x00000000,
+		/* Indicates a general event. */
+		General = 0x00000001,
+		/* Indicated an event during validation against the Vulkan specification. */
+		Validation = 0x00000002,
+		/* Indicates a potential non-optimal use of Vulkan. */
+		Performance = 0x00000004,
+		/* All flags are set. */
+		All = General | Validation| Performance,
+	};
+
+	/* Defines handler types in Vulkan. */
+	enum class ObjectType 
+	{
+		Unknown = 0,
+		Instance = 1,
+		PhysicalDevice = 2,
+		Device = 3,
+		Queue = 4,
+		Semaphore = 5,
+		CommandBuffer = 6,
+		Fence = 7,
+		DeviceMemory = 8,
+		Buffer = 9,
+		Image = 10,
+		Event = 11,
+		QueryPool = 12,
+		BufferView = 13,
+		ImageView = 14,
+		ShaderModule = 15,
+		PipelineCache = 16,
+		PipelineLayout = 17,
+		RenderPass = 18,
+		Pipeline = 19,
+		DescriptionSetLayout = 20,
+		Sampler = 21,
+		DescriptorPool = 22,
+		DescriptorSet = 23,
+		Framebuffer = 24,
+		CommandPool = 25,
+		SamplerYCBCRCOnversion = 1000156000,
+		DescriptorUpdateTemplate = 1000085000,
+		Surface = 1000000000,
+		Swapchain = 1000001000,
+		Display = 1000002000,
+		DisplayMode = 1000002001,
+		DebugReportCallback = 1000011000,
+		DebugUtilsMessanger = 1000128000,
+		ValidationCache = 1000160000,
+	};
+
+	/* Appends the flag bits of an image usage flag. */
+	_Check_return_ inline ImageUsageFlag operator |(_In_ ImageUsageFlag a, _In_ ImageUsageFlag b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
 
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)
 	{

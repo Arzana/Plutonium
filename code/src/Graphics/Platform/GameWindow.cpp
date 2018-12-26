@@ -69,7 +69,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size)
 	SwapchainCreateInfo info(native.GetSurface().hndl, size);
 	info.PresentMode = PresentMode::MailBox;
 	info.ImageFormat = Format::B8G8R8A8_UNORM;
-	info.ImageUsage = ImageUsageFlag::ColorAttachment;
+	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
 	info.Transform = SurfaceTransformFlag::Identity;
 	if (old) info.OldSwapChain = swapchain->hndl;
 
@@ -124,11 +124,13 @@ void Pu::GameWindow::EndRender(void)
 	/* Make swapchain image presentable again for the window. */
 	MakeImagePresentable();
 
+	CommandBuffer &cmdBuf = GetCommandBuffer();
+
 	/* End the command buffer gather. */
-	GetCommandBuffer().End();
+	cmdBuf.End();
 
 	/* Submit the command buffer to the render queue and present the queue. */
 	Queue &queue = device.GetQueue(queueIndex, 0);
-	queue.Submit(semaphores[0], GetCommandBuffer(), semaphores[1]);
+	queue.Submit(semaphores[0], cmdBuf, semaphores[1]);
 	queue.Present(semaphores[1], *swapchain, curImgIdx);
 }

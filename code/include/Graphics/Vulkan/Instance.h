@@ -75,6 +75,8 @@ namespace Pu
 		PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
 		PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
 		PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
+		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
+		PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 
 #ifdef _WIN32
 		PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -87,6 +89,11 @@ namespace Pu
 		void GetPhysicalDevices(void);
 		
 #ifdef _DEBUG
+		DebugUtilsMessengerHndl msgHndl;
+
+		static VKAPI_ATTR Bool32 VKAPI_CALL DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData *data, void*);
+		
+		void SetUpDebugLayer(void);
 		void LogAvailableExtensionsAndLayers(void) const;
 #endif
 	};
