@@ -31,4 +31,6 @@ namespace Pu
 	constexpr float ApplicationNoFocusTargetTime = 1.0f / 20.0f;
 	/* Defines the maxiumum amount of update lag (in seconds) an application is allowed to catch up on. */
 	constexpr float ApplicationMaxLagCompensation = 5.0f;
+	/* Defines whether Vulkan info messages should be logged. */
+	constexpr bool LogVulkanInfoMessages = false;
 }

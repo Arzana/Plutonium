@@ -123,7 +123,6 @@ namespace Pu
 		void InitializeVulkan(void);
 		bool Tick(bool loading);
 		void DoInitialize(void);
-		void DoLoadContent(void);
 		void DoFinalize(void);
 		void DoUpdate(float dt, bool loading);
 		void BeginRender(void);

@@ -35,8 +35,12 @@ namespace Pu
 		_Check_return_ static vector<LayerProperties> GetSupportedLayers(void);
 		/* Checks whether a specific extension is supported. */
 		_Check_return_ static bool IsExtensionSupported(_In_ const char *extension);
+		/* Checks whether a specific layer is supported. */
+		_Check_return_ static bool IsLayerSupported(_In_ const char *layer);
 		/* Checks whether specific extensions are supported. */
 		_Check_return_ static bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions);
+		/* Checks whether specific layers are supported. */
+		_Check_return_ static bool AreLayersSupported(_In_ std::initializer_list<const char*> layers);
 
 		/* Gets the amount of physical devices capable of Vulkan on this machine. */
 		_Check_return_ inline size_t GetPhysicalDeviceCount(void) const

@@ -94,6 +94,9 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 {
 	Log::Warning("Window is being resized, this might cause lag!");
 
+	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
+	Finalize();
+
 	/* Update the swapchain images. */
 	CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)));
 
@@ -126,7 +129,7 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
 	barrier.SrcAccessMask = AccessFlag::MemoryRead;
 	barrier.DstAccessMask = AccessFlag::TransferWrite;
-	barrier.NewLayout = ImageLayout::TransferDstOptimal;
+	barrier.NewLayout = ImageLayout::PresentSrcKhr;
 	barrier.SubresourceRange = range;
 	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
 		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
@@ -140,7 +143,7 @@ void Pu::GameWindow::MakeImagePresentable(void)
 	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
 	barrier.SrcAccessMask = AccessFlag::TransferWrite;
 	barrier.DstAccessMask = AccessFlag::MemoryRead;
-	barrier.OldLayout = ImageLayout::TransferDstOptimal;
+	barrier.OldLayout = ImageLayout::PresentSrcKhr;
 	barrier.NewLayout = ImageLayout::PresentSrcKhr;
 	barrier.SubresourceRange = range;
 	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
@@ -184,4 +187,11 @@ void Pu::GameWindow::DestroyFramebuffers(void)
 	}
 
 	frameBuffers.clear();
+}
+
+void Pu::GameWindow::Finalize(void)
+{
+	/* Wait until all commandbuffers are done. */
+	const vector<const Fence*> fences = buffers.select<const Fence*>([](const CommandBuffer &buffer) { return buffer.submitFence; });
+	Fence::WaitAll(device, fences);
 }

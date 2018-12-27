@@ -83,5 +83,6 @@ namespace Pu
 		void BeginRender(void);
 		void EndRender(void);
 		void DestroyFramebuffers(void);
+		void Finalize(void);
 	};
 }

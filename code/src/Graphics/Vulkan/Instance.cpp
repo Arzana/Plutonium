@@ -15,20 +15,23 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	/* Make sure the create procedure is loaded. */
 	LoadStaticProcs();
 
-#ifdef _DEBUG
-	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
-#endif
-
 	/* Create application info and instance info. */
 	const ApplicationInfo appInfo(applicationName, major, minor, patch, u8"Plutonium", 0, 1, 0);
 	InstanceCreateInfo createInfo(&appInfo);
 	createInfo.EnabledExtensionCount = static_cast<uint32>(extensions.size());
 	createInfo.EnabledExtensionNames = extensions.begin();
 
-	/* TODO: REMOVE! */
-	static const char *layer = "VK_LAYER_LUNARG_standard_validation";
-	createInfo.EnabledLayerCount = 1;
-	createInfo.EnabledLayerNames = &layer;
+#ifdef _DEBUG
+	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
+
+	/* Enable the LunarG validation layer if available. */
+	static const char *VALIDATION_LAYER = "VK_LAYER_LUNARG_standard_validation";
+	if (IsLayerSupported(VALIDATION_LAYER))
+	{
+		createInfo.EnabledLayerCount = 1;
+		createInfo.EnabledLayerNames = &VALIDATION_LAYER;
+	}
+#endif
 
 	/* Create a new instance handle. */
 	VK_VALIDATE(vkCreateInstance(&createInfo, nullptr, &hndl), PFN_vkCreateInstance);
@@ -133,6 +136,15 @@ bool Pu::VulkanInstance::IsExtensionSupported(const char * extension)
 	});
 }
 
+bool Pu::VulkanInstance::IsLayerSupported(const char * layer)
+{
+	const vector<LayerProperties> properites = GetSupportedLayers();
+	return properites.contains(layer, [](const LayerProperties &prop, const char *userParam)
+	{
+		return !strcmp(prop.LayerName, userParam);
+	});
+}
+
 bool Pu::VulkanInstance::AreExtensionsSupported(std::initializer_list<const char*> extensions)
 {
 	const vector<ExtensionProperties> properties = GetSupportedExtensions(nullptr);
@@ -151,6 +163,26 @@ bool Pu::VulkanInstance::AreExtensionsSupported(std::initializer_list<const char
 	}
 
 	return found >= extensions.size();
+}
+
+bool Pu::VulkanInstance::AreLayersSupported(std::initializer_list<const char*> layers)
+{
+	const vector<LayerProperties> properties = GetSupportedLayers();
+
+	size_t found = 0;
+	for (const char *extension : layers)
+	{
+		for (const LayerProperties &prop : properties)
+		{
+			if (!strcmp(prop.LayerName, extension))
+			{
+				++found;
+				break;
+			}
+		}
+	}
+
+	return found >= layers.size();
 }
 
 void Pu::VulkanInstance::GetPhysicalDevices(void)
@@ -249,7 +281,7 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 	switch (severity)
 	{
 	case Pu::DebugUtilsMessageSeverityFlag::Info:
-		//Log::Message(data->Message);
+		if constexpr (LogVulkanInfoMessages) Log::Message(data->Message);
 		break;
 	case Pu::DebugUtilsMessageSeverityFlag::Warning:
 		Log::Warning(data->Message);

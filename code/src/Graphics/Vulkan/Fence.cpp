@@ -48,6 +48,23 @@ void Pu::Fence::Reset(void)
 
 bool Pu::Fence::Wait(uint64 timeout) const
 {
+	return WaitInternal(parent, 1, &hndl, true, timeout);
+}
+
+bool Pu::Fence::WaitAll(const LogicalDevice & device, const vector<const Fence*>& fences, uint64 timeout)
+{
+	const vector<FenceHndl> hndls = fences.select<FenceHndl>([](const Fence* const& fence) { return fence->hndl; });
+	return WaitInternal(device, static_cast<uint32>(hndls.size()), hndls.data(), true, timeout);
+}
+
+bool Pu::Fence::WaitAny(const LogicalDevice & device, const vector<const Fence*>& fences, uint64 timeout)
+{
+	const vector<FenceHndl> hndls = fences.select<FenceHndl>([](const Fence* const& fence) { return fence->hndl; });
+	return WaitInternal(device, static_cast<uint32>(hndls.size()), hndls.data(), false, timeout);
+}
+
+bool Pu::Fence::WaitInternal(const LogicalDevice & device, uint32 fenceCnt, const FenceHndl * fences, bool waitAll, uint64 timeout)
+{
 	/*
 	Possible results:
 	- VK_SUCCESS:						The fence was signaled.
@@ -57,7 +74,7 @@ bool Pu::Fence::Wait(uint64 timeout) const
 	- VK_ERROR_DEVICE_LOST:				The device parent has been lost.
 	*/
 	VkApiResult result;
-	VK_VALIDATE(result = parent.vkWaitForFences(parent.hndl, 1, &hndl, true, timeout), PFN_vkWaitForFences);
+	VK_VALIDATE(result = device.vkWaitForFences(device.hndl, fenceCnt, fences, waitAll, timeout), PFN_vkWaitForFences);
 	return result == VkApiResult::Success;
 }
 

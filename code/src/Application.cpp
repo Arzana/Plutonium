@@ -34,8 +34,7 @@ void Pu::Application::Run(void)
 	DoInitialize();
 
 	/* Load content. */
-	const bool oldFixed = IsFixedTimeStep;
-	DoLoadContent();
+	LoadContent();
 	prevTime = gameTime.SecondsAccurate();
 	while (!loaded.load())
 	{
@@ -47,7 +46,6 @@ void Pu::Application::Run(void)
 	}
 
 	Log::Verbose("Finished initializing and loading content for '%s', took %f seconds.", wnd->GetTitle(), gameTime.SecondsAccurate());
-	IsFixedTimeStep = oldFixed;
 
 	/* Run application loop. */
 	while (wnd->Update())
@@ -213,14 +211,10 @@ void Pu::Application::DoInitialize(void)
 	Initialize();
 }
 
-void Pu::Application::DoLoadContent(void)
-{
-	IsFixedTimeStep = false;
-	LoadContent();
-}
-
 void Pu::Application::DoFinalize(void)
 {
+	/* Make sure to finalize the game window before allowing the user to release their resources. */
+	gameWnd->Finalize();
 	Finalize();
 
 	delete gameWnd;
@@ -236,7 +230,7 @@ void Pu::Application::DoUpdate(float dt, bool loading)
 
 void Pu::Application::BeginRender(void)
 {
-	/* Start the current command buffer and call prerender. */
+	/* Start the current command buffer and call pre-render. */
 	gameWnd->BeginRender();
 	PreRender();
 }
@@ -257,6 +251,7 @@ void Pu::Application::DoRenderLoad(float dt)
 
 void Pu::Application::EndRender(void)
 {
+	/* End the current command buffer and call post-render. */
 	PostRender();
 	gameWnd->EndRender();
 }
