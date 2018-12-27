@@ -140,7 +140,7 @@ string Pu::FileReader::ReadLine(void)
 	FileNotOpen();
 
 	/* Get the current position and set the newline length to a default of one. */
-	size_t len = 0, nll = 1;
+	size_t len = 0, nll = 0;
 	const int64 pos = GetPosition();
 
 	/* Read characters until some end specifier is found. */
@@ -167,7 +167,6 @@ string Pu::FileReader::ReadLine(void)
 	/* Create and populate result buffer. */
 	string result(len + nll, ' ');
 	const size_t checkLen = Read(reinterpret_cast<byte*>(&result[0]), 0, len + nll);
-	result[len] = '\0';
 
 	/* Check for reading errors. */
 	if (checkLen > (len + nll)) Log::Fatal("Expected length of string doesn't match actual length, this should never occur!");
@@ -186,9 +185,8 @@ string Pu::FileReader::ReadToEnd(void)
 	SeekInternal(SeekOrigin::Begin, pos);
 
 	/* Allocate space for string and populate it. */
-	string result(len + 1, ' ');
+	string result(len, ' ');
 	const size_t checkLen = Read(reinterpret_cast<byte*>(&result[0]), 0, len);
-	result[len] = '\0';
 
 	/* Check for errors. */
 	if (static_cast<int64>(checkLen) > len) Log::Fatal("Expected length of string doesn't match actual length!");

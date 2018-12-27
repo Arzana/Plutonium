@@ -22,6 +22,11 @@ namespace Pu
 		_Check_return_ GameWindow& operator =(_In_ const GameWindow&) = delete;
 		_Check_return_ GameWindow& operator =(_In_ GameWindow&&) = delete;
 
+		/* Creates a framebuffer for each swapchain image for the specific render pass with the specific image views (framebuffers are deleted if the window is resized!). */
+		void CreateFrameBuffers(_In_ const Renderpass &renderPass, _In_ const vector<const ImageView*> &views);
+		/* Gets the framebuffer associated with a specific render pass for the current swapchain image. */
+		_Check_return_ const Framebuffer& GetCurrentFramebuffer(_In_ const Renderpass &renderPass) const;
+
 		/* Gets the current command buffer. */
 		_Check_return_ inline CommandBuffer& GetCommandBuffer(void)
 		{
@@ -66,14 +71,17 @@ namespace Pu
 		Swapchain *swapchain;
 		CommandPool *pool;
 		uint32 queueIndex, curImgIdx;
+
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;
+		std::map<RenderPassHndl, vector<Framebuffer*>> frameBuffers;
 
-		void UpdateSwapchainSize(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
+		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
 		void CreateSwapchain(Extent2D size);
 		void MakeSwapchainImageWritable(void);
 		void MakeImagePresentable(void);
 		void BeginRender(void);
 		void EndRender(void);
+		void DestroyFramebuffers(void);
 	};
 }

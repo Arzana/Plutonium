@@ -19,7 +19,9 @@ void TestGame::Initialize(void)
 	renderpass = new Renderpass(GetDevice());
 	renderpass->OnAttachmentLink += [&](Renderpass &renderpass, EventArgs)
 	{
-		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+		Output &fragColor = renderpass.GetOutput("FragColor");
+		fragColor.SetDescription(GetWindow().GetSwapchain());
+		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
 		SubpassDependency dependency(SubpassExternal, 0);
 		dependency.SrcStageMask = PipelineStageFlag::BottomOfPipe;
@@ -44,15 +46,21 @@ void TestGame::Initialize(void)
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.Finalize();
 
+		const vector<const ImageView*> views;
+		GetWindow().CreateFrameBuffers(*renderpass, views);
+
 		TempMarkDoneLoading();
 	};
 
 	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/VertexColor.frag" });
 	ProcessTask(*loader);
-}
 
-void TestGame::LoadContent(void)
-{}
+	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow&, ValueChangedEventArgs<Vector2>)
+	{
+		const vector<const ImageView*> views;
+		GetWindow().CreateFrameBuffers(*renderpass, views);
+	};
+}
 
 void TestGame::Finalize(void)
 {
@@ -63,12 +71,10 @@ void TestGame::Finalize(void)
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)
 {
-	vector<const ImageView*> views;
-	views.push_back(&GetWindow().GetCurrentImageView());
-	const Extent2D dimensions = GetWindow().GetNative().GetClientBounds().GetSize();
-	Framebuffer framebuffer(GetDevice(), *renderpass, dimensions, views);
+	const Rect2D renderArea = GetWindow().GetNative().GetClientBounds().GetSize();
+	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(*renderpass);
 
-	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, Rect2D(dimensions), SubpassContents::Inline);
+	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.Draw(3, 1, 0, 0);
 	cmdBuffer.EndRenderPass();

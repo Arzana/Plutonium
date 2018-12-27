@@ -7,7 +7,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	: native(native), device(device), swapchain(nullptr), queueIndex(0)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
-	native.OnSizeChanged.Add(*this, &GameWindow::UpdateSwapchainSize);
+	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
 	CreateSwapchain(native.GetClientBounds().GetSize());
 
 	/* Get physical device and it's queue families. */
@@ -48,7 +48,8 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 
 Pu::GameWindow::~GameWindow(void)
 {
-	native.OnSizeChanged.Remove(*this, &GameWindow::UpdateSwapchainSize);
+	native.OnSizeChanged.Remove(*this, &GameWindow::OnNativeSizeChangedHandler);
+	DestroyFramebuffers();
 
 	semaphores.clear();
 	buffers.clear();
@@ -56,9 +57,48 @@ Pu::GameWindow::~GameWindow(void)
 	delete swapchain;
 }
 
-void Pu::GameWindow::UpdateSwapchainSize(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
+void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vector<const ImageView*> & views)
 {
+	/* Make sure we don't create too many. */
+	if (frameBuffers.find(renderPass.hndl) != frameBuffers.end())
+	{
+		Log::Warning("Attempting to create framebuffers for render pass that already has framebuffers defined!");
+		return;
+	}
+
+	/* Get dimensions of the window and create buffer for storage. */
+	const Extent2D dimensions = native.GetClientBounds().GetSize();
+	vector<Framebuffer*> tmpFramebuffers;
+
+	/* Create a framebuffer for each swapchain image. */
+	for (const ImageView &cur : swapchain->views)
+	{
+		vector<const ImageView*> attachments(views);
+		attachments.emplace_back(&cur);
+		tmpFramebuffers.emplace_back(new Framebuffer(device, renderPass, dimensions, attachments));
+	}
+
+	/* Add all framebuffers of the render pass to the buffer. */
+	frameBuffers.emplace(renderPass.hndl, tmpFramebuffers);
+}
+
+const Framebuffer & Pu::GameWindow::GetCurrentFramebuffer(const Renderpass & renderPass) const
+{
+	std::map<RenderPassHndl, vector<Framebuffer*>>::const_iterator it = frameBuffers.find(renderPass.hndl);
+	if (it == frameBuffers.end()) Log::Fatal("Attempting to retrieve framebuffer for unknown render pass!");
+
+	return *it->second[curImgIdx];
+}
+
+void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
+{
+	Log::Warning("Window is being resized, this might cause lag!");
+
+	/* Update the swapchain images. */
 	CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)));
+
+	/* Free all framebuffers bound to the native window size. */
+	DestroyFramebuffers();
 }
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size)
@@ -133,4 +173,15 @@ void Pu::GameWindow::EndRender(void)
 	Queue &queue = device.GetQueue(queueIndex, 0);
 	queue.Submit(semaphores[0], cmdBuf, semaphores[1]);
 	queue.Present(semaphores[1], *swapchain, curImgIdx);
+}
+
+void Pu::GameWindow::DestroyFramebuffers(void)
+{
+	/* One is with a capital and one is without, not the best naming... */
+	for (const auto &[key, framebuffers] : frameBuffers)
+	{
+		for (size_t i = 0; i < framebuffers.size(); i++) delete framebuffers[i];
+	}
+
+	frameBuffers.clear();
 }

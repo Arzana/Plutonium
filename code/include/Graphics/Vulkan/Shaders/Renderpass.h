@@ -73,6 +73,7 @@ namespace Pu
 		friend class GraphicsPipeline;
 		friend class CommandBuffer;
 		friend class Framebuffer;
+		friend class GameWindow;
 
 		LogicalDevice &device;
 		RenderPassHndl hndl;

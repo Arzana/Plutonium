@@ -94,6 +94,9 @@ void Pu::Renderpass::Link(void)
 	}
 
 	// TODO: load all attributes and uniforms
+	
+	/* Give user the opertunity to set descriptions for all used fields. */
+	OnAttachmentLink.Post(*this, EventArgs());
 
 	/* Set all attachment references for the subpass. */
 	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
@@ -125,9 +128,6 @@ void Pu::Renderpass::Link(void)
 	temp.ColorAttachments = colorAttachments.data();
 	subpassDescriptions.push_back(temp);
 	/*--------------------------------------------------------------------------------------------------------------*/
-
-	/* Give user the opertunity to set descriptions for all used fields. */
-	OnAttachmentLink.Post(*this, EventArgs());
 
 	/* Copy descriptions from the outputs to the attachmentDescription buffer. */
 	for (const Output &output : outputs)
