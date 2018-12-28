@@ -50,6 +50,19 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(c
 	Log::Fatal("Cannot get color blend state for unknown output '%s'!", name.c_str());
 }
 
+void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate inputRate)
+{
+	/* Make sure binding isn't added mutliple times. */
+	if (bindingDescriptions.contains(binding, [](const VertexInputBindingDescription &cur, uint32 binding) { return cur.Binding == binding; }))
+	{
+		Log::Error("Attempting to add vertex binding description for already added binding!");
+		return;
+	}
+
+	/* Add binding. */
+	bindingDescriptions.emplace_back(binding, stride, inputRate);
+}
+
 void Pu::GraphicsPipeline::Finalize(void)
 {
 	if (!renderpass) Log::Fatal("Unable to finalize non-initialized graphics pipeline!");
@@ -61,12 +74,15 @@ void Pu::GraphicsPipeline::Finalize(void)
 		Destroy();
 	}
 
+	/* Add the vertex descriptions to the final version. */
+	const vector<VertexInputAttributeDescription> attrDesc = renderpass->attributes.select<VertexInputAttributeDescription>([](const Attribute &attr) { return attr.description; });
+	vertexInput->VertexAttributeDescriptionCount = static_cast<uint32>(renderpass->attributes.size());
+	vertexInput->VertexAttributeDescriptions = attrDesc.data();
+	vertexInput->VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
+	vertexInput->VertexBindingDescriptions = bindingDescriptions.data();
+
 	/* Create shader stage buffer. */
-	vector<PipelineShaderStageCreateInfo> stages;
-	for (const Subpass &subpass : renderpass->subpasses)
-	{
-		stages.push_back(subpass.info);
-	}
+	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
 
 	/* Create pipeline layout. */
 	PipelineLayoutCreateInfo layoutCreateInfo;

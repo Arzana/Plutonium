@@ -116,6 +116,44 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 	parent.vkGetPhysicalDeviceProperties(hndl, &properties);
 	parent.vkGetPhysicalDeviceFeatures(hndl, &features);
+	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
+}
+
+
+bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, uint32 & index)
+{
+	index = maxv<uint32>();
+
+	/* Loop throug to find all possible memory types. */
+	for (uint32 i = 0, highestScore = 0; i < memory.MemoryTypeCount; ++i)
+	{
+		const MemoryPropertyFlag flags = memory.MemoryTypes[i].PropertyFlags;
+
+		/* Check if type is supported and if the required properties are supported. */
+		if ((memoryTypeBits & (1 << i)) && _CrtEnumCheckFlag(flags, memoryProperties))
+		{
+			/*
+			- DeviceLocal is fast memory so that scores a point.
+			- HostCoherent means less commands when caching so that scores a point.
+			- HostCached means more work for the host so gain a point if it doesn't have that.
+			- HostVisible is slow as the CPU and GPU need access so gain a point if it doesn't have that.
+			*/
+			uint32 score = 0;
+			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) ++score;
+			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCoherent)) ++score;
+			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCached)) ++score;
+			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostVisible)) ++score;
+
+			if (score > highestScore)
+			{
+				highestScore = score;
+				index = i;
+			}
+		}
+	}
+
+	/* Return whether at least one type was found that supports the  */
+	return index != maxv<uint32>();
 }
 
 void Pu::PhysicalDevice::OnParentDestroyed(const VulkanInstance &, EventArgs)

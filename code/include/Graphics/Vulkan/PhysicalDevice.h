@@ -116,14 +116,17 @@ namespace Pu
 		friend class VulkanInstance;
 		friend class LogicalDevice;
 		friend class Surface;
+		friend class Buffer;
 
 		VulkanInstance &parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceFeatures features;
+		PhysicalDeviceMemoryProperties memory;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 
+		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};
 }

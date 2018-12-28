@@ -1,22 +1,23 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "..\..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: device(device), hndl(nullptr), loaded(false), usable(false),
-	OnAttachmentLink("RenderpassOnAttachmentLink")
+	OnLinkCompleted("RenderpassOnLinkCompleted")
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
 	: device(device), subpasses(std::move(subpasses)), usable(false),
-	OnAttachmentLink("RenderpassOnAttachmentLink")
+	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
 	Link();
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
 	: device(value.device), hndl(value.hndl), subpasses(std::move(value.subpasses)),
-	loaded(value.IsLoaded()), usable(value.usable), OnAttachmentLink(std::move(value.OnAttachmentLink))
+	loaded(value.IsLoaded()), usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
+	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)), 
+	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes))
 {
 	value.hndl = nullptr;
 }
@@ -32,7 +33,11 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		subpasses = std::move(other.subpasses);
 		loaded.store(other.IsLoaded());
 		usable = other.usable;
-		OnAttachmentLink = std::move(other.OnAttachmentLink);
+		OnLinkCompleted = std::move(other.OnLinkCompleted);
+		outputs = std::move(other.outputs);
+		clearValues = std::move(other.clearValues);
+		dependencies = std::move(other.dependencies);
+		attributes = std::move(attributes);
 
 		other.hndl = nullptr;
 		other.loaded.store(false);
@@ -62,6 +67,26 @@ const Pu::Output & Pu::Renderpass::GetOutput(const string & name) const
 	Log::Fatal("Unable to find output field '%s'!", name.c_str());
 }
 
+Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name)
+{
+	for (Attribute &cur : attributes)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
+}
+
+const Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name) const
+{
+	for (const Attribute &cur : attributes)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
+}
+
 void Pu::Renderpass::Link(void)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
@@ -70,7 +95,7 @@ void Pu::Renderpass::Link(void)
 		return _CrtEnum2Int(a.GetType()) < _CrtEnum2Int(b.GetType());
 	});
 
-	/* Check if the supplied shader modules can be liked together. */
+	/* Check if the supplied shader modules can be linked together. */
 	for (size_t i = 0, j = 1; j < subpasses.size(); i++, j++)
 	{
 		if (!CheckIO(subpasses[i], subpasses[j]))
@@ -82,6 +107,28 @@ void Pu::Renderpass::Link(void)
 		}
 	}
 
+	/* Load all fields that need to be accessed outside the shaders. */
+	LoadFields();
+
+	/* Give user the opertunity to set descriptions for all used fields. */
+	OnLinkCompleted.Post(*this, EventArgs());
+
+	/* Finalize the render pass. */
+	Finalize();
+}
+
+void Pu::Renderpass::LoadFields(void)
+{
+	/* Load all attributes. */
+	const Subpass &inputPass = subpasses.front();
+	for (size_t i = 0; i < inputPass.GetFieldCount(); i++)
+	{
+		const FieldInfo &info = inputPass.GetField(i);
+		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
+	}
+
+	// TODO: load all uniforms
+
 	/* Save a variable for how many attachment references are made. */
 	uint32 referenceCnt = 0;
 
@@ -90,14 +137,12 @@ void Pu::Renderpass::Link(void)
 	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
 	{
 		const FieldInfo &info = outputPass.GetField(i);
-		if (info.Storage == spv::StorageClass::Output) outputs.push_back(Output(info, referenceCnt++));
+		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++));
 	}
+}
 
-	// TODO: load all attributes and uniforms
-	
-	/* Give user the opertunity to set descriptions for all used fields. */
-	OnAttachmentLink.Post(*this, EventArgs());
-
+void Pu::Renderpass::Finalize(void)
+{
 	/* Set all attachment references for the subpass. */
 	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
 	for (const Output &cur : outputs)

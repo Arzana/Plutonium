@@ -1,5 +1,6 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
+#include <Graphics/VertexLayouts/ColoredVertex.h>
 
 using namespace Pu;
 
@@ -17,11 +18,14 @@ bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 void TestGame::Initialize(void)
 {
 	renderpass = new Renderpass(GetDevice());
-	renderpass->OnAttachmentLink += [&](Renderpass &renderpass, EventArgs)
+	renderpass->OnLinkCompleted += [&](Renderpass &renderpass, EventArgs)
 	{
 		Output &fragColor = renderpass.GetOutput("FragColor");
 		fragColor.SetDescription(GetWindow().GetSwapchain());
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
+
+		Attribute &clr = renderpass.GetAttribute("Color");
+		clr.SetOffset(vkoffsetof(ColoredVertex, Color));
 
 		SubpassDependency dependency(SubpassExternal, 0);
 		dependency.SrcStageMask = PipelineStageFlag::BottomOfPipe;
@@ -44,6 +48,8 @@ void TestGame::Initialize(void)
 	pipeline->PostInitialize += [&](GraphicsPipeline &pipeline, EventArgs)
 	{
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
+		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
+		pipeline.AddVertexBinding<ColoredVertex>(0);
 		pipeline.Finalize();
 
 		const vector<const ImageView*> views;
@@ -52,7 +58,7 @@ void TestGame::Initialize(void)
 		TempMarkDoneLoading();
 	};
 
-	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Triangle.vert", "../assets/shaders/VertexColor.frag" });
+	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/VertexColor.vert", "../assets/shaders/VertexColor.frag" });
 	ProcessTask(*loader);
 
 	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow&, ValueChangedEventArgs<Vector2>)
@@ -60,6 +66,25 @@ void TestGame::Initialize(void)
 		const vector<const ImageView*> views;
 		GetWindow().CreateFrameBuffers(*renderpass, views);
 	};
+}
+
+void TestGame::LoadContent(void)
+{
+	const ColoredVertex quad[] =
+	{
+		{ Vector3(-0.7f, -0.7f, 0.0f), Color::Red() },
+		{ Vector3(-0.7f, 0.7f, 0.0f), Color::Green() },
+		{ Vector3(0.7f, -0.7f, 0.0f), Color::Blue() },
+		{ Vector3(0.7f, 0.7f, 0.0f), Color::Tundora() }
+	};
+
+	buffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer, true);
+	buffer->SetData(quad, 4);
+}
+
+void TestGame::UnLoadContent(void)
+{
+	delete buffer;
 }
 
 void TestGame::Finalize(void)
@@ -76,6 +101,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 
 	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
-	cmdBuffer.Draw(3, 1, 0, 0);
+	cmdBuffer.BindVertexBuffer(0, *buffer);
+	cmdBuffer.Draw(buffer->GetElementCount(), 1, 0, 0);
 	cmdBuffer.EndRenderPass();
 }

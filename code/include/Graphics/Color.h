@@ -178,6 +178,13 @@ namespace Pu
 			return result;
 		}
 
+		/* Defines a tundora opaque color. */
+		_Check_return_ static inline Color Tundora(void)
+		{
+			static Color result((byte)0x4C, 0x4C, 0x4C);
+			return result;
+		}
+
 		/* Defines a white opaque color. */
 		_Check_return_ static inline Color White(void)
 		{

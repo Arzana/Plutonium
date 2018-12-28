@@ -61,6 +61,17 @@ namespace Pu
 	using PFN_vkGetFenceStatus = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ FenceHndl fence);
 	using PFN_vkResetFences = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 fenceCount, _In_ const FenceHndl *fences);
 	using PFN_vkWaitForFences = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 fenceCount, _In_ const FenceHndl *fences, _In_ Bool32 waitAll, _In_ uint64 timeout);
+	using PFN_vkCreateBuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const BufferCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ BufferHndl *buffer);
+	using PFN_vkDestroyBuffer = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ BufferHndl buffer, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkGetBufferMemoryRequirements = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ BufferHndl buffer, _Out_ MemoryRequirements *memoryRequirements);
+	using PFN_vkGetPhysicalDeviceMemoryProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceMemoryProperties *memoryProperties);
+	using PFN_vkAllocateMemory = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const MemoryAllocateInfo *allocateInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DeviceMemoryHndl *memory);
+	using PFN_vkFreeMemory = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkBindBufferMemory = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ BufferHndl buffer, _In_ DeviceMemoryHndl memory, _In_ DeviceSize memoryOffset);
+	using PFN_vkMapMemory = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory, _In_ DeviceSize offset, _In_ DeviceSize size, _In_ Flags flags, _Out_ void **data);
+	using PFN_vkFlushMappedMemoryRanges = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 memoryRangeCount, _In_ const MappedMemoryRange *memoryRanges);
+	using PFN_vkUnmapMemory = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory);
+	using PFN_vkCmdBindVertexBuffers = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 firstBinding, _In_ uint32 bindingCount, _In_ const BufferHndl *buffers, _In_ const DeviceSize *offsets);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

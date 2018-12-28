@@ -53,6 +53,9 @@ void Pu::Application::Run(void)
 		while (!Tick(false));
 	}
 
+	/* Make sure to finalize the game window before allowing the user to release their resources. */
+	gameWnd->Finalize();
+
 	/* Finalize application. */
 	UnLoadContent();
 	DoFinalize();
@@ -213,8 +216,6 @@ void Pu::Application::DoInitialize(void)
 
 void Pu::Application::DoFinalize(void)
 {
-	/* Make sure to finalize the game window before allowing the user to release their resources. */
-	gameWnd->Finalize();
 	Finalize();
 
 	delete gameWnd;

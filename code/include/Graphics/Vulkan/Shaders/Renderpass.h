@@ -1,6 +1,7 @@
 #pragma once
 #include "Subpass.h"
 #include "Output.h"
+#include "Attribute.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/EventArgs.h"
 
@@ -33,7 +34,7 @@ namespace Pu
 		};
 
 		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
-		EventBus<Renderpass, EventArgs> OnAttachmentLink;
+		EventBus<Renderpass, EventArgs> OnLinkCompleted;
 
 		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);
@@ -68,6 +69,10 @@ namespace Pu
 		_Check_return_ Output& GetOutput(_In_ const string &name);
 		/* Gets the specified shader output. */
 		_Check_return_ const Output& GetOutput(_In_ const string &name) const;
+		/* Gets the specified shader input attribute. */
+		_Check_return_ Attribute& GetAttribute(_In_ const string &name);
+		/* Gets the specified shader input attribute. */
+		_Check_return_ const Attribute& GetAttribute(_In_ const string &name) const;
 
 	private:
 		friend class GraphicsPipeline;
@@ -81,11 +86,14 @@ namespace Pu
 		bool usable;
 
 		vector<Subpass> subpasses;
+		vector<Attribute> attributes;
 		vector<Output> outputs;
 		vector<ClearValue> clearValues;
 		vector<SubpassDependency> dependencies;
 
 		void Link(void);
+		void LoadFields(void);
+		void Finalize(void);
 		bool CheckIO(const Subpass &a, const Subpass &b) const;
 		void LinkSucceeded(void);
 		void LinkFailed(void);

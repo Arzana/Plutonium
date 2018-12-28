@@ -177,6 +177,7 @@ namespace Pu
 	enum class Format
 	{
 		Undefined = 0,
+#pragma region PACKED
 		R4G4_UNORM_PACK8 = 1,
 		R4G4B4A4_UNORM_PACK16 = 2,
 		B4G4R4A4_UNORM_PACK16 = 3,
@@ -185,6 +186,9 @@ namespace Pu
 		R5G5B5A1_UNORM_PACK16 = 6,
 		B5G5R5A1_UNORM_PACK16 = 7,
 		A1R5G5B5_UNORM_PACK16 = 8,
+#pragma endregion
+#pragma region RGBA 8 bit
+
 		R8_UNORM = 9,
 		R8_SNORM = 10,
 		R8_USCALED = 11,
@@ -220,6 +224,8 @@ namespace Pu
 		R8G8B8A8_UINT = 41,
 		R8G8B8A8_SINT = 42,
 		R8G8B8A8_SRGB = 43,
+#pragma endregion
+#pragma region BGRA 8 bit
 		B8G8R8A8_UNORM = 44,
 		B8G8R8A8_SNORM = 45,
 		B8G8R8A8_USCALED = 46,
@@ -227,6 +233,8 @@ namespace Pu
 		B8G8R8A8_UINT = 48,
 		B8G8R8A8_SINT = 49,
 		B8G8R8A8_SRGB = 50,
+#pragma endregion
+#pragma region ABGR 8 bit
 		A8B8G8R8_UNORM_PACK32 = 51,
 		A8B8G8R8_SNORM_PACK32 = 52,
 		A8B8G8R8_USCALED_PACK32 = 53,
@@ -234,18 +242,24 @@ namespace Pu
 		A8B8G8R8_UINT_PACK32 = 55,
 		A8B8G8R8_SINT_PACK32 = 56,
 		A8B8G8R8_SRGB_PACK32 = 57,
+#pragma endregion
+#pragma region ARGB 10 bit
 		A2R10G10B10_UNORM_PACK32 = 58,
 		A2R10G10B10_SNORM_PACK32 = 59,
 		A2R10G10B10_USCALED_PACK32 = 60,
 		A2R10G10B10_SSCALED_PACK32 = 61,
 		A2R10G10B10_UINT_PACK32 = 62,
 		A2R10G10B10_SINT_PACK32 = 63,
+#pragma endregion
+#pragma region ABGR 10 bit
 		A2B10G10R10_UNORM_PACK32 = 64,
 		A2B10G10R10_SNORM_PACK32 = 65,
 		A2B10G10R10_USCALED_PACK32 = 66,
 		A2B10G10R10_SSCALED_PACK32 = 67,
 		A2B10G10R10_UINT_PACK32 = 68,
 		A2B10G10R10_SINT_PACK32 = 69,
+#pragma endregion
+#pragma region RGBA 16 bit
 		R16_UNORM = 70,
 		R16_SNORM = 71,
 		R16_USCALED = 72,
@@ -274,6 +288,8 @@ namespace Pu
 		R16G16B16A16_UINT = 95,
 		R16G16B16A16_SINT = 96,
 		R16G16B16A16_SFLOAT = 97,
+#pragma endregion
+#pragma region RGBA 32 bit
 		R32_UINT = 98,
 		R32_SINT = 99,
 		R32_SFLOAT = 100,
@@ -286,6 +302,8 @@ namespace Pu
 		R32G32B32A32_UINT = 107,
 		R32G32B32A32_SINT = 108,
 		R32G32B32A32_SFLOAT = 109,
+#pragma endregion
+#pragma region RGBA 64 bit
 		R64_UINT = 110,
 		R64_SINT = 111,
 		R64_SFLOAT = 112,
@@ -298,6 +316,8 @@ namespace Pu
 		R64G64B64A64_UINT = 119,
 		R64G64B64A64_SINT = 120,
 		R64G64B64A64_SFLOAT = 121,
+#pragma endregion
+#pragma region MISCELLANEOUS
 		B10G11R11_UFLOAT_PACK32 = 122,
 		E5B9G9R9_UFLOAT_PACK32 = 123,
 		D16_UNORM = 124,
@@ -307,6 +327,8 @@ namespace Pu
 		D16_UNORM_S8_UINT = 128,
 		D24_UNORM_S8_UINT = 129,
 		D32_SFLOAT_S8_UINT = 130,
+#pragma endregion
+#pragma region BLOCK COMPRESSED
 		BC1_RGB_UNORM_BLOCK = 131,
 		BC1_RGB_SRGB_BLOCK = 132,
 		BC1_RGBA_UNORM_BLOCK = 133,
@@ -323,6 +345,8 @@ namespace Pu
 		BC6H_SFLOAT_BLOCK = 144,
 		BC7_UNORM_BLOCK = 145,
 		BC7_SRGB_BLOCK = 146,
+#pragma endregion
+#pragma region ETC2 COMPRESSED
 		ETC2_R8G8B8_UNORM_BLOCK = 147,
 		ETC2_R8G8B8_SRGB_BLOCK = 148,
 		ETC2_R8G8B8A1_UNORM_BLOCK = 149,
@@ -333,34 +357,37 @@ namespace Pu
 		EAC_R11_SNORM_BLOCK = 154,
 		EAC_R11G11_UNORM_BLOCK = 155,
 		EAC_R11G11_SNORM_BLOCK = 156,
-		ASTC_4x4_UNORM_BLOCK = 157,
-		ASTC_4x4_SRGB_BLOCK = 158,
-		ASTC_5x4_UNORM_BLOCK = 159,
-		ASTC_5x4_SRGB_BLOCK = 160,
-		ASTC_5x5_UNORM_BLOCK = 161,
-		ASTC_5x5_SRGB_BLOCK = 162,
-		ASTC_6x5_UNORM_BLOCK = 163,
-		ASTC_6x5_SRGB_BLOCK = 164,
-		ASTC_6x6_UNORM_BLOCK = 165,
-		ASTC_6x6_SRGB_BLOCK = 166,
-		ASTC_8x5_UNORM_BLOCK = 167,
-		ASTC_8x5_SRGB_BLOCK = 168,
-		ASTC_8x6_UNORM_BLOCK = 169,
-		ASTC_8x6_SRGB_BLOCK = 170,
-		ASTC_8x8_UNORM_BLOCK = 171,
-		ASTC_8x8_SRGB_BLOCK = 172,
-		ASTC_10x5_UNORM_BLOCK = 173,
-		ASTC_10x5_SRGB_BLOCK = 174,
-		ASTC_10x6_UNORM_BLOCK = 175,
-		ASTC_10x6_SRGB_BLOCK = 176,
-		ASTC_10x8_UNORM_BLOCK = 177,
-		ASTC_10x8_SRGB_BLOCK = 178,
-		ASTC_10x10_UNORM_BLOCK = 179,
-		ASTC_10x10_SRGB_BLOCK = 180,
-		ASTC_12x10_UNORM_BLOCK = 181,
-		ASTC_12x10_SRGB_BLOCK = 182,
-		ASTC_12x12_UNORM_BLOCK = 183,
-		ASTC_12x12_SRGB_BLOCK = 184,
+#pragma endregion
+#pragma region ASTC COMPRESSED
+			ASTC_4x4_UNORM_BLOCK = 157,
+			ASTC_4x4_SRGB_BLOCK = 158,
+			ASTC_5x4_UNORM_BLOCK = 159,
+			ASTC_5x4_SRGB_BLOCK = 160,
+			ASTC_5x5_UNORM_BLOCK = 161,
+			ASTC_5x5_SRGB_BLOCK = 162,
+			ASTC_6x5_UNORM_BLOCK = 163,
+			ASTC_6x5_SRGB_BLOCK = 164,
+			ASTC_6x6_UNORM_BLOCK = 165,
+			ASTC_6x6_SRGB_BLOCK = 166,
+			ASTC_8x5_UNORM_BLOCK = 167,
+			ASTC_8x5_SRGB_BLOCK = 168,
+			ASTC_8x6_UNORM_BLOCK = 169,
+			ASTC_8x6_SRGB_BLOCK = 170,
+			ASTC_8x8_UNORM_BLOCK = 171,
+			ASTC_8x8_SRGB_BLOCK = 172,
+			ASTC_10x5_UNORM_BLOCK = 173,
+			ASTC_10x5_SRGB_BLOCK = 174,
+			ASTC_10x6_UNORM_BLOCK = 175,
+			ASTC_10x6_SRGB_BLOCK = 176,
+			ASTC_10x8_UNORM_BLOCK = 177,
+			ASTC_10x8_SRGB_BLOCK = 178,
+			ASTC_10x10_UNORM_BLOCK = 179,
+			ASTC_10x10_SRGB_BLOCK = 180,
+			ASTC_12x10_UNORM_BLOCK = 181,
+			ASTC_12x10_SRGB_BLOCK = 182,
+			ASTC_12x12_UNORM_BLOCK = 183,
+			ASTC_12x12_SRGB_BLOCK = 184,
+#pragma endregion
 	};
 
 	/* Defines the basic dimensionality of an image. */
@@ -904,6 +931,8 @@ namespace Pu
 	/* Defines the properties of a memory heap. */
 	enum class MemoryPropertyFlag
 	{
+		/* No flags were set. */
+		None = 0x00000000,
 		/* Specifies that the memory allocated with this type is most efficient for device access. */
 		DeviceLocal = 0x00000001,
 		/* Specified that the memory allocated with this type can be mapped for host access. */
@@ -921,6 +950,8 @@ namespace Pu
 	/* Defines the attribute flags for heaps. */
 	enum class MemoryHeapFlag
 	{
+		/* No flags were set. */
+		None = 0x00000000,
 		/* Specifies that the heap corresponds to device local memory. */
 		DeviceLocal = 0x00000001,
 		/* Specifies that in a logical device respresenting more than one physical devices, there is a per-physical device instance of the heap memory. */
@@ -958,7 +989,7 @@ namespace Pu
 		Transfer = 0x00001000,
 		/* Specifies the final stage in the pipeline where operations generated by all commands complete execution. */
 		BottomOfPipe = 0x00002000,
-		/* Specifies a pseudo-stage indicating executin on the host of reads/writes of device memory. */
+		/* Specifies a pseudo-stage indicating execution on the host of reads/writes of device memory. */
 		Host = 0x00004000,
 		/* Specifies the execution of all graphics pipeline stages. */
 		AllGraphics = 0x00008000,
@@ -1051,6 +1082,8 @@ namespace Pu
 	/* Defines additional parameters of a buffer. */
 	enum class BufferCreateFlag
 	{
+		/* No flags were set. */
+		None = 0x00000000,
 		/* Specifies that the buffer will be backed using sparse memory binding. */
 		SparseBinding = 0x00000001,
 		/* Specifies that the buffer can be partially backed using sparse memory binding. */
@@ -1064,6 +1097,8 @@ namespace Pu
 	/* Defines the usage behaviour of a buffer. */
 	enum class BufferUsageFlag
 	{
+		/* Specifies that the buffer usage is not defined. */
+		Undefinfed = 0x00000000,
 		/* Specifies that the buffer can be used as the source of a transfer command. */
 		TransferSrc = 0x00000001,
 		/* Specifies that the buffer can be used as the destination of a transfer command. */

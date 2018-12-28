@@ -74,6 +74,12 @@ void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 	else Log::Warning("Cannot bind graphics pipeline on non-recording CommandBuffer!");
 }
 
+void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, size_t offset)
+{
+	if (state == State::Recording) parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, static_cast<DeviceSize*>(&offset));
+	else Log::Warning("Cannot bind vertex buffer on non-recording CommandBuffer!");
+}
+
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
 	if (state == State::Recording) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);

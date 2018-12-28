@@ -1445,12 +1445,12 @@ namespace Pu
 
 		/* Initializes an empty instance of a vertex input binding description. */
 		VertexInputBindingDescription(void)
-			: VertexInputBindingDescription(0, 0)
+			: VertexInputBindingDescription(0, 0, VertexInputRate::Vertex)
 		{}
 
 		/* Initializes a new instance of a vertex input binding description. */
-		VertexInputBindingDescription(_In_ uint32 binding, _In_ uint32 stride)
-			: Binding(binding), Stride(stride), InputRate(VertexInputRate::Vertex)
+		VertexInputBindingDescription(_In_ uint32 binding, _In_ uint32 stride, _In_ VertexInputRate inputRate)
+			: Binding(binding), Stride(stride), InputRate(inputRate)
 		{}
 	};
 
@@ -2240,6 +2240,170 @@ namespace Pu
 		/* Initializes a new instanace of the fence create info object. */
 		FenceCreateInfo(_In_ FenceCreateFlag flags)
 			: Type(StructureType::FenceCreateInfo), Next(nullptr), Flags(flags)
+		{}
+	};
+
+	/* Defines the information required to create a memory buffer. */
+	struct BufferCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies additional parameters for the buffer. */
+		BufferCreateFlag Flags;
+		/* Specifies the size (in bytes) of the buffer. */
+		DeviceSize Size;
+		/* Specifies the allowed usages of the buffer. */
+		BufferUsageFlag Usage;
+		/* Specifies how the buffer should be accessed by multiple queues. */
+		SharingMode SharingMode;
+		/* Specifies the number of elements of queue family indeces. */
+		uint32 QueueFamilyIndexCount;
+		/* Specifies the queue families that will access this buffer (only needed if sharing mode is Concurrent!). */
+		const uint32 *QueueFamilyIndeces;
+
+		/* Initializes an empty instance of the buffer create info object. */
+		BufferCreateInfo(void)
+			: BufferCreateInfo(0, BufferUsageFlag::Undefinfed)
+		{}
+
+		/* Initializes a new instance of the buffer create info object. */
+		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlag usage)
+			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlag::None),
+			Size(size), Usage(usage), SharingMode(SharingMode::Exclusive),
+			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr)
+		{}
+
+		/* Initializes a new instance of the buffer create info object. */
+		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlag usage, _In_ const vector<uint32> &queueFamilies)
+			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlag::None),
+			Size(size), Usage(usage), SharingMode(SharingMode::Concurrent),
+			QueueFamilyIndexCount(static_cast<uint32>(queueFamilies.size())), QueueFamilyIndeces(queueFamilies.data())
+		{}
+	};
+
+	/* Defines the requirement that need to be fulfilled for memory allocation. */
+	struct MemoryRequirements
+	{
+	public:
+		/* Specifies the size (in bytes) of the memory allocation. */
+		DeviceSize Size;
+		/* Specifies the allignment (in bytes) of the offset within the allocation. */
+		DeviceSize Alignment;
+		/* Specifies a bitmsask for every supported memory type for the resource. */
+		uint32 MemoryTypeBits;
+
+		/* Initializes an empty instance of the memory requirements object. */
+		MemoryRequirements(void)
+			: Size(0), Alignment(0), MemoryTypeBits(0)
+		{}
+	};
+
+	/* Defines a unique memory type on a physical device. */
+	struct MemoryType
+	{
+	public:
+		/* Specifies the properties of the memory heap. */
+		MemoryPropertyFlag PropertyFlags;
+		/* Specifies which memory heap this memory type corresponds to. */
+		uint32 HeapIndex;
+
+		/* Initializes an empty instance of the memory type object. */
+		MemoryType(void)
+			: PropertyFlags(MemoryPropertyFlag::None), HeapIndex(0)
+		{}
+	};
+
+	/* Defines a unique memory heap on a physical device. */
+	struct MemoryHeap
+	{
+	public:
+		/* Specifies the total size (in bytes) of the heap. */
+		DeviceSize Size;
+		/* Specifies the properties of the heap. */
+		MemoryHeapFlag Flags;
+
+		/* Initializes an empty insatnce of a memory heap object. */
+		MemoryHeap(void)
+			: Size(0), Flags(MemoryHeapFlag::None)
+		{}
+	};
+
+	/* Defines the properties of a physical device's memory. */
+	struct PhysicalDeviceMemoryProperties
+	{
+	public:
+		/* Specifies the amount of memory types available. */
+		uint32 MemoryTypeCount;
+		/* Specifies all memory types that can be used to access memory allocated from the heaps. */
+		MemoryType MemoryTypes[MaxMemoryTypes];
+		/* Specifies the amount of memory heaps available. */
+		uint32 MemoryHeapCount;
+		/* Specifies all memory heaps available on the physical device. */
+		MemoryHeap MemoryHeaps[MaxMemoryHeaps];
+
+		/* Initializes an empty instance of the physical device memory properties object. */
+		PhysicalDeviceMemoryProperties(void)
+			: MemoryTypeCount(0), MemoryHeapCount(0)
+		{}
+	};
+
+	/* Defines the information required to allocate memory on a physical device. */
+	struct MemoryAllocateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the amount (in bytes) of the allocation. */
+		DeviceSize AllocationSize;
+		/* Specifies the index of the memory type (on the physical device) from which to make this allocation. */
+		uint32 MemoryTypeIndex;
+
+		/* Initializes an empty instance of the memory allocate info object. */
+		MemoryAllocateInfo(void)
+			: MemoryAllocateInfo(0, 0)
+		{}
+
+		/* Initializes a new instance of the memory allocate info object. */
+		MemoryAllocateInfo(_In_ DeviceSize size, _In_ uint32 typeIdx)
+			: Type(StructureType::MemoryAllocateInfo), Next(nullptr),
+			AllocationSize(size), MemoryTypeIndex(typeIdx)
+		{}
+	};
+
+	/* Defines information about a mapped memory change. */
+	struct MappedMemoryRange
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the memory object of the range. */
+		DeviceMemoryHndl Memory;
+		/* Specifies a zero-based offset (in bytes) from the beginning of the memory offset. */
+		DeviceSize Offset;
+		/* Specifies either the size (in bytes) affecting the memory of WholeSize. */
+		DeviceSize Size;
+
+		/* Initializes an empty instance of a mapped memory range object. */
+		MappedMemoryRange(void)
+			: MappedMemoryRange(nullptr, 0, 0)
+		{}
+
+		/* Initializes a new instance of a mapped memory range object for the whole range. */
+		MappedMemoryRange(_In_ DeviceMemoryHndl memory)
+			: MappedMemoryRange(memory, 0, WholeSize)
+		{}
+
+		/* Initializes a new instance of a mapped memory range object. */
+		MappedMemoryRange(_In_ DeviceMemoryHndl memory, _In_ DeviceSize offset, _In_ DeviceSize size)
+			: Type(StructureType::MappedMemoryRange), Next(nullptr), 
+			Memory(memory), Offset(offset), Size(size)
 		{}
 	};
 

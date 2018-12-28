@@ -215,6 +215,8 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h" />
@@ -226,6 +228,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Attribute.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h" />
@@ -276,6 +279,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp" />
@@ -286,6 +290,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Attribute.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />

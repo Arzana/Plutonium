@@ -66,8 +66,23 @@ namespace Pu
 		}
 #pragma warning(pop)
 
+		/* Overrides the default topology (TriangleList) to the specified value. */
+		inline void SetTopology(_In_ PrimitiveTopology topology)
+		{
+			inputAssembly->Topology = topology;
+		}
+
+		/* Adds a vertex input binding to the graphics pipeline. */
+		template <typename _Ty>
+		void AddVertexBinding(_In_ uint32 binding, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex)
+		{
+			AddVertexBinding(binding, sizeof(_Ty), inputRate);
+		}
+
 		/* Gets the blending state for a specific color blend attachment. */
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendStateFor(_In_ const string &name);
+		/* Adds a vertex input binding to the graphics pipeline. */
+		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex);
 		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
 		void Finalize(void);
 
@@ -85,6 +100,7 @@ namespace Pu
 		PipelineDynamicStateCreateInfo *dynamicState;
 
 		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
+		vector<VertexInputBindingDescription> bindingDescriptions;
 
 		LogicalDevice &parent;
 		const Renderpass *renderpass;

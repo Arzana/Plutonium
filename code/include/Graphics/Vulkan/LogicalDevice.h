@@ -51,6 +51,7 @@ namespace Pu
 		friend class Framebuffer;
 		friend class GraphicsPipeline;
 		friend class Fence;
+		friend class Buffer;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -79,6 +80,7 @@ namespace Pu
 		PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
 		PFN_vkCmdDraw vkCmdDraw;
 		PFN_vkCmdBindPipeline vkCmdBindPipeline;
+		PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
@@ -96,6 +98,15 @@ namespace Pu
 		PFN_vkGetFenceStatus vkGetFenceStatus;
 		PFN_vkResetFences vkResetFences;
 		PFN_vkWaitForFences vkWaitForFences;
+		PFN_vkCreateBuffer vkCreateBuffer;
+		PFN_vkDestroyBuffer vkDestroyBuffer;
+		PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+		PFN_vkAllocateMemory vkAllocateMemory;
+		PFN_vkFreeMemory vkFreeMemory;
+		PFN_vkBindBufferMemory vkBindBufferMemory;
+		PFN_vkMapMemory vkMapMemory;
+		PFN_vkFlushMappedMemoryRanges vkFlushMappedMemoryRanges;
+		PFN_vkUnmapMemory vkUnmapMemory;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

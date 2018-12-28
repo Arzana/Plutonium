@@ -109,6 +109,9 @@
     <Filter Include="Source Files\Graphics\Vulkan\Shaders">
       <UniqueIdentifier>{98e87426-7c93-4a08-90e2-c3aa69d2289e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\VertexLayouts">
+      <UniqueIdentifier>{5fcb4360-b0bb-4b9a-b377-c12835dee7e7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -360,6 +363,15 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Attribute.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -486,6 +498,12 @@
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Attribute.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
