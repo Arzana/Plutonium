@@ -119,7 +119,6 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 }
 
-
 bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, uint32 & index)
 {
 	index = maxv<uint32>();

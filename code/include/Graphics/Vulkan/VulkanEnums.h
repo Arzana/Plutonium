@@ -1471,6 +1471,12 @@ namespace Pu
 		return _CrtEnumBitOr(a, b);
 	}
 
+	/* Appends the flag bits of an buffer usage flag. */
+	_Check_return_ inline BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)
 	{
 		/* Remove PFN_ prefix and KHR suffix. */
