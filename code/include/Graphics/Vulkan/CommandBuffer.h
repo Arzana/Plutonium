@@ -38,6 +38,18 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ CommandBuffer& operator =(_In_ CommandBuffer &&other);
 
+		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
+		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
+		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
+		void CopyBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer, _In_ const vector<BufferCopy> &regions);
+		/* Appends a pipeline memory barrier only command to the command buffer. */
+		void MemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::MemoryBarrier> &memoryBarriers);
+		/* Appends a pipeline buffer memory barrier only command to the command buffer. */
+		void BufferMemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::BufferMemoryBarrier> &bufferMemoryBarriers);
+		/* Appends a pipeline image memory barrier only command to the command buffer. */
+		void ImageMemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::ImageMemoryBarrier> &imageMemoryBarriers);
+		/* Appends a pipeline barrier command to the command buffer. */
+		void PipelineBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::MemoryBarrier> &memoryBarriers, _In_ const vector<Pu::BufferMemoryBarrier> &bufferMemoryBarriers, _In_ const vector<Pu::ImageMemoryBarrier> &imageMemoryBarriers);
 		/* Appends an image clear command to the command buffer. */
 		void ClearImage(_In_ ImageHndl image, _In_ Color color, _In_opt_ ImageLayout layout = ImageLayout::TransferDstOptimal);
 		/* Appends a render pass begin command to the command buffer. */

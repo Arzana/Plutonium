@@ -1050,7 +1050,7 @@ namespace Pu
 		BufferMemoryBarrier(_In_ BufferHndl buffer, _In_opt_ DeviceSize offset = 0, _In_opt_ DeviceSize size = WholeSize)
 			: Type(StructureType::BufferMemoryBarrier), Next(nullptr),
 			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
-			SrcQueueFamilyIndex(0), DstQueueFamilyIndex(0), Buffer(buffer),
+			SrcQueueFamilyIndex(QueueFamilyIgnored), DstQueueFamilyIndex(QueueFamilyIgnored), Buffer(buffer),
 			Offset(offset), Size(size)
 		{}
 	};
@@ -2404,6 +2404,28 @@ namespace Pu
 		MappedMemoryRange(_In_ DeviceMemoryHndl memory, _In_ DeviceSize offset, _In_ DeviceSize size)
 			: Type(StructureType::MappedMemoryRange), Next(nullptr), 
 			Memory(memory), Offset(offset), Size(size)
+		{}
+	};
+
+	/* Defines the region of a buffer copy command. */
+	struct BufferCopy
+	{
+	public:
+		/* Specifies the offset (in bytes) from the start of the source buffer. */
+		DeviceSize SrcOffset;
+		/* Specifies the offset (in bytes) from the start of the destination buffer. */
+		DeviceSize DstOffset;
+		/* Specifies the number of bytes to copy. */
+		DeviceSize Size;
+
+		/* Initializes an empty instance of the buffer copy object. */
+		BufferCopy(void)
+			: SrcOffset(0), DstOffset(0), Size(0)
+		{}
+
+		/* Initializes a new instance of the buffer copy object. */
+		BufferCopy(_In_ DeviceSize srcOffset, _In_ DeviceSize dstOffset, _In_ DeviceSize size)
+			: SrcOffset(srcOffset), DstOffset(dstOffset), Size(size)
 		{}
 	};
 

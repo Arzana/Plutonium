@@ -25,15 +25,21 @@ namespace Pu
 		_Check_return_ Buffer& operator =(_In_ Buffer &&other);
 
 		/* Gets the size (in bytes) of the buffer. */
-		_Check_return_ inline size_t GetSize(void) const
+		_Check_return_ inline DeviceSize GetSize(void) const
 		{
-			return size;
+			return static_cast<DeviceSize>(size);
 		}
 
 		/* Gets the amount of elements in the buffer. */
 		_Check_return_ inline uint32 GetElementCount(void) const
 		{
 			return static_cast<uint32>(elements);
+		}
+
+		/* Gets the handle for the Vulkan buffer object. */
+		_Check_return_ inline BufferHndl GetHandle(void) const
+		{
+			return bufferHndl;
 		}
 
 		/* Sets the data of the buffer. */

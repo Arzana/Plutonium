@@ -95,6 +95,7 @@ namespace Pu
 		PFN_vkCmdDraw vkCmdDraw;
 		PFN_vkCmdBindPipeline vkCmdBindPipeline;
 		PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
+		PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

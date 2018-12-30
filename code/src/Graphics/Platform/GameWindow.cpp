@@ -112,8 +112,8 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	barrier.DstAccessMask = AccessFlag::TransferWrite;
 	barrier.NewLayout = ImageLayout::PresentSrcKhr;
 	barrier.SubresourceRange = range;
-	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer,
-		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	GetCommandBuffer().ImageMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, DependencyFlag::None, { barrier });
 }
 
 void Pu::GameWindow::MakeImagePresentable(void)
@@ -127,8 +127,8 @@ void Pu::GameWindow::MakeImagePresentable(void)
 	barrier.OldLayout = ImageLayout::PresentSrcKhr;
 	barrier.NewLayout = ImageLayout::PresentSrcKhr;
 	barrier.SubresourceRange = range;
-	device.vkCmdPipelineBarrier(GetCommandBuffer().hndl, PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe,
-		DependencyFlag::None, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	GetCommandBuffer().ImageMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, DependencyFlag::None, { barrier });
 }
 
 void Pu::GameWindow::BeginRender(void)

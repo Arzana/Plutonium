@@ -1215,7 +1215,7 @@ namespace Pu
 		/* Specifies read access to an index buffer as part of an indexed drawing command. */
 		IndexRead = 0x00000002,
 		/* Specified read access to a vertex buffer as part of a drawing command. */
-		VeretxAttributeRead = 0x00000004,
+		VertexAttributeRead = 0x00000004,
 		/* Specifies read access to a uniform buffer. */
 		UniformRead = 0x00000008,
 		/* Specifies read access to an input attachment within a render pass during fragment shading. */
@@ -1250,7 +1250,7 @@ namespace Pu
 	enum class DependencyFlag
 	{
 		/* No flags where set. */
-		None = 0x00000001,
+		None = 0x00000000,
 		/* Specifies that dependencies will be framebuffer-local. */
 		ByRegion = 0x00000001,
 		/* Specifies that dependencies are non-device-local. */

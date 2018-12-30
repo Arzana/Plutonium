@@ -73,17 +73,14 @@ void TestGame::LoadContent(void)
 		{ Vector2(0.7f, 0.7f), Color::Tundora() }
 	};
 
-	//vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
-	//stagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
-	//stagingBuffer->SetData(quad, 4);
-
-	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer, true);
-	vrtxBuffer->SetData(quad, 4);
+	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
+	stagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
+	stagingBuffer->SetData(quad, 4);
 }
 
 void TestGame::UnLoadContent(void)
 {
-	//delete stagingBuffer;
+	delete stagingBuffer;
 	delete vrtxBuffer;
 }
 
@@ -96,6 +93,19 @@ void TestGame::Finalize(void)
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)
 {
+	static bool firstRender = true;
+	if (firstRender)
+	{
+		firstRender = false;
+		cmdBuffer.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
+
+		BufferMemoryBarrier barrier(vrtxBuffer->GetHandle());
+		barrier.SrcAccessMask = AccessFlag::memoryWrite;
+		barrier.DstAccessMask = AccessFlag::VertexAttributeRead;
+
+		cmdBuffer.BufferMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, DependencyFlag::None, { barrier });
+	}
+
 	const Rect2D renderArea = GetWindow().GetNative().GetClientBounds().GetSize();
 	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(*renderpass);
 

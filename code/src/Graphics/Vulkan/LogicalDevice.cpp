@@ -105,6 +105,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdDraw);
 	LOAD_DEVICE_PROC(vkCmdEndRenderPass);
 	LOAD_DEVICE_PROC(vkCmdBindVertexBuffers);
+	LOAD_DEVICE_PROC(vkCmdCopyBuffer);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

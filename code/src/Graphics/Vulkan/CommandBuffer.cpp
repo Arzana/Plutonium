@@ -50,6 +50,59 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 	return *this;
 }
 
+void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstBuffer)
+{
+	if (state == State::Recording)
+	{
+		const BufferCopy region(0, 0, srcBuffer.GetSize());
+
+		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
+		dstBuffer.elements = srcBuffer.elements;
+	}
+	else Log::Warning("Cannot copy buffer on non-recording CommandBuffer!");
+}
+
+void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer, const vector<BufferCopy>& regions)
+{
+	if (state == State::Recording)
+	{
+		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
+		dstBuffer.elements = srcBuffer.elements;
+	}
+	else Log::Warning("Cannot copy buffer on non-recording CommandBuffer!");
+}
+
+void Pu::CommandBuffer::MemoryBarrier(PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, const vector<Pu::MemoryBarrier>& memoryBarriers)
+{
+	PipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, memoryBarriers, { }, { });
+}
+
+void Pu::CommandBuffer::BufferMemoryBarrier(PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, const vector<Pu::BufferMemoryBarrier>& bufferMemoryBarriers)
+{
+	PipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, { }, bufferMemoryBarriers, { });
+}
+
+void Pu::CommandBuffer::ImageMemoryBarrier(PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, const vector<Pu::ImageMemoryBarrier>& imageMemoryBarriers)
+{
+	PipelineBarrier(srcStageMask, dstStageMask, dependencyFlags, { }, { }, imageMemoryBarriers);
+}
+
+void Pu::CommandBuffer::PipelineBarrier(PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, const vector<Pu::MemoryBarrier>& memoryBarriers, const vector<Pu::BufferMemoryBarrier>& bufferMemoryBarriers, const vector<Pu::ImageMemoryBarrier>& imageMemoryBarriers)
+{
+	if (state == State::Recording)
+	{
+		const uint32 memoryBarrierCount = static_cast<uint32>(memoryBarriers.size());
+		const uint32 bufferMemoryBarrierCount = static_cast<uint32>(bufferMemoryBarriers.size());
+		const uint32 imageMemoryBarrierCount = static_cast<uint32>(imageMemoryBarriers.size());
+
+		parent.parent.vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 
+			memoryBarrierCount, memoryBarriers.data(), 
+			bufferMemoryBarrierCount, bufferMemoryBarriers.data(), 
+			imageMemoryBarrierCount, imageMemoryBarriers.data());
+	}
+	else Log::Warning("Cannot setup pipeline barrier on non-recording CommandBuffer!");
+}
+
 void Pu::CommandBuffer::ClearImage(ImageHndl image, Color color, ImageLayout layout)
 {
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
@@ -63,7 +116,7 @@ void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Fra
 	RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
 	info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
 	info.ClearValues = renderPass.clearValues.data();
-	
+
 	if (state == State::Recording) parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
 	else Log::Warning("Cannot begin render pass on non-recording CommandBuffer!");
 }
