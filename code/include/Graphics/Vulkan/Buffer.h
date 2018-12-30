@@ -31,9 +31,9 @@ namespace Pu
 		}
 
 		/* Gets the amount of elements in the buffer. */
-		_Check_return_ inline size_t GetElementCount(void) const
+		_Check_return_ inline uint32 GetElementCount(void) const
 		{
-			return elements;
+			return static_cast<uint32>(elements);
 		}
 
 		/* Sets the data of the buffer. */

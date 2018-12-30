@@ -77,6 +77,9 @@ void Pu::Application::InitializePlutonium(void)
 
 void Pu::Application::InitializeVulkan(void)
 {
+	constexpr const char *DEVICE_EXTENSIONS[1] = { u8"VK_KHR_swapchain" };
+	constexpr float PRIORITIES[1] = { 1.0f };
+
 	/* Create the Vulkan instance, ew need the surface extensions for the native window. */
 	instance = new VulkanInstance(name.c_str(),
 		{
@@ -96,56 +99,62 @@ void Pu::Application::InitializeVulkan(void)
 	Log::Fatal("Unable to create window on this platform!");
 #endif
 
-	/* Get all physical devices avialable. */
-	vector<int32> graphicsQueues(instance->GetPhysicalDeviceCount(), -1);
+	/* Choose a physical device and get graphics and transfer queue families. */
+	const PhysicalDevice &physicalDevice = ChoosePhysicalDevice();
+	const uint32 graphicsQueueFamily = physicalDevice.GetBestGraphicsQueueFamily(wnd->GetSurface());
+	const uint32 transferQueueFamily = physicalDevice.GetBestTransferQueueFamily();
 
-	/* Check which physical devices are compatible with Plutonium and have a graphics queue. */
-	for (size_t i = 0; i < instance->GetPhysicalDeviceCount(); i++)
+	const DeviceQueueCreateInfo queueCreateInfos[] =
 	{
-		const PhysicalDevice &physicalDevice = instance->GetPhysicalDevice(i);
+		DeviceQueueCreateInfo(graphicsQueueFamily, 1, PRIORITIES),
+		DeviceQueueCreateInfo(transferQueueFamily, 1, PRIORITIES)
+	};
 
-		if (physicalDevice.SupportsPlutonium())
+	/* Create logical device. */
+	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS);
+	device = physicalDevice.CreateLogicalDevice(&deviceCreateInfo);
+	device->graphicsQueueFamily = graphicsQueueFamily;
+	device->transferQueueFamily = transferQueueFamily;
+}
+
+const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
+{
+	/* Get window surface to check for presenting. */
+	const Surface &surface = wnd->GetSurface();
+
+	/* Loop through all physical devices to find the best one. */
+	size_t choosen = 0;
+	for (size_t i = 0, highscore = 0, score = 0; i < instance->GetPhysicalDeviceCount(); i++, score = 0)
+	{
+		/* Check if the physical device supports our framework. */
+		const PhysicalDevice &physicalDevice = instance->GetPhysicalDevice(i);
+		if (physicalDevice.SupportsPlutonium(surface))
 		{
-			const vector<QueueFamilyProperties> queueFamilies = physicalDevice.GetQueueFamilies();
-			for (uint32 j = 0; j < queueFamilies.size(); j++)
+			/* Ask user if the current physical device is usable. */
+			if (GpuPredicate(physicalDevice))
 			{
-				//TODO: maybe add specific compute and transfer queue to speed up those things.
-				if (_CrtEnumCheckFlag(queueFamilies[j].Flags, QueueFlag::Graphics) &&
-					wnd->GetSurface().QueueFamilySupportsPresenting(j, physicalDevice))
+				/* For more information about scoring see document 'Scoring'. */
+				if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu) score += 6;
+				if (physicalDevice.GetType() == PhysicalDeviceType::IntegratedGpu) score += 3;
+
+				for (const QueueFamilyProperties &family : physicalDevice.GetQueueFamilies())
 				{
-					graphicsQueues[i] = j;
-					break;
+					if (family.Flags == QueueFlag::Transfer) ++score;
+					if (family.Flags == QueueFlag::Compute) ++score;
+				}
+
+				/* Set new highscore and update choosen physical device if needed. */
+				if (score > highscore)
+				{
+					highscore = score;
+					choosen = i;
 				}
 			}
 		}
 	}
 
-	/* Let the user choose from the acceptable physical devices. */
-	for (size_t i = 0; i < instance->GetPhysicalDeviceCount(); i++)
-	{
-		const int32 graphicsQueueIdx = graphicsQueues[i];
-		const PhysicalDevice &physicalDevice = instance->GetPhysicalDevice(i);
-
-		/* A graphics queue needs to be available. */
-		if (graphicsQueueIdx == -1) continue;
-
-		/* Ask user if this physical device is oke. */
-		if (GpuPredicate(physicalDevice))
-		{
-			constexpr float priorities[1] = { 1.0f };
-			constexpr const char *deviceExtensions[1] = { u8"VK_KHR_swapchain" };
-
-			/* Create logical device. */
-			DeviceQueueCreateInfo queueInfo(static_cast<uint32>(graphicsQueueIdx), 1, priorities);
-			DeviceCreateInfo deviceInfo(1, &queueInfo, 1, deviceExtensions);
-			device = physicalDevice.CreateLogicalDevice(&deviceInfo);
-
-			break;
-		}
-	}
-
-	/* Log if no physical device was choosen for operations. */
-	if (!device) Log::Fatal("Unable to create Vulkan logical device!");
+	/* Return the physical device at the choosen index or simply the first if non passed the test. */
+	return instance->GetPhysicalDevice(choosen);
 }
 
 bool Pu::Application::Tick(bool loading)

@@ -1323,7 +1323,7 @@ namespace Pu
 		/* No flags are set. */
 		None = 0x00000000,
 		/* Specifies that the device queue is a protected-capable queue. */
-		ProtectedBit = 0x00000001
+		Protected = 0x00000001
 	};
 
 	/* Defines surface presentation transformations. */

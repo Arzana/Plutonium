@@ -93,7 +93,7 @@ void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlag 
 	/* Find the type of memory that best supports our needs. */
 	uint32 typeIdx;
 	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, flags, typeIdx))
+	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, flags, false, typeIdx))
 	{
 		/* Allocate the buffer's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);

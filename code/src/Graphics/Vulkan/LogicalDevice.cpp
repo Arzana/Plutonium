@@ -8,7 +8,8 @@ using namespace Pu;
 #define LOAD_DEVICE_PROC(name)	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, name)
 
 Pu::LogicalDevice::LogicalDevice(LogicalDevice && value)
-	: parent(value.parent), hndl(value.hndl), queues(std::move(value.queues))
+	: parent(value.parent), hndl(value.hndl), queues(std::move(value.queues)), 
+	graphicsQueueFamily(value.graphicsQueueFamily), transferQueueFamily(value.transferQueueFamily)
 {
 	/* Make sure to reload the device procs. */
 	LoadDeviceProcs();
@@ -23,6 +24,8 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 		Destory();
 		parent = std::move(other.parent);
 		queues = std::move(other.queues);
+		graphicsQueueFamily = other.graphicsQueueFamily;
+		transferQueueFamily = other.transferQueueFamily;
 		hndl = other.hndl;
 
 		/* Make sure to reload the device procs. */
@@ -35,7 +38,7 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 }
 
 Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo * queueCreateInfos)
-	: parent(parent), hndl(hndl)
+	: parent(parent), hndl(hndl), graphicsQueueFamily(0), transferQueueFamily(0)
 {
 	LoadDeviceProcs();
 

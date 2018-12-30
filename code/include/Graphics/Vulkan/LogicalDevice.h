@@ -25,6 +25,18 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ LogicalDevice& operator =(_In_ LogicalDevice &&other);
 
+		/* Gets the specific graphics queue created with the logical device. */
+		_Check_return_ inline Queue& GetGraphicsQueue(_In_ uint32 queueIndex)
+		{
+			return GetQueue(graphicsQueueFamily, queueIndex);
+		}
+
+		/* Gets the specific transfer queue created with the logical device. */
+		_Check_return_ inline Queue& GetTransferQueue(_In_ uint32 queueIndex)
+		{
+			return GetQueue(transferQueueFamily, queueIndex);
+		}
+
 		/* Gets the specific queue created with the logical device. */
 		_Check_return_ inline Queue& GetQueue(_In_ uint32 familyIndex, _In_ uint32 queueIndex)
 		{
@@ -38,6 +50,7 @@ namespace Pu
 		}
 
 	private:
+		friend class Application;
 		friend class PhysicalDevice;
 		friend class Semaphore;
 		friend class Swapchain;
@@ -56,6 +69,7 @@ namespace Pu
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
 		std::map<uint32, vector<Queue>> queues;
+		uint32 graphicsQueueFamily, transferQueueFamily;
 
 		PFN_vkDestroyDevice vkDestroyDevice;
 		PFN_vkGetDeviceQueue vkGetDeviceQueue;

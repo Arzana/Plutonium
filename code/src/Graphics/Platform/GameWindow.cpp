@@ -4,30 +4,11 @@
 using namespace Pu;
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr), queueIndex(0)
+	: native(native), device(device), swapchain(nullptr), queueIndex(device.graphicsQueueFamily)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
 	CreateSwapchain(native.GetClientBounds().GetSize());
-
-	/* Get physical device and it's queue families. */
-	const PhysicalDevice &physicalDevice = device.GetPhysicalDevice();
-	const vector<QueueFamilyProperties> queueFamilies = physicalDevice.GetQueueFamilies();
-
-	/* Get queue family used to present images on the swapchain. */
-	for (const QueueFamilyProperties &prop : queueFamilies)
-	{
-		/* Check if the queue family supports graphics operation and if it supports presenting. */
-		if (_CrtEnumCheckFlag(prop.Flags, QueueFlag::Graphics) &&
-			native.GetSurface().QueueFamilySupportsPresenting(queueIndex, physicalDevice))
-		{
-			break;
-		}
-
-		++queueIndex;
-	}
-
-	if (queueIndex >= queueFamilies.size()) Log::Fatal("Cannot find queue that is viable for the swapchain!");
 
 	/* Create new command pool. */
 	pool = new CommandPool(device, queueIndex);

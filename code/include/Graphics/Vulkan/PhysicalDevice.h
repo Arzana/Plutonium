@@ -5,6 +5,7 @@
 namespace Pu
 {
 	class VulkanInstance;
+	class Surface;
 	struct EventArgs;
 
 	/* Defines a Vulkan-compatible physical device. */
@@ -31,8 +32,6 @@ namespace Pu
 		_Check_return_ bool IsExtensionSupported(_In_ const char *extension) const;
 		/* Checks whether specific extensions are supported. */
 		_Check_return_ bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions) const;
-		/* Checks whether this device supports Plutonium functionality. */
-		_Check_return_ bool SupportsPlutonium(void) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const
@@ -117,6 +116,7 @@ namespace Pu
 		friend class LogicalDevice;
 		friend class Surface;
 		friend class Buffer;
+		friend class Application;
 
 		VulkanInstance &parent;
 		PhysicalDeviceHndl hndl;
@@ -126,7 +126,10 @@ namespace Pu
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 
-		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, uint32 &index);
+		bool SupportsPlutonium(const Surface &surface) const;
+		uint32 GetBestGraphicsQueueFamily(const Surface &surface) const;
+		uint32 GetBestTransferQueueFamily(void) const;
+		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, bool preferCaching, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};
 }

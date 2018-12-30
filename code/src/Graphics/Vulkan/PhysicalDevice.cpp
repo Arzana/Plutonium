@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 #include "Graphics/Vulkan/Instance.h"
+#include "Graphics/Vulkan/Surface.h"
 
 using namespace Pu;
 
@@ -104,11 +105,6 @@ bool Pu::PhysicalDevice::AreExtensionsSupported(std::initializer_list<const char
 	return found >= extensions.size();
 }
 
-bool Pu::PhysicalDevice::SupportsPlutonium(void) const
-{
-	return IsExtensionSupported(u8"VK_KHR_swapchain");
-}
-
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(parent)
 {
@@ -119,33 +115,110 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 }
 
-bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, uint32 & index)
+bool Pu::PhysicalDevice::SupportsPlutonium(const Surface & surface) const
+{
+	/* The physical device to support the swapchain extension. */
+	if (!IsExtensionSupported(u8"VK_KHR_swapchain")) return false;
+
+	/* The physical device need to support at least one presentable graphics queue and one transfer queue. */
+	bool graphics = false, transfer = false;
+	uint32 i = 0;
+	for (const QueueFamilyProperties &family : GetQueueFamilies())
+	{
+		if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Graphics) && surface.QueueFamilySupportsPresenting(i++, *this)) graphics = true;
+		if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Transfer)) transfer = true;
+	}
+
+	if (!(graphics && transfer)) return false;
+
+	/* Physical device passed all tests so return true. */
+	return true;
+}
+
+uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) const
+{
+	const vector<QueueFamilyProperties> families = GetQueueFamilies();
+	uint32 choosen = 0;
+	int32 highscore = -1, score = 0;
+
+	/* Loop through all families to find best one. */
+	for (uint32 i = 0; i < families.size(); i++, score = 0)
+	{
+		/* Check if queue supported graphics operations and presenting to our surface. */
+		const QueueFamilyProperties &cur = families[i];
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Graphics) && surface.QueueFamilySupportsPresenting(i, *this))
+		{
+			if (cur.Flags == QueueFlag::Graphics) score += 1;
+		}
+
+		/* Update choosen graphics queue if needed. */
+		if (score > highscore)
+		{
+			highscore = score;
+			choosen = i;
+		}
+	}
+
+	/* This should never occur. */
+	if (choosen == maxv<uint32>()) Log::Fatal("Unable to find any graphics queue!");
+
+	/* Return the choosen graphics queue or the first queue if no queue's were acceptable. */
+	return choosen;
+}
+
+uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
+{
+	const vector<QueueFamilyProperties> families = GetQueueFamilies();
+	uint32 choosen = maxv<uint32>();
+	int32 highscore = -1, score = 0;
+
+	/* Loop through all families to find best one. */
+	for (uint32 i = 0; i < families.size(); i++, score = 0)
+	{
+		/* Check if queue supports transfer operations. */
+		const QueueFamilyProperties &cur = families[i];
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Transfer))
+		{
+			if (cur.Flags == QueueFlag::Transfer) score += 1;
+		}
+
+		/* Update choosen graphics queue if needed. */
+		if (score > highscore)
+		{
+			highscore = score;
+			choosen = i;
+		}
+	}
+
+	/* This should never occur. */
+	if (choosen == maxv<uint32>()) Log::Fatal("Unable to find any transfer queue!");
+
+	/* Return the choosen transfer queue. */
+	return choosen;
+}
+
+bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, bool preferCaching, uint32 & index)
 {
 	index = maxv<uint32>();
+	int32 highscore = -1, score = 0;
 
 	/* Loop throug to find all possible memory types. */
-	for (uint32 i = 0, highestScore = 0; i < memory.MemoryTypeCount; ++i)
+	for (uint32 i = 0; i < memory.MemoryTypeCount; ++i, score = 0)
 	{
 		const MemoryPropertyFlag flags = memory.MemoryTypes[i].PropertyFlags;
 
 		/* Check if type is supported and if the required properties are supported. */
 		if ((memoryTypeBits & (1 << i)) && _CrtEnumCheckFlag(flags, memoryProperties))
 		{
-			/*
-			- DeviceLocal is fast memory so that scores a point.
-			- HostCoherent means less commands when caching so that scores a point.
-			- HostCached means more work for the host so gain a point if it doesn't have that.
-			- HostVisible is slow as the CPU and GPU need access so gain a point if it doesn't have that.
-			*/
-			uint32 score = 0;
-			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) ++score;
-			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCoherent)) ++score;
-			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCached)) ++score;
+			/* See Scoring document for scoring information. */
+			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) score += 3;
+			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCoherent)) score += 2;
 			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostVisible)) ++score;
+			if (preferCaching && _CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCached)) ++score;
 
-			if (score > highestScore)
+			if (score > highscore)
 			{
-				highestScore = score;
+				highscore = score;
 				index = i;
 			}
 		}

@@ -363,14 +363,17 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex.h">
-      <Filter>Header Files\Graphics\VertexLayouts</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Attribute.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -550,6 +553,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\..\..\assets\shaders\VertexColor.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\VertexColor2D.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

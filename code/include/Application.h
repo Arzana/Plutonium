@@ -121,6 +121,7 @@ namespace Pu
 		static void InitializePlutonium(void);
 
 		void InitializeVulkan(void);
+		const PhysicalDevice& ChoosePhysicalDevice(void);
 		bool Tick(bool loading);
 		void DoInitialize(void);
 		void DoFinalize(void);

@@ -114,115 +114,115 @@ namespace Pu
 	{
 	public:
 		/* Specifies that accesses to buffers are bound-checked against the range of the buffer desriptor. */
-		Bool32 RobustBufferAccess : 32;
+		Bool32 RobustBufferAccess;
 		/* Specifies the full 32-bit range of indices is supported for indexed draw calls. */
-		Bool32 FullDrawIndexUint32 : 32;
+		Bool32 FullDrawIndexUint32;
 		/* Specifies whether image views with a ViewType of CubeArray can be created. */
-		Bool32 ImageCubeArray : 32;
+		Bool32 ImageCubeArray;
 		/* Specifies whether the PipelineColorBlendAttachmentState settgins are controlled independently per-attachment. */
-		Bool32 IndependentBlend : 32;
+		Bool32 IndependentBlend;
 		/* Specifies whether geometry shaders are supported. */
-		Bool32 GeometryShader : 32;
+		Bool32 GeometryShader;
 		/* Specifies whether trssellation control and evaluation shaders are supported. */
-		Bool32 TessellationShader : 32;
+		Bool32 TessellationShader;
 		/* Specifies whether Sample Shading and multisample interpolation are supported. */
-		Bool32 SampleRateShading : 32;
+		Bool32 SampleRateShading;
 		/* Specifies whether blend operations which take two sources are supported. */
-		Bool32 DualSrcBlend : 32;
+		Bool32 DualSrcBlend;
 		/* Specifies whether logic operatrions are supported. */
-		Bool32 LogicOp : 32;
+		Bool32 LogicOp;
 		/* Specifies whether multiple draw indirect is supported. */
-		Bool32 MultiDrawIndirect : 32;
+		Bool32 MultiDrawIndirect;
 		/* Specifies whether indirect draw calls support FirstInstance parameters. */
-		Bool32 DrawIndirectFirstInstance : 32;
+		Bool32 DrawIndirectFirstInstance;
 		/* Specifies whether depth clamping is supported. */
-		Bool32 DepthClamp : 32;
+		Bool32 DepthClamp;
 		/* Specifies whether depth bias clamping is supported. */
-		Bool32 DepthBiasClamp : 32;
+		Bool32 DepthBiasClamp;
 		/* Specifies whether point and wireframe fill modes are supported. */
-		Bool32 FillModeNonSolid : 32;
+		Bool32 FillModeNonSolid;
 		/* Specifies whether depth bounds tests are supported. */
-		Bool32 DepthBounds : 32;
+		Bool32 DepthBounds;
 		/* Specifies whether lines with width other than 1.0 are supported. */
-		Bool32 WideLines : 32;
+		Bool32 WideLines;
 		/* Specifies whether points with sie greater than 1.0f are supported. */
-		Bool32 LargePoints : 32;
+		Bool32 LargePoints;
 		/* Specifies whether the implementation is able to replace the alpha value of color fragment output from the fragment shader. */
-		Bool32 AlphaToOne : 32;
+		Bool32 AlphaToOne;
 		/* Specifies whether more than one viewport is supported. */
-		Bool32 MultiViewport : 32;
+		Bool32 MultiViewport;
 		/* Specifies whether anisotropic filtering is supported. */
-		Bool32 SamplerAnisotropy : 32;
+		Bool32 SamplerAnisotropy;
 		/* Specifies whether all of the ETC2 and EAC compressed texture formats are supported. */
-		Bool32 TextureCompressionETC2 : 32;
+		Bool32 TextureCompressionETC2;
 		/* Specifies whether all of the ASTC_LDR compressed texture formats are supported. */
-		Bool32 TextureCompressionASTC_LDR : 32;
+		Bool32 TextureCompressionASTC_LDR;
 		/* Specifies whether all of the BC compressed texture formats are supported. */
-		Bool32 TextureCompressionBC : 32;
+		Bool32 TextureCompressionBC;
 		/* Specifies whether occlusion queries returning actual sample counts are supported. */
-		Bool32 OcclusionQueryPrecise : 32;
+		Bool32 OcclusionQueryPrecise;
 		/* Specifies whether the pipeline staticstics queries are supported. */
-		Bool32 PipelineStatisticsQuery : 32;
+		Bool32 PipelineStatisticsQuery;
 		/* Specifies whether storage buffers and images support stores and atomic operations in the vertex, tessellation and geometry shader stages. */
-		Bool32 VertexPipelineStoresAndAtomics : 32;
+		Bool32 VertexPipelineStoresAndAtomics;
 		/* Specifies whether storage buffers and images support stores and atomic operations in the fragment shader stage. */
-		Bool32 FragmentStoresAndAtomics : 32;
+		Bool32 FragmentStoresAndAtomics;
 		/* Specifies whether the PointSize built-in decoration is available in the tessellation control, tessellation evaluation and geometry shader stages. */
-		Bool32 ShaderTessellationAndGeometryPointSize : 32;
+		Bool32 ShaderTessellationAndGeometryPointSize;
 		/* Specifies whether the extended set of images gather instructions are available in shader code. */
-		Bool32 ShaderImageGatherExtended : 32;
+		Bool32 ShaderImageGatherExtended;
 		/* Specifies whether all the extended storage image formats are available in shader code. */
-		Bool32 ShaderStorageImageExtendedFormats : 32;
+		Bool32 ShaderStorageImageExtendedFormats;
 		/* Specifies whether multisampled storage images are supported. */
-		Bool32 ShaderStorageImageMultisample : 32;
+		Bool32 ShaderStorageImageMultisample;
 		/* Specifies whether storage images require a format qualifier to be specified when reading from storage images. */
-		Bool32 ShaderStorageImageReadWithoutFormat : 32;
+		Bool32 ShaderStorageImageReadWithoutFormat;
 		/* Specifies whether storage images require a format qualifier to be specified when writing to storage images. */
-		Bool32 ShaderStorageImageWriteWithoutFormat : 32;
+		Bool32 ShaderStorageImageWriteWithoutFormat;
 		/* Specifies whether arrays of uniform buffers can be indexed by dynamically uniform integer expressions in shader code. */
-		Bool32 ShaderUniformBufferArrayDynamicIndexing : 32;
+		Bool32 ShaderUniformBufferArrayDynamicIndexing;
 		/* Specifies whether ararys of samplers or sampled images can be indexed by dynamically uniform integer expressions in shader code. */
-		Bool32 ShaderSampledImageArrayDynamicIndexing : 32;
+		Bool32 ShaderSampledImageArrayDynamicIndexing;
 		/* Specifies whether arrays of storage buffers can be indexed by dynamically uniform integer expressions in shader code. */
-		Bool32 ShaderStorageBufferArrayDynamicIndexing : 32;
+		Bool32 ShaderStorageBufferArrayDynamicIndexing;
 		/* Specifies whether arrays of storage images can be indexed by dynamically uniform interger expressions in shader code. */
-		Bool32 ShaderStorageImageArrayDynamicIndexing : 32;
+		Bool32 ShaderStorageImageArrayDynamicIndexing;
 		/* Specifies whether clip distances are supported in shader code. */
-		Bool32 ShaderClipDistance : 32;
+		Bool32 ShaderClipDistance;
 		/* Specifies whether cull distances are supported in shader code. */
-		Bool32 ShaderCullDistance : 32;
+		Bool32 ShaderCullDistance;
 		/* Specifies whether doubles are supported in shader code. */
-		Bool32 ShaderFloat64 : 32;
+		Bool32 ShaderFloat64;
 		/* Specifies whether longs are supported in shader code. */
-		Bool32 ShaderInt64 : 32;
+		Bool32 ShaderInt64;
 		/* Defines whether shorts are supported in shader code. */
-		Bool32 ShaderInt16 : 32;
+		Bool32 ShaderInt16;
 		/* Specifies whether image operations that return residency information are supported in shader code. */
-		Bool32 ShaderResourceResidency : 32;
+		Bool32 ShaderResourceResidency;
 		/* Specifies whether image operations that specify the minimum resource LOD are supported in shader code. */
-		Bool32 ShaderResourceMinLod : 32;
+		Bool32 ShaderResourceMinLod;
 		/* Specifies whether resource memory can be managed at opaque sparse block level instead of at the object level. */
-		Bool32 SparseBinding : 32;
+		Bool32 SparseBinding;
 		/* Specifies whether the device can access partially resident buffers. */
-		Bool32 SparseResidencyBuffer : 32;
+		Bool32 SparseResidencyBuffer;
 		/* Specifies whether the deivce can access partially resident 2D images with 1 sample per pixel. */
-		Bool32 SparseResidencyImage2D : 32;
+		Bool32 SparseResidencyImage2D;
 		/* Specifies whether the device can access partially resident 3D images. */
-		Bool32 SparseResidencyImage3D : 32;
+		Bool32 SparseResidencyImage3D;
 		/* Specifies whether the physical device can access partially resident 2D images with 2 samples per pixel. */
-		Bool32 SparseResidency2Samples : 32;
+		Bool32 SparseResidency2Samples;
 		/* Specifies whether the physical device can access partially resident 2D images with 4 samples per pixel. */
-		Bool32 SparseResidency4Samples : 32;
+		Bool32 SparseResidency4Samples;
 		/* Specifies whether the physical device can access partially resident 2D images with 8 samples per pixel. */
-		Bool32 SparseResidency8Samples : 32;
+		Bool32 SparseResidency8Samples;
 		/* Specifies whether the physical device can access partially resident 2D images with 16 samples per pixel. */
-		Bool32 SparseResidency16Samples : 32;
+		Bool32 SparseResidency16Samples;
 		/* specifies whether the physical device can correctly access data aliased into multiple locations. */
-		Bool32 SparseResidencyAliased : 32;
+		Bool32 SparseResidencyAliased;
 		/* Specifies whether all pipelines that will be bound to a command buffer during a subpass with no attachments must have the same value for PipelineMultisampleStateCreateInfo::RasterizationSamples. */
-		Bool32 VariableMultisampleRate : 32;
+		Bool32 VariableMultisampleRate;
 		/* Specifies whether a secondary command buffer may be executed while a query is active. */
-		Bool32 InheritedQueries : 32;
+		Bool32 InheritedQueries;
 
 		/* Initializes an empty instance of a physical device features object. */
 		PhysicalDeviceFeatures(void)
@@ -606,7 +606,7 @@ namespace Pu
 		{}
 
 		/* Creates a new instance of the device create information object. */
-		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ DeviceQueueCreateInfo *queueCreateInfos, 
+		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos, 
 			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr, 
 			_In_opt_ const PhysicalDeviceFeatures *enabledFeatures = nullptr)
 			: Type (StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),

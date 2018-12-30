@@ -13,7 +13,6 @@ public:
 	TestGame& operator =(TestGame&&) = delete;
 
 protected:
-	virtual bool GpuPredicate(const Pu::PhysicalDevice& device) override;
 	virtual void Initialize(void);
 	virtual void LoadContent(void);
 	virtual void UnLoadContent(void);
@@ -25,5 +24,5 @@ protected:
 private: 
 	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *buffer;
+	Pu::Buffer *vrtxBuffer, *stagingBuffer;
 };
