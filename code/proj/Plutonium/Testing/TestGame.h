@@ -24,5 +24,7 @@ protected:
 private: 
 	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *vrtxBuffer, *stagingBuffer;
+	Pu::Buffer *vrtxBuffer, *vrtxStagingBuffer, *imgStagingBuffer;
+	Pu::Image *image;
+	Pu::ImageView *view;
 };

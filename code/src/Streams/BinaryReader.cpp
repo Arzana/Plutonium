@@ -4,9 +4,91 @@
 
 using namespace Pu;
 
-Pu::BinaryReader::BinaryReader(const void * source, size_t size)
-	: data(reinterpret_cast<const byte*>(source)), size(size), position(0)
+/* Swaps the bytes from its origional endian to the other endian. */
+template <typename _Ty>
+static _Ty byteSwap(_Ty value)
+{
+	/* Make sure the char implementation has 8 bits. */
+	static_assert(CHAR_BIT == 8, "char doesn't have 8 bits!");
+
+	union Cnvrtr
+	{
+		_Ty normal;
+		byte bytes[sizeof(_Ty)];
+
+		Cnvrtr(void) { memset(this, 0, sizeof(Cnvrtr)); }
+	} src, dst;
+
+	/* Convert bytes. */
+	src.normal = value;
+	for (size_t i = 0; i < sizeof(_Ty); i++) dst.bytes[i] = src.bytes[sizeof(_Ty) - i - 1];
+	return dst.normal;
+}
+
+/* Swaps the bytes per element from its origional endian to the other endian. */
+template <typename _Ty>
+static _Ty byteswap(_Ty value, size_t stride)
+{
+	/* Make sure the char implementation has 8 bits. */
+	static_assert(CHAR_BIT == 8, "char doesn't have 8 bits!");
+
+	union Cnvrtr
+	{
+		_Ty normal;
+		byte bytes[sizeof(_Ty)];
+
+		Cnvrtr(void) { memset(this, 0, sizeof(Cnvrtr)); }
+	} src, dst;
+
+	/* Convert bytes. */
+	src.normal = value;
+	for (size_t i = 0; i < sizeof(_Ty); i++) dst.bytes[i] = src.bytes[stride * (i / stride + 1) - (i % stride) - 1];
+	return dst.normal;
+}
+
+Pu::BinaryReader::BinaryReader(const void * source, size_t size, Endian endian)
+	: data(reinterpret_cast<const byte*>(source)), size(size), position(0), endian(endian)
 {}
+
+Pu::BinaryReader::BinaryReader(const BinaryReader & value)
+	: data(value.data), size(value.size), position(value.position), endian(value.endian)
+{}
+
+Pu::BinaryReader::BinaryReader(BinaryReader && value)
+	: data(value.data), size(value.size), position(value.position), endian(value.endian)
+{
+	value.data = nullptr;
+	value.size = 0;
+}
+
+BinaryReader & Pu::BinaryReader::operator=(const BinaryReader & other)
+{
+	if (this != &other)
+	{
+		data = other.data;
+		size = other.size;
+		position = other.position;
+		endian = other.endian;
+	}
+
+	return *this;
+}
+
+BinaryReader & Pu::BinaryReader::operator=(BinaryReader && other)
+{
+	if (this != &other)
+	{
+		data = other.data;
+		size = other.size;
+		position = other.position;
+		endian = other.endian;
+
+		other.data = nullptr;
+		other.size = 0;
+	}
+
+	return *this;
+}
 
 int32 Pu::BinaryReader::Read(void)
 {
@@ -41,79 +123,92 @@ int8 Pu::BinaryReader::PeekSByte(void)
 int16 Pu::BinaryReader::PeekInt16(void)
 {
 	CheckOverflow(sizeof(int16), true);
-	return *reinterpret_cast<const int16*>(data + position);
+	const int16 raw = *reinterpret_cast<const int16*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 uint16 Pu::BinaryReader::PeekUInt16(void)
 {
 	CheckOverflow(sizeof(uint16), true);
-	return *reinterpret_cast<const uint16*>(data + position);
+	const uint16 raw = *reinterpret_cast<const uint16*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 int32 Pu::BinaryReader::PeekInt32(void)
 {
 	CheckOverflow(sizeof(int32), true);
-	return *reinterpret_cast<const int32*>(data + position);
+	const int32 raw = *reinterpret_cast<const int32*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 uint32 Pu::BinaryReader::PeekUInt32(void)
 {
 	CheckOverflow(4, true);
-	return *reinterpret_cast<const uint32*>(data + position);
+	const uint32 raw = *reinterpret_cast<const uint32*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 int64 Pu::BinaryReader::PeekInt64(void)
 {
 	CheckOverflow(sizeof(int64), true);
-	return *reinterpret_cast<const int64*>(data + position);
+	const int64 raw = *reinterpret_cast<const int64*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 uint64 Pu::BinaryReader::PeekUInt64(void)
 {
 	CheckOverflow(sizeof(uint64), true);
-	return *reinterpret_cast<const uint64*>(data + position);
+	const uint64 raw = *reinterpret_cast<const uint64*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 float Pu::BinaryReader::PeekSingle(void)
 {
 	CheckOverflow(sizeof(float), true);
-	return *reinterpret_cast<const float*>(data + position);
+	const float raw = *reinterpret_cast<const float*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 double Pu::BinaryReader::PeekDouble(void)
 {
 	CheckOverflow(sizeof(double), true);
-	return *reinterpret_cast<const double*>(data + position);
+	const double raw = *reinterpret_cast<const double*>(data + position);
+	return endian == NativeEndian ? raw : byteSwap(raw);
 }
 
 Vector2 Pu::BinaryReader::PeekVector2(void)
 {
 	CheckOverflow(sizeof(Vector2), true);
-	return *reinterpret_cast<const Vector2*>(data + position);
+	const Vector2 raw = *reinterpret_cast<const Vector2*>(data + position);
+	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
 }
 
 Vector3 Pu::BinaryReader::PeekVector3(void)
 {
 	CheckOverflow(sizeof(Vector3), true);
-	return *reinterpret_cast<const Vector3*>(data + position);
+	const Vector3 raw = *reinterpret_cast<const Vector3*>(data + position);
+	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
 }
 
 Vector4 Pu::BinaryReader::PeekVector4(void)
 {
 	CheckOverflow(sizeof(Vector4), true);
-	return *reinterpret_cast<const Vector4*>(data + position);
+	const Vector4 raw = *reinterpret_cast<const Vector4*>(data + position);
+	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
 }
 
 Quaternion Pu::BinaryReader::PeekQuaternion(void)
 {
 	CheckOverflow(sizeof(Quaternion), true);
-	return *reinterpret_cast<const Quaternion*>(data + position);
+	const Quaternion raw = *reinterpret_cast<const Quaternion*>(data + position);
+	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
 }
 
 Matrix Pu::BinaryReader::PeekMatrix(void)
 {
 	CheckOverflow(sizeof(Matrix), true);
-	return *reinterpret_cast<const Matrix*>(data + position);
+	const Matrix raw = *reinterpret_cast<const Matrix*>(data + position);
+	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
 }
 
 int32 Pu::BinaryReader::Peek(void)

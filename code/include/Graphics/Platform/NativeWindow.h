@@ -75,6 +75,8 @@ namespace Pu
 		friend class GameWindow;
 		friend class Application;
 
+		bool shouldSuppressRender;
+
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);
 

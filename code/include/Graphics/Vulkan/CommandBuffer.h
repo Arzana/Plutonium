@@ -42,14 +42,12 @@ namespace Pu
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
 		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
 		void CopyBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer, _In_ const vector<BufferCopy> &regions);
-		/* Appends a pipeline memory barrier only command to the command buffer. */
-		void MemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::MemoryBarrier> &memoryBarriers);
-		/* Appends a pipeline buffer memory barrier only command to the command buffer. */
-		void BufferMemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::BufferMemoryBarrier> &bufferMemoryBarriers);
-		/* Appends a pipeline image memory barrier only command to the command buffer. */
-		void ImageMemoryBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::ImageMemoryBarrier> &imageMemoryBarriers);
-		/* Appends a pipeline barrier command to the command buffer. */
-		void PipelineBarrier(_In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ const vector<Pu::MemoryBarrier> &memoryBarriers, _In_ const vector<Pu::BufferMemoryBarrier> &bufferMemoryBarriers, _In_ const vector<Pu::ImageMemoryBarrier> &imageMemoryBarriers);
+		/* Appends a copy command from the source buffer to the destination image to the command buffer. */
+		void CopyBuffer(_In_ const Buffer &source, _In_ Image &destination, _In_ const vector<BufferImageCopy> &regions);
+		/* Appends a pipeline buffer memory barrier command to the command buffer. */
+		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ AccessFlag dstAccess);
+		/* Appends a pipeline image memory barrier command to the command buffer. */
+		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ uint32 queueFamilyIndex, _In_ ImageSubresourceRange range);
 		/* Appends an image clear command to the command buffer. */
 		void ClearImage(_In_ ImageHndl image, _In_ Color color, _In_opt_ ImageLayout layout = ImageLayout::TransferDstOptimal);
 		/* Appends a render pass begin command to the command buffer. */

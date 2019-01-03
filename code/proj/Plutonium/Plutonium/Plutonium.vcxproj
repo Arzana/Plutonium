@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -215,6 +215,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
@@ -222,6 +223,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Image.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\ImageView.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Instance.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
@@ -251,6 +253,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
+    <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileUtils.h" />
     <ClInclude Include="..\..\..\include\Streams\FileWriter.h" />
@@ -280,11 +283,13 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\ImageView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
@@ -301,6 +306,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
+    <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp" />
   </ItemGroup>

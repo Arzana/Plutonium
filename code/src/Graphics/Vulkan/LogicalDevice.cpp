@@ -106,6 +106,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdEndRenderPass);
 	LOAD_DEVICE_PROC(vkCmdBindVertexBuffers);
 	LOAD_DEVICE_PROC(vkCmdCopyBuffer);
+	LOAD_DEVICE_PROC(vkCmdCopyBufferToImage);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);
@@ -115,7 +116,11 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateShaderModule);
 	LOAD_DEVICE_PROC(vkDestroyShaderModule);
 
-	/* Image view related functions. */
+	/* Image related functions. */
+	LOAD_DEVICE_PROC(vkCreateImage);
+	LOAD_DEVICE_PROC(vkDestroyImage);
+	LOAD_DEVICE_PROC(vkGetImageMemoryRequirements);
+	LOAD_DEVICE_PROC(vkBindImageMemory);
 	LOAD_DEVICE_PROC(vkCreateImageView);
 	LOAD_DEVICE_PROC(vkDestroyImageView);
 
@@ -146,6 +151,10 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkMapMemory);
 	LOAD_DEVICE_PROC(vkFlushMappedMemoryRanges);
 	LOAD_DEVICE_PROC(vkUnmapMemory);
+
+	/* Sampler related functions. */
+	LOAD_DEVICE_PROC(vkCreateSampler);
+	LOAD_DEVICE_PROC(vkDestroySampler);
 }
 
 void Pu::LogicalDevice::Destory(void)

@@ -11,18 +11,7 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 	/* Create swapchain. */
 	VK_VALIDATE(parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);
 
-	/* Acquire images within swapchain. */
-	uint32 imageCount;
-	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr), PFN_vkGetSwapchainImagesKHR);
-	images.resize(imageCount);
-	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, images.data()), PFN_vkGetSwapchainImagesKHR);
-
-	/* Create image views. */
-	for (uint32 i = 0; i < imageCount; i++)
-	{
-		const ImageViewCreateInfo viewCreateInfo(images[i], ImageViewType::Image2D, format);
-		views.emplace_back(parent, viewCreateInfo);
-	}
+	AquireImages(createInfo);
 
 	/* Set the description used later to link images to render passes. */
 	attachmentDesc = AttachmentDescription(createInfo.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
@@ -107,6 +96,25 @@ Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout)
 	uint32 image;
 	VK_VALIDATE(parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
 	return image;
+}
+
+void Pu::Swapchain::AquireImages(const SwapchainCreateInfo & createInfo)
+{
+	/* Get how mnay images the swapchain has created. */
+	uint32 imageCount;
+	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr), PFN_vkGetSwapchainImagesKHR);
+
+	/* Aquire the handles to all swapchain images. */
+	vector<ImageHndl> handles(imageCount, nullptr);
+	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, handles.data()), PFN_vkGetSwapchainImagesKHR);
+
+	/* Create image handler and image views. */
+	const Extent3D extent(createInfo.ImageExtent, 0);
+	for (size_t i = 0; i < imageCount; i++)
+	{
+		images.emplace_back(Image(parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlag::MemoryRead));
+		views.emplace_back(parent, images[i]);
+	}
 }
 
 void Pu::Swapchain::Destroy(void)

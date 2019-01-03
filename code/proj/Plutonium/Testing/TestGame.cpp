@@ -1,6 +1,7 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/VertexLayouts/ColoredVertex2D.h>
+#include <Graphics/Resources/ImageHandler.h>
 
 using namespace Pu;
 
@@ -12,6 +13,7 @@ TestGame::TestGame(void)
 
 void TestGame::Initialize(void)
 {
+	/* Setup render pass. */
 	renderpass = new Renderpass(GetDevice());
 	renderpass->OnLinkCompleted += [&](Renderpass &renderpass, EventArgs)
 	{
@@ -39,6 +41,7 @@ void TestGame::Initialize(void)
 		renderpass.AddDependency(dependency);
 	};
 
+	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice());
 	pipeline->PostInitialize += [&](GraphicsPipeline &pipeline, EventArgs)
 	{
@@ -53,9 +56,11 @@ void TestGame::Initialize(void)
 		TempMarkDoneLoading();
 	};
 
+	/* Start loading the graphics pipeline. */
 	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/VertexColor2D.vert", "../assets/shaders/VertexColor.frag" });
 	ProcessTask(*loader);
 
+	/* Make sure the framebuffers are re-created of the window resizes. */
 	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow&, ValueChangedEventArgs<Vector2>)
 	{
 		const vector<const ImageView*> views;
@@ -73,14 +78,31 @@ void TestGame::LoadContent(void)
 		{ Vector2(0.7f, 0.7f), Color::Tundora() }
 	};
 
+	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
 	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
-	stagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
-	stagingBuffer->SetData(quad, 4);
+	vrtxStagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
+	vrtxStagingBuffer->SetData(quad, 4);
+
+	/* Load image from disk. */
+	ImageInformation imgInfo;
+	const vector<float> texels = _CrtLoadImage("../assets/images/Plutonium.png", imgInfo, 4);
+
+	/* Initializes our image and view. */
+	image = new Image(GetDevice(), ImageCreateInfo(ImageType::Image2D, Format::R32G32B32A32_SFLOAT, Extent3D(imgInfo.Width, imgInfo.Height, 1), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled));
+	view = new ImageView(GetDevice(), *image);
+
+	/* Copy texel information to staging buffer. */
+	imgStagingBuffer = new Buffer(GetDevice(), texels.size() * sizeof(float), BufferUsageFlag::TransferSrc, true);
+	imgStagingBuffer->SetData(texels.data(), texels.size());
 }
 
 void TestGame::UnLoadContent(void)
 {
-	delete stagingBuffer;
+	delete imgStagingBuffer;
+	delete view;
+	delete image;
+
+	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
 
@@ -97,18 +119,24 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	if (firstRender)
 	{
 		firstRender = false;
-		cmdBuffer.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 
-		BufferMemoryBarrier barrier(vrtxBuffer->GetHandle());
-		barrier.SrcAccessMask = AccessFlag::memoryWrite;
-		barrier.DstAccessMask = AccessFlag::VertexAttributeRead;
+		/* Copy quad to final vertex buffer. */
+		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
+		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, DependencyFlag::None, AccessFlag::VertexAttributeRead);
 
-		cmdBuffer.BufferMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, DependencyFlag::None, { barrier });
+		/* Copy image to final image. */
+		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, DependencyFlag::None, ImageLayout::TransferDstOptimal,
+			AccessFlag::TransferWrite, QueueFamilyIgnored, ImageSubresourceRange());
+		cmdBuffer.CopyBuffer(*imgStagingBuffer, *image, { BufferImageCopy(image->GetSize()) });
+		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
+			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
 	}
 
+	/* Get the current render area and get our current framebuffer. */
 	const Rect2D renderArea = GetWindow().GetNative().GetClientBounds().GetSize();
 	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(*renderpass);
 
+	/* Render scene. */
 	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);

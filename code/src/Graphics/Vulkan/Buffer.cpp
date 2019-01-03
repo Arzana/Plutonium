@@ -2,21 +2,22 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, bool requiresHostAccess)
-	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0)
+	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0), access(AccessFlag::None)
 {
 	const BufferCreateInfo createInfo(static_cast<DeviceSize>(size), usage);
 	Create(createInfo, requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None);
 }
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, const vector<uint32>& queueFamilies, bool requiresHostAccess)
-	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0)
+	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0), access(AccessFlag::None)
 {
 	const BufferCreateInfo createInfo(static_cast<DeviceSize>(size), usage, queueFamilies);
 	Create(createInfo, requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None);
 }
 
 Pu::Buffer::Buffer(Buffer && value)
-	: parent(value.parent), bufferHndl(value.bufferHndl), memoryHndl(value.memoryHndl), size(value.size), elements(value.elements), hostAccess(value.hostAccess)
+	: parent(value.parent), bufferHndl(value.bufferHndl), memoryHndl(value.memoryHndl), size(value.size), elements(value.elements), 
+	hostAccess(value.hostAccess), access(value.access)
 {
 	value.bufferHndl = nullptr;
 	value.memoryHndl = nullptr;
@@ -34,6 +35,7 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 		size = other.size;
 		elements = other.elements;
 		hostAccess = other.hostAccess;
+		access = other.access;
 
 		other.bufferHndl = nullptr;
 		other.memoryHndl = nullptr;

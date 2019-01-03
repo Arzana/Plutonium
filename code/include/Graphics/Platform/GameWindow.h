@@ -40,7 +40,7 @@ namespace Pu
 		}
 
 		/* Gets the current image used to present to the surface. */
-		_Check_return_ inline ImageHndl GetCurrentImage(void) const
+		_Check_return_ inline const Image& GetCurrentImage(void) const
 		{
 			return swapchain->images[curImgIdx];
 		}

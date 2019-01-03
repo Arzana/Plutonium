@@ -196,7 +196,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 
 	/* Log table header. */
 	printf("STACKTRACE:\n");
-	printf("		%46s FUNCTION %54s LINE %8s MODULE %16s FILE\n", "", "", "", "");
+	printf("		%46s FUNCTION %62s LINE %8s MODULE %16s FILE\n", "", "", "", "");
 
 	bool suppressLog = false;
 	for (size_t i = 0; i < callStack.size(); i++)
@@ -206,7 +206,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 		if (!suppressLog)
 		{
 			/* Log stack trace, stackframe always advances by one so subtract one. */
-			printf("		at %-102s ", cur.FunctionName.c_str());
+			printf("		at %-110s ", cur.FunctionName.c_str());
 			printf(cur.Line ? "| %-10d " : "| Unknown    ", cur.Line - 1);
 			printf("| %-16s", cur.ModuleName.c_str());
 			printf("| %-64s\n", cur.FileName.c_str());

@@ -4,18 +4,38 @@
 
 namespace Pu
 {
+	/* Defines the types of endians available for the binary reader. */
+	enum class Endian
+	{
+		/* Least significant bytes are first. */
+		Little,
+		/* Most significant bytes are first. */
+		Big
+	};
+
 	/* Defines an object that can read basic types from a binary source buffer. */
-	struct BinaryReader
+	class BinaryReader
 		: public StreamReader
 	{
 	public:
-		/* Initializes a new instance of a binary reader. */
-		BinaryReader(_In_ const void *source, _In_ size_t size);
-		BinaryReader(_In_ const BinaryReader &value) = delete;
-		BinaryReader(_In_ BinaryReader &&value) = delete;
+#ifdef _WIN32
+		/* Defines the endiant type native to the current platform. */
+		constexpr static Endian NativeEndian = Endian::Little;
+#else
+#error Native endian needs to be set for this platform!
+#endif
 
-		_Check_return_ BinaryReader& operator =(const BinaryReader &other) = delete;
-		_Check_return_ BinaryReader& operator =(BinaryReader &&other) = delete;
+		/* Initializes a new instance of a binary reader. */
+		BinaryReader(_In_ const void *source, _In_ size_t size, _In_opt_ Endian endian = NativeEndian);
+		/* Copy constructor. */
+		BinaryReader(_In_ const BinaryReader &value);
+		/* Move constructor. */
+		BinaryReader(_In_ BinaryReader &&value);
+
+		/* Copy assignment. */
+		_Check_return_ BinaryReader& operator =(const BinaryReader &other);
+		/* Move assignment. */
+		_Check_return_ BinaryReader& operator =(BinaryReader &&other);
 
 		/* Reads the next byte from the buffer as a boolean and increases the position by one byte. */
 		_Check_return_ bool ReadBool(void);
@@ -115,26 +135,39 @@ namespace Pu
 		}
 
 		/* Gets the size (in bytes) of the binary stream. */
-		inline size_t GetSize(void) const
+		_Check_return_ inline size_t GetSize(void) const
 		{
 			return size;
 		}
 
 		/* Gets the current read position (in bytes) of the reader. */
-		inline size_t GetLocation(void) const
+		_Check_return_ inline size_t GetLocation(void) const
 		{
 			return position;
 		}
 
 		/* Gets the underlying data stream. */
-		inline const void *GetData(void) const
+		_Check_return_ inline const void *GetData(void) const
 		{
 			return data;
+		}
+
+		/* Gets the underlying data stream starting from the current position. */
+		_Check_return_ inline const void *GetDataLocation(void) const
+		{
+			return data + position;
+		}
+
+		/* Changes the endianess of the binary reader. */
+		inline void ResetEndian(_In_ Endian newEndian)
+		{
+			endian = newEndian;
 		}
 
 	private:
 		const byte *data;
 		size_t size, position;
+		Endian endian;
 
 		bool CheckOverflow(size_t bytesNeeded, bool raise);
 	};

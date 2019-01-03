@@ -72,14 +72,14 @@ namespace Pu
 		/* Supresses the next render call. */
 		inline void SuppressNextRender(void)
 		{
-			suppressRender = true;
+			wnd->shouldSuppressRender = true;
 		}
 
 		/* Signals that the application should close. */
 		inline void Exit(void)
 		{
 			wnd->Close();
-			suppressRender = true;
+			SuppressNextRender();
 		}
 
 		/* Returns whether the specified GPU can be choosen for the application. */
@@ -104,7 +104,7 @@ namespace Pu
 		virtual void PostRender(void) {}
 
 	private:
-		bool suppressUpdate, suppressRender;
+		bool suppressUpdate;
 		float prevTime, accumElapTime, maxElapTime;
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;

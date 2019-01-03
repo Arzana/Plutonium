@@ -116,6 +116,7 @@ namespace Pu
 		friend class LogicalDevice;
 		friend class Surface;
 		friend class Buffer;
+		friend class Image;
 		friend class Application;
 
 		VulkanInstance &parent;

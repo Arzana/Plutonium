@@ -4,5 +4,6 @@ Pu::NativeWindow::NativeWindow(void)
 	: OnSizeChanged("NativeWindowSizeChanged"),
 	OnLocationChanged("NativeWindowLocationChanged"),
 	OnGainedFocus("NativeWindowGainedFocus"),
-	OnLostFocus("NativeWindowLoseFocus")
+	OnLostFocus("NativeWindowLoseFocus"),
+	shouldSuppressRender(false)
 {}

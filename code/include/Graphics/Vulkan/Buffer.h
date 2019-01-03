@@ -58,6 +58,7 @@ namespace Pu
 		LogicalDevice &parent;
 		size_t size, elements;
 		bool hostAccess;
+		mutable AccessFlag access;
 
 		void BufferData(size_t size, size_t offset, const void *data);
 		void Flush(uint32 count, const MappedMemoryRange *ranges);

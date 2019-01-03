@@ -186,7 +186,7 @@ string Pu::FileReader::ReadToEnd(void)
 
 	/* Allocate space for string and populate it. */
 	string result(len, ' ');
-	const size_t checkLen = Read(reinterpret_cast<byte*>(&result[0]), 0, len);
+	const size_t checkLen = Read(reinterpret_cast<byte*>(result.data()), 0, len);
 
 	/* Check for errors. */
 	if (static_cast<int64>(checkLen) > len) Log::Fatal("Expected length of string doesn't match actual length!");

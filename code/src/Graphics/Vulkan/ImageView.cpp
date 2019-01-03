@@ -1,8 +1,24 @@
 #include "Graphics/Vulkan/ImageView.h"
 
-Pu::ImageView::ImageView(LogicalDevice & device, const ImageViewCreateInfo & createInfo)
+using namespace Pu;
+
+static ImageViewType imgTypeToViewType(ImageType type)
+{
+	switch (type)
+	{
+	case ImageType::Image1D:
+		return ImageViewType::Image1D;
+	case ImageType::Image2D:
+		return ImageViewType::Image2D;
+	case ImageType::Image3D:
+		return ImageViewType::Image3D;
+	}
+}
+
+Pu::ImageView::ImageView(LogicalDevice & device, const Image & image)
 	: parent(device)
 {
+	const ImageViewCreateInfo createInfo(image.imageHndl, imgTypeToViewType(image.type), image.format);
 	VK_VALIDATE(parent.vkCreateImageView(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
 }
 

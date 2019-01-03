@@ -448,31 +448,50 @@ namespace Pu
 	/* Defines the set of image layouts. */
 	enum class ImageLayout
 	{
+		/* Layout is undefined, can be used to initializes an image or as the old layout parameter in an image transition, the contents of the image are not preserved with this layout. */
 		Undefined = 0,
+		/* Supports all type of device access (slow!). */
 		General = 1,
+		/* Image can be used as a color od resolve attachment in a framebuffer. */
 		ColorAttachmentOptimal = 2,
+		/* Image can be used as a depth/stencil attachment in a framebuffer. */
 		DepthStencilAttachmentOptimal = 3,
+		/* Image can be used as a read only depth/stencil attachment in a framebuffer. */
 		DepthStencilReadOnlyOptimal = 4,
+		/* Image can be used as a read only image in a shader. */
 		ShaderReadOnlyOptimal = 5,
+		/* Image can be used as the source of an image transfer command. */
 		TransferSrcOptimal = 6,
+		/* Image can be used as the destination of an image transfer command. */
 		TransferDstOptimal = 7,
+		/* Layout is provided by the host, can be used to initializes an image or as the old layout paramter in an image transition, the contents of the image are preseved with this layout. */
 		Preinitialized = 8,
+		/* Image can be used as a read only depth and normal stencil attachment in a framebuffer. */
 		DepthReadOnlyStencilAttachmentOptimal = 1000117000,
+		/* Image can be used as a normal depth and read only stencil attachment in a framebuffer. */
 		DepthAttachmentStencilReadOnlyOptimal = 1000117001,
+		/* Image can be used for presenting to a display. */
 		PresentSrcKhr = 1000001002,
-		SharedPresentKhr = 1000111000,
-		ShadingRateOptimalNv = 1000164003
+		/* Image can be used for shared presentable images. */
+		SharedPresentKhr = 1000111000
 	};
 
 	/* Defines the types of image views that can be created. */
 	enum class ImageViewType
 	{
+		/* A one-dimensional image. */
 		Image1D = 0,
+		/* A two-dimensional image. */
 		Image2D = 1,
+		/* A three-dimensional image. */
 		Image3D = 2,
+		/* A cube map image (6 images). */
 		ImageCube = 3,
+		/* A one-dimensional image with multiple array layers. */
 		Image1DArray = 4,
-		Image2dArray = 5,
+		/* A two-dimensional image with multiple array layers. */
+		Image2DArray = 5,
+		/*  A cube map image with multiple array layers. */
 		ImageCubeArray = 6
 	};
 
@@ -704,7 +723,7 @@ namespace Pu
 		Nearest = 0,
 		/* Defines linear filtering. */
 		Linear = 1,
-		/* Defines subic filtering. */
+		/* Defines cubic filtering. */
 		CubicImg = 1000015000
 	};
 
@@ -878,6 +897,8 @@ namespace Pu
 	/* Defines additional parameters of an image. */
 	enum class ImageCreateFlag
 	{
+		/* No flags are set. */
+		None = 0x00000000,
 		/* Specifies that the image will be backed using sparse memory binding. */
 		SparseBinding = 0x00000001,
 		/* Specified that the image can be partially back using sparse memory binding. */
@@ -1243,7 +1264,7 @@ namespace Pu
 		/* specifies read access via non-specific entities. */
 		MemoryRead = 0x00008000,
 		/* Specifies write access via non-specific entities. */
-		memoryWrite = 0x00010000,
+		MemoryWrite = 0x00010000,
 	};
 
 	/* Defines how execution and memory dependencies are formed. */

@@ -1,4 +1,5 @@
 #pragma once
+#include "Image.h"
 #include "ImageView.h"
 #include "Surface.h"
 #include "Semaphore.h"
@@ -37,7 +38,7 @@ namespace Pu
 		}
 
 		/* Gets the image handle at the specified index. */
-		_Check_return_ inline ImageHndl GetImage(_In_ uint32 index) const
+		_Check_return_ inline const Image& GetImage(_In_ uint32 index) const
 		{
 			return images.at(index);
 		}
@@ -54,17 +55,24 @@ namespace Pu
 			return format;
 		}
 
+		/* Gets the amount of images created by the operating system. */
+		_Check_return_ inline size_t GetImageCount(void) const
+		{
+			return images.size();
+		}
+
 	private:
 		friend class Queue;
 		friend class GameWindow;
 
 		LogicalDevice &parent;
 		SwapchainHndl hndl;
-		vector<ImageHndl> images;
+		vector<Image> images;
 		vector<ImageView> views;
 		Format format;
 		AttachmentDescription attachmentDesc;
 
+		void AquireImages(const SwapchainCreateInfo &createInfo);
 		void Destroy(void);
 	};
 }

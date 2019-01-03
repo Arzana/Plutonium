@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Platform/Windows/Windows.h"
 #include "VulkanFunctions.h"
+#include "Config.h"
 
 namespace Pu
 {
@@ -304,6 +305,11 @@ namespace Pu
 		/* Initializes a new instace of a 3D extent object. */
 		Extent3D(_In_ uint32 width, _In_ uint32 height, _In_ uint32 depth)
 			: Width(width), Height(height), Depth(depth)
+		{}
+
+		/* Initializes a new instance of a 3D extent from a 2D extend and a depth value. */
+		Extent3D(_In_ Extent2D widthHeight, _In_ uint32 depth)
+			: Width(widthHeight.Width), Height(widthHeight.Height), Depth(depth)
 		{}
 	};
 
@@ -1577,6 +1583,28 @@ namespace Pu
 		{}
 	};
 
+	/* Defines a three-dimensional offset. */
+	struct Offset3D
+	{
+	public:
+		/* The horizontal component. */
+		int32 X;
+		/* The vertical component. */
+		int32 Y;
+		/* The depth component. */
+		int32 Z;
+
+		/* Initializes an empty instance of an offset. */
+		Offset3D(void)
+			: Offset3D(0, 0, 0)
+		{}
+
+		/* Initializes a new instance of an offset. */
+		Offset3D(_In_ int32 x, _In_ int32 y, _In_ int32 z)
+			: X(x), Y(y), Z(z)
+		{}
+	};
+
 	/* Defines a two-dimensional subregion. */
 	struct Rect2D
 	{
@@ -2426,6 +2454,159 @@ namespace Pu
 		/* Initializes a new instance of the buffer copy object. */
 		BufferCopy(_In_ DeviceSize srcOffset, _In_ DeviceSize dstOffset, _In_ DeviceSize size)
 			: SrcOffset(srcOffset), DstOffset(dstOffset), Size(size)
+		{}
+	};
+
+	/* Defines the information required to create a new image. */
+	struct ImageCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies aditional parameters of the image. */
+		ImageCreateFlag Flags;
+		/* Specifies the basic dimensionality of the image. */
+		ImageType ImageType;
+		/* Specifies the texel format for the image. */
+		Format Format;
+		/* Specifies the dimensions of the image. */
+		Extent3D Extent;
+		/* Specifies the number of levels of detail available for minified sampling of the image. */
+		uint32 MipLevels;
+		/* Specifies the number of layers in the image. */
+		uint32 ArrayLayers;
+		/* Specifies the number of samples per texel. */
+		SampleCountFlag Samples;
+		/* Specifies the tiling arrangement of the texel blocks in memory. */
+		ImageTiling Tiling;
+		/* Specifies the intended usage of the image. */
+		ImageUsageFlag Usage;
+		/* Specifies how the image behaves when accessed by multiple queue families. */
+		SharingMode SharingMode;
+		/* Specifies the amount of elements in the QueueFamilyIndeces array. */
+		uint32 QueueFamilyIndexCount;
+		/* Specifies the queue families that will access this image (when sharing mode is not Concurrent). */
+		const uint32 *QueueFamilyIndeces;
+		/* Specifies the initial layout of all image subresources of the image. */
+		ImageLayout InitialLayout;
+
+		/* Initializes an empty instance of the image create info object. */
+		ImageCreateInfo(void)
+			: ImageCreateInfo(ImageType::Image2D, Format::Undefined, Extent3D(), ImageUsageFlag::None)
+		{}
+
+		/* Initializes a new instance of the image create info object. */
+		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ ImageUsageFlag usage)
+			: Type(StructureType::ImageCreateInfo), Next(nullptr), Flags(ImageCreateFlag::None),
+			ImageType(type), Format(format), Extent(extent), MipLevels(DefaultMipLevels), 
+			ArrayLayers(1), Samples(SampleCountFlag::Pixel1Bit), Tiling(ImageTiling::Optimal),
+			Usage(usage), SharingMode(SharingMode::Exclusive), QueueFamilyIndexCount(0),
+			QueueFamilyIndeces(nullptr), InitialLayout(ImageLayout::Undefined)
+		{}
+	};
+
+	/* Defines a region of an image. */
+	struct ImageSubresourceLayers
+	{
+	public:
+		/* Specifies the color, depth and/or stencil aspects to be copied. */
+		ImageAspectFlag AspectMask;
+		/* Specifies the mipmap level to copy from. */
+		uint32 MipLevel;
+		/* Specifies the starting layer of layers to copy. */
+		uint32 BaseArrayLayer;
+		/* Specifies the amount of layers to copy. */
+		uint32 LayerCount;
+
+		/* Initializes a default instance of the image sub-resource layers object. */
+		ImageSubresourceLayers(void)
+			: AspectMask(ImageAspectFlag::Color), MipLevel(0),
+			BaseArrayLayer(0), LayerCount(1)
+		{}
+	};
+
+	/* Defines the region of an buffer to image copy command. */
+	struct BufferImageCopy
+	{
+	public:
+		/* Specifies the offset (in bytes) from the start of the buffer to where the image data is stored. */
+		DeviceSize BufferOffset;
+		/* Specifies an optional texel subregion of a larger two- or three-dimensional image. */
+		uint32 BufferRowLength;
+		/* Specifies an optional texel subregion of a larger two- or three-dimensional image. */
+		uint32 BufferImageHeight;
+		/* Specifies the image subresources of the image used for the copy command. */
+		ImageSubresourceLayers ImageSubresource;
+		/* Specifies the offset (in texels) of the sub-region of the source or destination image data. */
+		Offset3D ImageOffset;
+		/* Specifies the size (in texels) of the image to copy. */
+		Extent3D ImageExtent;
+
+		/* Initializes an empty istance of a buffer to image copy object. */
+		BufferImageCopy(void)
+			: BufferImageCopy(Extent3D())
+		{}
+
+		/* Initializes a new instance of a buffer to image copy object. */
+		BufferImageCopy(_In_ Extent3D imageSize)
+			: BufferOffset(0), BufferRowLength(0), BufferImageHeight(0),
+			ImageSubresource(), ImageExtent(imageSize)
+		{}
+	};
+
+	/* Defines the information required to create a new sampler. */
+	struct SamplerCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the magnification filter to apply to lookups. */
+		Filter MagFilter;
+		/* Specifies the minification filter to apply to lookups. */
+		Filter MinFilter;
+		/* Specifies the mipmap filter to apply to lookups. */
+		SamplerMipmapMode MipmapMode;
+		/* Specifies the addressing mode for outside [0, 1] range for U coordinates. */
+		SamplerAddressMode AddressModeU;
+		/* Specifies the addressing mode for outside [0, 1] range for V coordinates. */
+		SamplerAddressMode AddressModeV;
+		/* Specifies the addressing mode for outside [0, 1] range for W coordinates. */
+		SamplerAddressMode AddressModeW;
+		/* Specifies the bais to be added to mipmap LoD calculations. */
+		float MipLodBias;
+		/* Specifies whether anisotropic filtering is enabled. */
+		Bool32 AnisotropyEnable;
+		/* Specifies the anisotropy value clamp used (if anisotrpic filtering is enabled). */
+		float MaxAnisotropy;
+		/* Specifies whether comparison against a reference value during lookups is enabled. */
+		Bool32 CompareModeEnable;
+		/* Specifies the compare operation used when comparing to a reference value. */
+		CompareOp CompareOp;
+		/* Specifies the minimum value used for clamping values produced by the LoD computation. */
+		float MinLoD;
+		/* Specifies the maximum value used for clamping values produced by the LoD computation. */
+		float MaxLoD;
+		/* Specifies the predefined border color to use. */
+		BorderColor BorderColor;
+		/* Specifies whether to use normalizes or unnormalizes texel coordinates to address texels of the images. */
+		Bool32 UnnormalizedCoordinates;
+
+		/* Initializes a default instance of the sampler create info object. */
+		SamplerCreateInfo(void)
+			: SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat)
+		{}
+
+		/* Initializes a new instance of the sampler create info object. */
+		SamplerCreateInfo(_In_ Filter minMagFilter, _In_ SamplerMipmapMode mipmap, _In_ SamplerAddressMode addressMode)
+			: Type(StructureType::SamplerCreateInfo), Next(nullptr), Flags(0),
+			MagFilter(minMagFilter), MinFilter(minMagFilter), MipmapMode(mipmap),
+			AddressModeU(addressMode), AddressModeV(addressMode), AddressModeW(addressMode)
 		{}
 	};
 

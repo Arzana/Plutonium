@@ -33,4 +33,6 @@ namespace Pu
 	constexpr float ApplicationMaxLagCompensation = 5.0f;
 	/* Defines whether Vulkan info messages should be logged. */
 	constexpr bool LogVulkanInfoMessages = false;
+	/* Defines the default number of level of detail available for minified image sampling. */
+	constexpr uint32 DefaultMipLevels = 4;
 }

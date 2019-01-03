@@ -62,11 +62,11 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
 	*/
 	if (lines.size() > 1)
 	{
-		const string line = string(64, '-') + '\n';
+		const string seperator = string(64, '-') + '\n';
 
 		/* Log header. */
 		string msg = "glslangValidator log for '" + path + ":\n";
-		msg += line;
+		msg += seperator;
 
 		for (string &line : lines)
 		{
@@ -79,7 +79,7 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
 		}
 
 		/* Log footer. */
-		msg += line;
+		msg += seperator;
 		Log::Verbose(msg.c_str());
 	}
 }

@@ -9,7 +9,7 @@
 #endif
 
 Pu::Application::Application(const string & name)
-	: IsFixedTimeStep(true), suppressUpdate(false), suppressRender(false), name(name),
+	: IsFixedTimeStep(true), suppressUpdate(false), name(name),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
 	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), loaded(false)
 {
@@ -200,9 +200,11 @@ bool Pu::Application::Tick(bool loading)
 	}
 
 	/* Do frame render. */
-	if (suppressRender) suppressRender = false;
-	else if (loading) DoRenderLoad(dt);
-	else DoRender(dt);
+	if (!wnd->shouldSuppressRender)
+	{
+		if (loading) DoRenderLoad(dt);
+		else DoRender(dt);
+	}
 
 	return true;
 }

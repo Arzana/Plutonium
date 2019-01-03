@@ -5,6 +5,9 @@
 
 static Pu::vector<Pu::Win32Window*> activeWindows;
 
+constexpr DWORD STYLE_WINDOWED = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+constexpr DWORD STYLE_BORDERLESS_WINDOWED = WS_POPUP | WS_MAXIMIZE;
+
 static constexpr int GetLowWord(LPARAM lParam)
 {
 	return static_cast<int>(static_cast<short>(LOWORD(lParam)));
@@ -28,7 +31,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector
 	WNDCLASSEX wndEx =
 	{
 		sizeof(WNDCLASSEX),					// size
-		CS_HREDRAW | CS_VREDRAW,			// style
+		CS_DBLCLKS,							// style
 		Win32Window::WndProc,				// proc
 		0,									// cls extra
 		0,									// wnd extra
@@ -48,8 +51,10 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector
 		Log::Fatal("Unable to register Win32 window (%s)!", error.c_str());
 	}
 
-	/* Create new window. */
-	hndl = CreateWindow(title, title, WS_OVERLAPPEDWINDOW, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
+	/*
+	Create new window, we can only start with a windowed window as all other windows call messages that we can't handle set i.e. resize, move.
+	*/
+	hndl = CreateWindow(title, title, STYLE_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
 	if (!hndl)
 	{
 		const string error = _CrtGetErrorString();
@@ -127,10 +132,42 @@ void Pu::Win32Window::Move(Vector2 newLocation)
 
 void Pu::Win32Window::SetMode(WindowMode newMode)
 {
+	/* Only reset the mode if it's actually different. */
+	if (newMode != mode)
+	{
+		/* Set the last error to NO_ERROR because if the previous window size was 0 (which is not possible) it would return an error code. */
+		SetLastError(NO_ERROR);
+		LONG result;
+
+		/* Set new mode. */
+		switch (mode = newMode)
+		{
+		case Pu::WindowMode::Windowed:
+			result = SetWindowLong(hndl, GWL_STYLE, STYLE_WINDOWED);
+			break;
+		case Pu::WindowMode::Fullscreen:
+			Log::Verbose("Fullscreen is handled as Borderless on Windows platforms.");
+		case Pu::WindowMode::Borderless:
+			result = SetWindowLong(hndl, GWL_STYLE, STYLE_BORDERLESS_WINDOWED);
+			ShowWindow(hndl, SW_SHOWMAXIMIZED);
+			break;
+		}
+
+		/* Log error if failed. */
+		if (!result)
+		{
+			const string error = _CrtGetErrorString();
+			Log::Error("Unable to set new window mode, reason: '%s'!", error.c_str());
+			return;
+		}
+	}
 }
 
 bool Pu::Win32Window::Update(void)
 {
+	/* Reset the suppress render. */
+	shouldSuppressRender = false;
+
 	/* Call WM_PAINT for window. */
 	if (!UpdateWindow(hndl)) Log::Warning("Win32 window update has failed!");
 
@@ -153,7 +190,7 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		if (window->hndl == hWnd) return window->HandleProc(message, wParam, lParam);
 	}
 
-	/* 
+	/*
 	Only log an unknow warning if it's not one of the specified messages.
 	These messages occur before the window handle is returned and thusly we cannot match it to a window yet.
 	- WM_CREATE:		Sent to incidate a new window to be created by CreateWindowEx or CreateWindow.
@@ -172,16 +209,22 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 void Pu::Win32Window::Move(int x, int y)
 {
 	ValueChangedEventArgs args(pos, Vector2(static_cast<float>(x), static_cast<float>(y)));
-	pos = args.NewValue;
-	OnLocationChanged.Post(*this, args);
+	if (args.OldValue != args.NewValue)
+	{
+		pos = args.NewValue;
+		OnLocationChanged.Post(*this, args);
+	}
 }
 
 void Pu::Win32Window::Resize(int w, int h)
 {
 	ValueChangedEventArgs args(Vector2(vp.Width, vp.Height), Vector2(static_cast<float>(w), static_cast<float>(h)));
-	vp.Width = args.NewValue.X;
-	vp.Height = args.NewValue.Y;
-	OnSizeChanged.Post(*this, args);
+	if (args.OldValue != args.NewValue)
+	{
+		vp.Width = args.NewValue.X;
+		vp.Height = args.NewValue.Y;
+		OnSizeChanged.Post(*this, args);
+	}
 }
 
 void Pu::Win32Window::UpdateClientArea(void)
@@ -204,6 +247,9 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case (WM_SIZE):
 		Resize(GetLowWord(lParam), GetHighWord(lParam));
+		return 0;
+	case (WM_GETMINMAXINFO):
+		shouldSuppressRender = true;
 		return 0;
 	case (WM_SETFOCUS):
 		focused = true;

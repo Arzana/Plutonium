@@ -112,6 +112,12 @@
     <Filter Include="Header Files\Graphics\VertexLayouts">
       <UniqueIdentifier>{5fcb4360-b0bb-4b9a-b377-c12835dee7e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Resources">
+      <UniqueIdentifier>{1c597881-f1ba-48bd-8c4b-438da6072a28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Resources">
+      <UniqueIdentifier>{91c4fbdb-cfa5-435b-bf04-2462c8afbd85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -375,6 +381,15 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h">
       <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h">
+      <Filter>Header Files\Graphics\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Image.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -507,6 +522,15 @@
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp">
+      <Filter>Source Files\Graphics\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>

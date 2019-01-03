@@ -1,5 +1,5 @@
 #pragma once
-#include "LogicalDevice.h"
+#include "Image.h"
 
 namespace Pu
 {
@@ -8,7 +8,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of an image view. */
-		ImageView(_In_ LogicalDevice &device, _In_ const ImageViewCreateInfo &createInfo);
+		ImageView(_In_ LogicalDevice &device, _In_ const Image &image);
 		ImageView(_In_ const ImageView&) = delete;
 		/* Move constructor. */
 		ImageView(_In_ ImageView &&value);

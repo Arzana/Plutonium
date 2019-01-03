@@ -14,7 +14,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	pool = new CommandPool(device, queueIndex);
 
 	/* Allocate a command buffer for each image in the swapchain. */
-	for (uint32 i = 0; i < 2; i++)
+	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
 	{
 		buffers.push_back(pool->AllocateCommandBuffer());
 	}
@@ -107,13 +107,8 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
 	/* Transfer present image to a writable image. */
-	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
-	barrier.SrcAccessMask = AccessFlag::MemoryRead;
-	barrier.DstAccessMask = AccessFlag::TransferWrite;
-	barrier.NewLayout = ImageLayout::PresentSrcKhr;
-	barrier.SubresourceRange = range;
-
-	GetCommandBuffer().ImageMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, DependencyFlag::None, { barrier });
+	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, DependencyFlag::None,
+		ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, queueIndex, range);
 }
 
 void Pu::GameWindow::MakeImagePresentable(void)
@@ -121,14 +116,8 @@ void Pu::GameWindow::MakeImagePresentable(void)
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
 	/* Transfer writable image back to present mode. */
-	ImageMemoryBarrier barrier(swapchain->GetImage(curImgIdx), queueIndex);
-	barrier.SrcAccessMask = AccessFlag::TransferWrite;
-	barrier.DstAccessMask = AccessFlag::MemoryRead;
-	barrier.OldLayout = ImageLayout::PresentSrcKhr;
-	barrier.NewLayout = ImageLayout::PresentSrcKhr;
-	barrier.SubresourceRange = range;
-
-	GetCommandBuffer().ImageMemoryBarrier(PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, DependencyFlag::None, { barrier });
+	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, DependencyFlag::None,
+		ImageLayout::PresentSrcKhr, AccessFlag::MemoryRead, queueIndex, range);
 }
 
 void Pu::GameWindow::BeginRender(void)
@@ -172,7 +161,12 @@ void Pu::GameWindow::DestroyFramebuffers(void)
 
 void Pu::GameWindow::Finalize(void)
 {
-	/* Wait until all commandbuffers are done. */
-	const vector<const Fence*> fences = buffers.select<const Fence*>([](const CommandBuffer &buffer) { return buffer.submitFence; });
-	Fence::WaitAll(device, fences);
+	/* Wait until all pending commandbuffers are done. */
+	vector<const Fence*> fences;
+	for (const CommandBuffer &buffer : buffers)
+	{
+		if (buffer.state == CommandBuffer::State::Pending) fences.emplace_back(buffer.submitFence);
+	}
+
+	if (fences.size() > 0) Fence::WaitAll(device, fences);
 }
