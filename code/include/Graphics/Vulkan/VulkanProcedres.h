@@ -80,6 +80,14 @@ namespace Pu
 	using PFN_vkCmdCopyBufferToImage = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl srcBuffer, _In_ ImageHndl dstImage, _In_ ImageLayout dstImageLayout, uint32 regionCount, _In_ const BufferImageCopy *regions);
 	using PFN_vkCreateSampler = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const SamplerCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SamplerHndl *sampler);
 	using PFN_vkDestroySampler = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SamplerHndl sampler, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateDescriptorPool = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const DescriptorPoolCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DescriptorPoolHndl *descriptorPool);
+	using PFN_vkDestroyDescriptorPool = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DescriptorPoolHndl descriptorPool, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkCreateDescriptorSetLayout = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const DescriptorSetLayoutCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DescriptorSetLayoutHndl *setLayout);
+	using PFN_vkDestroyDescriptorSetLayout = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DescriptorSetLayoutHndl setLayout, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkAllocateDescriptorSets = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const DescriptorSetAllocateInfo *allocateInfo, _Out_ DescriptorSetHndl *descriptorSets);
+	using PFN_vkFreeDescriptorSets = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DescriptorPoolHndl descriptorPool, _In_ uint32 descriptorCount, _In_ const DescriptorSetHndl *descriptorSets);
+	using PFN_vkUpdateDescriptorSets = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 descriptorWriteCount, _In_ const WriteDescriptorSet *descriptorWrites, _In_ uint32 descriptorCopyCount, _In_ const CopyDescriptorSet *descriptorCopies);
+	using PFN_vkCmdBindDescriptorSets = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineBindPoint pipelineBindPoint, _In_ PipelineLayoutHndl layout, _In_ uint32 firstSet, _In_ uint32 descriptorSetCount, _In_ const DescriptorSetHndl *descriptorSets, _In_ uint32 dynamicOffsetCount, _In_ const uint32 *dynamicOffsets);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

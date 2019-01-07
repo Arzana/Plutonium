@@ -4,15 +4,39 @@
 Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device)
 	: parent(device), renderpass(nullptr), tessellation(nullptr),
 	depthStencil(nullptr), dynamicState(nullptr), hndl(nullptr),
-	PostInitialize("GraphicsPipelinePostInitialze")
+	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {}
 
 Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass)
 	: parent(device), renderpass(&renderpass), tessellation(nullptr),
 	depthStencil(nullptr), dynamicState(nullptr), hndl(nullptr),
-	PostInitialize("GraphicsPipelinePostInitialze")
+	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {
 	Initialize();
+}
+
+Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
+	: parent(value.parent), renderpass(value.renderpass), hndl(value.hndl), layoutHndl(value.layoutHndl), loaded(value.loaded.load()),
+	vertexInput(value.vertexInput), inputAssembly(value.inputAssembly), tessellation(value.tessellation), display(value.display),
+	rasterizer(value.rasterizer), multisample(value.multisample), depthStencil(value.depthStencil), colorBlend(value.colorBlend),
+	dynamicState(value.dynamicState), descriptorSets(std::move(value.descriptorSets)), PostInitialize(std::move(value.PostInitialize)),
+	colorBlendAttachments(std::move(value.colorBlendAttachments)), bindingDescriptions(std::move(value.bindingDescriptions)),
+	viewport(value.viewport), scissor(value.scissor), pool(value.pool)
+{
+	value.renderpass = nullptr;
+	value.hndl = nullptr;
+	value.layoutHndl = nullptr;
+	value.loaded.store(false);
+	value.vertexInput = nullptr;
+	value.inputAssembly = nullptr;
+	value.tessellation = nullptr;
+	value.display = nullptr;
+	value.rasterizer = nullptr;
+	value.multisample = nullptr;
+	value.depthStencil = nullptr;
+	value.colorBlend = nullptr;
+	value.dynamicState = nullptr;
+	value.pool = nullptr;
 }
 
 Pu::GraphicsPipeline::~GraphicsPipeline(void)
@@ -28,6 +52,53 @@ Pu::GraphicsPipeline::~GraphicsPipeline(void)
 		delete multisample;
 		delete colorBlend;
 	}
+}
+
+Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other)
+{
+	if (this != &other)
+	{
+		Destroy();
+
+		parent = std::move(other.parent);
+		renderpass = other.renderpass;
+		hndl = other.hndl;
+		layoutHndl = other.layoutHndl;
+		loaded.store(other.loaded.load());
+		vertexInput = other.vertexInput;
+		inputAssembly = other.inputAssembly;
+		tessellation = other.tessellation;
+		display = other.display;
+		rasterizer = other.rasterizer;
+		multisample = other.multisample;
+		depthStencil = other.depthStencil;
+		colorBlend = other.colorBlend;
+		dynamicState = other.dynamicState;
+		descriptorSets = std::move(other.descriptorSets);
+		colorBlendAttachments = std::move(other.colorBlendAttachments);
+		bindingDescriptions = std::move(other.bindingDescriptions);
+		PostInitialize = std::move(other.PostInitialize);
+		viewport = other.viewport;
+		scissor = other.scissor;
+		pool = other.pool;
+
+		other.renderpass = nullptr;
+		other.hndl = nullptr;
+		other.layoutHndl = nullptr;
+		other.loaded.store(false);
+		other.vertexInput = nullptr;
+		other.inputAssembly = nullptr;
+		other.tessellation = nullptr;
+		other.display = nullptr;
+		other.rasterizer = nullptr;
+		other.multisample = nullptr;
+		other.depthStencil = nullptr;
+		other.colorBlend = nullptr;
+		other.dynamicState = nullptr;
+		other.pool = nullptr;
+	}
+
+	return *this;
 }
 
 Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(const string & name)
@@ -81,16 +152,56 @@ void Pu::GraphicsPipeline::Finalize(void)
 	vertexInput->VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
 	vertexInput->VertexBindingDescriptions = bindingDescriptions.data();
 
-	/* Create shader stage buffer. */
-	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
+	/* Create the descriptor set layouts and the pipeline layout. */
+	FinalizeLayout();
 
-	/* Create pipeline layout. */
-	PipelineLayoutCreateInfo layoutCreateInfo;
-	VK_VALIDATE(parent.vkCreatePipelineLayout(parent.hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
+	/* Create the pool from which the user can allocate descriptor sets. */
+	pool = new DescriptorPool(*this, 1);	//TODO: Don't hardcode this to one!
 
 	/* Create graphics pipeline. */
+	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
 	GraphicsPipelineCreateInfo createInfo(stages, *vertexInput, *inputAssembly, *display, *rasterizer, *multisample, *colorBlend, layoutHndl, renderpass->hndl);
 	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
+}
+
+void Pu::GraphicsPipeline::FinalizeLayout(void)
+{
+	/* Get the information about the descriptor sets. */
+	vector<DescriptorSetLayoutCreateInfo> createInfos;
+	std::map<uint32, vector<DescriptorSetLayoutBinding>> setBindings;
+	for (const Uniform &cur : renderpass->uniforms)
+	{
+		/* Make sure we have a descriptor set for each defined set. */
+		if (cur.set >= createInfos.size())
+		{
+			createInfos.resize(cur.set + 1);
+			setBindings.emplace(cur.set, vector<DescriptorSetLayoutBinding>());
+		}
+
+		/* Add the current binding to the create info. */
+		setBindings[cur.set].push_back(cur.layoutBinding);
+	}
+
+	/* Resize the result vector outside of the loop to increase performance. */
+	descriptorSets.resize(createInfos.size(), nullptr);
+
+	/* Create all required descriptor sets. */
+	for (size_t i = 0; i < createInfos.size(); i++)
+	{
+		DescriptorSetLayoutCreateInfo &info = createInfos[i];
+		const vector<DescriptorSetLayoutBinding> bindings = setBindings.at(static_cast<uint32>(i));
+
+		/* Set final bindings, this has to be done here as vector resizing might reallocate and thusly will give wrong addresses. */
+		info.BindingCount = static_cast<uint32>(bindings.size());
+		info.Bindings = bindings.data();
+
+		/* Actually create the set. */
+		VK_VALIDATE(parent.vkCreateDescriptorSetLayout(parent.hndl, &info, nullptr, &descriptorSets[i]), PFN_vkCreateDescriptorSetLayout);
+	}
+
+	/* Create pipeline layout. */
+	PipelineLayoutCreateInfo layoutCreateInfo(descriptorSets);
+	VK_VALIDATE(parent.vkCreatePipelineLayout(parent.hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
 }
 
 void Pu::GraphicsPipeline::Initialize(void)
@@ -122,6 +233,11 @@ void Pu::GraphicsPipeline::Destroy(void)
 	{
 		parent.vkDestroyPipeline(parent.hndl, hndl, nullptr);
 		parent.vkDestroyPipelineLayout(parent.hndl, layoutHndl, nullptr);
+
+		for (DescriptorSetHndl set : descriptorSets) parent.vkDestroyDescriptorSetLayout(parent.hndl, set, nullptr);
+		descriptorSets.clear();
+
+		delete pool;
 	}
 }
 

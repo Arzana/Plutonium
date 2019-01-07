@@ -24,7 +24,7 @@ namespace Pu
 		_Check_return_ CommandPool& operator =(_In_ CommandPool &&other);
 
 		/* Allocates a new command buffer from this pool. */
-		_Check_return_ CommandBuffer AllocateCommandBuffer(void) const;
+		_Check_return_ CommandBuffer Allocate(void) const;
 
 	private:
 		friend class CommandBuffer;

@@ -4,7 +4,7 @@ Pu::Attribute::Attribute(const FieldInfo & data)
 	: Field(data)
 {
 	/* Pre-set location. */
-	description.Location = data.Location;
+	description.Location = data.GetLocation();
 
 	/* Pre-set format. */
 	switch (data.Type)

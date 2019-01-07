@@ -390,6 +390,18 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Image.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Uniform.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorPool.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorSet.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -533,6 +545,15 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Uniform.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorPool.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorSet.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -580,6 +601,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\..\..\assets\shaders\VertexColor2D.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Image.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Image.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

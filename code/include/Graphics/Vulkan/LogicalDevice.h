@@ -66,6 +66,8 @@ namespace Pu
 		friend class Fence;
 		friend class Buffer;
 		friend class Image;
+		friend class DescriptorPool;
+		friend class DescriptorSet;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -98,6 +100,7 @@ namespace Pu
 		PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
 		PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 		PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+		PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
@@ -130,6 +133,13 @@ namespace Pu
 		PFN_vkBindImageMemory vkBindImageMemory;
 		PFN_vkCreateSampler vkCreateSampler;
 		PFN_vkDestroySampler vkDestroySampler;
+		PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+		PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+		PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
+		PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
+		PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+		PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
+		PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

@@ -16,7 +16,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
 	{
-		buffers.push_back(pool->AllocateCommandBuffer());
+		buffers.push_back(pool->Allocate());
 	}
 
 	/*

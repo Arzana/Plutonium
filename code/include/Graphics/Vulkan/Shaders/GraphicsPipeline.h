@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderpass.h"
+#include "Graphics/Vulkan/DescriptorPool.h"
 
 namespace Pu
 {
@@ -37,17 +38,26 @@ namespace Pu
 		/* Initializes a new instance of a graphics pipeline for the specified render pass. */
 		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
-		GraphicsPipeline(_In_ GraphicsPipeline&&) = delete;
+		/* Move constructor. */
+		GraphicsPipeline(_In_ GraphicsPipeline &&value);
 		/* Destroys the graphics pipeline. */
 		~GraphicsPipeline(void);
 
 		_Check_return_ GraphicsPipeline& operator =(_In_ const GraphicsPipeline&) = delete;
-		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline&&) = delete;
+		/* Move assignment. */
+		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline &&other);
 
 		/* Gets whether the graphics pipeline has been loaded. */
 		_Check_return_ inline bool IsLoaded(void) const
 		{
 			return loaded.load();
+		}
+
+		/* Gets the pool from which descriptors can be made. */
+		_Check_return_ inline const DescriptorPool& GetDescriptorPool(void) const
+		{
+			if (!pool) Log::Fatal("Cannot get descriptor pool from graphics pipeline that is not finalized!");
+			return *pool;
 		}
 
 #pragma warning(push)
@@ -88,6 +98,8 @@ namespace Pu
 
 	private:
 		friend class CommandBuffer;
+		friend class DescriptorPool;
+		friend class DescriptorSet;
 
 		PipelineVertexInputStateCreateInfo *vertexInput;
 		PipelineInputAssemblyStateCreateInfo *inputAssembly;
@@ -104,13 +116,16 @@ namespace Pu
 
 		LogicalDevice &parent;
 		const Renderpass *renderpass;
+		const DescriptorPool *pool;
 		PipelineHndl hndl;
 		PipelineLayoutHndl layoutHndl;
+		vector<DescriptorSetLayoutHndl> descriptorSets;
 		std::atomic_bool loaded;
 
 		Viewport viewport;
 		Rect2D scissor;
 
+		void FinalizeLayout(void);
 		void Initialize(void);
 		void Destroy(void);
 	};

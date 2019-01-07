@@ -1,6 +1,6 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/ColoredVertex2D.h>
+#include <Graphics/VertexLayouts/Image2D.h>
 #include <Graphics/Resources/ImageHandler.h>
 
 using namespace Pu;
@@ -17,13 +17,16 @@ void TestGame::Initialize(void)
 	renderpass = new Renderpass(GetDevice());
 	renderpass->OnLinkCompleted += [&](Renderpass &renderpass, EventArgs)
 	{
+		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
 		fragColor.SetDescription(GetWindow().GetSwapchain());
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
-		Attribute &clr = renderpass.GetAttribute("Color");
-		clr.SetOffset(vkoffsetof(ColoredVertex2D, Color));
+		/* Set offset for uv attribute (position is default). */
+		Attribute &uv = renderpass.GetAttribute("TexCoord");
+		uv.SetOffset(vkoffsetof(Image2D, TexCoord));
 
+		/* Setup the subpass dependencies. */
 		SubpassDependency dependency(SubpassExternal, 0);
 		dependency.SrcStageMask = PipelineStageFlag::BottomOfPipe;
 		dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
@@ -45,19 +48,22 @@ void TestGame::Initialize(void)
 	pipeline = new GraphicsPipeline(GetDevice());
 	pipeline->PostInitialize += [&](GraphicsPipeline &pipeline, EventArgs)
 	{
+		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding<ColoredVertex2D>(0);
+		pipeline.AddVertexBinding<Image2D>(0);
 		pipeline.Finalize();
 
-		const vector<const ImageView*> views;
-		GetWindow().CreateFrameBuffers(*renderpass, views);
+		/* Allocate and move the new descriptor set. */
+		descriptor = new DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(0)));
 
+		/* Create the framebuffers with no extra image views. */
+		GetWindow().CreateFrameBuffers(*renderpass, {});
 		TempMarkDoneLoading();
 	};
 
 	/* Start loading the graphics pipeline. */
-	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/VertexColor2D.vert", "../assets/shaders/VertexColor.frag" });
+	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Image.vert", "../assets/shaders/Image.frag" });
 	ProcessTask(*loader);
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -70,12 +76,12 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	const ColoredVertex2D quad[] =
+	const Image2D quad[] =
 	{
-		{ Vector2(-0.7f, -0.7f), Color::Red() },
-		{ Vector2(-0.7f, 0.7f), Color::Green() },
-		{ Vector2(0.7f, -0.7f), Color::Blue() },
-		{ Vector2(0.7f, 0.7f), Color::Tundora() }
+		{ Vector2(-0.7f, -0.7f), Vector2(0.0f, 0.0f) },
+		{ Vector2(-0.7f, 0.7f), Vector2(0.0f, 1.0f) },
+		{ Vector2(0.7f, -0.7f), Vector2(1.0f, 0.0f) },
+		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
 	};
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
@@ -108,6 +114,7 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	delete descriptor;
 	delete pipeline;
 	delete renderpass;
 	delete loader;
@@ -130,6 +137,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.CopyBuffer(*imgStagingBuffer, *image, { BufferImageCopy(image->GetSize()) });
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
 			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
+
+		/* Update the descriptor. */
+		descriptor->Write(renderpass->GetUniform("Texture"), *view);
 	}
 
 	/* Get the current render area and get our current framebuffer. */
@@ -139,7 +149,11 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	/* Render scene. */
 	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
+
 	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);
+	cmdBuffer.BindGraphicsDescriptor(*descriptor);
+
 	cmdBuffer.Draw(vrtxBuffer->GetElementCount(), 1, 0, 0);
+
 	cmdBuffer.EndRenderPass();
 }

@@ -56,6 +56,8 @@ namespace Pu
 		void BindGraphicsPipeline(_In_ const GraphicsPipeline &pipeline);
 		/* Appends a vertex buffer bind command to the command buffer. */
 		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
+		/* Appends a graphics descriptor bind command to the command buffer. */
+		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 		/* Appends a render pass end command to the command buffer. */

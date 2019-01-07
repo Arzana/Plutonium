@@ -2012,6 +2012,13 @@ namespace Pu
 			: Type(StructureType::PipelineLayourCreateInfo), Next(nullptr), Flags(0),
 			SetLayoutCount(0), SetLayouts(nullptr), PushConstantRangeCount(0), PushConstantRanges(nullptr)
 		{}
+
+		/* Initializes a new instance of the pipeline layout create info object. */
+		PipelineLayoutCreateInfo(_In_ const vector<DescriptorSetLayoutHndl>& descriptorSets)
+			: Type(StructureType::PipelineLayourCreateInfo), Next(nullptr), Flags(0),
+			SetLayoutCount(static_cast<uint32>(descriptorSets.size())), SetLayouts(descriptorSets.data()), 
+			PushConstantRangeCount(0), PushConstantRanges(nullptr)
+		{}
 	};
 
 	/* Defines the information required to create a graphics pipeline. */
@@ -2606,7 +2613,265 @@ namespace Pu
 		SamplerCreateInfo(_In_ Filter minMagFilter, _In_ SamplerMipmapMode mipmap, _In_ SamplerAddressMode addressMode)
 			: Type(StructureType::SamplerCreateInfo), Next(nullptr), Flags(0),
 			MagFilter(minMagFilter), MinFilter(minMagFilter), MipmapMode(mipmap),
-			AddressModeU(addressMode), AddressModeV(addressMode), AddressModeW(addressMode)
+			AddressModeU(addressMode), AddressModeV(addressMode), AddressModeW(addressMode),
+			MipLodBias(0.0f), AnisotropyEnable(false), MaxAnisotropy(0.0f), CompareModeEnable(false),
+			CompareOp(CompareOp::Always), MinLoD(0.0f), MaxLoD(0.0f), BorderColor(BorderColor::FloatTransparentBlack),
+			UnnormalizedCoordinates(false)
+		{}
+	};
+
+	/* Defines how many units of a specific descriptor type should be created. */
+	struct DescriptorPoolSize
+	{
+	public:
+		/* Specifies the type of descriptor. */
+		DescriptorType Type;
+		/* Specifies the amount of descriptors of that type of allocate. */
+		uint32 DescriptorCount;
+
+		/* Initializes an empty instance of a descriptor pool size object. */
+		DescriptorPoolSize(void)
+			: DescriptorPoolSize(DescriptorType::Sampler, 0)
+		{}
+
+		/* Initializes a new instance of a descriptor pool size object. */
+		DescriptorPoolSize(_In_ DescriptorType type, _In_ uint32 count)
+			: Type(type), DescriptorCount(count)
+		{}
+	};
+
+	/* Defines the information required to create a new descriptor pool. */
+	struct DescriptorPoolCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies additional parameter for a descriptor pool. */
+		DescriptorPoolCreateFlag Flags;
+		/* Specifies the maximum amount of descriptor sets that can be allocated from the pool. */
+		uint32 MaxSets;
+		/* Specifies the amount of elements in the PoolSize field. */
+		uint32 PoolSizeCount;
+		/* Specifies how many descriptors from each type can be created via the pool. */
+		const DescriptorPoolSize *PoolSizes;
+		
+		/* Initializes an empty instance of the descriptor pool create info object. */
+		DescriptorPoolCreateInfo(void)
+			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlag::None),
+			MaxSets(0), PoolSizeCount(0), PoolSizes(nullptr)
+		{}
+
+		/* Initializes a new instance of the descriptor pool create info object. */
+		DescriptorPoolCreateInfo(_In_ uint32 maxSets, _In_ const vector<DescriptorPoolSize> &sizes)
+			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlag::FreeDescriptorSet),
+			MaxSets(maxSets), PoolSizeCount(static_cast<uint32>(sizes.size())), PoolSizes(sizes.data())
+		{}
+	};
+
+	/* Defines a layout for a descriptor set. */
+	struct DescriptorSetLayoutBinding
+	{
+	public:
+		/* Specifies the binding number of this entry. */
+		uint32 Binding;
+		/* Specifies the type of resource descriptors used for this binding. */
+		DescriptorType DescriptorType;
+		/* Specifies the amount of descriptors contained in the binding. */
+		uint32 DescriptorCount;
+		/* Specifies the parts of the graphics pipeline that can access a resource for this binding. */
+		ShaderStageFlag StageFlags;
+		/* Specifies an optional set of constant samplers that cannot be changed later. */
+		const SamplerHndl *ImmutableSamplers;
+		
+		/* Initializes an empty instance of the descriptor set layout binding object. */
+		DescriptorSetLayoutBinding(void)
+			: DescriptorSetLayoutBinding(0, DescriptorType::Sampler, 0)
+		{}
+
+		/* Initializes a new instance of the descriptor set layout binding object. */
+		DescriptorSetLayoutBinding(_In_ uint32 binding, _In_ Pu::DescriptorType type, _In_ uint32 count)
+			: Binding(binding), DescriptorType(type), DescriptorCount(count),
+			StageFlags(ShaderStageFlag::All), ImmutableSamplers(nullptr)
+		{}
+	};
+
+	/* Defines the information required to create a new descriptor set layout. */
+	struct DescriptorSetLayoutCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies additions parameters for the descriptor set layout. */
+		DescriptorSetLayoutCreateFlags Flags;
+		/* Specifies the amount of elements in the Bindings field. */
+		uint32 BindingCount;
+		/* Specifies all bindings associated with this descriptor set layout. */
+		const DescriptorSetLayoutBinding *Bindings;
+
+		/* Initializes an empty instance of the descriptor set layout create info object. */
+		DescriptorSetLayoutCreateInfo(void)
+			: Type(StructureType::DescriptorSetLayourCreateInfo), Next(nullptr), Flags(DescriptorSetLayoutCreateFlags::None),
+			BindingCount(0), Bindings(nullptr)
+		{}
+
+		/* Initializes a new instance of the descriptor set layout create info object. */
+		DescriptorSetLayoutCreateInfo(_In_ const vector<DescriptorSetLayoutBinding> &bindings)
+			: Type(StructureType::DescriptorSetLayourCreateInfo), Next(nullptr), Flags(DescriptorSetLayoutCreateFlags::None),
+			BindingCount(static_cast<uint32>(bindings.size())), Bindings(bindings.data())
+		{}
+	};
+
+	/* Defines the information required to allocate a new descriptor set. */
+	struct DescriptorSetAllocateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the pool from which to allocate the set(s). */
+		DescriptorPoolHndl DescriptorPool;
+		/* Specifies how many descriptor sets to be allocated from the pool. */
+		uint32 DescriptorSetCount;
+		/* Specifies how the corresponding descriptor is allocated. */
+		const DescriptorSetLayoutHndl *SetLayouts;
+
+		/* Initializes an empty instance of the descriptor set allocate info object. */
+		DescriptorSetAllocateInfo(void)
+			: Type(StructureType::DescriptorSetAllocateInfo), Next(nullptr), 
+			DescriptorPool(nullptr), DescriptorSetCount(0), SetLayouts(nullptr)
+		{}
+
+		/* Initializes a new instance of the descriptor set allocate info object. */
+		DescriptorSetAllocateInfo(_In_ DescriptorPoolHndl pool, _In_ const DescriptorSetLayoutHndl &layout)
+			: Type(StructureType::DescriptorSetAllocateInfo), Next(nullptr), DescriptorPool(pool),
+			DescriptorSetCount(1), SetLayouts(&layout)
+		{}
+	};
+
+	/* Defines the information needed for an image descriptor. */
+	struct DescriptorImageInfo
+	{
+	public:
+		/* Specifies the sampler the image uses. */
+		SamplerHndl Sampler;
+		/* Specifies the image view for the image. */
+		ImageViewHndl ImageView;
+		/* Specifies how the image should be used. */
+		ImageLayout ImageLayout;
+
+		/* Initializes an empty instance of a descriptor image info object. */
+		DescriptorImageInfo(void)
+			: Sampler(nullptr), ImageView(nullptr), ImageLayout(ImageLayout::Undefined)
+		{}
+
+		/* Initializes a new instance of a descriptor image info object. */
+		DescriptorImageInfo(_In_ SamplerHndl sampler, _In_ ImageViewHndl view)
+			: Sampler(sampler), ImageView(view), ImageLayout(ImageLayout::ShaderReadOnlyOptimal)
+		{}
+	};
+
+	/* Defines the information needed for a buffer descriptor. */
+	struct DescriptorBufferInfo
+	{
+	public:
+		/* Specifies the buffer resource. */
+		BufferHndl Buffer;
+		/* Specifies the offset (in bytes) from where to start. */
+		DeviceSize Offset;
+		/* Specifies the size (in bytes) that is used for this descriptor. */
+		DeviceSize Range;
+
+		/* Initializes an empty instance of a descriptor buffer info object. */
+		DescriptorBufferInfo(void)
+			: Buffer(nullptr), Offset(0), Range(0)
+		{}
+
+		/* Initializes a new instance of a descriptor buffer info object. */
+		DescriptorBufferInfo(_In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ DeviceSize range)
+			: Buffer(buffer), Offset(offset), Range(range)
+		{}
+	};
+
+	/* Defines the parameters of a descriptor set write operation. */
+	struct WriteDescriptorSet
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the descriptor set to update. */
+		DescriptorSetHndl DstSet;
+		/* Specifies the descriptor bindings within the set to update. */
+		uint32 DstBinding;
+		/* Specifies the starting element of the array to update. */
+		uint32 DstArrayElement;
+		/* Specifies the number of descriptors to update. */
+		uint32 DescriptorCount;
+		/* Specifies the type of each descriptor to update. */
+		DescriptorType DescriptorType;
+		/* Specifies the descriptor information required for image descriptors. */
+		const DescriptorImageInfo *ImageInfo;
+		/* Specifies the descriptor information required for buffer descriptors. */
+		const DescriptorBufferInfo *BufferInfo;
+		/* Specifies the descriptor information required for texel buffer descriptors. */
+		const BufferViewHndl *TexelBufferView;
+
+		/* Initializes an empty instance of a descriptor set write operation parameters object. */
+		WriteDescriptorSet(void)
+			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(nullptr), DstBinding(0),
+			DstArrayElement(0), DescriptorType(DescriptorType::UniformBuffer), ImageInfo(nullptr),
+			DescriptorCount(0), BufferInfo(nullptr), TexelBufferView(nullptr)
+		{}
+
+		/* Initializes a new instance of a descriptor set write operation parameters object as an buffer write operation. */
+		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const vector<DescriptorBufferInfo> &info)
+			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
+			DstArrayElement(0), DescriptorType(DescriptorType::UniformBuffer), ImageInfo(nullptr),
+			DescriptorCount(static_cast<uint32>(info.size())), BufferInfo(info.data()), TexelBufferView(nullptr)
+		{}
+
+		/* Initializes a new instance of a descriptor set write operation parameters object as an image write operation. */
+		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const vector<DescriptorImageInfo> &info)
+			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
+			DstArrayElement(0), DescriptorType(DescriptorType::CombinedImageSampler), BufferInfo(nullptr),
+			DescriptorCount(static_cast<uint32>(info.size())), ImageInfo(info.data()), TexelBufferView(nullptr)
+		{}
+	};
+
+	/* Defines the parameters of a descriptor set copy operation. */
+	struct CopyDescriptorSet
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the set used as the source for the copy operation. */
+		DescriptorSetHndl SrcSet;
+		/* Specifies the binding in the source set used as the source for the copy operation. */
+		uint32 SrcBinding;
+		/* Specifies the starting array element in the source set. */
+		uint32 SrcArrayElement;
+		/* Specifies the set used as the destination for the copy operation. */
+		DescriptorSetHndl DstSet;
+		/* Specifies the binding in the destination set used as the source for the copy operation. */
+		uint32 DstBinding;
+		/* Specfies the starting array element in the destination set. */
+		uint32 DstArrayElement;
+		/* Specifies the amount of descriptors to copy from the source to the destination. */
+		uint32 DescriptorCount;
+
+		/* Initializes an empty instance of the copy descriptor operation parameter object. */
+		CopyDescriptorSet(void)
+			: Type(StructureType::CopyDescriptorSet), Next(nullptr), DescriptorCount(0),
+			SrcSet(nullptr), SrcBinding(0), SrcArrayElement(0),
+			DstSet(nullptr), DstBinding(0), DstArrayElement(0)
 		{}
 	};
 

@@ -1,7 +1,6 @@
 #pragma once
-#include "SPIRV.h"
 #include "FieldTypes.h"
-#include "Core/String.h"
+#include "Decoration.h"
 
 namespace Pu
 {
@@ -15,25 +14,33 @@ namespace Pu
 		string Name;
 		/* Specifies the data type of the field. */
 		FieldTypes Type;
+		/* Specifies the amount of array elements in this field (zero indicates no array). */
+		uint32 ArrayElements;
 		/* Specifies how the type is being used by the shader. */
 		spv::StorageClass Storage;
-		/* Specifies the location (or handler) of this field. */
-		uint32 Location;
+		/* Specifies the decorations applied to this field. */
+		Decoration Decorations;
 
 		/* Initializes an invalid instance of the fieldinfo object. */
 		FieldInfo(void)
-			: Id(0), Name(), Type(FieldTypes::Invalid), Storage(spv::StorageClass::Max), Location(0)
+			: Id(0), Name(), Type(FieldTypes::Invalid), ArrayElements(0), Storage(spv::StorageClass::Max)
 		{}
 		
 		/* Initializes a new instance of the fieldinfo object. */
-		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldTypes type, _In_ spv::StorageClass storage, _In_ uint32 location)
-			: Id(id), Name(name), Type(type), Storage(storage), Location(location)
+		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldTypes type, _In_ spv::StorageClass storage, _In_ const Decoration &decorations)
+			: Id(id), Name(name), Type(type), ArrayElements(0), Storage(storage), Decorations(decorations)
 		{}
 
 		/* Gets whether the field type is valid. */
 		_Check_return_ inline bool IsValid(void) const
 		{
 			return Storage != spv::StorageClass::Max;
+		}
+
+		/* Gets the location decoration literal. */
+		_Check_return_ inline spv::Word GetLocation(void) const
+		{
+			return Decorations.Numbers.at(spv::Decoration::Location);
 		}
 	};
 }

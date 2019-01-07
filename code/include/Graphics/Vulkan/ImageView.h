@@ -24,6 +24,7 @@ namespace Pu
 
 	private:
 		friend class Framebuffer;
+		friend class DescriptorSet;
 
 		ImageViewHndl hndl;
 		LogicalDevice &parent;

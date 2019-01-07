@@ -110,6 +110,8 @@ namespace Pu
 		void HandleFloat(SPIRVReader &reader);
 		void HandleVector(SPIRVReader &reader);
 		void HandleMatrix(SPIRVReader &reader);
+		void HandleImage(SPIRVReader &reader);
+		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);
 		void SetInfo(const string &ext);
 		void Destroy(void);

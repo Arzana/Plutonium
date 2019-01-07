@@ -153,6 +153,12 @@ void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, 
 	else Log::Warning("Cannot bind vertex buffer on non-recording CommandBuffer!");
 }
 
+void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
+{
+	if (state == State::Recording) parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, 0, 1, &descriptor.hndl, 0, nullptr);
+	else Log::Warning("Cannot bind descriptor to graphics bind point on non-recording CommandBuffer!");
+}
+
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
 	if (state == State::Recording) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);

@@ -87,11 +87,9 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateSemaphore);
 	LOAD_DEVICE_PROC(vkDestroySemaphore);
 
-	/* Command pool related functions. */
+	/* Command buffer/pool related functions. */
 	LOAD_DEVICE_PROC(vkCreateCommandPool);
 	LOAD_DEVICE_PROC(vkDestroyCommandPool);
-
-	/* Command buffer related functions. */
 	LOAD_DEVICE_PROC(vkAllocateCommandBuffers);
 	LOAD_DEVICE_PROC(vkFreeCommandBuffers);
 	LOAD_DEVICE_PROC(vkBeginCommandBuffer);
@@ -107,6 +105,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdBindVertexBuffers);
 	LOAD_DEVICE_PROC(vkCmdCopyBuffer);
 	LOAD_DEVICE_PROC(vkCmdCopyBufferToImage);
+	LOAD_DEVICE_PROC(vkCmdBindDescriptorSets);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);
@@ -155,6 +154,15 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	/* Sampler related functions. */
 	LOAD_DEVICE_PROC(vkCreateSampler);
 	LOAD_DEVICE_PROC(vkDestroySampler);
+
+	/* Descriptor pool/set related functions. */
+	LOAD_DEVICE_PROC(vkCreateDescriptorPool);
+	LOAD_DEVICE_PROC(vkDestroyDescriptorPool);
+	LOAD_DEVICE_PROC(vkAllocateDescriptorSets);
+	LOAD_DEVICE_PROC(vkFreeDescriptorSets);
+	LOAD_DEVICE_PROC(vkCreateDescriptorSetLayout);
+	LOAD_DEVICE_PROC(vkDestroyDescriptorSetLayout);
+	LOAD_DEVICE_PROC(vkUpdateDescriptorSets);
 }
 
 void Pu::LogicalDevice::Destory(void)

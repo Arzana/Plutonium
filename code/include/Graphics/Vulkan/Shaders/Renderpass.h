@@ -2,6 +2,7 @@
 #include "Subpass.h"
 #include "Output.h"
 #include "Attribute.h"
+#include "Uniform.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/EventArgs.h"
 
@@ -73,12 +74,17 @@ namespace Pu
 		_Check_return_ Attribute& GetAttribute(_In_ const string &name);
 		/* Gets the specified shader input attribute. */
 		_Check_return_ const Attribute& GetAttribute(_In_ const string &name) const;
+		/* Gets the specified shader input uniform. */
+		_Check_return_ Uniform& GetUniform(_In_ const string &name);
+		/* Gets the specified shader input uniform. */
+		_Check_return_ const Uniform& GetUniform(_In_ const string &name) const;
 
 	private:
 		friend class GraphicsPipeline;
 		friend class CommandBuffer;
 		friend class Framebuffer;
 		friend class GameWindow;
+		friend class DescriptorPool;
 
 		LogicalDevice &device;
 		RenderPassHndl hndl;
@@ -87,6 +93,7 @@ namespace Pu
 
 		vector<Subpass> subpasses;
 		vector<Attribute> attributes;
+		vector<Uniform> uniforms;
 		vector<Output> outputs;
 		vector<ClearValue> clearValues;
 		vector<SubpassDependency> dependencies;

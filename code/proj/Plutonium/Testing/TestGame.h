@@ -27,4 +27,5 @@ private:
 	Pu::Buffer *vrtxBuffer, *vrtxStagingBuffer, *imgStagingBuffer;
 	Pu::Image *image;
 	Pu::ImageView *view;
+	Pu::DescriptorSet *descriptor;
 };

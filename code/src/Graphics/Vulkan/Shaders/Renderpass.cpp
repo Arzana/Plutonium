@@ -17,9 +17,12 @@ Pu::Renderpass::Renderpass(Renderpass && value)
 	: device(value.device), hndl(value.hndl), subpasses(std::move(value.subpasses)),
 	loaded(value.IsLoaded()), usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
 	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)), 
-	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes))
+	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes)),
+	uniforms(std::move(value.uniforms))
 {
 	value.hndl = nullptr;
+	value.loaded.store(false);
+	value.usable = false;
 }
 
 Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
@@ -37,7 +40,8 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		outputs = std::move(other.outputs);
 		clearValues = std::move(other.clearValues);
 		dependencies = std::move(other.dependencies);
-		attributes = std::move(attributes);
+		attributes = std::move(other.attributes);
+		uniforms = std::move(other.uniforms);
 
 		other.hndl = nullptr;
 		other.loaded.store(false);
@@ -87,6 +91,26 @@ const Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name) const
 	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
 }
 
+Pu::Uniform & Pu::Renderpass::GetUniform(const string & name)
+{
+	for (Uniform &cur : uniforms)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
+}
+
+const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
+{
+	for (const Uniform &cur : uniforms)
+	{
+		if (name == cur.Info.Name) return cur;
+	}
+
+	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
+}
+
 void Pu::Renderpass::Link(void)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
@@ -127,7 +151,18 @@ void Pu::Renderpass::LoadFields(void)
 		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
 	}
 
-	// TODO: load all uniforms
+	/* Load all uniforms. */
+	for (const Subpass &pass : subpasses)
+	{
+		for (size_t i = 0; i < pass.GetFieldCount(); i++)
+		{
+			const FieldInfo &info = pass.GetField(i);
+			if (info.Storage == spv::StorageClass::UniformConstant)
+			{
+				uniforms.emplace_back(Uniform(info, pass.GetType()));
+			}
+		}
+	}
 
 	/* Save a variable for how many attachment references are made. */
 	uint32 referenceCnt = 0;
@@ -143,6 +178,12 @@ void Pu::Renderpass::LoadFields(void)
 
 void Pu::Renderpass::Finalize(void)
 {
+	/* Create all uniform samplers. */
+	for (Uniform &cur : uniforms)
+	{
+		if (cur.isSampler) VK_VALIDATE(device.vkCreateSampler(device.hndl, &cur.createInfo, nullptr, &cur.hndl), PFN_vkCreateSampler);
+	}
+
 	/* Set all attachment references for the subpass. */
 	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
 	for (const Output &cur : outputs)
@@ -205,7 +246,7 @@ bool Pu::Renderpass::CheckIO(const Subpass & a, const Subpass & b) const
 		for (j = 0; j < b.GetFieldCount(); j++)
 		{
 			const FieldInfo &bInfo = b.GetField(j);
-			if (bInfo.Storage == spv::StorageClass::Input && bInfo.Location == aInfo.Location)
+			if (bInfo.Storage == spv::StorageClass::Input && bInfo.GetLocation() == aInfo.GetLocation())
 			{
 				/* Raise if the types of the fields don't match. */
 				if (aInfo.Type != bInfo.Type)
@@ -278,7 +319,15 @@ void Pu::Renderpass::LinkFailed(void)
 
 void Pu::Renderpass::Destroy(void)
 {
-	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
+	if (hndl)
+	{
+		device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
+
+		for (Uniform &cur : uniforms)
+		{
+			if (cur.hndl) device.vkDestroySampler(device.hndl, cur.hndl, nullptr);
+		}
+	}
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, std::initializer_list<const char*> subpasses)

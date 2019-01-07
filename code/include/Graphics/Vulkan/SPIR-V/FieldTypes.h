@@ -1,4 +1,5 @@
 #pragma once
+#include <sal.h>
 
 namespace Pu
 {
@@ -36,7 +37,15 @@ namespace Pu
 		/* A 4D floating point vector. */
 		Vec4,
 		/* A 4x4 floating point matrix. */
-		Matrix
+		Matrix,
+		/* A 1D sampled image. */
+		Image1D,
+		/* A 2D sampled image. */
+		Image2D,
+		/* A 3D sampled image. */
+		Image3D,
+		/* A cube map sampled image. */
+		ImageCube
 	};
 
 	/* Gets a human readable version of a field type. */
@@ -74,6 +83,14 @@ namespace Pu
 			return "Vector4";
 		case Pu::FieldTypes::Matrix:
 			return "Matrix";
+		case Pu::FieldTypes::Image1D:
+			return "Image1D";
+		case Pu::FieldTypes::Image2D:
+			return "Image2D";
+		case Pu::FieldTypes::Image3D:
+			return "Image3D";
+		case Pu::FieldTypes::ImageCube:
+			return "ImageCube";
 		default:
 			return "Unknown";
 		}

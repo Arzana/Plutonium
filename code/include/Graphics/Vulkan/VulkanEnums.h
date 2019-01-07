@@ -1213,6 +1213,8 @@ namespace Pu
 	/* Defines the operations available on a descriptor pool. */
 	enum class DescriptorPoolCreateFlag
 	{
+		/* No flags are set. */
+		None = 0x00000000,
 		/* Specifies that the descriptor sets can return their individual allocations to the pool. */
 		FreeDescriptorSet = 0x00000001
 	};
@@ -1220,8 +1222,8 @@ namespace Pu
 	/* Defines additional properties of attachments. */
 	enum class AttachmentDescriptionFlag
 	{
-		/* No flags where set. */
-		None = 0x00000001,
+		/* No flags are set. */
+		None = 0x00000000,
 		/* Specifies that the attachment aliases the same device memory as other attachments. */
 		MayAlias = 0x00000001
 	};
@@ -1484,6 +1486,17 @@ namespace Pu
 		DebugReportCallback = 1000011000,
 		DebugUtilsMessanger = 1000128000,
 		ValidationCache = 1000160000,
+	};
+
+	/* Defines behaviour of a descriptor set layout. */
+	enum class DescriptorSetLayoutCreateFlags
+	{
+		/* No flags are set. */
+		None = 0x00000000,
+		/* Specifies that descriptor sets must not be allocated using this layout. */
+		PushDescriptor = 0x00000001,
+		/* Specifies that descriptor sets using this layout must be allocated from a descriptor pool created with this flag. */
+		UpdateAfterBindPool = 0x00000002
 	};
 
 	/* Appends the flag bits of an image usage flag. */

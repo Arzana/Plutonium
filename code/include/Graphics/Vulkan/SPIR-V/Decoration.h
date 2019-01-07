@@ -9,19 +9,21 @@ namespace Pu
 	struct Decoration
 	{
 	public:
-		/* The type of decoration. */
-		spv::Decoration Type;
-		/* The named literal numbers associated with the decoration. */
-		std::map<string, spv::Word> Numbers;
+		/* Specifies the decorations found and their operands. */
+		std::map<spv::Decoration, spv::Word> Numbers;
 
 		/* Initializes an empty instance of a SPIR-V decoration. */
 		Decoration(void)
-			: Type(spv::Decoration::Max)
 		{}
 
-		/* Initializes a new instance of a SPIR-V decoration. */
-		Decoration(spv::Decoration type)
-			: Type(type)
-		{}
+		/* Merges the specifies decoration into this one. */
+		inline void Merge(_In_ const Decoration &other)
+		{
+			/* Copy over all numbers. */
+			for (const auto &[type, literal] : other.Numbers)
+			{
+				Numbers.emplace(type, literal);
+			}
+		}
 	};
 }

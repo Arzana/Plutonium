@@ -218,9 +218,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorPool.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorSet.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Image.h" />
@@ -238,6 +241,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Subpass.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Uniform.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h" />
@@ -287,6 +291,8 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorPool.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorSet.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp" />
@@ -301,6 +307,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Uniform.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
@@ -323,6 +330,8 @@
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\assets\shaders\Image.frag" />
+    <None Include="..\..\..\assets\shaders\Image.vert" />
     <None Include="..\..\..\assets\shaders\VertexColor.frag" />
     <None Include="..\..\..\assets\shaders\Triangle.vert" />
     <None Include="..\..\..\assets\shaders\VertexColor.vert" />

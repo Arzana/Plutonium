@@ -28,7 +28,7 @@ Pu::CommandPool & Pu::CommandPool::operator=(CommandPool && other)
 	return *this;
 }
 
-Pu::CommandBuffer Pu::CommandPool::AllocateCommandBuffer(void) const
+Pu::CommandBuffer Pu::CommandPool::Allocate(void) const
 {
 	/* Initialize creation info. */
 	const CommandBufferAllocateInfo allocInfo(hndl, 1);
@@ -36,8 +36,6 @@ Pu::CommandBuffer Pu::CommandPool::AllocateCommandBuffer(void) const
 
 	/* Allocate new buffer. */
 	VK_VALIDATE(parent.vkAllocateCommandBuffers(parent.hndl, &allocInfo, &commandBuffer), PFN_vkAllocateCommandBuffers);
-
-	/* Return new buffer object. */
 	return CommandBuffer(const_cast<CommandPool&>(*this), commandBuffer);
 }
 

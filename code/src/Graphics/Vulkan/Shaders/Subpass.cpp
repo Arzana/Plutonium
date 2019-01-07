@@ -5,7 +5,6 @@
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
 const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
-constexpr const char *KEY_LOCATION = "Location";
 
 Pu::Subpass::Subpass(LogicalDevice & device)
 	: parent(device), loaded(false)
@@ -103,7 +102,7 @@ void Pu::Subpass::SetFieldInfo(void)
 		/* Skip variables that have no name or have a none supported type. */
 		if (ShouldHandleField(id, typeId))
 		{
-			fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage, decorations[id].Numbers[KEY_LOCATION]);
+			fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage, decorations[id]);
 		}
 	}
 
@@ -123,9 +122,8 @@ bool Pu::Subpass::ShouldHandleField(spv::Id id, spv::Id typeId)
 	/* We can only handle a subset of the types, so ignore the ones that we didn't load. */
 	if (types.find(typedefs[typeId]) == types.end()) return false;
 
-	/* User defined variables need to have a location, all others must be build in variables, which we can skip. */
+	/* User defined variables need to have at least one handlable decoration, all others must be build in variables, which we can skip. */
 	if (decorations.find(id) == decorations.end()) return false;
-	if (decorations[id].Numbers.find(KEY_LOCATION) == decorations[id].Numbers.end()) return false;
 
 	return true;
 }
@@ -156,6 +154,13 @@ void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
 	case (spv::Op::OpTypeMatrix):
 		HandleMatrix(reader);
 		break;
+		//TODO: handle array types.
+	case (spv::Op::OpTypeImage):
+		HandleImage(reader);
+		break;
+	case (spv::Op::OpTypeSampledImage):
+		HandleSampledImage(reader);
+		break;
 	case (spv::Op::OpVariable):
 		HandleVariable(reader);
 		break;
@@ -173,20 +178,28 @@ void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
 {
 	/* Read the target and create the decoration object. */
 	const spv::Id target = reader.ReadWord();
-	Decoration result(_CrtInt2Enum<spv::Decoration>(reader.ReadWord()));
+	const spv::Decoration type = _CrtInt2Enum<spv::Decoration>(reader.ReadWord());
 
-	switch (result.Type)
+	Decoration result;
+	switch (type)
 	{
-	case (spv::Decoration::Location):	// Location decoration stores a single literal number.
-		result.Numbers.emplace(KEY_LOCATION, reader.ReadWord());
+	case (spv::Decoration::Location):		// Location decoration stores a single literal number.
+		result.Numbers.emplace(type, reader.ReadWord());
 		break;
-	default:							// Just log that we don't hanle the decoration at this point.
-		Log::Warning("Unable to handle decoration type '%s' at this point!", to_string(result.Type));
+	case (spv::Decoration::DescriptorSet):	// Descriptor set decoration stores a single literal number.
+		result.Numbers.emplace(type, reader.ReadWord());
+		break;
+	case (spv::Decoration::Binding):		// Binding decoration stores a single literal number.
+		result.Numbers.emplace(type, reader.ReadWord());
+		break;
+	default:								// Just log that we don't hanle the decoration at this point.
+		Log::Warning("Unable to handle decoration type '%s' at this point!", to_string(type));
 		return;
 	}
 
-	/* Only push if the decoration type was handled. */
-	decorations.emplace(target, result);
+	/* Only push if the decoration type was handled, also merge them together if the target is already added. */
+	if (decorations.find(target) != decorations.end()) decorations[target].Merge(result);
+	else decorations.emplace(target, result);
 }
 
 void Pu::Subpass::HandleType(SPIRVReader & reader)
@@ -252,6 +265,50 @@ void Pu::Subpass::HandleMatrix(SPIRVReader & reader)
 	if (columnType == FieldTypes::Vec4 && columnCnt == 4) type = FieldTypes::Matrix;
 
 	types.emplace(id, type);
+}
+
+void Pu::Subpass::HandleImage(SPIRVReader & reader)
+{
+	/* We need the type id but we can skip the underlying image type as it doesn't concern us. */
+	const spv::Id id = reader.ReadWord();
+	reader.AdvanceWord();
+
+	FieldTypes type = FieldTypes::Invalid;
+	switch (_CrtInt2Enum<spv::Dim>(reader.ReadWord()))
+	{
+	case (spv::Dim::Dim1D):
+		type = FieldTypes::Image1D;
+		break;
+	case (spv::Dim::Dim2D):
+		type = FieldTypes::Image2D;
+		break;
+	case (spv::Dim::Dim3D):
+		type = FieldTypes::Image3D;
+		break;
+	case (spv::Dim::Cube):
+		type = FieldTypes::ImageCube;
+		break;
+	}
+
+	/*
+	We can also skip the:
+	depth indicator, 
+	arrayed indicator, 
+	multi-sample indicator, 
+	sampled indicator 
+	format
+	and (optional) access qualifier Because we don't care about them.
+	*/
+
+	types.emplace(id, type);
+}
+
+void Pu::Subpass::HandleSampledImage(SPIRVReader & reader)
+{
+	/* Just add the type of the image that's being sampled to the type list. */
+	const spv::Id id = reader.ReadWord();
+	const FieldTypes imgType = types[reader.ReadWord()];
+	types.emplace(id, imgType);
 }
 
 void Pu::Subpass::HandleVariable(SPIRVReader & reader)
