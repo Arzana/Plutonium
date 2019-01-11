@@ -311,6 +311,12 @@ namespace Pu
 		Extent3D(_In_ Extent2D widthHeight, _In_ uint32 depth)
 			: Width(widthHeight.Width), Height(widthHeight.Height), Depth(depth)
 		{}
+
+		/* Gets the width and height components of the extent3D as a extent2D. */
+		_Check_return_ inline Extent2D To2D(void) const
+		{
+			return Extent2D(Width, Height);
+		}
 	};
 
 	/* Defines image format properties. */
@@ -2501,14 +2507,14 @@ namespace Pu
 
 		/* Initializes an empty instance of the image create info object. */
 		ImageCreateInfo(void)
-			: ImageCreateInfo(ImageType::Image2D, Format::Undefined, Extent3D(), ImageUsageFlag::None)
+			: ImageCreateInfo(ImageType::Image2D, Format::Undefined, Extent3D(), 0, 0, SampleCountFlag::None, ImageUsageFlag::None)
 		{}
 
 		/* Initializes a new instance of the image create info object. */
-		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ ImageUsageFlag usage)
+		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ uint32 mipLevels, _In_ uint32 arrayLayers, _In_ SampleCountFlag samples, _In_ ImageUsageFlag usage)
 			: Type(StructureType::ImageCreateInfo), Next(nullptr), Flags(ImageCreateFlag::None),
-			ImageType(type), Format(format), Extent(extent), MipLevels(DefaultMipLevels), 
-			ArrayLayers(1), Samples(SampleCountFlag::Pixel1Bit), Tiling(ImageTiling::Optimal),
+			ImageType(type), Format(format), Extent(extent), MipLevels(mipLevels), 
+			ArrayLayers(arrayLayers), Samples(samples), Tiling(ImageTiling::Optimal),
 			Usage(usage), SharingMode(SharingMode::Exclusive), QueueFamilyIndexCount(0),
 			QueueFamilyIndeces(nullptr), InitialLayout(ImageLayout::Undefined)
 		{}

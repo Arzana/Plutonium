@@ -22,16 +22,16 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 	return *this;
 }
 
-void Pu::DescriptorSet::Write(const Uniform & uniform, const ImageView & view)
+void Pu::DescriptorSet::Write(const Uniform & uniform, const Texture & texture)
 {
-	DescriptorImageInfo info(uniform.hndl, view.hndl);
+	DescriptorImageInfo info(texture.sampler.hndl, texture.view->hndl);
 	WriteImage(uniform, { info });
 }
 
-void Pu::DescriptorSet::Write(const Uniform & uniform, const vector<const ImageView*>& views)
+void Pu::DescriptorSet::Write(const Uniform & uniform, const vector<const Texture*>& textures)
 {
 	vector<DescriptorImageInfo> infos;
-	for (const ImageView *cur : views) infos.emplace_back(uniform.hndl, cur->hndl);
+	for (const Texture *cur : textures) infos.emplace_back(cur->sampler.hndl, cur->view->hndl);
 	WriteImage(uniform, infos);
 }
 

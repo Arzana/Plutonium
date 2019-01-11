@@ -13,7 +13,7 @@ namespace Pu
 		/* Move constructor. */
 		Image(_In_ Image &&value);
 		/* Releases the image. */
-		~Image(void)
+		virtual ~Image(void)
 		{
 			Destroy();
 		}
@@ -23,7 +23,7 @@ namespace Pu
 		_Check_return_ Image& operator =(_In_ Image &&other);
 
 		/* Gets the size of the image. */
-		_Check_return_ inline Extent3D GetSize(void) const
+		_Check_return_ inline Extent3D GetExtent(void) const
 		{
 			return dimensions;
 		}

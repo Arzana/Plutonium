@@ -94,8 +94,8 @@ void TestGame::LoadContent(void)
 	const vector<float> texels = _CrtLoadImage("../assets/images/Plutonium.png", imgInfo, 4);
 
 	/* Initializes our image and view. */
-	image = new Image(GetDevice(), ImageCreateInfo(ImageType::Image2D, Format::R32G32B32A32_SFLOAT, Extent3D(imgInfo.Width, imgInfo.Height, 1), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled));
-	view = new ImageView(GetDevice(), *image);
+	sampler = new Sampler(GetDevice(), SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = new Texture2D(GetDevice(), *sampler, Format::R32G32B32A32_SFLOAT, Extent2D(imgInfo.Width, imgInfo.Height), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
 
 	/* Copy texel information to staging buffer. */
 	imgStagingBuffer = new Buffer(GetDevice(), texels.size() * sizeof(float), BufferUsageFlag::TransferSrc, true);
@@ -105,8 +105,8 @@ void TestGame::LoadContent(void)
 void TestGame::UnLoadContent(void)
 {
 	delete imgStagingBuffer;
-	delete view;
 	delete image;
+	delete sampler;
 
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -134,12 +134,12 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		/* Copy image to final image. */
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, DependencyFlag::None, ImageLayout::TransferDstOptimal,
 			AccessFlag::TransferWrite, QueueFamilyIgnored, ImageSubresourceRange());
-		cmdBuffer.CopyBuffer(*imgStagingBuffer, *image, { BufferImageCopy(image->GetSize()) });
+		cmdBuffer.CopyBuffer(*imgStagingBuffer, *image, { BufferImageCopy(image->GetExtent()) });
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
 			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
 
 		/* Update the descriptor. */
-		descriptor->Write(renderpass->GetUniform("Texture"), *view);
+		descriptor->Write(renderpass->GetUniform("Texture"), *image);
 	}
 
 	/* Get the current render area and get our current framebuffer. */

@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/Vulkan/Shaders/Uniform.h"
-#include "Graphics/Vulkan/ImageView.h"
+#include "Graphics/Textures/Texture.h"
 
 namespace Pu
 {
@@ -24,9 +24,9 @@ namespace Pu
 		_Check_return_ DescriptorSet& operator =(_In_ DescriptorSet &&other);
 
 		/* Writes image data to a specific binding (represented by the uniform). */
-		void Write(_In_ const Uniform &uniform, _In_ const ImageView &view);
+		void Write(_In_ const Uniform &uniform, _In_ const Texture &texture);
 		/* Writes image data to a specific binding (represented by the uniform). */
-		void Write(_In_ const Uniform &uniform, _In_ const vector<const ImageView*> &views);
+		void Write(_In_ const Uniform &uniform, _In_ const vector<const Texture*> &textures);
 
 	private:
 		friend class DescriptorPool;

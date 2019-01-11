@@ -68,6 +68,7 @@ namespace Pu
 		friend class Image;
 		friend class DescriptorPool;
 		friend class DescriptorSet;
+		friend class Sampler;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;

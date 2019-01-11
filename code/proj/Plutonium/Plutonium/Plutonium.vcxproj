@@ -216,6 +216,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\Sampler.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\Texture.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -288,6 +291,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\Sampler.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />

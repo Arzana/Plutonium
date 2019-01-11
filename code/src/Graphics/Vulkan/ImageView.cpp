@@ -15,8 +15,8 @@ static ImageViewType imgTypeToViewType(ImageType type)
 	}
 }
 
-Pu::ImageView::ImageView(LogicalDevice & device, const Image & image)
-	: parent(device)
+Pu::ImageView::ImageView(const Image & image)
+	: parent(image.parent)
 {
 	const ImageViewCreateInfo createInfo(image.imageHndl, imgTypeToViewType(image.type), image.format);
 	VK_VALIDATE(parent.vkCreateImageView(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);

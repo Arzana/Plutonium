@@ -16,7 +16,7 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
 Pu::Renderpass::Renderpass(Renderpass && value)
 	: device(value.device), hndl(value.hndl), subpasses(std::move(value.subpasses)),
 	loaded(value.IsLoaded()), usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
-	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)), 
+	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)),
 	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes)),
 	uniforms(std::move(value.uniforms))
 {
@@ -178,12 +178,6 @@ void Pu::Renderpass::LoadFields(void)
 
 void Pu::Renderpass::Finalize(void)
 {
-	/* Create all uniform samplers. */
-	for (Uniform &cur : uniforms)
-	{
-		if (cur.isSampler) VK_VALIDATE(device.vkCreateSampler(device.hndl, &cur.createInfo, nullptr, &cur.hndl), PFN_vkCreateSampler);
-	}
-
 	/* Set all attachment references for the subpass. */
 	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
 	for (const Output &cur : outputs)
@@ -210,7 +204,7 @@ void Pu::Renderpass::Finalize(void)
 	// Temporary block.
 	/*--------------------------------------------------------------------------------------------------------------*/
 	SubpassDescription temp;
-	temp.ColorAttachmentCount = colorAttachments.size();
+	temp.ColorAttachmentCount = static_cast<uint32>(colorAttachments.size());
 	temp.ColorAttachments = colorAttachments.data();
 	subpassDescriptions.push_back(temp);
 	/*--------------------------------------------------------------------------------------------------------------*/
@@ -319,15 +313,7 @@ void Pu::Renderpass::LinkFailed(void)
 
 void Pu::Renderpass::Destroy(void)
 {
-	if (hndl)
-	{
-		device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
-
-		for (Uniform &cur : uniforms)
-		{
-			if (cur.hndl) device.vkDestroySampler(device.hndl, cur.hndl, nullptr);
-		}
-	}
+	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, std::initializer_list<const char*> subpasses)
