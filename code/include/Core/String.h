@@ -197,6 +197,12 @@ namespace Pu
 			return *this;
 		}
 
+		/* Gets whether the string contains a specified substring. */
+		_Check_return_ inline bool contains(_In_ basic_string<_CharTy> substr) const
+		{
+			return find_last_of(substr) != string_t::npos;
+		}
+
 		/* Removes a specified character from the string. */
 		inline void remove(_In_ _CharTy ch)
 		{

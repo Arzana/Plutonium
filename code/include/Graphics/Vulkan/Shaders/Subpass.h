@@ -93,23 +93,27 @@ namespace Pu
 		string name;
 
 		std::map<spv::Id, string> names;
+		std::map<spv::Id, vector<string>> memberNames;
 		std::map<spv::Id, spv::Id> typedefs;
 		std::map<spv::Id, FieldTypes> types;
+		std::map<spv::Id, vector<spv::Id>> structs;
 		std::map<spv::Id, Decoration> decorations;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
 		void Load(const string &path);
 		void Create(const string &path);
 		void SetFieldInfo(void);
-		bool ShouldHandleField(spv::Id id, spv::Id typeId);
-		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t);
+		void HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage);
+		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t wordCnt);
 		void HandleName(SPIRVReader &reader);
+		void HandleMemberName(SPIRVReader &reader);
 		void HandleDecorate(SPIRVReader &reader);
 		void HandleType(SPIRVReader &reader);
 		void HandleInt(SPIRVReader &reader);
 		void HandleFloat(SPIRVReader &reader);
 		void HandleVector(SPIRVReader &reader);
 		void HandleMatrix(SPIRVReader &reader);
+		void HandleStruct(SPIRVReader &reader, size_t memberCnt);
 		void HandleImage(SPIRVReader &reader);
 		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);

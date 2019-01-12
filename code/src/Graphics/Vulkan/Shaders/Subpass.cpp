@@ -99,42 +99,65 @@ void Pu::Subpass::SetFieldInfo(void)
 	/* Create field information for all fields. */
 	for (const auto&[id, typeId, storage] : variables)
 	{
-		/* Skip variables that have no name or have a none supported type. */
-		if (ShouldHandleField(id, typeId))
-		{
-			fields.emplace_back(id, std::move(names[id]), types[typedefs[typeId]], storage, decorations[id]);
-		}
+		HandleVariable(id, typeId, storage);
 	}
 
 	/* Clear the temporary buffers. */
 	names.clear();
+	memberNames.clear();
 	decorations.clear();
 	typedefs.clear();
 	types.clear();
+	structs.clear();
 	variables.clear();
 }
 
-bool Pu::Subpass::ShouldHandleField(spv::Id id, spv::Id typeId)
+void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage)
 {
-	/* Variables without a name are sometimes defined by SPIR-V but we have no use for them. */
-	if (names[id].empty()) return false;
+	const spv::Id typePointer = typedefs[typeId];
 
-	/* We can only handle a subset of the types, so ignore the ones that we didn't load. */
-	if (types.find(typedefs[typeId]) == types.end()) return false;
+	/* Handle normal type. */
+	if (types.find(typePointer) != types.end())
+	{
+		/* User defined variables need to have at least one handlable decoration, all others must be build in variables, which we can skip. */
+		if (decorations.find(id) != decorations.end())
+		{
+			/* Only handle types with defined names, this should never occur. */
+			fields.emplace_back(id, std::move(names[id]), types[typePointer], storage, decorations[id]);
+		}
+	}
+	/* Handle struct types. */
+	else if (structs.find(typePointer) != structs.end())
+	{
+		/* Handle all member types. */
+		const vector<spv::Id> &members = structs[typePointer];
+		for (size_t i = 0; i < members.size(); i++)
+		{
+			const spv::Id memberTypeId = members[i];
+			string &memberName = memberNames[typePointer][i];
 
-	/* User defined variables need to have at least one handlable decoration, all others must be build in variables, which we can skip. */
-	if (decorations.find(id) == decorations.end()) return false;
+			/* Skip any build in members (defined with 'gl_' prefix). */
+			if (!memberName.contains("gl_"))
+			{
+				Decoration memberDecoration(i);
+				memberDecoration.Merge(decorations[id]);
 
-	return true;
+				fields.emplace_back(memberTypeId, std::move(memberName), types[memberTypeId], storage, memberDecoration);
+			}
+		}
+	}
 }
 
-void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
+void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordCnt)
 {
 	/* Pass usefull operation codes to their functions. */
 	switch (opCode)
 	{
 	case (spv::Op::OpName):
 		HandleName(reader);
+		break;
+	case (spv::Op::OpMemberName):
+		HandleMemberName(reader);
 		break;
 	case (spv::Op::OpDecorate):
 		HandleDecorate(reader);
@@ -154,6 +177,9 @@ void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t)
 	case (spv::Op::OpTypeMatrix):
 		HandleMatrix(reader);
 		break;
+	case (spv::Op::OpTypeStruct):
+		HandleStruct(reader, wordCnt - 1);
+		break;
 		//TODO: handle array types.
 	case (spv::Op::OpTypeImage):
 		HandleImage(reader);
@@ -172,6 +198,26 @@ void Pu::Subpass::HandleName(SPIRVReader & reader)
 	const spv::Id target = reader.ReadWord();
 	const string str = reader.ReadLiteralString();
 	names.emplace(target, str);
+}
+
+void Pu::Subpass::HandleMemberName(SPIRVReader & reader)
+{
+	const spv::Id type = reader.ReadWord();
+	const spv::Id idx = reader.ReadWord();
+	const string str = reader.ReadLiteralString();
+
+	if (memberNames.find(type) != memberNames.end())
+	{
+		/* Make sure we have enough space. */
+		memberNames[type].resize(idx + 1);
+		memberNames[type][idx] = str;
+	}
+	else
+	{
+		/* If we cannot find the containing struct yet, just add it. */
+		vector<string> members = { str };
+		memberNames.emplace(type, members);
+	}
 }
 
 void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
@@ -267,6 +313,16 @@ void Pu::Subpass::HandleMatrix(SPIRVReader & reader)
 	types.emplace(id, type);
 }
 
+void Pu::Subpass::HandleStruct(SPIRVReader & reader, size_t memberCnt)
+{
+	const spv::Id id = reader.ReadWord();
+	vector<spv::Id> members;
+	members.reserve(memberCnt);
+	for (size_t i = 0; i < memberCnt; i++) members.emplace_back(reader.ReadWord());
+
+	structs.emplace(id, std::move(members));
+}
+
 void Pu::Subpass::HandleImage(SPIRVReader & reader)
 {
 	/* We need the type id but we can skip the underlying image type as it doesn't concern us. */
@@ -292,10 +348,10 @@ void Pu::Subpass::HandleImage(SPIRVReader & reader)
 
 	/*
 	We can also skip the:
-	depth indicator, 
-	arrayed indicator, 
-	multi-sample indicator, 
-	sampled indicator 
+	depth indicator,
+	arrayed indicator,
+	multi-sample indicator,
+	sampled indicator
 	format
 	and (optional) access qualifier Because we don't care about them.
 	*/
@@ -316,7 +372,7 @@ void Pu::Subpass::HandleVariable(SPIRVReader & reader)
 	const spv::Id resultType = reader.ReadWord();
 	const spv::Id resultId = reader.ReadWord();
 	const spv::StorageClass storageClass = _CrtInt2Enum<spv::StorageClass>(reader.ReadWord());
-	
+
 	variables.emplace_back(std::make_tuple(resultId, resultType, storageClass));
 }
 

@@ -157,7 +157,7 @@ void Pu::Renderpass::LoadFields(void)
 		for (size_t i = 0; i < pass.GetFieldCount(); i++)
 		{
 			const FieldInfo &info = pass.GetField(i);
-			if (info.Storage == spv::StorageClass::UniformConstant)
+			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
 				uniforms.emplace_back(Uniform(info, pass.GetType()));
 			}
