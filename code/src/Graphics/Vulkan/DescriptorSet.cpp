@@ -28,6 +28,12 @@ void Pu::DescriptorSet::Write(const Uniform & uniform, const Texture & texture)
 	WriteImage(uniform, { info });
 }
 
+void Pu::DescriptorSet::Write(const Uniform & uniform, const Buffer & buffer)
+{
+	DescriptorBufferInfo info(buffer.bufferHndl, uniform.GetOffset(), uniform.GetSize());
+	WriteBuffer(uniform, { info });
+}
+
 void Pu::DescriptorSet::Write(const Uniform & uniform, const vector<const Texture*>& textures)
 {
 	vector<DescriptorImageInfo> infos;
@@ -41,6 +47,18 @@ Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl)
 
 void Pu::DescriptorSet::WriteImage(const Uniform & uniform, const vector<DescriptorImageInfo>& infos)
 {
+	/* Check if the descriptor type is correct. */
+	if (uniform.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image uniform!");
+
+	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, infos);
+	WriteDescriptor({ write });
+}
+
+void Pu::DescriptorSet::WriteBuffer(const Uniform & uniform, const vector<DescriptorBufferInfo>& infos)
+{
+	/* Check if the descriptor type is correct. */
+	if (uniform.layoutBinding.DescriptorType != DescriptorType::UniformBuffer) Log::Fatal("Cannot update descriptor with buffer on non-buffer uniform!");
+
 	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, infos);
 	WriteDescriptor({ write });
 }

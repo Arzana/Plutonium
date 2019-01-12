@@ -11,17 +11,17 @@ namespace Pu
 	public:
 		/* Specifies the decorations found and their operands. */
 		std::map<spv::Decoration, spv::Word> Numbers;
-		/* Specifies the member index (only used with uniform buffer members). */
-		size_t MemberIndex;
+		/* Specifies the member offset (in bytes) (only used with uniform buffer members). */
+		size_t MemberOffset;
 
 		/* Initializes an empty instance of a SPIR-V decoration. */
 		Decoration(void)
-			: MemberIndex(0)
+			: MemberOffset(0)
 		{}
 
 		/* Initializes a new instance of a SPIR-V decoration for a specific uniform buffer member. */
-		Decoration(_In_ size_t memberIdx)
-			: MemberIndex(memberIdx)
+		Decoration(_In_ size_t offset)
+			: MemberOffset(offset)
 		{}
 
 		/* Merges the specifies decoration into this one. */
@@ -32,10 +32,6 @@ namespace Pu
 			{
 				Numbers.emplace(type, literal);
 			}
-
-			/* Make sure the member index is copied over correctly. */
-			if (!MemberIndex && other.MemberIndex) MemberIndex = other.MemberIndex;
-			else if (MemberIndex && other.MemberIndex) Log::Error("Unable to merge member index of decoration!");
 		}
 	};
 }

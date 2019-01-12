@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Vulkan/Shaders/Uniform.h"
 #include "Graphics/Textures/Texture.h"
+#include "Graphics/Vulkan/Buffer.h"
 
 namespace Pu
 {
@@ -25,6 +26,8 @@ namespace Pu
 
 		/* Writes image data to a specific binding (represented by the uniform). */
 		void Write(_In_ const Uniform &uniform, _In_ const Texture &texture);
+		/* Writes buffer data to a specific binding (represented by the uniform). */
+		void Write(_In_ const Uniform &uniform, _In_ const Buffer &buffer);
 		/* Writes image data to a specific binding (represented by the uniform). */
 		void Write(_In_ const Uniform &uniform, _In_ const vector<const Texture*> &textures);
 
@@ -37,7 +40,8 @@ namespace Pu
 
 		DescriptorSet(DescriptorPool &pool, DescriptorSetHndl hndl);
 
-		void WriteImage(const Uniform &uniform, const vector<DescriptorImageInfo> & infos);
+		void WriteImage(const Uniform &uniform, const vector<DescriptorImageInfo> &infos);
+		void WriteBuffer(const Uniform &uniform, const vector<DescriptorBufferInfo> &infos);
 		void WriteDescriptor(const vector<WriteDescriptorSet> &writes);
 		void UpdateDescriptor(size_t writeCount, const WriteDescriptorSet *writes, size_t copyCount, const CopyDescriptorSet *copies);
 		void Free(void);

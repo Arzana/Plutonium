@@ -36,12 +36,6 @@ namespace Pu
 			return static_cast<uint32>(elements);
 		}
 
-		/* Gets the handle for the Vulkan buffer object. */
-		_Check_return_ inline BufferHndl GetHandle(void) const
-		{
-			return bufferHndl;
-		}
-
 		/* Sets the data of the buffer. */
 		template <typename _Ty>
 		inline void SetData(_In_ const _Ty *data, _In_ size_t count)
@@ -52,6 +46,7 @@ namespace Pu
 
 	private:
 		friend class CommandBuffer;
+		friend class DescriptorSet;
 
 		BufferHndl bufferHndl;
 		DeviceMemoryHndl memoryHndl;

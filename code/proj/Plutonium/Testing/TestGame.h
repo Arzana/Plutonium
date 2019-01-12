@@ -25,7 +25,7 @@ protected:
 private: 
 	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *vrtxBuffer, *vrtxStagingBuffer, *imgStagingBuffer;
+	Pu::Buffer *vrtxBuffer, *uniBuffer, *vrtxStagingBuffer, *imgStagingBuffer, *uniStagingBuffer;
 	Pu::Sampler *sampler;
 	Pu::Texture2D *image;
 	Pu::DescriptorSet *descriptor;

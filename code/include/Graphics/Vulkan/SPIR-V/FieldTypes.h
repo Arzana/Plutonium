@@ -95,4 +95,48 @@ namespace Pu
 			return "Unknown";
 		}
 	}
+
+	_Check_return_ inline size_t sizeof_fieldType(_In_ FieldTypes type)
+	{
+		switch (type)
+		{
+		case Pu::FieldTypes::Byte:
+			return sizeof(byte);
+		case Pu::FieldTypes::SByte:
+			return sizeof(int8);
+		case Pu::FieldTypes::Short:
+			return sizeof(int16);
+		case Pu::FieldTypes::UShort:
+			return sizeof(uint16);
+		case Pu::FieldTypes::Int:
+			return sizeof(int32);
+		case Pu::FieldTypes::UInt:
+			return sizeof(uint32);
+		case Pu::FieldTypes::Long:
+			return sizeof(int64);
+		case Pu::FieldTypes::ULong:
+			return sizeof(uint64);
+		case Pu::FieldTypes::HalfFloat:
+			return sizeof(float) / 2;
+		case Pu::FieldTypes::Float:
+			return sizeof(float);
+		case Pu::FieldTypes::Double:
+			return sizeof(double);
+		case Pu::FieldTypes::Vec2:
+			return sizeof(float) * 2;
+		case Pu::FieldTypes::Vec3:
+			return sizeof(float) * 3;
+		case Pu::FieldTypes::Vec4:
+			return sizeof(float) * 4;
+		case Pu::FieldTypes::Matrix:
+			return sizeof(float) * 16;
+		case Pu::FieldTypes::Invalid:
+		case Pu::FieldTypes::Image1D:
+		case Pu::FieldTypes::Image2D:
+		case Pu::FieldTypes::Image3D:
+		case Pu::FieldTypes::ImageCube:
+		default:
+			return 0;
+		}
+	}
 }

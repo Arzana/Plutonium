@@ -21,6 +21,18 @@ namespace Pu
 			return layoutBinding.DescriptorType;
 		}
 
+		/* Gets the offset specified for the uniform buffer member (if not in uniform buffer; 0). */
+		_Check_return_ inline DeviceSize GetOffset(void) const 
+		{
+			return static_cast<DeviceSize>(Info.Decorations.MemberOffset);
+		}
+
+		/* Gets the size (in bytes) of the uniform (if not aplicable; 0). */
+		_Check_return_ inline DeviceSize GetSize(void) const 
+		{
+			return static_cast<DeviceSize>(sizeof_fieldType(Info.Type));
+		}
+
 	private:
 		friend class Renderpass;
 		friend class GraphicsPipeline;

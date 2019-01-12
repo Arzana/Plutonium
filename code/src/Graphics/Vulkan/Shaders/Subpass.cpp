@@ -131,19 +131,23 @@ void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass s
 	{
 		/* Handle all member types. */
 		const vector<spv::Id> &members = structs[typePointer];
-		for (size_t i = 0; i < members.size(); i++)
+		for (size_t i = 0, offset = 0; i < members.size(); i++)
 		{
 			const spv::Id memberTypeId = members[i];
+			const FieldTypes type = types[memberTypeId];
 			string &memberName = memberNames[typePointer][i];
 
 			/* Skip any build in members (defined with 'gl_' prefix). */
 			if (!memberName.contains("gl_"))
 			{
-				Decoration memberDecoration(i);
+				Decoration memberDecoration(offset);
 				memberDecoration.Merge(decorations[id]);
 
-				fields.emplace_back(memberTypeId, std::move(memberName), types[memberTypeId], storage, memberDecoration);
+				fields.emplace_back(memberTypeId, std::move(memberName), type, storage, memberDecoration);
 			}
+
+			/* Increase the offset. */
+			offset += sizeof_fieldType(type);
 		}
 	}
 }

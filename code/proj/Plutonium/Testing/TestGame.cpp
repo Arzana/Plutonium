@@ -2,6 +2,7 @@
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/VertexLayouts/Image2D.h>
 #include <Graphics/Resources/ImageHandler.h>
+#include <Core/Math/Matrix.h>
 
 using namespace Pu;
 
@@ -84,6 +85,8 @@ void TestGame::LoadContent(void)
 		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
 	};
 
+	const Matrix identity = Matrix::CreateScalar(0.5f);
+
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
 	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
 	vrtxStagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
@@ -100,10 +103,18 @@ void TestGame::LoadContent(void)
 	/* Copy texel information to staging buffer. */
 	imgStagingBuffer = new Buffer(GetDevice(), texels.size() * sizeof(float), BufferUsageFlag::TransferSrc, true);
 	imgStagingBuffer->SetData(texels.data(), texels.size());
+
+	/* Initialize the uniform buffer and setup the staging buffer. */
+	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
+	uniStagingBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::TransferSrc, true);
+	uniStagingBuffer->SetData(identity.GetComponents(), 16);
 }
 
 void TestGame::UnLoadContent(void)
 {
+	delete uniStagingBuffer;
+	delete uniBuffer;
+
 	delete imgStagingBuffer;
 	delete image;
 	delete sampler;
@@ -138,8 +149,14 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
 			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
 
+		/* Copy matrix to final uniform buffer. */
+		cmdBuffer.CopyEntireBuffer(*uniStagingBuffer, *uniBuffer);
+		cmdBuffer.MemoryBarrier(*uniBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, DependencyFlag::None, AccessFlag::UniformRead);
+
 		/* Update the descriptor. */
 		descriptor->Write(renderpass->GetUniform("Texture"), *image);
+		/* Update projection matrix. */
+		descriptor->Write(renderpass->GetUniform("Projection"), *uniBuffer);
 	}
 
 	/* Get the current render area and get our current framebuffer. */
