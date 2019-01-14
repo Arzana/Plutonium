@@ -24,9 +24,13 @@ void Pu::Task::MarkChildAsComplete(Task & child)
 }
 
 Pu::Task::Result::Result(void)
-	: Continuation(nullptr)
+	: Continuation(nullptr), Delete(false)
 {}
 
 Pu::Task::Result::Result(Task & continuation)
-	: Continuation(&continuation)
+	: Continuation(&continuation), Delete(false)
+{}
+
+Pu::Task::Result::Result(bool shouldDelete)
+	: Continuation(nullptr), Delete(shouldDelete)
 {}

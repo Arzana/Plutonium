@@ -333,3 +333,23 @@ namespace Pu
 	/* Defines a string stored in 32-bit characters. */
 	using ustring = basic_string<char32_t>;
 }
+
+namespace std
+{
+	/* Add the Plutonium string as a hashable value. */
+	template <>
+	struct hash<Pu::string>
+	{
+	public:
+		/* Defines the argument type for a hash. */
+		using argument_type = Pu::string;
+		/* Defines the result type for a hash. */
+		using result_type = std::size_t;
+
+		/* Calculates the hash from the specified argument. */
+		_Check_return_ inline result_type operator ()(_In_ const argument_type &arg) const noexcept
+		{
+			return std::hash<std::string>{}(arg);
+		}
+	};
+}

@@ -56,3 +56,13 @@ Pu::vector<float> Pu::_CrtLoadImage(const string & path, ImageInformation & info
 		return vector<float>(reinterpret_cast<const float*>(DEFAULT_IMAGE_DATA), reinterpret_cast<const float*>(DEFAULT_IMAGE_DATA + sizeof(DEFAULT_IMAGE_DATA) / sizeof(Vector4)));
 	}
 }
+
+Pu::ImageLoadTask::ImageLoadTask(const string & path, int32 desiredChannels)
+	: path(path), channels(desiredChannels)
+{}
+
+Pu::Task::Result Pu::ImageLoadTask::Execute(void)
+{
+	result = _CrtLoadImage(path, info, channels);
+	return Result();
+}

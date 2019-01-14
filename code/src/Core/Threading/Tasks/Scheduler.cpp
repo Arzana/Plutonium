@@ -181,4 +181,7 @@ void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result r
 #ifdef _DEBUG
 	if (!result.Continuation && task->GetChildCount() < 1) task->completed.store(true);
 #endif
+
+	/* Delete the task if the user requested it. */
+	if (result.Delete) delete task;
 }
