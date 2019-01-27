@@ -8,9 +8,6 @@ using namespace Pu;
 template <typename _Ty>
 static _Ty byteSwap(_Ty value)
 {
-	/* Make sure the char implementation has 8 bits. */
-	static_assert(CHAR_BIT == 8, "char doesn't have 8 bits!");
-
 	union Cnvrtr
 	{
 		_Ty normal;
@@ -29,9 +26,6 @@ static _Ty byteSwap(_Ty value)
 template <typename _Ty>
 static _Ty byteswap(_Ty value, size_t stride)
 {
-	/* Make sure the char implementation has 8 bits. */
-	static_assert(CHAR_BIT == 8, "char doesn't have 8 bits!");
-
 	union Cnvrtr
 	{
 		_Ty normal;

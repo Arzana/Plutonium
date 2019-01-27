@@ -17,11 +17,15 @@ namespace Pu
 		public:
 			/* Specifies that this task should run immediately. */
 			Task* Continuation;
+			/* Specifies whether the task should be deleted upon completion. */
+			bool Delete;
 
 			/* Initializes an empty instance of the task result object. */
 			Result(void);
 			/* Initializes a task result as a continuation result. */
 			Result(_In_ Task &continuation);
+			/* Initializes a task result as a delete parent result. */
+			Result(_In_ bool shouldDelete);
 		};
 
 		Task(_In_ Task&&) = delete;
