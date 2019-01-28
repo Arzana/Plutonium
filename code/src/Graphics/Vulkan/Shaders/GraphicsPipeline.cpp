@@ -159,7 +159,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	pool = new DescriptorPool(*this, 1);	//TODO: Don't hardcode this to one!
 
 	/* Create graphics pipeline. */
-	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
+	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass *pass) { return pass->info; });
 	GraphicsPipelineCreateInfo createInfo(stages, *vertexInput, *inputAssembly, *display, *rasterizer, *multisample, *colorBlend, layoutHndl, renderpass->hndl);
 	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
@@ -241,10 +241,10 @@ void Pu::GraphicsPipeline::Destroy(void)
 	}
 }
 
-Pu::GraphicsPipeline::LoadTask::LoadTask(GraphicsPipeline & pipelineResult, Renderpass & passResult, std::initializer_list<const char*> subpasses)
+Pu::GraphicsPipeline::LoadTask::LoadTask(GraphicsPipeline & pipelineResult, Renderpass & passResult, const vector<std::tuple<size_t, string>>& toLoad)
 	: result(pipelineResult), renderPass(passResult)
 {
-	child = new Renderpass::LoadTask(passResult, subpasses);
+	child = new Renderpass::LoadTask(passResult, toLoad);
 	child->SetParent(*this);
 }
 
@@ -268,5 +268,5 @@ Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Continue(void)
 
 	/* Initializes the graphics pipeline and return that we're done loading. */
 	result.Initialize();
-	return Result();
+	return Result(true);
 }

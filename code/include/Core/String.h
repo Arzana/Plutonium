@@ -351,5 +351,13 @@ namespace std
 		{
 			return std::hash<std::string>{}(arg);
 		}
+
+		/* Calculates the hash from the specified arguments. */
+		_Check_return_ inline result_type operator ()(_In_ const vector<argument_type> &args) const noexcept
+		{
+			argument_type str;
+			for (const argument_type &cur : args) str += cur;
+			return operator()(str);
+		}
 	};
 }

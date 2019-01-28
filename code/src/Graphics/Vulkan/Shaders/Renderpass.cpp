@@ -6,7 +6,7 @@ Pu::Renderpass::Renderpass(LogicalDevice & device)
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {}
 
-Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
+Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass*>&& subpasses)
 	: device(device), subpasses(std::move(subpasses)), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
@@ -114,18 +114,18 @@ const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
 void Pu::Renderpass::Link(void)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
-	std::sort(subpasses.begin(), subpasses.end(), [](const Subpass &a, const Subpass &b)
+	std::sort(subpasses.begin(), subpasses.end(), [](const Subpass *a, const Subpass *b)
 	{
-		return _CrtEnum2Int(a.GetType()) < _CrtEnum2Int(b.GetType());
+		return _CrtEnum2Int(a->GetType()) < _CrtEnum2Int(b->GetType());
 	});
 
 	/* Check if the supplied shader modules can be linked together. */
 	for (size_t i = 0, j = 1; j < subpasses.size(); i++, j++)
 	{
-		if (!CheckIO(subpasses[i], subpasses[j]))
+		if (!CheckIO(*subpasses[i], *subpasses[j]))
 		{
 			/* Shader is done loading but failed linking. */
-			Log::Error("Unable to link %s shader to %s shader!", to_string(subpasses[i].GetType()), to_string(subpasses[j].GetType()));
+			Log::Error("Unable to link %s shader to %s shader!", to_string(subpasses[i]->GetType()), to_string(subpasses[j]->GetType()));
 			LinkFailed();
 			return;
 		}
@@ -144,22 +144,22 @@ void Pu::Renderpass::Link(void)
 void Pu::Renderpass::LoadFields(void)
 {
 	/* Load all attributes. */
-	const Subpass &inputPass = subpasses.front();
-	for (size_t i = 0; i < inputPass.GetFieldCount(); i++)
+	const Subpass *inputPass = subpasses.front();
+	for (size_t i = 0; i < inputPass->GetFieldCount(); i++)
 	{
-		const FieldInfo &info = inputPass.GetField(i);
+		const FieldInfo &info = inputPass->GetField(i);
 		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
 	}
 
 	/* Load all uniforms. */
-	for (const Subpass &pass : subpasses)
+	for (const Subpass *pass : subpasses)
 	{
-		for (size_t i = 0; i < pass.GetFieldCount(); i++)
+		for (size_t i = 0; i < pass->GetFieldCount(); i++)
 		{
-			const FieldInfo &info = pass.GetField(i);
+			const FieldInfo &info = pass->GetField(i);
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
-				uniforms.emplace_back(Uniform(info, pass.GetType()));
+				uniforms.emplace_back(Uniform(info, pass->GetType()));
 			}
 		}
 	}
@@ -168,10 +168,10 @@ void Pu::Renderpass::LoadFields(void)
 	uint32 referenceCnt = 0;
 
 	/* Load all outputs. */
-	const Subpass &outputPass = subpasses.back();
-	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
+	const Subpass *outputPass = subpasses.back();
+	for (size_t i = 0; i < outputPass->GetFieldCount(); i++)
 	{
-		const FieldInfo &info = outputPass.GetField(i);
+		const FieldInfo &info = outputPass->GetField(i);
 		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++));
 	}
 }
@@ -295,10 +295,10 @@ void Pu::Renderpass::LinkSucceeded(void)
 
 #ifdef _DEBUG
 	string modules;
-	for (const Subpass &pass : subpasses)
+	for (const Subpass *pass : subpasses)
 	{
-		modules += pass.GetName();
-		if (pass.GetType() != ShaderStageFlag::Fragment) modules += " -> ";
+		modules += pass->GetName();
+		if (pass->GetType() != ShaderStageFlag::Fragment) modules += " -> ";
 	}
 
 	Log::Verbose("Successfully linked render pass: %s.", modules.c_str());
@@ -316,25 +316,22 @@ void Pu::Renderpass::Destroy(void)
 	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
 }
 
-Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, std::initializer_list<const char*> subpasses)
-	: result(result), paths(subpasses)
-{}
+Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, string>>& toLoad)
+	: result(result)
+{
+	/* Create new load tasks for the to load subpasses. */
+	for (auto[idx, path] : toLoad)
+	{
+		children.emplace_back(new Subpass::LoadTask(*result.subpasses[idx], path));
+	}
+}
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 {
-	/* We need to pre add the subpassed because vector resizing created bad refrences. */
-	size_t i = 0;
-	for (; i < paths.size(); i++) result.subpasses.emplace_back(result.device);
-
-	i = 0;
-	for (const char *cur : paths)
+	/* Spawn all still required load tasks. */
+	for (Subpass::LoadTask *task : children)
 	{
-		/* Create the subpass loading task */
-		Subpass::LoadTask *task = new Subpass::LoadTask(result.subpasses[i++], cur);
 		task->SetParent(*this);
-		children.emplace_back(task);
-
-		/* Give the task to the scheduler. */
 		scheduler->Spawn(*task);
 	}
 
@@ -345,9 +342,9 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
 	/* Make sure that all subpasses are loaded on debug mode. */
 #ifdef _DEBUG
-	for (const Subpass &cur : result.subpasses)
+	for (const Subpass *cur : result.subpasses)
 	{
-		if (!cur.IsLoaded()) Log::Error("Not every subpass has completed loading!");
+		if (!cur->IsLoaded()) Log::Error("Not every subpass has completed loading!");
 	}
 #endif
 

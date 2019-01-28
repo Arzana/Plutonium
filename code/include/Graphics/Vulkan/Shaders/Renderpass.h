@@ -12,35 +12,13 @@ namespace Pu
 	class Renderpass
 	{
 	public:
-		/* Defines a way to load a render pass. */
-		class LoadTask
-			: public Task
-		{
-		public:
-			/* Initializes a new instance of the render pass load task. */
-			LoadTask(_Out_ Renderpass &result, _In_ std::initializer_list<const char*> subpasses);
-			LoadTask(_In_ const LoadTask&) = delete;
-
-			_Check_return_ LoadTask& operator =(_In_ const LoadTask&) = delete;
-
-			/* Loads all subpasses. */
-			_Check_return_ virtual Result Execute(void) override;
-			/* Creates the renderpass and links the subpasses. */
-			_Check_return_ virtual Result Continue(void) override;
-
-		private:
-			Renderpass &result;
-			vector<const char*> paths;
-			vector<Subpass::LoadTask*> children;
-		};
-
 		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
 		EventBus<Renderpass, EventArgs> OnLinkCompleted;
 
 		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);
 		/* Initializes a new render pass from the specified subpasses. */
-		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);
+		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass*> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;
 		/* Move contructor. */
 		Renderpass(_In_ Renderpass &&value);
@@ -85,13 +63,33 @@ namespace Pu
 		friend class Framebuffer;
 		friend class GameWindow;
 		friend class DescriptorPool;
+		friend class AssetLoader;
+		friend class AssetFetcher;
+		friend struct SavedAsset;
+
+		class LoadTask
+			: public Task
+		{
+		public:
+			LoadTask(Renderpass &result, const vector<std::tuple<size_t, string>> &toLoad);
+			LoadTask(const LoadTask&) = delete;
+
+			LoadTask& operator =(const LoadTask&) = delete;
+
+			virtual Result Execute(void) override;
+			virtual Result Continue(void) override;
+
+		private:
+			Renderpass &result;
+			vector<Subpass::LoadTask*> children;
+		};
 
 		LogicalDevice &device;
 		RenderPassHndl hndl;
 		std::atomic_bool loaded;
 		bool usable;
 
-		vector<Subpass> subpasses;
+		vector<Subpass*> subpasses;
 		vector<Attribute> attributes;
 		vector<Uniform> uniforms;
 		vector<Output> outputs;
@@ -105,5 +103,8 @@ namespace Pu
 		void LinkSucceeded(void);
 		void LinkFailed(void);
 		void Destroy(void);
+
+		/* Needs to be defined for the saved asset. */
+		inline Renderpass* Copy(void) { return nullptr; }
 	};
 }

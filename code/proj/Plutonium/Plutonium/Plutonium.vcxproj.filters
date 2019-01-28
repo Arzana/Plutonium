@@ -124,6 +124,12 @@
     <Filter Include="Source Files\Graphics\Textures">
       <UniqueIdentifier>{88a12fa2-d7ef-4fe5-bd8f-bb89655b9f57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Content">
+      <UniqueIdentifier>{baf1469d-3c9d-4376-9b22-4d51c97c6cc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Content">
+      <UniqueIdentifier>{71357709-dff2-4df7-af9c-6c51e1680c92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -417,6 +423,24 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h">
       <Filter>Header Files\Graphics\Textures</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\SharedAsset.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\IOCache.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\AssetLoader.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\AssetLibrary.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\SavedAsset.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\AssetFetcher.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -578,6 +602,12 @@
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp">
       <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -608,6 +638,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\CommandBuffer.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\SharedAsset.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

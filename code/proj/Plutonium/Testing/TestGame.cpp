@@ -6,17 +6,32 @@
 
 using namespace Pu;
 
-GraphicsPipeline::LoadTask *loader;
-
 TestGame::TestGame(void)
-	: Application("TestGame"), renderpass(nullptr)
+	: Application("TestGame")
 {}
 
 void TestGame::Initialize(void)
 {
-	/* Setup render pass. */
-	renderpass = new Renderpass(GetDevice());
-	renderpass->OnLinkCompleted += [&](Renderpass &renderpass, EventArgs)
+	/* Setup graphics pipeline. */
+	pipeline = new GraphicsPipeline(GetDevice());
+	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline, EventArgs)
+	{
+		/* Set viewport, topology and add the vertex binding. */
+		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
+		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
+		pipeline.AddVertexBinding<Image2D>(0);
+		pipeline.Finalize();
+
+		/* Allocate and move the new descriptor set. */
+		descriptor = new DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(0)));
+
+		/* Create the framebuffers with no extra image views. */
+		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), {});
+		TempMarkDoneLoading();
+	};
+
+	/* Setup and load render pass. */
+	GetContent().FetchRenderpass(*pipeline, { "../assets/shaders/Image.vert", "../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass, EventArgs)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -45,33 +60,11 @@ void TestGame::Initialize(void)
 		renderpass.AddDependency(dependency);
 	};
 
-	/* Setup graphics pipeline. */
-	pipeline = new GraphicsPipeline(GetDevice());
-	pipeline->PostInitialize += [&](GraphicsPipeline &pipeline, EventArgs)
-	{
-		/* Set viewport, topology and add the vertex binding. */
-		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
-		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding<Image2D>(0);
-		pipeline.Finalize();
-
-		/* Allocate and move the new descriptor set. */
-		descriptor = new DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(0)));
-
-		/* Create the framebuffers with no extra image views. */
-		GetWindow().CreateFrameBuffers(*renderpass, {});
-		TempMarkDoneLoading();
-	};
-
-	/* Start loading the graphics pipeline. */
-	loader = new GraphicsPipeline::LoadTask(*pipeline, *renderpass, { "../assets/shaders/Image.vert", "../assets/shaders/Image.frag" });
-	ProcessTask(*loader);
-
 	/* Make sure the framebuffers are re-created of the window resizes. */
-	GetWindow().GetNative().OnSizeChanged += [&](const NativeWindow&, ValueChangedEventArgs<Vector2>)
+	GetWindow().GetNative().OnSizeChanged += [this](const NativeWindow&, ValueChangedEventArgs<Vector2>)
 	{
 		const vector<const ImageView*> views;
-		GetWindow().CreateFrameBuffers(*renderpass, views);
+		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass(), views);
 	};
 }
 
@@ -125,10 +118,10 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	GetContent().FreeRenderpass(*pipeline);
+
 	delete descriptor;
 	delete pipeline;
-	delete renderpass;
-	delete loader;
 }
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)
@@ -154,17 +147,17 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*uniBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, DependencyFlag::None, AccessFlag::UniformRead);
 
 		/* Update the descriptor. */
-		descriptor->Write(renderpass->GetUniform("Texture"), *image);
+		descriptor->Write(pipeline->GetRenderpass().GetUniform("Texture"), *image);
 		/* Update projection matrix. */
-		descriptor->Write(renderpass->GetUniform("Projection"), *uniBuffer);
+		descriptor->Write(pipeline->GetRenderpass().GetUniform("Projection"), *uniBuffer);
 	}
 
 	/* Get the current render area and get our current framebuffer. */
 	const Rect2D renderArea = GetWindow().GetNative().GetClientBounds().GetSize();
-	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(*renderpass);
+	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass());
 
 	/* Render scene. */
-	cmdBuffer.BeginRenderPass(*renderpass, framebuffer, renderArea, SubpassContents::Inline);
+	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
 	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);

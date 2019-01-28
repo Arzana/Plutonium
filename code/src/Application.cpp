@@ -213,6 +213,9 @@ void Pu::Application::DoInitialize(void)
 {
 	InitializeVulkan();
 
+	/* Content needs the logical device, so create it here. */
+	content = new AssetFetcher(*device, *scheduler);
+
 	/* Window must be show at least once to give the correct size to the swapchain. */
 	wnd->Show();
 	gameWnd = new GameWindow(*wnd, *device);
@@ -229,6 +232,7 @@ void Pu::Application::DoFinalize(void)
 {
 	Finalize();
 
+	delete content;
 	delete gameWnd;
 	delete device;
 	delete wnd;

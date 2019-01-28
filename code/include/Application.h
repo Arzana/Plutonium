@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Graphics/Platform/GameWindow.h"
-#include "Core/Threading/Tasks/Scheduler.h"
+#include "Content/AssetFetcher.h"
 
 namespace Pu
 {
@@ -53,6 +53,12 @@ namespace Pu
 		_Check_return_ inline LogicalDevice& GetDevice(void)
 		{
 			return *device;
+		}
+
+		/* Gets the asset fetcher. */
+		_Check_return_ inline AssetFetcher& GetContent(void)
+		{
+			return *content;
 		}
 
 		/* Schedules the specified task for execution. */
@@ -117,6 +123,7 @@ namespace Pu
 		NativeWindow *wnd;
 		GameWindow *gameWnd;
 		TaskScheduler *scheduler;
+		AssetFetcher *content;
 
 		static void InitializePlutonium(void);
 

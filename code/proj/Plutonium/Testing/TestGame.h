@@ -23,7 +23,6 @@ protected:
 	virtual void RenderLoad(float) {}
 
 private: 
-	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
 	Pu::Buffer *vrtxBuffer, *uniBuffer, *vrtxStagingBuffer, *imgStagingBuffer, *uniStagingBuffer;
 	Pu::Sampler *sampler;

@@ -8,28 +8,6 @@ namespace Pu
 	class GraphicsPipeline
 	{
 	public:
-		/* Defines a way to load a graphics pipeline. */
-		class LoadTask
-			: public Task
-		{
-		public:
-			/* Initializes a new instance of the graphics pipeline load task. */
-			LoadTask(_Out_ GraphicsPipeline &pipelineResult, _Out_ Renderpass &passResult, _In_ std::initializer_list<const char*> subpasses);
-			LoadTask(_In_ const LoadTask&) = delete;
-
-			_Check_return_ LoadTask& operator =(_In_ const LoadTask&) = delete;
-
-			/* Loads the render pass. */
-			_Check_return_ virtual Result Execute(void) override;
-			/* Initializes the graphics pipeline. */
-			_Check_return_ virtual Result Continue(void) override;
-
-		private:
-			GraphicsPipeline &result;
-			Renderpass &renderPass;
-			Renderpass::LoadTask *child;
-		};
-
 		/* Occurs after the graphics pipeline has been initialized. */
 		EventBus<GraphicsPipeline, EventArgs> PostInitialize;
 
@@ -51,6 +29,12 @@ namespace Pu
 		_Check_return_ inline bool IsLoaded(void) const
 		{
 			return loaded.load();
+		}
+
+		/* Gets the renderpass used to in this graphics pipeline. */
+		_Check_return_ inline const Renderpass& GetRenderpass(void) const
+		{
+			return *renderpass;
 		}
 
 		/* Gets the pool from which descriptors can be made. */
@@ -100,6 +84,25 @@ namespace Pu
 		friend class CommandBuffer;
 		friend class DescriptorPool;
 		friend class DescriptorSet;
+		friend class AssetLoader;
+
+		class LoadTask
+			: public Task
+		{
+		public:
+			LoadTask(GraphicsPipeline &pipelineResult, Renderpass &passResult, const vector<std::tuple<size_t, string>> &toLoad);
+			LoadTask(const LoadTask&) = delete;
+
+			LoadTask& operator =(const LoadTask&) = delete;
+
+			virtual Result Execute(void) override;
+			virtual Result Continue(void) override;
+
+		private:
+			GraphicsPipeline &result;
+			Renderpass &renderPass;
+			Renderpass::LoadTask *child;
+		};
 
 		PipelineVertexInputStateCreateInfo *vertexInput;
 		PipelineInputAssemblyStateCreateInfo *inputAssembly;

@@ -12,25 +12,6 @@ namespace Pu
 	class Subpass
 	{
 	public:
-		/* Defines a way to load a subpass. */
-		class LoadTask
-			: public Task
-		{
-		public:
-			/* Initializes a new instance of the render pass load task. */
-			LoadTask(_Out_ Subpass &result, _In_ const string &path);
-			LoadTask(_In_ const LoadTask&) = delete;
-
-			_Check_return_ LoadTask& operator =(_In_ const LoadTask&) = delete;
-
-			/* Loads the subpass. */
-			_Check_return_ virtual Result Execute(void) override;
-
-		private:
-			Subpass &result;
-			string path;
-		};
-
 		/* Initializes an empty instance of a subpass. */
 		Subpass(_In_ LogicalDevice &device);
 		/* Creates a new shader module from a specified file. */
@@ -83,6 +64,23 @@ namespace Pu
 
 	private:
 		friend class GraphicsPipeline;
+		friend class Renderpass;
+
+		class LoadTask
+			: public Task
+		{
+		public:
+			LoadTask(Subpass &result, const string &path);
+			LoadTask(const LoadTask&) = delete;
+
+			LoadTask& operator =(const LoadTask&) = delete;
+
+			virtual Result Execute(void) override;
+
+		private:
+			Subpass &result;
+			string path;
+		};
 
 		const static FieldInfo invalid;
 

@@ -56,7 +56,7 @@ const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
 void Pu::Subpass::Load(const string & path)
 {
 	const string ext = _CrtGetFileExtension(path);
-	name = _CrtGetFileNameWithoutExtension(path);
+	name = path;
 
 	if (ext == "spv")
 	{
