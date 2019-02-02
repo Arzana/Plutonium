@@ -50,6 +50,43 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 	return *this;
 }
 
+bool Pu::CommandBuffer::CanBegin(bool wait)
+{
+	/* Early out for non-pending states. */
+	switch (state)
+	{
+	case CommandBuffer::State::Initial:
+		return true;
+	case CommandBuffer::State::Recording:
+	case CommandBuffer::State::Executable:
+	case CommandBuffer::State::Invalid:
+		return false;
+	}
+
+	/* Wait for the fence if requested. */
+	if (wait)
+	{
+		if (submitFence->Wait())
+		{
+			Reset();
+			return true;
+		}
+
+		/* Wait failed or timed out, invalidate command buffer. */
+		state = State::Invalid;
+		return false;
+	}
+	/* Quickly check if the fence is signaled if so reset the command buffer. */
+	else if(submitFence->IsSignaled())
+	{
+		Reset();
+		return true;
+	}
+	
+	/* No wait happened and the fence wasn't signaled so just return false. */
+	return false;
+}
+
 void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstBuffer)
 {
 	if (state == State::Recording)
@@ -61,6 +98,16 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstB
 		dstBuffer.elements = srcBuffer.elements;
 	}
 	else Log::Warning("Cannot copy buffer on non-recording CommandBuffer!");
+}
+
+void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destination)
+{
+	if (state == State::Recording)
+	{
+		const BufferImageCopy region(destination.GetExtent());
+		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
+	}
+	else Log::Warning("Cannot copy buffer to image on non-recording CommandBuffer!");
 }
 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer, const vector<BufferCopy>& regions)
@@ -182,16 +229,7 @@ void Pu::CommandBuffer::Begin(void)
 	static const CommandBufferBeginInfo info;
 
 	/* Wait for the commandbuffer to be released by the device if it's been submitted before. */
-	if (state == State::Pending)
-	{
-		if (submitFence->Wait())
-		{
-			submitFence->Reset();
-			state = State::Initial;
-		}
-	}
-
-	if (state == State::Initial)
+	if (CanBegin(true))
 	{
 		VK_VALIDATE(parent.parent.vkBeginCommandBuffer(hndl, &info), PFN_vkBeginCommandBuffer);
 		state = State::Recording;
@@ -207,6 +245,12 @@ void Pu::CommandBuffer::End(void)
 		state = State::Executable;
 	}
 	else Log::Error("Attempted to call end on %s command buffer!", ::to_string(state));
+}
+
+void Pu::CommandBuffer::Reset(void)
+{
+	submitFence->Reset();
+	state = State::Initial;
 }
 
 void Pu::CommandBuffer::Free(void)

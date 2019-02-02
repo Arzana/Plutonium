@@ -86,8 +86,8 @@ void TestGame::LoadContent(void)
 	vrtxStagingBuffer->SetData(quad, 4);
 
 	/* Load image from disk. */
-	ImageInformation imgInfo;
-	const vector<float> texels = _CrtLoadImage("../assets/images/Plutonium.png", imgInfo, 4);
+	const ImageInformation imgInfo = _CrtGetImageInfo("../assets/images/Plutonium.png");
+	const vector<float> texels = _CrtLoadImageHDR("../assets/images/Plutonium.png");
 
 	/* Initializes our image and view. */
 	sampler = new Sampler(GetDevice(), SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
@@ -138,7 +138,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		/* Copy image to final image. */
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, DependencyFlag::None, ImageLayout::TransferDstOptimal,
 			AccessFlag::TransferWrite, QueueFamilyIgnored, ImageSubresourceRange());
-		cmdBuffer.CopyBuffer(*imgStagingBuffer, *image, { BufferImageCopy(image->GetExtent()) });
+		cmdBuffer.CopyEntireBuffer(*imgStagingBuffer, *image);
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
 			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
 

@@ -8,7 +8,7 @@
 using namespace Pu;
 
 Pu::Queue::Queue(Queue && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), index(value.index)
 {
 	value.hndl = nullptr;
 }
@@ -18,6 +18,7 @@ Queue & Pu::Queue::operator=(Queue && other)
 	if (this != &other)
 	{
 		hndl = other.hndl;
+		index = other.index;
 		parent = std::move(other.parent);
 
 		other.hndl = nullptr;
@@ -55,6 +56,6 @@ void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	VK_VALIDATE(parent.vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
 }
 
-Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl)
-	: parent(device), hndl(hndl)
+Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex)
+	: parent(device), hndl(hndl), index(familyIndex)
 {}

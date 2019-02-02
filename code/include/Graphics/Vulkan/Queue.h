@@ -20,6 +20,12 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Queue& operator =(_In_ Queue &&other);
 
+		/* Gets the queue's family index. */
+		_Check_return_ inline uint32 GetFamilyIndex(void) const 
+		{
+			return index;
+		}
+
 		/* Submits the commands in the specified command pool to the queue. */
 		void Submit(_In_ const Semaphore &waitSemaphore, _In_ CommandBuffer &commandBuffer, _In_ const Semaphore &signalSemaphore);
 		/* Presents the image to the swapchain ofter the semaphore has completed. */
@@ -29,8 +35,9 @@ namespace Pu
 		friend class LogicalDevice;
 
 		QueueHndl hndl;
+		uint32 index;
 		LogicalDevice &parent;
 
-		Queue(LogicalDevice &device, QueueHndl hndl);
+		Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex);
 	};
 }

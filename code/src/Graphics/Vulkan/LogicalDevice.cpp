@@ -56,10 +56,10 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint3
 			if (it == queues.end())
 			{
 				vector<Queue> storage;
-				storage.push_back(Queue(*this, queue));
+				storage.push_back(Queue(*this, queue, cur->QueueFamilyIndex));
 				queues.emplace(cur->QueueFamilyIndex, std::move(storage));
 			}
-			else it->second.push_back(Queue(*this, queue));
+			else it->second.push_back(Queue(*this, queue, cur->QueueFamilyIndex));
 		}
 	}
 }

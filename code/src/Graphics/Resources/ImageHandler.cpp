@@ -4,7 +4,7 @@
 #ifndef _DEBUG
 #define STBI_FAILURE_USERMSG
 #else
-#define STBIW_ASSERT(x) if (!(x)) { Pu::Log::Fatal("STB image writer raised an error!"); }
+#define STBI_ASSERT(x) if (!(x)) { Pu::Log::Fatal("STB image writer raised an error!"); }
 #endif
 
 #include "Graphics/Resources/ImageHandler.h"
@@ -13,56 +13,100 @@
 #include "Graphics/Color.h"
 #include <stb/stb/stb_image.h>
 
-Pu::vector<float> Pu::_CrtLoadImage(const string & path, ImageInformation & info, int32 desiredChannels)
+/* Defines the default image LDR (lime and magenta checkerboard) */
+static const Pu::Color DEFAULT_IMAGE[] =
 {
-	static const Pu::Vector4 DEFAULT_IMAGE_DATA[] =
+	Pu::Color::Lime(),
+	Pu::Color::Magenta(),
+	Pu::Color::Lime(),
+
+	Pu::Color::Magenta(),
+	Pu::Color::Lime(),
+	Pu::Color::Magenta(),
+
+	Pu::Color::Lime(),
+	Pu::Color::Magenta(),
+	Pu::Color::Lime(),
+};
+
+/* Defines the amount of colors in the default image. */
+constexpr size_t DEFAULT_IMAGE_COMPONENTS = sizeof(DEFAULT_IMAGE) / sizeof(Pu::Color);
+
+Pu::vector<float> getDefaultImageHDR(void)
+{
+	/* Create HDR copy of default image. */
+	Pu::vector<float> result(DEFAULT_IMAGE_COMPONENTS * 3);
+	for (Pu::Color cur : DEFAULT_IMAGE)
 	{
-		Pu::Color::Lime().ToVector4(),
-		Pu::Color::Magenta().ToVector4(),
-		Pu::Color::Lime().ToVector4(),
+		/* Convert from Color to HDR values. */
+		const Pu::Vector4 rgba = cur.ToVector4();
+		result.emplace_back(rgba.X);
+		result.emplace_back(rgba.Y);
+		result.emplace_back(rgba.Z);
+	}
 
-		Pu::Color::Magenta().ToVector4(),
-		Pu::Color::Lime().ToVector4(),
-		Pu::Color::Magenta().ToVector4(),
+	return result;
+}
 
-		Pu::Color::Lime().ToVector4(),
-		Pu::Color::Magenta().ToVector4(),
-		Pu::Color::Lime().ToVector4(),
-	};
+Pu::vector<byte> getDefaultImageLDR(void)
+{
+	/* Create LDR copy of default image. */
+	Pu::vector<byte> result(DEFAULT_IMAGE_COMPONENTS * 3);
+	for (Pu::Color cur : DEFAULT_IMAGE)
+	{
+		result.emplace_back(cur.R);
+		result.emplace_back(cur.G);
+		result.emplace_back(cur.B);
+	}
 
+	return result;
+}
+
+Pu::ImageInformation Pu::_CrtGetImageInfo(const string & path)
+{
 	int x, y, c;
-	const float *data = stbi_loadf(path.c_str(), &x, &y, &c, desiredChannels);
+	const bool result = stbi_info(path.c_str(), &x, &y, &c);
+	return result ? ImageInformation(x, y, c, stbi_is_hdr(path.c_str())) : ImageInformation();
+}
 
+Pu::vector<float> Pu::_CrtLoadImageHDR(const string & path)
+{
+	int x, y, c;
+	float *data = stbi_loadf(path.c_str(), &x, &y, &c, 0);
 	const string name = _CrtGetFileName(path);
 
 	if (data)
 	{
 		Log::Verbose("Successfully loaded image '%s'.", name.c_str());
+		vector<float> result(data, data + x * y * c);
 
-		info.Width = static_cast<uint32>(x);
-		info.Height = static_cast<uint32>(y);
-		info.Components = static_cast<uint32>(c);
-
-		return vector<float>(data, data + x * y * c);
+		stbi_image_free(data);
+		return result;
 	}
 	else
 	{
 		Log::Error("Unable to load image '%s', reason: '%s'!", name.c_str(), stbi_failure_reason());
-
-		info.Width = 3;
-		info.Height = 3;
-		info.Components = 4;
-
-		return vector<float>(reinterpret_cast<const float*>(DEFAULT_IMAGE_DATA), reinterpret_cast<const float*>(DEFAULT_IMAGE_DATA + sizeof(DEFAULT_IMAGE_DATA) / sizeof(Vector4)));
+		return getDefaultImageHDR();
 	}
 }
 
-Pu::ImageLoadTask::ImageLoadTask(const string & path, int32 desiredChannels)
-	: path(path), channels(desiredChannels)
-{}
-
-Pu::Task::Result Pu::ImageLoadTask::Execute(void)
+Pu::vector<byte> Pu::_CrtLoadImageLDR(const string & path)
 {
-	result = _CrtLoadImage(path, info, channels);
-	return Result();
+	int x, y, c;
+	byte *data = stbi_load(path.c_str(), &x, &y, &c, 0);
+	const string name = _CrtGetFileName(path);
+
+	if (data)
+	{
+		Log::Verbose("Successfully loaded image '%s'.", name.c_str());
+		vector<byte> result(data, data + x * y * c);
+
+		stbi_image_free(data);
+		return result;
+	}
+	else
+	{
+		Log::Error("Unable to load image '%s', reason: '%s'!", name.c_str(), stbi_failure_reason());
+		return getDefaultImageLDR();
+	}
 }

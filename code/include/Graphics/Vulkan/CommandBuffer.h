@@ -38,8 +38,12 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ CommandBuffer& operator =(_In_ CommandBuffer &&other);
 
+		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
+		_Check_return_ bool CanBegin(_In_opt_ bool wait = false);
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
+		/* Appends a copy command for the entire source buffer into the destination image to the command buffer. */
+		void CopyEntireBuffer(_In_ const Buffer &source, _In_ Image &destination);
 		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
 		void CopyBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer, _In_ const vector<BufferCopy> &regions);
 		/* Appends a copy command from the source buffer to the destination image to the command buffer. */
@@ -67,6 +71,7 @@ namespace Pu
 		friend class CommandPool;
 		friend class Queue;
 		friend class GameWindow;
+		friend class AssetLoader;
 
 		CommandPool &parent;
 		Fence *submitFence;
@@ -77,6 +82,7 @@ namespace Pu
 
 		void Begin(void);
 		void End(void);
+		void Reset(void);
 		void Free(void);
 	};
 }
