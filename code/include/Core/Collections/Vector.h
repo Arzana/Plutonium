@@ -109,12 +109,12 @@ namespace Pu
 		}
 
 		/* Checks whether any element in the vector conforms to the predicate. */
-		template <typename _ParamTy, typename _PredicateTy>
-		_Check_return_ inline bool contains(_In_ _ParamTy &userParam, _In_ _PredicateTy predicate) const
+		template <typename _PredicateTy>
+		_Check_return_ inline bool contains(_In_ _PredicateTy predicate) const
 		{
 			for (const _Ty &cur : *this)
 			{
-				if (predicate(cur, userParam)) return true;
+				if (predicate(cur)) return true;
 			}
 
 			return false;
@@ -149,14 +149,14 @@ namespace Pu
 		}
 
 		/* Removes all element that satisfy the predicate. */
-		template <typename _ParamTy, typename _PredicateTy>
-		_Check_return_ inline size_t removeAll(const _ParamTy &userParam, _In_ _PredicateTy predicate)
+		template <typename _PredicateTy>
+		_Check_return_ inline size_t removeAll(_In_ _PredicateTy predicate)
 		{
 			const size_t len = vector_t::size();
 
 			for (size_t i = 0; i < vector_t::size();)
 			{
-				if (predicate((*this)[i], userParam)) removeAt(i);
+				if (predicate((*this)[i])) removeAt(i);
 				else ++i;
 			}
 

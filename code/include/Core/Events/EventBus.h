@@ -150,7 +150,7 @@ namespace Pu
 		size_t UnRegisterCallback(int64 id) const
 		{
 			lock.lock();
-			const size_t result = callbacks.removeAll(id, [](const SubscriberType &element, const int64 &id) { return element == id; });
+			const size_t result = callbacks.removeAll([id](const SubscriberType &element) { return element == id; });
 			lock.unlock();
 			return result;
 		}

@@ -3,6 +3,7 @@
 #include "Core/Threading/Tasks/Task.h"
 #include "Graphics/Vulkan/SPIR-V/FieldInfo.h"
 #include "Graphics/Vulkan/SPIR-V/Decoration.h"
+#include "Content/Asset.h"
 
 namespace Pu
 {
@@ -10,6 +11,7 @@ namespace Pu
 
 	/* Defines an object used to load and use shader modules as subpasses. */
 	class Subpass
+		: public Asset
 	{
 	public:
 		/* Initializes an empty instance of a subpass. */
@@ -20,7 +22,7 @@ namespace Pu
 		/* Move constructor. */
 		Subpass(_In_ Subpass &&value);
 		/* Destroys the subpass. */
-		~Subpass(void)
+		virtual ~Subpass(void)
 		{
 			Destroy();
 		}
@@ -61,6 +63,13 @@ namespace Pu
 
 		/* Gets the information for the specified field. */
 		_Check_return_ const FieldInfo& GetField(_In_ const string &name) const;
+
+	protected:
+		/* Requires to be overrided for asset, just returns a this-reference. */
+		virtual inline Asset& MemberwiseCopy(_In_ AssetCache&) override
+		{
+			return *this;
+		}
 
 	private:
 		friend class GraphicsPipeline;

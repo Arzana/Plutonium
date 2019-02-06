@@ -35,4 +35,6 @@ namespace Pu
 	constexpr bool LogVulkanInfoMessages = false;
 	/* Defines the default number of level of detail available for minified image sampling. */
 	constexpr uint32 DefaultMipLevels = 4;
+	/* Defines the initial amount of command buffer allocated for asset loading. */
+	constexpr size_t InitialLoadCommandBufferCount = 2;
 }

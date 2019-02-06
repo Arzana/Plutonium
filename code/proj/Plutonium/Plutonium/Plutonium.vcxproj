@@ -172,12 +172,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Config.h" />
+    <ClInclude Include="..\..\..\include\Content\Asset.h" />
+    <ClInclude Include="..\..\..\include\Content\AssetCache.h" />
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h" />
-    <ClInclude Include="..\..\..\include\Content\AssetLibrary.h" />
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h" />
-    <ClInclude Include="..\..\..\include\Content\IOCache.h" />
-    <ClInclude Include="..\..\..\include\Content\SavedAsset.h" />
-    <ClInclude Include="..\..\..\include\Content\SharedAsset.h" />
+    <ClInclude Include="..\..\..\include\Content\DuplicationType.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
@@ -276,6 +275,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Application.cpp" />
+    <ClCompile Include="..\..\..\src\Content\Asset.cpp" />
+    <ClCompile Include="..\..\..\src\Content\AssetCache.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />

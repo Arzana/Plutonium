@@ -423,19 +423,16 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h">
       <Filter>Header Files\Graphics\Textures</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Content\SharedAsset.h">
+    <ClInclude Include="..\..\..\include\Content\Asset.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Content\IOCache.h">
+    <ClInclude Include="..\..\..\include\Content\DuplicationType.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\AssetCache.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h">
-      <Filter>Header Files\Content</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Content\AssetLibrary.h">
-      <Filter>Header Files\Content</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Content\SavedAsset.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h">
@@ -601,6 +598,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp">
       <Filter>Source Files\Graphics\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\Asset.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\AssetCache.cpp">
+      <Filter>Source Files\Content</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp">
       <Filter>Source Files\Content</Filter>

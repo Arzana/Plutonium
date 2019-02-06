@@ -7,17 +7,17 @@
 const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
 
 Pu::Subpass::Subpass(LogicalDevice & device)
-	: parent(device), loaded(false)
+	: Asset(DuplicationType::Reference), parent(device), loaded(false)
 {}
 
 Pu::Subpass::Subpass(LogicalDevice & device, const string & path)
-	: parent(device)
+	: Asset(DuplicationType::Reference, std::hash<string>{}(path)), parent(device)
 {
 	Load(path);
 }
 
 Pu::Subpass::Subpass(Subpass && value)
-	: parent(value.parent), info(value.info), fields(std::move(value.fields)), loaded(value.IsLoaded())
+	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields)), loaded(value.IsLoaded())
 {
 	value.info.Module = nullptr;
 }
@@ -27,6 +27,8 @@ Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
 	if (this != &other)
 	{
 		Destroy();
+
+		Asset::operator=(std::move(other));
 		parent = std::move(other.parent);
 		info = other.info;
 		fields = std::move(other.fields);
@@ -397,7 +399,9 @@ void Pu::Subpass::Destroy(void)
 
 Pu::Subpass::LoadTask::LoadTask(Subpass & result, const string & path)
 	: result(result), path(path)
-{}
+{
+	result.SetHash(std::hash<string>{}(path));
+}
 
 Pu::Task::Result Pu::Subpass::LoadTask::Execute(void)
 {

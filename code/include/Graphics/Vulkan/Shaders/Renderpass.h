@@ -10,6 +10,7 @@ namespace Pu
 {
 	/* Defines a single Vulkan render pass. */
 	class Renderpass
+		: public Asset
 	{
 	public:
 		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
@@ -18,12 +19,12 @@ namespace Pu
 		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);
 		/* Initializes a new render pass from the specified subpasses. */
-		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass*> &&subpasses);
+		Renderpass(_In_ LogicalDevice &device, _In_ vector < std::reference_wrapper<Subpass>> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;
 		/* Move contructor. */
 		Renderpass(_In_ Renderpass &&value);
 		/* Destroys the render pass. */
-		~Renderpass(void)
+		virtual ~Renderpass(void)
 		{
 			Destroy();
 		}
@@ -31,12 +32,6 @@ namespace Pu
 		_Check_return_ Renderpass& operator =(_In_ const Renderpass&) = delete;
 		/* Move assignment. */
 		_Check_return_ Renderpass& operator =(_In_ Renderpass &&other);
-
-		/* Gets whether the renderpass has been loaded. */
-		_Check_return_ inline bool IsLoaded(void) const
-		{
-			return loaded.load();
-		}
 
 		/* Adds a dependency to this rener pass. */
 		inline void AddDependency(_In_ const SubpassDependency &dependency)
@@ -56,6 +51,13 @@ namespace Pu
 		_Check_return_ Uniform& GetUniform(_In_ const string &name);
 		/* Gets the specified shader input uniform. */
 		_Check_return_ const Uniform& GetUniform(_In_ const string &name) const;
+
+	protected:
+		/* Requires to be overrided for asset, just returns a this-reference. */
+		virtual inline Asset& MemberwiseCopy(_In_ AssetCache&) override
+		{
+			return *this;
+		}
 
 	private:
 		friend class GraphicsPipeline;
@@ -86,10 +88,9 @@ namespace Pu
 
 		LogicalDevice &device;
 		RenderPassHndl hndl;
-		std::atomic_bool loaded;
 		bool usable;
 
-		vector<Subpass*> subpasses;
+		vector<std::reference_wrapper<Subpass>> subpasses;
 		vector<Attribute> attributes;
 		vector<Uniform> uniforms;
 		vector<Output> outputs;

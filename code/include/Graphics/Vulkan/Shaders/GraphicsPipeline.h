@@ -25,12 +25,6 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline &&other);
 
-		/* Gets whether the graphics pipeline has been loaded. */
-		_Check_return_ inline bool IsLoaded(void) const
-		{
-			return loaded.load();
-		}
-
 		/* Gets the renderpass used to in this graphics pipeline. */
 		_Check_return_ inline const Renderpass& GetRenderpass(void) const
 		{
@@ -123,7 +117,6 @@ namespace Pu
 		PipelineHndl hndl;
 		PipelineLayoutHndl layoutHndl;
 		vector<DescriptorSetLayoutHndl> descriptorSets;
-		std::atomic_bool loaded;
 
 		Viewport viewport;
 		Rect2D scissor;

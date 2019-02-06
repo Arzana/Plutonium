@@ -130,18 +130,18 @@ vector<LayerProperties> Pu::VulkanInstance::GetSupportedLayers(void)
 bool Pu::VulkanInstance::IsExtensionSupported(const char * extension)
 {
 	const vector<ExtensionProperties> properties = GetSupportedExtensions(nullptr);
-	return properties.contains(extension, [](const ExtensionProperties &prop, const char *userParam)
+	return properties.contains([extension](const ExtensionProperties &prop)
 	{
-		return !strcmp(prop.ExtensionName, userParam);
+		return !strcmp(prop.ExtensionName, extension);
 	});
 }
 
 bool Pu::VulkanInstance::IsLayerSupported(const char * layer)
 {
 	const vector<LayerProperties> properites = GetSupportedLayers();
-	return properites.contains(layer, [](const LayerProperties &prop, const char *userParam)
+	return properites.contains([layer](const LayerProperties &prop)
 	{
-		return !strcmp(prop.LayerName, userParam);
+		return !strcmp(prop.LayerName, layer);
 	});
 }
 

@@ -16,7 +16,7 @@ Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass 
 }
 
 Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
-	: parent(value.parent), renderpass(value.renderpass), hndl(value.hndl), layoutHndl(value.layoutHndl), loaded(value.loaded.load()),
+	: parent(value.parent), renderpass(value.renderpass), hndl(value.hndl), layoutHndl(value.layoutHndl),
 	vertexInput(value.vertexInput), inputAssembly(value.inputAssembly), tessellation(value.tessellation), display(value.display),
 	rasterizer(value.rasterizer), multisample(value.multisample), depthStencil(value.depthStencil), colorBlend(value.colorBlend),
 	dynamicState(value.dynamicState), descriptorSets(std::move(value.descriptorSets)), PostInitialize(std::move(value.PostInitialize)),
@@ -26,7 +26,6 @@ Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
 	value.renderpass = nullptr;
 	value.hndl = nullptr;
 	value.layoutHndl = nullptr;
-	value.loaded.store(false);
 	value.vertexInput = nullptr;
 	value.inputAssembly = nullptr;
 	value.tessellation = nullptr;
@@ -64,7 +63,6 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		renderpass = other.renderpass;
 		hndl = other.hndl;
 		layoutHndl = other.layoutHndl;
-		loaded.store(other.loaded.load());
 		vertexInput = other.vertexInput;
 		inputAssembly = other.inputAssembly;
 		tessellation = other.tessellation;
@@ -85,7 +83,6 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		other.renderpass = nullptr;
 		other.hndl = nullptr;
 		other.layoutHndl = nullptr;
-		other.loaded.store(false);
 		other.vertexInput = nullptr;
 		other.inputAssembly = nullptr;
 		other.tessellation = nullptr;
@@ -124,7 +121,7 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(c
 void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate inputRate)
 {
 	/* Make sure binding isn't added mutliple times. */
-	if (bindingDescriptions.contains(binding, [](const VertexInputBindingDescription &cur, uint32 binding) { return cur.Binding == binding; }))
+	if (bindingDescriptions.contains([binding](const VertexInputBindingDescription &cur) { return cur.Binding == binding; }))
 	{
 		Log::Error("Attempting to add vertex binding description for already added binding!");
 		return;
@@ -159,7 +156,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	pool = new DescriptorPool(*this, 1);	//TODO: Don't hardcode this to one!
 
 	/* Create graphics pipeline. */
-	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass *pass) { return pass->info; });
+	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
 	GraphicsPipelineCreateInfo createInfo(stages, *vertexInput, *inputAssembly, *display, *rasterizer, *multisample, *colorBlend, layoutHndl, renderpass->hndl);
 	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
@@ -222,9 +219,6 @@ void Pu::GraphicsPipeline::Initialize(void)
 
 	/* Allow user to set paramaters. */
 	PostInitialize.Post(*this, EventArgs());
-
-	/* We're done loading the graphics pipeline. */
-	loaded.store(true);
 }
 
 void Pu::GraphicsPipeline::Destroy(void)

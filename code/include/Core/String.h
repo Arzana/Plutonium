@@ -359,5 +359,13 @@ namespace std
 			for (const argument_type &cur : args) str += cur;
 			return operator()(str);
 		}
+
+		/* Calculates the hash from the specified arguments. */
+		_Check_return_ inline result_type operator ()(_In_ const std::initializer_list<argument_type> &args) const noexcept
+		{
+			argument_type str;
+			for (const argument_type &cur : args) str += cur;
+			return operator()(str);
+		}
 	};
 }

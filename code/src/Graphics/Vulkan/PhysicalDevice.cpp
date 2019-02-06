@@ -79,9 +79,9 @@ vector<ExtensionProperties> Pu::PhysicalDevice::GetSupportedExtensions(const cha
 bool Pu::PhysicalDevice::IsExtensionSupported(const char * extension) const
 {
 	const vector<ExtensionProperties> props = GetSupportedExtensions(nullptr);
-	return props.contains(extension, [](const ExtensionProperties &prop, const char *userParam)
+	return props.contains([extension](const ExtensionProperties &prop)
 	{
-		return !strcmp(prop.ExtensionName, userParam);
+		return !strcmp(prop.ExtensionName, extension);
 	});
 }
 

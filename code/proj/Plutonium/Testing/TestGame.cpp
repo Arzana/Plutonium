@@ -78,7 +78,7 @@ void TestGame::LoadContent(void)
 		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
 	};
 
-	const Matrix identity = Matrix::CreateScalar(0.5f);
+	const Matrix identity = Matrix::CreateScalar(2.0f);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
 	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
@@ -87,11 +87,11 @@ void TestGame::LoadContent(void)
 
 	/* Load image from disk. */
 	const ImageInformation imgInfo = _CrtGetImageInfo("../assets/images/Plutonium.png");
-	const vector<float> texels = _CrtLoadImageHDR("../assets/images/Plutonium.png");
+	const vector<byte> texels = _CrtLoadImageLDR("../assets/images/Plutonium.png");
 
 	/* Initializes our image and view. */
 	sampler = new Sampler(GetDevice(), SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
-	image = new Texture2D(GetDevice(), *sampler, Format::R32G32B32A32_SFLOAT, Extent2D(imgInfo.Width, imgInfo.Height), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
+	image = new Texture2D(GetDevice(), *sampler, Format::R8G8B8A8_SRGB, Extent2D(imgInfo.Width, imgInfo.Height), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
 
 	/* Copy texel information to staging buffer. */
 	imgStagingBuffer = new Buffer(GetDevice(), texels.size() * sizeof(float), BufferUsageFlag::TransferSrc, true);
@@ -118,7 +118,7 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
-	GetContent().FreeRenderpass(*pipeline);
+	GetContent().Release(*pipeline);
 
 	delete descriptor;
 	delete pipeline;

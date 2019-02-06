@@ -1,43 +1,44 @@
 #include "Content/AssetFetcher.h"
 
-Pu::AssetFetcher::AssetFetcher(LogicalDevice & device, TaskScheduler & scheduler)
-	: loader(device, scheduler)
-{}
-
-Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, const vector<string>& subpasses)
+Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device)
 {
-	/* Safety check. */
-	if (pipeline.IsLoaded()) Log::Fatal("Cannot fetch renderpass for already loaded graphics pipeline!");
-
-	/* Get an instance of the renderpass. */
-	const size_t hash = std::hash<string>{}(subpasses);
-	auto[found, asset] = lib.GetOrNew<Renderpass, DuplicationType::Reference, LogicalDevice&>(hash, loader.GetDevice());
-
-	/* Populate the renderpass if it hasn't been loaded yet, otherwise; finalize the pipeline. */
-	if (!found) loader.PopulateRenderpass(pipeline, asset, subpasses);
-	else loader.FinalizeGraphicsPipeline(pipeline, asset);
-
-	return asset;
+	cache = new AssetCache();
+	loader = new AssetLoader(scheduler, device, *cache);
 }
 
-void Pu::AssetFetcher::FreeRenderpass(GraphicsPipeline & pipeline)
+Pu::AssetFetcher::~AssetFetcher(void)
 {
-	/* Early out of the pipeline doesn't have a renderpass. */
-	if (!pipeline.IsLoaded()) return;
+	delete loader;
+	delete cache;
+}
 
-	/* Get subpass names for the hash. */
-	vector<string> subpasses;
-	for (const Subpass *cur : pipeline.GetRenderpass().subpasses)
+Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<string> subpasses)
+{
+	/* Create the hash and check if the cache contians the requested asset. */
+	const size_t hash = std::hash<string>{}(subpasses);
+	if (cache->Contains(hash))
 	{
-		subpasses.emplace_back(cur->GetName());
+		/* Siply return a duplication of the asset and finalize the graphics pipeline for this renderpass. */
+		Renderpass &renderpass = cache->Get(hash).Duplicate<Renderpass>(*cache);
+		loader->FinalizeGraphicsPipeline(pipeline, renderpass);
+		return renderpass;
 	}
 
-	/* Recreate hash and try to free the asset. */
-	lib.Free<Renderpass>(std::hash<string>{}(subpasses));
+	/* Create a new renderpass and start loading it. */
+	Renderpass *renderpass = new Renderpass(loader->GetDevice());
+	loader->PopulateRenderpass(pipeline, *renderpass, subpasses);
+	cache->Store(renderpass);
+	return *renderpass;
+}
 
-	/* Try to free all subpasses. */
-	for (const string &cur : subpasses)
+void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
+{
+	/* Make sure to release the subpasses as well. */
+	for (Subpass &cur : pipeline.GetRenderpass().subpasses)
 	{
-		loader.GetCache().Free<Subpass>(std::hash<string>{}(cur));
+		cache->Release(cur);
 	}
+
+	/* const cast here shouldn't matter too much as this is basically a delete statement. */
+	cache->Release(const_cast<Renderpass&>(pipeline.GetRenderpass()));
 }

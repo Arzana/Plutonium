@@ -213,8 +213,8 @@ void Pu::Application::DoInitialize(void)
 {
 	InitializeVulkan();
 
-	/* Content needs the logical device, so create it here. */
-	content = new AssetFetcher(*device, *scheduler);
+	/* The fetcher needs to be created here as it needs the logical device. */
+	content = new AssetFetcher(*scheduler, *device);
 
 	/* Window must be show at least once to give the correct size to the swapchain. */
 	wnd->Show();
