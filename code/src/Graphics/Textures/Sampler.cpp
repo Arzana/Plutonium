@@ -1,17 +1,20 @@
 #include "Graphics/Textures/Sampler.h"
 
 Pu::Sampler::Sampler(LogicalDevice & device, const SamplerCreateInfo & createInfo)
-	: parent(device), magFilter(createInfo.MagFilter), minFilter(createInfo.MinFilter), mipmapMode(createInfo.MipmapMode),
+	: Asset(true, CreateHash(createInfo)), parent(device), 
+	magFilter(createInfo.MagFilter), minFilter(createInfo.MinFilter), mipmapMode(createInfo.MipmapMode),
 	uMode(createInfo.AddressModeU), vMode(createInfo.AddressModeV), wMode(createInfo.AddressModeW),
 	loDBias(createInfo.MipLodBias), maxAnisotropy(createInfo.MaxAnisotropy), minLoD(createInfo.MinLoD), maxLoD(createInfo.MaxLoD),
 	anisotropy(createInfo.AnisotropyEnable), compare(createInfo.CompareModeEnable), unnormalizedCoordinates(createInfo.UnnormalizedCoordinates),
 	cmpOp(createInfo.CompareOp), clr(createInfo.BorderColor)
 {
 	VK_VALIDATE(parent.vkCreateSampler(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSampler);
+	MarkAsLoaded();
 }
 
 Pu::Sampler::Sampler(Sampler && value)
-	: parent(value.parent), hndl(value.hndl), uMode(value.uMode), vMode(value.vMode), wMode(value.wMode),
+	: Asset(std::move(value)), parent(value.parent),
+	hndl(value.hndl), uMode(value.uMode), vMode(value.vMode), wMode(value.wMode),
 	magFilter(value.magFilter), minFilter(value.minFilter), mipmapMode(value.mipmapMode),
 	loDBias(value.loDBias), maxAnisotropy(value.maxAnisotropy), minLoD(value.minLoD), maxLoD(value.maxLoD),
 	anisotropy(value.anisotropy), compare(value.compare), unnormalizedCoordinates(value.unnormalizedCoordinates),
@@ -26,6 +29,7 @@ Pu::Sampler & Pu::Sampler::operator=(Sampler && other)
 	{
 		Destroy();
 
+		Asset::operator=(std::move(other));
 		parent = std::move(other.parent);
 		hndl = other.hndl;
 
@@ -70,6 +74,30 @@ bool Pu::Sampler::operator==(const Sampler & other) const
 		&& other.minLoD == minLoD
 		&& other.maxLoD == maxLoD
 		&& other.unnormalizedCoordinates == unnormalizedCoordinates;
+}
+
+Pu::Asset & Pu::Sampler::Duplicate(AssetCache &)
+{
+	Reference();
+	return *this;
+}
+
+size_t Pu::Sampler::CreateHash(const SamplerCreateInfo & info)
+{
+	size_t hash = std::hash<Filter>{}(info.MagFilter);
+	hash = std::hash_combine(hash, info.MinFilter);
+	hash = std::hash_combine(hash, info.MipmapMode);
+	hash = std::hash_combine(hash, info.AddressModeU);
+	hash = std::hash_combine(hash, info.AddressModeV);
+	hash = std::hash_combine(hash, info.AddressModeW);
+	hash = std::hash_combine(hash, info.MipLodBias);
+	hash = std::hash_combine(hash, info.AnisotropyEnable);
+	hash = std::hash_combine(hash, info.MaxAnisotropy);
+	hash = std::hash_combine(hash, info.CompareModeEnable);
+	hash = std::hash_combine(hash, info.MinLoD);
+	hash = std::hash_combine(hash, info.MaxLoD);
+	hash = std::hash_combine(hash, info.BorderColor);
+	return std::hash_combine(hash, info.UnnormalizedCoordinates);
 }
 
 void Pu::Sampler::Destroy(void)

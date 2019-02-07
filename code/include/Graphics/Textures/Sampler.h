@@ -1,10 +1,12 @@
 #pragma once
+#include "Content/Asset.h"
 #include "Graphics/Vulkan/LogicalDevice.h"
 
 namespace Pu
 {
 	/* Defines an object that defines how a resource is sampled. */
 	class Sampler
+		: public Asset
 	{
 	public:
 		/* Initializes a new instance of a sampler. */
@@ -13,7 +15,7 @@ namespace Pu
 		/* Move constructor. */
 		Sampler(_In_ Sampler &&value);
 		/* Destroys the sampler. */
-		~Sampler(void)
+		virtual ~Sampler(void)
 		{
 			Destroy();
 		}
@@ -29,6 +31,10 @@ namespace Pu
 			return !operator==(other);
 		}
 
+	protected:
+		/* References the asset and return itself. */
+		virtual Asset& Duplicate(_In_ AssetCache&) override;
+
 	private:
 		friend class DescriptorSet;
 
@@ -42,6 +48,8 @@ namespace Pu
 		bool anisotropy, compare, unnormalizedCoordinates;
 		CompareOp cmpOp;
 		BorderColor clr;
+
+		static size_t CreateHash(const SamplerCreateInfo &info);
 
 		void Destroy(void);
 	};

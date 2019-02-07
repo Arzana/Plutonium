@@ -1,10 +1,12 @@
 #pragma once
 #include "LogicalDevice.h"
+#include "Content/Asset.h"
 
 namespace Pu
 {
 	/* Defines a Vulkan image. */
 	class Image
+		: public Asset
 	{
 	public:
 		/* Initializes a new instance of an image. */
@@ -27,6 +29,10 @@ namespace Pu
 		{
 			return dimensions;
 		}
+
+	protected:
+		/* References the asset and returns itself. */
+		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
 		friend class Swapchain;

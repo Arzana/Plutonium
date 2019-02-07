@@ -2,14 +2,14 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Image::Image(LogicalDevice & device, const ImageCreateInfo & createInfo)
-	: parent(device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
+	: Asset(true), parent(device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
 	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlag::None)
 {
 	Create(createInfo);
 }
 
 Pu::Image::Image(Image && value)
-	: parent(value.parent), imageHndl(value.imageHndl), memoryHndl(value.memoryHndl), type(value.type), 
+	: Asset(std::move(value)), parent(value.parent), imageHndl(value.imageHndl), memoryHndl(value.memoryHndl), type(value.type), 
 	format(value.format), mipmaps(value.mipmaps), usage(value.usage), layout(value.layout), access(value.access)
 {
 	value.imageHndl = nullptr;
@@ -21,6 +21,8 @@ Pu::Image & Pu::Image::operator=(Image && other)
 	if (this != &other)
 	{
 		Destroy();
+
+		Asset::operator=(std::move(other));
 		parent = std::move(other.parent);
 		imageHndl = other.imageHndl;
 		memoryHndl = other.memoryHndl;
@@ -38,14 +40,25 @@ Pu::Image & Pu::Image::operator=(Image && other)
 	return *this;
 }
 
+Pu::Asset & Pu::Image::Duplicate(AssetCache &)
+{
+	Reference();
+	return *this;
+}
+
+/* We don't allow this image to be copied as it's memory is handled by another system (like the OS). */
 Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access)
-	: parent(device), imageHndl(hndl), memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
-{}
+	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(device), imageHndl(hndl),
+	memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
+{
+	MarkAsLoaded();
+}
 
 void Pu::Image::Create(const ImageCreateInfo & createInfo)
 {
 	/* Create image object. */
 	VK_VALIDATE(parent.vkCreateImage(parent.hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
+	SetHash(std::hash<ImageHndl>{}(imageHndl));
 
 	/* Find the type of memory that best supports our needs. */
 	uint32 typeIdx;

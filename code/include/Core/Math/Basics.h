@@ -1,5 +1,6 @@
 #pragma once
-#include <cmath>
+#include <cmath> 
+#include <functional>
 #include "Constants.h"
 
 namespace Pu
@@ -335,4 +336,20 @@ namespace Pu
 		return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
 	}
 #pragma endregion
+}
+
+namespace std
+{
+	/* Combines two hashes together into one hash. */
+	_Check_return_ constexpr inline size_t hash_combine(_In_ size_t first, _In_ size_t second)
+	{
+		return first ^ (second + 0x9e3779b9 + (first << 6) + (first >> 2));
+	}
+
+	/* Adds a second hash tot he first hash. */
+	template <typename hashable_t>
+	_Check_return_ inline size_t hash_combine(_In_ size_t hash, _In_ const hashable_t &other)
+	{
+		return hash_combine(hash, std::hash<hashable_t>{}(other));
+	}
 }

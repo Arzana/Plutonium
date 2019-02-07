@@ -176,7 +176,6 @@
     <ClInclude Include="..\..\..\include\Content\AssetCache.h" />
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h" />
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h" />
-    <ClInclude Include="..\..\..\include\Content\DuplicationType.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />

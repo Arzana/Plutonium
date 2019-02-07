@@ -1,25 +1,29 @@
 #include "Content/Asset.h"
-#include "Core/Diagnostics/Logging.h"
 
 Pu::Asset::~Asset(void)
 {
-	if (refCnt > 0) Log::Warning("Releasing referenced asset '%zu'!", hash);
+	/*
+	Assets that aren't allowed to be duplicated are assets whose memory is handled by another system (like the OS).
+	So these will always have one reference and need to be de-referened by the user.
+	All other assets should be released via the asset fetcher, thusly removing its references.
+	*/
+	if (allowDuplication && refCnt > 0) Log::Warning("Releasing referenced asset '%zu'!", hash);
 }
 
-Pu::Asset::Asset(DuplicationType type)
-	: Asset(type, 0)
+Pu::Asset::Asset(bool allowDuplication)
+	: Asset(allowDuplication, 0)
 {}
 
-Pu::Asset::Asset(DuplicationType type, size_t hash)
-	: Asset(type, hash, 0)
+Pu::Asset::Asset(bool allowDuplication, size_t hash)
+	: Asset(allowDuplication, hash, 0)
 {}
 
-Pu::Asset::Asset(DuplicationType type, size_t hash, size_t instance)
-	: refCnt(1), hash(hash), instance(instance), type(type), loaded(false)
+Pu::Asset::Asset(bool allowDuplication, size_t hash, size_t instance)
+	: refCnt(1), hash(hash), instance(instance), allowDuplication(allowDuplication), loaded(false)
 {}
 
 Pu::Asset::Asset(Asset && value)
-	: refCnt(value.refCnt), hash(value.hash), instance(value.instance), type(value.type), loaded(value.IsLoaded())
+	: refCnt(value.refCnt), hash(value.hash), instance(value.instance), allowDuplication(value.allowDuplication), loaded(value.IsLoaded())
 {
 	value.refCnt = 0;
 	value.hash = 0;
@@ -36,6 +40,7 @@ Pu::Asset & Pu::Asset::operator=(Asset && other)
 		refCnt = other.refCnt;
 		hash = other.hash;
 		instance = other.instance;
+		allowDuplication = other.allowDuplication;
 		loaded.store(other.IsLoaded());
 
 		other.refCnt = 0;
@@ -56,14 +61,3 @@ void Pu::Asset::SetHash(size_t hash)
 	this->hash = hash;
 }
 #pragma warning(pop)
-
-Pu::Asset & Pu::Asset::Duplicate(AssetCache & cache)
-{
-	if (type == DuplicationType::Reference)
-	{
-		++refCnt;
-		return *this;
-	}
-
-	return MemberwiseCopy(cache);
-}

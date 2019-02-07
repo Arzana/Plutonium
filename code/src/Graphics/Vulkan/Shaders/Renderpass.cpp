@@ -2,12 +2,12 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
-	: Asset(DuplicationType::Reference), device(device), hndl(nullptr), usable(false),
+	: Asset(true), device(device), hndl(nullptr), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper<Subpass>>&& subpasses)
-	: Asset(DuplicationType::Reference),
+	: Asset(true),
 	device(device), subpasses(std::move(subpasses)), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
@@ -109,6 +109,13 @@ const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
 	}
 
 	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
+}
+
+Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
+{
+	Reference();
+	for (Subpass &cur : subpasses) cur.Reference();
+	return *this;
 }
 
 void Pu::Renderpass::Link(void)

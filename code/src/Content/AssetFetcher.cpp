@@ -18,7 +18,7 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, 
 	const size_t hash = std::hash<string>{}(subpasses);
 	if (cache->Contains(hash))
 	{
-		/* Siply return a duplication of the asset and finalize the graphics pipeline for this renderpass. */
+		/* Duplicate the top level asset and finalize the graphics pipeline with the duplicated renderpass. */
 		Renderpass &renderpass = cache->Get(hash).Duplicate<Renderpass>(*cache);
 		loader->FinalizeGraphicsPipeline(pipeline, renderpass);
 		return renderpass;

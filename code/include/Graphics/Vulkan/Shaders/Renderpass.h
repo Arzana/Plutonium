@@ -53,11 +53,8 @@ namespace Pu
 		_Check_return_ const Uniform& GetUniform(_In_ const string &name) const;
 
 	protected:
-		/* Requires to be overrided for asset, just returns a this-reference. */
-		virtual inline Asset& MemberwiseCopy(_In_ AssetCache&) override
-		{
-			return *this;
-		}
+		/* References the assets and its sub-assets and return itself. */
+		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
 		friend class GraphicsPipeline;

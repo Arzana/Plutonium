@@ -426,9 +426,6 @@
     <ClInclude Include="..\..\..\include\Content\Asset.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Content\DuplicationType.h">
-      <Filter>Header Files\Content</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Content\AssetCache.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
