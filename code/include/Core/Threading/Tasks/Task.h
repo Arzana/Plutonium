@@ -19,13 +19,20 @@ namespace Pu
 			Task* Continuation;
 			/* Specifies whether the task should be deleted upon completion. */
 			bool Delete;
+			/* Specifies whether the task needs to be put into a wait list, this is done automatically if it has childs. */
+			bool Wait;
 
-			/* Initializes an empty instance of the task result object. */
-			Result(void);
-			/* Initializes a task result as a continuation result. */
-			Result(_In_ Task &continuation);
-			/* Initializes a task result as a delete parent result. */
-			Result(_In_ bool shouldDelete);
+			/* Gets a default result, nothing will happen after this. */
+			_Check_return_ static Result Default(void);
+			/* Gets a new task result as a continue task. */
+			_Check_return_ static Result Continue(_In_ Task &continuation);
+			/* Gets a new task result as a auto delete result. */
+			_Check_return_ static Result AutoDelete(void);
+			/* Gets a new task result as a custom wait result. */
+			_Check_return_ static Result CustomWait(void);
+
+		private:
+			Result(Task *continuation, bool shouldDelete, bool shouldWait);
 		};
 
 		Task(_In_ Task&&) = delete;
@@ -45,7 +52,7 @@ namespace Pu
 		/* Continues an already executed task. */
 		_Check_return_ virtual Result Continue(void)
 		{
-			return Result();
+			return Result::Default();
 		}
 
 		/* Gets the amount of childs this tasks has ative, a task will not be deleted before all childs are deleted. */
@@ -72,6 +79,12 @@ namespace Pu
 
 		/* Marks a child task as complete, used mainly by the scheduler. */
 		void MarkChildAsComplete(_In_ Task &child);
+
+		/* Checks whether the task can continue, this can be overwritten by tasks for custom usage. */
+		_Check_return_ virtual inline bool ShouldContinue(void) const 
+		{
+			return GetChildCount() <= 0;
+		}
 
 	private:
 		std::atomic_size_t childCnt;

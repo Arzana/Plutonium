@@ -1,7 +1,6 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/VertexLayouts/Image2D.h>
-#include <Graphics/Resources/ImageHandler.h>
 #include <Core/Math/Matrix.h>
 
 using namespace Pu;
@@ -27,7 +26,6 @@ void TestGame::Initialize(void)
 
 		/* Create the framebuffers with no extra image views. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), {});
-		TempMarkDoneLoading();
 	};
 
 	/* Setup and load render pass. */
@@ -85,32 +83,21 @@ void TestGame::LoadContent(void)
 	vrtxStagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
 	vrtxStagingBuffer->SetData(quad, 4);
 
-	/* Load image from disk. */
-	const ImageInformation imgInfo = _CrtGetImageInfo("../assets/images/Plutonium.png");
-	const vector<byte> texels = _CrtLoadImageLDR("../assets/images/Plutonium.png");
-
-	/* Initializes our image and view. */
-	sampler = new Sampler(GetDevice(), SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
-	image = new Texture2D(GetDevice(), *sampler, Format::R8G8B8A8_SRGB, Extent2D(imgInfo.Width, imgInfo.Height), ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
-
-	/* Copy texel information to staging buffer. */
-	imgStagingBuffer = new Buffer(GetDevice(), texels.size() * sizeof(float), BufferUsageFlag::TransferSrc, true);
-	imgStagingBuffer->SetData(texels.data(), texels.size());
-
 	/* Initialize the uniform buffer and setup the staging buffer. */
 	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
 	uniStagingBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::TransferSrc, true);
 	uniStagingBuffer->SetData(identity.GetComponents(), 16);
+
+	/* Load the texture. */
+	image = &GetContent().FetchTexture2D("../assets/images/Plutonium.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)
 {
+	GetContent().Release(*image);
+
 	delete uniStagingBuffer;
 	delete uniBuffer;
-
-	delete imgStagingBuffer;
-	delete image;
-	delete sampler;
 
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -129,18 +116,17 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	static bool firstRender = true;
 	if (firstRender)
 	{
+		/* Wait for the graphics pipeline to be usable. */
+		if (descriptor == nullptr || !image->IsUsable()) return;
 		firstRender = false;
 
 		/* Copy quad to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
 		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, DependencyFlag::None, AccessFlag::VertexAttributeRead);
 
-		/* Copy image to final image. */
-		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, DependencyFlag::None, ImageLayout::TransferDstOptimal,
-			AccessFlag::TransferWrite, QueueFamilyIgnored, ImageSubresourceRange());
-		cmdBuffer.CopyEntireBuffer(*imgStagingBuffer, *image);
-		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None, ImageLayout::ShaderReadOnlyOptimal,
-			AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
+		/* Make sure the image layout is suitable for shader reads. */
+		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None,
+			ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
 
 		/* Copy matrix to final uniform buffer. */
 		cmdBuffer.CopyEntireBuffer(*uniStagingBuffer, *uniBuffer);

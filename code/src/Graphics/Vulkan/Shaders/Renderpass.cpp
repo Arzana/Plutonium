@@ -347,7 +347,7 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 		scheduler->Spawn(*task);
 	}
 
-	return Result();
+	return Result::Default();
 }
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
@@ -368,5 +368,5 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 
 	/* Perform linking and return. */
 	result.Link();
-	return Result();
+	return Result::Default();
 }

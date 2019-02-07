@@ -32,11 +32,6 @@ namespace Pu
 			targetElapTimeBackground = min(targetElapTimeFocused, targetElapTimeBackground);
 		}
 
-		inline void TempMarkDoneLoading(void)
-		{
-			loaded.store(true);
-		}
-
 		/* Gets the platform specific window. */
 		_Check_return_ inline GameWindow& GetWindow(void)
 		{
@@ -104,8 +99,6 @@ namespace Pu
 		virtual void PreRender(void) {}
 		/* Renders the application. */
 		virtual void Render(_In_ float dt, _In_ CommandBuffer &cmdBuffer) = 0;
-		/* Renders the appication (during load time). */
-		virtual void RenderLoad(_In_ float dt) = 0;
 		/* Called after every render call. */
 		virtual void PostRender(void) {}
 
@@ -115,7 +108,6 @@ namespace Pu
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;
 		uint32 graphicsQueueFamilyIndex;
-		std::atomic_bool loaded;
 		const string name;
 
 		VulkanInstance *instance;
@@ -135,7 +127,6 @@ namespace Pu
 		void DoUpdate(float dt, bool loading);
 		void BeginRender(void);
 		void DoRender(float dt);
-		void DoRenderLoad(float dt);
 		void EndRender(void);
 	};
 }

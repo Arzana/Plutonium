@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/String.h"
 #include "Core/Threading/Tasks/Task.h"
+#include "Graphics/Vulkan/VulkanEnums.h"
 
 namespace Pu
 {
@@ -26,6 +27,9 @@ namespace Pu
 		ImageInformation(_In_ int32 w, _In_ int32 h, _In_ int32 c, _In_ int hdr)
 			: Width(static_cast<uint32>(w)), Height(static_cast<uint32>(h)), Components(static_cast<uint32>(c)), IsHDR(hdr)
 		{}
+
+		/* Gets the Vulkan format for the image. */
+		_Check_return_ Format GetImageFormat(void) const;
 	};
 
 	/* Gets the extent of an image. */
@@ -63,11 +67,11 @@ namespace Pu
 			}
 			else static_assert(true, "Invalid component type!");
 
-			return Result();
+			return Result::Default();
 		}
 
 		/* Gets the data loaded by the task. */
-		_Check_return_ inline const vector<float>& GetData(void) const
+		_Check_return_ inline const vector<component_t>& GetData(void) const
 		{
 			return result;
 		}

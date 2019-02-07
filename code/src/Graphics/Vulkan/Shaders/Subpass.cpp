@@ -411,5 +411,5 @@ Pu::Subpass::LoadTask::LoadTask(Subpass & result, const string & path)
 Pu::Task::Result Pu::Subpass::LoadTask::Execute(void)
 {
 	result.Load(path);
-	return Result();
+	return Result::Default();
 }

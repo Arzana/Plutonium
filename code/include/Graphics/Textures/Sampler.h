@@ -37,6 +37,7 @@ namespace Pu
 
 	private:
 		friend class DescriptorSet;
+		friend class AssetFetcher;
 
 		SamplerHndl hndl;
 		LogicalDevice &parent;

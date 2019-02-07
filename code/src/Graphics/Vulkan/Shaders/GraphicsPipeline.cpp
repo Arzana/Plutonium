@@ -246,7 +246,7 @@ Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Execute(void)
 {
 	/* Spawn the render pass load task. */
 	scheduler->Spawn(*child);
-	return Result();
+	return Result::Default();
 }
 
 Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Continue(void)
@@ -262,5 +262,5 @@ Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Continue(void)
 
 	/* Initializes the graphics pipeline and return that we're done loading. */
 	result.Initialize();
-	return Result(true);
+	return Result::AutoDelete();
 }

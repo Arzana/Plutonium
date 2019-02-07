@@ -57,7 +57,6 @@ Pu::Asset & Pu::Asset::operator=(Asset && other)
 #pragma warning(disable:4458)
 void Pu::Asset::SetHash(size_t hash)
 {
-	if (this->hash) Log::Fatal("Cannot reset asset hash!");
 	this->hash = hash;
 }
 #pragma warning(pop)

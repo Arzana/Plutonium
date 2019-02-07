@@ -26,7 +26,9 @@ namespace Pu
 			return index;
 		}
 
-		/* Submits the commands in the specified command pool to the queue. */
+		/* Submits the commands in the specified command buffer to the queue. */
+		void Submit(_In_ CommandBuffer &commandBuffer);
+		/* Submits the commands in the specified command buffer to the queue. */
 		void Submit(_In_ const Semaphore &waitSemaphore, _In_ CommandBuffer &commandBuffer, _In_ const Semaphore &signalSemaphore);
 		/* Presents the image to the swapchain ofter the semaphore has completed. */
 		void Present(_In_ const Semaphore &waitSemaphore, _In_ const Swapchain &swapchain, _In_ uint32 image);

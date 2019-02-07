@@ -23,14 +23,26 @@ void Pu::Task::MarkChildAsComplete(Task & child)
 	else --childCnt;
 }
 
-Pu::Task::Result::Result(void)
-	: Continuation(nullptr), Delete(false)
-{}
+Pu::Task::Result Pu::Task::Result::Default(void)
+{
+	return Result(nullptr, false, false);
+}
 
-Pu::Task::Result::Result(Task & continuation)
-	: Continuation(&continuation), Delete(false)
-{}
+Pu::Task::Result Pu::Task::Result::Continue(Task & continuation)
+{
+	return Result(&continuation, false, false);
+}
 
-Pu::Task::Result::Result(bool shouldDelete)
-	: Continuation(nullptr), Delete(shouldDelete)
+Pu::Task::Result Pu::Task::Result::AutoDelete(void)
+{
+	return Result(nullptr, true, false);
+}
+
+Pu::Task::Result Pu::Task::Result::CustomWait(void)
+{
+	return Result(nullptr, false, true);
+}
+
+Pu::Task::Result::Result(Task * continuation, bool shouldDelete, bool shouldWait)
+	: Continuation(continuation), Delete(shouldDelete), Wait(shouldWait)
 {}

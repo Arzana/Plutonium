@@ -11,7 +11,7 @@
 Pu::Application::Application(const string & name)
 	: IsFixedTimeStep(true), suppressUpdate(false), name(name),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
-	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), loaded(false)
+	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr)
 {
 	InitializePlutonium();
 	scheduler = new TaskScheduler();
@@ -34,17 +34,8 @@ void Pu::Application::Run(void)
 	DoInitialize();
 
 	/* Load content. */
-	LoadContent();
 	prevTime = gameTime.SecondsAccurate();
-	while (!loaded.load())
-	{
-		/* Check if used wants to close the window during load time. */
-		if (!wnd->Update()) return;
-
-		/* Tick application. */
-		while (!Tick(true));
-	}
-
+	LoadContent();
 	Log::Verbose("Finished initializing and loading content for '%s', took %f seconds.", wnd->GetTitle(), gameTime.SecondsAccurate());
 
 	/* Run application loop. */
@@ -200,11 +191,7 @@ bool Pu::Application::Tick(bool loading)
 	}
 
 	/* Do frame render. */
-	if (!wnd->shouldSuppressRender)
-	{
-		if (loading) DoRenderLoad(dt);
-		else DoRender(dt);
-	}
+	if (!wnd->shouldSuppressRender) DoRender(dt);
 
 	return true;
 }
@@ -255,13 +242,6 @@ void Pu::Application::DoRender(float dt)
 {
 	BeginRender();
 	Render(dt, gameWnd->GetCommandBuffer());
-	EndRender();
-}
-
-void Pu::Application::DoRenderLoad(float dt)
-{
-	BeginRender();
-	RenderLoad(dt);
 	EndRender();
 }
 

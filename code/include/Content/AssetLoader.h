@@ -1,8 +1,8 @@
 #pragma once
 #include "AssetCache.h"
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "Graphics/Vulkan/LogicalDevice.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Textures/Texture.h"
 
 namespace Pu
 {
@@ -29,26 +29,24 @@ namespace Pu
 		}
 
 		/* Loads the renderpass with the specified subpasses and finalizes the graphics pipeline. */
-		void PopulateRenderpass(_In_ GraphicsPipeline &pipeline, Renderpass &renderpass, _In_ std::initializer_list<string> subpasses);
+		void PopulateRenderpass(_In_ GraphicsPipeline &pipeline, _In_ Renderpass &renderpass, _In_ std::initializer_list<string> subpasses);
 		/* Finalizes the graphics pipeline. */
-		void FinalizeGraphicsPipeline(_In_ GraphicsPipeline &pipeline, Renderpass &renderpass);
+		void FinalizeGraphicsPipeline(_In_ GraphicsPipeline &pipeline, _In_ Renderpass &renderpass);
+		/* Loads and stages a texture from a specific path. */
+		void InitializeTexture(_In_ Texture &texture, _In_ const string &path, _In_ const ImageInformation &info);
 
 	private:
-		using asset_t = std::reference_wrapper<Asset>;
-		using buffer_t = std::tuple<bool, CommandBuffer, vector<asset_t>>;
-		using buffer_t_ref = std::tuple<CommandBuffer&, vector<asset_t>&>;
-
 		AssetCache &cache;
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
 		CommandPool *cmdPool;
 
 		Queue &transferQueue;
-		Semaphore *submitSemaphore;
-		vector<buffer_t> buffers;
+		vector<std::tuple<bool, CommandBuffer>> buffers;
 		std::mutex lock;
 
 		void AllocateCmdBuffer(void);
-		buffer_t_ref GetCmdBuffer(void);
+		CommandBuffer& GetCmdBuffer(void);
+		void RecycleCmdBuffer(CommandBuffer &cmdBuffer);
 	};
 }

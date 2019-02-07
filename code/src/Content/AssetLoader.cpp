@@ -7,7 +7,6 @@ Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, 
 	: cache(cache), scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
 {
 	cmdPool = new CommandPool(device, transferQueue.GetFamilyIndex());
-	submitSemaphore = new Semaphore(device);
 
 	for (size_t i = 0; i < InitialLoadCommandBufferCount; i++)
 	{
@@ -19,7 +18,6 @@ Pu::AssetLoader::~AssetLoader(void)
 {
 	buffers.clear();
 
-	delete submitSemaphore;
 	delete cmdPool;
 }
 
@@ -61,13 +59,88 @@ void Pu::AssetLoader::FinalizeGraphicsPipeline(GraphicsPipeline & pipeline, Rend
 	pipeline.Finalize();
 }
 
-void Pu::AssetLoader::AllocateCmdBuffer(void)
+void Pu::AssetLoader::InitializeTexture(Texture & texture, const string & path, const ImageInformation & info)
 {
-	buffers.emplace_back(std::make_tuple(true, cmdPool->Allocate(), vector<std::reference_wrapper<Asset>>()));
+	class StageTask
+		: public Task
+	{
+	public:
+		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const string &path)
+			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), staged(false)
+		{
+			child = new Texture::LoadTask(texture, info, path);
+			child->SetParent(*this);
+		}
+
+		virtual Result Execute(void) override
+		{
+			/* Just execute the texture load task. */
+			scheduler->Spawn(*child);
+			return Result::Default();
+		}
+
+		virtual Result Continue(void) override 
+		{
+			/*
+			There are two stages after the texels are loaded.
+			First we stage the image data by applying a copy all command to the transfer queue.
+			Seoncdly we recycle the buffer and mark the texture as loaded.
+			*/
+			if (staged)
+			{
+				parent.RecycleCmdBuffer(cmdBuffer);
+				result.operator Pu::Image &().MarkAsLoaded();
+				delete child;
+				return Result::AutoDelete();
+			}
+			else
+			{
+				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+				cmdBuffer.Begin();
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, DependencyFlag::None,
+					ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, QueueFamilyIgnored, ImageSubresourceRange());
+
+				/* Copy actual data and end the buffer. */
+				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), result);
+				cmdBuffer.End();
+
+				parent.transferQueue.Submit(cmdBuffer);
+
+				staged = true;
+				return Result::CustomWait();
+			}
+		}
+
+	protected:
+		virtual bool ShouldContinue(void) const override 
+		{
+			/* The texture is done staging if the buffer can begin again. */
+			if (staged) return cmdBuffer.CanBegin();
+			return Task::ShouldContinue();
+		}
+
+	private:
+		Texture &result;
+		AssetLoader &parent;
+		CommandBuffer &cmdBuffer;
+		Texture::LoadTask *child;
+		bool staged;
+	};
+
+	/* Simply create the task and spawn it. */
+	StageTask *task = new StageTask(*this, texture, info, path);
+	scheduler.Spawn(*task);
 }
 
-Pu::AssetLoader::buffer_t_ref Pu::AssetLoader::GetCmdBuffer(void)
+void Pu::AssetLoader::AllocateCmdBuffer(void)
 {
+	buffers.emplace_back(std::make_tuple(true, cmdPool->Allocate()));
+}
+
+Pu::CommandBuffer& Pu::AssetLoader::GetCmdBuffer(void)
+{
+	lock.lock();
+
 	size_t i;
 	for (i = 0; i < buffers.size(); i++)
 	{
@@ -76,11 +149,36 @@ Pu::AssetLoader::buffer_t_ref Pu::AssetLoader::GetCmdBuffer(void)
 		{
 			/* Set the buffer to used and return the command buffer with it's asset list. */
 			std::get<0>(buffers[i]) = false;
-			return buffer_t_ref(std::get<1>(buffers[i]), std::get<2>(buffers[i]));
+			lock.unlock();
+			return std::get<1>(buffers[i]);
 		}
 	}
 
 	/* No viable command buffer was found so create a new one. */
 	AllocateCmdBuffer();
-	return buffer_t_ref(std::get<1>(buffers[i]), std::get<2>(buffers[i]));
+	std::get<0>(buffers[i]) = false;
+
+	lock.unlock();
+	return std::get<1>(buffers[i]);
+}
+
+void Pu::AssetLoader::RecycleCmdBuffer(CommandBuffer & cmdBuffer)
+{
+	lock.lock();
+
+	for (size_t i = 0; i < buffers.size(); i++)
+	{
+		/* Find the index of this command buffer and set it to usable again. */
+		if (std::get<1>(buffers[i]).hndl == cmdBuffer.hndl)
+		{
+			std::get<0>(buffers[i]) = true;
+			lock.unlock();
+			return;
+		}
+	}
+
+	/* this should never occur. */
+	lock.unlock();
+	Log::Warning("Cannot recycle command buffer (unable to find match)!");
+	return;
 }

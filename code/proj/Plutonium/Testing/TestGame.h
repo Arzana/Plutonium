@@ -20,12 +20,10 @@ protected:
 	virtual void Finalize(void);
 	virtual void Update(float) {}
 	virtual void Render(float, Pu::CommandBuffer &cmdBuffer);
-	virtual void RenderLoad(float) {}
 
 private: 
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *vrtxBuffer, *uniBuffer, *vrtxStagingBuffer, *imgStagingBuffer, *uniStagingBuffer;
-	Pu::Sampler *sampler;
+	Pu::Buffer *vrtxBuffer, *uniBuffer, *vrtxStagingBuffer, *uniStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::DescriptorSet *descriptor;
 };

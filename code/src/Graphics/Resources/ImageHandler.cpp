@@ -110,3 +110,20 @@ Pu::vector<byte> Pu::_CrtLoadImageLDR(const string & path)
 		return getDefaultImageLDR();
 	}
 }
+
+Pu::Format Pu::ImageInformation::GetImageFormat(void) const
+{
+	switch (Components)
+	{
+	case (1):
+		return IsHDR ? Format::R32_SFLOAT : Format::R8_SRGB;
+	case (2):
+		return IsHDR ? Format::R32G32_SFLOAT : Format::R8G8_SRGB;
+	case (3):
+		return IsHDR ? Format::R32G32B32_SFLOAT : Format::R8G8B8_SRGB;
+	case (4):
+		return IsHDR ? Format::R32G32B32A32_SFLOAT : Format::R8G8B8A8_SRGB;
+	default:
+		return Format::Undefined;
+	}
+}

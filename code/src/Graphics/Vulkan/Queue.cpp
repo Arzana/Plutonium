@@ -27,6 +27,19 @@ Queue & Pu::Queue::operator=(Queue && other)
 	return *this;
 }
 
+void Pu::Queue::Submit(CommandBuffer & commandBuffer)
+{
+	const PipelineStageFlag mask = PipelineStageFlag::Transfer;
+	SubmitInfo info;
+	info.WaitDstStageMask = &mask;
+	info.CommandBufferCount = 1;
+	info.CommandBuffers = &commandBuffer.hndl;
+
+	/* Submit command buffer. */
+	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	commandBuffer.state = CommandBuffer::State::Pending;
+}
+
 void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandBuffer, const Semaphore & signalSemaphore)
 {
 	/* Create submit information. */

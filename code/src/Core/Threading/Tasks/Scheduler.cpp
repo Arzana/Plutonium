@@ -111,17 +111,18 @@ bool Pu::TaskScheduler::ThreadTryWait(size_t idx)
 	std::map<Task*, Task::Result> &list = waits[idx];
 	if (list.empty()) return false;
 
-	for (const auto&[task, result] : list)
+	for (const auto[task, result] : list)
 	{
-		/* Check if the task still has active childs. */
-		if (task->GetChildCount()) continue;
+		/* Check if the task is allowed to continue. */
+		if (task->ShouldContinue())
+		{
+			/* Erase task for wait list and return to make sure we don't invalidate the for loop. */
+			list.erase(task);
 
-		/* The current task has no more active childs, so continue. */
-		HandleTaskResult(idx, task, task->Continue());
-
-		/* Erase task for wait list and return to make sure we don't invalidate the for loop. */
-		list.erase(task);
-		return true;
+			/* The current task has no more active childs, so continue. */
+			HandleTaskResult(idx, task, task->Continue());
+			return true;
+		}
 	}
 
 	/* No waiting taska where able to continue. */
@@ -172,14 +173,14 @@ void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result r
 	if (result.Continuation) tasks[idx].push_back(result.Continuation);
 
 	/* If the tasks has childs that needs waiting upon, push it to the wait list. */
-	if (task->GetChildCount() > 0) waits[idx].emplace(task, result);
+	if (result.Wait || task->GetChildCount() > 0) waits[idx].emplace(task, result);
 
 	/* Mark the child as completed if needed. */
 	if (task->GetChildCount() < 1 && task->parent) task->parent->MarkChildAsComplete(*task);
 
 	/* Mark the task as completed on debug mode. */
 #ifdef _DEBUG
-	if (!result.Continuation && task->GetChildCount() < 1) task->completed.store(true);
+	if (!result.Continuation && task->GetChildCount() < 1 && !result.Wait) task->completed.store(true);
 #endif
 
 	/* Delete the task if the user requested it. */

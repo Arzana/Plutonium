@@ -31,6 +31,12 @@ namespace Pu
 			return *renderpass;
 		}
 
+		/* Gets whether the graphics pipeline is ready for use. */
+		_Check_return_ inline bool IsUsable(void) const 
+		{
+			return hndl;
+		}
+
 		/* Gets the pool from which descriptors can be made. */
 		_Check_return_ inline const DescriptorPool& GetDescriptorPool(void) const
 		{

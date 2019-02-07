@@ -8,13 +8,19 @@ Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device
 
 Pu::AssetFetcher::~AssetFetcher(void)
 {
+	for (Texture *cur : textures)
+	{
+		Log::Warning("Deleting still referenced texture!");
+		delete cur;
+	}
+
 	delete loader;
 	delete cache;
 }
 
 Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<string> subpasses)
 {
-	/* Create the hash and check if the cache contians the requested asset. */
+	/* Create the hash and check if the cache contains the requested asset. */
 	const size_t hash = std::hash<string>{}(subpasses);
 	if (cache->Contains(hash))
 	{
@@ -31,6 +37,52 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, 
 	return *renderpass;
 }
 
+Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const string & path, const SamplerCreateInfo & samplerInfo, uint32 mipMapLevels)
+{
+	/* 
+	The texture itself is not an asset but the sampler and image it stores are.
+	So first get the sampler and then get the image.
+	*/
+
+	Sampler *sampler;
+
+	/* Try to fetch the sampler, otherwise just create a new one. */
+	size_t hash = Sampler::CreateHash(samplerInfo);
+	if (cache->Contains(hash)) sampler = &cache->Get(hash).Duplicate<Sampler>(*cache);
+	else
+	{
+		sampler = new Sampler(loader->GetDevice(), samplerInfo);
+		cache->Store(sampler);
+	}
+
+	/* Try to fetch the image, otherwise just create a new one. */
+	hash = std::hash<string>{}(path);
+	if (cache->Contains(hash))
+	{
+		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
+
+		/* Create the final texture and return it. */
+		Texture2D *result = new Texture2D(image, *sampler);
+		textures.push_back(result);
+		return *result;
+	}
+	else
+	{
+		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
+		const ImageInformation info = _CrtGetImageInfo(path);
+		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
+		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetHash(hash);
+		cache->Store(image);
+
+		/* Create the final texture and start the load/stage process. */
+		Texture2D *result = new Texture2D(*image, *sampler);
+		textures.push_back(result);
+		loader->InitializeTexture(*result, path, info);
+		return *result;
+	}
+}
+
 void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
 {
 	/* Make sure to release the subpasses as well. */
@@ -41,4 +93,22 @@ void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
 
 	/* const cast here shouldn't matter too much as this is basically a delete statement. */
 	cache->Release(const_cast<Renderpass&>(pipeline.GetRenderpass()));
+}
+
+void Pu::AssetFetcher::Release(Texture & texture)
+{
+	/* Make sure to release the underlying resources. */
+	cache->Release(texture.Image);
+	cache->Release(texture.Sampler);
+
+	/* Delete the actual texture. */
+	for (Texture *cur : textures)
+	{
+		if (&texture == cur)
+		{
+			textures.remove(cur);
+			delete cur;
+			return;
+		}
+	}
 }

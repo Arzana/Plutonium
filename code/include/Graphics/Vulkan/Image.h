@@ -34,10 +34,17 @@ namespace Pu
 		/* References the asset and returns itself. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
+		/* Gets the logical device on which this image is stored. */
+		_Check_return_ inline LogicalDevice& GetDevice(void)
+		{
+			return parent;
+		}
+
 	private:
 		friend class Swapchain;
 		friend class ImageView;
 		friend class CommandBuffer;
+		friend class Texture;
 
 		LogicalDevice &parent;
 		ImageHndl imageHndl;

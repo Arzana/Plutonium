@@ -1,6 +1,6 @@
 #pragma once
-#include "Graphics/Vulkan/LogicalDevice.h"
 #include "Core/Threading/Tasks/Task.h"
+#include "Graphics/Vulkan/LogicalDevice.h"
 #include "Graphics/Vulkan/SPIR-V/FieldInfo.h"
 #include "Graphics/Vulkan/SPIR-V/Decoration.h"
 #include "Content/Asset.h"

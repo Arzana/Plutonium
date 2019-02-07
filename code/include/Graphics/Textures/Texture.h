@@ -1,12 +1,14 @@
 #pragma once
 #include "Sampler.h"
+#include "Graphics/Vulkan/Buffer.h"
+#include "Core/Threading/Tasks/Task.h"
 #include "Graphics/Vulkan/ImageView.h"
+#include "Graphics/Resources/ImageHandler.h"
 
 namespace Pu
 {
 	/* Defines a base object for all texture types. */
 	class Texture
-		: public Image
 	{
 	public:
 		Texture(_In_ const Texture&) = delete;
@@ -22,13 +24,63 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Texture& operator =(_In_ Texture &&other);
 
+		/* Implicit convertion to get the image. */
+		_Check_return_ inline operator Image&(void)
+		{
+			return Image;
+		}
+
+		/* Implicit convertion to get the image. */
+		_Check_return_ inline operator const Image&(void) const 
+		{
+			return Image;
+		}
+
+		/* Gets whether the underlying image is usable. */
+		_Check_return_ inline bool IsUsable(void) const
+		{
+			return Image.IsLoaded();
+		}
+
 	protected:
-		Texture(_In_ LogicalDevice &device, _In_ Sampler &sampler, _In_ const ImageCreateInfo &createInfo);
+		/* The sampler used to sample the texure. */
+		Sampler &Sampler;
+		/* The image data of the texture. */
+		Image &Image;
+
+		Texture(_In_ Pu::Sampler &sampler, _In_ Pu::Image &image);
 
 	private:
 		friend class DescriptorSet;
+		friend class AssetLoader;
+		friend class AssetFetcher;
 
-		Sampler &sampler;
+		class LoadTask
+			: public Task
+		{
+		public:
+			LoadTask(Texture &result, const ImageInformation &info, const string &path);
+			LoadTask(const LoadTask&) = delete;
+			~LoadTask(void);
+
+			LoadTask& operator =(const LoadTask&) = delete;
+
+			virtual Result Execute(void) override;
+			virtual Result Continue(void) override;
+
+			inline Buffer& GetStagingBuffer(void)
+			{
+				return *stagingBuffer;
+			}
+
+		private:
+			Texture &result;
+			ImageInformation info;
+			Task *child;
+			Buffer *stagingBuffer;
+			string path;
+		};
+
 		ImageView *view;
 
 		void Destroy(void);
