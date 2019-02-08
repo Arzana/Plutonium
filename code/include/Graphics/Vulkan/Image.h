@@ -24,6 +24,9 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Image& operator =(_In_ Image &&other);
 
+		/* Gets a sub-resource range spaning all sub-resources. */
+		_Check_return_ ImageSubresourceRange GetFullRange(void) const;
+
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent3D GetExtent(void) const
 		{

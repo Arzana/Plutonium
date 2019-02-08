@@ -42,6 +42,12 @@ namespace Pu
 			return Image.IsLoaded();
 		}
 
+		/* Gets a sub-resource range spaning all sub-resources. */
+		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
+		{
+			return Image.GetFullRange();
+		}
+
 	protected:
 		/* The sampler used to sample the texure. */
 		Sampler &Sampler;

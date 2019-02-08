@@ -130,7 +130,7 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, c
 	else Log::Warning("Cannot copy buffer to image on non-recording CommandBuffer!");
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, AccessFlag dstAccess)
+void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, AccessFlag dstAccess, DependencyFlag dependencyFlags)
 {
 	if (state == State::Recording)
 	{
@@ -148,7 +148,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 	else Log::Warning("Cannot setup buffer pipeline barrier on non-recording CommandBuffer!");
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, DependencyFlag dependencyFlags, ImageLayout newLayout, AccessFlag dstAccess, uint32 queueFamilyIndex, ImageSubresourceRange range)
+void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, ImageSubresourceRange range, DependencyFlag dependencyFlags, uint32 queueFamilyIndex)
 {
 	if (state == State::Recording)
 	{

@@ -107,8 +107,7 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
 	/* Transfer present image to a writable image. */
-	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, DependencyFlag::None,
-		ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, queueIndex, range);
+	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, range);
 }
 
 void Pu::GameWindow::MakeImagePresentable(void)
@@ -116,8 +115,7 @@ void Pu::GameWindow::MakeImagePresentable(void)
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
 	/* Transfer writable image back to present mode. */
-	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, DependencyFlag::None,
-		ImageLayout::PresentSrcKhr, AccessFlag::MemoryRead, queueIndex, range);
+	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, ImageLayout::PresentSrcKhr, AccessFlag::MemoryRead, range);
 }
 
 void Pu::GameWindow::BeginRender(void)

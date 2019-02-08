@@ -122,15 +122,14 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 
 		/* Copy quad to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
-		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, DependencyFlag::None, AccessFlag::VertexAttributeRead);
+		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 
 		/* Make sure the image layout is suitable for shader reads. */
-		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, DependencyFlag::None,
-			ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, QueueFamilyIgnored, ImageSubresourceRange());
+		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Copy matrix to final uniform buffer. */
 		cmdBuffer.CopyEntireBuffer(*uniStagingBuffer, *uniBuffer);
-		cmdBuffer.MemoryBarrier(*uniBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, DependencyFlag::None, AccessFlag::UniformRead);
+		cmdBuffer.MemoryBarrier(*uniBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, AccessFlag::UniformRead);
 
 		/* Update the descriptor. */
 		descriptor->Write(pipeline->GetRenderpass().GetUniform("Texture"), *image);
