@@ -339,7 +339,7 @@
     <Natvis Include="..\..\..\visualizers\FieldInfo.natvis" />
     <Natvis Include="..\..\..\visualizers\Matrix.natvis" />
     <Natvis Include="..\..\..\visualizers\Rectangle.natvis" />
-    <Natvis Include="..\..\..\visualizers\SharedAsset.natvis" />
+    <Natvis Include="..\..\..\visualizers\Asset.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector2.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector3.natvis" />
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010"> 
+  <Type Name="Pu::Asset" Inheritable="false">
+    <DisplayString>{hash}</DisplayString>
+  <Expand>
+    <Synthetic Name="Asset">
+      <DisplayString>{hash}({instance})</DisplayString>
+    </Synthetic>
+    <Item Name="Reference Count">refCnt</Item>
+    <Item Name="Allows duplication">allowDuplication</Item>
+    <Item Name="Loaded">loaded</Item>
+  </Expand>
+  </Type>
+</AutoVisualizer>

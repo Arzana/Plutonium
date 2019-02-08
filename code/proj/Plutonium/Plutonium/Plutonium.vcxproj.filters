@@ -640,7 +640,7 @@
     <Natvis Include="..\..\..\visualizers\CommandBuffer.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
-    <Natvis Include="..\..\..\visualizers\SharedAsset.natvis">
+    <Natvis Include="..\..\..\visualizers\Asset.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>
