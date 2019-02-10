@@ -89,7 +89,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const string & path, 
 			if (staged)
 			{
 				parent.RecycleCmdBuffer(cmdBuffer);
-				result.operator Pu::Image &().MarkAsLoaded();
+				result.Image.MarkAsLoaded();
 				delete child;
 				return Result::AutoDelete();
 			}
@@ -100,7 +100,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const string & path, 
 				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
 
 				/* Copy actual data and end the buffer. */
-				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), result);
+				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), result.Image);
 				cmdBuffer.End();
 
 				parent.transferQueue.Submit(cmdBuffer);

@@ -53,17 +53,21 @@ namespace Pu
 		/* Appends a pipeline image memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
 		/* Appends an image clear command to the command buffer. */
-		void ClearImage(_In_ ImageHndl image, _In_ Color color, _In_opt_ ImageLayout layout = ImageLayout::TransferDstOptimal);
+		void ClearImage(_In_ Image &image, _In_ Color color);
 		/* Appends a render pass begin command to the command buffer. */
 		void BeginRenderPass(_In_ const Renderpass &renderPass, _In_ const Framebuffer &framebuffer, _In_ Rect2D renderArea, _In_ SubpassContents contents);
 		/* Appends a graphics pipeline bind command to the command buffer. */
 		void BindGraphicsPipeline(_In_ const GraphicsPipeline &pipeline);
 		/* Appends a vertex buffer bind command to the command buffer. */
 		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
+		/* Appends a index buffer bind command to the command buffer. */
+		void BindIndexBuffer(_In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
 		/* Appends a graphics descriptor bind command to the command buffer. */
 		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
+		/* Appends an indexed draw command to the command buffer. */
+		void Draw(_In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 firstInstance, _In_ uint32 vertexOffset);
 		/* Appends a render pass end command to the command buffer. */
 		void EndRenderPass(void);
 
@@ -84,5 +88,6 @@ namespace Pu
 		void End(void);
 		void Reset(void);
 		void Free(void);
+		bool CheckIfRecording(_In_ const char *operation) const;
 	};
 }

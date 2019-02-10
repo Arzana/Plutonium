@@ -864,7 +864,7 @@ namespace Pu
 		/* Specifies that an image view can be used as a framebuffer depth/stencil attachment. */
 		DepthStencilAttachment = 0x00000200,
 		/* Specifies that an image can be used as srcImage in the CmdBlitImage command. */
-		BlirSrc = 0x00000400,
+		BlitSrc = 0x00000400,
 		/* Specifies that an image can be used as dstImage in the CmdBlitImage command. */
 		BlitDst = 0x00000800,
 		/* Specifies that an image can be used with a sampler that has either magFilter or minFilter set to Linear. */
@@ -1305,6 +1305,8 @@ namespace Pu
 	/* Defines the usage behaviour for command buffers. */
 	enum class CommandBufferUsageFlag
 	{
+		/* No slags were set. */
+		None = 0x00000000,
 		/* Specifies that each recording of the command buffer will only be submitted once. */
 		OneTimeSubmit = 0x00000001,
 		/* Specifies that a secondary command buffer is considered to be entirely inside a render pass. */
@@ -1316,7 +1318,7 @@ namespace Pu
 	/* Defines the specific constraints on a query. */
 	enum class QueryControlFlag
 	{
-		/* No flags where set. */
+		/* No flags were set. */
 		None = 0x00000000,
 		/* Specifies the precision of occlusion queries. */
 		Precise = 0x00000001

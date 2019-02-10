@@ -187,6 +187,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	/* Get current call stack. */
 	vector<StackFrame> callStack;
 	StackFrame::GetStackTrace(framesToSkip, callStack);
+	string line;
 
 	/* Lock logger. */
 	printLock.lock();
@@ -194,28 +195,59 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	/* Make sure the color is correct. */
 	UpdateType(LogType::Error);
 
+	/* 
+	Get the information needed to nicely format the stack frames.
+	Line 0 doesn't exist so we print unknown for that, which is 7 digits.
+	All initial values are the lengths for their headers.
+	*/
+	size_t maxFunctionNameLength = 8, maxLineLength = 4, maxModuleNameLength = 6, maxFileNameLength = 4;
+	for (const StackFrame &cur : callStack)
+	{
+		maxFunctionNameLength = max(maxFunctionNameLength, cur.FunctionName.length());
+		maxLineLength = max(maxLineLength, cur.Line ? string::count_digits(static_cast<uint64>(cur.Line)) : 7);
+		maxModuleNameLength = max(maxModuleNameLength, cur.ModuleName.length());
+		maxFileNameLength = max(maxFileNameLength, cur.FileName.length());
+	}
+
 	/* Log table header. */
+	const string offset1(maxFunctionNameLength / 2, ' ');
+	const string offset2((maxFunctionNameLength / 2 - 8) + maxLineLength / 2, ' ');
+	const string offset3((maxLineLength / 2 - 2) + maxModuleNameLength / 2, ' ');
+	const string offset4((maxModuleNameLength / 2 - 3) + maxFileNameLength / 2, ' ');
+
 	printf("STACKTRACE:\n");
-	printf("		%46s FUNCTION %62s LINE %8s MODULE %16s FILE\n", "", "", "", "");
+	printf("		%s FUNCTION %s  LINE %s  MODULE %s  FILE\n", offset1.c_str(), offset2.c_str(), offset3.c_str(), offset4.c_str());
 
 	bool suppressLog = false;
-	for (size_t i = 0; i < callStack.size(); i++)
+	for (const StackFrame &cur : callStack)
 	{
-		const StackFrame &cur = callStack[i];
-
 		if (!suppressLog)
 		{
-			/* Log stack trace, stackframe always advances by one so subtract one. */
-			printf("		at %-110s ", cur.FunctionName.c_str());
-			printf(cur.Line ? "| %-10d " : "| Unknown    ", cur.Line - 1);
-			printf("| %-16s", cur.ModuleName.c_str());
-			printf("| %-64s\n", cur.FileName.c_str());
+			/* Print the function name. */
+			(line = "		at %-") += std::to_string(maxFunctionNameLength + 1) += 's';
+			printf(line.c_str(), cur.FunctionName.c_str());
+
+			/* Print the line. */
+			if (cur.Line)
+			{
+				(line = "| %-") += std::to_string(maxLineLength + 1) += 'd';
+				printf(line.c_str(), cur.Line - 1);
+			}
+			else printf("| Unknown ");
+
+			/* Print the module name. */
+			(line = "| %-") += std::to_string(maxModuleNameLength + 1) += 's';
+			printf(line.c_str(), cur.ModuleName.c_str());
+
+			/* Print the file name. */
+			(line = "| %-") += std::to_string(maxFileNameLength + 1) += "s\n";
+			printf(line.c_str(), cur.FileName.c_str());
 
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */
 			if constexpr (!LoggerExternalsVisible)
 			{
-				if (strstr(cur.FunctionName.c_str(), "_CrtPuThreadStart")) suppressLog = true;
-				if (!strcmp(cur.FunctionName.c_str(), "main")) suppressLog = true;
+				if (cur.FunctionName == "_CrtPuThreadStart") suppressLog = true;
+				if (cur.FunctionName == "main") suppressLog = true;
 				if (suppressLog) printf("		[External Code]\n");
 			}
 		}

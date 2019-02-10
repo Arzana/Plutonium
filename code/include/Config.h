@@ -20,11 +20,11 @@ namespace Pu
 	/* Defines whether the task scheduler is allowed to steal tasks. */
 	constexpr bool TaskSchedulerStealing = true;
 	/* Defines whether the event bus should log subscriber changes. */
-	constexpr bool EventBusLogging = true;
+	constexpr bool EventBusLogging = false;
 	/* Defines whether the logger should display external code in stack traces. */
 	constexpr bool LoggerExternalsVisible = false;
 	/* Defines whether the available extensions and layers should be logged by the Vulkan instance. */
-	constexpr bool LogAvailableVulkanExtensionsAndLayers = true;
+	constexpr bool LogAvailableVulkanExtensionsAndLayers = false;
 	/* Defines the default target frame rate (in seconds) for a focused application. */
 	constexpr float ApplicationFocusedTargetTime = 1.0f / 60.0f;
 	/* Defines the default target frame rate (in seconds) for a non-focused application. */

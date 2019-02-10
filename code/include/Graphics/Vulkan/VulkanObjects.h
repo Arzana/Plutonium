@@ -924,7 +924,7 @@ namespace Pu
 		/* Initializes a new instance of the command buffer begin info object. */
 		CommandBufferBeginInfo(void)
 			: Type(StructureType::CommandBufferBeginInfo), Next(nullptr),
-			Flags(CommandBufferUsageFlag::SimultaneousUse), InheritanceInfo(nullptr)
+			Flags(CommandBufferUsageFlag::None), InheritanceInfo(nullptr)
 		{}
 	};
 

@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		Texture(_In_ const Texture&) = delete;
-		/* Move assignment. */
+		/* Move constructor. */
 		Texture(_In_ Texture &&value);
 		/* Destroys the texture. */
 		virtual ~Texture(void)
@@ -23,12 +23,6 @@ namespace Pu
 		_Check_return_ Texture& operator =(_In_ const Texture&) = delete;
 		/* Move assignment. */
 		_Check_return_ Texture& operator =(_In_ Texture &&other);
-
-		/* Implicit convertion to get the image. */
-		_Check_return_ inline operator Image&(void)
-		{
-			return Image;
-		}
 
 		/* Implicit convertion to get the image. */
 		_Check_return_ inline operator const Image&(void) const 

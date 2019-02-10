@@ -70,6 +70,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const string & path, const Samp
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info = _CrtGetImageInfo(path);
+		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
 		Image *image = new Image(loader->GetDevice(), createInfo);
 		image->SetHash(hash);

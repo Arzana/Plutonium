@@ -77,19 +77,19 @@ bool Pu::CommandBuffer::CanBegin(bool wait)
 		return false;
 	}
 	/* Quickly check if the fence is signaled if so reset the command buffer. */
-	else if(submitFence->IsSignaled())
+	else if (submitFence->IsSignaled())
 	{
 		Reset();
 		return true;
 	}
-	
+
 	/* No wait happened and the fence wasn't signaled so just return false. */
 	return false;
 }
 
 void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstBuffer)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("copy buffer"))
 	{
 		const BufferCopy region(0, 0, srcBuffer.GetSize());
 
@@ -97,42 +97,38 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstB
 		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
 		dstBuffer.elements = srcBuffer.elements;
 	}
-	else Log::Warning("Cannot copy buffer on non-recording CommandBuffer!");
 }
 
 void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destination)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("copy buffer to image"))
 	{
 		const BufferImageCopy region(destination.GetExtent());
 		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
 	}
-	else Log::Warning("Cannot copy buffer to image on non-recording CommandBuffer!");
 }
 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer, const vector<BufferCopy>& regions)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("copy buffer"))
 	{
 		/* Append command to the command buffer and set the new element count for the buffer. */
 		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 		dstBuffer.elements = srcBuffer.elements;
 	}
-	else Log::Warning("Cannot copy buffer on non-recording CommandBuffer!");
 }
 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, const vector<BufferImageCopy>& regions)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("copy buffer to image"))
 	{
 		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
 	}
-	else Log::Warning("Cannot copy buffer to image on non-recording CommandBuffer!");
 }
 
 void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, AccessFlag dstAccess, DependencyFlag dependencyFlags)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("setup buffer pipeline barrier"))
 	{
 		/* Create buffer memory barrier. */
 		BufferMemoryBarrier barrier(buffer.bufferHndl);
@@ -144,13 +140,12 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 
 		/* Set new buffer access. */
 		buffer.access = dstAccess;
-	} 
-	else Log::Warning("Cannot setup buffer pipeline barrier on non-recording CommandBuffer!");
+	}
 }
 
 void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, ImageSubresourceRange range, DependencyFlag dependencyFlags, uint32 queueFamilyIndex)
 {
-	if (state == State::Recording)
+	if (CheckIfRecording("setup image pipeline barrier"))
 	{
 		/* Create the memory barrier. */
 		ImageMemoryBarrier barrier(image.imageHndl, queueFamilyIndex);
@@ -167,55 +162,80 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 		image.access = dstAccess;
 		image.layout = newLayout;
 	}
-	else Log::Warning("Cannot setup image pipeline barrier on non-recording CommandBuffer!");
 }
 
-void Pu::CommandBuffer::ClearImage(ImageHndl image, Color color, ImageLayout layout)
+void Pu::CommandBuffer::ClearImage(Image & image, Color color)
 {
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
-	if (state == State::Recording) parent.parent.vkCmdClearColorImage(hndl, image, layout, color.ToClearColor(), 1, &range);
-	else Log::Warning("Cannot clear image on non-recording CommandBuffer!");
+	if (CheckIfRecording("clear image")) parent.parent.vkCmdClearColorImage(hndl, image.imageHndl, image.layout, color.ToClearColor(), 1, &range);
 }
 
 void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
 {
-	RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
-	info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
-	info.ClearValues = renderPass.clearValues.data();
+	if (CheckIfRecording("begin render pass"))
+	{
+		RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
+		info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
+		info.ClearValues = renderPass.clearValues.data();
 
-	if (state == State::Recording) parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
-	else Log::Warning("Cannot begin render pass on non-recording CommandBuffer!");
+		parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
+	}
 }
 
 void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 {
-	if (state == State::Recording) parent.parent.vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
-	else Log::Warning("Cannot bind graphics pipeline on non-recording CommandBuffer!");
+	if (CheckIfRecording("bind graphics pipeline")) parent.parent.vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
 }
 
 void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, size_t offset)
 {
-	if (state == State::Recording) parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, static_cast<DeviceSize*>(&offset));
-	else Log::Warning("Cannot bind vertex buffer on non-recording CommandBuffer!");
+	if (CheckIfRecording("bind vertex buffer")) parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, static_cast<DeviceSize*>(&offset));
+}
+
+void Pu::CommandBuffer::BindIndexBuffer(const Buffer & buffer, size_t offset)
+{
+	if (CheckIfRecording("bind index buffer"))
+	{
+		IndexType type;
+		switch (buffer.GetSize() / buffer.GetElementCount())
+		{
+		case 2:
+			type = IndexType::UInt16;
+			break;
+		case 4:
+			type = IndexType::UInt32;
+			break;
+		default:
+			Log::Fatal("Buffer cannot be interpreted as an index buffer!");
+			return;
+		}
+
+		parent.parent.vkCmdBindIndexBuffer(hndl, buffer.bufferHndl, static_cast<DeviceSize>(offset), type);
+	}
 }
 
 void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
 {
-	if (state == State::Recording) parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, 0, 1, &descriptor.hndl, 0, nullptr);
-	else Log::Warning("Cannot bind descriptor to graphics bind point on non-recording CommandBuffer!");
+	if (CheckIfRecording("bind descriptor to graphics bind point"))
+	{
+		parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, 0, 1, &descriptor.hndl, 0, nullptr);
+	}
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
-	if (state == State::Recording) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
-	else Log::Warning("Cannot draw on non-recording CommandBuffer!");
+	if (CheckIfRecording("draw")) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
+}
+
+void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 firstInstance, uint32 vertexOffset)
+{
+	if (CheckIfRecording("draw")) parent.parent.vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void Pu::CommandBuffer::EndRenderPass(void)
 {
-	if (state == State::Recording) parent.parent.vkCmdEndRenderPass(hndl);
-	else Log::Warning("Cannot end render pass on non-recording CommandBuffer!");
+	if (CheckIfRecording("end render pass")) parent.parent.vkCmdEndRenderPass(hndl);
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
@@ -256,4 +276,12 @@ void Pu::CommandBuffer::Reset(void)
 void Pu::CommandBuffer::Free(void)
 {
 	if (hndl) parent.FreeBuffer(hndl);
+}
+
+bool Pu::CommandBuffer::CheckIfRecording(const char * operation) const
+{
+	if (state == State::Recording) return true;
+
+	Log::Error("Cannot %s on command buffer in %s state!", operation, ::to_string(state));
+	return false;
 }

@@ -76,7 +76,7 @@ void TestGame::LoadContent(void)
 		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
 	};
 
-	const Matrix identity = Matrix::CreateScalar(2.0f);
+	const Matrix identity = Matrix::CreateScalar(1.0f);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
 	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
@@ -142,8 +142,8 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass());
 
 	/* Render scene. */
-	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
+	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 
 	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);
 	cmdBuffer.BindGraphicsDescriptor(*descriptor);

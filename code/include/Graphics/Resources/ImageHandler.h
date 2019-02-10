@@ -20,7 +20,7 @@ namespace Pu
 
 		/* Initializes an empty instance of the image information object. */
 		ImageInformation(void)
-			: Width(3), Height(3), Components(3), IsHDR(false)
+			: Width(3), Height(3), Components(4), IsHDR(false)
 		{}
 
 		/* Initializes a new instance of the image information object. */

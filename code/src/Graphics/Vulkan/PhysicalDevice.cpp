@@ -105,6 +105,13 @@ bool Pu::PhysicalDevice::AreExtensionsSupported(std::initializer_list<const char
 	return found >= extensions.size();
 }
 
+FormatProperties Pu::PhysicalDevice::GetFormatProperties(Format format) const
+{
+	FormatProperties result;
+	parent.vkGetPhysicalDeviceFormatProperties(hndl, format, &result);
+	return result;
+}
+
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(parent)
 {

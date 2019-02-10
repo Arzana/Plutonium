@@ -197,6 +197,18 @@ namespace Pu
 			return *this;
 		}
 
+		/* Gets the amount of digits in a number if it would be converted to string. */
+		_Check_return_ static inline size_t count_digits(_In_ uint64 number)
+		{
+			return number ? static_cast<size_t>(log10(number) + 1) : 1;
+		}
+
+		/* Gets the amount of digits in a number if it would be converted to string. */
+		_Check_return_ static inline size_t count_digits(_In_ int64 number)
+		{
+			return number ? static_cast<size_t>(log10(abs(number)) + (number < 0 ? 2 : 1)) : 1;
+		}
+
 		/* Gets whether the string contains a specified substring. */
 		_Check_return_ inline bool contains(_In_ basic_string<_CharTy> substr) const
 		{

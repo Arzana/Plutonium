@@ -32,6 +32,8 @@ namespace Pu
 		_Check_return_ bool IsExtensionSupported(_In_ const char *extension) const;
 		/* Checks whether specific extensions are supported. */
 		_Check_return_ bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions) const;
+		/* Gets the format properties for the specified format. */
+		_Check_return_ FormatProperties GetFormatProperties(_In_ Format format) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const

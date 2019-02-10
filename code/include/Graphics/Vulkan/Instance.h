@@ -73,6 +73,7 @@ namespace Pu
 		PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
 		PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 		PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
+		PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties;
 		PFN_vkCreateDevice vkCreateDevice;
 		PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
 		PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;

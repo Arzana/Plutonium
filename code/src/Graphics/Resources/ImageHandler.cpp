@@ -35,7 +35,9 @@ constexpr size_t DEFAULT_IMAGE_COMPONENTS = sizeof(DEFAULT_IMAGE) / sizeof(Pu::C
 Pu::vector<float> getDefaultImageHDR(void)
 {
 	/* Create HDR copy of default image. */
-	Pu::vector<float> result(DEFAULT_IMAGE_COMPONENTS * 3);
+	Pu::vector<float> result;
+	result.reserve(DEFAULT_IMAGE_COMPONENTS * 4);
+
 	for (Pu::Color cur : DEFAULT_IMAGE)
 	{
 		/* Convert from Color to HDR values. */
@@ -43,6 +45,7 @@ Pu::vector<float> getDefaultImageHDR(void)
 		result.emplace_back(rgba.X);
 		result.emplace_back(rgba.Y);
 		result.emplace_back(rgba.Z);
+		result.emplace_back(1.0f);
 	}
 
 	return result;
@@ -51,12 +54,15 @@ Pu::vector<float> getDefaultImageHDR(void)
 Pu::vector<byte> getDefaultImageLDR(void)
 {
 	/* Create LDR copy of default image. */
-	Pu::vector<byte> result(DEFAULT_IMAGE_COMPONENTS * 3);
+	Pu::vector<byte> result;
+	result.reserve(DEFAULT_IMAGE_COMPONENTS * 4);
+
 	for (Pu::Color cur : DEFAULT_IMAGE)
 	{
 		result.emplace_back(cur.R);
 		result.emplace_back(cur.G);
 		result.emplace_back(cur.B);
+		result.emplace_back(static_cast<byte>(255));
 	}
 
 	return result;

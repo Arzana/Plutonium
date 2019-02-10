@@ -104,7 +104,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size)
 
 void Pu::GameWindow::MakeSwapchainImageWritable(void)
 {
-	static const ImageSubresourceRange range(ImageAspectFlag::Color);
+	static const ImageSubresourceRange range;
 
 	/* Transfer present image to a writable image. */
 	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, range);
@@ -112,7 +112,7 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 
 void Pu::GameWindow::MakeImagePresentable(void)
 {
-	static const ImageSubresourceRange range(ImageAspectFlag::Color);
+	static const ImageSubresourceRange range;
 
 	/* Transfer writable image back to present mode. */
 	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, ImageLayout::PresentSrcKhr, AccessFlag::MemoryRead, range);
