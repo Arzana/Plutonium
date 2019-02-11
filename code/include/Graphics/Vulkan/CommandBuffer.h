@@ -61,7 +61,7 @@ namespace Pu
 		/* Appends a vertex buffer bind command to the command buffer. */
 		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
 		/* Appends a index buffer bind command to the command buffer. */
-		void BindIndexBuffer(_In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
+		void BindIndexBuffer(_In_ const Buffer &buffer, _In_ size_t elementCount, _In_opt_ size_t offset = 0);
 		/* Appends a graphics descriptor bind command to the command buffer. */
 		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */

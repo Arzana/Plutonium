@@ -132,7 +132,7 @@ namespace Pu
 		bool SupportsPlutonium(const Surface &surface) const;
 		uint32 GetBestGraphicsQueueFamily(const Surface &surface) const;
 		uint32 GetBestTransferQueueFamily(void) const;
-		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, bool preferCaching, uint32 &index);
+		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, bool preferCaching, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};
 }

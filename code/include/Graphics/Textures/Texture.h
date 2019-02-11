@@ -1,9 +1,9 @@
 #pragma once
 #include "Sampler.h"
-#include "Graphics/Vulkan/Buffer.h"
 #include "Core/Threading/Tasks/Task.h"
 #include "Graphics/Vulkan/ImageView.h"
 #include "Graphics/Resources/ImageHandler.h"
+#include "Graphics/Resources/StagingBuffer.h"
 
 namespace Pu
 {
@@ -68,7 +68,7 @@ namespace Pu
 			virtual Result Execute(void) override;
 			virtual Result Continue(void) override;
 
-			inline Buffer& GetStagingBuffer(void)
+			inline StagingBuffer& GetStagingBuffer(void)
 			{
 				return *stagingBuffer;
 			}
@@ -77,7 +77,7 @@ namespace Pu
 			Texture &result;
 			ImageInformation info;
 			Task *child;
-			Buffer *stagingBuffer;
+			StagingBuffer *stagingBuffer;
 			string path;
 		};
 

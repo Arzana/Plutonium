@@ -63,6 +63,8 @@ Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format 
 
 void Pu::Image::Create(const ImageCreateInfo & createInfo)
 {
+	MemoryPropertyFlag properties = MemoryPropertyFlag::None;
+
 	/* Create image object. */
 	VK_VALIDATE(parent.vkCreateImage(parent.hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
 	SetHash(std::hash<ImageHndl>{}(imageHndl));
@@ -70,7 +72,7 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 	/* Find the type of memory that best supports our needs. */
 	uint32 typeIdx;
 	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, MemoryPropertyFlag::None, false, typeIdx))
+	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, properties, false, typeIdx))
 	{
 		/* Allocate the image's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);

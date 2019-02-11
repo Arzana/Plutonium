@@ -2,25 +2,19 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, bool requiresHostAccess)
-	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0), access(AccessFlag::None)
+	: parent(device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None)
 {
-	const BufferCreateInfo createInfo(static_cast<DeviceSize>(size), usage);
-	Create(createInfo, requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None);
-}
-
-Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, const vector<uint32>& queueFamilies, bool requiresHostAccess)
-	: parent(device), size(size), hostAccess(requiresHostAccess), elements(0), access(AccessFlag::None)
-{
-	const BufferCreateInfo createInfo(static_cast<DeviceSize>(size), usage, queueFamilies);
-	Create(createInfo, requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None);
+	memoryProperties = requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None;
+	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage));
 }
 
 Pu::Buffer::Buffer(Buffer && value)
-	: parent(value.parent), bufferHndl(value.bufferHndl), memoryHndl(value.memoryHndl), size(value.size), elements(value.elements), 
-	hostAccess(value.hostAccess), access(value.access)
+	: parent(value.parent), size(value.size), memoryHndl(value.memoryHndl), bufferHndl(value.bufferHndl),
+	memoryProperties(value.memoryProperties), memoryType(value.memoryType), buffer(value.buffer), srcAccess(value.srcAccess)
 {
-	value.bufferHndl = nullptr;
 	value.memoryHndl = nullptr;
+	value.bufferHndl = nullptr;
+	value.buffer = nullptr;
 }
 
 Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
@@ -30,98 +24,141 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 		Destroy();
 
 		parent = std::move(other.parent);
-		bufferHndl = other.bufferHndl;
-		memoryHndl = other.memoryHndl;
 		size = other.size;
-		elements = other.elements;
-		hostAccess = other.hostAccess;
-		access = other.access;
+		memoryHndl = other.memoryHndl;
+		bufferHndl = other.bufferHndl;
+		memoryProperties = other.memoryProperties;
+		memoryType = other.memoryType;
+		buffer = other.buffer;
+		srcAccess = other.srcAccess;
 
-		other.bufferHndl = nullptr;
 		other.memoryHndl = nullptr;
-		other.size = 0;
-		other.elements = 0;
+		other.bufferHndl = nullptr;
+		other.buffer = nullptr;
 	}
 
 	return *this;
 }
 
-/* size hides class member, checked and works as intended. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-void Pu::Buffer::BufferData(size_t size, size_t offset, const void * data)
+void Pu::Buffer::BeginMemoryTransfer(void)
 {
-	/* Requires the shared memory buffer. */
-	void *buffer;
-	Map(size, offset, &buffer);
-
-	/* Copy the data into the Vulkan shared buffer. */
-	memcpy_s(buffer, size, data, size);
-
-	/* Indicate to Vulkan that we changed the whole buffer size. */
-	const MappedMemoryRange range(memoryHndl);
-	Flush(1, &range);
-
-	/* Indicate to Vulkan that we no longer need CPU access to the buffer. */
-	Unmap();
-}
-#pragma warning(pop)
-
-void Pu::Buffer::Flush(uint32 count, const MappedMemoryRange * ranges)
-{
-	VK_VALIDATE(parent.vkFlushMappedMemoryRanges(parent.hndl, count, ranges), PFN_vkFlushMappedMemoryRanges);
-}
-
-/* size hides class member, checked and works as intended. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-void Pu::Buffer::Map(size_t size, size_t offset, void ** data)
-{
-	if (!hostAccess) Log::Fatal("Cannot map memory to a buffer that doesn't have host access enabled!");
-	VK_VALIDATE(parent.vkMapMemory(parent.hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, data), PFN_vkMapMemory);
-}
-#pragma warning(pop)
-
-void Pu::Buffer::Unmap(void)
-{
-	parent.vkUnmapMemory(parent.hndl, memoryHndl);
-}
-
-void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlag flags)
-{
-	/* Create the buffer object. */
-	VK_VALIDATE(parent.vkCreateBuffer(parent.hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
-
-	/* Find the type of memory that best supports our needs. */
-	uint32 typeIdx;
-	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, flags, false, typeIdx))
+	/* Make sure we don't map twice. */
+	if (buffer)
 	{
-		/* Allocate the buffer's data. */
-		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);
-		VK_VALIDATE(parent.vkAllocateMemory(parent.hndl, &allocateInfo, nullptr, &memoryHndl), PFN_vkAllocateMemory);
-
-		/* Bind the memory to the buffer. */
-		Bind();
+		Log::Warning("Attempting to begin memory transfer on already transfering buffer!");
+		return;
 	}
-	else Log::Fatal("Unable to allocate memory for buffer!");
+
+	/* We cannot map data on non-host accessible buffers. */
+	if (!IsHostAccessible()) Log::Fatal("Attempting to begin memory transfer on host-invisible buffer!");
+
+	/* Map the entire buffer into memory. */
+	Map(size, 0);
 }
 
-void Pu::Buffer::Bind(void) const
+void Pu::Buffer::EndMemoryTransfer(void)
 {
-	// TODO: We should not allocate a memory object for ever buffer but rather make one big one and set a proper offset to increase cache hits.
-	VK_VALIDATE(parent.vkBindBufferMemory(parent.hndl, bufferHndl, memoryHndl, 0), PFN_vkBindBufferMemory);
+	/* Make sure the buffer was actually started. */
+	if (!buffer)
+	{
+		Log::Error("Attempting to end memory transfer on non-started buffer!");
+		return;
+	}
+
+	/* Flush the entire buffer and unmap the memory. */
+	Flush(size, 0);
+	UnMap();
 }
 
-Pu::MemoryRequirements Pu::Buffer::GetMemoryRequirements(void)
+void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t dataStride, size_t offset, size_t stride)
 {
-	MemoryRequirements result;
-	parent.vkGetBufferMemoryRequirements(parent.hndl, bufferHndl, &result);
-	return result;
+	/* Make sure the transfer was started. */
+	if (!buffer) Log::Fatal("Attempting to set data on non-started or non-host accessible buffer!");
+
+	/*
+	Start at the offset in the destination buffer (i).
+	Start at zero in the source buffer (j).
+	Loop until either the end of the source or destination buffer is reached.
+	Increase the destination buffer by the buffer view stride.
+	Increasethe source buffer by the element size (dataStride).
+	*/
+	for (size_t i = offset, j = 0; i < size && j < dataSize; i += stride, j += dataStride)
+	{
+		memcpy_s(reinterpret_cast<byte*>(buffer) + i, size - i, reinterpret_cast<const byte*>(data) + j, dataStride);
+	}
+}
+
+void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t offset)
+{
+	memcpy_s(reinterpret_cast<byte*>(buffer) + offset, size - offset, data, dataSize);
+}
+
+/* size hides class member, checked and works as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::Buffer::Map(size_t size, size_t offset)
+{
+	VK_VALIDATE(parent.vkMapMemory(parent.hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, &buffer), PFN_vkMapMemory);
+}
+#pragma warning(pop)
+
+void Pu::Buffer::UnMap(void)
+{
+	/* Resset the buffer back to nullptr to indicate that we no longer have access to the buffer. */
+	parent.vkUnmapMemory(parent.hndl, memoryHndl);
+	buffer = nullptr;
+}
+
+/* size hides class member, checked and works as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::Buffer::Flush(size_t size, size_t offset)
+{
+	/* Flush the section of the buffer indicated by the user. */
+	const MappedMemoryRange range{ memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size) };
+	VK_VALIDATE(parent.vkFlushMappedMemoryRanges(parent.hndl, 1, &range), PFN_vkFlushMappedMemoryRanges);
+}
+#pragma warning(pop)
+
+void Pu::Buffer::Create(const BufferCreateInfo & createInfo)
+{
+	VK_VALIDATE(parent.vkCreateBuffer(parent.hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
+	Allocate();
 }
 
 void Pu::Buffer::Destroy(void)
 {
+	Free();
 	if (bufferHndl) parent.vkDestroyBuffer(parent.hndl, bufferHndl, nullptr);
+}
+
+void Pu::Buffer::Allocate(void)
+{
+	/* Get the requirements for this block of memory. */
+	MemoryRequirements requirements;
+	parent.vkGetBufferMemoryRequirements(parent.hndl, bufferHndl, &requirements);
+
+	/* Get the best type of memory available to us. */
+	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, false, memoryType))
+	{
+		gpuSize = static_cast<size_t>(requirements.Size);
+
+		/* Allocate the memory. */
+		const MemoryAllocateInfo info{ requirements.Size, memoryType };
+		VK_VALIDATE(parent.vkAllocateMemory(parent.hndl, &info, nullptr, &memoryHndl), PFN_vkAllocateMemory);
+
+		/* Bind the memory to the buffer. */
+		Bind();
+	}
+	else Log::Fatal("Unable to allocate memory for buffer.");
+}
+
+void Pu::Buffer::Bind(void)
+{
+	VK_VALIDATE(parent.vkBindBufferMemory(parent.hndl, bufferHndl, memoryHndl, 0), PFN_vkBindBufferMemory);
+}
+
+void Pu::Buffer::Free(void)
+{
 	if (memoryHndl) parent.vkFreeMemory(parent.hndl, memoryHndl, nullptr);
 }

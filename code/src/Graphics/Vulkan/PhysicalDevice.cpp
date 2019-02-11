@@ -204,10 +204,11 @@ uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
 	return choosen;
 }
 
-bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag memoryProperties, bool preferCaching, uint32 & index)
+bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, bool preferCaching, uint32 & index)
 {
 	index = maxv<uint32>();
 	int32 highscore = -1, score = 0;
+	MemoryPropertyFlag checkProperties = memoryProperties;
 
 	/* Loop throug to find all possible memory types. */
 	for (uint32 i = 0; i < memory.MemoryTypeCount; ++i, score = 0)
@@ -215,7 +216,7 @@ bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryProperty
 		const MemoryPropertyFlag flags = memory.MemoryTypes[i].PropertyFlags;
 
 		/* Check if type is supported and if the required properties are supported. */
-		if ((memoryTypeBits & (1 << i)) && _CrtEnumCheckFlag(flags, memoryProperties))
+		if ((memoryTypeBits & (1 << i)) && _CrtEnumCheckFlag(flags, checkProperties))
 		{
 			/* See Scoring document for scoring information. */
 			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) score += 3;
@@ -227,6 +228,7 @@ bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryProperty
 			{
 				highscore = score;
 				index = i;
+				memoryProperties = flags;
 			}
 		}
 	}

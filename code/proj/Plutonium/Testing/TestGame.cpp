@@ -2,6 +2,7 @@
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/VertexLayouts/Image2D.h>
 #include <Core/Math/Matrix.h>
+#include <Graphics/Resources/BufferAccessor.h>
 
 using namespace Pu;
 
@@ -79,14 +80,14 @@ void TestGame::LoadContent(void)
 	const Matrix identity = Matrix::CreateScalar(1.0f);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst);
-	vrtxStagingBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::TransferSrc, true);
-	vrtxStagingBuffer->SetData(quad, 4);
+	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
+	vrtxStagingBuffer->Load(quad);
 
 	/* Initialize the uniform buffer and setup the staging buffer. */
-	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
-	uniStagingBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::TransferSrc, true);
-	uniStagingBuffer->SetData(identity.GetComponents(), 16);
+	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst, false);
+	uniStagingBuffer = new StagingBuffer(*uniBuffer);
+	uniStagingBuffer->Load(identity.GetComponents());
 
 	/* Load the texture. */
 	image = &GetContent().FetchTexture2D("../assets/images/Plutonium.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
@@ -148,7 +149,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);
 	cmdBuffer.BindGraphicsDescriptor(*descriptor);
 
-	cmdBuffer.Draw(vrtxBuffer->GetElementCount(), 1, 0, 0);
+	cmdBuffer.Draw(4, 1, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 }

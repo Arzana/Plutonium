@@ -1,6 +1,7 @@
 #pragma once
 #include <Application.h>
 #include <Graphics/Textures/Texture2D.h>
+#include <Graphics/Resources/StagingBuffer.h>
 
 class TestGame
 	: public Pu::Application
@@ -23,7 +24,8 @@ protected:
 
 private: 
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *vrtxBuffer, *uniBuffer, *vrtxStagingBuffer, *uniStagingBuffer;
+	Pu::Buffer *vrtxBuffer, *uniBuffer;
+	Pu::StagingBuffer *vrtxStagingBuffer, *uniStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::DescriptorSet *descriptor;
 };

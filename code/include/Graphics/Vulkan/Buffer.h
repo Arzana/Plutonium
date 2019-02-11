@@ -7,15 +7,13 @@ namespace Pu
 	class Buffer
 	{
 	public:
-		/* Initializes a new instance of a buffer with exclusive sharing options. */
-		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_opt_ bool requiresHostAccess = false);
-		/* Initializes a new instance of a buffer that can be shared by the specified queue families. */
-		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_ const vector<uint32> &queueFamilies, _In_opt_ bool requiresHostAccess = false);
+		/* Initializes a new instance of a memory buffer of a specified size (in bytes). */
+		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_ bool requiresHostAccess);
 		Buffer(_In_ const Buffer&) = delete;
 		/* Move constructor. */
 		Buffer(_In_ Buffer &&value);
-		/* Destroys the buffer. */
-		~Buffer(void)
+		/* Frees the buffer. */
+		virtual ~Buffer(void)
 		{
 			Destroy();
 		}
@@ -24,44 +22,60 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Buffer& operator =(_In_ Buffer &&other);
 
-		/* Gets the size (in bytes) of the buffer. */
-		_Check_return_ inline DeviceSize GetSize(void) const
+		/* Gets whether this buffer's data can be set by the CPU. */
+		_Check_return_ inline bool IsHostAccessible(void) const
 		{
-			return static_cast<DeviceSize>(size);
+			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostVisible);
 		}
 
-		/* Gets the amount of elements in the buffer. */
-		_Check_return_ inline uint32 GetElementCount(void) const
+		/* Gets whether this buffer's data is cached on the host. */
+		_Check_return_ inline bool IsCached(void) const
 		{
-			return static_cast<uint32>(elements);
+			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCached);
 		}
 
-		/* Sets the data of the buffer. */
-		template <typename _Ty>
-		inline void SetData(_In_ const _Ty *data, _In_ size_t count)
+		/* Gets the size (in bytes) of this buffer. */
+		_Check_return_ inline size_t GetSize(void) const
 		{
-			elements = count;
-			BufferData(sizeof(_Ty) * count, 0, data);
+			return size;
 		}
+
+		/* Starts the process of transfering data from the CPU to this buffer. */
+		void BeginMemoryTransfer(void);
+		/* Ends the process of transfering data from the CPU to this buffer. */
+		void EndMemoryTransfer(void);
+
+	protected:
+		/* Sets the raw memory of the buffer. */
+		void SetData(_In_ const void *data, _In_ size_t dataSize, _In_ size_t dataStride, _In_ size_t offset, _In_ size_t stride);
+		/* Sets the raw memory of the buffer. */
+		void SetData(_In_ const void *data, _In_ size_t dataSize, _In_ size_t offset);
 
 	private:
+		friend class BufferView;
+		friend class StagingBuffer;
 		friend class CommandBuffer;
 		friend class DescriptorSet;
 
-		BufferHndl bufferHndl;
-		DeviceMemoryHndl memoryHndl;
 		LogicalDevice &parent;
-		size_t size, elements;
-		bool hostAccess;
-		mutable AccessFlag access;
+		mutable AccessFlag srcAccess;
 
-		void BufferData(size_t size, size_t offset, const void *data);
-		void Flush(uint32 count, const MappedMemoryRange *ranges);
-		void Map(size_t size, size_t offset, void **data);
-		void Unmap(void);
-		void Create(const BufferCreateInfo &createInfo, MemoryPropertyFlag flags);
-		void Bind(void) const;
-		MemoryRequirements GetMemoryRequirements(void);
+		size_t size, gpuSize;
+		DeviceMemoryHndl memoryHndl;
+		BufferHndl bufferHndl;
+		MemoryPropertyFlag memoryProperties;
+		uint32 memoryType;
+		void *buffer;
+
+		void Map(size_t size, size_t offset);
+		void UnMap(void);
+		void Flush(size_t size, size_t offset);
+
+		void Create(const BufferCreateInfo &createInfo);
 		void Destroy(void);
+
+		void Allocate(void);
+		void Bind(void);
+		void Free(void);
 	};
 }

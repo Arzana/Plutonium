@@ -95,7 +95,6 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstB
 
 		/* Append command to the command buffer and set the new element count for the buffer. */
 		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
-		dstBuffer.elements = srcBuffer.elements;
 	}
 }
 
@@ -114,7 +113,6 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer,
 	{
 		/* Append command to the command buffer and set the new element count for the buffer. */
 		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
-		dstBuffer.elements = srcBuffer.elements;
 	}
 }
 
@@ -132,14 +130,14 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 	{
 		/* Create buffer memory barrier. */
 		BufferMemoryBarrier barrier(buffer.bufferHndl);
-		barrier.SrcAccessMask = buffer.access;
+		barrier.SrcAccessMask = buffer.srcAccess;
 		barrier.DstAccessMask = dstAccess;
 
 		/* Append the command. */
 		parent.parent.vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 1, &barrier, 0, nullptr);
 
 		/* Set new buffer access. */
-		buffer.access = dstAccess;
+		buffer.srcAccess = dstAccess;
 	}
 }
 
@@ -193,12 +191,12 @@ void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, 
 	if (CheckIfRecording("bind vertex buffer")) parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, static_cast<DeviceSize*>(&offset));
 }
 
-void Pu::CommandBuffer::BindIndexBuffer(const Buffer & buffer, size_t offset)
+void Pu::CommandBuffer::BindIndexBuffer(const Buffer & buffer, size_t elementCount, size_t offset)
 {
 	if (CheckIfRecording("bind index buffer"))
 	{
 		IndexType type;
-		switch (buffer.GetSize() / buffer.GetElementCount())
+		switch (buffer.GetSize() / elementCount)
 		{
 		case 2:
 			type = IndexType::UInt16;
