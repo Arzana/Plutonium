@@ -11,7 +11,7 @@
 
 namespace Pu
 {
-	/* Defines a 4x4 square matrix. */
+	/* Defines a 4x4 column-major square matrix. */
 	struct Matrix
 	{
 	public:
@@ -113,13 +113,17 @@ namespace Pu
 
 		/* Creates a rotation matrix around a specified axis. */
 		_Check_return_ static Matrix CreateRotation(_In_ float theta, _In_ Vector3 axis);
-		/* Creates a rotation matrix from euler angles. */
-		_Check_return_ static Matrix CreateRotation(_In_ float yaw, _In_ float pitch, _In_ float roll);
 		/* Creates a rotation matrix from a quaternion. */
 		_Check_return_ static Matrix CreateRotation(_In_ Quaternion quaternion);
 
+		/* Creates a rotation matrix from euler angles. */
+		_Check_return_ static Matrix CreateRotation(_In_ float yaw, _In_ float pitch, _In_ float roll)
+		{
+			return CreateRotation(Quaternion::CreateRotation(yaw, pitch, roll));
+		}
+
 		/* Creates a rotation matrix around the X axis with an angle of theta. */
-		_Check_return_ static inline Matrix CreateRotationX(_In_ float theta)
+		_Check_return_ static inline Matrix CreatePitch(_In_ float theta)
 		{
 			const float c = cosf(theta);
 			const float s = sinf(theta);
@@ -127,7 +131,7 @@ namespace Pu
 		}
 
 		/* Creates a rotation matrix around the Y axis with an angle of theta. */
-		_Check_return_ static inline Matrix CreateRotationY(_In_ float theta)
+		_Check_return_ static inline Matrix CreateYaw(_In_ float theta)
 		{
 			const float c = cosf(theta);
 			const float s = sinf(theta);
@@ -135,7 +139,7 @@ namespace Pu
 		}
 
 		/* Creates a rotation matrix around the Z axis with an angle of theta. */
-		_Check_return_ static inline Matrix CreateRotationZ(_In_ float theta)
+		_Check_return_ static inline Matrix CreateRoll(_In_ float theta)
 		{
 			const float c = cosf(theta);
 			const float s = sinf(theta);
@@ -145,7 +149,7 @@ namespace Pu
 		/* Create a 2D world matrix from the specified parameters. */
 		_Check_return_ static inline Matrix CreateWorld(_In_ Vector2 pos, _In_ float theta, _In_ Vector2 scale)
 		{
-			return Matrix::CreateTranslation(pos.X, pos.Y, 0.0f) * Matrix::CreateRotationZ(theta) * Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
+			return Matrix::CreateTranslation(pos.X, pos.Y, 0.0f) * Matrix::CreateRoll(theta) * Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
 		}
 
 		/* Creates an orthographics projection matrix. */
@@ -207,8 +211,8 @@ namespace Pu
 			return f;
 		}
 
-		/* Calculates a matrix that defines the orientation of this matrix. */
-		_Check_return_ Matrix GetOrientation(void) const;
+		/* Calculates a quaternion that defines the orientation of this matrix. */
+		_Check_return_ Quaternion GetOrientation(void) const;
 		/* Gets the scale applied to this model. */
 		_Check_return_ Vector3 GetScale(void) const;
 		/* Calculates a matrix that defines the orientation and scale of this matrix. */

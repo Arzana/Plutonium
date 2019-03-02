@@ -52,11 +52,6 @@ Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
 	return Matrix(a, b, c, 0.0f, e, f, g, 0.0f, i, j, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateRotation(float yaw, float pitch, float roll)
-{
-	return CreateRotationX(pitch) * CreateRotationY(yaw) * CreateRotationZ(roll);
-}
-
 Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 {
 	const float ii = sqr(quaternion.i);
@@ -142,18 +137,62 @@ Matrix Pu::Matrix::CreateLookAt(Vector3 pos, Vector3 target, Vector3 up)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::GetOrientation(void) const
+/*
+Ken Shoemake 
+University of Pennsylvania
+*/
+Quaternion Pu::Matrix::GetOrientation(void) const
 {
 	/* Get normalizes orientation columns. */
-	Vector3 rn = normalize(GetRight());
-	Vector3 un = normalize(GetUp());
-	Vector3 bn = normalize(GetBackward());
+	const Vector3 aei = normalize(GetRight());
+	const Vector3 bfj = normalize(GetUp());
+	const Vector3 cgk = normalize(GetBackward());
 
-	return Matrix(
-		rn.X, un.X, bn.X, 0.0f,
-		rn.Y, un.Y, bn.Y, 0.0f,
-		rn.Z, un.Z, bn.Z, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
+	/* Protect against /0. */
+	const float t = aei.X + bfj.Y + cgk.Z;
+	float i, j, k, r, s;
+	if (t >= 0)
+	{
+		/* Divide by r. */
+		s = sqrtf(t + 1);
+		r = 0.5f * s;
+		s = 0.5f / s;
+		i = (cgk.Y - bfj.Z) * s;
+		j = (aei.Z - cgk.X) * s;
+		k = (bfj.X - aei.Y) * s;
+	}
+	else if (aei.X > bfj.Y && aei.X > cgk.Z)
+	{
+		/* Divide by i. */
+		s = sqrtf(1 + aei.X - bfj.Y - cgk.Z);
+		i = s * 0.5f;
+		s = 0.5f / s;
+		j = (bfj.X + aei.Y) * s;
+		k = (aei.Z + cgk.X) * s;
+		r = (cgk.Y - bfj.Z) * s;
+	}
+	else if (bfj.Y > cgk.Z)
+	{
+		/* Divide by j. */
+		s = sqrt(1.0f + bfj.Y - aei.X - cgk.Z);
+		j = s * 0.5;
+		s = 0.5 / s;
+		i = (bfj.X + aei.Y) * s;
+		k = (cgk.Y + bfj.Z) * s;
+		r = (aei.Z - cgk.X) * s;
+	}
+	else
+	{
+		/* Divide by k. */
+		s = sqrt(1 + cgk.Z - aei.X - bfj.Y);
+		k = s * 0.5;
+		s = 0.5 / s;
+		i = (aei.Z + cgk.X) * s;
+		j = (cgk.Y + bfj.Z) * s;
+		r = (bfj.X - aei.Y) * s;
+	}
+
+	return Quaternion(r, i, j, k);
 }
 
 Vector3 Pu::Matrix::GetScale(void) const
