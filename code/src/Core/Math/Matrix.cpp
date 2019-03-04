@@ -175,8 +175,8 @@ Quaternion Pu::Matrix::GetOrientation(void) const
 	{
 		/* Divide by j. */
 		s = sqrt(1.0f + bfj.Y - aei.X - cgk.Z);
-		j = s * 0.5;
-		s = 0.5 / s;
+		j = s * 0.5f;
+		s = 0.5f / s;
 		i = (bfj.X + aei.Y) * s;
 		k = (cgk.Y + bfj.Z) * s;
 		r = (aei.Z - cgk.X) * s;
@@ -185,8 +185,8 @@ Quaternion Pu::Matrix::GetOrientation(void) const
 	{
 		/* Divide by k. */
 		s = sqrt(1 + cgk.Z - aei.X - bfj.Y);
-		k = s * 0.5;
-		s = 0.5 / s;
+		k = s * 0.5f;
+		s = 0.5f / s;
 		i = (aei.Z + cgk.X) * s;
 		j = (cgk.Y + bfj.Z) * s;
 		r = (bfj.X - aei.Y) * s;
