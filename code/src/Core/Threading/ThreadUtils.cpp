@@ -31,7 +31,7 @@ uint64 Pu::_CrtGetCurrentProcessId(void)
 #endif
 }
 
-string Pu::_CrtGetProcessNameFromId(uint64 id)
+wstring Pu::_CrtGetProcessNameFromId(uint64 id)
 {
 #if defined(_WIN32)
 	/* Attempt to open the process information. */
@@ -39,7 +39,7 @@ string Pu::_CrtGetProcessNameFromId(uint64 id)
 	if (phndl)
 	{
 		/* Attempt to get module base name. */
-		CHAR buffer[MAX_PATH];
+		WCHAR buffer[MAX_PATH];
 		if (GetModuleBaseName(phndl, nullptr, buffer, sizeof(buffer)))
 		{
 			CloseHandle(phndl);
@@ -49,13 +49,12 @@ string Pu::_CrtGetProcessNameFromId(uint64 id)
 
 	/* Could not open process or get module name; log error. */
 	CloseHandle(phndl);
-	const string error = _CrtGetErrorString();
-	Log::Warning("Could not get process name, error: %s!", error.c_str());
-	return "";
+	Log::Warning("Could not get process name, error: %ls!", _CrtGetErrorString().c_str());
+	return L"";
 
 #else
 	Log::Warning("Cannot get process name on this platform!");
-	return "";
+	return L"";
 #endif
 }
 
@@ -64,7 +63,7 @@ uint64 Pu::_CrtGetCurrentThreadId(void)
 	return static_cast<uint64>(_threadid);
 }
 
-string Pu::_CrtGetThreadNameFromId(uint64 id)
+wstring Pu::_CrtGetThreadNameFromId(uint64 id)
 {
 #if defined(_WIN32)
 	/* Attempt to open the thread information. */
@@ -80,15 +79,15 @@ string Pu::_CrtGetThreadNameFromId(uint64 id)
 			{
 				/* Convert the description to a normal char and return it. */
 				CloseHandle(thndl);
-				return string(b);
+				return wstring(b);
 			}
 		}
 	}
 
 	/* Could not open thread or get description; log error. */
 	CloseHandle(thndl);
-	const string error = _CrtGetErrorString();
-	if (error.length() > 0) Log::Warning("Could not get thread name, error: %s!", error.c_str());
+	const wstring error = _CrtGetErrorString();
+	if (error.length() > 0) Log::Warning("Could not get thread name, error: %ls!", error.c_str());
 
 	/*
 	Description is empty so we need to get the module name of the thread creator;
@@ -108,57 +107,55 @@ string Pu::_CrtGetThreadNameFromId(uint64 id)
 #endif
 }
 
-void Pu::_CrtSetCurrentThreadName(const char * name)
+void Pu::_CrtSetCurrentThreadName(const wstring & name)
 {
 #if defined(_WIN32)
 	/* Attempt to open thread information. */
 	const HANDLE thndl = OpenThread(THREAD_SET_LIMITED_INFORMATION, false, static_cast<DWORD>(_CrtGetCurrentThreadId()));
 	if (thndl)
 	{
-		_bstr_t b(name);
+		_bstr_t b(name.c_str());
 		if (SetThreadDescription(thndl, b)) return;
 	}
 
 	/* Could not open thread or set description; log error. */
 	CloseHandle(thndl);
-	const string error = _CrtGetErrorString();
-	Log::Warning("Could not set thread name, error: %s!", error.c_str());
+	Log::Warning("Could not set thread name, error: %ls!", _CrtGetErrorString().c_str());
 
 #else
 	Log::Error("Cannot set thread name on this platform!");
 #endif
 }
 
-vector<string> Pu::_CrtGetEnviromentVariables(const char * name)
+vector<wstring> Pu::_CrtGetEnviromentVariables(const wstring & name)
 {
 	/* Gets the raw enviroment variables. */
-	char *raw;
+	wchar_t *raw;
 	size_t len;
-	const errno_t result = _dupenv_s(&raw, &len, name);
+	const errno_t result = _wdupenv_s(&raw, &len, name.c_str());
 
 	/* Check for error. */
 	if (result != NO_ERROR)
 	{
-		const string error = _CrtFormatError(result);
-		Log::Error("Unable to get enviroment variables (%s)!", error.c_str());
+		Log::Error("Unable to get enviroment variables (%ls)!", _CrtFormatError(result).c_str());
 		free(raw);
-		return vector<string>();
+		return vector<wstring>();
 	}
 	else
 	{
 		/* Free the raw string and return the split varient of the variables for ease of use. */
-		const string str(raw);
+		const wstring str(raw);
 		free(raw);
-		return str.split(';');
+		return str.split(L';');
 	}
 }
 
-bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, uint64 timeout)
+bool Pu::_CrtRunProcess(const wstring & name, wstring & arguments, wstring & output, uint64 timeout)
 {
 	/* Get OS path variables. */
-	const vector<string> pathDirs = _CrtGetEnviromentVariables("Path");
+	const vector<wstring> pathDirs = _CrtGetEnviromentVariables(L"Path");
 	const size_t maxIdx = pathDirs.size() - 1;
-	string dir = "";
+	wstring dir = L"";
 	size_t nextDirIdx = 0;
 
 #ifdef _WIN32
@@ -171,13 +168,13 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	HANDLE childStdOutRead = nullptr, childStdOutWrite = nullptr;
 	if (!CreatePipe(&childStdOutRead, &childStdOutWrite, &sAttr, 0))
 	{
-		Log::Warning("Unable to create read and write pipe for child process STDOUT (%s)!", _CrtGetErrorString().c_str());
+		Log::Warning("Unable to create read and write pipe for child process STDOUT (%ls)!", _CrtGetErrorString().c_str());
 	}
 
 	/* Ensure that the read handle to the pipe for STDOUT is not inherited. */
 	if (!SetHandleInformation(childStdOutRead, HANDLE_FLAG_INHERIT, 0))
 	{
-		Log::Warning("Unable to ensure STDOUT is not inherited (%s)!", _CrtGetErrorString().c_str());
+		Log::Warning("Unable to ensure STDOUT is not inherited (%ls)!", _CrtGetErrorString().c_str());
 	}
 
 	/* Specify that the child should use the specified STDOUT handles. */
@@ -195,12 +192,12 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	do
 	{
 		/* Create the final process name and add it to the argument list as the first argument (C expects this). */
-		const string pname = dir.length() > 0 ? dir + '\\' + name : name;
-		const string argv = pname + ' ' + arguments;
+		const wstring pname = dir.length() > 0 ? dir + L'\\' + name : name;
+		wstring argv = pname + L' ' + arguments;
 
 		started = CreateProcess(
 			pname.c_str(),
-			const_cast<char*>(argv.c_str()),	// Can crash if we run on UNICODE mode, but we don't so fix later.
+			const_cast<wchar_t*>(argv.c_str()),
 			nullptr,
 			nullptr,
 			childStdOutWrite != nullptr,
@@ -231,13 +228,13 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 				output.resize(requiredSize);
 				if (!ReadFile(childStdOutRead, output.data(), requiredSize, &read, nullptr))
 				{
-					Log::Warning("Unable to read from STDOUT pipe (%s)!", _CrtGetErrorString().c_str());
+					Log::Warning("Unable to read from STDOUT pipe (%ls)!", _CrtGetErrorString().c_str());
 				}
 			}
-			else Log::Warning("Unable to request STDOUT pipe size (%s)!", _CrtGetErrorString().c_str());
+			else Log::Warning("Unable to request STDOUT pipe size (%ls)!", _CrtGetErrorString().c_str());
 		}
-		else if (waitResult == WAIT_TIMEOUT) Log::Warning("Child process '%s' has timed out, releasing handle!", name);
-		else if (waitResult == WAIT_FAILED)	Log::Error("Child process '%s' has crashed (%s)!", name, _CrtGetErrorString().c_str());
+		else if (waitResult == WAIT_TIMEOUT) Log::Warning("Child process '%s' has timed out, releasing handle!", name.c_str());
+		else if (waitResult == WAIT_FAILED)	Log::Error("Child process '%s' has crashed (%ls)!", name.c_str(), _CrtGetErrorString().c_str());
 
 		/* Close handles to the child. */
 		CloseHandle(pInfo.hProcess);
@@ -246,7 +243,7 @@ bool Pu::_CrtRunProcess(const char * name, char * arguments, string & output, ui
 	}
 
 	/* Process creation failed so log error and return false. */
-	Log::Error("Unable to start process '%s' (%s)!", name, _CrtGetErrorString().c_str());
+	Log::Error("Unable to start process '%s' (%ls)!", name.c_str(), _CrtGetErrorString().c_str());
 	return false;
 #else
 	Log::Warning("Creating child processes is not supported on this platform!");

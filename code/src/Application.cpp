@@ -8,7 +8,7 @@
 #include "Graphics/Platform/Windows/Win32Window.h"
 #endif
 
-Pu::Application::Application(const string & name)
+Pu::Application::Application(const wstring & name)
 	: IsFixedTimeStep(true), suppressUpdate(false), name(name),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
 	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr)
@@ -36,7 +36,7 @@ void Pu::Application::Run(void)
 	/* Load content. */
 	prevTime = gameTime.SecondsAccurate();
 	LoadContent();
-	Log::Verbose("Finished initializing and loading content for '%s', took %f seconds.", wnd->GetTitle(), gameTime.SecondsAccurate());
+	Log::Verbose("Finished initializing and loading content for '%s', took %f seconds.", wnd->GetTitle().c_str(), gameTime.SecondsAccurate());
 
 	/* Run application loop. */
 	while (wnd->Update())
@@ -63,7 +63,7 @@ void Pu::Application::InitializePlutonium(void)
 	srand(static_cast<uint32>(time(nullptr)));
 
 	/* Set the current threads name to the main thread. */
-	_CrtSetCurrentThreadName("PuMain");
+	_CrtSetCurrentThreadName(L"PuMain");
 }
 
 void Pu::Application::InitializeVulkan(void)
@@ -72,7 +72,7 @@ void Pu::Application::InitializeVulkan(void)
 	constexpr float PRIORITIES[1] = { 1.0f };
 
 	/* Create the Vulkan instance, ew need the surface extensions for the native window. */
-	instance = new VulkanInstance(name.c_str(),
+	instance = new VulkanInstance(name.toUTF8().c_str(),
 		{
 			u8"VK_KHR_surface",
 #ifdef _DEBUG
@@ -85,7 +85,7 @@ void Pu::Application::InitializeVulkan(void)
 
 	/* Create the native window. */
 #ifdef _WIN32
-	wnd = new Win32Window(*instance, name.c_str(), Vector2(600.0f));
+	wnd = new Win32Window(*instance, name, Vector2(600.0f));
 #else
 	Log::Fatal("Unable to create window on this platform!");
 #endif

@@ -57,7 +57,7 @@ Color Pu::Color::Random(byte gain, bool unique)
 	} while (usedColors.contains(result));
 
 	/* Push unique color to the buffer. */
-	usedColors.push_back(result);
+	usedColors.emplace_back(result);
 	return result;
 }
 

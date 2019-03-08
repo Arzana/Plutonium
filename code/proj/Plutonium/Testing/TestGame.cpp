@@ -7,7 +7,7 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application("TestGame")
+	: Application(L"TestGame")
 {}
 
 void TestGame::Initialize(void)
@@ -30,7 +30,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { "../assets/shaders/Image.vert", "../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass, EventArgs)
+	GetContent().FetchRenderpass(*pipeline, { L"../assets/shaders/Image.vert", L"../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass, EventArgs)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -90,7 +90,7 @@ void TestGame::LoadContent(void)
 	uniStagingBuffer->Load(identity.GetComponents());
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D("../assets/images/Plutonium.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(L"../assets/images/Plutonium.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)

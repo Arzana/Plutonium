@@ -36,49 +36,46 @@ bool Pu::StackFrame::GetCallerInfoFromHndl(uint64 hndl, StackFrame & frame)
 	_CrtInitializeWinProcess();
 
 	/* Initialize symbol info. */
-	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
+	SYMBOL_INFOW *infoSymbol = reinterpret_cast<SYMBOL_INFOW*>(malloc(sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(WCHAR)));
 	infoSymbol->MaxNameLen = MAX_SYM_NAME;
-	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFOW);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
-	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	IMAGEHLP_LINEW64 *infoFile = new IMAGEHLP_LINEW64();
+	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINEW64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
-	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+	IMAGEHLP_MODULEW64 *infoModule = new IMAGEHLP_MODULEW64();
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULEW64);
 
 	/* We don't use displacement but the function needs it. */
 	DWORD displ;
 
 	/* Attempt to get symbol information from address. */
-	if (SymFromAddr(process, hndl, 0, infoSymbol)) frame.FunctionName = infoSymbol->Name;
+	if (SymFromAddrW(process, hndl, 0, infoSymbol)) frame.FunctionName = infoSymbol->Name;
 	else
 	{
-		const string error = _CrtGetErrorString();
-		Log::Warning("Unable to load function name from symbols (%s)!", error.c_str());
+		Log::Warning("Unable to load function name from symbols (%ls)!", _CrtGetErrorString().c_str());
 		partiallyFailed = true;
 	}
 
 	/* Attempt to get file information from address. */
-	if (SymGetLineFromAddr64(process, hndl, &displ, infoFile))
+	if (SymGetLineFromAddrW64(process, hndl, &displ, infoFile))
 	{
 		frame.FileName = infoFile->FileName;
 		frame.Line = infoFile->LineNumber;
 	}
 	else
 	{
-		const string error = _CrtGetErrorString();
-		Log::Warning("Unable to load file name and line number from symbols (%s)!", error.c_str());
+		Log::Warning("Unable to load file name and line number from symbols (%ls)!", _CrtGetErrorString().c_str());
 		partiallyFailed = true;
 	}
 
 	/* Attempt to get the module information from address. */
-	if (SymGetModuleInfo64(process, hndl, infoModule)) frame.ModuleName = infoModule->ModuleName;
+	if (SymGetModuleInfoW64(process, hndl, infoModule)) frame.ModuleName = infoModule->ModuleName;
 	else
 	{
-		const string error = _CrtGetErrorString();
-		Log::Warning("Unable to load module name from symbols (%s)!", error.c_str());
+		Log::Warning("Unable to load module name from symbols (%ls)!", _CrtGetErrorString().c_str());
 		partiallyFailed = true;
 	}
 
@@ -102,17 +99,17 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 	_CrtInitializeWinProcess();
 
 	/* Initialize symbol info. */
-	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
+	SYMBOL_INFOW *infoSymbol = reinterpret_cast<SYMBOL_INFOW*>(malloc(sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(WCHAR)));
 	infoSymbol->MaxNameLen = MAX_SYM_NAME;
-	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFOW);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
-	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	IMAGEHLP_LINEW64 *infoFile = new IMAGEHLP_LINEW64();
+	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINEW64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
-	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+	IMAGEHLP_MODULEW64 *infoModule = new IMAGEHLP_MODULEW64();
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULEW64);
 
 	/* We don't use displacement but the function needs it. */
 	DWORD displ;
@@ -130,15 +127,14 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 		/* Attempt to get symbol information from address. */
 		if (!hasFunc)
 		{
-			if (SymFromAddr(process, address, 0, infoSymbol))
+			if (SymFromAddrW(process, address, 0, infoSymbol))
 			{
 				hasFunc = true;
 				frame.FunctionName = infoSymbol->Name;
 			}
 			else
 			{
-				const string error = _CrtGetErrorString();
-				Log::Warning("Unable to load function name from symbols (%s)!", error.c_str());
+				Log::Warning("Unable to load function name from symbols (%ls)!", _CrtGetErrorString().c_str());
 				partiallyFailed = true;
 			}
 		}
@@ -146,7 +142,7 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 		/* Attempt to get file information from address. */
 		if (!hasFile)
 		{
-			if (SymGetLineFromAddr64(process, address, &displ, infoFile))
+			if (SymGetLineFromAddrW64(process, address, &displ, infoFile))
 			{
 				hasFile = true;
 				frame.FileName = infoFile->FileName;
@@ -154,8 +150,7 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 			}
 			else
 			{
-				const string error = _CrtGetErrorString();
-				Log::Warning("Unable to load file name and line number from symbols (%s)!", error.c_str());
+				Log::Warning("Unable to load file name and line number from symbols (%ls)!", _CrtGetErrorString().c_str());
 				partiallyFailed = true;
 			}
 		}
@@ -163,15 +158,14 @@ bool Pu::StackFrame::GetCallerInfo(int32 framesToSkip, StackFrame & frame)
 		/* Attempt to get the module information from address. */
 		if (!hasModule)
 		{
-			if (SymGetModuleInfo64(process, address, infoModule))
+			if (SymGetModuleInfoW64(process, address, infoModule))
 			{
 				hasModule = true;
 				frame.ModuleName = infoModule->ModuleName;
 			}
 			else
 			{
-				const string error = _CrtGetErrorString();
-				Log::Warning("Unable to load module name from symbols (%s)!", error.c_str());
+				Log::Warning("Unable to load module name from symbols (%ls)!", _CrtGetErrorString().c_str());
 				partiallyFailed = true;
 			}
 		}
@@ -199,17 +193,17 @@ bool Pu::StackFrame::GetStackTrace(int32 framesToSkip, vector<StackFrame>& frame
 	_CrtInitializeWinProcess();
 
 	/* Initialize symbol info. */
-	SYMBOL_INFO *infoSymbol = reinterpret_cast<SYMBOL_INFO*>(malloc(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)));
+	SYMBOL_INFOW *infoSymbol = reinterpret_cast<SYMBOL_INFOW*>(malloc(sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(WCHAR)));
 	infoSymbol->MaxNameLen = MAX_SYM_NAME;
-	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	infoSymbol->SizeOfStruct = sizeof(SYMBOL_INFOW);
 
 	/* Initialize file info. */
-	IMAGEHLP_LINE64 *infoFile = new IMAGEHLP_LINE64();
-	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+	IMAGEHLP_LINEW64 *infoFile = new IMAGEHLP_LINEW64();
+	infoFile->SizeOfStruct = sizeof(IMAGEHLP_LINEW64);
 
 	/* Initialize the module info. */
-	IMAGEHLP_MODULE64 *infoModule = new IMAGEHLP_MODULE64();
-	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+	IMAGEHLP_MODULEW64 *infoModule = new IMAGEHLP_MODULEW64();
+	infoModule->SizeOfStruct = sizeof(IMAGEHLP_MODULEW64);
 
 	/* We don't use displacement but the function needs it. */
 	DWORD displ;
@@ -225,17 +219,17 @@ bool Pu::StackFrame::GetStackTrace(int32 framesToSkip, vector<StackFrame>& frame
 		StackFrame frame;
 
 		/* Attempt to get symbol information from address. */
-		if (SymFromAddr(process, address, 0, infoSymbol)) frame.FunctionName = infoSymbol->Name;
+		if (SymFromAddrW(process, address, 0, infoSymbol)) frame.FunctionName = infoSymbol->Name;
 
 		/* Attempt to get file information from address. */
-		if (SymGetLineFromAddr64(process, address, &displ, infoFile))
+		if (SymGetLineFromAddrW64(process, address, &displ, infoFile))
 		{
 			frame.FileName = infoFile->FileName;
 			frame.Line = infoFile->LineNumber;
 		}
 
 		/* Attempt to get the module information from address. */
-		if (SymGetModuleInfo64(process, address, infoModule)) frame.ModuleName = infoModule->ModuleName;
+		if (SymGetModuleInfoW64(process, address, infoModule)) frame.ModuleName = infoModule->ModuleName;
 
 		frames.push_back(frame);
 	}

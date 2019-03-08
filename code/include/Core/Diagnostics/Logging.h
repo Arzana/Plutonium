@@ -61,7 +61,7 @@ namespace Pu
 		/* Log a message line to the output. */
 		void LogMsg(_In_ LogType type, _In_ bool addNl, _In_ const char *format, _In_opt_ va_list args);
 		/* Logs a fatal error header to the output with a specified sender. */
-		void LogExcHdr(_In_ const char *sender, _In_ string file, _In_ string func, _In_ int32 line);
+		void LogExcHdr(_In_ const char *sender, _In_ const wstring &file, _In_ const wstring &func, _In_ int32 line);
 		/* Logs a fatal error footer to the output. */
 		void LogExcFtr(_In_ uint32 framesToSkip);
 		/* Logs a fatal exception to the output and breaks excecution. */
@@ -73,8 +73,8 @@ namespace Pu
 		LogType lastType;
 		const char *typeStr;
 
-		std::map<uint64, string> processNames;
-		std::map<uint64, string> threadNames;
+		std::map<uint64, wstring> processNames;
+		std::map<uint64, wstring> threadNames;
 
 		std::mutex printLock;
 

@@ -10,17 +10,17 @@ namespace Pu
 	{
 	public:
 		/* The name of the containing module. */
-		string ModuleName;
+		wstring ModuleName;
 		/* The name of the file in which the function resides. */
-		string FileName;
+		wstring FileName;
 		/* The name of the function. */
-		string FunctionName;
+		wstring FunctionName;
 		/* The line on which the exception was raised within the function. */
 		int32 Line;
 
 		/* Initializes an empty instance of a stack frame. */
 		StackFrame(void)
-			: StackFrame("Unknown", "Unknown", "Unknown", 0)
+			: StackFrame(L"Unknown", L"Unknown", L"Unknown", 0)
 		{}
 		StackFrame(_In_ const StackFrame &) = default;
 		StackFrame(_In_ StackFrame &&) = default;
@@ -38,7 +38,7 @@ namespace Pu
 		_Check_return_ static bool GetStackTrace(_In_ int32 framesToSkip, _Out_ vector<StackFrame> &frames);
 
 	private:
-		StackFrame(string moduleName, string file, string func, int32 line)
+		StackFrame(wstring moduleName, wstring file, wstring func, int32 line)
 			: ModuleName(moduleName), FileName(file), FunctionName(func), Line(line)
 		{}
 	};

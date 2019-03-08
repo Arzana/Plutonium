@@ -1,6 +1,5 @@
 #pragma once
-#include "Core/Math/Constants.h"
-#include "Core/Collections/vector.h"
+#include "Core/String.h"
 #include <thread>
 #include <atomic>
 
@@ -11,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a named thread. */
-		PuThread(_In_ const char *name);
+		PuThread(_In_ const wstring &name);
 		PuThread(_In_ const PuThread &value) = delete;
 		PuThread(_In_ PuThread &&value) = delete;
 		/* Waits for the thread to stop and releases it's resources. */
@@ -45,7 +44,7 @@ namespace Pu
 		virtual void _CrtPuThreadMain(void) = 0;
 
 	private:
-		friend void _CrtPuThreadStart(uint32, const char*);
+		friend void _CrtPuThreadStart(uint32, const wstring&);
 
 		std::thread *thread;
 		std::atomic_bool started, stopped;

@@ -13,7 +13,7 @@ namespace Pu
 		bool IsFixedTimeStep;
 
 		/* Initializes a new instance of an application object. */
-		Application(_In_ const string &name);
+		Application(_In_ const wstring &name);
 		Application(_In_ const Application&) = delete;
 		Application(_In_ Application&&) = delete;
 		/* Releases the resources allocated by the application. */
@@ -108,7 +108,7 @@ namespace Pu
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;
 		uint32 graphicsQueueFamilyIndex;
-		const string name;
+		const wstring name;
 
 		VulkanInstance *instance;
 		LogicalDevice *device;

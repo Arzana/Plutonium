@@ -33,11 +33,11 @@ namespace Pu
 	};
 
 	/* Gets the extent of an image. */
-	_Check_return_ ImageInformation _CrtGetImageInfo(_In_ const string &path);
+	_Check_return_ ImageInformation _CrtGetImageInfo(_In_ const wstring &path);
 	/* Loads an image from the specified file as a HDR image with the desired amount of channels. */
-	_Check_return_ vector<float> _CrtLoadImageHDR(_In_ const string &path);
+	_Check_return_ vector<float> _CrtLoadImageHDR(_In_ const wstring &path);
 	/* Loads an image from the specified file as a LDR image with the desired amount of channels. */
-	_Check_return_ vector<byte> _CrtLoadImageLDR(_In_ const string &path);
+	_Check_return_ vector<byte> _CrtLoadImageLDR(_In_ const wstring &path);
 
 	/* Defines a way to load a image from file. */
 	template <typename component_t>
@@ -46,7 +46,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of an image load task. */
-		ImageLoadTask(_In_ const string &path)
+		ImageLoadTask(_In_ const wstring &path)
 			: path(path)
 		{}
 
@@ -77,7 +77,7 @@ namespace Pu
 		}
 
 	private:
-		const string path;
+		const wstring path;
 		vector<component_t> result;
 	};
 }

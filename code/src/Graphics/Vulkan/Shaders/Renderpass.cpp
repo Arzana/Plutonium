@@ -11,7 +11,7 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper
 	device(device), subpasses(std::move(subpasses)), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
-	SetHash(std::hash<string>{}(subpasses.select<string>([](const Subpass &cur) { return cur.GetName(); })));
+	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Subpass &cur) { return cur.GetName(); })));
 	Link();
 }
 
@@ -301,14 +301,14 @@ void Pu::Renderpass::LinkSucceeded(void)
 	MarkAsLoaded();
 
 #ifdef _DEBUG
-	string modules;
+	wstring modules;
 	for (const Subpass &pass : subpasses)
 	{
 		modules += pass.GetName();
-		if (pass.GetType() != ShaderStageFlag::Fragment) modules += " -> ";
+		if (pass.GetType() != ShaderStageFlag::Fragment) modules += L" -> ";
 	}
 
-	Log::Verbose("Successfully linked render pass: %s.", modules.c_str());
+	Log::Verbose("Successfully linked render pass: %ls.", modules.c_str());
 #endif
 }
 
@@ -323,10 +323,10 @@ void Pu::Renderpass::Destroy(void)
 	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
 }
 
-Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, string>>& toLoad)
+Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, wstring>>& toLoad)
 	: result(result)
 {
-	vector<string> hashParams(toLoad.size());
+	vector<wstring> hashParams(toLoad.size());
 
 	/* Create new load tasks for the to load subpasses. */
 	for (auto[idx, path] : toLoad)
@@ -335,7 +335,7 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 		children.emplace_back(new Subpass::LoadTask(result.subpasses[idx], path));
 	}
 
-	result.SetHash(std::hash<string>{}(hashParams));
+	result.SetHash(std::hash<wstring>{}(hashParams));
 }
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)

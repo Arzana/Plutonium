@@ -18,7 +18,7 @@ static constexpr int GetHighWord(LPARAM lParam)
 	return static_cast<int>(static_cast<short>(HIWORD(lParam)));
 }
 
-Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector2 size)
+Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vector2 size)
 	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed), shouldClose(false), AllowAltF4(true), focused(false)
 {
 	/* Push this window as an active window. */
@@ -40,26 +40,18 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const char * title, Vector
 		LoadCursor(nullptr, IDC_ARROW),		// cursor
 		(HBRUSH)(COLOR_WINDOW + 1),			// background 
 		nullptr,							// menu name
-		title,								// class name
+		title.c_str(),						// class name
 		nullptr								// icon sm
 	};
 
 	/* Register new window class. */
-	if (!RegisterClassEx(&wndEx))
-	{
-		const string error = _CrtGetErrorString();
-		Log::Fatal("Unable to register Win32 window (%s)!", error.c_str());
-	}
+	if (!RegisterClassEx(&wndEx)) Log::Fatal("Unable to register Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
 	/*
 	Create new window, we can only start with a windowed window as all other windows call messages that we can't handle set i.e. resize, move.
 	*/
-	hndl = CreateWindow(title, title, STYLE_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
-	if (!hndl)
-	{
-		const string error = _CrtGetErrorString();
-		Log::Fatal("Unable to create Win32 window (%s)!", error.c_str());
-	}
+	hndl = CreateWindow(title.c_str(), title.c_str(), STYLE_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
+	if (!hndl) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
 	/* Create new surface. */
 	surface = new Surface(vulkan, instance, hndl);
@@ -70,7 +62,7 @@ Pu::Win32Window::~Win32Window(void)
 	/* Destroy handles. */
 	delete surface;
 	if (hndl) DestroyWindow(hndl);
-	if (instance) UnregisterClass(title, instance);
+	if (instance) UnregisterClass(title.c_str(), instance);
 
 	/* Remove this window from the active windows. */
 	activeWindows.remove(this);
@@ -154,12 +146,7 @@ void Pu::Win32Window::SetMode(WindowMode newMode)
 		}
 
 		/* Log error if failed. */
-		if (!result)
-		{
-			const string error = _CrtGetErrorString();
-			Log::Error("Unable to set new window mode, reason: '%s'!", error.c_str());
-			return;
-		}
+		if (!result) Log::Error("Unable to set new window mode, reason: '%ls'!", _CrtGetErrorString().c_str());
 	}
 }
 

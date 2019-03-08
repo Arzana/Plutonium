@@ -18,7 +18,7 @@ namespace Pu
 		EventBus<const TickThread, UserEventArgs> Terminate;
 
 		/* Initializes and starts a new instance of a continually ticking thread (cooldown is in milliseconds). */
-		TickThread(_In_ const char *name, _In_opt_ uint32 cooldown = 0, _In_opt_ const void *param = nullptr);
+		TickThread(_In_ const wstring &name, _In_opt_ uint32 cooldown = 0, _In_opt_ const void *param = nullptr);
 		TickThread(_In_ const TickThread &value) = delete;
 		TickThread(_In_ TickThread &&value) = delete;
 		/* Stops the thread (if needed) and releases the resources allocated. */

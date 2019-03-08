@@ -90,7 +90,7 @@ namespace Pu
 			: public Task
 		{
 		public:
-			LoadTask(GraphicsPipeline &pipelineResult, Renderpass &passResult, const vector<std::tuple<size_t, string>> &toLoad);
+			LoadTask(GraphicsPipeline &pipelineResult, Renderpass &passResult, const vector<std::tuple<size_t, wstring>> &toLoad);
 			LoadTask(const LoadTask&) = delete;
 
 			LoadTask& operator =(const LoadTask&) = delete;

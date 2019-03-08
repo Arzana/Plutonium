@@ -12,11 +12,11 @@ using namespace Pu;
 bool Pu::SPIRV::loaded = false;
 string Pu::SPIRV::glslUtils = "";
 
-string Pu::SPIRV::FromGLSLPath(const string & path)
+wstring Pu::SPIRV::FromGLSLPath(const wstring & path)
 {
 	/* Make sure the directory is created. */
 	FileWriter::CreateDirectory(BIN_DIR);
-	const string curDir = FileReader::GetCurrentDirectory() + '\\';
+	const wstring curDir = FileReader::GetCurrentDirectory() + L'\\';
 
 	/*
 	Create arguments for the validator.
@@ -24,35 +24,35 @@ string Pu::SPIRV::FromGLSLPath(const string & path)
 	-H: Specifies that the validator should print a human readable version of the result.
 	-o: Specifies the output path.
 	*/
-	const string fname = _CrtGetFileName(path);
-	const string input = curDir + path;
-	const string output = curDir + BIN_DIR + fname + ".spv";
+	const wstring fname = _CrtGetFileName(path);
+	const wstring input = curDir + path;
+	const wstring output = curDir + BIN_DIR + fname + L".spv";
 
-	const string args = (SpirVCompilerLogHumanReadable ? "-V -H -o \"" : "-V -o \"") + output + "\" \"" + input + '\"';
-	string log;
+	wstring args = (SpirVCompilerLogHumanReadable ? L"-V -H -o \"" : L"-V -o \"") + output + L"\" \"" + input + L'\"';
+	wstring log;
 
 	/* Run the validator. */
-	const bool succeeded = _CrtRunProcess("glslangValidator.exe", const_cast<char*>(args.c_str()), log, SpirVCompilerTimeout);
+	const bool succeeded = _CrtRunProcess(L"glslangValidator.exe", args, log, SpirVCompilerTimeout);
 	HandleGLSLValidateLog(log, input);
 
 	/* Log either success or failure. */
 	if (succeeded)
 	{
-		Log::Verbose("Compiled GLSL source '%s' to SPIR-V.", fname.c_str());
+		Log::Verbose("Compiled GLSL source '%ls' to SPIR-V.", fname.c_str());
 		return output;
 	}
 	else
 	{
-		Log::Error("Unable to compile GLSL source '%s' to SPIR-V (Could not run validator)!", fname.c_str());
-		return "";
+		Log::Error("Unable to compile GLSL source '%ls' to SPIR-V (Could not run validator)!", fname.c_str());
+		return L"";
 	}
 }
 
-void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
+void Pu::SPIRV::HandleGLSLValidateLog(const wstring & log, const wstring & path)
 {
 	/* Split the log into it's lines and remove empty lines. */
-	vector<string> lines = log.split("\r\n");
-	lines.tryRemove("\n");
+	vector<wstring> lines = log.split(L"\r\n");
+	lines.tryRemove(L"\n");
 
 	/*
 	Only log if something has been logged.
@@ -62,25 +62,25 @@ void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
 	*/
 	if (lines.size() > 1)
 	{
-		const string seperator = string(64, '-') + '\n';
+		const wstring seperator = wstring(64, L'-') + L'\n';
 
 		/* Log header. */
-		string msg = "glslangValidator log for '" + path + ":\n";
+		wstring msg = L"glslangValidator log for '" + path + L":\n";
 		msg += seperator;
 
-		for (string &line : lines)
+		for (wstring &line : lines)
 		{
 			/* Remove the path as it's appended to all lines also remove any leading newlines. */
-			line.remove('\n');
+			line.remove(L'\n');
 			line.remove(path);
 
 			/* Only log if useful information is left in the line. */
-			if (line.length() > 1) msg += line += '\n';
+			if (line.length() > 1) msg += line += L'\n';
 		}
 
 		/* Log footer. */
 		msg += seperator;
-		Log::Verbose(msg.c_str());
+		Log::Verbose("%ls", msg.c_str());
 	}
 }
 
@@ -93,7 +93,7 @@ void Pu::SPIRV::AddGLSLUtils(string & src)
 
 void Pu::SPIRV::LoadGLSLUtils(void)
 {
-	constexpr const char *PATH = "../include/Graphics/Vulkan/SPIR-V/Utilities.glsl";
+	constexpr const wchar_t *PATH = L"../include/Graphics/Vulkan/SPIR-V/Utilities.glsl";
 
 	/* Early out if already loaded. */
 	if (loaded) return;

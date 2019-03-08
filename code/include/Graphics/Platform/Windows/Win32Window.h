@@ -15,7 +15,7 @@ namespace Pu
 		bool AllowAltF4;
 
 		/* Initializes a new instance of a Windows window. */
-		Win32Window(_In_ VulkanInstance &vulkan, _In_ const char *title, _In_ Vector2 size);
+		Win32Window(_In_ VulkanInstance &vulkan, _In_ const wstring &title, _In_ Vector2 size);
 		Win32Window(_In_ const Win32Window&) = delete;
 		Win32Window(_In_ Win32Window&&) = delete;
 		/* Releases the resources allocated by the window. */
@@ -30,7 +30,7 @@ namespace Pu
 		_Check_return_ virtual bool operator !=(_In_ const NativeWindow &other) override;
 
 		/* Gets the displayed title of this window. */
-		_Check_return_ virtual inline const char* GetTitle(void) const override
+		_Check_return_ virtual inline const wstring& GetTitle(void) const override
 		{
 			return title;
 		}
@@ -86,7 +86,7 @@ namespace Pu
 		Surface *surface;
 		HINSTANCE instance;
 		HWND hndl;
-		const char *title;
+		const wstring title;
 		Viewport vp;
 		Vector2 pos;
 		WindowMode mode;

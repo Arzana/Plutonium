@@ -70,7 +70,7 @@ namespace Pu
 			: public Task
 		{
 		public:
-			LoadTask(Renderpass &result, const vector<std::tuple<size_t, string>> &toLoad);
+			LoadTask(Renderpass &result, const vector<std::tuple<size_t, wstring>> &toLoad);
 			LoadTask(const LoadTask&) = delete;
 
 			LoadTask& operator =(const LoadTask&) = delete;

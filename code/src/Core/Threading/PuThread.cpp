@@ -14,7 +14,7 @@ static std::mutex bufferLock;
 If this function is removed or the name is changed the stack trace logger needs to be updated!
 !!!!!!!!!! Remember !!!!!!!!!!
 */
-void Pu::_CrtPuThreadStart(uint32 id, const char *name)
+void Pu::_CrtPuThreadStart(uint32 id, const wstring & name)
 {
 	/* Start by setting the name of the thread on debug mode. */
 #ifdef _DEBUG
@@ -51,7 +51,7 @@ void Pu::_CrtPuThreadStart(uint32 id, const char *name)
 	Log::Error("Unable to find thread object for thread %zu (%lu)!", id, _CrtGetCurrentThreadId());
 }
 
-Pu::PuThread::PuThread(const char * name)
+Pu::PuThread::PuThread(const wstring & name)
 	: id(static_cast<uint32>(random(0, 1024)))
 {
 	/* Set thread state indentifiers. */

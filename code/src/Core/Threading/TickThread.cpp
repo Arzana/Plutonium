@@ -2,7 +2,7 @@
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::TickThread::TickThread(const char * name, uint32 cooldown, const void * param)
+Pu::TickThread::TickThread(const wstring & name, uint32 cooldown, const void * param)
 	: PuThread(name), cooldown(cooldown), args(param),
 	Initialize("TickThreadInitialize"), Tick("TickThreadTick"), Terminate("TickThreadTerminate")
 {
@@ -27,11 +27,11 @@ bool Pu::TickThread::StopWait(void)
 
 void Pu::TickThread::_CrtPuThreadMain(void)
 {
-	const string name = _CrtGetCurrentThreadName();
+	const wstring name = _CrtGetCurrentThreadName();
 	TickThread &self = *this;
 
 	/* Initialize running thread. */
-	Log::Verbose("Initializing thread: %s.", name.c_str());
+	Log::Verbose("Initializing thread: %ls.", name.c_str());
 	Initialize.Post(self, args);
 
 	/* Run until Stop is called. */
@@ -44,6 +44,6 @@ void Pu::TickThread::_CrtPuThreadMain(void)
 	}
 
 	/* Finalize running thread. */
-	Log::Verbose("Terminating thread: %s.", name.c_str());
+	Log::Verbose("Terminating thread: %ls.", name.c_str());
 	Terminate.Post(self, args);
 }

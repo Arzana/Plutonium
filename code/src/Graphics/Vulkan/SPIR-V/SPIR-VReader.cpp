@@ -2,7 +2,7 @@
 #include "Streams/FileReader.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::SPIRVReader::SPIRVReader(const char * path)
+Pu::SPIRVReader::SPIRVReader(const wstring & path)
 {
 	/* Load raw binary data from file and initialize the binary reader. */
 	raw = FileReader(path).ReadToEnd();

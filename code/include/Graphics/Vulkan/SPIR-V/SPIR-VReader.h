@@ -15,7 +15,7 @@ namespace Pu
 		using ModuleHandler = EventSubscriber<SPIRVReader, spv::Op, size_t>;
 
 		/* Creates a new reader from the specific file path. */
-		SPIRVReader(_In_ const char *path);
+		SPIRVReader(_In_ const wstring &path);
 		SPIRVReader(_In_ SPIRVReader&) = delete;
 		SPIRVReader(_In_ SPIRVReader&&) = delete;
 		/* Releases the resources allocated by the reader. */

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "Core/Math/Basics.h"
 #include "Core/Collections/Vector.h"
+#include "Core/Platform/Windows/Windows.h"
 
 namespace Pu
 {
@@ -82,8 +83,8 @@ namespace Pu
 		{}
 
 		/* Implicitely converts the specified type to a string view. */
-		template <class _Ty>
-		basic_string(_In_ const _Ty &t, _In_opt_ const allocator_t &alloc = allocator_t())
+		template <class other_char_t>
+		basic_string(_In_ const other_char_t &t, _In_opt_ const allocator_t &alloc = allocator_t())
 			: string_t(t, alloc)
 		{}
 
@@ -161,6 +162,37 @@ namespace Pu
 		}
 
 		/* Appends string str. */
+		_Check_return_ inline basic_string<char_t> operator +(_In_ const basic_string<char_t> &str) const
+		{
+			return std::operator+(*this, str);
+		}
+
+		/* Appends a single character. */
+		_Check_return_ inline basic_string<char_t> operator +(_In_ char_t ch) const
+		{
+			return std::operator+(*this, ch);
+		}
+
+		/* Appends a null-terminates string. */
+		_Check_return_ inline basic_string<char_t> operator +(_In_ const char_t *str) const
+		{
+			return std::operator+(*this, str);
+		}
+
+		/* Appends the characters in the initializer list. */
+		_Check_return_ inline basic_string<char_t> operator +(_In_ std::initializer_list<char_t> init) const
+		{
+			return std::operator+(*this, init);
+		}
+
+		/* Implicitly converts the type of a string and appends it. */
+		template <class other_character_t>
+		_Check_return_ inline basic_string<char_t> operator +(_In_ other_character_t &t) const
+		{
+			return std::operator+(*this, t);
+		}
+
+		/* Appends string str. */
 		_Check_return_ inline basic_string<char_t>& operator +=(_In_ const basic_string<char_t> &str)
 		{
 			string_t::operator+=(str);
@@ -189,8 +221,8 @@ namespace Pu
 		}
 
 		/* Implicitly converts the type of a string and appends it. */
-		template <class _Ty>
-		_Check_return_ inline basic_string<char_t>& operator +=(_In_ _Ty &t)
+		template <class other_character_t>
+		_Check_return_ inline basic_string<char_t>& operator +=(_In_ other_character_t &t)
 		{
 			string_t::operator+=(t);
 			return *this;
@@ -242,7 +274,7 @@ namespace Pu
 		/* Gets a lower-case variant of the string. */
 		_Check_return_ inline basic_string<char_t> toLower(void) const
 		{
-			return transformCopy([](char_t ch)
+			return transformCopy<char_t>([](char_t ch)
 			{
 				return static_cast<char_t>(tolower(static_cast<int>(ch)));
 			});
@@ -251,7 +283,7 @@ namespace Pu
 		/* Gets a upper-case variant of the string. */
 		_Check_return_ inline basic_string<char_t> toUpper(void) const
 		{
-			return transformCopy([](char_t ch)
+			return transformCopy<char_t>([](char_t ch)
 			{
 				return static_cast<char_t>(toupper(static_cast<int>(ch)));
 			});
@@ -329,11 +361,31 @@ namespace Pu
 			return result;
 		}
 
-	private:
-		template <typename _FnTy>
-		inline basic_string<char_t> transformCopy(const _FnTy func) const
+		/* Attempts to convert the string to UTF-8. */
+		_Check_return_ inline basic_string<char> toUTF8(void) const
 		{
-			basic_string<char_t> copy(*this);
+#ifdef _WIN32
+			if constexpr (std::is_same<char_t, wchar_t>::value)
+			{
+				/* UTF-8 is up to 4 bytes per character to reserve that amount. */
+				const size_t reserveSize = string_t::length() * 4;
+				basic_string<char> result(reserveSize, ' ');
+
+				/* Convert to UTF-8. */
+				WideCharToMultiByte(CP_UTF8, 0, string_t::c_str(), -1, const_cast<char*>(result.c_str()), static_cast<int>(reserveSize), nullptr, nullptr);
+				return result;
+			}
+			else Log::Fatal("Cannot convert to UTF-8 from this string type!");
+#else
+			Log::Fatal("Cannot convert to UTF-8 on this platform!");
+#endif
+		}
+
+	private:
+		template <typename result_char_t, typename lambda_t>
+		inline basic_string<result_char_t> transformCopy(const lambda_t func) const
+		{
+			basic_string<result_char_t> copy(*this);
 			std::transform(string_t::begin(), string_t::end(), copy.begin(), func);
 			return copy;
 		}
@@ -341,6 +393,8 @@ namespace Pu
 
 	/* Defines a string sorted in 8-bit characters. */
 	using string = basic_string<char>;
+	/* Defines a string stored in either 16-bit characters (Windows) or 32-bit characters. */
+	using wstring = basic_string<wchar_t>;
 	/* Defines a string stored in 32-bit characters. */
 	using ustring = basic_string<char32_t>;
 }
@@ -361,6 +415,39 @@ namespace std
 		_Check_return_ inline result_type operator ()(_In_ const argument_type &arg) const noexcept
 		{
 			return std::hash<std::string>{}(arg);
+		}
+
+		/* Calculates the hash from the specified arguments. */
+		_Check_return_ inline result_type operator ()(_In_ const vector<argument_type> &args) const noexcept
+		{
+			argument_type str;
+			for (const argument_type &cur : args) str += cur;
+			return operator()(str);
+		}
+
+		/* Calculates the hash from the specified arguments. */
+		_Check_return_ inline result_type operator ()(_In_ const std::initializer_list<argument_type> &args) const noexcept
+		{
+			argument_type str;
+			for (const argument_type &cur : args) str += cur;
+			return operator()(str);
+		}
+	};
+
+	/* Add the Plutonium wide string as a hashable value. */
+	template <>
+	struct hash<Pu::wstring>
+	{
+	public:
+		/* Defines the argument type for a hash. */
+		using argument_type = Pu::wstring;
+		/* Defines the result type for a hash. */
+		using result_type = std::size_t;
+
+		/* Calculates the hash from the specified argument. */
+		_Check_return_ inline result_type operator ()(_In_ const argument_type &arg) const noexcept
+		{
+			return std::hash<std::wstring>{}(arg);
 		}
 
 		/* Calculates the hash from the specified arguments. */

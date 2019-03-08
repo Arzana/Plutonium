@@ -21,14 +21,14 @@ Pu::AssetLoader::~AssetLoader(void)
 	delete cmdPool;
 }
 
-void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass & renderpass, std::initializer_list<string> subpasses)
+void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass & renderpass, std::initializer_list<wstring> subpasses)
 {
-	vector<std::tuple<size_t, string>> toLoad;
+	vector<std::tuple<size_t, wstring>> toLoad;
 
-	for (const string &path : subpasses)
+	for (const wstring &path : subpasses)
 	{
 		/* Create an unique indentifier for the subpass. */
-		const size_t subpassHash = std::hash<string>{}(path);
+		const size_t subpassHash = std::hash<wstring>{}(path);
 
 		/* Check if the subpass is already loaded. */
 		if (cache.Contains(subpassHash))
@@ -59,13 +59,13 @@ void Pu::AssetLoader::FinalizeGraphicsPipeline(GraphicsPipeline & pipeline, Rend
 	pipeline.Finalize();
 }
 
-void Pu::AssetLoader::InitializeTexture(Texture & texture, const string & path, const ImageInformation & info)
+void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)
 {
 	class StageTask
 		: public Task
 	{
 	public:
-		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const string &path)
+		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const wstring &path)
 			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), staged(false)
 		{
 			child = new Texture::LoadTask(texture, info, path);

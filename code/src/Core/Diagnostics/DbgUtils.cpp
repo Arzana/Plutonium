@@ -11,30 +11,30 @@
 Pu::vector<HANDLE> initializedProcesses;
 #endif
 
-Pu::string Pu::_CrtGetErrorString(void)
+Pu::wstring Pu::_CrtGetErrorString(void)
 {
 #ifdef _WIN32
 	const DWORD errCode = GetLastError();
-	if (errCode == NO_ERROR) return "No Error";
+	if (errCode == NO_ERROR) return L"No Error";
 
 	return _CrtFormatError(errCode);
 #else
 	Log::Error("Cannot get error string on this platform!");
-	return "";
+	return U"";
 #endif
 }
 
 #ifdef _WIN32
-Pu::string Pu::_CrtFormatError(uint64 error)
+Pu::wstring Pu::_CrtFormatError(uint64 error)
 {
 	/* Get human readable error from system. */
-	LPSTR msgBuffer = nullptr;
+	LPWSTR msgBuffer = nullptr;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, static_cast<DWORD>(error), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&msgBuffer, 0, nullptr);
+		nullptr, static_cast<DWORD>(error), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&msgBuffer, 0, nullptr);
 
 	/* Remove newline characters from error. */
-	string result = msgBuffer;
-	result.remove({ '\n', '\r' });
+	wstring result = msgBuffer;
+	result.remove({ L'\n', L'\r' });
 
 	/* Free the temporary buffer and return the result. */
 	LocalFree(msgBuffer);
@@ -56,8 +56,8 @@ bool Pu::_CrtInitializeWinProcess(void)
 	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
 	if (!SymInitialize(process, nullptr, true))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Error("Unable to initialize process %#016x: %s", process, error.c_str());
+		const wstring error = _CrtGetErrorString();
+		Log::Error("Unable to initialize process %#016x: %ls", process, error.c_str());
 		return false;
 	}
 	

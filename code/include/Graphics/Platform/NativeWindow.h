@@ -37,7 +37,7 @@ namespace Pu
 		_Check_return_ virtual bool operator !=(_In_ const NativeWindow &other) = 0;
 
 		/* Gets the displayed title of this window. */
-		_Check_return_ virtual const char* GetTitle(void) const = 0;
+		_Check_return_ virtual const wstring& GetTitle(void) const = 0;
 		/* Gets the graphics bounds of the window. */
 		_Check_return_ virtual const Viewport& GetClientBounds(void) const = 0;
 		/* Gets the current mode of the window. */

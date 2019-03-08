@@ -235,7 +235,7 @@ void Pu::GraphicsPipeline::Destroy(void)
 	}
 }
 
-Pu::GraphicsPipeline::LoadTask::LoadTask(GraphicsPipeline & pipelineResult, Renderpass & passResult, const vector<std::tuple<size_t, string>>& toLoad)
+Pu::GraphicsPipeline::LoadTask::LoadTask(GraphicsPipeline & pipelineResult, Renderpass & passResult, const vector<std::tuple<size_t, wstring>>& toLoad)
 	: result(pipelineResult), renderPass(passResult)
 {
 	child = new Renderpass::LoadTask(passResult, toLoad);

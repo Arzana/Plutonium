@@ -18,10 +18,10 @@ Pu::AssetFetcher::~AssetFetcher(void)
 	delete cache;
 }
 
-Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<string> subpasses)
+Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<wstring> subpasses)
 {
 	/* Create the hash and check if the cache contains the requested asset. */
-	const size_t hash = std::hash<string>{}(subpasses);
+	const size_t hash = std::hash<wstring>{}(subpasses);
 	if (cache->Contains(hash))
 	{
 		/* Duplicate the top level asset and finalize the graphics pipeline with the duplicated renderpass. */
@@ -37,7 +37,7 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, 
 	return *renderpass;
 }
 
-Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const string & path, const SamplerCreateInfo & samplerInfo, uint32 mipMapLevels)
+Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const SamplerCreateInfo & samplerInfo, uint32 mipMapLevels)
 {
 	/* 
 	The texture itself is not an asset but the sampler and image it stores are.
@@ -56,7 +56,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const string & path, const Samp
 	}
 
 	/* Try to fetch the image, otherwise just create a new one. */
-	hash = std::hash<string>{}(path);
+	hash = std::hash<wstring>{}(path);
 	if (cache->Contains(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);

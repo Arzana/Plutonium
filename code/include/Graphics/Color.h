@@ -80,6 +80,25 @@ namespace Pu
 			return Packed != other.Packed;
 		}
 
+		/* Implicitly converts the color to a string. */
+		_Check_return_ inline operator string() const
+		{
+			string result("[R: ");
+			result += std::to_string(R);
+			result += ", G: ";
+			result += std::to_string(G);
+			result += ", B: ";
+			result += std::to_string(B);
+
+			if (A != 0xFF)
+			{
+				result += ", A: ";
+				result += std::to_string(A);
+			}
+
+			return result += ']';
+		}
+
 		/* Defines a abbey opaque color. */
 		_Check_return_ static inline Color Abbey(void)
 		{

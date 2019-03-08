@@ -15,32 +15,32 @@ namespace Pu
 	}
 
 	/* Gets the file extension from a string. */
-	_Check_return_ inline string _CrtGetFileExtension(_In_ string path)
+	_Check_return_ inline wstring _CrtGetFileExtension(_In_ wstring path)
 	{
-		const size_t offset = path.find_last_of('.');
-		return offset != string::npos ? path.substr(offset + 1, path.length() - offset - 1) : "";
+		const size_t offset = path.find_last_of(L'.');
+		return offset != wstring::npos ? path.substr(offset + 1, path.length() - offset - 1) : L"";
 	}
 
 	/* Gets the file name from a string. */
-	_Check_return_ inline string _CrtGetFileName(_In_ string path)
+	_Check_return_ inline wstring _CrtGetFileName(_In_ wstring path)
 	{
-		const size_t start = path.find_last_of({ '/', '\\' }) + 1;
+		const size_t start = path.find_last_of({ L'/', L'\\' }) + 1;
 		return path.substr(start, path.length() - start);
 	}
 
 	/* Gets the file name from a string (without extension). */
-	_Check_return_ inline string _CrtGetFileNameWithoutExtension(_In_ string path)
+	_Check_return_ inline wstring _CrtGetFileNameWithoutExtension(_In_ wstring path)
 	{
-		const size_t start = path.find_last_of({ '/', '\\' }) + 1;
-		size_t end = path.find_last_of('.');
-		if (end == string::npos) end = path.length();
+		const size_t start = path.find_last_of({ L'/', L'\\' }) + 1;
+		size_t end = path.find_last_of(L'.');
+		if (end == wstring::npos) end = path.length();
 		return path.substr(start, end - start);
 	}
 
 	/* Gets the file directory from a string. */
-	_Check_return_ inline string _CrtGetFileDirectory(_In_ string path)
+	_Check_return_ inline wstring _CrtGetFileDirectory(_In_ wstring path)
 	{
-		const size_t len = path.find_last_of({ '/', '\\' });
-		return len != string::npos ? path.substr(0, len) : "";
+		const size_t len = path.find_last_of({ L'/', L'\\' });
+		return len != wstring::npos ? path.substr(0, len) : L"";
 	}
 }

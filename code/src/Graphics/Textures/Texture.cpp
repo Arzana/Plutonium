@@ -34,7 +34,7 @@ void Pu::Texture::Destroy(void)
 	if (view) delete view;
 }
 
-Pu::Texture::LoadTask::LoadTask(Texture & result, const ImageInformation & info, const string & path)
+Pu::Texture::LoadTask::LoadTask(Texture & result, const ImageInformation & info, const wstring & path)
 	: result(result), info(info), child(nullptr), stagingBuffer(nullptr), path(path)
 {
 	/* Create the child task as either a HDR load or LDR load. */

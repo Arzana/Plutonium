@@ -11,6 +11,8 @@ This breaks code as we define a type safe one ourselves.
 #define NOMINMAX
 #endif
 
+#define UNICODE
+
 #include <Windows.h>
 
 /* The name memory barrier is used in Vulkan so we need to undefine it if windows defines it. */

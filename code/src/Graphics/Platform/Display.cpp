@@ -91,8 +91,7 @@ void Pu::Display::FindDisplays(void)
 #ifdef _WIN32
 	if (!EnumDisplayMonitors(nullptr, nullptr, &Display::MonitorProc, 0))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Error("Unable to get physical monitors, reason: '%s'!", error.c_str());
+		Log::Error("Unable to get physical monitors, reason: '%ls'!", _CrtGetErrorString().c_str());
 	}
 #else
 	Log::Warning("Unable to get monitor information on this platform!");
@@ -132,11 +131,7 @@ BOOL Pu::Display::MonitorProc(HMONITOR monitor, HDC, LPRECT vp, LPARAM)
 			result.hertz = static_cast<uint32>(settings.dmDisplayFrequency);
 			result.depth = static_cast<uint32>(settings.dmBitsPerPel);
 		}
-		else
-		{
-			const string error = _CrtGetErrorString();
-			Log::Error("Unable to get display settings for '%s'!", result.name.c_str());
-		}
+		else Log::Error("Unable to get display settings for '%ls' (%ls)!", result.name.c_str(), _CrtGetErrorString().c_str());
 
 		/* Create context for the monitor. */
 		const HDC hdc = CreateDC(nullptr, info.szDevice, nullptr, nullptr);
@@ -168,23 +163,11 @@ BOOL Pu::Display::MonitorProc(HMONITOR monitor, HDC, LPRECT vp, LPARAM)
 
 				result.correction = recip(sum * MULTIPLIER);
 			}
-			else
-			{
-				const string error = _CrtGetErrorString();
-				Log::Error("Unable to get gamma ramp for display '%s'!", result.name.c_str());
-			}
+			else Log::Error("Unable to get gamma ramp for display '%ls' (%ls)!", result.name.c_str(), _CrtGetErrorString().c_str());
 		}
-		else
-		{
-			const string error = _CrtGetErrorString();
-			Log::Error("Unable to create HDC for display '%s'!", result.name.c_str());
-		}
+		else Log::Error("Unable to create HDC for display '%ls' (%ls)!", result.name.c_str(), _CrtGetErrorString().c_str());
 	}
-	else
-	{
-		const string error = _CrtGetErrorString();
-		Log::Error("Unable to get monitor information for monitor at [%d, %d, %ux%u]", pos.X, pos.Y, size.Width, size.Height);
-	}
+	else Log::Error("Unable to get monitor information for monitor at [%d, %d, %ux%u] (%ls)!", pos.X, pos.Y, size.Width, size.Height, _CrtGetErrorString().c_str());
 
 	/* Append monitor to list. */
 	availableDisplays.push_back(result);

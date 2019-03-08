@@ -59,7 +59,7 @@ namespace Pu
 			: public Task
 		{
 		public:
-			LoadTask(Texture &result, const ImageInformation &info, const string &path);
+			LoadTask(Texture &result, const ImageInformation &info, const wstring &path);
 			LoadTask(const LoadTask&) = delete;
 			~LoadTask(void);
 
@@ -78,7 +78,7 @@ namespace Pu
 			ImageInformation info;
 			Task *child;
 			StagingBuffer *stagingBuffer;
-			string path;
+			wstring path;
 		};
 
 		ImageView *view;

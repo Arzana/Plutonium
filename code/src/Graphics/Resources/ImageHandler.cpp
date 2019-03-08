@@ -1,6 +1,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
+#ifdef _WIN32
+#define STBI_WINDOWS_UTF8
+#endif
+
 #ifndef _DEBUG
 #define STBI_FAILURE_USERMSG
 #else
@@ -68,22 +72,23 @@ Pu::vector<byte> getDefaultImageLDR(void)
 	return result;
 }
 
-Pu::ImageInformation Pu::_CrtGetImageInfo(const string & path)
+/* STB image sadly only handles ASCII :( */
+Pu::ImageInformation Pu::_CrtGetImageInfo(const wstring & path)
 {
 	int x, y, c;
-	const bool result = stbi_info(path.c_str(), &x, &y, &c);
-	return result ? ImageInformation(x, y, c, stbi_is_hdr(path.c_str())) : ImageInformation();
+	const bool result = stbi_info(path.toUTF8().c_str(), &x, &y, &c);
+	return result ? ImageInformation(x, y, c, stbi_is_hdr(path.toUTF8().c_str())) : ImageInformation();
 }
 
-Pu::vector<float> Pu::_CrtLoadImageHDR(const string & path)
+Pu::vector<float> Pu::_CrtLoadImageHDR(const wstring & path)
 {
 	int x, y, c;
-	float *data = stbi_loadf(path.c_str(), &x, &y, &c, 0);
-	const string name = _CrtGetFileName(path);
+	float *data = stbi_loadf(path.toUTF8().c_str(), &x, &y, &c, 0);
+	const wstring name = _CrtGetFileName(path);
 
 	if (data)
 	{
-		Log::Verbose("Successfully loaded image '%s'.", name.c_str());
+		Log::Verbose("Successfully loaded image '%ls'.", name.c_str());
 		vector<float> result(data, data + x * y * c);
 
 		stbi_image_free(data);
@@ -91,20 +96,20 @@ Pu::vector<float> Pu::_CrtLoadImageHDR(const string & path)
 	}
 	else
 	{
-		Log::Error("Unable to load image '%s', reason: '%s'!", name.c_str(), stbi_failure_reason());
+		Log::Error("Unable to load image '%ls', reason: '%s'!", name.c_str(), stbi_failure_reason());
 		return getDefaultImageHDR();
 	}
 }
 
-Pu::vector<byte> Pu::_CrtLoadImageLDR(const string & path)
+Pu::vector<byte> Pu::_CrtLoadImageLDR(const wstring & path)
 {
 	int x, y, c;
-	byte *data = stbi_load(path.c_str(), &x, &y, &c, 0);
-	const string name = _CrtGetFileName(path);
+	byte *data = stbi_load(path.toUTF8().c_str(), &x, &y, &c, 0);
+	const wstring name = _CrtGetFileName(path);
 
 	if (data)
 	{
-		Log::Verbose("Successfully loaded image '%s'.", name.c_str());
+		Log::Verbose("Successfully loaded image '%ls'.", name.c_str());
 		vector<byte> result(data, data + x * y * c);
 
 		stbi_image_free(data);
@@ -112,7 +117,7 @@ Pu::vector<byte> Pu::_CrtLoadImageLDR(const string & path)
 	}
 	else
 	{
-		Log::Error("Unable to load image '%s', reason: '%s'!", name.c_str(), stbi_failure_reason());
+		Log::Error("Unable to load image '%ls', reason: '%s'!", name.c_str(), stbi_failure_reason());
 		return getDefaultImageLDR();
 	}
 }

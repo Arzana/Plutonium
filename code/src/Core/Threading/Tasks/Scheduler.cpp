@@ -8,11 +8,11 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 	for (size_t i = 0; i < threadCnt; i++)
 	{
 		/* Set constant name. */
-		string name("PuWrkr");
-		name += std::to_string(i);
+		wstring name(L"PuWrkr");
+		name += std::to_wstring(i);
 
 		/* Create worker thread. */
-		TickThread *worker = new TickThread(name.c_str(), 0, reinterpret_cast<const void*>(i));
+		TickThread *worker = new TickThread(name, 0, reinterpret_cast<const void*>(i));
 		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
 
 		/* Push threads to buffers. */

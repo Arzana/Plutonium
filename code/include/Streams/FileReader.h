@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new file reader from a specified path. */
-		FileReader(_In_ const char *path);
+		FileReader(_In_ const wstring &path);
 		/* Copy constructor. */
 		FileReader(_In_ const FileReader &value);
 		/* Move constructor. */
@@ -26,9 +26,9 @@ namespace Pu
 		_Check_return_ FileReader& operator =(_In_ FileReader &&other);
 
 		/* Get the current (or working) directory. */
-		_Check_return_ static string GetCurrentDirectory(void);
+		_Check_return_ static wstring GetCurrentDirectory(void);
 		/* Checks whether the specified file exists. */
-		_Check_return_ static bool FileExists(_In_ const char *path);
+		_Check_return_ static bool FileExists(_In_ const wstring &path);
 
 		/* Gets whether the stream can be used. */
 		_Check_return_ inline bool IsOpen(void) const
@@ -37,7 +37,7 @@ namespace Pu
 		}
 
 		/* Gets the path of the underlying file. */
-		_Check_return_ inline const string& GetFilePath(void) const
+		_Check_return_ inline const wstring& GetFilePath(void) const
 		{
 			return fpath;
 		}
@@ -86,13 +86,13 @@ namespace Pu
 		_Check_return_ int64 GetSize(void) const;
 
 	private:
-		string fpath;
+		wstring fpath;
 		bool open;
 		_iobuf *hndlr;
 
 		void SeekInternal(SeekOrigin from, int64 amount) const;
 		void Open(void);
-		string FileError(void) const;
+		wstring FileError(void) const;
 		void FileNotOpen(void);
 	};
 }

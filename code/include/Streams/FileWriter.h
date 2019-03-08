@@ -13,7 +13,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new file writer from a specified path. */
-		FileWriter(_In_ const char *path, _In_opt_ bool append = false);
+		FileWriter(_In_ const wstring &path, _In_opt_ bool append = false);
 		/* Copy constructor. */
 		FileWriter(_In_ const FileWriter &value);
 		/* Copy assignment. */
@@ -27,9 +27,9 @@ namespace Pu
 		_Check_return_ FileWriter& operator =(_In_ FileWriter &&other);
 
 		/* Checks if the specified directory exists. */
-		_Check_return_ static bool DirectoryExists(_In_ const char *directory);
+		_Check_return_ static bool DirectoryExists(_In_ const wstring &directory);
 		/* Creates a directory if it doesn't exist yet. */
-		static void CreateDirectory(_In_ const char *directory);
+		static void CreateDirectory(_In_ const wstring &directory);
 
 		/* Gets whether the stream can be used. */
 		_Check_return_ inline bool IsCreated(void) const
@@ -38,7 +38,7 @@ namespace Pu
 		}
 
 		/* Gets the path of the underlying file. */
-		_Check_return_ inline const string& GetFilePath(void) const
+		_Check_return_ inline const wstring& GetFilePath(void) const
 		{
 			return fpath;
 		}
@@ -55,12 +55,12 @@ namespace Pu
 		_Check_return_ int64 GetPosition(void) const;
 
 	private:
-		string fpath;
+		wstring fpath;
 		bool created;
 		_iobuf *hndl;
 
-		void Create(const char *mode);
-		string FileError(void) const;
+		void Create(const wchar_t *mode);
+		wstring FileError(void) const;
 		void FileNotCreated(void) const;
 	};
 }

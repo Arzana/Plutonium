@@ -91,8 +91,7 @@ void Pu::Log::Move(int32 x, int32 y)
 	/* Move the terminal. */
 	if (!SetWindowPos(terminalHndl, HWND_TOP, x, y, 0, 0, SWP_NOSIZE))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Error("Unable to move Win32 terminal to [%d, %d], reason: '%s'!", x, y, error.c_str());
+		Log::Error("Unable to move Win32 terminal to [%d, %d], reason: '%ls'!", x, y, _CrtGetErrorString().c_str());
 	}
 #else
 	Warning("Moving the output window is not supported on this platform!");
@@ -113,8 +112,8 @@ void Pu::Log::Resize(uint32 w, uint32 h)
 	/* Resize the terminal. */
 	if (!SetWindowPos(terminalHndl, HWND_TOP, 0, 0, w, h, SWP_NOMOVE))
 	{
-		const string error = _CrtGetErrorString();
-		Log::Error("Unable to resize Win32 terminal to %ux%u, reason: '%s'!", w, h, error.c_str());
+		const wstring error = _CrtGetErrorString();
+		Log::Error("Unable to resize Win32 terminal to %ux%u, reason: '%ls'!", w, h, error.c_str());
 	}
 #else
 	Warning("Resizing the output window is not supported on this platform!");
@@ -175,9 +174,9 @@ void Pu::Log::LogMsg(LogType type, bool addNl, const char * format, va_list args
 	}
 }
 
-void Pu::Log::LogExcHdr(const char * sender, string file, string func, int32 line)
+void Pu::Log::LogExcHdr(const char * sender, const wstring & file, const wstring & func, int32 line)
 {
-	constexpr const char *FORMAT = "%s threw an exception!\nFILE:		%s.\nFUNCTION:	%s.\nLINE:		%d.\nMESSAGE:	";
+	constexpr const char *FORMAT = "%s threw an exception!\nFILE:		%ls.\nFUNCTION:	%ls.\nLINE:		%d.\nMESSAGE:	";
 	if (!sender) sender = "Undefined caller";
 	LogMsgVa(LogType::Error, false, FORMAT, sender, file.c_str(), func.c_str(), line - 1);
 }
@@ -246,8 +245,8 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */
 			if constexpr (!LoggerExternalsVisible)
 			{
-				if (cur.FunctionName == "_CrtPuThreadStart") suppressLog = true;
-				if (cur.FunctionName == "main") suppressLog = true;
+				if (cur.FunctionName == L"_CrtPuThreadStart") suppressLog = true;
+				if (cur.FunctionName == L"main") suppressLog = true;
 				if (suppressLog) printf("		[External Code]\n");
 			}
 		}
@@ -377,6 +376,6 @@ void Pu::Log::LogLinePrefix(LogType type)
 	const uint64 tid = _CrtGetCurrentThreadId();
 	if (threadNames.find(tid) == threadNames.end()) threadNames.emplace(tid, _CrtGetThreadNameFromId(tid));
 
-	printf("[%s:%02d][%s/%s][%s]: ", buffer, millisec, processNames.at(pid).c_str(), threadNames.at(tid).c_str(), typeStr);
+	printf("[%s:%02d][%ls/%ls][%s]: ", buffer, millisec, processNames[pid].c_str(), threadNames[tid].c_str(), typeStr);
 	suppressLogging = false;
 }

@@ -90,15 +90,11 @@ namespace Pu
 		HMODULE libHndl;
 
 		VulkanLoader(void)
-			: libHndl(LoadLibrary("vulkan-1.dll"))
+			: libHndl(LoadLibrary(L"vulkan-1.dll"))
 		{
 			/* Check if the vulkan dll was loaded correctly. */
-			if (!libHndl)
-			{
-				const string error = _CrtGetErrorString();
-				Log::Fatal("Unable to load dynamic Vulkan link library, reason: '%s'!", error.c_str());
-			}
-			else LoadProcAddr();
+			if (libHndl) LoadProcAddr(); 
+			else Log::Fatal("Unable to load dynamic Vulkan link library, reason: '%ls'!", _CrtGetErrorString().c_str());
 		}
 #else
 #error "Plutonium Vulkan loader currently doesn't work on this platform!"

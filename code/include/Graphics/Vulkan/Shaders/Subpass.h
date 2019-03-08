@@ -17,7 +17,7 @@ namespace Pu
 		/* Initializes an empty instance of a subpass. */
 		Subpass(_In_ LogicalDevice &device);
 		/* Creates a new shader module from a specified file. */
-		Subpass(_In_ LogicalDevice &device, _In_ const string &path);
+		Subpass(_In_ LogicalDevice &device, _In_ const wstring &path);
 		Subpass(_In_ const Subpass&) = delete;
 		/* Move constructor. */
 		Subpass(_In_ Subpass &&value);
@@ -38,7 +38,7 @@ namespace Pu
 		}
 
 		/* Gets the name assigned to this shader module. */
-		_Check_return_ inline const string& GetName(void) const
+		_Check_return_ inline const wstring& GetName(void) const
 		{
 			return name;
 		}
@@ -76,7 +76,7 @@ namespace Pu
 			: public Task
 		{
 		public:
-			LoadTask(Subpass &result, const string &path);
+			LoadTask(Subpass &result, const wstring &path);
 			LoadTask(const LoadTask&) = delete;
 
 			LoadTask& operator =(const LoadTask&) = delete;
@@ -85,7 +85,7 @@ namespace Pu
 
 		private:
 			Subpass &result;
-			string path;
+			wstring path;
 		};
 
 		const static FieldInfo invalid;
@@ -94,7 +94,7 @@ namespace Pu
 		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
 		std::atomic_bool loaded;
-		string name;
+		wstring name;
 
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, vector<string>> memberNames;
@@ -104,8 +104,8 @@ namespace Pu
 		std::map<spv::Id, Decoration> decorations;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
-		void Load(const string &path);
-		void Create(const string &path);
+		void Load(const wstring &path);
+		void Create(const wstring &path);
 		void SetFieldInfo(void);
 		void HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage);
 		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t wordCnt);
@@ -121,7 +121,7 @@ namespace Pu
 		void HandleImage(SPIRVReader &reader);
 		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);
-		void SetInfo(const string &ext);
+		void SetInfo(const wstring &ext);
 		void Destroy(void);
 	};
 }

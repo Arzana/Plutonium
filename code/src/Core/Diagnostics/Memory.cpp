@@ -21,8 +21,8 @@ const MemoryFrame Pu::MemoryFrame::GetMemStats(void)
 	/* Get global memory information. */
 	if (!GlobalMemoryStatusEx(&info))
 	{
-		string error = _CrtGetErrorString();
-		Log::Warning("Unable to get global memory statistics: %s!", error.c_str());
+		const wstring error = _CrtGetErrorString();
+		Log::Warning("Unable to get global memory statistics: %ls!", error.c_str());
 		return result;
 	}
 
@@ -30,8 +30,8 @@ const MemoryFrame Pu::MemoryFrame::GetMemStats(void)
 	PROCESS_MEMORY_COUNTERS pmc;
 	if (!GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(PROCESS_MEMORY_COUNTERS)))
 	{
-		string error = _CrtGetErrorString();
-		Log::Warning("Unable to get process memory statistics: %s!", error.c_str());
+		const wstring error = _CrtGetErrorString();
+		Log::Warning("Unable to get process memory statistics: %ls!", error.c_str());
 		return result;
 	}
 

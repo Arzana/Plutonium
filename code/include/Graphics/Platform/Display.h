@@ -21,7 +21,7 @@ namespace Pu
 		_Check_return_ Display& operator =(_In_ Display &&other);
 
 		/* Gets the assigned name of the display. */
-		_Check_return_ const string& GetName(void) const
+		_Check_return_ const wstring& GetName(void) const
 		{
 			return name;
 		}
@@ -70,7 +70,7 @@ namespace Pu
 		_Check_return_ static const vector<Display>& GetAll(void);
 
 	private:
-		string name;
+		wstring name;
 		Rect2D viewport;
 		uint32 hertz, depth;
 		bool isPrimary;
