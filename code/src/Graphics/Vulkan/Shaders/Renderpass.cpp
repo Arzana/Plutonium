@@ -12,7 +12,7 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
 	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Subpass &cur) { return cur.GetName(); })));
-	Link();
+	Link(false);
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
@@ -118,7 +118,7 @@ Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
 	return *this;
 }
 
-void Pu::Renderpass::Link(void)
+void Pu::Renderpass::Link(bool linkedViaLoader)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
 	std::sort(subpasses.begin(), subpasses.end(), [](const Subpass &a, const Subpass &b)
@@ -133,7 +133,7 @@ void Pu::Renderpass::Link(void)
 		{
 			/* Shader is done loading but failed linking. */
 			Log::Error("Unable to link %s shader to %s shader!", to_string(subpasses[i].get().GetType()), to_string(subpasses[j].get().GetType()));
-			LinkFailed();
+			LinkFailed(linkedViaLoader);
 			return;
 		}
 	}
@@ -145,7 +145,7 @@ void Pu::Renderpass::Link(void)
 	OnLinkCompleted.Post(*this, EventArgs());
 
 	/* Finalize the render pass. */
-	Finalize();
+	Finalize(linkedViaLoader);
 }
 
 void Pu::Renderpass::LoadFields(void)
@@ -183,7 +183,7 @@ void Pu::Renderpass::LoadFields(void)
 	}
 }
 
-void Pu::Renderpass::Finalize(void)
+void Pu::Renderpass::Finalize(bool linkedViaLoader)
 {
 	/* Set all attachment references for the subpass. */
 	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
@@ -228,7 +228,7 @@ void Pu::Renderpass::Finalize(void)
 	createInfo.DependencyCount = static_cast<uint32>(dependencies.size());
 	createInfo.Dependencies = dependencies.data();
 	VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
-	LinkSucceeded();
+	LinkSucceeded(linkedViaLoader);
 }
 
 bool Pu::Renderpass::CheckIO(const Subpass & a, const Subpass & b) const
@@ -295,10 +295,10 @@ bool Pu::Renderpass::CheckIO(const Subpass & a, const Subpass & b) const
 	return result;
 }
 
-void Pu::Renderpass::LinkSucceeded(void)
+void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 {
 	usable = true;
-	MarkAsLoaded();
+	MarkAsLoaded(linkedViaLoader);
 
 #ifdef _DEBUG
 	wstring modules;
@@ -312,10 +312,10 @@ void Pu::Renderpass::LinkSucceeded(void)
 #endif
 }
 
-void Pu::Renderpass::LinkFailed(void)
+void Pu::Renderpass::LinkFailed(bool linkedViaLoader)
 {
 	usable = false;
-	MarkAsLoaded();
+	MarkAsLoaded(linkedViaLoader);
 }
 
 void Pu::Renderpass::Destroy(void)
@@ -366,7 +366,7 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 		delete subTask;
 	}
 
-	/* Perform linking and return. */
-	result.Link();
+	/* Perform linking (this should always be called from the loader) and return. */
+	result.Link(true);
 	return Result::Default();
 }

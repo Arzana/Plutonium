@@ -67,13 +67,14 @@ namespace Pu
 
 		/* Duplicates the asset, either returning a reference of itself or a memberwise copy. */
 		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache &cache) = 0;
-
 		/* Initializes the hash of the asset, cannot replace valid hash! */
 		void SetHash(_In_ size_t hash);
+
 		/* Marks the current asset as ready for use. */
-		inline void MarkAsLoaded(void)
+		inline void MarkAsLoaded(_In_ bool viaLoader)
 		{
 			loaded.store(true);
+			loadedViaLoader = viaLoader;
 		}
 
 	private:
@@ -83,7 +84,7 @@ namespace Pu
 
 		int32 refCnt;
 		size_t hash, instance;
-		bool allowDuplication;
+		bool allowDuplication, loadedViaLoader;
 		std::atomic_bool loaded;
 
 		template <typename asset_t>

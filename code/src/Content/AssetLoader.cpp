@@ -89,7 +89,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			if (staged)
 			{
 				parent.RecycleCmdBuffer(cmdBuffer);
-				result.Image.MarkAsLoaded();
+				result.Image.MarkAsLoaded(true);
 				delete child;
 				return Result::AutoDelete();
 			}

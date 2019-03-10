@@ -63,6 +63,7 @@ void Pu::AssetCache::Release(Asset & asset)
 		{
 			if (--cur->refCnt < 1)
 			{
+				if (!cur->loadedViaLoader) Log::Warning("Releasing known asset which was not loaded via loader (is it still loading?)!");
 				assets.remove(cur);
 				delete cur;
 			}
@@ -72,7 +73,7 @@ void Pu::AssetCache::Release(Asset & asset)
 	}
 
 	lock.unlock();
-	Log::Warning("Attempting to release unknown asset '%zu'!", asset.hash);
+	if (!asset.loadedViaLoader) Log::Warning("Attempting to release unknown asset '%zu'!", asset.hash);
 }
 
 void Pu::AssetCache::Store(Asset * asset)

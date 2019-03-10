@@ -1,5 +1,6 @@
 #pragma once
 #include "BufferView.h"
+#include "Content/GLTFLoader.h"
 #include "Graphics/Vulkan/SPIR-V/FieldTypes.h"
 
 namespace Pu
@@ -8,8 +9,8 @@ namespace Pu
 	class BufferAccessor
 	{
 	public:
-		/* Initializes a new instance of a buffer accessor. */
-		BufferAccessor(_In_ BufferView &view, _In_ size_t offset);
+		/* Initializes a new instance of a buffer accessor from a predefined type at a predefined internal offset. */
+		BufferAccessor(_In_ BufferView &view, _In_ FieldTypes type, _In_ size_t offset);
 		/* Copy constructor. */
 		BufferAccessor(_In_ const BufferAccessor &value);
 		/* Move constructor. */
@@ -34,15 +35,24 @@ namespace Pu
 		/* Gets the amount of element last stored via the accessor. */
 		_Check_return_ inline size_t GetElementCount(void) const
 		{
-			return elementCount;
+			return view.GetElementCount();
+		}
+
+		/* Gets the type of the underlying elements. */
+		_Check_return_ inline FieldTypes GetElementType(void) const
+		{
+			return elementType;
 		}
 
 		/* Set the data of this accessor. */
-		void SetData(_In_ FieldTypes type, _In_ const void *data, _In_ size_t count);
+		void SetData(_In_ const void *data, _In_ size_t count);
 
 	private:
+		friend class Mesh;
+		friend class CommandBuffer;
+
 		BufferView &view;
-		size_t offset, elementCount;
 		FieldTypes elementType;
+		size_t offset;
 	};
 }

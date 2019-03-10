@@ -24,7 +24,14 @@ Pu::StagingBuffer & Pu::StagingBuffer::operator=(StagingBuffer && other)
 
 void Pu::StagingBuffer::Load(const void * data)
 {
+	/* Transfer the data to the CPU-GPU accessible underlying buffer. */
 	BeginMemoryTransfer();
 	SetData(data, size, 0);
 	EndMemoryTransfer();
+
+	/*
+	Mark the staging buffer as loaded, making it ready for use. 
+	This should never be called via a loader so don't mark it as such. 
+	*/
+	MarkAsLoaded(false);
 }

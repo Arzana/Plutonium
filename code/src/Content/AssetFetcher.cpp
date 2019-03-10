@@ -52,6 +52,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	else
 	{
 		sampler = new Sampler(loader->GetDevice(), samplerInfo);
+		sampler->loadedViaLoader = true;
 		cache->Store(sampler);
 	}
 

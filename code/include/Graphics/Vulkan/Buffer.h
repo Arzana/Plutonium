@@ -1,10 +1,12 @@
 #pragma once
 #include "LogicalDevice.h"
+#include "Content/Asset.h"
 
 namespace Pu
 {
 	/* Defines a Vulkan memory buffer. */
 	class Buffer
+		: public Asset
 	{
 	public:
 		/* Initializes a new instance of a memory buffer of a specified size (in bytes). */
@@ -34,6 +36,12 @@ namespace Pu
 			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCached);
 		}
 
+		/* Gets whether this buffer allows it's data to be altered. */
+		_Check_return_ inline bool CanSetData(void) const
+		{
+			return Mutable;
+		}
+
 		/* Gets the size (in bytes) of this buffer. */
 		_Check_return_ inline size_t GetSize(void) const
 		{
@@ -46,10 +54,16 @@ namespace Pu
 		void EndMemoryTransfer(void);
 
 	protected:
+		/* Whether to allow the user to change the data of this buffer. */
+		bool Mutable;
+
 		/* Sets the raw memory of the buffer. */
 		void SetData(_In_ const void *data, _In_ size_t dataSize, _In_ size_t dataStride, _In_ size_t offset, _In_ size_t stride);
 		/* Sets the raw memory of the buffer. */
 		void SetData(_In_ const void *data, _In_ size_t dataSize, _In_ size_t offset);
+
+		/* Duplicates the asset, either returning a reference of itself. */
+		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache&);
 
 	private:
 		friend class BufferView;
@@ -65,7 +79,7 @@ namespace Pu
 		BufferHndl bufferHndl;
 		MemoryPropertyFlag memoryProperties;
 		uint32 memoryType;
-		void *buffer;
+		byte *buffer;
 
 		void Map(size_t size, size_t offset);
 		void UnMap(void);

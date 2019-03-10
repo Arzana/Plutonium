@@ -5,9 +5,11 @@ Pu::Asset::~Asset(void)
 	/*
 	Assets that aren't allowed to be duplicated are assets whose memory is handled by another system (like the OS).
 	So these will always have one reference and need to be de-referened by the user.
+	The same goes for assets that were loaded by the user without the loader.
+	They are responsible for safe releases.
 	All other assets should be released via the asset fetcher, thusly removing its references.
 	*/
-	if (allowDuplication && refCnt > 0) Log::Warning("Releasing referenced asset '%zu'!", hash);
+	if (allowDuplication && loadedViaLoader && refCnt > 0) Log::Warning("Releasing referenced asset '%zu'!", hash);
 }
 
 Pu::Asset::Asset(bool allowDuplication)
@@ -19,7 +21,7 @@ Pu::Asset::Asset(bool allowDuplication, size_t hash)
 {}
 
 Pu::Asset::Asset(bool allowDuplication, size_t hash, size_t instance)
-	: refCnt(1), hash(hash), instance(instance), allowDuplication(allowDuplication), loaded(false)
+	: refCnt(1), hash(hash), instance(instance), allowDuplication(allowDuplication), loaded(false), loadedViaLoader(false)
 {}
 
 Pu::Asset::Asset(Asset && value)

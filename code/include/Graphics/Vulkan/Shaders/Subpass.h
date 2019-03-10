@@ -43,12 +43,6 @@ namespace Pu
 			return name;
 		}
 
-		/* Gets whether the subpass has been loaded. */
-		_Check_return_ inline bool IsLoaded(void) const
-		{
-			return loaded.load();
-		}
-
 		/* Gets the amount of field defined by the shader module. */
 		_Check_return_ inline size_t GetFieldCount(void) const
 		{
@@ -93,7 +87,6 @@ namespace Pu
 		LogicalDevice &parent;
 		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
-		std::atomic_bool loaded;
 		wstring name;
 
 		std::map<spv::Id, string> names;
@@ -104,7 +97,7 @@ namespace Pu
 		std::map<spv::Id, Decoration> decorations;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
-		void Load(const wstring &path);
+		void Load(const wstring &path, bool viaLoader);
 		void Create(const wstring &path);
 		void SetFieldInfo(void);
 		void HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage);

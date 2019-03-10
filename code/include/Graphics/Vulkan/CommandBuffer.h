@@ -1,9 +1,9 @@
 #pragma once
+#include "Graphics/Resources/BufferAccessor.h"
 #include "Shaders/GraphicsPipeline.h"
 #include "Graphics/Color.h"
 #include "Framebuffer.h"
 #include "Fence.h"
-#include "Buffer.h"
 
 namespace Pu
 {
@@ -59,9 +59,9 @@ namespace Pu
 		/* Appends a graphics pipeline bind command to the command buffer. */
 		void BindGraphicsPipeline(_In_ const GraphicsPipeline &pipeline);
 		/* Appends a vertex buffer bind command to the command buffer. */
-		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_opt_ size_t offset = 0);
+		void BindVertexBuffer(_In_ uint32 binding, _In_ const BufferView &view);
 		/* Appends a index buffer bind command to the command buffer. */
-		void BindIndexBuffer(_In_ const Buffer &buffer, _In_ size_t elementCount, _In_opt_ size_t offset = 0);
+		void BindIndexBuffer(_In_ const BufferAccessor &accessor);
 		/* Appends a graphics descriptor bind command to the command buffer. */
 		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */

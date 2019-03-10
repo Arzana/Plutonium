@@ -24,7 +24,7 @@ namespace Pu
 			description.Binding = binding;
 		}
 
-		/* Sets the offset of the attribute in the buffere layout. */
+		/* Sets the offset of the attribute in the buffer layout. */
 		inline void SetOffset(_In_ uint32 offset)
 		{
 			description.Offset = offset;

@@ -1,5 +1,9 @@
 #include "Graphics/Resources/BufferView.h"
 
+Pu::BufferView::BufferView(Buffer & buffer, size_t stride)
+	: buffer(buffer), offset(0), size(buffer.size), stride(stride)
+{}
+
 Pu::BufferView::BufferView(Buffer & buffer, size_t offset, size_t size, size_t stride)
 	: buffer(buffer), offset(offset), size(size), stride(stride)
 {}
@@ -28,9 +32,9 @@ Pu::BufferView & Pu::BufferView::operator=(BufferView && other)
 /* size/offset hides class member, checked and works as intended. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-void Pu::BufferView::SetData(const void * data, size_t offset, size_t elementSize, size_t elementCount)
+void Pu::BufferView::SetData(const void * data, size_t internalOffset, size_t elementSize, size_t elementCount)
 {
 	/* Stride is either the view stride (if set) or just the element stride. */
-	buffer.SetData(data, elementSize * elementCount, elementSize, this->offset + offset, stride ? stride : elementSize);
+	buffer.SetData(data, elementSize * elementCount, elementSize, offset + internalOffset, stride ? stride : elementSize);
 }
 #pragma warning(pop)

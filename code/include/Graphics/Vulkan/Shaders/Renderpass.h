@@ -94,12 +94,12 @@ namespace Pu
 		vector<ClearValue> clearValues;
 		vector<SubpassDependency> dependencies;
 
-		void Link(void);
+		void Link(bool linkedViaLoader);
 		void LoadFields(void);
-		void Finalize(void);
+		void Finalize(bool linkedViaLoader);
 		bool CheckIO(const Subpass &a, const Subpass &b) const;
-		void LinkSucceeded(void);
-		void LinkFailed(void);
+		void LinkSucceeded(bool linkedViaLoader);
+		void LinkFailed(bool linkedViaLoader);
 		void Destroy(void);
 
 		/* Needs to be defined for the saved asset. */

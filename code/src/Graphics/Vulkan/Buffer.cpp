@@ -2,14 +2,14 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, bool requiresHostAccess)
-	: parent(device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None)
+	: Asset(true), parent(device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None), Mutable(true)
 {
 	memoryProperties = requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None;
 	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage));
 }
 
 Pu::Buffer::Buffer(Buffer && value)
-	: parent(value.parent), size(value.size), memoryHndl(value.memoryHndl), bufferHndl(value.bufferHndl),
+	: Asset(std::move(value)), parent(value.parent), size(value.size), memoryHndl(value.memoryHndl), bufferHndl(value.bufferHndl), Mutable(value.Mutable),
 	memoryProperties(value.memoryProperties), memoryType(value.memoryType), buffer(value.buffer), srcAccess(value.srcAccess)
 {
 	value.memoryHndl = nullptr;
@@ -22,6 +22,7 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 	if (this != &other)
 	{
 		Destroy();
+		Asset::operator=(std::move(other));
 
 		parent = std::move(other.parent);
 		size = other.size;
@@ -31,6 +32,7 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 		memoryType = other.memoryType;
 		buffer = other.buffer;
 		srcAccess = other.srcAccess;
+		Mutable = other.Mutable;
 
 		other.memoryHndl = nullptr;
 		other.bufferHndl = nullptr;
@@ -48,6 +50,9 @@ void Pu::Buffer::BeginMemoryTransfer(void)
 		Log::Warning("Attempting to begin memory transfer on already transfering buffer!");
 		return;
 	}
+
+	/* Make sure the buffer isn't marked as const. */
+	if (!Mutable) Log::Fatal("Cannot set data of constant buffer!");
 
 	/* We cannot map data on non-host accessible buffers. */
 	if (!IsHostAccessible()) Log::Fatal("Attempting to begin memory transfer on host-invisible buffer!");
@@ -84,13 +89,19 @@ void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t dataStride, 
 	*/
 	for (size_t i = offset, j = 0; i < size && j < dataSize; i += stride, j += dataStride)
 	{
-		memcpy_s(reinterpret_cast<byte*>(buffer) + i, size - i, reinterpret_cast<const byte*>(data) + j, dataStride);
+		memcpy_s(buffer + i, size - i, reinterpret_cast<const byte*>(data) + j, dataStride);
 	}
 }
 
 void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t offset)
 {
-	memcpy_s(reinterpret_cast<byte*>(buffer) + offset, size - offset, data, dataSize);
+	memcpy_s(buffer + offset, size - offset, data, dataSize);
+}
+
+Pu::Asset & Pu::Buffer::Duplicate(AssetCache &)
+{
+	Reference();
+	return *this;
 }
 
 /* size hides class member, checked and works as intended. */
@@ -98,7 +109,7 @@ void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t offset)
 #pragma warning(disable:4458)
 void Pu::Buffer::Map(size_t size, size_t offset)
 {
-	VK_VALIDATE(parent.vkMapMemory(parent.hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, &buffer), PFN_vkMapMemory);
+	VK_VALIDATE(parent.vkMapMemory(parent.hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, reinterpret_cast<void**>(&buffer)), PFN_vkMapMemory);
 }
 #pragma warning(pop)
 

@@ -7,17 +7,17 @@
 const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
 
 Pu::Subpass::Subpass(LogicalDevice & device)
-	: Asset(true), parent(device), loaded(false)
+	: Asset(true), parent(device)
 {}
 
 Pu::Subpass::Subpass(LogicalDevice & device, const wstring & path)
 	: Asset(true, std::hash<wstring>{}(path)), parent(device)
 {
-	Load(path);
+	Load(path, false);
 }
 
 Pu::Subpass::Subpass(Subpass && value)
-	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields)), loaded(value.IsLoaded())
+	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields))
 {
 	value.info.Module = nullptr;
 }
@@ -32,10 +32,8 @@ Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
 		parent = std::move(other.parent);
 		info = other.info;
 		fields = std::move(other.fields);
-		loaded.store(other.IsLoaded());
 
 		other.info.Module = nullptr;
-		other.loaded.store(false);
 	}
 
 	return *this;
@@ -61,7 +59,7 @@ Pu::Asset & Pu::Subpass::Duplicate(AssetCache &)
 	return *this;
 }
 
-void Pu::Subpass::Load(const wstring & path)
+void Pu::Subpass::Load(const wstring & path, bool viaLoader)
 {
 	const wstring ext = _CrtGetFileExtension(path);
 	name = path;
@@ -81,7 +79,7 @@ void Pu::Subpass::Load(const wstring & path)
 
 	/* Set the information of the subpass. */
 	SetFieldInfo();
-	loaded.store(true);
+	MarkAsLoaded(viaLoader);
 }
 
 void Pu::Subpass::Create(const wstring & path)
@@ -410,6 +408,6 @@ Pu::Subpass::LoadTask::LoadTask(Subpass & result, const wstring & path)
 
 Pu::Task::Result Pu::Subpass::LoadTask::Execute(void)
 {
-	result.Load(path);
+	result.Load(path, true);
 	return Result::Default();
 }

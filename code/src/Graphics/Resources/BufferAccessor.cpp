@@ -1,15 +1,15 @@
 #include "Graphics/Resources/BufferAccessor.h"
 
-Pu::BufferAccessor::BufferAccessor(BufferView & view, size_t offset)
-	: view(view), offset(offset), elementCount(0), elementType(FieldTypes::Invalid)
+Pu::BufferAccessor::BufferAccessor(BufferView & view, FieldTypes type, size_t offset)
+	: view(view), elementType(type), offset(offset)
 {}
 
 Pu::BufferAccessor::BufferAccessor(const BufferAccessor & value)
-	: view(value.view), offset(value.offset), elementCount(value.elementCount), elementType(value.elementType)
+	: view(value.view), elementType(value.elementType), offset(value.offset)
 {}
 
 Pu::BufferAccessor::BufferAccessor(BufferAccessor && value)
-	: view(value.view), offset(value.offset), elementCount(value.elementCount), elementType(value.elementType)
+	: view(value.view), elementType(value.elementType), offset(value.offset)
 {}
 
 Pu::BufferAccessor & Pu::BufferAccessor::operator=(BufferAccessor && other)
@@ -17,18 +17,15 @@ Pu::BufferAccessor & Pu::BufferAccessor::operator=(BufferAccessor && other)
 	if (this != &other)
 	{
 		view = std::move(other.view);
-		offset = other.offset;
-		elementCount = other.elementCount;
 		elementType = other.elementType;
+		offset = other.offset;
 	}
 
 	return *this;
 }
 
-void Pu::BufferAccessor::SetData(FieldTypes type, const void * data, size_t count)
+void Pu::BufferAccessor::SetData(const void * data, size_t count)
 {
-	elementCount = count;
-	elementType = type;
-
-	view.SetData(data, offset, sizeof_fieldType(type), count);
+	if (count > GetElementCount()) Log::Fatal("Cannot set data on accessor (buffer too small)!");
+	view.SetData(data, offset, sizeof_fieldType(elementType), count);
 }

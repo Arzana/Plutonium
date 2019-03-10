@@ -186,30 +186,33 @@ void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 	if (CheckIfRecording("bind graphics pipeline")) parent.parent.vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
 }
 
-void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, size_t offset)
+void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const BufferView & view)
 {
-	if (CheckIfRecording("bind vertex buffer")) parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, static_cast<DeviceSize*>(&offset));
+	if (CheckIfRecording("bind vertex buffer"))
+	{
+		parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &view.buffer.bufferHndl, static_cast<const DeviceSize*>(&view.offset));
+	}
 }
 
-void Pu::CommandBuffer::BindIndexBuffer(const Buffer & buffer, size_t elementCount, size_t offset)
+void Pu::CommandBuffer::BindIndexBuffer(const BufferAccessor & accessor)
 {
 	if (CheckIfRecording("bind index buffer"))
 	{
 		IndexType type;
-		switch (buffer.GetSize() / elementCount)
+		switch (accessor.elementType)
 		{
-		case 2:
+		case FieldTypes::UShort:
 			type = IndexType::UInt16;
 			break;
-		case 4:
+		case FieldTypes::UInt:
 			type = IndexType::UInt32;
 			break;
 		default:
-			Log::Fatal("Buffer cannot be interpreted as an index buffer!");
+			Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", to_string(accessor.elementType));
 			return;
 		}
 
-		parent.parent.vkCmdBindIndexBuffer(hndl, buffer.bufferHndl, static_cast<DeviceSize>(offset), type);
+		parent.parent.vkCmdBindIndexBuffer(hndl, accessor.view.buffer.bufferHndl, static_cast<DeviceSize>(accessor.view.offset + accessor.offset), type);
 	}
 }
 
