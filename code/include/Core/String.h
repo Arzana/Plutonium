@@ -1,9 +1,10 @@
 #pragma once
-#include <string>
 #include <algorithm>
+#include <string>
 #include "Core/Math/Basics.h"
 #include "Core/Collections/Vector.h"
 #include "Core/Platform/Windows/Windows.h"
+#include "Core/Diagnostics/NotImplementedException.h"
 
 namespace Pu
 {
@@ -16,6 +17,7 @@ namespace Pu
 		using string_t = typename std::basic_string<char_t>;
 		using size_type = typename string_t::size_type;
 
+#pragma region ctors
 		/* Initializes an empty instance of a Plutonium string. */
 		basic_string(void) noexcept(noexcept(allocator_t()))
 			: string_t()
@@ -93,7 +95,8 @@ namespace Pu
 		basic_string(_In_ const _Ty &t, _In_ size_t pos, _In_ size_t n, _In_opt_ const allocator_t &alloc = allocator_t())
 			: string_t(t, pos, n, alloc)
 		{}
-
+#pragma endregion
+#pragma region operators
 		/* Replaces the contents with a copy of value. */
 		_Check_return_ inline basic_string<char_t>& operator =(_In_ const basic_string<char_t> &other)
 		{
@@ -227,7 +230,8 @@ namespace Pu
 			string_t::operator+=(t);
 			return *this;
 		}
-
+#pragma endregion
+#pragma region utility
 		/* Gets the amount of digits in a number if it would be converted to string. */
 		_Check_return_ static inline size_t count_digits(_In_ uint64 number)
 		{
@@ -240,6 +244,37 @@ namespace Pu
 			return number ? static_cast<size_t>(log10(abs(number)) + (number < 0 ? 2 : 1)) : 1;
 		}
 
+		/* Gets the file extension from the string, or an empty string if the string doesn't contain one (dot is not included). */
+		_Check_return_ basic_string<char_t> fileExtension(void) const
+		{
+			const size_type offset = string_t::find_last_of(static_cast<char_t>(U'.'));
+			return offset != string_t::npos ? string_t::substr(offset + 1, string_t::length() - offset - 1) : basic_string();
+		}
+
+		/* Gets the file name from the string, or the entire string if the string wasn't recognized as a path. */
+		_Check_return_ basic_string<char_t> fileName(void) const
+		{
+			const size_type start = find_last_of({ static_cast<char_t>(U'/'), static_cast<char_t>(U'\\') }) + 1;
+			return string_t::substr(start, string_t::length() - start);
+		}
+
+		/* Gets the file name without extension from the string, or the entire string if the string wasn't recognized as a path. */
+		_Check_return_ basic_string<char_t> fileNameWithoutExtension(void) const
+		{
+			const size_type start = find_last_of({ static_cast<char_t>(U'/'), static_cast<char_t>(U'\\') }) + 1;
+			size_type end = find_last_of(static_cast<char_t>(U'.'));
+			if (end == string_t::npos) end = string_t::length();
+			return string_t::substr(start, end - start);
+		}
+
+		/* Gets the file directory from the string, or an empty string if no path was present. */
+		_Check_return_ basic_string<char_t> fileDirectory(void) const
+		{
+			const size_type len = find_last_of({ static_cast<char_t>(U'/'), static_cast<char_t>(U'\\') });
+			return len != string_t::npos ? string_t::substr(0, len + 1) : basic_string<char_t>();
+		}
+#pragma endregion
+#pragma region queries
 		/* Gets whether the string contains a specified substring. */
 		_Check_return_ inline bool contains(_In_ basic_string<char_t> substr) const
 		{
@@ -368,18 +403,47 @@ namespace Pu
 			if constexpr (std::is_same<char_t, wchar_t>::value)
 			{
 				/* UTF-8 is up to 4 bytes per character to reserve that amount. */
-				const size_t reserveSize = string_t::length() * 4;
-				basic_string<char> result(reserveSize, ' ');
+				const size_type reserveSize = string_t::length() * 4 + 1;
+				char *buffer = reinterpret_cast<char*>(malloc(reserveSize));
 
-				/* Convert to UTF-8. */
-				WideCharToMultiByte(CP_UTF8, 0, string_t::c_str(), -1, const_cast<char*>(result.c_str()), static_cast<int>(reserveSize), nullptr, nullptr);
+				/* Convert to UTF-8, no errors can occur. */
+				WideCharToMultiByte(CP_UTF8, 0, string_t::c_str(), -1, buffer, static_cast<int>(reserveSize), nullptr, nullptr);
+
+				/* Copy buffer values to a new string and free the buffer. */
+				basic_string<char> result(buffer);
+				free(buffer);
 				return result;
 			}
-			else Log::Fatal("Cannot convert to UTF-8 from this string type!");
+			else throw NotImplementedException(typeid(toUTF8));
 #else
-			Log::Fatal("Cannot convert to UTF-8 on this platform!");
+			throw NotImplementedException(typeid(toUTF8));
 #endif
 		}
+
+		/* Attempts to convert the string to a wide string (expects ASCII string is UTF-8 flag is not set to true). */
+		_Check_return_ inline basic_string<wchar_t> toWide(_In_ bool isUTF8) const
+		{
+#ifdef _WIN32
+			if constexpr (std::is_same<char_t, char>::value)
+			{
+				/* Reserve enough space fr all characters. */
+				const size_t reserveSize = string_t::length() * sizeof(wchar_t) + 1;
+				wchar_t *buffer = reinterpret_cast<wchar_t*>(malloc(reserveSize * sizeof(wchar_t)));
+
+				/* Convert to wide string, no errors can occur. */
+				MultiByteToWideChar(isUTF8 ? CP_UTF8 : CP_ACP, 0, string_t::c_str(), -1, buffer, static_cast<int>(reserveSize));
+
+				/* Copy buffer values to new string and free the buffer. */
+				basic_string<wchar_t> result(buffer);
+				free(buffer);
+				return result;
+			}
+			else throw NotImplementedException(typeid(toWide));
+#else
+			throw NotImplementedException(typeid(toWide));
+#endif
+		}
+#pragma endregion
 
 	private:
 		template <typename result_char_t, typename lambda_t>

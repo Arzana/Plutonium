@@ -171,7 +171,7 @@ BOOL Pu::Display::MonitorProc(HMONITOR monitor, HDC, LPRECT vp, LPARAM)
 
 	/* Append monitor to list. */
 	availableDisplays.push_back(result);
-	Log::Verbose("%s(%ux%u @%dHz) detected at [%d, %d], color depth: %u, gamma correction: %.2f.", result.name.c_str(), size.Width, size.Height, result.hertz, pos.X, pos.Y, result.depth, result.correction);
+	Log::Verbose("%ls(%ux%u @%dHz) detected at [%d, %d], color depth: %u, gamma correction: %.2f.", result.name.c_str(), size.Width, size.Height, result.hertz, pos.X, pos.Y, result.depth, result.correction);
 	return true;
 }
 #endif

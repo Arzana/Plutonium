@@ -27,5 +27,6 @@ private:
 	Pu::Buffer *vrtxBuffer, *uniBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer, *uniStagingBuffer;
 	Pu::Texture2D *image;
+	Pu::Mesh *mesh;
 	Pu::DescriptorSet *descriptor;
 };

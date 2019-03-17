@@ -317,6 +317,12 @@ namespace Pu
 		{
 			return Extent2D(Width, Height);
 		}
+
+		/* Checks whether the left side is smaller than the right side in any dimension. */
+		_Check_return_ inline bool operator <(_In_ const Extent3D &other) const
+		{
+			return Width < other.Width || Height < other.Height || Depth < other.Depth;
+		}
 	};
 
 	/* Defines image format properties. */

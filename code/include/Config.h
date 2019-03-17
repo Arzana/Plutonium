@@ -37,4 +37,8 @@ namespace Pu
 	constexpr uint32 DefaultMipLevels = 4;
 	/* Defines the initial amount of command buffer allocated for asset loading. */
 	constexpr size_t InitialLoadCommandBufferCount = 2;
+	/* Defines the minimum loadable GLTF version. */
+	constexpr float MinimumVersionGLTF = 2.0f;
+	/* Defines the preferred amount of components when loading images (0 mean use native components). */
+	constexpr int PreferredImageComponentCount = 4;
 }

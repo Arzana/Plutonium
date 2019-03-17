@@ -71,7 +71,7 @@ void Pu::Buffer::EndMemoryTransfer(void)
 	}
 
 	/* Flush the entire buffer and unmap the memory. */
-	Flush(size, 0);
+	Flush(WholeSize, 0);
 	UnMap();
 }
 

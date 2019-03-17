@@ -5,9 +5,11 @@
 #include <conio.h>		// Press ANY key to continue.
 #endif
 
+#include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include "Config.h"
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
@@ -15,11 +17,14 @@ using namespace Pu;
 
 void Pu::Log::Verbose(const char * format, ...)
 {
+	/* Verbose only works on debug so just cast to void on release. */
 #ifdef _DEBUG
 	va_list args;
 	va_start(args, format);
 	GetInstance().LogMsg(LogType::Debug, true, format, args);
 	va_end(args);
+#else 
+	(void)format;
 #endif
 }
 
@@ -49,10 +54,10 @@ void Pu::Log::Error(const char * format, ...)
 
 void Pu::Log::Fatal(const char * format, ...)
 {
+	/* va_end isn't needed as LogExc will throw. */
 	va_list args;
 	va_start(args, format);
 	GetInstance().LogExc("An unhandled exception occurred!", format, args);
-	va_end(args);
 }
 
 void Pu::Log::SetBufferWidth(uint32 width)
@@ -223,7 +228,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 		if (!suppressLog)
 		{
 			/* Print the function name. */
-			(line = "		at %-") += std::to_string(maxFunctionNameLength + 1) += 's';
+			(line = "		at %-") += std::to_string(maxFunctionNameLength + 1) += "ls";
 			printf(line.c_str(), cur.FunctionName.c_str());
 
 			/* Print the line. */
@@ -235,11 +240,11 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			else printf("| Unknown ");
 
 			/* Print the module name. */
-			(line = "| %-") += std::to_string(maxModuleNameLength + 1) += 's';
+			(line = "| %-") += std::to_string(maxModuleNameLength + 1) += "ls";
 			printf(line.c_str(), cur.ModuleName.c_str());
 
 			/* Print the file name. */
-			(line = "| %-") += std::to_string(maxFileNameLength + 1) += "s\n";
+			(line = "| %-") += std::to_string(maxFileNameLength + 1) += "ls\n";
 			printf(line.c_str(), cur.FileName.c_str());
 
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */

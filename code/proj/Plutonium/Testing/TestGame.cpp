@@ -1,8 +1,9 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/Image2D.h>
+#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Core/Math/Matrix.h>
-#include <Graphics/Resources/BufferAccessor.h>
+
+#include <Content/GLTFParser.h>
 
 using namespace Pu;
 
@@ -12,6 +13,8 @@ TestGame::TestGame(void)
 
 void TestGame::Initialize(void)
 {
+	//GetWindow().GetNative().SetMode(WindowMode::Borderless);
+
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice());
 	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline, EventArgs)
@@ -19,7 +22,7 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding<Image2D>(0);
+		pipeline.AddVertexBinding<SkinnedAnimated>(0);
 		pipeline.Finalize();
 
 		/* Allocate and move the new descriptor set. */
@@ -39,7 +42,7 @@ void TestGame::Initialize(void)
 
 		/* Set offset for uv attribute (position is default). */
 		Attribute &uv = renderpass.GetAttribute("TexCoord");
-		uv.SetOffset(vkoffsetof(Image2D, TexCoord));
+		uv.SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
 
 		/* Setup the subpass dependencies. */
 		SubpassDependency dependency(SubpassExternal, 0);
@@ -69,20 +72,21 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	const Image2D quad[] =
-	{
-		{ Vector2(-0.7f, -0.7f), Vector2(0.0f, 0.0f) },
-		{ Vector2(-0.7f, 0.7f), Vector2(0.0f, 1.0f) },
-		{ Vector2(0.7f, -0.7f), Vector2(1.0f, 0.0f) },
-		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
-	};
+	GLTFFile result;
+	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", result);
 
-	const Matrix identity = Matrix::CreateScalar(1.0f);
+	const Matrix identity = Matrix::CreateScalar(0.2f);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
-	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
-	vrtxStagingBuffer->Load(quad);
+	vrtxBuffer = new Buffer(GetDevice(), result.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+
+	vector<std::reference_wrapper<Buffer>> buffers;
+	buffers.emplace_back(*vrtxBuffer);
+	vector<StagingBuffer*> stagingBuffers;
+	vector<Mesh*> meshes;
+	_CrtLoadAndParseGLTF(result, buffers, stagingBuffers, meshes);
+	vrtxStagingBuffer = stagingBuffers[0];
+	mesh = meshes[0];
 
 	/* Initialize the uniform buffer and setup the staging buffer. */
 	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst, false);
@@ -90,7 +94,7 @@ void TestGame::LoadContent(void)
 	uniStagingBuffer->Load(identity.GetComponents());
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(L"../assets/images/Plutonium.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(result.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)
@@ -100,6 +104,7 @@ void TestGame::UnLoadContent(void)
 	delete uniStagingBuffer;
 	delete uniBuffer;
 
+	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -146,10 +151,10 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 
-	cmdBuffer.BindVertexBuffer(0, *vrtxBuffer);
+	cmdBuffer.BindVertexBuffer(0, *mesh);
 	cmdBuffer.BindGraphicsDescriptor(*descriptor);
 
-	cmdBuffer.Draw(4, 1, 0, 0);
+	cmdBuffer.Draw(mesh->GetElementCount(), 1, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 }

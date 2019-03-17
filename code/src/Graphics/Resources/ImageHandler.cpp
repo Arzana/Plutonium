@@ -13,7 +13,6 @@
 
 #include "Graphics/Resources/ImageHandler.h"
 #include "Core/Diagnostics/Logging.h"
-#include "Streams/FileUtils.h"
 #include "Graphics/Color.h"
 #include <stb/stb/stb_image.h>
 
@@ -77,19 +76,21 @@ Pu::ImageInformation Pu::_CrtGetImageInfo(const wstring & path)
 {
 	int x, y, c;
 	const bool result = stbi_info(path.toUTF8().c_str(), &x, &y, &c);
-	return result ? ImageInformation(x, y, c, stbi_is_hdr(path.toUTF8().c_str())) : ImageInformation();
+
+	/* The preferred image component count can override the actual components so if it's set use it otherwise pass the native. */
+	return result ? ImageInformation(x, y, PreferredImageComponentCount ? PreferredImageComponentCount : c, stbi_is_hdr(path.toUTF8().c_str())) : ImageInformation();
 }
 
 Pu::vector<float> Pu::_CrtLoadImageHDR(const wstring & path)
 {
 	int x, y, c;
-	float *data = stbi_loadf(path.toUTF8().c_str(), &x, &y, &c, 0);
-	const wstring name = _CrtGetFileName(path);
+	float *data = stbi_loadf(path.toUTF8().c_str(), &x, &y, &c, PreferredImageComponentCount);
+	const wstring name = path.fileName();
 
 	if (data)
 	{
 		Log::Verbose("Successfully loaded image '%ls'.", name.c_str());
-		vector<float> result(data, data + x * y * c);
+		vector<float> result(data, data + x * y * PreferredImageComponentCount);
 
 		stbi_image_free(data);
 		return result;
@@ -104,13 +105,13 @@ Pu::vector<float> Pu::_CrtLoadImageHDR(const wstring & path)
 Pu::vector<byte> Pu::_CrtLoadImageLDR(const wstring & path)
 {
 	int x, y, c;
-	byte *data = stbi_load(path.toUTF8().c_str(), &x, &y, &c, 0);
-	const wstring name = _CrtGetFileName(path);
+	byte *data = stbi_load(path.toUTF8().c_str(), &x, &y, &c, PreferredImageComponentCount);
+	const wstring name = path.fileName();
 
 	if (data)
 	{
 		Log::Verbose("Successfully loaded image '%ls'.", name.c_str());
-		vector<byte> result(data, data + x * y * c);
+		vector<byte> result(data, data + x * y * PreferredImageComponentCount);
 
 		stbi_image_free(data);
 		return result;
@@ -127,13 +128,13 @@ Pu::Format Pu::ImageInformation::GetImageFormat(void) const
 	switch (Components)
 	{
 	case (1):
-		return IsHDR ? Format::R32_SFLOAT : Format::R8_SRGB;
+		return IsHDR ? Format::R32_SFLOAT : Format::R8_UNORM;
 	case (2):
-		return IsHDR ? Format::R32G32_SFLOAT : Format::R8G8_SRGB;
+		return IsHDR ? Format::R32G32_SFLOAT : Format::R8G8_UNORM;
 	case (3):
-		return IsHDR ? Format::R32G32B32_SFLOAT : Format::R8G8B8_SRGB;
+		return IsHDR ? Format::R32G32B32_SFLOAT : Format::R8G8B8_UNORM;
 	case (4):
-		return IsHDR ? Format::R32G32B32A32_SFLOAT : Format::R8G8B8A8_SRGB;
+		return IsHDR ? Format::R32G32B32A32_SFLOAT : Format::R8G8B8A8_UNORM;
 	default:
 		return Format::Undefined;
 	}

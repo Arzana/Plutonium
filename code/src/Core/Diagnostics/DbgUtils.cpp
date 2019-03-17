@@ -8,6 +8,8 @@
 #include "Core/Collections/Vector.h"
 
 #ifdef _WIN32
+#define WinSymInitialize				ASCII_UNICODE(SymInitialize, SymInitializeW)
+
 Pu::vector<HANDLE> initializedProcesses;
 #endif
 
@@ -43,28 +45,32 @@ Pu::wstring Pu::_CrtFormatError(uint64 error)
 
 bool Pu::_CrtInitializeWinProcess(void)
 {
+	/* Getting debug symbols is only supported on debug mode. */
+#ifdef _DEBUG
 	/* Get the current process handle. */
 	const HANDLE process = GetCurrentProcess();
 
 	/* Check if it's already initialized. */
-	for (size_t i = 0; i < initializedProcesses.size(); i++)
+	for (const HANDLE cur : initializedProcesses)
 	{
-		if (initializedProcesses[i] == process) return true;
+		if (process == cur) return true;
 	}
 
 	/* Attempt to initialize process. */
 	SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
-	if (!SymInitialize(process, nullptr, true))
+	if (!WinSymInitialize(process, nullptr, true))
 	{
-		const wstring error = _CrtGetErrorString();
-		Log::Error("Unable to initialize process %#016x: %ls", process, error.c_str());
+		Log::Error("Unable to initialize process %#016x: %ls", process, _CrtGetErrorString().c_str());
 		return false;
 	}
 	
 	/* Push it to the loaded list and return. */
-	initializedProcesses.push_back(process);
-	Log::Verbose("Initialized debug symbols for process %#016x.", process);
+	initializedProcesses.emplace_back(process);
+	Log::Message("Initialized debug symbols for process %#016x.", process);
 	return true;
+#else
+	return false;
+#endif
 }
 
 void Pu::_CrtFinalizeWinProcess(void)

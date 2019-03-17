@@ -8,16 +8,15 @@
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Logging.h"
-#include "Streams/FileUtils.h"
 
 using namespace Pu;
 
 template <typename _Ty>
-static inline _Ty&& CreateZeroStruct()
+static inline _Ty CreateZeroStruct()
 {
 	_Ty result;
 	ZeroMemory(&result, sizeof(_Ty));
-	return std::move(result);
+	return result;
 }
 
 uint64 Pu::_CrtGetCurrentProcessId(void)
@@ -43,7 +42,7 @@ wstring Pu::_CrtGetProcessNameFromId(uint64 id)
 		if (GetModuleBaseName(phndl, nullptr, buffer, sizeof(buffer)))
 		{
 			CloseHandle(phndl);
-			return _CrtGetFileNameWithoutExtension(buffer);
+			return wstring(buffer).fileNameWithoutExtension();
 		}
 	}
 
@@ -72,22 +71,22 @@ wstring Pu::_CrtGetThreadNameFromId(uint64 id)
 	{
 		/* Attempt to get thread description. */
 		PWSTR desc;
-		if (GetThreadDescription(thndl, &desc))
+		if (GetThreadDescription(thndl, &desc) >= 0)
 		{
+			/* If no description is set we just return nothing. */
 			_bstr_t b(desc);
 			if (b.length() > 0)
 			{
-				/* Convert the description to a normal char and return it. */
+				/* Convert the description to a normal wchar and return it. */
 				CloseHandle(thndl);
 				return wstring(b);
 			}
 		}
+		else Log::Warning("Could not get thread name '%ls'!", _CrtGetErrorString().c_str());
 	}
 
 	/* Could not open thread or get description; log error. */
-	CloseHandle(thndl);
-	const wstring error = _CrtGetErrorString();
-	if (error.length() > 0) Log::Warning("Could not get thread name, error: %ls!", error.c_str());
+	if (!CloseHandle(thndl)) Log::Warning("Unable to close thread query information handle '%ls'!", _CrtGetErrorString().c_str());
 
 	/*
 	Description is empty so we need to get the module name of the thread creator;
@@ -103,7 +102,7 @@ wstring Pu::_CrtGetThreadNameFromId(uint64 id)
 
 #else
 	Log::Error("Cannot get thread name on this platform!");
-	return "";
+	return L"";
 #endif
 }
 

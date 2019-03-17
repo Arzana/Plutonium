@@ -244,6 +244,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFormatProperties);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceImageFormatProperties);
 
 	/* Device related functions. */
 	VK_LOAD_INSTANCE_PROC(hndl, vkCreateDevice);
@@ -269,12 +270,14 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 #endif
 
 	/* Debug utilities functions. */
+#ifdef _DEBUG
 	if (IsExtensionSupported(u8"VK_EXT_debug_utils"))
 	{
 		VK_LOAD_INSTANCE_PROC(hndl, vkCreateDebugUtilsMessengerEXT);
 		VK_LOAD_INSTANCE_PROC(hndl, vkDestroyDebugUtilsMessengerEXT);
 	}
 	else Log::Warning("Debug utilities is not supported on this platform!");
+#endif
 }
 
 #ifdef _DEBUG

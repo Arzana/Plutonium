@@ -130,6 +130,27 @@
     <Filter Include="Source Files\Content">
       <UniqueIdentifier>{71357709-dff2-4df7-af9c-6c51e1680c92}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Materials">
+      <UniqueIdentifier>{375151f6-1fba-42f5-b70f-9402e933ac34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Models">
+      <UniqueIdentifier>{2dde9088-7adf-460f-93e5-1b9848f992f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Materials\Extensions">
+      <UniqueIdentifier>{5a54a374-c238-4296-b150-fefb235b6847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Materials\Physically Based">
+      <UniqueIdentifier>{937b25ff-eb0c-4fda-9b59-463533f31104}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Models">
+      <UniqueIdentifier>{15cd08ee-a26c-40ed-a26c-1d9e2f0913d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{b632be41-5016-4ba6-b21d-3192ac067b54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{d9b1db42-1c07-4f77-9ddf-dd32d938ec7e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -179,9 +200,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Streams\FileUtils.h">
-      <Filter>Header Files\Streams</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
@@ -447,6 +465,51 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\StagingBuffer.h">
       <Filter>Header Files\Graphics\Resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\GLTFLoader.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h">
+      <Filter>Header Files\Graphics\Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexMaterial.h">
+      <Filter>Header Files\Graphics\Materials\Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h">
+      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h">
+      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\MeshCreator.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\GLTFParser.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\SkinnedAnimated.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\ButtonEventArgs.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\Cursor.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\InputDevice.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\InputDeviceHandler.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\HID.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\CursorButtons.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -628,6 +691,27 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Resources\StagingBuffer.cpp">
       <Filter>Source Files\Graphics\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Resources\Mesh.cpp">
+      <Filter>Source Files\Graphics\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Models\MeshCreator.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\Cursor.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\InputDevice.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

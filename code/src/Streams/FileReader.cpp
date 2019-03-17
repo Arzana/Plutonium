@@ -1,5 +1,4 @@
 #include "Streams/FileReader.h"
-#include "Streams/FileUtils.h"
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
@@ -105,7 +104,7 @@ bool Pu::FileReader::FileExists(const wstring &path)
 
 void Pu::FileReader::Close(void)
 {
-	const wstring fname = _CrtGetFileName(fpath);
+	const wstring fname = fpath.fileName();
 
 	if (open)
 	{
@@ -243,12 +242,12 @@ int64 Pu::FileReader::GetSize(void) const
 
 void Pu::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
 {
-	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%ls' (%ls)!", amount, _CrtGetFileName(fpath).c_str(), FileError().c_str());
+	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%ls' (%ls)!", amount, fpath.fileName().c_str(), FileError().c_str());
 }
 
 void Pu::FileReader::Open(void)
 {
-	const wstring fname = _CrtGetFileName(fpath);
+	const wstring fname = fpath.fileName();
 
 	if (!open)
 	{
@@ -271,6 +270,6 @@ wstring Pu::FileReader::FileError(void) const
 void Pu::FileReader::FileNotOpen(void)
 {
 #ifdef _DEBUG
-	if (!open) Log::Fatal("File '%ls' isn't open!", _CrtGetFileName(fpath).c_str());
+	if (!open) Log::Fatal("File '%ls' isn't open!", fpath.fileName().c_str());
 #endif
 }

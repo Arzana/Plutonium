@@ -1,5 +1,4 @@
 #include "Streams/FileWriter.h"
-#include "Streams/FileUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Platform/Windows/Windows.h"
@@ -102,7 +101,7 @@ void Pu::FileWriter::CreateDirectory(const wstring & directory)
 
 void Pu::FileWriter::Close(void)
 {
-	const wstring fname = _CrtGetFileName(fpath);
+	const wstring fname = fpath.fileName();
 
 	if (created)
 	{
@@ -119,17 +118,17 @@ void Pu::FileWriter::Close(void)
 void Pu::FileWriter::Flush(void)
 {
 	FileNotCreated();
-	if (fflush(hndl) == EOF) Log::Error("Unable to flush file '%ls' (%ls)!", _CrtGetFileName(fpath).c_str(), FileError().c_str());
+	if (fflush(hndl) == EOF) Log::Error("Unable to flush file '%ls' (%ls)!", fpath.fileName().c_str(), FileError().c_str());
 }
 
 void Pu::FileWriter::Write(byte value)
 {
-	if (fwrite(&value, sizeof(byte), 1, hndl) != 1) Log::Error("Unable to write single byte to file '%ls' (%ls)!", _CrtGetFileName(fpath).c_str(), FileError().c_str());
+	if (fwrite(&value, sizeof(byte), 1, hndl) != 1) Log::Error("Unable to write single byte to file '%ls' (%ls)!", fpath.fileName().c_str(), FileError().c_str());
 }
 
 void Pu::FileWriter::Write(const byte * data, size_t offset, size_t amount)
 {
-	if (fwrite(data + offset, sizeof(byte), amount, hndl) != amount) Log::Error("Unable to write bytes to file '%ls' (%ls)!", _CrtGetFileName(fpath).c_str(), FileError().c_str());
+	if (fwrite(data + offset, sizeof(byte), amount, hndl) != amount) Log::Error("Unable to write bytes to file '%ls' (%ls)!", fpath.fileName().c_str(), FileError().c_str());
 }
 
 int64 Pu::FileWriter::GetPosition(void) const
@@ -139,12 +138,12 @@ int64 Pu::FileWriter::GetPosition(void) const
 
 void Pu::FileWriter::Create(const wchar_t *mode)
 {
-	const wstring fname = _CrtGetFileName(fpath);
+	const wstring fname = fpath.fileName();
 
 	if (!created)
 	{
 		/* Create the file directory if needed. */
-		CreateDirectory(_CrtGetFileDirectory(fpath));
+		CreateDirectory(fpath.fileDirectory());
 
 		if (!_wfopen_s(&hndl, fpath.c_str(), mode))
 		{
@@ -164,6 +163,6 @@ wstring Pu::FileWriter::FileError(void) const
 void Pu::FileWriter::FileNotCreated(void) const
 {
 #ifdef _DEBUG
-	if (!created) Log::Fatal("File '%ls' wasn't been created!", _CrtGetFileName(fpath).c_str());
+	if (!created) Log::Fatal("File '%ls' wasn't been created!", fpath.fileName().c_str());
 #endif
 }

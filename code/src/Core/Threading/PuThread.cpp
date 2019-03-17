@@ -16,9 +16,11 @@ If this function is removed or the name is changed the stack trace logger needs 
 */
 void Pu::_CrtPuThreadStart(uint32 id, const wstring & name)
 {
-	/* Start by setting the name of the thread on debug mode. */
+	/* Start by setting the name of the thread on debug mode, on release cast to void to remove warning. */
 #ifdef _DEBUG
 	_CrtSetCurrentThreadName(name);
+#else 
+	(void)name;
 #endif
 
 	/*

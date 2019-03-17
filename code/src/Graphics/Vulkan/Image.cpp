@@ -63,6 +63,8 @@ Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format 
 
 void Pu::Image::Create(const ImageCreateInfo & createInfo)
 {
+	/* Try to throw a better error than Vulkan. */
+	CanCreate(createInfo);
 	MemoryPropertyFlag properties = MemoryPropertyFlag::None;
 
 	/* Create image object. */
@@ -82,6 +84,42 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 		Bind();
 	}
 	else Log::Fatal("Unable to allocate memory for image!");
+}
+
+void Pu::Image::CanCreate(const ImageCreateInfo & info)
+{
+	bool log = false;
+	string error = "Unable to create image";
+
+	const FormatProperties formatProps = parent.parent.GetFormatProperties(info.Format);
+	if (!_CrtEnumCheckFlag(info.Tiling == ImageTiling::Optimal ? formatProps.OptimalTilingFeatures : formatProps.LinearTilingFeatures, FormatFeatureFlag::SampledImage))
+	{
+		log = true;
+		error += ", cannot create sampled image with specified format";
+	}
+
+	/* Don't check for the format properties if we've already failed. */
+	if (!log)
+	{
+		const ImageFormatProperties imgProps = parent.parent.GetImageFormatProperties(info);
+		if (imgProps.MaxArrayLayers < info.ArrayLayers)
+		{
+			log = true;
+			error += ", too many array layers";
+		}
+		if (imgProps.MaxExtent < info.Extent)
+		{
+			log = true;
+			error += ", image size is too big";
+		}
+		if (imgProps.MaxMipLevels < info.MipLevels)
+		{
+			log = true;
+			error += ", too many mip levels";
+		}
+	}
+
+	if (log) Log::Fatal((error += '!').c_str());
 }
 
 void Pu::Image::Bind(void) const

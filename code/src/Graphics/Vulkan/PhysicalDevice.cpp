@@ -122,6 +122,13 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 }
 
+ImageFormatProperties Pu::PhysicalDevice::GetImageFormatProperties(const ImageCreateInfo & createInfo)
+{
+	ImageFormatProperties result;
+	parent.vkGetPhysicalDeviceImageFormatProperties(hndl, createInfo.Format, createInfo.ImageType, createInfo.Tiling, createInfo.Usage, createInfo.Flags, &result);
+	return result;
+}
+
 bool Pu::PhysicalDevice::SupportsPlutonium(const Surface & surface) const
 {
 	/* The physical device to support the swapchain extension. */

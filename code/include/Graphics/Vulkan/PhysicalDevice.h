@@ -129,6 +129,7 @@ namespace Pu
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 
+		ImageFormatProperties GetImageFormatProperties(const ImageCreateInfo &createInfo);
 		bool SupportsPlutonium(const Surface &surface) const;
 		uint32 GetBestGraphicsQueueFamily(const Surface &surface) const;
 		uint32 GetBestTransferQueueFamily(void) const;

@@ -14,6 +14,7 @@ const char* to_string(Pu::CommandBuffer::State state)
 	case Pu::CommandBuffer::State::Pending:
 		return "Pending";
 	case Pu::CommandBuffer::State::Invalid:
+	default:
 		return "Invalid";
 	}
 }

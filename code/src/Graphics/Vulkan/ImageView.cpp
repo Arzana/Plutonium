@@ -13,6 +13,8 @@ static ImageViewType imgTypeToViewType(ImageType type)
 	case ImageType::Image3D:
 		return ImageViewType::Image3D;
 	}
+
+	Log::Fatal("Unknown image type passed!");
 }
 
 Pu::ImageView::ImageView(const Image & image)

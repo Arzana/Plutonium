@@ -2,6 +2,7 @@
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Content/AssetFetcher.h"
+#include "Input/InputDeviceHandler.h"
 
 namespace Pu
 {
@@ -54,6 +55,12 @@ namespace Pu
 		_Check_return_ inline AssetFetcher& GetContent(void)
 		{
 			return *content;
+		}
+
+		/* Gets the input handler. */
+		_Check_return_ inline InputDeviceHandler& GetInput(void)
+		{
+			return *input;
 		}
 
 		/* Schedules the specified task for execution. */
@@ -116,6 +123,7 @@ namespace Pu
 		GameWindow *gameWnd;
 		TaskScheduler *scheduler;
 		AssetFetcher *content;
+		InputDeviceHandler *input;
 
 		static void InitializePlutonium(void);
 

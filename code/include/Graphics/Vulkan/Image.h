@@ -64,6 +64,7 @@ namespace Pu
 		Image(LogicalDevice &device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access);
 
 		void Create(const ImageCreateInfo &createInfo);
+		void CanCreate(const ImageCreateInfo &info);
 		void Bind(void) const;
 		MemoryRequirements GetMemoryRequirements(void);
 		void Destroy(void);

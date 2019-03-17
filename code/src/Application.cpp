@@ -15,10 +15,12 @@ Pu::Application::Application(const wstring & name)
 {
 	InitializePlutonium();
 	scheduler = new TaskScheduler();
+	input = new InputDeviceHandler();
 }
 
 Pu::Application::~Application(void)
 {
+	delete input;
 	delete scheduler;
 
 	/* Make sure the debugging symbols are freed. */
@@ -36,7 +38,7 @@ void Pu::Application::Run(void)
 	/* Load content. */
 	prevTime = gameTime.SecondsAccurate();
 	LoadContent();
-	Log::Verbose("Finished initializing and loading content for '%s', took %f seconds.", wnd->GetTitle().c_str(), gameTime.SecondsAccurate());
+	Log::Verbose("Finished initializing and loading content for '%ls', took %f seconds.", wnd->GetTitle().c_str(), gameTime.SecondsAccurate());
 
 	/* Run application loop. */
 	while (wnd->Update())
@@ -198,7 +200,11 @@ bool Pu::Application::Tick(bool loading)
 
 void Pu::Application::DoInitialize(void)
 {
+	/* Create the Vulkan instance and logical device and register the raw input handles in the window. */
 	InitializeVulkan();
+#ifdef _WIN32
+	input->RegisterInputDevicesWin32(*dynamic_cast<Win32Window*>(wnd));
+#endif
 
 	/* The fetcher needs to be created here as it needs the logical device. */
 	content = new AssetFetcher(*scheduler, *device);

@@ -2,7 +2,6 @@
 #include "Streams/FileReader.h"
 #include "Streams/FileWriter.h"
 #include "Core/Diagnostics/Logging.h"
-#include "Streams/FileUtils.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/VulkanGlobals.h"
 #include "Config.h"
@@ -24,7 +23,7 @@ wstring Pu::SPIRV::FromGLSLPath(const wstring & path)
 	-H: Specifies that the validator should print a human readable version of the result.
 	-o: Specifies the output path.
 	*/
-	const wstring fname = _CrtGetFileName(path);
+	const wstring fname = path.fileName();
 	const wstring input = curDir + path;
 	const wstring output = curDir + BIN_DIR + fname + L".spv";
 

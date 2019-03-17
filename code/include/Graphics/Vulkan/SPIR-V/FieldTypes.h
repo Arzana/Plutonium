@@ -36,6 +36,18 @@ namespace Pu
 		Vec3,
 		/* A 4D floating point vector. */
 		Vec4,
+		/* A 2D byte vector. */
+		BVec2,
+		/* A 3D byte vector. */
+		BVec3,
+		/* A 4D byte vector. */
+		BVec4,
+		/* A 2D short vector. */
+		IVec2,
+		/* A 3D short vector. */
+		IVec3,
+		/* A 4D short vector. */
+		IVec4,
 		/* A 4x4 floating point matrix. */
 		Matrix,
 		/* A 1D sampled image. */
@@ -96,6 +108,7 @@ namespace Pu
 		}
 	}
 
+	/* Gets the size in bytes for the fieldtype. */
 	_Check_return_ inline size_t sizeof_fieldType(_In_ FieldTypes type)
 	{
 		switch (type)
@@ -128,6 +141,18 @@ namespace Pu
 			return sizeof(float) * 3;
 		case Pu::FieldTypes::Vec4:
 			return sizeof(float) * 4;
+		case Pu::FieldTypes::BVec2:
+			return sizeof(byte) * 2;
+		case Pu::FieldTypes::BVec3:
+			return sizeof(byte) * 3;
+		case Pu::FieldTypes::BVec4:
+			return sizeof(byte) * 4;
+		case Pu::FieldTypes::IVec2:
+			return sizeof(uint16) * 2;
+		case Pu::FieldTypes::IVec3:
+			return sizeof(uint16) * 3;
+		case Pu::FieldTypes::IVec4:
+			return sizeof(uint16) * 4;
 		case Pu::FieldTypes::Matrix:
 			return sizeof(float) * 16;
 		case Pu::FieldTypes::Invalid:

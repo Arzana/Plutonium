@@ -1,5 +1,4 @@
 #include "Graphics/Vulkan/Shaders/Subpass.h"
-#include "Streams/FileUtils.h"
 #include "Streams/FileReader.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
@@ -61,14 +60,14 @@ Pu::Asset & Pu::Subpass::Duplicate(AssetCache &)
 
 void Pu::Subpass::Load(const wstring & path, bool viaLoader)
 {
-	const wstring ext = _CrtGetFileExtension(path);
+	const wstring ext = path.fileExtension().toUpper();
 	name = path;
 
-	if (ext == L"spv")
+	if (ext == L"SPV")
 	{
 		/* If the input shader is already defined as binary just load it. */
 		Create(path);
-		SetInfo(_CrtGetFileExtension(wstring(path, path.length() - 4)));
+		SetInfo(wstring(path, path.length() - 4).fileExtension().toUpper());
 	}
 	else
 	{
@@ -387,12 +386,12 @@ void Pu::Subpass::HandleVariable(SPIRVReader & reader)
 
 void Pu::Subpass::SetInfo(const wstring & ext)
 {
-	if (ext == L"vert") info.Stage = ShaderStageFlag::Vertex;
-	else if (ext == L"tesc") info.Stage = ShaderStageFlag::TessellationControl;
-	else if (ext == L"tese") info.Stage = ShaderStageFlag::TessellationEvaluation;
-	else if (ext == L"geom") info.Stage = ShaderStageFlag::Geometry;
-	else if (ext == L"frag") info.Stage = ShaderStageFlag::Fragment;
-	else if (ext == L"comp") info.Stage = ShaderStageFlag::Compute;
+	if (ext == L"VERT") info.Stage = ShaderStageFlag::Vertex;
+	else if (ext == L"TESC") info.Stage = ShaderStageFlag::TessellationControl;
+	else if (ext == L"TESE") info.Stage = ShaderStageFlag::TessellationEvaluation;
+	else if (ext == L"GEOM") info.Stage = ShaderStageFlag::Geometry;
+	else if (ext == L"FRAG") info.Stage = ShaderStageFlag::Fragment;
+	else if (ext == L"COMP") info.Stage = ShaderStageFlag::Compute;
 }
 
 void Pu::Subpass::Destroy(void)

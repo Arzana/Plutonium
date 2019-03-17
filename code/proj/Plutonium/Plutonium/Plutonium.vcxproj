@@ -176,6 +176,8 @@
     <ClInclude Include="..\..\..\include\Content\AssetCache.h" />
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h" />
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h" />
+    <ClInclude Include="..\..\..\include\Content\GLTFLoader.h" />
+    <ClInclude Include="..\..\..\include\Content\GLTFParser.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
@@ -183,6 +185,7 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h" />
     <ClInclude Include="..\..\..\include\Core\EnumUtils.h" />
@@ -214,6 +217,11 @@
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\MeshCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
@@ -230,6 +238,7 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\SkinnedAnimated.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
@@ -267,10 +276,15 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanObjects.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h" />
+    <ClInclude Include="..\..\..\include\Input\ButtonEventArgs.h" />
+    <ClInclude Include="..\..\..\include\Input\Cursor.h" />
+    <ClInclude Include="..\..\..\include\Input\CursorButtons.h" />
+    <ClInclude Include="..\..\..\include\Input\HID.h" />
+    <ClInclude Include="..\..\..\include\Input\InputDevice.h" />
+    <ClInclude Include="..\..\..\include\Input\InputDeviceHandler.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
-    <ClInclude Include="..\..\..\include\Streams\FileUtils.h" />
     <ClInclude Include="..\..\..\include\Streams\FileWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\SeekOrigin.h" />
     <ClInclude Include="..\..\..\include\Streams\StreamReader.h" />
@@ -282,6 +296,8 @@
     <ClCompile Include="..\..\..\src\Content\AssetCache.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp" />
+    <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp" />
+    <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />
@@ -298,6 +314,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\MeshCreator.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
@@ -305,6 +322,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Resources\BufferAccessor.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\BufferView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Resources\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\StagingBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Sampler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
@@ -333,6 +351,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
+    <ClCompile Include="..\..\..\src\Input\Cursor.cpp" />
+    <ClCompile Include="..\..\..\src\Input\InputDevice.cpp" />
+    <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />

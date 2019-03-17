@@ -73,6 +73,9 @@ namespace Pu
 		virtual void SetMode(_In_ WindowMode newMode) override;
 
 	protected:
+		/* Occurs when an input event is broadcasted. */
+		EventBus<const Win32Window, const RAWINPUT&> OnInputEvent;
+
 		/* Gets the surface to render to. */
 		_Check_return_ virtual inline Surface& GetSurface(void) override
 		{
@@ -83,6 +86,8 @@ namespace Pu
 		_Check_return_ virtual bool Update(void) override;
 
 	private:
+		friend class InputDeviceHandler;
+
 		Surface *surface;
 		HINSTANCE instance;
 		HWND hndl;
@@ -99,6 +104,7 @@ namespace Pu
 		void UpdateClientArea(void);
 		LRESULT HandleProc(UINT message, WPARAM wParam, LPARAM lParam);
 		LRESULT HandleSysCmd(WPARAM wParam, LPARAM lParam);
+		LRESULT HandleInput(WPARAM wParam, LPARAM lParam);
 	};
 }
 #endif
