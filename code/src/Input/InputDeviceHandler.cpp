@@ -5,7 +5,8 @@
 #include "Input/HID.h"
 
 Pu::InputDeviceHandler::InputDeviceHandler(void)
-	: AnyCursor(nullptr, L"Any", RID_DEVICE_INFO())
+	: AnyCursor(nullptr, L"Any", RID_DEVICE_INFO()),
+	AnyKeyboard(nullptr, L"Any", RID_DEVICE_INFO())
 {
 #ifdef _WIN32
 	/* Get the number of raw input devices currently active. */
@@ -38,6 +39,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 	wnd.OnInputEvent.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputEvent);
 	wnd.InputDeviceAdded.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceAdded);
 	wnd.InputDeviceRemoved.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceRemoved);
+	wnd.OnCharInput += [this](const Win32Window&, wchar_t character) { Keyboard::CharInput.Post(AnyKeyboard, character); };
 
 	vector<RAWINPUTDEVICE> devices;
 
@@ -56,6 +58,20 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		devices.emplace_back(cursorDevices);
 	}
 
+	if (keyboards.size())
+	{
+		/* Enable add and remove events, we want legacy keyboard events for WM_CHAR. */
+		RAWINPUTDEVICE keyboardDevices =
+		{
+			_CrtEnum2Int(HIDUsagePage::GenericDesktop),
+			_CrtEnum2Int(HIDUsageGenericDesktop::Keyboard),
+			RIDEV_DEVNOTIFY,
+			wnd.hndl
+		};
+
+		devices.emplace_back(keyboardDevices);
+	}
+
 	/* Register the listeners to the window. */
 	if (!RegisterRawInputDevices(devices.data(), static_cast<uint32>(devices.size()), sizeof(RAWINPUTDEVICE)))
 	{
@@ -72,6 +88,16 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.mouse);
+				break;
+			}
+		}
+		break;
+	case RIM_TYPEKEYBOARD:
+		for (Keyboard &cur : keyboards)
+		{
+			if (cur.Hndl == input.header.hDevice)
+			{
+				cur.HandleWin32Event(input.data.keyboard);
 				break;
 			}
 		}
@@ -95,6 +121,17 @@ void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, 
 		}
 	}
 
+	/* Attempt to remove the input device from the keyboard list. */
+	for (size_t i = 0; i < keyboards.size(); i++)
+	{
+		if (hndl == keyboards[i].Hndl)
+		{
+			Log::Message("Removed HID keyboard '%ls'.", keyboards[i].Name.c_str());
+			keyboards.removeAt(i);
+			return;
+		}
+	}
+
 	/* Attempt to remove the input device from the other list. */
 	hids.removeAll([hndl](const InputDevice &cur) { return hndl == cur.Hndl; });
 }
@@ -103,6 +140,7 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 {
 	/* Make sure we don't add the same HID multiple times. */
 	if (cursors.contains([hndl](const Cursor &cur) { return hndl == cur.Hndl; })) return;
+	if (keyboards.contains([hndl](const Keyboard &cur) { return hndl == cur.Hndl; })) return;
 	if (hids.contains([hndl](const InputDevice &cur) { return hndl == cur.Hndl; })) return;
 
 	/* Get the length of the device name. */
@@ -144,6 +182,18 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 		cursors[i].Scrolled.Add(AnyCursor.Scrolled, &EventBus<const Cursor, int16>::Post);
 
 		Log::Message("Added HID cursor '%ls'.", name.c_str());
+	}
+	else if (info.dwType == RIM_TYPEKEYBOARD)
+	{
+		/* Create new keyboard. */
+		const size_t i = keyboards.size();
+		keyboards.emplace_back(Keyboard(hndl, name, info));
+
+		/* Add the any keyboard handles to the new keyboard, cannot be done directly cause then we needed a move assignment operator. */
+		keyboards[i].KeyDown.Add(AnyKeyboard.KeyDown, &EventBus<const Keyboard, uint16>::Post);
+		keyboards[i].KeyUp.Add(AnyKeyboard.KeyUp, &EventBus<const Keyboard, uint16>::Post);
+
+		Log::Message("Added HID keyboard '%ls'.", name.c_str());
 	}
 	else if (info.dwType == RIM_TYPEHID)
 	{

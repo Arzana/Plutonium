@@ -2,19 +2,22 @@
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Core/Math/Matrix.h>
-
+#include <Input/Keys.h>
 #include <Content/GLTFParser.h>
 
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame")
-{}
+	: Application(L"TestGame", 1920.0f, 1080.0f)
+{
+	GetInput().AnyKeyboard.KeyDown += [this](const Keyboard&, uint16 key)
+	{
+		if (key == _CrtEnum2Int(Keys::Escape)) Exit();
+	};
+}
 
 void TestGame::Initialize(void)
 {
-	//GetWindow().GetNative().SetMode(WindowMode::Borderless);
-
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice());
 	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline, EventArgs)

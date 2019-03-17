@@ -282,6 +282,8 @@
     <ClInclude Include="..\..\..\include\Input\HID.h" />
     <ClInclude Include="..\..\..\include\Input\InputDevice.h" />
     <ClInclude Include="..\..\..\include\Input\InputDeviceHandler.h" />
+    <ClInclude Include="..\..\..\include\Input\Keyboard.h" />
+    <ClInclude Include="..\..\..\include\Input\Keys.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
     <ClInclude Include="..\..\..\include\Streams\FileReader.h" />
@@ -354,6 +356,7 @@
     <ClCompile Include="..\..\..\src\Input\Cursor.cpp" />
     <ClCompile Include="..\..\..\src\Input\InputDevice.cpp" />
     <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp" />
+    <ClCompile Include="..\..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />

@@ -21,7 +21,8 @@ static constexpr int GetHighWord(LPARAM lParam)
 Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vector2 size)
 	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed),
 	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent"),
-	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved")
+	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved"),
+	OnCharInput("Win32WindowOnCharInput")
 {
 	/* Push this window as an active window. */
 	activeWindows.push_back(this);
@@ -256,6 +257,9 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 	case (WM_INPUT_DEVICE_CHANGE):
 		if (wParam == GIDC_ARRIVAL) InputDeviceAdded.Post(*this, (HANDLE)lParam);
 		else if (wParam == GIDC_REMOVAL) InputDeviceRemoved.Post(*this, (HANDLE)lParam);
+		return 0;
+	case (WM_CHAR):
+		OnCharInput.Post(*this, static_cast<wchar_t>(wParam));
 		return 0;
 	}
 

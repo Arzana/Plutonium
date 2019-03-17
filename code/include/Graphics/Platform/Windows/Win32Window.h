@@ -79,6 +79,8 @@ namespace Pu
 		EventBus<const Win32Window, HANDLE> InputDeviceAdded;
 		/* Occurs when an input device is removed. */
 		EventBus<const Win32Window, HANDLE> InputDeviceRemoved;
+		/* Occurs when a unicode character is provided by the user. */
+		EventBus<const Win32Window, wchar_t> OnCharInput;
 
 		/* Gets the surface to render to. */
 		_Check_return_ virtual inline Surface& GetSurface(void) override

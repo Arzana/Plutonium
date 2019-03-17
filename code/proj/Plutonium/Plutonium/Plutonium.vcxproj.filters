@@ -510,6 +510,12 @@
     <ClInclude Include="..\..\..\include\Input\CursorButtons.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\Keyboard.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\Keys.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -711,6 +717,9 @@
       <Filter>Source Files\Input</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\Keyboard.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>

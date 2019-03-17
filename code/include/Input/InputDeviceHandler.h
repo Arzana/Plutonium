@@ -1,5 +1,6 @@
 #pragma once
 #include "Cursor.h"
+#include "Keyboard.h"
 #include "Graphics/Platform/NativeWindow.h"
 
 namespace Pu
@@ -12,6 +13,8 @@ namespace Pu
 	public:
 		/* Defines a special cursor that hooks into all cursors used by the host. */
 		Cursor AnyCursor;
+		/* Defines a special keyboard that hooks into all keyboards used by the host. */
+		Keyboard AnyKeyboard;
 
 		InputDeviceHandler(_In_ const InputDeviceHandler&) = delete;
 		InputDeviceHandler(_In_ InputDeviceHandler&&) = delete;
@@ -31,10 +34,23 @@ namespace Pu
 			return cursors.at(idx);
 		}
 
+		/* Gets the amount of keybaords currently available. */
+		_Check_return_ inline size_t GetKeyboardCount(void) const
+		{
+			return keyboards.size();
+		}
+
+		/* Gets the keyboard at the specific index. */
+		_Check_return_ inline Keyboard& GetKeyboard(_In_ size_t idx)
+		{
+			return keyboards.at(idx);
+		}
+
 	private:
 		friend class Application;
 
 		vector<Cursor> cursors;
+		vector<Keyboard> keyboards;
 		vector<InputDevice> hids;
 
 		InputDeviceHandler(void);

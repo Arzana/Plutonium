@@ -45,7 +45,7 @@ namespace Pu
 		Joystick = 0x04,
 		GamePad = 0x05,
 		Keyboard = 0x06,
-		Keyoad = 0x07,
+		Keypad = 0x07,
 		MultiAxisController = 0x08,
 		TabletPcSystemControls = 0x09,
 #pragma endregion

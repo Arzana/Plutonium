@@ -67,20 +67,20 @@ namespace Pu
 		}
 
 		/* Registers an event handler to this event. */
-		void operator +=(_In_ HandlerFuncType func)
+		void operator +=(_In_ HandlerFuncType func) const
 		{
 			Add(func);
 		}
 
 		/* Registers an event handler to this event. */
 		template <typename _LTy>
-		void operator +=(_In_ const _LTy &lambda)
+		void operator +=(_In_ const _LTy &lambda) const
 		{
 			Add(lambda);
 		}
 
 		/* Unregisters an event handler from this event. */
-		void operator -=(_In_ HandlerFuncType func)
+		void operator -=(_In_ HandlerFuncType func) const
 		{
 			Remove(func);
 		}
