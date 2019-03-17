@@ -20,15 +20,9 @@ namespace Pu
 	{
 	public:
 		/* The name of the input device. */
-		const wstring Name;
+		wstring Name;
 		/* The type of input device. */
-		const InputDeviceType Type;
-
-		InputDevice(_In_ const InputDevice&) = delete;
-		InputDevice(_In_ InputDevice&&) = default;
-
-		_Check_return_ InputDevice& operator =(_In_ const InputDevice&&) = delete;
-		_Check_return_ InputDevice& operator =(_In_ InputDevice&&) = delete;
+		InputDeviceType Type;
 
 	protected:
 		friend class InputDeviceHandler;

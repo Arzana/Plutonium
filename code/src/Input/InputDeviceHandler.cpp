@@ -25,60 +25,10 @@ Pu::InputDeviceHandler::InputDeviceHandler(void)
 	}
 
 	/* Convert the raw Windows data to our objects. */
-	hids.reserve(deviceCount);
-	for (const RAWINPUTDEVICELIST idl : raw)
-	{
-		/* Get the length of the device name. */
-		uint32 nameLength;
-		if (GetRawInputDeviceInfo(idl.hDevice, RIDI_DEVICENAME, nullptr, &nameLength) < 0)
-		{
-			Log::Error("Unable to get device name length for input device '%p', '%ls'!", idl.hDevice, _CrtGetErrorString().c_str());
-			continue;
-		}
-
-		/* Get the full name of the device. */
-		wstring name(nameLength, L' ');
-		if (GetRawInputDeviceInfo(idl.hDevice, RIDI_DEVICENAME, name.data(), &nameLength) < 0)
-		{
-			Log::Error("Unable to get device name for input device '%p', '%ls'!", idl.hDevice, _CrtGetErrorString().c_str());
-			continue;
-		}
-
-		/* Get the device information. */
-		RID_DEVICE_INFO info;
-		info.cbSize = sizeof(RID_DEVICE_INFO);
-		uint32 cbSize = static_cast<uint32>(info.cbSize);
-		if (GetRawInputDeviceInfo(idl.hDevice, RIDI_DEVICEINFO, &info, &cbSize) < 0)
-		{
-			Log::Error("Unable to get device information for input device '%ls', '%ls'!", name.c_str(), _CrtGetErrorString().c_str());
-			continue;
-		}
-
-		/* Add the input device to the correct list. */
-		switch (idl.dwType)
-		{
-		case RIM_TYPEMOUSE:
-			cursors.emplace_back(Cursor(idl.hDevice, std::move(name), std::move(info)));
-			break;
-		case RIM_TYPEKEYBOARD:
-			//type = InputDeviceType::Keyboard;
-			break;
-		default:
-			hids.emplace_back(InputDevice(idl.hDevice, std::move(name), InputDeviceType::Other, std::move(info)));
-			break;
-		}
-	}
+	for (const RAWINPUTDEVICELIST idl : raw) AddWin32InputDevice(idl.hDevice);
 #else
 	Log::Error("Cannot create input device handler on this platform!");
 #endif
-
-	/* Hook the any cursor into the found cursors. */
-	for (const Cursor &cur : cursors)
-	{
-		cur.Moved.Add(AnyCursor.Moved, &EventBus<const Cursor, Vector2>::Post);
-		cur.Button.Add(AnyCursor.Button, &EventBus<const Cursor, ButtonEventArgs>::Post);
-		cur.Scrolled.Add(AnyCursor.Scrolled, &EventBus<const Cursor, int16>::Post);
-	}
 }
 
 #ifdef _WIN32
@@ -86,6 +36,8 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 {
 	/* Add this input handler to the input event of the window. */
 	wnd.OnInputEvent.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputEvent);
+	wnd.InputDeviceAdded.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceAdded);
+	wnd.InputDeviceRemoved.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceRemoved);
 
 	vector<RAWINPUTDEVICE> devices;
 
@@ -127,6 +79,75 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 	default:
 		Log::Warning("Unknown type of input event received!");
 		break;
+	}
+}
+
+void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, HANDLE hndl)
+{
+	/* Attempt to remove the input device from the cursor list. */
+	for (size_t i = 0; i < cursors.size(); i++)
+	{
+		if (hndl == cursors[i].Hndl)
+		{
+			Log::Message("Removed HID cursor '%ls'.", cursors[i].Name.c_str());
+			cursors.removeAt(i);
+			return;
+		}
+	}
+
+	/* Attempt to remove the input device from the other list. */
+	hids.removeAll([hndl](const InputDevice &cur) { return hndl == cur.Hndl; });
+}
+
+void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
+{
+	/* Make sure we don't add the same HID multiple times. */
+	if (cursors.contains([hndl](const Cursor &cur) { return hndl == cur.Hndl; })) return;
+	if (hids.contains([hndl](const InputDevice &cur) { return hndl == cur.Hndl; })) return;
+
+	/* Get the length of the device name. */
+	uint32 nameLength;
+	if (GetRawInputDeviceInfo(hndl, RIDI_DEVICENAME, nullptr, &nameLength) < 0)
+	{
+		Log::Error("Unable to get device name length for input device '%p', '%ls'!", hndl, _CrtGetErrorString().c_str());
+		return;
+	}
+
+	/* Get the full name of the device. */
+	wstring name(nameLength, L' ');
+	if (GetRawInputDeviceInfo(hndl, RIDI_DEVICENAME, name.data(), &nameLength) < 0)
+	{
+		Log::Error("Unable to get device name for input device '%p', '%ls'!", hndl, _CrtGetErrorString().c_str());
+		return;
+	}
+
+	/* Get the device information. */
+	RID_DEVICE_INFO info;
+	info.cbSize = sizeof(RID_DEVICE_INFO);
+	uint32 cbSize = static_cast<uint32>(info.cbSize);
+	if (GetRawInputDeviceInfo(hndl, RIDI_DEVICEINFO, &info, &cbSize) < 0)
+	{
+		Log::Error("Unable to get device information for input device '%ls', '%ls'!", name.c_str(), _CrtGetErrorString().c_str());
+		return;
+	}
+
+	/* Handle cursor specific code. */
+	if (info.dwType == RIM_TYPEMOUSE)
+	{
+		/* Create new cursor. */
+		const size_t i = cursors.size();
+		cursors.emplace_back(Cursor(hndl, name, info));
+
+		/* Add the any cursor handles to the new cursor, cannot be done directly cause then we needed a move assignment operator. */
+		cursors[i].Moved.Add(AnyCursor.Moved, &EventBus<const Cursor, Vector2>::Post);
+		cursors[i].Button.Add(AnyCursor.Button, &EventBus<const Cursor, ButtonEventArgs>::Post);
+		cursors[i].Scrolled.Add(AnyCursor.Scrolled, &EventBus<const Cursor, int16>::Post);
+
+		Log::Message("Added HID cursor '%ls'.", name.c_str());
+	}
+	else if (info.dwType == RIM_TYPEHID)
+	{
+		hids.emplace_back(InputDevice(hndl, name, InputDeviceType::Other, info));
 	}
 }
 #endif

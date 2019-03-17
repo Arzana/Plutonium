@@ -40,8 +40,15 @@ namespace Pu
 		InputDeviceHandler(void);
 
 #ifdef _WIN32
+		inline void HandleWin32InputDeviceAdded(const Win32Window&, HANDLE hndl)
+		{
+			AddWin32InputDevice(hndl);
+		}
+
 		void RegisterInputDevicesWin32(const Win32Window &wnd) const;
 		void HandleWin32InputEvent(const Win32Window&, const RAWINPUT &input);
+		void HandleWin32InputDeviceRemoved(const Win32Window&, HANDLE hndl);
+		void AddWin32InputDevice(HANDLE hndl);
 #endif
 	};
 }

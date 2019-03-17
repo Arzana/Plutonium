@@ -75,6 +75,10 @@ namespace Pu
 	protected:
 		/* Occurs when an input event is broadcasted. */
 		EventBus<const Win32Window, const RAWINPUT&> OnInputEvent;
+		/* Occurs when an input device is added. */
+		EventBus<const Win32Window, HANDLE> InputDeviceAdded;
+		/* Occurs when an input device is removed. */
+		EventBus<const Win32Window, HANDLE> InputDeviceRemoved;
 
 		/* Gets the surface to render to. */
 		_Check_return_ virtual inline Surface& GetSurface(void) override

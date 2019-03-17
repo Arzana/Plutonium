@@ -107,8 +107,8 @@ namespace Pu
 		}
 
 		/* Checks whether any element in the vector conforms to the predicate. */
-		template <typename _PredicateTy>
-		_Check_return_ inline bool contains(_In_ _PredicateTy predicate) const
+		template <typename predicate_t>
+		_Check_return_ inline bool contains(_In_ predicate_t predicate) const
 		{
 			for (const element_t &cur : *this)
 			{
@@ -147,8 +147,8 @@ namespace Pu
 		}
 
 		/* Removes all element that satisfy the predicate. */
-		template <typename _PredicateTy>
-		_Check_return_ inline size_t removeAll(_In_ _PredicateTy predicate)
+		template <typename predicate_t>
+		_Check_return_ inline size_t removeAll(_In_ predicate_t predicate)
 		{
 			const size_t len = vector_t::size();
 
@@ -162,10 +162,10 @@ namespace Pu
 		}
 
 		/* Transforms each element into a new form. */
-		template <typename _ResultTy, typename _SelectorTy>
-		_Check_return_ inline vector<_ResultTy> select(_In_ _SelectorTy selector) const
+		template <typename result_t, typename selector_t>
+		_Check_return_ inline vector<result_t> select(_In_ selector_t selector) const
 		{
-			vector<_ResultTy> result;
+			vector<result_t> result;
 
 			for (const element_t &cur : *this)
 			{

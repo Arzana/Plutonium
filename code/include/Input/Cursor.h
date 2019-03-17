@@ -19,17 +19,11 @@ namespace Pu
 		EventBus<const Cursor, int16> Scrolled;
 
 		/* The unique indentifier of the cursor. */
-		const uint64 ID;
+		uint64 ID;
 		/* The number of unique buttons on the cursor. */
-		const size_t ButtonCount;
+		size_t ButtonCount;
 		/* The number of data pointes per second. */
-		const size_t SampleRate;
-
-		Cursor(_In_ const Cursor&) = delete;
-		Cursor(_In_ Cursor&&) = default;
-
-		_Check_return_ Cursor& operator =(_In_ const Cursor&) = delete;
-		_Check_return_ Cursor& operator =(_In_ Cursor&&) = delete;
+		size_t SampleRate;
 
 		/* Gets the absolute position of the on screen OS cursor. */
 		_Check_return_ static Vector2 GetPosition(void);
