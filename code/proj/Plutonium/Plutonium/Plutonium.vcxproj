@@ -222,6 +222,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\MeshCreator.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
@@ -317,6 +318,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\MeshCreator.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
@@ -378,6 +380,7 @@
   <ItemGroup>
     <None Include="..\..\..\assets\shaders\Image.frag" />
     <None Include="..\..\..\assets\shaders\Image.vert" />
+    <None Include="..\..\..\assets\shaders\Textured.vert" />
     <None Include="..\..\..\assets\shaders\VertexColor.frag" />
     <None Include="..\..\..\assets\shaders\Triangle.vert" />
     <None Include="..\..\..\assets\shaders\VertexColor.vert" />

@@ -22,10 +22,16 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Mesh& operator =(_In_ Mesh &&other);
 
-		/* Gets the index accessor associated with the mesh. */
-		_Check_return_ inline BufferAccessor& GetIndeces(void)
+		/* Gets whether the mesh should be indexed rendered. */
+		_Check_return_ inline bool IsIndexRendered(void) const
 		{
-			return GetAccessor(idx, "index");
+			return idxAcce;
+		}
+
+		/* Gets the index accessor associated with the mesh. */
+		_Check_return_ inline BufferAccessor& GetIndex(void)
+		{
+			return GetAccessor(idxAcce, "index");
 		}
 
 		/* Gets the position accessor associated with the mesh. */
@@ -80,7 +86,8 @@ namespace Pu
 		friend void RelocateData(const GLTFFile&, byte**, const vector<std::reference_wrapper<Buffer>>&, vector<Mesh*>&);
 		PrimitiveTopology renderMode;
 
-		BufferAccessor *idx;
+		BufferView *idxView;
+		BufferAccessor *idxAcce;
 		BufferAccessor *pos;
 		BufferAccessor *norm;
 		BufferAccessor *tang;

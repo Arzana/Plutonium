@@ -184,6 +184,42 @@ namespace Pu
 			return Vector3(cosf(theta), sinf(theta), 0.0f);
 		}
 
+		/* Gets the rightwards direction. */
+		_Check_return_ static inline Vector3 Right(void)
+		{
+			return Vector3(1.0f, 0.0f, 0.0f);
+		}
+
+		/* Gets the leftwards direction. */
+		_Check_return_ static inline Vector3 Left(void)
+		{
+			return Vector3(-1.0f, 0.0f, 0.0f);
+		}
+
+		/* Gets the upwards direction. */
+		_Check_return_ static inline Vector3 Up(void)
+		{
+			return Vector3(0.0f, 1.0f, 0.0f);
+		}
+
+		/* Gets the downwards direction. */
+		_Check_return_ static inline Vector3 Down(void)
+		{
+			return Vector3(0.0f, -1.0f, 0.0f);
+		}
+
+		/* Gets the forwards direction. */
+		_Check_return_ static inline Vector3 Forward(void)
+		{
+			return Vector3(0.0f, 0.0f, 1.0f);
+		}
+
+		/* Gets the backwards direction. */
+		_Check_return_ static inline Vector3 Backward(void)
+		{
+			return Vector3(0.0f, 0.0f, -1.0f);
+		}
+
 		/* Gets the magnetude of the vector squared. */
 		_Check_return_ inline float LengthSquared(void) const
 		{

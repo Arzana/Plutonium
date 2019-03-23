@@ -2,31 +2,34 @@
 
 Pu::Mesh::Mesh(Buffer & buffer, size_t offset, size_t size, size_t stride, PrimitiveTopology topology)
 	: BufferView(buffer, offset, size, stride), renderMode(topology),
-	idx(nullptr), pos(nullptr), norm(nullptr), tang(nullptr),
-	tex1(nullptr), tex2(nullptr), clr(nullptr), jnts(nullptr), wghs(nullptr)
+	pos(nullptr), norm(nullptr), tang(nullptr), tex1(nullptr), 
+	tex2(nullptr), clr(nullptr), jnts(nullptr), wghs(nullptr),
+	idxView(nullptr), idxAcce(nullptr)
 {}
 
 Pu::Mesh::Mesh(const Mesh & value)
 	: BufferView(value), renderMode(value.renderMode)
 {
-	idx = value.idx ? new BufferAccessor(*value.idx) : nullptr;
-	pos = value.idx ? new BufferAccessor(*value.pos) : nullptr;
-	norm = value.idx ? new BufferAccessor(*value.norm) : nullptr;
-	tang = value.idx ? new BufferAccessor(*value.tang) : nullptr;
-	tex1 = value.idx ? new BufferAccessor(*value.tex1) : nullptr;
-	tex2 = value.idx ? new BufferAccessor(*value.tex2) : nullptr;
-	clr = value.idx ? new BufferAccessor(*value.clr) : nullptr;
-	jnts = value.idx ? new BufferAccessor(*value.jnts) : nullptr;
-	wghs = value.idx ? new BufferAccessor(*value.wghs) : nullptr;
+	idxView = value.idxView ? new BufferView(*value.idxView) : nullptr;
+	idxAcce = value.idxAcce ? new BufferAccessor(*value.idxAcce) : nullptr;
+	pos = value.pos ? new BufferAccessor(*value.pos) : nullptr;
+	norm = value.norm ? new BufferAccessor(*value.norm) : nullptr;
+	tang = value.tang ? new BufferAccessor(*value.tang) : nullptr;
+	tex1 = value.tex1 ? new BufferAccessor(*value.tex1) : nullptr;
+	tex2 = value.tex2 ? new BufferAccessor(*value.tex2) : nullptr;
+	clr = value.clr ? new BufferAccessor(*value.clr) : nullptr;
+	jnts = value.jnts ? new BufferAccessor(*value.jnts) : nullptr;
+	wghs = value.wghs ? new BufferAccessor(*value.wghs) : nullptr;
 }
 
 Pu::Mesh::Mesh(Mesh && value)
 	: BufferView(std::move(value)), renderMode(value.renderMode),
-	idx(value.idx), pos(value.pos), norm(value.norm),
-	tang(value.tang), tex1(value.tex1), tex2(value.tex2),
-	clr(value.clr), jnts(value.jnts), wghs(value.wghs)
+	pos(value.pos), norm(value.norm), tang(value.tang), tex1(value.tex1), 
+	tex2(value.tex2), clr(value.clr), jnts(value.jnts), wghs(value.wghs),
+	idxView(value.idxView), idxAcce(value.idxAcce)
 {
-	value.idx = nullptr;
+	value.idxView = nullptr;
+	value.idxAcce = nullptr;
 	value.pos = nullptr;
 	value.norm = nullptr;
 	value.tang = nullptr;
@@ -46,7 +49,8 @@ Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
 		BufferView::operator=(std::move(other));
 		renderMode = other.renderMode;
 
-		idx = other.idx;
+		idxView = other.idxView;
+		idxAcce = other.idxAcce;
 		pos = other.pos;
 		norm = other.norm;
 		tang = other.tang;
@@ -56,7 +60,8 @@ Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
 		jnts = other.jnts;
 		wghs = other.wghs;
 
-		other.idx = nullptr;
+		other.idxView = nullptr;
+		other.idxAcce = nullptr;
 		other.pos = nullptr;
 		other.norm = nullptr;
 		other.tang = nullptr;
@@ -72,7 +77,8 @@ Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
 
 void Pu::Mesh::Destroy(void)
 {
-	if (idx) delete idx;
+	if (idxView) delete idxView;
+	if (idxAcce) delete idxAcce;
 	if (pos) delete pos;
 	if (norm) delete norm;
 	if (tang) delete tang;

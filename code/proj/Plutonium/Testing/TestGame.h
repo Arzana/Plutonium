@@ -2,6 +2,7 @@
 #include <Application.h>
 #include <Graphics/Textures/Texture2D.h>
 #include <Graphics/Resources/StagingBuffer.h>
+#include "TransformBlock.h"
 
 class TestGame
 	: public Pu::Application
@@ -24,9 +25,8 @@ protected:
 
 private: 
 	Pu::GraphicsPipeline *pipeline;
-	Pu::Buffer *vrtxBuffer, *uniBuffer;
-	Pu::StagingBuffer *vrtxStagingBuffer, *uniStagingBuffer;
+	Pu::Buffer *vrtxBuffer;
+	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
-	Pu::Mesh *mesh;
-	Pu::DescriptorSet *descriptor;
+	TransformBlock *transform;
 };

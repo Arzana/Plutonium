@@ -16,7 +16,7 @@ namespace Pu
 		static string glslUtils;
 		static bool loaded;
 
-		static void HandleGLSLValidateLog(const wstring &log, const wstring &path);
+		static void HandleGLSLValidateLog(const string &log, const string &path);
 		static void AddGLSLUtils(string &src);
 		static void LoadGLSLUtils(void);
 	};

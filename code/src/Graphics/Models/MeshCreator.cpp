@@ -9,7 +9,7 @@ void Pu::MeshCreator::CreateRectangle(BufferAccessor * positions, BufferAccessor
 		if (positions->GetElementType() == FieldTypes::Vec2)
 		{
 			/* Convert the positions using the transform and convert back to 2D. */
-			Vector2 data[] =
+			static Vector2 data[] =
 			{
 				(transform * Vector3(-1.0f, -1.0f, 1.0f)).XY,
 				(transform * Vector3(-1.0f, 1.0f, 1.0f)).XY,
@@ -47,9 +47,56 @@ void Pu::MeshCreator::CreatePlane(BufferAccessor * /*positions*/, BufferAccessor
 	throw NotImplementedException(typeid(MeshCreator::CreatePlane));
 }
 
-void Pu::MeshCreator::CreateBox(BufferAccessor * /*positions*/, BufferAccessor * /*normals*/, BufferAccessor * /*texCoords*/, BufferAccessor * /*tangents*/, const Matrix & /*transform*/)
+void Pu::MeshCreator::CreateBox(BufferAccessor * positions, BufferAccessor * /*normals*/, BufferAccessor * /*texCoords*/, BufferAccessor * /*tangents*/, const Matrix & /*transform*/)
 {
-	throw NotImplementedException(typeid(MeshCreator::CreateBox));
+	/* Only attempt to set the positions if a valid accessor is specified. */
+	if (positions)
+	{
+		if (positions->GetElementType() == FieldTypes::Vec3)
+		{
+			static Vector3 data[] =
+			{
+				Vector3(-1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, -1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(-1.0f, 1.0f, -1.0f),
+				Vector3(1.0f, 1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f),
+				Vector3(-1.0f, 1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, -1.0f),
+				Vector3(-1.0f, 1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f),
+				Vector3(-1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, 1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(1.0f, 1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(-1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, 1.0f),
+				Vector3(-1.0f, 1.0f, -1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(1.0f, 1.0f, -1.0f),
+				Vector3(1.0f, 1.0f, 1.0f),
+				Vector3(-1.0f, 1.0f, -1.0f),
+				Vector3(-1.0f, 1.0f, 1.0f),
+				Vector3(-1.0f, -1.0f, -1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f),
+				Vector3(1.0f, -1.0f, -1.0f),
+				Vector3(1.0f, -1.0f, 1.0f),
+				Vector3(-1.0f, -1.0f, 1.0f)
+			};
+
+			positions->SetData(data, 36);
+		}
+	}
 }
 
 void Pu::MeshCreator::CreateSphere(BufferAccessor * /*positions*/, BufferAccessor * /*normals*/, BufferAccessor * /*texCoords*/, BufferAccessor * /*tangents*/, size_t /*meridians*/, size_t /*parallels*/, const Matrix & /*transform*/)

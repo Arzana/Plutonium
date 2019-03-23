@@ -33,6 +33,12 @@ namespace Pu
 			targetElapTimeBackground = min(targetElapTimeFocused, targetElapTimeBackground);
 		}
 
+		/* Gets the delta time used for the last render. */
+		_Check_return_ inline float GetDeltaTime(void) const
+		{
+			return lastDt;
+		}
+
 		/* Gets the platform specific window. */
 		_Check_return_ inline GameWindow& GetWindow(void)
 		{
@@ -111,7 +117,7 @@ namespace Pu
 
 	private:
 		bool suppressUpdate;
-		float prevTime, accumElapTime, maxElapTime;
+		float prevTime, accumElapTime, maxElapTime, lastDt;
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;
 		uint32 graphicsQueueFamilyIndex;

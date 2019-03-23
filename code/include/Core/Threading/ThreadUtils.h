@@ -22,5 +22,5 @@ namespace Pu
 	/* Gets the enviroment variable with the specified name and returns their components. */
 	_Check_return_ vector<wstring> _CrtGetEnviromentVariables(_In_ const wstring &name);
 	/* Creates a process (checks path if not found right away) for a specified amount of time or until it finishes. */
-	_Check_return_ bool _CrtRunProcess(_In_ const wstring &name, wstring &arguments, _In_ wstring &output , _In_opt_ uint64 timeout = maxv<uint64>());
+	_Check_return_ bool _CrtRunProcess(_In_ const wstring &name, wstring &arguments, _In_ string &output , _In_opt_ uint64 timeout = maxv<uint64>());
 }

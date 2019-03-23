@@ -2,7 +2,7 @@
 #include "Streams/FileReader.h"
 
 #define COPY_PRIMITIVE_ATTRIBUTE(attr, ptr)																										\
-					if (LoadMeshPrimitive(copy, bufferData, offset + internalOffset, type, file, primitive, attr))								\
+					if (LoadMeshPrimitive(copy, bufferData, offset + internalOffset, stride, type, file, primitive, attr))						\
 					{																															\
 						ptr = new BufferAccessor(*result, type, internalOffset);																\
 						internalOffset += sizeof_fieldType(type);																				\
@@ -57,7 +57,7 @@ namespace Pu
 	}
 
 	/* Moves a single mesh primitive attribute across buffers. */
-	bool LoadMeshPrimitive(byte **source, byte **destination, size_t offset, FieldTypes &accessorType, const GLTFFile &file, const GLTFPrimitive &primitive, GLTFPrimitiveAttribute type)
+	bool LoadMeshPrimitive(byte **source, byte **destination, size_t offset, size_t stride, FieldTypes &accessorType, const GLTFFile &file, const GLTFPrimitive &primitive, GLTFPrimitiveAttribute type)
 	{
 		/* Check if the primitive attribute is present. */
 		size_t idx;
@@ -68,13 +68,12 @@ namespace Pu
 			const GLTFBufferView &view = file.BufferViews[accessor.BufferView];
 
 			/* Copy the data. */
-			for (size_t i = 0, j = view.Start + accessor.Start, stride = sizeof_fieldType(accessor.FieldType); i < accessor.Count; i++, j += stride, offset += stride)
+			for (size_t i = 0, j = view.Start + accessor.Start, fieldStride = sizeof_fieldType(accessor.FieldType); i < accessor.Count; i++, j += fieldStride, offset += stride)
 			{
-				memcpy(destination[view.Buffer] + offset, source[view.Buffer] + j, stride);
+				memcpy(destination[view.Buffer] + offset, source[view.Buffer] + j, fieldStride);
 			}
 
 			/* Set the indicators. */
-			offset += view.Length;
 			accessorType = accessor.FieldType;
 			return true;
 		}
@@ -139,6 +138,23 @@ namespace Pu
 					COPY_PRIMITIVE_ATTRIBUTE(GLTFPrimitiveAttribute::Weights, result->wghs);
 
 					offset += size;
+
+					/* Create the index buffer view if needed. */
+					if (primitive.HasIndices)
+					{
+						const GLTFAccessor &accessor = file.Accessors[primitive.Indices];
+						const GLTFBufferView &view = file.BufferViews[accessor.BufferView];
+						const size_t idxStride = sizeof_fieldType(accessor.FieldType);
+						const size_t idxLength = idxStride * accessor.Count;
+						
+						memcpy(bufferData[view.Buffer] + offset, copy[view.Buffer] + view.Start + accessor.Start, idxLength);
+
+						result->idxView = new BufferView(*firstBuffer, offset, view.Length, idxStride);
+						result->idxAcce = new BufferAccessor(*result->idxView, accessor.FieldType, 0);
+
+						offset += idxLength;
+					}
+
 					meshes.emplace_back(result);
 				}
 			}

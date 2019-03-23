@@ -149,7 +149,7 @@ vector<wstring> Pu::_CrtGetEnviromentVariables(const wstring & name)
 	}
 }
 
-bool Pu::_CrtRunProcess(const wstring & name, wstring & arguments, wstring & output, uint64 timeout)
+bool Pu::_CrtRunProcess(const wstring & name, wstring & arguments, string & output, uint64 timeout)
 {
 	/* Get OS path variables. */
 	const vector<wstring> pathDirs = _CrtGetEnviromentVariables(L"Path");
@@ -196,7 +196,7 @@ bool Pu::_CrtRunProcess(const wstring & name, wstring & arguments, wstring & out
 
 		started = CreateProcess(
 			pname.c_str(),
-			const_cast<wchar_t*>(argv.c_str()),
+			argv.data(),
 			nullptr,
 			nullptr,
 			childStdOutWrite != nullptr,

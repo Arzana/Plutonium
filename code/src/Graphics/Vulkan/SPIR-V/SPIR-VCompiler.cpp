@@ -28,11 +28,11 @@ wstring Pu::SPIRV::FromGLSLPath(const wstring & path)
 	const wstring output = curDir + BIN_DIR + fname + L".spv";
 
 	wstring args = (SpirVCompilerLogHumanReadable ? L"-V -H -o \"" : L"-V -o \"") + output + L"\" \"" + input + L'\"';
-	wstring log;
+	string log;
 
 	/* Run the validator. */
 	const bool succeeded = _CrtRunProcess(L"glslangValidator.exe", args, log, SpirVCompilerTimeout);
-	HandleGLSLValidateLog(log, input);
+	HandleGLSLValidateLog(log, input.toASCII());
 
 	/* Log either success or failure. */
 	if (succeeded)
@@ -47,11 +47,11 @@ wstring Pu::SPIRV::FromGLSLPath(const wstring & path)
 	}
 }
 
-void Pu::SPIRV::HandleGLSLValidateLog(const wstring & log, const wstring & path)
+void Pu::SPIRV::HandleGLSLValidateLog(const string & log, const string & path)
 {
 	/* Split the log into it's lines and remove empty lines. */
-	vector<wstring> lines = log.split(L"\r\n");
-	lines.tryRemove(L"\n");
+	vector<string> lines = log.split("\r\n");
+	lines.removeAll([](const string &cur) { return cur == "\n"; });
 
 	/*
 	Only log if something has been logged.
@@ -61,25 +61,25 @@ void Pu::SPIRV::HandleGLSLValidateLog(const wstring & log, const wstring & path)
 	*/
 	if (lines.size() > 1)
 	{
-		const wstring seperator = wstring(64, L'-') + L'\n';
+		const string seperator = string(64, '-') + '\n';
 
 		/* Log header. */
-		wstring msg = L"glslangValidator log for '" + path + L":\n";
+		string msg = "glslangValidator log for '" + path + ":\n";
 		msg += seperator;
 
-		for (wstring &line : lines)
+		for (string &line : lines)
 		{
 			/* Remove the path as it's appended to all lines also remove any leading newlines. */
-			line.remove(L'\n');
+			line.remove('\n');
 			line.remove(path);
 
 			/* Only log if useful information is left in the line. */
-			if (line.length() > 1) msg += line += L'\n';
+			if (line.length() > 1) msg += line += '\n';
 		}
 
 		/* Log footer. */
 		msg += seperator;
-		Log::Verbose("%ls", msg.c_str());
+		Log::Verbose("%s", msg.c_str());
 	}
 }
 

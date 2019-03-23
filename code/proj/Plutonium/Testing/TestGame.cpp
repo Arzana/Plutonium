@@ -1,9 +1,8 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/SkinnedAnimated.h>
+#include <Graphics/VertexLayouts/Image2D.h>
 #include <Core/Math/Matrix.h>
 #include <Input/Keys.h>
-#include <Content/GLTFParser.h>
 
 using namespace Pu;
 
@@ -25,11 +24,11 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding<SkinnedAnimated>(0);
+		pipeline.AddVertexBinding(0, sizeof(Image2D));
 		pipeline.Finalize();
 
-		/* Allocate and move the new descriptor set. */
-		descriptor = new DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(0)));
+		/* Create the transform uniform block. */
+		transform = new TransformBlock(GetDevice(), pipeline.GetDescriptorPool(), 0, pipeline.GetRenderpass().GetUniform("Projection"));
 
 		/* Create the framebuffers with no extra image views. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), {});
@@ -44,8 +43,7 @@ void TestGame::Initialize(void)
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
 		/* Set offset for uv attribute (position is default). */
-		Attribute &uv = renderpass.GetAttribute("TexCoord");
-		uv.SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image2D, TexCoord));
 
 		/* Setup the subpass dependencies. */
 		SubpassDependency dependency(SubpassExternal, 0);
@@ -75,39 +73,27 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	GLTFFile result;
-	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", result);
-
-	const Matrix identity = Matrix::CreateScalar(0.2f);
+	const Image2D quad[] =
+	{
+		{ Vector2(-0.7f, -0.7f), Vector2(0.0f, 0.0f) },
+		{ Vector2(-0.7f, 0.7f), Vector2(0.0f, 1.0f) },
+		{ Vector2(0.7f, -0.7f), Vector2(1.0f, 0.0f) },
+		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
+	};
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), result.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
-
-	vector<std::reference_wrapper<Buffer>> buffers;
-	buffers.emplace_back(*vrtxBuffer);
-	vector<StagingBuffer*> stagingBuffers;
-	vector<Mesh*> meshes;
-	_CrtLoadAndParseGLTF(result, buffers, stagingBuffers, meshes);
-	vrtxStagingBuffer = stagingBuffers[0];
-	mesh = meshes[0];
-
-	/* Initialize the uniform buffer and setup the staging buffer. */
-	uniBuffer = new Buffer(GetDevice(), sizeof(identity), BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst, false);
-	uniStagingBuffer = new StagingBuffer(*uniBuffer);
-	uniStagingBuffer->Load(identity.GetComponents());
+	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
+	vrtxStagingBuffer->Load(quad);
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(result.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(L"../assets/images/uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
 
-	delete uniStagingBuffer;
-	delete uniBuffer;
-
-	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -116,17 +102,21 @@ void TestGame::Finalize(void)
 {
 	GetContent().Release(*pipeline);
 
-	delete descriptor;
+	delete transform;
 	delete pipeline;
 }
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)
 {
+	if (!transform) return;
+	/* Update the descriptor if needed. */
+	transform->Update(cmdBuffer);
+
 	static bool firstRender = true;
 	if (firstRender)
 	{
 		/* Wait for the graphics pipeline to be usable. */
-		if (descriptor == nullptr || !image->IsUsable()) return;
+		if (!image->IsUsable()) return;
 		firstRender = false;
 
 		/* Copy quad to final vertex buffer. */
@@ -136,14 +126,8 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		/* Make sure the image layout is suitable for shader reads. */
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
-		/* Copy matrix to final uniform buffer. */
-		cmdBuffer.CopyEntireBuffer(*uniStagingBuffer, *uniBuffer);
-		cmdBuffer.MemoryBarrier(*uniBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, AccessFlag::UniformRead);
-
 		/* Update the descriptor. */
-		descriptor->Write(pipeline->GetRenderpass().GetUniform("Texture"), *image);
-		/* Update projection matrix. */
-		descriptor->Write(pipeline->GetRenderpass().GetUniform("Projection"), *uniBuffer);
+		transform->SetTexture(pipeline->GetRenderpass().GetUniform("Texture"), *image);
 	}
 
 	/* Get the current render area and get our current framebuffer. */
@@ -154,10 +138,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 
-	cmdBuffer.BindVertexBuffer(0, *mesh);
-	cmdBuffer.BindGraphicsDescriptor(*descriptor);
-
-	cmdBuffer.Draw(mesh->GetElementCount(), 1, 0, 0);
+	cmdBuffer.BindVertexBuffer(0, BufferView(*vrtxBuffer, sizeof(Image2D)));
+	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());
+	cmdBuffer.Draw(4, 1, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 }

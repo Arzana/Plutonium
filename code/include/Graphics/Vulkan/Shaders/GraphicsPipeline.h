@@ -44,6 +44,12 @@ namespace Pu
 			return *pool;
 		}
 
+		/* Sets the cull mode to use. */
+		inline void SetCullMode(_In_ CullModeFlag mode)
+		{
+			rasterizer->CullMode = mode;
+		}
+
 #pragma warning(push)
 #pragma warning(disable:4458)
 		/* Sets the viewport parameters of the graphics pipeline. */

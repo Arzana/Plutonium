@@ -13,6 +13,8 @@
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
+#include <io.h>
+#include <fcntl.h>
 using namespace Pu;
 
 void Pu::Log::Verbose(const char * format, ...)

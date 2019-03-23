@@ -160,19 +160,25 @@ namespace Pu
 		_Check_return_ static Matrix CreateFrustum(_In_ float left, _In_ float right, _In_ float bottom, _In_ float top, _In_ float near, _In_ float far);
 		/* Creates a perspective projection matrix. */
 		_Check_return_ static Matrix CreatPerspective(_In_ float fovY, _In_ float aspr, _In_ float near, _In_ float far);
+		/* Creates a look in view matrix. */
+		_Check_return_ static Matrix CreateLookIn(_In_ Vector3 pos, _In_ Vector3 direction, _In_ Vector3 up);
+
 		/* Creates a look at view matrix. */
-		_Check_return_ static Matrix CreateLookAt(_In_ Vector3 pos, _In_ Vector3 target, _In_ Vector3 up);
+		_Check_return_ static Matrix CreateLookAt(_In_ Vector3 pos, _In_ Vector3 target, _In_ Vector3 up)
+		{
+			return CreateLookIn(pos, dir(pos, target), up);
+		}
 
 		/* Gets the translation vector of the matrix. */
 		_Check_return_ inline Vector3 GetTranslation(void) const
 		{
-			return Vector3(c4.X, c4.Y, c4.Z);
+			return c4.XYZ;
 		}
 
 		/* Gets the right vector of the matrix. */
 		_Check_return_ inline Vector3 GetRight(void) const
 		{
-			return Vector3(c1.X, c1.Y, c1.Z);
+			return c1.XYZ;
 		}
 
 		/* Gets the left vector of the matrix. */
@@ -184,7 +190,7 @@ namespace Pu
 		/* Gets the up vector of the matrix. */
 		_Check_return_ inline Vector3 GetUp(void) const
 		{
-			return Vector3(c2.X, c2.Y, c2.Z);
+			return c2.XYZ;
 		}
 
 		/* Gets the down vector of the matrix. */
@@ -193,16 +199,16 @@ namespace Pu
 			return -GetUp();
 		}
 
-		/* Gets the backward vector of the matrix. */
-		_Check_return_ inline Vector3 GetBackward(void) const
-		{
-			return Vector3(c3.X, c3.Y, c3.Z);
-		}
-
 		/* Gets the forward vector of the matrix. */
 		_Check_return_ inline Vector3 GetForward(void) const
 		{
-			return -GetBackward();
+			return c3.XYZ;
+		}
+
+		/* Gets the backward vector of the matrix. */
+		_Check_return_ inline Vector3 GetBackward(void) const
+		{
+			return -GetForward();
 		}
 
 		/* Gets the underlying components of the matrix. */

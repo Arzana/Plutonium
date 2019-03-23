@@ -80,60 +80,82 @@ Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 {
 	const float a = 2.0f / width;
-	const float f = 2.0f / height;
+	const float f = -2.0f / height;
 	const float k = 2.0f / (far - near);
 
-	return Matrix(a, 0.0f, 0.0f, 0.0f, 0.0f, f, 0.0f, 0.0f, 0.0f, 0.0f, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	return Matrix(
+		a, 0.0f, 0.0f, 0.0f, 
+		0.0f, f, 0.0f, 0.0f, 
+		0.0f, 0.0f, k, 0.0f, 
+		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix Pu::Matrix::CreateOrtho(float left, float right, float bottom, float top, float near, float far)
 {
+	/* Possibly broken after switch to Vulkan, I'm not using it so just leave it for now but check later! */
 	const float a = 2.0f / (right - left);
-	const float f = 2.0f / (top - bottom);
+	const float f = -2.0f / (top - bottom);
 	const float k = 2.0f / (far - near);
 	const float l = -(far + near) / (far - near);
 	const float d = -(right + left) / (right - left);
 	const float h = -(top + bottom) / (top - bottom);
 
-	return Matrix(a, 0.0f, 0.0f, d, 0.0f, f, 0.0f, h, 0.0f, 0.0f, k, l, 0.0f, 0.0f, 0.0f, 1.0f);
+	return Matrix(
+		a, 0.0f, 0.0f, d, 
+		0.0f, f, 0.0f, h, 
+		0.0f, 0.0f, k, l, 
+		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float top, float near, float far)
 {
 	const float a = (2.0f * near) / (right - left);
-	const float c = (right + left) / (right - left);
-	const float f = (2.0f * near) / (top - bottom);
-	const float g = (top + bottom) / (top - bottom);
-	const float k = -(far + near) / (far - near);
+	const float c = -((right + left) / (right - left));
+	const float f = (-2.0f * near) / (top - bottom);
+	const float g = -((bottom + top) / (top - bottom));
+	const float k = (far + near) / (far - near);
 	const float l = -(2.0f * far * near) / (far - near);
 
-	return Matrix(a, 0.0f, c, 0.0f, 0.0f, f, g, 0.0f, 0.0f, 0.0f, k, l, 0.0f, 0.0f, -1.0f, 0.0f);
+	return Matrix(
+		a, 0.0f, c, 0.0f,
+		0.0f, f, g, 0.0f,
+		0.0f, 0.0f, k, l,
+		0.0f, 0.0f, 1.0f, 0.0f);
 }
 
 Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float far)
 {
+	/*
+		This simpification can be made over the frustum function because the frustum is generic.
+		If the frustum is symetric (like with a perspective camera) we can use the formula.
+		Then we can solve a bit further so we don't have to multiply and divide with near for a and b.
+	*/
 	const float t = tanf(fovY * 0.5f);
 	const float a = 1.0f / (aspr * t);
-	const float f = 1.0f / t;
-	const float k = -(far + near) / (far - near);
+	const float f = -1.0f / t;
+	const float k = (far + near) / (far - near);
 	const float l = -(2.0f * far * near) / (far - near);
 
-	return Matrix(a, 0.0f, 0.0f, 0.0f, 0.0f, f, 0.0f, 0.0f, 0.0f, 0.0f, k, l, 0.0f, 0.0f, -1.0f, 0.0f);
+	return Matrix(
+		a, 0.0f, 0.0f, 0.0f,
+		0.0f, f, 0.0f, 0.0f,
+		0.0f, 0.0f, k, l,
+		0.0f, 0.0f, 1.0f, 0.0f);
 }
 
-Matrix Pu::Matrix::CreateLookAt(Vector3 pos, Vector3 target, Vector3 up)
+Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 {
-	const Vector3 axisZ = dir(pos, target);
-	const Vector3 axisX = normalize(cross(up, axisZ));
-	const Vector3 axisY = cross(axisZ, axisX);
+	const Vector3 axisX = normalize(cross(direction, up));
+	const Vector3 axisY = cross(direction, axisX);
 
 	const float d = -dot(axisX, pos);
 	const float h = -dot(axisY, pos);
-	const float l = -dot(axisZ, pos);
+	const float l = -dot(direction, pos);
 
-	return Matrix(axisX.X, axisX.Y, axisX.Z, d,
+	return Matrix(
+		axisX.X, axisX.Y, axisX.Z, d,
 		axisY.X, axisY.Y, axisY.Z, h,
-		axisZ.X, axisZ.Y, axisZ.Z, l,
+		direction.X, direction.Y, direction.Z, l,
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
@@ -146,7 +168,7 @@ Quaternion Pu::Matrix::GetOrientation(void) const
 	/* Get normalizes orientation columns. */
 	const Vector3 aei = normalize(GetRight());
 	const Vector3 bfj = normalize(GetUp());
-	const Vector3 cgk = normalize(GetBackward());
+	const Vector3 cgk = normalize(GetForward());
 
 	/* Protect against /0. */
 	const float t = aei.X + bfj.Y + cgk.Z;
@@ -197,7 +219,7 @@ Quaternion Pu::Matrix::GetOrientation(void) const
 
 Vector3 Pu::Matrix::GetScale(void) const
 {
-	return Vector3(GetRight().Length(), GetUp().Length(), GetBackward().Length());
+	return Vector3(GetRight().Length(), GetUp().Length(), GetForward().Length());
 }
 
 Matrix Pu::Matrix::GetStatic(void) const
@@ -205,7 +227,7 @@ Matrix Pu::Matrix::GetStatic(void) const
 	/* Simply remove the translation. */
 	const Vector3 r = GetRight();
 	const Vector3 u = GetUp();
-	const Vector3 b = GetBackward();
+	const Vector3 b = GetForward();
 
 	return Matrix(
 		r.X, u.X, b.X, 0.0f,
@@ -297,7 +319,7 @@ void Pu::Matrix::SetOrientation(float yaw, float pitch, float roll)
 
 	c1 = Vector4(a, e, i, 0.0f) * GetRight().Length();
 	c2 = Vector4(b, f, j, 0.0f) * GetUp().Length();
-	c3 = Vector4(c, g, k, 0.0f) * GetBackward().Length();
+	c3 = Vector4(c, g, k, 0.0f) * GetForward().Length();
 }
 #pragma warning(pop)
 

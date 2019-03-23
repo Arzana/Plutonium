@@ -396,52 +396,47 @@ namespace Pu
 			return result;
 		}
 
+		/* Attempts to convert the string to ASCII. */
+		_Check_return_ inline basic_string<char> toASCII(void) const
+		{
+			if constexpr (std::is_same<char_t, wchar_t>::value)
+			{
+#ifdef _WIN32
+				/* ANSI is the closest we can use. */
+				return wideToMultiByte<char>(CP_ACP);
+#else
+				throw NotImplementedException(typeid(toASCII));
+#endif
+			}
+			else throw NotImplementedException(typeid(toASCII));
+		}
+
 		/* Attempts to convert the string to UTF-8. */
 		_Check_return_ inline basic_string<char> toUTF8(void) const
 		{
-#ifdef _WIN32
 			if constexpr (std::is_same<char_t, wchar_t>::value)
 			{
-				/* UTF-8 is up to 4 bytes per character to reserve that amount. */
-				const size_type reserveSize = string_t::length() * 4 + 1;
-				char *buffer = reinterpret_cast<char*>(malloc(reserveSize));
-
-				/* Convert to UTF-8, no errors can occur. */
-				WideCharToMultiByte(CP_UTF8, 0, string_t::c_str(), -1, buffer, static_cast<int>(reserveSize), nullptr, nullptr);
-
-				/* Copy buffer values to a new string and free the buffer. */
-				basic_string<char> result(buffer);
-				free(buffer);
-				return result;
+#ifdef _WIN32
+				return wideToMultiByte<char>(CP_UTF8);
+#else
+				throw NotImplementedException(typeid(toUTF8));
+#endif
 			}
 			else throw NotImplementedException(typeid(toUTF8));
-#else
-			throw NotImplementedException(typeid(toUTF8));
-#endif
 		}
 
 		/* Attempts to convert the string to a wide string (expects ASCII string is UTF-8 flag is not set to true). */
 		_Check_return_ inline basic_string<wchar_t> toWide(_In_ bool isUTF8) const
 		{
-#ifdef _WIN32
 			if constexpr (std::is_same<char_t, char>::value)
 			{
-				/* Reserve enough space fr all characters. */
-				const size_t reserveSize = string_t::length() * sizeof(wchar_t) + 1;
-				wchar_t *buffer = reinterpret_cast<wchar_t*>(malloc(reserveSize * sizeof(wchar_t)));
-
-				/* Convert to wide string, no errors can occur. */
-				MultiByteToWideChar(isUTF8 ? CP_UTF8 : CP_ACP, 0, string_t::c_str(), -1, buffer, static_cast<int>(reserveSize));
-
-				/* Copy buffer values to new string and free the buffer. */
-				basic_string<wchar_t> result(buffer);
-				free(buffer);
-				return result;
+#ifdef _WIN32
+				return multiByteToWide<wchar_t>(isUTF8 ? CP_UTF8 : CP_ACP);
+#else
+				throw NotImplementedException(typeid(toWide));
+#endif
 			}
 			else throw NotImplementedException(typeid(toWide));
-#else
-			throw NotImplementedException(typeid(toWide));
-#endif
 		}
 #pragma endregion
 
@@ -453,6 +448,34 @@ namespace Pu
 			std::transform(string_t::begin(), string_t::end(), copy.begin(), func);
 			return copy;
 		}
+
+#ifdef _WIN32
+		template <typename result_char_t>
+		inline basic_string<result_char_t> multiByteToWide(UINT codePage) const
+		{
+			/* Create result buffer with enough size. */
+			const size_type reserveSize = string_t::length() * sizeof(result_char_t);
+			basic_string<result_char_t> result;
+			result.resize(reserveSize);
+
+			/* Convert using Win32 multi byte to wide char. */
+			MultiByteToWideChar(codePage, 0, string_t::c_str(), -1, result.data(), static_cast<int>(reserveSize));
+			return result;
+		}
+
+		template <typename result_char_t>
+		inline basic_string<result_char_t> wideToMultiByte(UINT codePage) const
+		{
+			/* Create result buffer with enough size. */
+			const size_type reserveSize = string_t::length() * sizeof(result_char_t);
+			basic_string<result_char_t> result;
+			result.resize(reserveSize);
+
+			/* Convert using Win32 multi byte to multi byte. */
+			WideCharToMultiByte(codePage, 0, string_t::c_str(), -1, result.data(), static_cast<int>(reserveSize), nullptr, nullptr);
+			return result;
+		}
+#endif
 	};
 
 	/* Defines a string sorted in 8-bit characters. */
