@@ -24,53 +24,47 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 
 void Pu::DescriptorSet::Write(const Uniform & uniform, const Texture & texture)
 {
+	/* Check if the descriptor type is correct. */
+	if (uniform.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image uniform!");
+
+	/* Write the descriptor. */
 	DescriptorImageInfo info(texture.Sampler.hndl, texture.view->hndl);
-	WriteImage(uniform, { info });
+	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, info);
+	WriteDescriptor({ write });
 }
 
-void Pu::DescriptorSet::Write(const Uniform & uniform, const Buffer & buffer)
+void Pu::DescriptorSet::Write(const vector<const Uniform*>& uniforms, const Buffer & buffer)
 {
-	DescriptorBufferInfo info(buffer.bufferHndl, uniform.GetOffset(), uniform.GetSize());
-	WriteBuffer(uniform, { info });
-}
+	uint32 binding = 0;
+	DeviceSize size = 0;
 
-void Pu::DescriptorSet::Write(const Uniform & uniform, const vector<const Texture*>& textures)
-{
-	vector<DescriptorImageInfo> infos;
-	for (const Texture *cur : textures) infos.emplace_back(cur->Sampler.hndl, cur->view->hndl);
-	WriteImage(uniform, infos);
+	/* Loop through all uniforms to get the size and check the uniforms. */
+	for (size_t i = 0; i < uniforms.size(); i++)
+	{
+		const Uniform &cur = *uniforms[i];
+
+		/* Check if the descriptor type is correct. */
+		if (cur.layoutBinding.DescriptorType != DescriptorType::UniformBuffer) Log::Fatal("Cannot update descriptor with buffer on non-buffer uniform!");
+
+		/* Make sure all the descriptors are in the same uniform buffer. */
+		if (!i) binding = cur.layoutBinding.Binding;
+		else if (cur.layoutBinding.Binding != binding) Log::Fatal("Cannot pass uniforms from seperate bindings to descriptor write!");
+
+		size += cur.GetSize();
+	}
+
+	DescriptorBufferInfo info(buffer.bufferHndl, 0, size);
+	WriteDescriptorSet write(hndl, binding, info, 1);
+	WriteDescriptor({ write });
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl)
 	: parent(pool), hndl(hndl)
 {}
 
-void Pu::DescriptorSet::WriteImage(const Uniform & uniform, const vector<DescriptorImageInfo>& infos)
-{
-	/* Check if the descriptor type is correct. */
-	if (uniform.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image uniform!");
-
-	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, infos);
-	WriteDescriptor({ write });
-}
-
-void Pu::DescriptorSet::WriteBuffer(const Uniform & uniform, const vector<DescriptorBufferInfo>& infos)
-{
-	/* Check if the descriptor type is correct. */
-	if (uniform.layoutBinding.DescriptorType != DescriptorType::UniformBuffer) Log::Fatal("Cannot update descriptor with buffer on non-buffer uniform!");
-
-	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, infos);
-	WriteDescriptor({ write });
-}
-
 void Pu::DescriptorSet::WriteDescriptor(const vector<WriteDescriptorSet> & writes)
 {
-	UpdateDescriptor(writes.size(), writes.data(), 0, nullptr);
-}
-
-void Pu::DescriptorSet::UpdateDescriptor(size_t writeCount, const WriteDescriptorSet * writes, size_t copyCount, const CopyDescriptorSet * copies)
-{
-	parent.parent.parent.vkUpdateDescriptorSets(parent.parent.parent.hndl, static_cast<uint32>(writeCount), writes, static_cast<uint32>(copyCount), copies);
+	parent.parent.parent.vkUpdateDescriptorSets(parent.parent.parent.hndl, static_cast<uint32>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void Pu::DescriptorSet::Free(void)

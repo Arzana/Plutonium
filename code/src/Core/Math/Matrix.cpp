@@ -111,7 +111,7 @@ Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float to
 {
 	const float a = (2.0f * near) / (right - left);
 	const float c = -((right + left) / (right - left));
-	const float f = (-2.0f * near) / (top - bottom);
+	const float f = (2.0f * near) / (top - bottom);
 	const float g = -((bottom + top) / (top - bottom));
 	const float k = (far + near) / (far - near);
 	const float l = -(2.0f * far * near) / (far - near);
@@ -132,7 +132,7 @@ Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float fa
 	*/
 	const float t = tanf(fovY * 0.5f);
 	const float a = 1.0f / (aspr * t);
-	const float f = -1.0f / t;
+	const float f = 1.0f / t;
 	const float k = (far + near) / (far - near);
 	const float l = -(2.0f * far * near) / (far - near);
 
@@ -145,7 +145,7 @@ Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float fa
 
 Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 {
-	const Vector3 axisX = normalize(cross(direction, up));
+	const Vector3 axisX = normalize(cross(up, direction));
 	const Vector3 axisY = cross(direction, axisX);
 
 	const float d = -dot(axisX, pos);

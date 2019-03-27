@@ -14,7 +14,7 @@ namespace Pu
 	{
 	public:
 		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
-		EventBus<Renderpass, EventArgs> OnLinkCompleted;
+		EventBus<Renderpass> OnLinkCompleted;
 
 		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);

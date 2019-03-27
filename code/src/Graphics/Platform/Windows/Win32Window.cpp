@@ -100,6 +100,7 @@ bool Pu::Win32Window::operator!=(const NativeWindow & other)
 void Pu::Win32Window::Show(void)
 {
 	ShowWindow(hndl, SW_SHOWNORMAL);
+	SetFocus(hndl);
 }
 
 void Pu::Win32Window::Hide(void)
@@ -227,6 +228,8 @@ void Pu::Win32Window::UpdateClientArea(void)
 
 LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	bool oldFocus = focused;
+
 	switch (message)
 	{
 	case (WM_CLOSE):
@@ -242,13 +245,26 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 		shouldSuppressRender = true;
 		return 0;
 	case (WM_SETFOCUS):
-		focused = true;
+		if (!focused)
+		{
+			focused = true;
+			OnGainedFocus.Post(*this);
+		}
 		return 0;
 	case (WM_KILLFOCUS):
-		focused = false;
+		if (!focused)
+		{
+			focused = false;
+			OnLostFocus.Post(*this);
+		}
 		return 0;
 	case (WM_ACTIVATE):
 		focused = GetLowWord(wParam) != WA_INACTIVE;
+		if (focused != oldFocus)
+		{
+			if (focused) OnGainedFocus.Post(*this);
+			else OnLostFocus.Post(*this);
+		}
 		return 0;
 	case (WM_SYSCOMMAND):
 		return HandleSysCmd(wParam, lParam);

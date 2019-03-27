@@ -171,12 +171,29 @@ void Pu::GraphicsPipeline::FinalizeLayout(void)
 		/* Make sure we have a descriptor set for each defined set. */
 		if (cur.set >= createInfos.size())
 		{
+			/* Add the layout binding for the uniform to the set as well. */
 			createInfos.resize(cur.set + 1);
 			setBindings.emplace(cur.set, vector<DescriptorSetLayoutBinding>());
+			setBindings[cur.set].emplace_back(cur.layoutBinding);
 		}
+		else
+		{
+			/* The current set is already defined so search in the list for it. */
+			for (DescriptorSetLayoutBinding &binding : setBindings[cur.set])
+			{
+				if (binding.Binding == cur.layoutBinding.Binding)
+				{
+					/* Just increase the descriptor count. */
+					binding.DescriptorCount += cur.layoutBinding.DescriptorCount;
+					goto Found;
+				}
+			}
 
-		/* Add the current binding to the create info. */
-		setBindings[cur.set].push_back(cur.layoutBinding);
+			/* The binding wasn't found so just add it like normal. */
+			setBindings[cur.set].emplace_back(cur.layoutBinding);
+
+		Found:;
+		}
 	}
 
 	/* Resize the result vector outside of the loop to increase performance. */
@@ -218,7 +235,7 @@ void Pu::GraphicsPipeline::Initialize(void)
 	colorBlend = new PipelineColorBlendStateCreateInfo(colorBlendAttachments);
 
 	/* Allow user to set paramaters. */
-	PostInitialize.Post(*this, EventArgs());
+	PostInitialize.Post(*this);
 }
 
 void Pu::GraphicsPipeline::Destroy(void)

@@ -1216,7 +1216,9 @@ namespace Pu
 		/* No flags are set. */
 		None = 0x00000000,
 		/* Specifies that the descriptor sets can return their individual allocations to the pool. */
-		FreeDescriptorSet = 0x00000001
+		FreeDescriptorSet = 0x00000001,
+		/* Allows descriptor sets allocated from this pool to include bindings with update after bind set as well. */
+		UpdateAfterBind = 0x00000002
 	};
 
 	/* Defines additional properties of attachments. */

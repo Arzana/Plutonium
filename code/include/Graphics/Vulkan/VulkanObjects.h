@@ -2842,10 +2842,24 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a descriptor set write operation parameters object as an buffer write operation. */
+		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const DescriptorBufferInfo &info, _In_ uint32 descriptorCount)
+			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
+			DstArrayElement(0), DescriptorType(DescriptorType::UniformBuffer), ImageInfo(nullptr),
+			DescriptorCount(descriptorCount), BufferInfo(&info), TexelBufferView(nullptr)
+		{}
+
+		/* Initializes a new instance of a descriptor set write operation parameters object as an buffer write operation. */
 		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const vector<DescriptorBufferInfo> &info)
 			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
 			DstArrayElement(0), DescriptorType(DescriptorType::UniformBuffer), ImageInfo(nullptr),
 			DescriptorCount(static_cast<uint32>(info.size())), BufferInfo(info.data()), TexelBufferView(nullptr)
+		{}
+
+		/* Initializes a new instance of a descriptor set write operation parameters object as an image write operation. */
+		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const DescriptorImageInfo &info)
+			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
+			DstArrayElement(0), DescriptorType(DescriptorType::CombinedImageSampler), BufferInfo(nullptr),
+			DescriptorCount(1), ImageInfo(&info), TexelBufferView(nullptr)
 		{}
 
 		/* Initializes a new instance of a descriptor set write operation parameters object as an image write operation. */

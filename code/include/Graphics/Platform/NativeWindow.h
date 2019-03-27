@@ -19,9 +19,9 @@ namespace Pu
 		/* Occurs when the location of the window changed. */
 		EventBus<const NativeWindow, ValueChangedEventArgs<Vector2>> OnLocationChanged;
 		/* Occurs when the window gained focus. */
-		EventBus<NativeWindow, EventArgs> OnGainedFocus;
+		EventBus<NativeWindow> OnGainedFocus;
 		/* Occurs when the window loses focus. */
-		EventBus<NativeWindow, EventArgs> OnLostFocus;
+		EventBus<NativeWindow> OnLostFocus;
 
 		NativeWindow(_In_ const NativeWindow&) = delete;
 		NativeWindow(_In_ const NativeWindow&&) = delete;

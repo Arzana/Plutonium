@@ -93,6 +93,7 @@ namespace Pu
 
 	private:
 		friend class InputDeviceHandler;
+		friend class Mouse;
 
 		Surface *surface;
 		HINSTANCE instance;

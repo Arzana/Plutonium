@@ -9,7 +9,7 @@ namespace Pu
 	{
 	public:
 		/* Occurs after the graphics pipeline has been initialized. */
-		EventBus<GraphicsPipeline, EventArgs> PostInitialize;
+		EventBus<GraphicsPipeline> PostInitialize;
 
 		/* Initializes an empty instance of a graphics pipeline. */
 		GraphicsPipeline(_In_ LogicalDevice &device);

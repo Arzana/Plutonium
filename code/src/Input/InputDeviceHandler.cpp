@@ -5,7 +5,7 @@
 #include "Input/HID.h"
 
 Pu::InputDeviceHandler::InputDeviceHandler(void)
-	: AnyCursor(nullptr, L"Any", RID_DEVICE_INFO()),
+	: AnyMouse(nullptr, L"Any", RID_DEVICE_INFO()),
 	AnyKeyboard(nullptr, L"Any", RID_DEVICE_INFO())
 {
 #ifdef _WIN32
@@ -44,7 +44,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 	vector<RAWINPUTDEVICE> devices;
 
 	/* Only add a cursor listener if a cursor is present. */
-	if (cursors.size())
+	if (mouses.size())
 	{
 		/* Enable add and remove events, we want legacy mouse events for window moves and close button presses etc. */
 		RAWINPUTDEVICE cursorDevices =
@@ -83,7 +83,7 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 	switch (input.header.dwType)
 	{
 	case RIM_TYPEMOUSE:
-		for (Cursor &cur : cursors)
+		for (Mouse &cur : mouses)
 		{
 			if (cur.Hndl == input.header.hDevice)
 			{
@@ -111,12 +111,12 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, HANDLE hndl)
 {
 	/* Attempt to remove the input device from the cursor list. */
-	for (size_t i = 0; i < cursors.size(); i++)
+	for (size_t i = 0; i < mouses.size(); i++)
 	{
-		if (hndl == cursors[i].Hndl)
+		if (hndl == mouses[i].Hndl)
 		{
-			Log::Message("Removed HID cursor '%ls'.", cursors[i].Name.c_str());
-			cursors.removeAt(i);
+			Log::Message("Removed HID cursor '%ls'.", mouses[i].Name.c_str());
+			mouses.removeAt(i);
 			return;
 		}
 	}
@@ -139,7 +139,7 @@ void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, 
 void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 {
 	/* Make sure we don't add the same HID multiple times. */
-	if (cursors.contains([hndl](const Cursor &cur) { return hndl == cur.Hndl; })) return;
+	if (mouses.contains([hndl](const Mouse &cur) { return hndl == cur.Hndl; })) return;
 	if (keyboards.contains([hndl](const Keyboard &cur) { return hndl == cur.Hndl; })) return;
 	if (hids.contains([hndl](const InputDevice &cur) { return hndl == cur.Hndl; })) return;
 
@@ -173,13 +173,13 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 	if (info.dwType == RIM_TYPEMOUSE)
 	{
 		/* Create new cursor. */
-		const size_t i = cursors.size();
-		cursors.emplace_back(Cursor(hndl, name, info));
+		const size_t i = mouses.size();
+		mouses.emplace_back(Mouse(hndl, name, info));
 
 		/* Add the any cursor handles to the new cursor, cannot be done directly cause then we needed a move assignment operator. */
-		cursors[i].Moved.Add(AnyCursor.Moved, &EventBus<const Cursor, Vector2>::Post);
-		cursors[i].Button.Add(AnyCursor.Button, &EventBus<const Cursor, ButtonEventArgs>::Post);
-		cursors[i].Scrolled.Add(AnyCursor.Scrolled, &EventBus<const Cursor, int16>::Post);
+		mouses[i].Moved.Add(AnyMouse.Moved, &EventBus<const Mouse, Vector2>::Post);
+		mouses[i].Button.Add(AnyMouse.Button, &EventBus<const Mouse, ButtonEventArgs>::Post);
+		mouses[i].Scrolled.Add(AnyMouse.Scrolled, &EventBus<const Mouse, int16>::Post);
 
 		Log::Message("Added HID cursor '%ls'.", name.c_str());
 	}

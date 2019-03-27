@@ -1,6 +1,6 @@
 #pragma once
 #include <sal.h>
-#include "CursorButtons.h"
+#include "MouseButtons.h"
 #include "Core/Events/EventArgs.h"
 
 namespace Pu
@@ -13,10 +13,10 @@ namespace Pu
 		/* True if the button is pressed, otherwise; false. */
 		const bool Down;
 		/* Defines the button which invoked the event. */
-		const CursorButtons Button;
+		const MouseButtons Button;
 
 		/* Initializes a new instance of a button event argument. */
-		ButtonEventArgs(_In_ CursorButtons button, _In_ bool down)
+		ButtonEventArgs(_In_ MouseButtons button, _In_ bool down)
 			: Down(down), Button(button)
 		{}
 	};

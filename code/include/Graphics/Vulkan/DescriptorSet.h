@@ -27,9 +27,7 @@ namespace Pu
 		/* Writes image data to a specific binding (represented by the uniform). */
 		void Write(_In_ const Uniform &uniform, _In_ const Texture &texture);
 		/* Writes buffer data to a specific binding (represented by the uniform). */
-		void Write(_In_ const Uniform &uniform, _In_ const Buffer &buffer);
-		/* Writes image data to a specific binding (represented by the uniform). */
-		void Write(_In_ const Uniform &uniform, _In_ const vector<const Texture*> &textures);
+		void Write(_In_ const vector<const Uniform*> &uniforms, _In_ const Buffer &buffer);
 
 	private:
 		friend class DescriptorPool;
@@ -40,10 +38,7 @@ namespace Pu
 
 		DescriptorSet(DescriptorPool &pool, DescriptorSetHndl hndl);
 
-		void WriteImage(const Uniform &uniform, const vector<DescriptorImageInfo> &infos);
-		void WriteBuffer(const Uniform &uniform, const vector<DescriptorBufferInfo> &infos);
 		void WriteDescriptor(const vector<WriteDescriptorSet> &writes);
-		void UpdateDescriptor(size_t writeCount, const WriteDescriptorSet *writes, size_t copyCount, const CopyDescriptorSet *copies);
 		void Free(void);
 	};
 }

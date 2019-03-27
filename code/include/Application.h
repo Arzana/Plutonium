@@ -1,8 +1,9 @@
 #pragma once
-#include "Core/Diagnostics/Stopwatch.h"
-#include "Graphics/Platform/GameWindow.h"
+#include "Components/Component.h"
 #include "Content/AssetFetcher.h"
 #include "Input/InputDeviceHandler.h"
+#include "Core/Diagnostics/Stopwatch.h"
+#include "Graphics/Platform/GameWindow.h"
 
 namespace Pu
 {
@@ -25,6 +26,10 @@ namespace Pu
 
 		/* Starts the application and runs it untill the user closes it. */
 		void Run(void);
+		/* Adds a component to the application (Application takes ownership!). */
+		void AddComponent(_In_ Component *component);
+		/* Removes and deletes the specified component from the application. */
+		void RemoveComponent(_In_ Component &component);
 
 		/* Sets the target time setp in Hz. */
 		inline void SetTargetTimeStep(_In_ int32 hertz)
@@ -116,7 +121,7 @@ namespace Pu
 		virtual void PostRender(void) {}
 
 	private:
-		bool suppressUpdate;
+		bool suppressUpdate, initialized;
 		float prevTime, accumElapTime, maxElapTime, lastDt;
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;
@@ -131,15 +136,16 @@ namespace Pu
 		TaskScheduler *scheduler;
 		AssetFetcher *content;
 		InputDeviceHandler *input;
+		vector<Component*> components;
 
 		static void InitializePlutonium(void);
 
 		void InitializeVulkan(void);
 		const PhysicalDevice& ChoosePhysicalDevice(void);
-		bool Tick(bool loading);
+		bool Tick(void);
 		void DoInitialize(void);
 		void DoFinalize(void);
-		void DoUpdate(float dt, bool loading);
+		void DoUpdate(float dt);
 		void BeginRender(void);
 		void DoRender(float dt);
 		void EndRender(void);

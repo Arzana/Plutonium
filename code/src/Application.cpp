@@ -11,7 +11,7 @@
 Pu::Application::Application(const wstring & name, float width, float height)
 	: IsFixedTimeStep(true), suppressUpdate(false), name(name), initialWndSize(width, height),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
-	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr)
+	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), initialized(false)
 {
 	InitializePlutonium();
 	scheduler = new TaskScheduler();
@@ -43,7 +43,7 @@ void Pu::Application::Run(void)
 	/* Run application loop. */
 	while (wnd->Update())
 	{
-		while (!Tick(false));
+		while (!Tick());
 	}
 
 	/* Make sure to finalize the game window before allowing the user to release their resources. */
@@ -52,6 +52,33 @@ void Pu::Application::Run(void)
 	/* Finalize application. */
 	UnLoadContent();
 	DoFinalize();
+}
+
+void Pu::Application::AddComponent(Component * component)
+{
+	/* Add the component to the list and initialize it if needed. */
+	components.emplace_back(component);
+	
+	/* Initializes the component and sort the list again if we've already initialized the application. */
+	if (initialized)
+	{
+		component->DoInitialize();
+		std::sort(components.begin(), components.end(), Component::SortPredicate);
+	}
+}
+
+void Pu::Application::RemoveComponent(Component & component)
+{
+	for (size_t i = 0; i < components.size(); i++)
+	{
+		Component *cur = components[i];
+		if (cur == &component)
+		{
+			delete cur;
+			components.removeAt(i);
+			return;
+		}
+	}
 }
 
 void Pu::Application::InitializePlutonium(void)
@@ -150,7 +177,7 @@ const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
 	return instance->GetPhysicalDevice(choosen);
 }
 
-bool Pu::Application::Tick(bool loading)
+bool Pu::Application::Tick(void)
 {
 	/* Update timers. */
 	const float curTime = gameTime.SecondsAccurate();
@@ -180,7 +207,7 @@ bool Pu::Application::Tick(bool loading)
 			for (; accumElapTime >= targetElapTime; accumElapTime -= targetElapTime)
 			{
 				dt += targetElapTime;
-				DoUpdate(targetElapTime, loading);
+				DoUpdate(targetElapTime);
 			}
 		}
 		else
@@ -188,7 +215,7 @@ bool Pu::Application::Tick(bool loading)
 			/* Do updates. */
 			dt = accumElapTime;
 			accumElapTime = 0.0f;
-			DoUpdate(dt, loading);
+			DoUpdate(dt);
 		}
 	}
 
@@ -219,11 +246,24 @@ void Pu::Application::DoInitialize(void)
 #endif
 
 	Initialize();
+	
+	/* Initialize and sort the components. */
+	for (Component *cur : components) cur->DoInitialize();
+	std::sort(components.begin(), components.end(), Component::SortPredicate);
+	initialized = true;
 }
 
 void Pu::Application::DoFinalize(void)
 {
 	Finalize();
+
+	for (Component *cur : components)
+	{
+		cur->Finalize();
+		delete cur;
+	}
+
+	components.clear();
 
 	delete content;
 	delete gameWnd;
@@ -232,9 +272,21 @@ void Pu::Application::DoFinalize(void)
 	delete instance;
 }
 
-void Pu::Application::DoUpdate(float dt, bool loading)
+void Pu::Application::DoUpdate(float dt)
 {
-	if (!loading) Update(dt);
+	/* Update all components that are set to update before the application update. */
+	size_t i = 0;
+	for (; i < components.size(); i++)
+	{
+		Component *cur = components[i];
+		if (cur->place > 0) break;
+		cur->Update(dt);
+	}
+
+	Update(dt);
+
+	/* Update all components that are set to update after the application update. */
+	for (; i < components.size(); i++) components[i]->Update(dt);
 }
 
 void Pu::Application::BeginRender(void)

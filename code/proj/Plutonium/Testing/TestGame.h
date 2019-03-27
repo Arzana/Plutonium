@@ -2,6 +2,7 @@
 #include <Application.h>
 #include <Graphics/Textures/Texture2D.h>
 #include <Graphics/Resources/StagingBuffer.h>
+#include <Components/FreeCamera.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -20,7 +21,7 @@ protected:
 	virtual void LoadContent(void);
 	virtual void UnLoadContent(void);
 	virtual void Finalize(void);
-	virtual void Update(float) {}
+	virtual void Update(float);
 	virtual void Render(float, Pu::CommandBuffer &cmdBuffer);
 
 private: 
@@ -28,5 +29,6 @@ private:
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
+	Pu::FreeCamera *cam;
 	TransformBlock *transform;
 };

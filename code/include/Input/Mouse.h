@@ -1,22 +1,21 @@
 #pragma once
 #include "ButtonEventArgs.h"
 #include "InputDevice.h"
-#include "Core/Math/Vector2.h"
-#include "Core/Events/EventBus.h"
+#include "Graphics/Platform/NativeWindow.h"
 
 namespace Pu
 {
 	/* Defines a helper object to receive cursor data. */
-	class Cursor
+	class Mouse
 		: public InputDevice
 	{
 	public:
 		/* Occurs when the cursor is moved, gives the delta movement. */
-		EventBus<const Cursor, Vector2> Moved;
+		EventBus<const Mouse, Vector2> Moved;
 		/* Occurs when the state of a button changed on the cursor. */
-		EventBus<const Cursor, ButtonEventArgs> Button;
+		EventBus<const Mouse, ButtonEventArgs> Button;
 		/* Occurs when the scroll wheel state changes, gives the delta movement. */
-		EventBus<const Cursor, int16> Scrolled;
+		EventBus<const Mouse, int16> Scrolled;
 
 		/* The unique indentifier of the cursor. */
 		uint64 ID;
@@ -27,14 +26,27 @@ namespace Pu
 
 		/* Gets the absolute position of the on screen OS cursor. */
 		_Check_return_ static Vector2 GetPosition(void);
+		/* Gets whether the OS cursor is visible. */
+		_Check_return_ static bool IsCursorVisible(void);
+		/* Hides the OS cursor. */
+		static void HideCursor(void);
+		/* Show the OS cursor. */
+		static void ShowCursor(void);
+		/* Restricts the OS cursor to a specific window. */
+		static void LockCursor(const NativeWindow &window);
+		/* Disables the movement restriction of the OS cursor. */
+		static void FreeCursor(void);
 
 	private:
 		friend class InputDeviceHandler;
 
 		Vector2 oldPos;
+		static const NativeWindow *lockedWnd;
 
 #ifdef _WIN32
-		Cursor(HANDLE hndl, const wstring &name, const RID_DEVICE_INFO &info);
+		Mouse(HANDLE hndl, const wstring &name, const RID_DEVICE_INFO &info);
+
+		static void ClipMouse(const NativeWindow &window, ValueChangedEventArgs<Vector2>);
 
 		void HandleWin32Event(const RAWMOUSE &info);
 #endif

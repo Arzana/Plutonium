@@ -1,7 +1,6 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/Image2D.h>
-#include <Core/Math/Matrix.h>
+#include <Graphics/VertexLayouts/Image3D.h>
 #include <Input/Keys.h>
 
 using namespace Pu;
@@ -17,25 +16,41 @@ TestGame::TestGame(void)
 
 void TestGame::Initialize(void)
 {
+	/* Make sure that the cursor is hiden and locked if the window is focused. */
+	GetWindow().GetNative().OnGainedFocus += [](const NativeWindow &sender)
+	{
+		Mouse::HideCursor();
+		Mouse::LockCursor(sender);
+	};
+
+	GetWindow().GetNative().OnLostFocus += [](const NativeWindow&)
+	{
+		Mouse::ShowCursor();
+		Mouse::FreeCursor();
+	};
+
+	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
+
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice());
-	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline, EventArgs)
+	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline)
 	{
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding(0, sizeof(Image2D));
+		pipeline.AddVertexBinding(0, sizeof(Image3D));
 		pipeline.Finalize();
 
 		/* Create the transform uniform block. */
-		transform = new TransformBlock(GetDevice(), pipeline.GetDescriptorPool(), 0, pipeline.GetRenderpass().GetUniform("Projection"));
+		transform = new TransformBlock(GetDevice(), pipeline);
+		transform->SetProjection(Matrix::CreatPerspective(PI4, GetWindow().GetNative().GetAspectRatio(), 0.1f, 10.0f));
 
 		/* Create the framebuffers with no extra image views. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), {});
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"../assets/shaders/Image.vert", L"../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass, EventArgs)
+	GetContent().FetchRenderpass(*pipeline, { L"../assets/shaders/Textured.vert", L"../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -43,7 +58,7 @@ void TestGame::Initialize(void)
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
 		/* Set offset for uv attribute (position is default). */
-		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image2D, TexCoord));
+		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image3D, TexCoord));
 
 		/* Setup the subpass dependencies. */
 		SubpassDependency dependency(SubpassExternal, 0);
@@ -73,12 +88,12 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	const Image2D quad[] =
+	const Image3D quad[] =
 	{
-		{ Vector2(-0.7f, -0.7f), Vector2(0.0f, 0.0f) },
-		{ Vector2(-0.7f, 0.7f), Vector2(0.0f, 1.0f) },
-		{ Vector2(0.7f, -0.7f), Vector2(1.0f, 0.0f) },
-		{ Vector2(0.7f, 0.7f), Vector2(1.0f, 1.0f) }
+		{ Vector3(-0.7f, -0.7f, 5.0f), Vector2(0.0f, 0.0f) },
+		{ Vector3(-0.7f, 0.7f, 5.0f), Vector2(0.0f, 1.0f) },
+		{ Vector3(0.7f, -0.7f, 5.0f), Vector2(1.0f, 0.0f) },
+		{ Vector3(0.7f, 0.7f, 5.0f), Vector2(1.0f, 1.0f) }
 	};
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
@@ -104,6 +119,15 @@ void TestGame::Finalize(void)
 
 	delete transform;
 	delete pipeline;
+}
+
+void TestGame::Update(float)
+{
+	if (transform)
+	{
+		transform->SetProjection(cam->GetProjection());
+		transform->SetView(cam->GetView());
+	}
 }
 
 void TestGame::Render(float, CommandBuffer & cmdBuffer)
@@ -138,7 +162,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
 
-	cmdBuffer.BindVertexBuffer(0, BufferView(*vrtxBuffer, sizeof(Image2D)));
+	cmdBuffer.BindVertexBuffer(0, BufferView(*vrtxBuffer, sizeof(Image3D)));
 	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());
 	cmdBuffer.Draw(4, 1, 0, 0);
 

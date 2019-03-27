@@ -1,5 +1,5 @@
 #pragma once
-#include "Cursor.h"
+#include "Mouse.h"
 #include "Keyboard.h"
 #include "Graphics/Platform/NativeWindow.h"
 
@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Defines a special cursor that hooks into all cursors used by the host. */
-		Cursor AnyCursor;
+		Mouse AnyMouse;
 		/* Defines a special keyboard that hooks into all keyboards used by the host. */
 		Keyboard AnyKeyboard;
 
@@ -25,13 +25,13 @@ namespace Pu
 		/* Gets the amount of cursors currently available. */
 		_Check_return_ inline size_t GetCursorCount(void) const
 		{
-			return cursors.size();
+			return mouses.size();
 		}
 
 		/* Gets the cursor at the specific index. */
-		_Check_return_ inline Cursor& GetCursor(_In_ size_t idx)
+		_Check_return_ inline Mouse& GetCursor(_In_ size_t idx)
 		{
-			return cursors.at(idx);
+			return mouses.at(idx);
 		}
 
 		/* Gets the amount of keybaords currently available. */
@@ -49,7 +49,7 @@ namespace Pu
 	private:
 		friend class Application;
 
-		vector<Cursor> cursors;
+		vector<Mouse> mouses;
 		vector<Keyboard> keyboards;
 		vector<InputDevice> hids;
 

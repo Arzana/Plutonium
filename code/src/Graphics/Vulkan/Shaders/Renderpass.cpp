@@ -142,7 +142,7 @@ void Pu::Renderpass::Link(bool linkedViaLoader)
 	LoadFields();
 
 	/* Give user the opertunity to set descriptions for all used fields. */
-	OnLinkCompleted.Post(*this, EventArgs());
+	OnLinkCompleted.Post(*this);
 
 	/* Finalize the render pass. */
 	Finalize(linkedViaLoader);

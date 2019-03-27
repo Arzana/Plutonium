@@ -151,6 +151,12 @@
     <Filter Include="Source Files\Input">
       <UniqueIdentifier>{d9b1db42-1c07-4f77-9ddf-dd32d938ec7e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Components">
+      <UniqueIdentifier>{9195e0a5-ab73-45e5-a2e1-0be1490222e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Components">
+      <UniqueIdentifier>{a174f361-c3e6-4bf4-aade-5117d13ffa9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -495,9 +501,6 @@
     <ClInclude Include="..\..\..\include\Input\ButtonEventArgs.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Input\Cursor.h">
-      <Filter>Header Files\Input</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Input\InputDevice.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
@@ -505,9 +508,6 @@
       <Filter>Header Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Input\HID.h">
-      <Filter>Header Files\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Input\CursorButtons.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Input\Keyboard.h">
@@ -518,6 +518,27 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h">
       <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Components\Component.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Components\Camera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Components\FpsCamera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Components\FreeCamera.h">
+      <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\Mouse.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\MouseButtons.h">
+      <Filter>Header Files\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -713,9 +734,6 @@
     <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Input\Cursor.cpp">
-      <Filter>Source Files\Input</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Input\InputDevice.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
@@ -727,6 +745,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Components\Component.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Components\Camera.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Components\FpsCamera.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Components\FreeCamera.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\Mouse.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
