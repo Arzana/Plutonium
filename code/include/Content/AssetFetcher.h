@@ -1,4 +1,5 @@
 #pragma once
+#include "Patern.h"
 #include "AssetLoader.h"
 #include "Graphics/Textures/Texture2D.h"
 
@@ -6,6 +7,7 @@ namespace Pu
 {
 	/* Defines an object used to fetch assets from either cache or from file. */
 	class AssetFetcher
+		: public Patern
 	{
 	public:
 		/* Initializes a new instance of an asset fetcher. */

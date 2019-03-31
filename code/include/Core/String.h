@@ -362,6 +362,32 @@ namespace Pu
 			return result;
 		}
 
+		/* Replaces a specific substring in this string with another string. */
+		_Check_return_ inline void replace(_In_ const basic_string<char_t> &search, _In_ const basic_string<char_t> &replace)
+		{
+			for (size_type start = 0, len = search.length(); (start = string_t::find(search, start)) != string_t::npos; start += len)
+			{
+				string_t::replace(start, len, replace);
+			}
+		}
+
+		/* Replaces a specific substring in this string with another string, returns whether it was replaced. */
+		_Check_return_ inline bool tryReplace(_In_ const basic_string<char_t> &search, _In_ const basic_string<char_t> &replace)
+		{
+			bool result = false;
+			size_type start = 0;
+			const size_type len = search.length();
+
+			while ((start = string_t::find(search, start)) != string_t::npos)
+			{
+				string_t::replace(start, len, replace);
+				start += len;
+				result = true;
+			}
+
+			return result;
+		}
+
 		/* Splits the string into substrings using the specified seperator. */
 		_Check_return_ inline vector<basic_string<char_t>> split(_In_ char_t seperator) const noexcept
 		{

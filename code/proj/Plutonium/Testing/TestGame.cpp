@@ -50,7 +50,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"../assets/shaders/Textured.vert", L"../assets/shaders/Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
+	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}Textured.vert", L"{Shaders}Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -102,7 +102,7 @@ void TestGame::LoadContent(void)
 	vrtxStagingBuffer->Load(quad);
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(L"../assets/images/uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(L"{Textures}uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)

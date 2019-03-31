@@ -21,7 +21,7 @@ Pu::AssetLoader::~AssetLoader(void)
 	delete cmdPool;
 }
 
-void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass & renderpass, std::initializer_list<wstring> subpasses)
+void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass & renderpass, const vector<wstring> &subpasses)
 {
 	vector<std::tuple<size_t, wstring>> toLoad;
 

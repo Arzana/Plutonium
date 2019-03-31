@@ -1,9 +1,15 @@
 #include "Content/AssetFetcher.h"
 
 Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device)
+	: Patern()
 {
 	cache = new AssetCache();
 	loader = new AssetLoader(scheduler, device, *cache);
+
+	/* Add some of the default wildcards. */
+	AddWildcard(L"{Assets}", L"../assets/");
+	AddWildcard(L"{Shaders}", L"{Assets}shaders/");
+	AddWildcard(L"{Textures}", L"{Assets}images/");
 }
 
 Pu::AssetFetcher::~AssetFetcher(void)
@@ -20,8 +26,11 @@ Pu::AssetFetcher::~AssetFetcher(void)
 
 Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<wstring> subpasses)
 {
+	/* Make sure the wildcards are solved. */
+	const vector<wstring> mutableSubpasses = Solve(subpasses);
+
 	/* Create the hash and check if the cache contains the requested asset. */
-	const size_t hash = std::hash<wstring>{}(subpasses);
+	const size_t hash = std::hash<wstring>{}(mutableSubpasses);
 	if (cache->Contains(hash))
 	{
 		/* Duplicate the top level asset and finalize the graphics pipeline with the duplicated renderpass. */
@@ -32,18 +41,21 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, 
 
 	/* Create a new renderpass and start loading it. */
 	Renderpass *renderpass = new Renderpass(loader->GetDevice());
-	loader->PopulateRenderpass(pipeline, *renderpass, subpasses);
+	loader->PopulateRenderpass(pipeline, *renderpass, mutableSubpasses);
 	cache->Store(renderpass);
 	return *renderpass;
 }
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const SamplerCreateInfo & samplerInfo, uint32 mipMapLevels)
 {
+	/* Solve for the texture path. */
+	wstring mutablePath(path);
+	Solve(mutablePath);
+
 	/* 
 	The texture itself is not an asset but the sampler and image it stores are.
 	So first get the sampler and then get the image.
 	*/
-
 	Sampler *sampler;
 
 	/* Try to fetch the sampler, otherwise just create a new one. */
@@ -57,7 +69,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	}
 
 	/* Try to fetch the image, otherwise just create a new one. */
-	hash = std::hash<wstring>{}(path);
+	hash = std::hash<wstring>{}(mutablePath);
 	if (cache->Contains(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
@@ -70,7 +82,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	else
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const ImageInformation info = _CrtGetImageInfo(path);
+		const ImageInformation info = _CrtGetImageInfo(mutablePath);
 		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
 		Image *image = new Image(loader->GetDevice(), createInfo);
@@ -80,7 +92,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 		/* Create the final texture and start the load/stage process. */
 		Texture2D *result = new Texture2D(*image, *sampler);
 		textures.push_back(result);
-		loader->InitializeTexture(*result, path, info);
+		loader->InitializeTexture(*result, mutablePath, info);
 		return *result;
 	}
 }
