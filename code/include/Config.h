@@ -41,4 +41,6 @@ namespace Pu
 	constexpr float MinimumVersionGLTF = 2.0f;
 	/* Defines the preferred amount of components when loading images (0 mean use native components). */
 	constexpr int PreferredImageComponentCount = 4;
+	/* Defines the time (in milliseconds) before the CPU usage is allowed to be queried again. */
+	constexpr int64 CPUUsageQueryMinimumElapsedTime = 250;
 }

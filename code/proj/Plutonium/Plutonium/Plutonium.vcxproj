@@ -186,6 +186,7 @@
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\vector.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\CPU.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
@@ -310,6 +311,7 @@
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp" />
     <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp" />
     <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\CPU.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />

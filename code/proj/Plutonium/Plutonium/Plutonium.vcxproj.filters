@@ -540,6 +540,9 @@
     <ClInclude Include="..\..\..\include\Input\MouseButtons.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\CPU.h">
+      <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -760,6 +763,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Input\Mouse.cpp">
       <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\CPU.cpp">
+      <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
