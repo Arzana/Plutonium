@@ -11,7 +11,11 @@ Pu::Keyboard::Keyboard(HANDLE hndl, const wstring & name, const RID_DEVICE_INFO 
 
 void Pu::Keyboard::HandleWin32Event(const RAWKEYBOARD & info)
 {
-	if (info.Flags == RI_KEY_MAKE) KeyDown.Post(*this, info.VKey);
-	else if (info.Flags == RI_KEY_BREAK)  KeyUp.Post(*this, info.VKey);
+	/*
+	There are two other flags E0 and E1 these are used to denote special keys,
+	for our purposes we can simply ignore these and just check whether the key is down or up.
+	*/
+	if (info.Flags & RI_KEY_BREAK) KeyUp.Post(*this, info.VKey);
+	else KeyDown.Post(*this, info.VKey);
 }
 #endif

@@ -3,6 +3,7 @@
 #include <Graphics/Textures/Texture2D.h>
 #include <Graphics/Resources/StagingBuffer.h>
 #include <Components/FreeCamera.h>
+#include <Graphics/Resources/Mesh.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -30,5 +31,6 @@ private:
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::FreeCamera *cam;
+	Pu::Mesh *mesh;
 	TransformBlock *transform;
 };

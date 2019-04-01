@@ -1,7 +1,8 @@
 #include "TestGame.h"
 #include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/Image3D.h>
+#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Input/Keys.h>
+#include <Content/GLTFParser.h>
 
 using namespace Pu;
 
@@ -10,7 +11,18 @@ TestGame::TestGame(void)
 {
 	GetInput().AnyKeyboard.KeyDown += [this](const Keyboard&, uint16 key)
 	{
-		if (key == _CrtEnum2Int(Keys::Escape)) Exit();
+		switch (key)
+		{
+		case (_CrtEnum2Int(Keys::Escape)): 
+			Exit();
+			break;
+		case (_CrtEnum2Int(Keys::Up)):
+			cam->MoveSpeed++;
+			break;
+		case (_CrtEnum2Int(Keys::Down)):
+			cam->MoveSpeed--;
+			break;
+		}
 	};
 }
 
@@ -38,7 +50,7 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding(0, sizeof(Image3D));
+		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
 		pipeline.Finalize();
 
 		/* Create the framebuffers and the required uniform block. */
@@ -55,7 +67,7 @@ void TestGame::Initialize(void)
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
 		/* Set offset for uv attribute (position is default). */
-		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image3D, TexCoord));
+		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -68,27 +80,30 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	const Image3D quad[] =
-	{
-		{ Vector3(-0.7f, -0.7f, 5.0f), Vector2(0.0f, 0.0f) },
-		{ Vector3(-0.7f, 0.7f, 5.0f), Vector2(0.0f, 1.0f) },
-		{ Vector3(0.7f, -0.7f, 5.0f), Vector2(1.0f, 0.0f) },
-		{ Vector3(0.7f, 0.7f, 5.0f), Vector2(1.0f, 1.0f) }
-	};
+	GLTFFile file;
+	_CrtLoadGLTF(L"../assets/models/Testing/Box/Box.gltf", file);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), sizeof(quad), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
-	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
-	vrtxStagingBuffer->Load(quad);
+	vrtxBuffer = new Buffer(GetDevice(), file.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+
+	vector<std::reference_wrapper<Buffer>> buffers;
+	buffers.emplace_back(*vrtxBuffer);
+	vector<StagingBuffer*> stagingBuffers;
+	vector<Mesh*> meshes;
+
+	_CrtLoadAndParseGLTF(file, buffers, stagingBuffers, meshes);
+	vrtxStagingBuffer = stagingBuffers[0];
+	mesh = meshes[0];
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(L"{Textures}uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(L"{Textures}Uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
 
+	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -138,9 +153,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
-	cmdBuffer.BindVertexBuffer(0, BufferView(*vrtxBuffer, sizeof(Image3D)));
+	cmdBuffer.BindVertexBuffer(0, *mesh);
 	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());
-	cmdBuffer.Draw(4, 1, 0, 0);
+	cmdBuffer.Draw(mesh->GetElementCount(), 1, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 }
