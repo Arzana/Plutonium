@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/ImageView.h"
 
 Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPass, Extent2D dimensions, const vector<const ImageView*>& attachments)
-	: parent(device)
+	: parent(device), area(dimensions.Width, dimensions.Height)
 {
 	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
 
@@ -14,7 +14,7 @@ Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPa
 }
 
 Pu::Framebuffer::Framebuffer(Framebuffer && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), area(value.area)
 {
 	value.hndl = nullptr;
 }
@@ -27,6 +27,7 @@ Pu::Framebuffer & Pu::Framebuffer::operator=(Framebuffer && other)
 
 		parent = std::move(other.parent);
 		hndl = other.hndl;
+		area = other.area;
 
 		other.hndl = nullptr;
 	}

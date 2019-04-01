@@ -41,7 +41,7 @@ Pu::GameWindow::~GameWindow(void)
 void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vector<const ImageView*> & views)
 {
 	/* Make sure we don't create too many. */
-	if (frameBuffers.find(renderPass.hndl) != frameBuffers.end())
+	if (HasFrameBuffer(renderPass))
 	{
 		Log::Warning("Attempting to create framebuffers for render pass that already has framebuffers defined!");
 		return;
@@ -69,6 +69,11 @@ const Framebuffer & Pu::GameWindow::GetCurrentFramebuffer(const Renderpass & ren
 	if (it == frameBuffers.end()) Log::Fatal("Attempting to retrieve framebuffer for unknown render pass!");
 
 	return *it->second[curImgIdx];
+}
+
+bool Pu::GameWindow::HasFrameBuffer(const Renderpass & renderPass) const
+{
+	return frameBuffers.find(renderPass.hndl) != frameBuffers.end();
 }
 
 void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)

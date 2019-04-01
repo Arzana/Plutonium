@@ -170,6 +170,11 @@ void Pu::CommandBuffer::ClearImage(Image & image, Color color)
 	if (CheckIfRecording("clear image")) parent.parent.vkCmdClearColorImage(hndl, image.imageHndl, image.layout, color.ToClearColor(), 1, &range);
 }
 
+void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, SubpassContents contents)
+{
+	BeginRenderPass(renderPass, framebuffer, framebuffer.area, contents);
+}
+
 void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
 {
 	if (CheckIfRecording("begin render pass"))

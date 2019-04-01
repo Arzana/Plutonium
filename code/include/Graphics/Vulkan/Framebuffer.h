@@ -24,11 +24,18 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Framebuffer& operator =(_In_ Framebuffer &&other);
 
+		/* Gets the full render area available for this framebuffer. */
+		_Check_return_ inline const Rect2D& GetArea(void) const
+		{
+			return area;
+		}
+
 	private:
 		friend class CommandBuffer;
 		friend class Renderpass;
 
 		FramebufferHndl hndl;
+		Rect2D area;
 		LogicalDevice &parent;
 
 		void Destroy(void);

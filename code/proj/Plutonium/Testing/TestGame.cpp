@@ -41,12 +41,9 @@ void TestGame::Initialize(void)
 		pipeline.AddVertexBinding(0, sizeof(Image3D));
 		pipeline.Finalize();
 
-		/* Create the transform uniform block. */
+		/* Create the framebuffers and the required uniform block. */
+		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass());
 		transform = new TransformBlock(GetDevice(), pipeline);
-		transform->SetProjection(Matrix::CreatPerspective(PI4, GetWindow().GetNative().GetAspectRatio(), 0.1f, 10.0f));
-
-		/* Create the framebuffers with no extra image views. */
-		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), {});
 	};
 
 	/* Setup and load render pass. */
@@ -59,23 +56,6 @@ void TestGame::Initialize(void)
 
 		/* Set offset for uv attribute (position is default). */
 		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image3D, TexCoord));
-
-		/* Setup the subpass dependencies. */
-		SubpassDependency dependency(SubpassExternal, 0);
-		dependency.SrcStageMask = PipelineStageFlag::BottomOfPipe;
-		dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
-		dependency.SrcAccessMask = AccessFlag::MemoryRead;
-		dependency.DstAcccessMask = AccessFlag::ColorAttachmentWrite;
-		dependency.DependencyFlags = DependencyFlag::ByRegion;
-		renderpass.AddDependency(dependency);
-
-		dependency = SubpassDependency(0, SubpassExternal);
-		dependency.SrcStageMask = PipelineStageFlag::ColorAttachmentOutput;
-		dependency.DstStageMask = PipelineStageFlag::BottomOfPipe;
-		dependency.SrcAccessMask = AccessFlag::ColorAttachmentWrite;
-		dependency.DstAcccessMask = AccessFlag::MemoryRead;
-		dependency.DependencyFlags = DependencyFlag::ByRegion;
-		renderpass.AddDependency(dependency);
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -154,13 +134,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		transform->SetTexture(pipeline->GetRenderpass().GetUniform("Texture"), *image);
 	}
 
-	/* Get the current render area and get our current framebuffer. */
-	const Rect2D renderArea = GetWindow().GetNative().GetClientBounds().GetSize();
-	const Framebuffer &framebuffer = GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass());
-
 	/* Render scene. */
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
-	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), framebuffer, renderArea, SubpassContents::Inline);
+	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
 	cmdBuffer.BindVertexBuffer(0, BufferView(*vrtxBuffer, sizeof(Image3D)));
 	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());

@@ -54,6 +54,8 @@ namespace Pu
 		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
 		/* Appends an image clear command to the command buffer. */
 		void ClearImage(_In_ Image &image, _In_ Color color);
+		/* Appends a render pass begin command for the entire framebuffer to the command buffer. */
+		void BeginRenderPass(_In_ const Renderpass &renderPass, _In_ const Framebuffer &framebuffer, _In_ SubpassContents contents);
 		/* Appends a render pass begin command to the command buffer. */
 		void BeginRenderPass(_In_ const Renderpass &renderPass, _In_ const Framebuffer &framebuffer, _In_ Rect2D renderArea, _In_ SubpassContents contents);
 		/* Appends a graphics pipeline bind command to the command buffer. */
