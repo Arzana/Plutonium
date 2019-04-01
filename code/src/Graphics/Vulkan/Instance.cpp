@@ -292,7 +292,14 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 		Log::Warning(data->Message);
 		break;
 	case Pu::DebugUtilsMessageSeverityFlag::Error:
-		Log::Error(data->Message);
+		/*
+		Currently the validation layer doesn't like me updating my descriptor sets with one associated buffer.
+		It keeps track of which descriptors in the set are updated and doesn't count my one buffer update
+		for multiple uniforms as an update for multiple descriptors even through it covers the required range.
+		I also cannot pass multiple buffer updates to the function as it will be agains the graphicscards minimum offset.
+		So, until the bug is fixed I'm ignoring this specific error.
+		*/
+		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated")) Log::Error(data->Message);
 		break;
 	}
 
