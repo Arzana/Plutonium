@@ -124,9 +124,10 @@ namespace Pu
 				/* Create the resulting mesh structure. */
 				if (firstBuffer)
 				{
-					Mesh *result = new Mesh(*firstBuffer, offset, size, stride, GLTFMode2Topology(primitive.Mode));
 					FieldTypes type;
 					size_t internalOffset = 0;
+
+					Mesh *result = new Mesh(*firstBuffer, offset, size, stride, GLTFMode2Topology(primitive.Mode));
 
 					COPY_PRIMITIVE_ATTRIBUTE(GLTFPrimitiveAttribute::Position, result->pos);
 					COPY_PRIMITIVE_ATTRIBUTE(GLTFPrimitiveAttribute::Normal, result->norm);
@@ -145,14 +146,14 @@ namespace Pu
 						const GLTFAccessor &accessor = file.Accessors[primitive.Indices];
 						const GLTFBufferView &view = file.BufferViews[accessor.BufferView];
 						const size_t idxStride = sizeof_fieldType(accessor.FieldType);
-						const size_t idxLength = idxStride * accessor.Count;
 						
-						memcpy(bufferData[view.Buffer] + offset, copy[view.Buffer] + view.Start + accessor.Start, idxLength);
+						vector<uint16> indices;
+						memcpy(bufferData[view.Buffer] + offset, copy[view.Buffer] + view.Start + accessor.Start, view.Length);
 
 						result->idxView = new BufferView(*firstBuffer, offset, view.Length, idxStride);
 						result->idxAcce = new BufferAccessor(*result->idxView, accessor.FieldType, 0);
 
-						offset += idxLength;
+						offset += view.Length;
 					}
 
 					meshes.emplace_back(result);

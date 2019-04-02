@@ -834,5 +834,11 @@
     <None Include="..\..\..\assets\shaders\Textured.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\..\assets\shaders\TestBox.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\TestBox.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

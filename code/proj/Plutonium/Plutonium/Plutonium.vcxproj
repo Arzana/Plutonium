@@ -393,6 +393,8 @@
   <ItemGroup>
     <None Include="..\..\..\assets\shaders\Image.frag" />
     <None Include="..\..\..\assets\shaders\Image.vert" />
+    <None Include="..\..\..\assets\shaders\TestBox.frag" />
+    <None Include="..\..\..\assets\shaders\TestBox.vert" />
     <None Include="..\..\..\assets\shaders\Textured.vert" />
     <None Include="..\..\..\assets\shaders\VertexColor.frag" />
     <None Include="..\..\..\assets\shaders\Triangle.vert" />

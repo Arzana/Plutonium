@@ -1,8 +1,7 @@
 #include "TestGame.h"
-#include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
-#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Input/Keys.h>
 #include <Content/GLTFParser.h>
+#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 
 using namespace Pu;
 
@@ -49,8 +48,8 @@ void TestGame::Initialize(void)
 	{
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
-		pipeline.SetTopology(PrimitiveTopology::TriangleStrip);
-		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
+		pipeline.SetTopology(PrimitiveTopology::TriangleList);
+		pipeline.AddVertexBinding(0, sizeof(Vector3) * 2);
 		pipeline.Finalize();
 
 		/* Create the framebuffers and the required uniform block. */
@@ -59,7 +58,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}Textured.vert", L"{Shaders}Image.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
+	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}TestBox.vert", L"{Shaders}TestBox.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -67,7 +66,7 @@ void TestGame::Initialize(void)
 		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
 
 		/* Set offset for uv attribute (position is default). */
-		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -84,7 +83,7 @@ void TestGame::LoadContent(void)
 	_CrtLoadGLTF(L"../assets/models/Testing/Box/Box.gltf", file);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), file.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxBuffer = new Buffer(GetDevice(), file.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
 
 	vector<std::reference_wrapper<Buffer>> buffers;
 	buffers.emplace_back(*vrtxBuffer);
@@ -146,7 +145,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Update the descriptor. */
-		transform->SetTexture(pipeline->GetRenderpass().GetUniform("Texture"), *image);
+		//transform->SetTexture(pipeline->GetRenderpass().GetUniform("Texture"), *image);
 	}
 
 	/* Render scene. */
@@ -154,8 +153,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
 	cmdBuffer.BindVertexBuffer(0, *mesh);
+	cmdBuffer.BindIndexBuffer(mesh->GetIndex());
 	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());
-	cmdBuffer.Draw(mesh->GetElementCount(), 1, 0, 0);
+	cmdBuffer.Draw(mesh->GetIndex().GetElementCount(), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 }
