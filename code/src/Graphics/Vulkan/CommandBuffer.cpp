@@ -205,20 +205,24 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferAccessor & accessor)
 	if (CheckIfRecording("bind index buffer"))
 	{
 		IndexType type;
-		switch (accessor.elementType)
+		if (accessor.GetElementType().ContainerType == SizeType::Scalar)
 		{
-		case FieldTypes::UShort:
-			type = IndexType::UInt16;
-			break;
-		case FieldTypes::UInt:
-			type = IndexType::UInt32;
-			break;
-		default:
-			Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", to_string(accessor.elementType));
-			return;
-		}
+			switch (accessor.elementType.ComponentType)
+			{
+			case ComponentType::UShort:
+				type = IndexType::UInt16;
+				break;
+			case ComponentType::UInt:
+				type = IndexType::UInt32;
+				break;
+			default:
+				Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName());
+				return;
+			}
 
-		parent.parent.vkCmdBindIndexBuffer(hndl, accessor.view.buffer.bufferHndl, static_cast<DeviceSize>(accessor.view.offset + accessor.offset), type);
+			parent.parent.vkCmdBindIndexBuffer(hndl, accessor.view.buffer.bufferHndl, static_cast<DeviceSize>(accessor.view.offset + accessor.offset), type);
+		}
+		else Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName());
 	}
 }
 

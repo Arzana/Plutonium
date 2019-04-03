@@ -1,6 +1,6 @@
 #include "Graphics/Resources/BufferAccessor.h"
 
-Pu::BufferAccessor::BufferAccessor(BufferView & view, FieldTypes type, size_t offset)
+Pu::BufferAccessor::BufferAccessor(BufferView & view, const FieldType & type, size_t offset)
 	: view(view), elementType(type), offset(offset)
 {}
 
@@ -27,5 +27,5 @@ Pu::BufferAccessor & Pu::BufferAccessor::operator=(BufferAccessor && other)
 void Pu::BufferAccessor::SetData(const void * data, size_t count)
 {
 	if (count > GetElementCount()) Log::Fatal("Cannot set data on accessor (buffer too small)!");
-	view.SetData(data, offset, sizeof_fieldType(elementType), count);
+	view.SetData(data, offset, elementType.GetSize(), count);
 }

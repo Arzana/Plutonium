@@ -1,6 +1,6 @@
 #pragma once
-#include "FieldTypes.h"
 #include "Decoration.h"
+#include "FieldType.h"
 
 namespace Pu
 {
@@ -13,7 +13,7 @@ namespace Pu
 		/* Specifies the name of the field. */
 		string Name;
 		/* Specifies the data type of the field. */
-		FieldTypes Type;
+		FieldType Type;
 		/* Specifies the amount of array elements in this field (zero indicates no array). */
 		uint32 ArrayElements;
 		/* Specifies how the type is being used by the shader. */
@@ -23,11 +23,11 @@ namespace Pu
 
 		/* Initializes an invalid instance of the fieldinfo object. */
 		FieldInfo(void)
-			: Id(0), Name(), Type(FieldTypes::Invalid), ArrayElements(0), Storage(spv::StorageClass::Max)
+			: Id(0), Name(), Type(), ArrayElements(0), Storage(spv::StorageClass::Max)
 		{}
 		
 		/* Initializes a new instance of the fieldinfo object. */
-		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldTypes type, _In_ spv::StorageClass storage, _In_ const Decoration &decorations)
+		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldType &&type, _In_ spv::StorageClass storage, _In_ const Decoration &decorations)
 			: Id(id), Name(name), Type(type), ArrayElements(0), Storage(storage), Decorations(decorations)
 		{}
 

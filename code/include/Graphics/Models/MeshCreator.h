@@ -26,6 +26,9 @@ namespace Pu
 		static void CreatePyramid(_In_ BufferAccessor *positions, _In_ BufferAccessor *normals, _In_ BufferAccessor *texCoords, _In_ BufferAccessor *tangents, _In_ const Matrix &transform);
 
 	private:
-		static void InvalidAccessor(const BufferAccessor &accessor, FieldTypes requiredType);
+		static FieldType pos3DType;
+		static FieldType texCoordType;
+
+		static void InvalidAccessor(const BufferAccessor &accessor, FieldType requiredType);
 	};
 }

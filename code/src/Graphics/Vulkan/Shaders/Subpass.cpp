@@ -128,7 +128,7 @@ void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass s
 		if (decorations.find(id) != decorations.end())
 		{
 			/* Only handle types with defined names, this should never occur. */
-			fields.emplace_back(id, std::move(names[id]), types[typePointer], storage, decorations[id]);
+			fields.emplace_back(id, std::move(names[id]), std::move(types[typePointer]), storage, decorations[id]);
 		}
 	}
 	/* Handle struct types. */
@@ -139,7 +139,7 @@ void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass s
 		for (size_t i = 0, offset = 0; i < members.size(); i++)
 		{
 			const spv::Id memberTypeId = members[i];
-			const FieldTypes fieldType = types[memberTypeId];
+			FieldType fieldType = types[memberTypeId];
 			string &memberName = memberNames[typePointer][i];
 
 			/* Skip any build in members (defined with 'gl_' prefix). */
@@ -148,11 +148,11 @@ void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass s
 				Decoration memberDecoration(offset);
 				memberDecoration.Merge(decorations[id]);
 
-				fields.emplace_back(memberTypeId, std::move(memberName), fieldType, storage, memberDecoration);
+				fields.emplace_back(memberTypeId, std::move(memberName), std::move(fieldType), storage, memberDecoration);
 			}
 
 			/* Increase the offset. */
-			offset += sizeof_fieldType(fieldType);
+			offset += fieldType.GetSize();
 		}
 	}
 }
@@ -238,6 +238,8 @@ void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
 	Decoration result;
 	switch (decoration)
 	{
+	case (spv::Decoration::Block):			// Used for uniform blocks we don't have to define what is in which block.
+		break;
 	case (spv::Decoration::Location):		// Location decoration stores a single literal number.
 		result.Numbers.emplace(decoration, reader.ReadWord());
 		break;
@@ -270,11 +272,11 @@ void Pu::Subpass::HandleInt(SPIRVReader & reader)
 	const spv::Word width = reader.ReadWord();
 	const bool isSigned = reader.ReadWord();
 
-	FieldTypes intType = FieldTypes::Invalid;
-	if (width == 8) intType = isSigned ? FieldTypes::SByte : FieldTypes::Byte;
-	else if (width == 16) intType = isSigned ? FieldTypes::Short : FieldTypes::UShort;
-	else if (width == 32) intType = isSigned ? FieldTypes::Int : FieldTypes::UInt;
-	else if (width == 64) intType = isSigned ? FieldTypes::Long : FieldTypes::ULong;
+	FieldType intType;
+	if (width == 8) intType.ComponentType = isSigned ? ComponentType::SByte : ComponentType::Byte;
+	else if (width == 16) intType.ComponentType = isSigned ? ComponentType::Short : ComponentType::UShort;
+	else if (width == 32) intType.ComponentType = isSigned ? ComponentType::Int : ComponentType::UInt;
+	else if (width == 64) intType.ComponentType = isSigned ? ComponentType::Long : ComponentType::ULong;
 
 	types.emplace(id, intType);
 }
@@ -284,10 +286,10 @@ void Pu::Subpass::HandleFloat(SPIRVReader & reader)
 	const spv::Id id = reader.ReadWord();
 	const spv::Word width = reader.ReadWord();
 
-	FieldTypes floatType = FieldTypes::Invalid;
-	if (width == 16) floatType = FieldTypes::HalfFloat;
-	else if (width == 32) floatType = FieldTypes::Float;
-	else if (width == 64) floatType = FieldTypes::Double;
+	FieldType floatType;
+	if (width == 16) floatType.ComponentType = ComponentType::HalfFloat;
+	else if (width == 32) floatType.ComponentType = ComponentType::Float;
+	else if (width == 64) floatType.ComponentType = ComponentType::Double;
 
 	types.emplace(id, floatType);
 }
@@ -295,30 +297,40 @@ void Pu::Subpass::HandleFloat(SPIRVReader & reader)
 void Pu::Subpass::HandleVector(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
-	const FieldTypes componentType = types[reader.ReadWord()];
+	const FieldType componentType = types[reader.ReadWord()];
 	const spv::Word componentCnt = reader.ReadWord();
 
-	FieldTypes vectorType = FieldTypes::Invalid;
-	if (componentType == FieldTypes::Float)
-	{
-		if (componentCnt == 2) vectorType = FieldTypes::Vec2;
-		else if (componentCnt == 3) vectorType = FieldTypes::Vec3;
-		else if (componentCnt == 4) vectorType = FieldTypes::Vec4;
-	}
-
-	types.emplace(id, vectorType);
+	SizeType sizeType;
+	if (componentCnt == 2) sizeType = SizeType::Vector2;
+	else if (componentCnt == 3) sizeType = SizeType::Vector3;
+	else if (componentCnt == 4) sizeType = SizeType::Vector4;
+	types.emplace(id, FieldType(componentType.ComponentType, sizeType));
 }
 
 void Pu::Subpass::HandleMatrix(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
-	const FieldTypes columnType = types[reader.ReadWord()];
+	const FieldType columnType = types[reader.ReadWord()];
 	const spv::Word columnCnt = reader.ReadWord();
 
-	FieldTypes matrixType = FieldTypes::Invalid;
-	if (columnType == FieldTypes::Vec4 && columnCnt == 4) matrixType = FieldTypes::Matrix;
-
-	types.emplace(id, matrixType);
+	switch (columnType.ContainerType)
+	{
+	case Pu::SizeType::Vector2:
+		if (columnCnt == 2) types.emplace(id, FieldType(columnType.ComponentType, SizeType::Matrix2));
+		else Log::Warning("Unable to handle non-square matrices!");
+		break;
+	case Pu::SizeType::Vector3:
+		if (columnCnt == 3) types.emplace(id, FieldType(columnType.ComponentType, SizeType::Matrix3));
+		else Log::Warning("Unable to handle non-square matrices!");
+		break;
+	case Pu::SizeType::Vector4:
+		if (columnCnt == 4) types.emplace(id, FieldType(columnType.ComponentType, SizeType::Matrix4));
+		else Log::Warning("Unable to handle non-square matrices!");
+		break;
+	default:
+		Log::Warning("'%s' is invalid for %uD matrix conponent type!", columnType.GetName().c_str(), columnCnt, columnCnt);
+		break;
+	}
 }
 
 void Pu::Subpass::HandleStruct(SPIRVReader & reader, size_t memberCnt)
@@ -337,20 +349,19 @@ void Pu::Subpass::HandleImage(SPIRVReader & reader)
 	const spv::Id id = reader.ReadWord();
 	reader.AdvanceWord();
 
-	FieldTypes imageType = FieldTypes::Invalid;
 	switch (_CrtInt2Enum<spv::Dim>(reader.ReadWord()))
 	{
 	case (spv::Dim::Dim1D):
-		imageType = FieldTypes::Image1D;
+		types.emplace(id, FieldType(ComponentType::Image, SizeType::Scalar));
 		break;
 	case (spv::Dim::Dim2D):
-		imageType = FieldTypes::Image2D;
+		types.emplace(id, FieldType(ComponentType::Image, SizeType::Vector2));
 		break;
 	case (spv::Dim::Dim3D):
-		imageType = FieldTypes::Image3D;
+		types.emplace(id, FieldType(ComponentType::Image, SizeType::Vector3));
 		break;
 	case (spv::Dim::Cube):
-		imageType = FieldTypes::ImageCube;
+		types.emplace(id, FieldType(ComponentType::Image, SizeType::Cube));
 		break;
 	}
 
@@ -363,16 +374,13 @@ void Pu::Subpass::HandleImage(SPIRVReader & reader)
 	format
 	and (optional) access qualifier Because we don't care about them.
 	*/
-
-	types.emplace(id, imageType);
 }
 
 void Pu::Subpass::HandleSampledImage(SPIRVReader & reader)
 {
 	/* Just add the type of the image that's being sampled to the type list. */
 	const spv::Id id = reader.ReadWord();
-	const FieldTypes imgType = types[reader.ReadWord()];
-	types.emplace(id, imgType);
+	types.emplace(id, types[reader.ReadWord()]);
 }
 
 void Pu::Subpass::HandleVariable(SPIRVReader & reader)

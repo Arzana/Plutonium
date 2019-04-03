@@ -30,7 +30,7 @@ namespace Pu
 		/* Gets the size (in bytes) of the uniform (if not aplicable; 0). */
 		_Check_return_ inline DeviceSize GetSize(void) const 
 		{
-			return static_cast<DeviceSize>(sizeof_fieldType(Info.Type));
+			return static_cast<DeviceSize>(Info.Type.GetSize());
 		}
 
 	private:

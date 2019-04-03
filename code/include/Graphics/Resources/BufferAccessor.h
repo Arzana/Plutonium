@@ -1,7 +1,6 @@
 #pragma once
 #include "BufferView.h"
 #include "Content/GLTFLoader.h"
-#include "Graphics/Vulkan/SPIR-V/FieldTypes.h"
 
 namespace Pu
 {
@@ -10,7 +9,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a buffer accessor from a predefined type at a predefined internal offset. */
-		BufferAccessor(_In_ BufferView &view, _In_ FieldTypes type, _In_ size_t offset);
+		BufferAccessor(_In_ BufferView &view, _In_ const FieldType &type, _In_ size_t offset);
 		/* Copy constructor. */
 		BufferAccessor(_In_ const BufferAccessor &value);
 		/* Move constructor. */
@@ -39,7 +38,7 @@ namespace Pu
 		}
 
 		/* Gets the type of the underlying elements. */
-		_Check_return_ inline FieldTypes GetElementType(void) const
+		_Check_return_ inline const FieldType& GetElementType(void) const
 		{
 			return elementType;
 		}
@@ -52,7 +51,7 @@ namespace Pu
 		friend class CommandBuffer;
 
 		BufferView &view;
-		FieldTypes elementType;
+		FieldType elementType;
 		size_t offset;
 	};
 }

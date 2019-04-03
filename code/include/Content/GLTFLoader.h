@@ -1,53 +1,12 @@
 #pragma once
 #include <map>
-#include "Core/String.h"
 #include "Graphics/Color.h"
 #include "Core/Math/Matrix.h"
 #include "Core/Math/Interpolation.h"
-#include "Graphics/Vulkan/SPIR-V/FieldTypes.h"
+#include "Graphics/Vulkan/SPIR-V/FieldType.h"
 
 namespace Pu
 {
-	/* Defines the component type of a buffer value. */
-	enum class GLTFComponentType
-	{
-		/* Signed byte. */
-		Int8 = 5120,
-		/* Unsigned byte. */
-		UInt8 = 5121,
-		/* Short. */
-		Int16 = 5122,
-		/* Unsigned short. */
-		UInt16 = 5123,
-		/* Int. */
-		Int32 = 5124,
-		/* Unsigned int. */
-		UInt32 = 5125,
-		/* Float. */
-		Float = 5126,
-		/* Double. */
-		Double = 5130
-	};
-
-	/* Defines the type of a buffer value. */
-	enum class GLTFType
-	{
-		/* 2D vector. */
-		Vector2 = 2,
-		/* 3D vector. */
-		Vector3 = 3,
-		/* 4D vector. */
-		Vector4 = 4,
-		/* 2x2 matrix. */
-		Matrix2 = 34,
-		/* 3x3 matrix. */
-		Matrix3 = 35,
-		/* 4x4 matrix. */
-		Matrix4 = 36,
-		/* Single scalar value. */
-		Scalar = 65
-	};
-
 	/* Defines the types of render modes that a GLTF primitive can have. */
 	enum class GLTFMode
 	{
@@ -172,16 +131,12 @@ namespace Pu
 		size_t Start;
 		/* The amount of elements that belong to this accessor. */
 		size_t Count;
-		/* The compacted type of the accessor. */
-		FieldTypes FieldType;
+		/* The type of the accessor. */
+		FieldType FieldType;
 		/* The minimum value of the type. */
 		vector<double> Minimum;
 		/* The maximum value of the type. */
 		vector<double> Maximum;
-		/* The type of the elements. */
-		GLTFType Type;
-		/* The underlying types of the elements. */
-		GLTFComponentType ComponentType;
 	};
 
 	/* Defines the information about the buffers data. */

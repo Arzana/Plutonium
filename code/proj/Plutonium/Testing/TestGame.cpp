@@ -49,7 +49,7 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleList);
-		pipeline.AddVertexBinding(0, sizeof(Vector3) * 2);
+		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
 		pipeline.Finalize();
 
 		/* Create the framebuffers and the required uniform block. */
@@ -58,7 +58,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}TestBox.vert", L"{Shaders}TestBox.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
+	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}SkinnedAnimated.vert", L"{Shaders}SkinnedAnimated.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
 		Output &fragColor = renderpass.GetOutput("FragColor");
@@ -67,6 +67,9 @@ void TestGame::Initialize(void)
 
 		/* Set offset for uv attribute (position is default). */
 		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		renderpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
+		renderpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -80,7 +83,7 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	GLTFFile file;
-	_CrtLoadGLTF(L"../assets/models/Testing/Box/Box.gltf", file);
+	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", file);
 
 	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
 	vrtxBuffer = new Buffer(GetDevice(), file.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
@@ -95,7 +98,7 @@ void TestGame::LoadContent(void)
 	mesh = meshes[0];
 
 	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(L"{Textures}Uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	image = &GetContent().FetchTexture2D(file.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
 }
 
 void TestGame::UnLoadContent(void)
@@ -145,7 +148,7 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Update the descriptor. */
-		//transform->SetTexture(pipeline->GetRenderpass().GetUniform("Texture"), *image);
+		transform->SetTexture(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
 	}
 
 	/* Render scene. */

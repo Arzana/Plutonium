@@ -1,12 +1,15 @@
 #include "Graphics/Models/MeshCreator.h"
 #include "Core/Diagnostics/NotImplementedException.h"
 
+Pu::FieldType Pu::MeshCreator::texCoordType = Pu::FieldType(Pu::ComponentType::Float, Pu::SizeType::Vector2);
+Pu::FieldType Pu::MeshCreator::pos3DType = Pu::FieldType(Pu::ComponentType::Float, Pu::SizeType::Vector3);
+
 void Pu::MeshCreator::CreateRectangle(BufferAccessor * positions, BufferAccessor * texCoords, const Matrix & transform)
 {
 	/* Only attempt to set the positions if a valid accessor is specified. */
 	if (positions)
 	{
-		if (positions->GetElementType() == FieldTypes::Vec2)
+		if (positions->GetElementType() == pos3DType)
 		{
 			/* Convert the positions using the transform and convert back to 2D. */
 			static Vector2 data[] =
@@ -19,13 +22,13 @@ void Pu::MeshCreator::CreateRectangle(BufferAccessor * positions, BufferAccessor
 
 			positions->SetData(positions, 4);
 		}
-		else InvalidAccessor(*positions, FieldTypes::Vec2);
+		else InvalidAccessor(*positions, pos3DType);
 	}
 
 	/* Only attempt to set the texture coordinates if a valid accessor is specified. */
 	if (texCoords)
 	{
-		if (texCoords->GetElementType() == FieldTypes::Vec2)
+		if (texCoords->GetElementType() == texCoordType)
 		{
 			/* Texture coordinates don't change with transformation so just keep them as raw data. */
 			static Vector2 data[] =
@@ -38,7 +41,7 @@ void Pu::MeshCreator::CreateRectangle(BufferAccessor * positions, BufferAccessor
 
 			texCoords->SetData(data, 4);
 		}
-		else InvalidAccessor(*texCoords, FieldTypes::Vec2);
+		else InvalidAccessor(*texCoords, texCoordType);
 	}
 }
 
@@ -52,7 +55,7 @@ void Pu::MeshCreator::CreateBox(BufferAccessor * positions, BufferAccessor * /*n
 	/* Only attempt to set the positions if a valid accessor is specified. */
 	if (positions)
 	{
-		if (positions->GetElementType() == FieldTypes::Vec3)
+		if (positions->GetElementType() == pos3DType)
 		{
 			static Vector3 data[] =
 			{
@@ -96,6 +99,7 @@ void Pu::MeshCreator::CreateBox(BufferAccessor * positions, BufferAccessor * /*n
 
 			positions->SetData(data, 36);
 		}
+		else InvalidAccessor(*positions, pos3DType);
 	}
 }
 
@@ -109,7 +113,7 @@ void Pu::MeshCreator::CreatePyramid(BufferAccessor * /*positions*/, BufferAccess
 	throw NotImplementedException(typeid(MeshCreator::CreatePyramid));
 }
 
-void Pu::MeshCreator::InvalidAccessor(const BufferAccessor & accessor, FieldTypes requiredType)
+void Pu::MeshCreator::InvalidAccessor(const BufferAccessor & accessor, FieldType requiredType)
 {
-	Log::Fatal("Attempting to pass '%s' accessor as '%s' accessor!", to_string(accessor.GetElementType()), to_string(requiredType));
+	Log::Fatal("Attempting to pass '%s' accessor as '%s' accessor!", accessor.GetElementType().GetName().c_str(), requiredType.GetName().c_str());
 }

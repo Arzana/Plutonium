@@ -339,9 +339,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIRV.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldTypes.h">
-      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
@@ -545,6 +542,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Content\Patern.h">
       <Filter>Header Files\Content</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldType.h">
+      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -773,6 +773,9 @@
     <ClCompile Include="..\..\..\src\Content\Patern.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\FieldType.cpp">
+      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -834,10 +837,10 @@
     <None Include="..\..\..\assets\shaders\Textured.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\TestBox.vert">
+    <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\TestBox.frag">
+    <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

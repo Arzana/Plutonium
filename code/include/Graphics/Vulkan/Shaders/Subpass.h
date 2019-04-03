@@ -92,7 +92,7 @@ namespace Pu
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, vector<string>> memberNames;
 		std::map<spv::Id, spv::Id> typedefs;
-		std::map<spv::Id, FieldTypes> types;
+		std::map<spv::Id, FieldType> types;
 		std::map<spv::Id, vector<spv::Id>> structs;
 		std::map<spv::Id, Decoration> decorations;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;

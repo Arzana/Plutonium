@@ -7,18 +7,14 @@ Pu::Uniform::Uniform(const FieldInfo & data, ShaderStageFlag stage)
 	layoutBinding.StageFlags = stage;
 	layoutBinding.DescriptorCount = max(1u, Info.ArrayElements);
 
-	switch (Info.Type)
+	if (Info.Type.ComponentType == ComponentType::Image)
 	{
-	case (FieldTypes::Image1D):
-	case (FieldTypes::Image2D):
-	case (FieldTypes::Image3D):
-	case (FieldTypes::ImageCube):
-		// GLSL restrics us to only use combined descriptors.
+		/* GLSL restrics us to only use combined descriptors. */
 		layoutBinding.DescriptorType = DescriptorType::CombinedImageSampler;
-		break;
-	default: 
-		// Assume uniform buffer for other types as it's most used.
+	}
+	else
+	{
+		/* Assume uniform buffer for other types as it's most used. */
 		layoutBinding.DescriptorType = DescriptorType::UniformBuffer;
-		break;
 	}
 }

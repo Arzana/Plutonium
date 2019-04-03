@@ -681,67 +681,6 @@ namespace Pu
 		}
 	}
 
-	/* Converts from the raw types to a Vulkan acceptable type. */
-	void FinalizeAccessor(GLTFAccessor &accessor)
-	{
-		if (accessor.Type == GLTFType::Scalar)
-		{
-			switch (accessor.ComponentType)
-			{
-			case Pu::GLTFComponentType::Int8:
-				accessor.FieldType = FieldTypes::SByte;
-				break;
-			case Pu::GLTFComponentType::UInt8:
-				accessor.FieldType = FieldTypes::Byte;
-				break;
-			case Pu::GLTFComponentType::Int16:
-				accessor.FieldType = FieldTypes::Short;
-				break;
-			case Pu::GLTFComponentType::UInt16:
-				accessor.FieldType = FieldTypes::UShort;
-				break;
-			case Pu::GLTFComponentType::Int32:
-				accessor.FieldType = FieldTypes::Int;
-				break;
-			case Pu::GLTFComponentType::UInt32:
-				accessor.FieldType = FieldTypes::UInt;
-				break;
-			case Pu::GLTFComponentType::Float:
-				accessor.FieldType = FieldTypes::Float;
-				break;
-			case Pu::GLTFComponentType::Double:
-				accessor.FieldType = FieldTypes::Double;
-				break;
-			default:
-				accessor.FieldType = FieldTypes::Invalid;
-				break;
-			}
-		}
-		else if (accessor.Type == GLTFType::Vector2)
-		{
-			if (accessor.ComponentType == GLTFComponentType::UInt8) accessor.FieldType = FieldTypes::BVec2;
-			else if (accessor.ComponentType == GLTFComponentType::UInt16) accessor.FieldType = FieldTypes::IVec2;
-			else if (accessor.ComponentType == GLTFComponentType::Float) accessor.FieldType = FieldTypes::Vec2;
-			else accessor.FieldType = FieldTypes::Invalid;
-		}
-		else if (accessor.Type == GLTFType::Vector3)
-		{
-			if (accessor.ComponentType == GLTFComponentType::UInt8) accessor.FieldType = FieldTypes::BVec3;
-			else if (accessor.ComponentType == GLTFComponentType::UInt16) accessor.FieldType = FieldTypes::IVec3;
-			else if (accessor.ComponentType == GLTFComponentType::Float) accessor.FieldType = FieldTypes::Vec3;
-			else accessor.FieldType = FieldTypes::Invalid;
-		}
-		else if (accessor.Type == GLTFType::Vector4)
-		{
-			if (accessor.ComponentType == GLTFComponentType::UInt8) accessor.FieldType = FieldTypes::BVec4;
-			else if (accessor.ComponentType == GLTFComponentType::UInt16) accessor.FieldType = FieldTypes::IVec4;
-			else if (accessor.ComponentType == GLTFComponentType::Float) accessor.FieldType = FieldTypes::Vec4;
-			else accessor.FieldType = FieldTypes::Invalid;
-		}
-		else if (accessor.Type == GLTFType::Matrix4 && accessor.ComponentType == GLTFComponentType::Float) accessor.FieldType = FieldTypes::Matrix;
-		else accessor.FieldType = FieldTypes::Invalid;
-	}
-
 	void HandleJsonAccessors(const json &accessors, GLTFFile &file)
 	{
 		CHECK_IF_ARRAY(accessors);
@@ -790,21 +729,20 @@ namespace Pu
 				{
 					if (val.is_string())
 					{
-						/* Convert from string to enum for faster checking later. */
+						/* Convert from string to enum for faster checking later (SCALAR needs no checking because it's the default). */
 						const string type = string(val).toUpper();
-						if (type == "SCALAR") accessor.Type = GLTFType::Scalar;
-						else if (type == "VEC2") accessor.Type = GLTFType::Vector2;
-						else if (type == "VEC3") accessor.Type = GLTFType::Vector3;
-						else if (type == "VEC4") accessor.Type = GLTFType::Vector4;
-						else if (type == "MAT2") accessor.Type = GLTFType::Matrix2;
-						else if (type == "MAT3") accessor.Type = GLTFType::Matrix3;
-						else if (type == "MAT4") accessor.Type = GLTFType::Matrix4;
+						if (type == "VEC2") accessor.FieldType.ContainerType = SizeType::Vector2;
+						else if (type == "VEC3") accessor.FieldType.ContainerType = SizeType::Vector3;
+						else if (type == "VEC4") accessor.FieldType.ContainerType = SizeType::Vector4;
+						else if (type == "MAT2") accessor.FieldType.ContainerType = SizeType::Matrix2;
+						else if (type == "MAT3") accessor.FieldType.ContainerType = SizeType::Matrix3;
+						else if (type == "MAT4") accessor.FieldType.ContainerType = SizeType::Matrix4;
 					}
 					else LogCorruptJsonHeader("accessor type isn't a string");
 				}
 				else if (upperKey == "COMPONENTTYPE")
 				{
-					if (val.is_number_unsigned()) accessor.ComponentType = static_cast<GLTFComponentType>(val);
+					if (val.is_number_unsigned()) accessor.FieldType.ComponentType = static_cast<ComponentType>(val);
 					else LogCorruptJsonHeader("accessor component type isn't valid");
 				}
 				else if (upperKey == "MAX")
@@ -835,7 +773,6 @@ namespace Pu
 				}
 			}
 
-			FinalizeAccessor(accessor);
 			file.Accessors.emplace_back(accessor);
 		}
 	}

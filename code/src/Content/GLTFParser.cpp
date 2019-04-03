@@ -5,7 +5,7 @@
 					if (LoadMeshPrimitive(copy, bufferData, offset + internalOffset, stride, type, file, primitive, attr))						\
 					{																															\
 						ptr = new BufferAccessor(*result, type, internalOffset);																\
-						internalOffset += sizeof_fieldType(type);																				\
+						internalOffset += type.GetSize();																						\
 					}
 
 namespace Pu
@@ -57,7 +57,7 @@ namespace Pu
 	}
 
 	/* Moves a single mesh primitive attribute across buffers. */
-	bool LoadMeshPrimitive(byte **source, byte **destination, size_t offset, size_t stride, FieldTypes &accessorType, const GLTFFile &file, const GLTFPrimitive &primitive, GLTFPrimitiveAttribute type)
+	bool LoadMeshPrimitive(byte **source, byte **destination, size_t offset, size_t stride, FieldType &accessorType, const GLTFFile &file, const GLTFPrimitive &primitive, GLTFPrimitiveAttribute type)
 	{
 		/* Check if the primitive attribute is present. */
 		size_t idx;
@@ -68,7 +68,7 @@ namespace Pu
 			const GLTFBufferView &view = file.BufferViews[accessor.BufferView];
 
 			/* Copy the data. */
-			for (size_t i = 0, j = view.Start + accessor.Start, fieldStride = sizeof_fieldType(accessor.FieldType); i < accessor.Count; i++, j += fieldStride, offset += stride)
+			for (size_t i = 0, j = view.Start + accessor.Start, fieldStride = accessor.FieldType.GetSize(); i < accessor.Count; i++, j += fieldStride, offset += stride)
 			{
 				memcpy(destination[view.Buffer] + offset, source[view.Buffer] + j, fieldStride);
 			}
@@ -116,7 +116,7 @@ namespace Pu
 					}
 
 					/* Calculate the size this attribute will take in the buffer. */
-					const size_t accessorStride = sizeof_fieldType(accessor.FieldType);
+					const size_t accessorStride = accessor.FieldType.GetSize();
 					size += accessor.Count * accessorStride;
 					stride += accessorStride;
 				}
@@ -124,7 +124,7 @@ namespace Pu
 				/* Create the resulting mesh structure. */
 				if (firstBuffer)
 				{
-					FieldTypes type;
+					FieldType type;
 					size_t internalOffset = 0;
 
 					Mesh *result = new Mesh(*firstBuffer, offset, size, stride, GLTFMode2Topology(primitive.Mode));
@@ -145,7 +145,7 @@ namespace Pu
 					{
 						const GLTFAccessor &accessor = file.Accessors[primitive.Indices];
 						const GLTFBufferView &view = file.BufferViews[accessor.BufferView];
-						const size_t idxStride = sizeof_fieldType(accessor.FieldType);
+						const size_t idxStride = accessor.FieldType.GetSize();
 						
 						vector<uint16> indices;
 						memcpy(bufferData[view.Buffer] + offset, copy[view.Buffer] + view.Start + accessor.Start, view.Length);

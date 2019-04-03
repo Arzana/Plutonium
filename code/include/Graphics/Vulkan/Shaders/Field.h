@@ -21,11 +21,11 @@ namespace Pu
 		{}
 
 		/* Checks if the specified type is accepted as input to the fields type. */
-		_Check_return_ inline bool CheckInput(_In_ FieldTypes type) const
+		_Check_return_ inline bool CheckInput(_In_ FieldType type) const
 		{
 			if (Info.Type != type)
 			{
-				Log::Error("Cannot set field %s %s with %s value!", to_string(Info.Type), Info.Name.c_str(), to_string(type));
+				Log::Error("Cannot set field %s %s with %s value!", Info.Type.GetName().c_str(), Info.Name.c_str(), type.GetName().c_str());
 				return false;
 			}
 
