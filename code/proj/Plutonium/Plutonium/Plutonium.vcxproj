@@ -214,6 +214,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector4.h" />
+    <ClInclude Include="..\..\..\include\Core\Platform\DynamicLibLoader.h" />
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryFetcher.h" />
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\Windows.h" />
     <ClInclude Include="..\..\..\include\Core\String.h" />
@@ -323,6 +324,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Platform\DynamicLibLoader.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp" />

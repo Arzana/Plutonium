@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Platform/Windows/Windows.h"
+#include "Core/Platform/DynamicLibLoader.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "VulkanFunctions.h"
@@ -12,61 +12,53 @@
 
 namespace Pu
 {
+	/* Defines the global loader for Vulkan functions. */
 	class VulkanLoader
+		: private DynamicLibLoader
 	{
 	public:
 		VulkanLoader(_In_ const VulkanLoader &) = delete;
 		VulkanLoader(_In_ VulkanLoader &&) = delete;
-		/* Releases the Vulkan library dll. */
-		~VulkanLoader(void) noexcept
-		{
-			if (libHndl)
-			{
-#ifdef _WIN32
-				FreeLibrary(libHndl);
-#endif
-			}
-		}
 
 		_Check_return_ VulkanLoader& operator =(_In_ const VulkanLoader &) = delete;
 		_Check_return_ VulkanLoader& operator =(_In_ VulkanLoader &&) = delete;
 
 		/* Retrieves the address of an exported Vulkan function. */
-		template <typename _ProcTy>
-		_Check_return_ static _ProcTy LoadExportProc(_In_ const char *name)
+		template <typename proc_t>
+		_Check_return_ static proc_t LoadExportProc(_In_ const char *name)
 		{
-			const _ProcTy proc = reinterpret_cast<_ProcTy>(GetProcAddress(GetInstance().libHndl, name));
+			const proc_t proc = GetInstance().LoadProc<proc_t>(name);
 			if (!proc) Log::Error("Unable to load Vulkan export procedure '%s'!", name);
 			return proc;
 		}
 
 		/* Retrieves the address of an global instance level Vulkan function. */
-		template <typename _ProcTy>
-		_Check_return_ static _ProcTy LoadGlobalProc(_In_ const char *name)
+		template <typename proc_t>
+		_Check_return_ static proc_t LoadGlobalProc(_In_ const char *name)
 		{
-			const _ProcTy proc = reinterpret_cast<_ProcTy>(GetInstance().vkGetInstanceProcAddr(nullptr, name));
+			const proc_t proc = reinterpret_cast<proc_t>(GetInstance().vkGetInstanceProcAddr(nullptr, name));
 			if (!proc) Log::Error("Unable to load Vulkan instance global procedure '%s'!", name);
 			return proc;
 		}
 
 		/* Retrieves the address of an instance level Vulkan function. */
-		template <typename _ProcTy>
-		_Check_return_ static _ProcTy LoadInstanceProc(_In_ InstanceHndl hndl, _In_ const char *name)
+		template <typename proc_t>
+		_Check_return_ static proc_t LoadInstanceProc(_In_ InstanceHndl hndl, _In_ const char *name)
 		{
-			const _ProcTy proc = reinterpret_cast<_ProcTy>(GetInstance().vkGetInstanceProcAddr(hndl, name));
+			const proc_t proc = reinterpret_cast<proc_t>(GetInstance().vkGetInstanceProcAddr(hndl, name));
 			if (!proc) Log::Error("Unable to load Vulkan instance procedure '%s'!", name);
 			return proc;
 		}
 
 		/* Retrieves the address of a device level Vulkan function. */
-		template <typename _ProcTy>
-		_Check_return_ static _ProcTy LoadDeviceProc(_In_ InstanceHndl instance, _In_ DeviceHndl hndl, _In_ const char *name)
+		template <typename proc_t>
+		_Check_return_ static proc_t LoadDeviceProc(_In_ InstanceHndl instance, _In_ DeviceHndl hndl, _In_ const char *name)
 		{
 			const VulkanLoader &loader = GetInstance();
 			std::map<InstanceHndl, PFN_vkGetDeviceProcAddr>::const_iterator it = loader.vkGetDeviceProcAddr.find(instance);
 			if (it != loader.vkGetDeviceProcAddr.end())
 			{
-				const _ProcTy proc = reinterpret_cast<_ProcTy>(it->second(hndl, name));
+				const proc_t proc = reinterpret_cast<proc_t>(it->second(hndl, name));
 				if (!proc) Log::Error("Unable to load Vulkan device procedure '%s'!", name);
 				return proc;
 			}
@@ -86,19 +78,13 @@ namespace Pu
 		PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
 		std::map<InstanceHndl, PFN_vkGetDeviceProcAddr> vkGetDeviceProcAddr;
 
-#ifdef _WIN32
-		HMODULE libHndl;
-
 		VulkanLoader(void)
-			: libHndl(LoadLibrary(L"vulkan-1.dll"))
+			: DynamicLibLoader(L"vulkan-1.dll")
 		{
 			/* Check if the vulkan dll was loaded correctly. */
-			if (libHndl) LoadProcAddr(); 
+			if (IsUsable()) LoadProcAddr(); 
 			else Log::Fatal("Unable to load dynamic Vulkan link library, reason: '%ls'!", _CrtGetErrorString().c_str());
 		}
-#else
-#error "Plutonium Vulkan loader currently doesn't work on this platform!"
-#endif
 
 		static inline VulkanLoader& GetInstance(void)
 		{
@@ -109,7 +95,7 @@ namespace Pu
 		void LoadProcAddr()
 		{
 			/* Load the Vulkan procedure loading function, this is done inline to avoid a deadlock in the ctor. */
-			vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetProcAddress(libHndl, "vkGetInstanceProcAddr"));
+			vkGetInstanceProcAddr = LoadProc<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 			if (!vkGetInstanceProcAddr) Log::Fatal("Unable to load vital function vkGetInstanceProcAddr!");
 		}
 

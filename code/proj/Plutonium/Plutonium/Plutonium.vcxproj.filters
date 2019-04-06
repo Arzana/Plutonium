@@ -546,6 +546,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldType.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Platform\DynamicLibLoader.h">
+      <Filter>Header Files\Core\Platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -775,6 +778,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\FieldType.cpp">
       <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Platform\DynamicLibLoader.cpp">
+      <Filter>Source Files\Core\Platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

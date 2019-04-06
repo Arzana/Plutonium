@@ -115,7 +115,6 @@ void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, 
 	{
 		if (hndl == mouses[i].Hndl)
 		{
-			Log::Message("Removed HID cursor '%ls'.", mouses[i].Name.c_str());
 			mouses.removeAt(i);
 			return;
 		}
@@ -126,7 +125,6 @@ void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, 
 	{
 		if (hndl == keyboards[i].Hndl)
 		{
-			Log::Message("Removed HID keyboard '%ls'.", keyboards[i].Name.c_str());
 			keyboards.removeAt(i);
 			return;
 		}
@@ -180,8 +178,6 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 		mouses[i].Moved.Add(AnyMouse.Moved, &EventBus<const Mouse, Vector2>::Post);
 		mouses[i].Button.Add(AnyMouse.Button, &EventBus<const Mouse, ButtonEventArgs>::Post);
 		mouses[i].Scrolled.Add(AnyMouse.Scrolled, &EventBus<const Mouse, int16>::Post);
-
-		Log::Message("Added HID cursor '%ls'.", name.c_str());
 	}
 	else if (info.dwType == RIM_TYPEKEYBOARD)
 	{
@@ -192,8 +188,6 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 		/* Add the any keyboard handles to the new keyboard, cannot be done directly cause then we needed a move assignment operator. */
 		keyboards[i].KeyDown.Add(AnyKeyboard.KeyDown, &EventBus<const Keyboard, uint16>::Post);
 		keyboards[i].KeyUp.Add(AnyKeyboard.KeyUp, &EventBus<const Keyboard, uint16>::Post);
-
-		Log::Message("Added HID keyboard '%ls'.", name.c_str());
 	}
 	else if (info.dwType == RIM_TYPEHID)
 	{
