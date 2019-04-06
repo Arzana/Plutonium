@@ -2,6 +2,7 @@
 #include <Input/Keys.h>
 #include <Content/GLTFParser.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
+#include <Graphics/Textures/DepthBuffer.h>
 
 using namespace Pu;
 
@@ -41,6 +42,7 @@ void TestGame::Initialize(void)
 	};
 
 	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
+	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice());
@@ -49,11 +51,12 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleList);
+		pipeline.SetDepthStencilMode(true, true, false);
 		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
 		pipeline.Finalize();
 
 		/* Create the framebuffers and the required uniform block. */
-		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass());
+		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView()});
 		transform = new TransformBlock(GetDevice(), pipeline);
 	};
 
@@ -61,9 +64,10 @@ void TestGame::Initialize(void)
 	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}SkinnedAnimated.vert", L"{Shaders}SkinnedAnimated.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
-		Output &fragColor = renderpass.GetOutput("FragColor");
-		fragColor.SetDescription(GetWindow().GetSwapchain());
-		fragColor.SetLayout(ImageLayout::ColorAttachmentOptimal);
+		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+
+		/* Set the description and layout of the depth buffer. */
+		renderpass.AddDepthStencil().SetDescription(*depthBuffer);
 
 		/* Set offset for uv attribute (position is default). */
 		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
@@ -116,6 +120,7 @@ void TestGame::Finalize(void)
 
 	delete transform;
 	delete pipeline;
+	delete depthBuffer;
 }
 
 void TestGame::Update(float)
@@ -139,6 +144,9 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		/* Wait for the graphics pipeline to be usable. */
 		if (!image->IsUsable()) return;
 		firstRender = false;
+
+		/* Initialize the depth buffer for writing. */
+		depthBuffer->MakeWritable(cmdBuffer);
 
 		/* Copy quad to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);

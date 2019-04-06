@@ -320,6 +320,8 @@ namespace Pu
 #pragma region MISCELLANEOUS
 		B10G11R11_UFLOAT_PACK32 = 122,
 		E5B9G9R9_UFLOAT_PACK32 = 123,
+#pragma endregion
+#pragma region Depth Stencil
 		D16_UNORM = 124,
 		X8_D24_UNORM_PACK32 = 125,
 		D32_SFLOAT = 126,
@@ -359,34 +361,34 @@ namespace Pu
 		EAC_R11G11_SNORM_BLOCK = 156,
 #pragma endregion
 #pragma region ASTC COMPRESSED
-			ASTC_4x4_UNORM_BLOCK = 157,
-			ASTC_4x4_SRGB_BLOCK = 158,
-			ASTC_5x4_UNORM_BLOCK = 159,
-			ASTC_5x4_SRGB_BLOCK = 160,
-			ASTC_5x5_UNORM_BLOCK = 161,
-			ASTC_5x5_SRGB_BLOCK = 162,
-			ASTC_6x5_UNORM_BLOCK = 163,
-			ASTC_6x5_SRGB_BLOCK = 164,
-			ASTC_6x6_UNORM_BLOCK = 165,
-			ASTC_6x6_SRGB_BLOCK = 166,
-			ASTC_8x5_UNORM_BLOCK = 167,
-			ASTC_8x5_SRGB_BLOCK = 168,
-			ASTC_8x6_UNORM_BLOCK = 169,
-			ASTC_8x6_SRGB_BLOCK = 170,
-			ASTC_8x8_UNORM_BLOCK = 171,
-			ASTC_8x8_SRGB_BLOCK = 172,
-			ASTC_10x5_UNORM_BLOCK = 173,
-			ASTC_10x5_SRGB_BLOCK = 174,
-			ASTC_10x6_UNORM_BLOCK = 175,
-			ASTC_10x6_SRGB_BLOCK = 176,
-			ASTC_10x8_UNORM_BLOCK = 177,
-			ASTC_10x8_SRGB_BLOCK = 178,
-			ASTC_10x10_UNORM_BLOCK = 179,
-			ASTC_10x10_SRGB_BLOCK = 180,
-			ASTC_12x10_UNORM_BLOCK = 181,
-			ASTC_12x10_SRGB_BLOCK = 182,
-			ASTC_12x12_UNORM_BLOCK = 183,
-			ASTC_12x12_SRGB_BLOCK = 184,
+		ASTC_4x4_UNORM_BLOCK = 157,
+		ASTC_4x4_SRGB_BLOCK = 158,
+		ASTC_5x4_UNORM_BLOCK = 159,
+		ASTC_5x4_SRGB_BLOCK = 160,
+		ASTC_5x5_UNORM_BLOCK = 161,
+		ASTC_5x5_SRGB_BLOCK = 162,
+		ASTC_6x5_UNORM_BLOCK = 163,
+		ASTC_6x5_SRGB_BLOCK = 164,
+		ASTC_6x6_UNORM_BLOCK = 165,
+		ASTC_6x6_SRGB_BLOCK = 166,
+		ASTC_8x5_UNORM_BLOCK = 167,
+		ASTC_8x5_SRGB_BLOCK = 168,
+		ASTC_8x6_UNORM_BLOCK = 169,
+		ASTC_8x6_SRGB_BLOCK = 170,
+		ASTC_8x8_UNORM_BLOCK = 171,
+		ASTC_8x8_SRGB_BLOCK = 172,
+		ASTC_10x5_UNORM_BLOCK = 173,
+		ASTC_10x5_SRGB_BLOCK = 174,
+		ASTC_10x6_UNORM_BLOCK = 175,
+		ASTC_10x6_SRGB_BLOCK = 176,
+		ASTC_10x8_UNORM_BLOCK = 177,
+		ASTC_10x8_SRGB_BLOCK = 178,
+		ASTC_10x10_UNORM_BLOCK = 179,
+		ASTC_10x10_SRGB_BLOCK = 180,
+		ASTC_12x10_UNORM_BLOCK = 181,
+		ASTC_12x10_SRGB_BLOCK = 182,
+		ASTC_12x12_UNORM_BLOCK = 183,
+		ASTC_12x12_SRGB_BLOCK = 184,
 #pragma endregion
 	};
 
@@ -1257,6 +1259,8 @@ namespace Pu
 		DepthStencilAttachmentRead = 0x00000200,
 		/* Specifies write access to a depth/stencil attachment. */
 		DepthStencilAttachmentWrite = 0x00000400,
+		/* Specifies read and write access to the depth/stencil attachment. */
+		DepthStencilAttachmentReadWrite = DepthStencilAttachmentRead | DepthStencilAttachmentWrite,
 		/* Specifies read access to an image or buffer in a copy operation. */
 		TransferRead = 0x00000800,
 		/* Specifies write access to an image or buffer in a clear or copy operation. */
@@ -1449,11 +1453,11 @@ namespace Pu
 		/* Indicates a potential non-optimal use of Vulkan. */
 		Performance = 0x00000004,
 		/* All flags are set. */
-		All = General | Validation| Performance,
+		All = General | Validation | Performance,
 	};
 
 	/* Defines handler types in Vulkan. */
-	enum class ObjectType 
+	enum class ObjectType
 	{
 		Unknown = 0,
 		Instance = 1,
@@ -1511,6 +1515,12 @@ namespace Pu
 
 	/* Appends the flag bits of an buffer usage flag. */
 	_Check_return_ inline BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an image aspect flag. */
+	_Check_return_ inline ImageAspectFlag operator |(_In_ ImageAspectFlag a, _In_ ImageAspectFlag b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}

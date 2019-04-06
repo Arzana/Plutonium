@@ -1,6 +1,6 @@
 #pragma once
-#include "Graphics/Vulkan/VulkanObjects.h"
 #include "Graphics/Vulkan/Swapchain.h"
+#include "Graphics/Textures/DepthBuffer.h"
 #include "Field.h"
 #include "OutputUsage.h"
 
@@ -32,6 +32,8 @@ namespace Pu
 
 		/* Sets the output to the specified swapchain format. */
 		void SetDescription(_In_ const Swapchain &swapchain);
+		/* Sets the output to the specified depth buffer format. */
+		void SetDescription(_In_ const DepthBuffer &depthBuffer);
 
 	private:
 		friend class Renderpass;
@@ -43,6 +45,6 @@ namespace Pu
 		AttachmentReference reference;
 		AttachmentDescription description;
 
-		Output(const FieldInfo &data, uint32 attachment);
+		Output(const FieldInfo &data, uint32 attachment, OutputUsage type);
 	};
 }

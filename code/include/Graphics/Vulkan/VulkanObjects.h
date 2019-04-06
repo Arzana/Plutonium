@@ -1312,13 +1312,13 @@ namespace Pu
 
 		/* Initializes an empty instance of the image view create info object. */
 		ImageViewCreateInfo(void)
-			: ImageViewCreateInfo(nullptr, ImageViewType::Image2D, Format::Undefined)
+			: ImageViewCreateInfo(nullptr, ImageViewType::Image2D, Format::Undefined, ImageAspectFlag::Color)
 		{}
 
 		/* Initializes a new instance of an image view create info object. */
-		ImageViewCreateInfo(_In_ ImageHndl image, _In_ ImageViewType type, _In_ Pu::Format format)
+		ImageViewCreateInfo(_In_ ImageHndl image, _In_ ImageViewType type, _In_ Pu::Format format, _In_ ImageAspectFlag aspect)
 			: Type(StructureType::ImageViewCreateInfo), Next(nullptr), Flags(0),
-			Image(image), ViewType(type), Format(format), Components(), SubresourceRange()
+			Image(image), ViewType(type), Format(format), Components(), SubresourceRange(aspect)
 		{}
 	};
 
@@ -2085,14 +2085,11 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a graphics pipeline create info object. */
-		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ const PipelineVertexInputStateCreateInfo &vertexInput, 
-			_In_ const PipelineInputAssemblyStateCreateInfo &inputAssembly, _In_ const PipelineViewportStateCreateInfo &viewport, 
-			_In_ const PipelineRasterizationStateCreateInfo &rasterization, _In_ const PipelineMultisampleStateCreateInfo &multisample,
-			_In_ const PipelineColorBlendStateCreateInfo &colorBlend, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
+		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
 			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
-			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(&vertexInput),
-			InputAssemblyState(&inputAssembly), ViewportState(&viewport), TessellationState(nullptr), RasterizationState(&rasterization), 
-			MultisampleState(&multisample), DepthStencilState(nullptr), ColorBlendState(&colorBlend), DynamicState(nullptr),
+			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(nullptr),
+			InputAssemblyState(nullptr), ViewportState(nullptr), TessellationState(nullptr), RasterizationState(nullptr), 
+			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
 			Layout(layout), Renderpass(renderpass), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
 	};
@@ -2842,10 +2839,10 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a descriptor set write operation parameters object as an buffer write operation. */
-		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const DescriptorBufferInfo &info, _In_ uint32 descriptorCount)
+		WriteDescriptorSet(_In_ DescriptorSetHndl set, _In_ uint32 binding, _In_ const DescriptorBufferInfo &info)
 			: Type(StructureType::WriteDescriptorSet), Next(nullptr), DstSet(set), DstBinding(binding),
 			DstArrayElement(0), DescriptorType(DescriptorType::UniformBuffer), ImageInfo(nullptr),
-			DescriptorCount(descriptorCount), BufferInfo(&info), TexelBufferView(nullptr)
+			DescriptorCount(1), BufferInfo(&info), TexelBufferView(nullptr)
 		{}
 
 		/* Initializes a new instance of a descriptor set write operation parameters object as an buffer write operation. */

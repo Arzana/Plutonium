@@ -54,8 +54,11 @@ void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vec
 	/* Create a framebuffer for each swapchain image. */
 	for (const ImageView &cur : swapchain->views)
 	{
-		vector<const ImageView*> attachments(views);
+		vector<const ImageView*> attachments;
 		attachments.emplace_back(&cur);
+
+		/* The additional views need to be added afterwards to comply with the attachment index order. */
+		for (const ImageView *cur : views) attachments.emplace_back(cur);
 		tmpFramebuffers.emplace_back(new Framebuffer(device, renderPass, dimensions, attachments));
 	}
 
@@ -92,19 +95,25 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size)
 {
-	const Swapchain *old = swapchain;
+	/* Every surface might have different supported formats so first query the formats. */
+	const vector<SurfaceFormat> supportedFormats = native.GetSurface().GetSupportedFormats(device.GetPhysicalDevice());
 
-	/* Create swapchain information for a general LDR color RT. */
-	SwapchainCreateInfo info(native.GetSurface().hndl, size);
-	info.PresentMode = PresentMode::MailBox;
-	info.ImageFormat = Format::B8G8R8A8_UNORM;
-	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
-	info.Transform = SurfaceTransformFlag::Identity;
-	if (old) info.OldSwapChain = swapchain->hndl;
+	/* Highly unlikely that this will every occur but check anyway so we get a proper exception. */
+	if (supportedFormats.size() > 0)
+	{
+		/* Create swapchain information for a general LDR color RT, just pick the first available format. */
+		SwapchainCreateInfo info(native.GetSurface().hndl, size);
+		info.PresentMode = PresentMode::MailBox;
+		info.ImageFormat = supportedFormats[0].Format;
+		info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
+		info.Transform = SurfaceTransformFlag::Identity;
+		if (swapchain) info.OldSwapChain = swapchain->hndl;
 
-	/* Create new swapchain. */
-	swapchain = new Swapchain(device, native.GetSurface(), info);
-	if (old) delete old;
+		/* Create new swapchain or replace the old one. */
+		if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);
+		else swapchain = new Swapchain(device, native.GetSurface(), info);
+	}
+	else Log::Fatal("Cannot create GameWindow (Surface doesn't support any image formats)!");
 }
 
 void Pu::GameWindow::MakeSwapchainImageWritable(void)

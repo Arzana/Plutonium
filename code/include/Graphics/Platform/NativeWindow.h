@@ -45,6 +45,12 @@ namespace Pu
 		/* Gets whether the window has focus. */
 		_Check_return_ virtual bool HasFocus(void) const = 0;
 
+		/* Gets the size of the window. */
+		_Check_return_ inline Extent2D GetSize(void) const
+		{
+			return GetClientBounds().GetSize();
+		}
+
 		/* Gets the aspect ratio of the window. */
 		_Check_return_ inline bool GetAspectRatio(void) const
 		{

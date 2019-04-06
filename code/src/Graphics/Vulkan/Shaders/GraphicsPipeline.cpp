@@ -49,6 +49,7 @@ Pu::GraphicsPipeline::~GraphicsPipeline(void)
 		delete display;
 		delete rasterizer;
 		delete multisample;
+		delete depthStencil;
 		delete colorBlend;
 	}
 }
@@ -157,7 +158,17 @@ void Pu::GraphicsPipeline::Finalize(void)
 
 	/* Create graphics pipeline. */
 	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
-	GraphicsPipelineCreateInfo createInfo(stages, *vertexInput, *inputAssembly, *display, *rasterizer, *multisample, *colorBlend, layoutHndl, renderpass->hndl);
+	GraphicsPipelineCreateInfo createInfo(stages, layoutHndl, renderpass->hndl);
+	createInfo.VertexInputState = vertexInput;
+	createInfo.InputAssemblyState = inputAssembly;
+	createInfo.TessellationState = tessellation;
+	createInfo.ViewportState = display;
+	createInfo.RasterizationState = rasterizer;
+	createInfo.MultisampleState = multisample;
+	createInfo.DepthStencilState = depthStencil;
+	createInfo.ColorBlendState = colorBlend;
+	createInfo.DynamicState = dynamicState;
+
 	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
 
@@ -232,6 +243,7 @@ void Pu::GraphicsPipeline::Initialize(void)
 	display = new PipelineViewportStateCreateInfo(viewport, scissor);
 	rasterizer = new PipelineRasterizationStateCreateInfo(CullModeFlag::Back);
 	multisample = new PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit);
+	depthStencil = new PipelineDepthStencilStateCreateInfo();
 	colorBlend = new PipelineColorBlendStateCreateInfo(colorBlendAttachments);
 
 	/* Allow user to set paramaters. */

@@ -109,7 +109,7 @@ void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vec
 	const Win32Window &wnd = dynamic_cast<const Win32Window&>(window);
 
 	/* Gets the bottom right corner of the window. */
-	const Extent2D extent = wnd.GetClientBounds().GetSize();
+	const Extent2D extent = wnd.GetSize();
 	POINT points[] = { { 0, 0 }, { static_cast<LONG>(extent.Width), static_cast<LONG>(extent.Height) } };
 
 	/* Convert from window space to screen space. */

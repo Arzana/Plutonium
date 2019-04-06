@@ -54,7 +54,7 @@ void Pu::DescriptorSet::Write(const vector<const Uniform*>& uniforms, const Buff
 	}
 
 	DescriptorBufferInfo info(buffer.bufferHndl, 0, size);
-	WriteDescriptorSet write(hndl, binding, info, 1);
+	WriteDescriptorSet write(hndl, binding, info);
 	WriteDescriptor({ write });
 }
 

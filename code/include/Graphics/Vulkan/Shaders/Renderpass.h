@@ -39,6 +39,8 @@ namespace Pu
 			dependencies.push_back(dependency);
 		}
 
+		/* Adds a depth/stencil buffer to the renderpass. */
+		_Check_return_ Output& AddDepthStencil(void);
 		/* Gets the specified shader output. */
 		_Check_return_ Output& GetOutput(_In_ const string &name);
 		/* Gets the specified shader output. */

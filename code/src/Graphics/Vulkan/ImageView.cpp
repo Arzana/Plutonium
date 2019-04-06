@@ -17,10 +17,10 @@ static ImageViewType imgTypeToViewType(ImageType type)
 	Log::Fatal("Unknown image type passed!");
 }
 
-Pu::ImageView::ImageView(const Image & image)
+Pu::ImageView::ImageView(const Image & image, ImageAspectFlag aspect)
 	: parent(image.parent)
 {
-	const ImageViewCreateInfo createInfo(image.imageHndl, imgTypeToViewType(image.type), image.format);
+	const ImageViewCreateInfo createInfo(image.imageHndl, imgTypeToViewType(image.type), image.format, aspect);
 	VK_VALIDATE(parent.vkCreateImageView(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
 }
 

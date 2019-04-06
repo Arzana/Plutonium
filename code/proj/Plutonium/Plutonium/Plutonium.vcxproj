@@ -240,6 +240,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\StagingBuffer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\DepthBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Sampler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
@@ -343,6 +344,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\StagingBuffer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\DepthBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Sampler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />

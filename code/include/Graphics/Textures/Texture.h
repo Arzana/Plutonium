@@ -39,7 +39,7 @@ namespace Pu
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
 		{
-			return Image.GetFullRange();
+			return Image.GetFullRange(ImageAspectFlag::Color);
 		}
 
 	protected:

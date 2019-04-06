@@ -26,7 +26,7 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 Pu::Texture::Texture(Pu::Sampler & sampler, Pu::Image & image)
 	: Image(image), Sampler(sampler)
 {
-	view = new ImageView(*this);
+	view = new ImageView(*this, ImageAspectFlag::Color);
 }
 
 void Pu::Texture::Destroy(void)

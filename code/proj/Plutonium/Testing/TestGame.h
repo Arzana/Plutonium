@@ -27,6 +27,7 @@ protected:
 
 private: 
 	Pu::GraphicsPipeline *pipeline;
+	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;

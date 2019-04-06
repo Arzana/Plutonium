@@ -40,9 +40,9 @@ Pu::Image & Pu::Image::operator=(Image && other)
 	return *this;
 }
 
-Pu::ImageSubresourceRange Pu::Image::GetFullRange(void) const
+Pu::ImageSubresourceRange Pu::Image::GetFullRange(ImageAspectFlag aspect) const
 {
-	ImageSubresourceRange result(ImageAspectFlag::Color);
+	ImageSubresourceRange result(aspect);
 	result.LevelCount = mipmaps;
 	return result;
 }

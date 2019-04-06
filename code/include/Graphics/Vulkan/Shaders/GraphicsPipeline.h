@@ -50,6 +50,20 @@ namespace Pu
 			rasterizer->CullMode = mode;
 		}
 
+		/* Sets whether the depth and stencil tests are enabled. */
+		inline void SetDepthStencilMode(_In_ bool depthTestEnabled, _In_ bool depthWriteEnbled, _In_ bool stencilEnabled)
+		{
+			depthStencil->DepthTestEnable = depthTestEnabled;
+			depthStencil->DepthWriteEnable = depthWriteEnbled;
+			depthStencil->StencilTestEnable = stencilEnabled;
+		}
+
+		/* Sets which depth compare operation to use for depth testing. */
+		inline void SetDepthCompare(_In_ CompareOp operation)
+		{
+			depthStencil->DepthCompareOp = operation;
+		}
+
 #pragma warning(push)
 #pragma warning(disable:4458)
 		/* Sets the viewport parameters of the graphics pipeline. */

@@ -25,12 +25,18 @@ namespace Pu
 		_Check_return_ Image& operator =(_In_ Image &&other);
 
 		/* Gets a sub-resource range spaning all sub-resources. */
-		_Check_return_ ImageSubresourceRange GetFullRange(void) const;
+		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlag aspect) const;
 
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent3D GetExtent(void) const
 		{
 			return dimensions;
+		}
+
+		/* Gets the format of the image. */
+		_Check_return_ inline Format GetFormat(void) const
+		{
+			return format;
 		}
 
 	protected:

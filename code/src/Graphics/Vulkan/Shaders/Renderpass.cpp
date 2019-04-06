@@ -51,6 +51,17 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 	return *this;
 }
 
+Pu::Output & Pu::Renderpass::AddDepthStencil(void)
+{
+	/* Create some default info for the field. */
+	FieldType type(ComponentType::Float, SizeType::Scalar);
+	FieldInfo info(0, "DepthStencil", std::move(type), spv::StorageClass::Output, Decoration());
+
+	/* Add it to the list and return it for direct use, the reference will always be 1 as we cannot have multiple depth stencil targets. */
+	outputs.emplace_back(Output(info, 1, OutputUsage::DepthStencil));
+	return outputs[outputs.size() - 1];
+}
+
 Pu::Output & Pu::Renderpass::GetOutput(const string & name)
 {
 	for (Output &cur : outputs)
@@ -179,7 +190,7 @@ void Pu::Renderpass::LoadFields(void)
 	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
 	{
 		const FieldInfo &info = outputPass.GetField(i);
-		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++));
+		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++, OutputUsage::Color));
 	}
 }
 
@@ -192,17 +203,20 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 		switch (cur.type)
 		{
 		case (OutputUsage::Color):
-			colorAttachments.push_back(cur.reference);
-			if (cur.resolve) resolveAttachments.push_back(cur.reference);
+			colorAttachments.emplace_back(cur.reference);
+			if (cur.resolve) resolveAttachments.emplace_back(cur.reference);
 			break;
 		case (OutputUsage::DepthStencil):
-			depthStencilAttachments.push_back(cur.reference);
+			depthStencilAttachments.emplace_back(cur.reference);
 			break;
 		case (OutputUsage::Preserve):
-			preserveAttachments.push_back(cur.reference);
+			preserveAttachments.emplace_back(cur.reference);
 			break;
 		}
 	}
+
+	/* Make sure not too many depth/stencil attachment were created. */
+	if (depthStencilAttachments.size() > 1) Log::Error("Multiple depth stencil attachment were added to renderpass, only the first one will be used!");
 
 	vector<SubpassDescription> subpassDescriptions;
 	vector<AttachmentDescription> attachmentDescriptions;
@@ -213,14 +227,17 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 	SubpassDescription temp;
 	temp.ColorAttachmentCount = static_cast<uint32>(colorAttachments.size());
 	temp.ColorAttachments = colorAttachments.data();
-	subpassDescriptions.push_back(temp);
+	temp.DepthStencilAttachment = depthStencilAttachments.data();
+	temp.PreserveAttachmentCount = static_cast<uint32>(preserveAttachments.size());
+	temp.PreserveAttachments = preserveAttachments.data();
+	subpassDescriptions.emplace_back(temp);
 	/*--------------------------------------------------------------------------------------------------------------*/
 
 	/* Copy descriptions from the outputs to the attachmentDescription buffer. */
 	for (const Output &output : outputs)
 	{
 		attachmentDescriptions.emplace_back(output.description);
-		clearValues.push_back(output.clear);
+		clearValues.emplace_back(output.clear);
 	}
 
 	/* Link the subpasses into a render pass. */
@@ -266,7 +283,7 @@ bool Pu::Renderpass::CheckIO(const Subpass & a, const Subpass & b) const
 				}
 
 				/* Break to prevent j++. */
-				checked.push_back(j);
+				checked.emplace_back(j);
 				break;
 			}
 		}
@@ -331,7 +348,7 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 	/* Create new load tasks for the to load subpasses. */
 	for (auto[idx, path] : toLoad)
 	{
-		hashParams.push_back(path);
+		hashParams.emplace_back(path);
 		children.emplace_back(new Subpass::LoadTask(result.subpasses[idx], path));
 	}
 
