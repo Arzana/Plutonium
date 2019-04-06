@@ -70,6 +70,8 @@ namespace Pu
 		_Check_return_ static const vector<Display>& GetAll(void);
 
 	private:
+		static Display Empty;
+
 		wstring name;
 		Rect2D viewport;
 		uint32 hertz, depth;

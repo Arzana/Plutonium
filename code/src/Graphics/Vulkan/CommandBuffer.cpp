@@ -216,13 +216,13 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferAccessor & accessor)
 				type = IndexType::UInt32;
 				break;
 			default:
-				Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName());
+				Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName().c_str());
 				return;
 			}
 
 			parent.parent.vkCmdBindIndexBuffer(hndl, accessor.view.buffer.bufferHndl, static_cast<DeviceSize>(accessor.view.offset + accessor.offset), type);
 		}
-		else Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName());
+		else Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName().c_str());
 	}
 }
 

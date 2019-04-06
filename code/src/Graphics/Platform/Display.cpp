@@ -2,6 +2,7 @@
 #include "Core/Diagnostics/DbgUtils.h"
 
 static Pu::vector<Pu::Display> availableDisplays;
+Pu::Display Pu::Display::Empty = Pu::Display();
 
 Pu::Display::Display(const Display & value)
 	: name(value.name), viewport(value.viewport), hertz(value.hertz),
@@ -53,7 +54,7 @@ const Pu::Display & Pu::Display::GetPrimaryDisplay(void)
 	}
 
 	Log::Warning("Unable to find primary display, returning empty display!");
-	return Display();
+	return Empty;
 }
 
 const Pu::Display & Pu::Display::GetDisplayAt(Offset2D point)
@@ -66,7 +67,7 @@ const Pu::Display & Pu::Display::GetDisplayAt(Offset2D point)
 	}
 
 	Log::Warning("Unable to find display at [%d, %d], returning empty display!", point.X, point.Y);
-	return Display();
+	return Empty;
 }
 
 const Pu::vector<Pu::Display>& Pu::Display::GetAll(void)

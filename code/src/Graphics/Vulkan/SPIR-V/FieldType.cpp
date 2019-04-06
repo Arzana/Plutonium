@@ -188,6 +188,8 @@ Pu::string Pu::FieldType::GetName(void) const
 	default:
 		return "Unknown";
 	}
+
+	return result;
 }
 
 Pu::Format Pu::FieldType::GetFormat(void) const

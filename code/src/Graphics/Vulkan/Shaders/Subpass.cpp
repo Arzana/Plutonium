@@ -304,6 +304,12 @@ void Pu::Subpass::HandleVector(SPIRVReader & reader)
 	if (componentCnt == 2) sizeType = SizeType::Vector2;
 	else if (componentCnt == 3) sizeType = SizeType::Vector3;
 	else if (componentCnt == 4) sizeType = SizeType::Vector4;
+	else
+	{
+		Log::Warning("Invalid vector dimensions (%d) defined in SPIR-V, ignoring vector!", componentCnt);
+		return;
+	}
+
 	types.emplace(id, FieldType(componentType.ComponentType, sizeType));
 }
 
