@@ -25,5 +25,5 @@
 #else
 #define VKAPI_ATTR
 #define VKAPI_CALL
-#define VKAPI_PTR
+#define VKAPI_PTR	*
 #endif

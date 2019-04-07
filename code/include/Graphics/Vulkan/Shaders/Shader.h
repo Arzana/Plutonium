@@ -9,27 +9,27 @@ namespace Pu
 {
 	class SPIRVReader;
 
-	/* Defines an object used to load and use shader modules as subpasses. */
-	class Subpass
+	/* Defines an object used to load and use shader modules. */
+	class Shader
 		: public Asset
 	{
 	public:
-		/* Initializes an empty instance of a subpass. */
-		Subpass(_In_ LogicalDevice &device);
+		/* Initializes an empty instance of a Shader. */
+		Shader(_In_ LogicalDevice &device);
 		/* Creates a new shader module from a specified file. */
-		Subpass(_In_ LogicalDevice &device, _In_ const wstring &path);
-		Subpass(_In_ const Subpass&) = delete;
+		Shader(_In_ LogicalDevice &device, _In_ const wstring &path);
+		Shader(_In_ const Shader&) = delete;
 		/* Move constructor. */
-		Subpass(_In_ Subpass &&value);
-		/* Destroys the subpass. */
-		virtual ~Subpass(void)
+		Shader(_In_ Shader &&value);
+		/* Destroys the Shader. */
+		virtual ~Shader(void)
 		{
 			Destroy();
 		}
 
-		_Check_return_ Subpass& operator =(_In_ const Subpass&) = delete;
+		_Check_return_ Shader& operator =(_In_ const Shader&) = delete;
 		/* Move assignment. */
-		_Check_return_ Subpass& operator =(_In_ Subpass &&other);
+		_Check_return_ Shader& operator =(_In_ Shader &&other);
 
 		/* Gets the type (or stage) of this shader module. */
 		_Check_return_ inline ShaderStageFlag GetType(void) const
@@ -70,7 +70,7 @@ namespace Pu
 			: public Task
 		{
 		public:
-			LoadTask(Subpass &result, const wstring &path);
+			LoadTask(Shader &result, const wstring &path);
 			LoadTask(const LoadTask&) = delete;
 
 			LoadTask& operator =(const LoadTask&) = delete;
@@ -78,7 +78,7 @@ namespace Pu
 			virtual Result Execute(void) override;
 
 		private:
-			Subpass &result;
+			Shader &result;
 			wstring path;
 		};
 

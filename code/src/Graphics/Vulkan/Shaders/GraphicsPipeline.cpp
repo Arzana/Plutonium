@@ -157,7 +157,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	pool = new DescriptorPool(*this, 1);	//TODO: Don't hardcode this to one!
 
 	/* Create graphics pipeline. */
-	const vector<PipelineShaderStageCreateInfo> stages = renderpass->subpasses.select<PipelineShaderStageCreateInfo>([](const Subpass &pass) { return pass.info; });
+	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });
 	GraphicsPipelineCreateInfo createInfo(stages, layoutHndl, renderpass->hndl);
 	createInfo.VertexInputState = vertexInput;
 	createInfo.InputAssemblyState = inputAssembly;

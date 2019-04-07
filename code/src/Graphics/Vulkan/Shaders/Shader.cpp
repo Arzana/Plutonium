@@ -1,27 +1,27 @@
-#include "Graphics/Vulkan/Shaders/Subpass.h"
+#include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Streams/FileReader.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
-const Pu::FieldInfo Pu::Subpass::invalid = Pu::FieldInfo();
+const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
 
-Pu::Subpass::Subpass(LogicalDevice & device)
+Pu::Shader::Shader(LogicalDevice & device)
 	: Asset(true), parent(device)
 {}
 
-Pu::Subpass::Subpass(LogicalDevice & device, const wstring & path)
+Pu::Shader::Shader(LogicalDevice & device, const wstring & path)
 	: Asset(true, std::hash<wstring>{}(path)), parent(device)
 {
 	Load(path, false);
 }
 
-Pu::Subpass::Subpass(Subpass && value)
+Pu::Shader::Shader(Shader && value)
 	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields))
 {
 	value.info.Module = nullptr;
 }
 
-Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
+Pu::Shader & Pu::Shader::operator=(Shader && other)
 {
 	if (this != &other)
 	{
@@ -41,7 +41,7 @@ Pu::Subpass & Pu::Subpass::operator=(Subpass && other)
 /* Name hides class member, checked and caused no unexpected behaviour. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
+const Pu::FieldInfo & Pu::Shader::GetField(const string & name) const
 {
 	for (const FieldInfo &cur : fields)
 	{
@@ -52,13 +52,13 @@ const Pu::FieldInfo & Pu::Subpass::GetField(const string & name) const
 }
 #pragma warning(pop)
 
-Pu::Asset & Pu::Subpass::Duplicate(AssetCache &)
+Pu::Asset & Pu::Shader::Duplicate(AssetCache &)
 {
 	Reference();
 	return *this;
 }
 
-void Pu::Subpass::Load(const wstring & path, bool viaLoader)
+void Pu::Shader::Load(const wstring & path, bool viaLoader)
 {
 	const wstring ext = path.fileExtension().toUpper();
 	name = path;
@@ -81,7 +81,7 @@ void Pu::Subpass::Load(const wstring & path, bool viaLoader)
 	MarkAsLoaded(viaLoader);
 }
 
-void Pu::Subpass::Create(const wstring & path)
+void Pu::Shader::Create(const wstring & path)
 {
 	/* Make sure the file exists before trying to load it. */
 	if (FileReader::FileExists(path))
@@ -94,12 +94,12 @@ void Pu::Subpass::Create(const wstring & path)
 		VK_VALIDATE(parent.vkCreateShaderModule(parent.hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
 
 		/* Perform reflection to get the inputs and outputs. */
-		spvr.HandleAllModules(SPIRVReader::ModuleHandler(*this, &Subpass::HandleModule));
+		spvr.HandleAllModules(SPIRVReader::ModuleHandler(*this, &Shader::HandleModule));
 	}
 	else Log::Fatal("Unable to load shader module!");
 }
 
-void Pu::Subpass::SetFieldInfo(void)
+void Pu::Shader::SetFieldInfo(void)
 {
 	/* Create field information for all fields. */
 	for (const auto&[id, typeId, storage] : variables)
@@ -117,7 +117,7 @@ void Pu::Subpass::SetFieldInfo(void)
 	variables.clear();
 }
 
-void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage)
+void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage)
 {
 	const spv::Id typePointer = typedefs[typeId];
 
@@ -157,7 +157,7 @@ void Pu::Subpass::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass s
 	}
 }
 
-void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordCnt)
+void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordCnt)
 {
 	/* Pass usefull operation codes to their functions. */
 	switch (opCode)
@@ -202,14 +202,14 @@ void Pu::Subpass::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t word
 	}
 }
 
-void Pu::Subpass::HandleName(SPIRVReader & reader)
+void Pu::Shader::HandleName(SPIRVReader & reader)
 {
 	const spv::Id target = reader.ReadWord();
 	const string str = reader.ReadLiteralString();
 	names.emplace(target, str);
 }
 
-void Pu::Subpass::HandleMemberName(SPIRVReader & reader)
+void Pu::Shader::HandleMemberName(SPIRVReader & reader)
 {
 	const spv::Id structType = reader.ReadWord();
 	const spv::Id idx = reader.ReadWord();
@@ -229,7 +229,7 @@ void Pu::Subpass::HandleMemberName(SPIRVReader & reader)
 	}
 }
 
-void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
+void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 {
 	/* Read the target and create the decoration object. */
 	const spv::Id target = reader.ReadWord();
@@ -259,14 +259,14 @@ void Pu::Subpass::HandleDecorate(SPIRVReader & reader)
 	else decorations.emplace(target, result);
 }
 
-void Pu::Subpass::HandleType(SPIRVReader & reader)
+void Pu::Shader::HandleType(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
 	reader.AdvanceWord();	// storage class.
 	typedefs.emplace(id, reader.ReadWord());
 }
 
-void Pu::Subpass::HandleInt(SPIRVReader & reader)
+void Pu::Shader::HandleInt(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
 	const spv::Word width = reader.ReadWord();
@@ -281,7 +281,7 @@ void Pu::Subpass::HandleInt(SPIRVReader & reader)
 	types.emplace(id, intType);
 }
 
-void Pu::Subpass::HandleFloat(SPIRVReader & reader)
+void Pu::Shader::HandleFloat(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
 	const spv::Word width = reader.ReadWord();
@@ -294,7 +294,7 @@ void Pu::Subpass::HandleFloat(SPIRVReader & reader)
 	types.emplace(id, floatType);
 }
 
-void Pu::Subpass::HandleVector(SPIRVReader & reader)
+void Pu::Shader::HandleVector(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
 	const FieldType componentType = types[reader.ReadWord()];
@@ -313,7 +313,7 @@ void Pu::Subpass::HandleVector(SPIRVReader & reader)
 	types.emplace(id, FieldType(componentType.ComponentType, sizeType));
 }
 
-void Pu::Subpass::HandleMatrix(SPIRVReader & reader)
+void Pu::Shader::HandleMatrix(SPIRVReader & reader)
 {
 	const spv::Id id = reader.ReadWord();
 	const FieldType columnType = types[reader.ReadWord()];
@@ -339,7 +339,7 @@ void Pu::Subpass::HandleMatrix(SPIRVReader & reader)
 	}
 }
 
-void Pu::Subpass::HandleStruct(SPIRVReader & reader, size_t memberCnt)
+void Pu::Shader::HandleStruct(SPIRVReader & reader, size_t memberCnt)
 {
 	const spv::Id id = reader.ReadWord();
 	vector<spv::Id> members;
@@ -349,7 +349,7 @@ void Pu::Subpass::HandleStruct(SPIRVReader & reader, size_t memberCnt)
 	structs.emplace(id, std::move(members));
 }
 
-void Pu::Subpass::HandleImage(SPIRVReader & reader)
+void Pu::Shader::HandleImage(SPIRVReader & reader)
 {
 	/* We need the type id but we can skip the underlying image type as it doesn't concern us. */
 	const spv::Id id = reader.ReadWord();
@@ -382,14 +382,14 @@ void Pu::Subpass::HandleImage(SPIRVReader & reader)
 	*/
 }
 
-void Pu::Subpass::HandleSampledImage(SPIRVReader & reader)
+void Pu::Shader::HandleSampledImage(SPIRVReader & reader)
 {
 	/* Just add the type of the image that's being sampled to the type list. */
 	const spv::Id id = reader.ReadWord();
 	types.emplace(id, types[reader.ReadWord()]);
 }
 
-void Pu::Subpass::HandleVariable(SPIRVReader & reader)
+void Pu::Shader::HandleVariable(SPIRVReader & reader)
 {
 	const spv::Id resultType = reader.ReadWord();
 	const spv::Id resultId = reader.ReadWord();
@@ -398,7 +398,7 @@ void Pu::Subpass::HandleVariable(SPIRVReader & reader)
 	variables.emplace_back(std::make_tuple(resultId, resultType, storageClass));
 }
 
-void Pu::Subpass::SetInfo(const wstring & ext)
+void Pu::Shader::SetInfo(const wstring & ext)
 {
 	if (ext == L"VERT") info.Stage = ShaderStageFlag::Vertex;
 	else if (ext == L"TESC") info.Stage = ShaderStageFlag::TessellationControl;
@@ -408,18 +408,18 @@ void Pu::Subpass::SetInfo(const wstring & ext)
 	else if (ext == L"COMP") info.Stage = ShaderStageFlag::Compute;
 }
 
-void Pu::Subpass::Destroy(void)
+void Pu::Shader::Destroy(void)
 {
 	if (info.Module) parent.vkDestroyShaderModule(parent.hndl, info.Module, nullptr);
 }
 
-Pu::Subpass::LoadTask::LoadTask(Subpass & result, const wstring & path)
+Pu::Shader::LoadTask::LoadTask(Shader & result, const wstring & path)
 	: result(result), path(path)
 {
 	result.SetHash(std::hash<wstring>{}(path));
 }
 
-Pu::Task::Result Pu::Subpass::LoadTask::Execute(void)
+Pu::Task::Result Pu::Shader::LoadTask::Execute(void)
 {
 	result.Load(path, true);
 	return Result::Default();

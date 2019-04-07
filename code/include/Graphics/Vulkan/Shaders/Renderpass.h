@@ -1,5 +1,5 @@
 #pragma once
-#include "Subpass.h"
+#include "Shader.h"
 #include "Output.h"
 #include "Attribute.h"
 #include "Uniform.h"
@@ -19,7 +19,7 @@ namespace Pu
 		/* Initializes an empty instance of a render pass. */
 		Renderpass(_In_ LogicalDevice &device);
 		/* Initializes a new render pass from the specified subpasses. */
-		Renderpass(_In_ LogicalDevice &device, _In_ vector < std::reference_wrapper<Subpass>> &&subpasses);
+		Renderpass(_In_ LogicalDevice &device, _In_ vector < std::reference_wrapper<Shader>> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;
 		/* Move contructor. */
 		Renderpass(_In_ Renderpass &&value);
@@ -82,14 +82,14 @@ namespace Pu
 
 		private:
 			Renderpass &result;
-			vector<Subpass::LoadTask*> children;
+			vector<Shader::LoadTask*> children;
 		};
 
 		LogicalDevice &device;
 		RenderPassHndl hndl;
 		bool usable;
 
-		vector<std::reference_wrapper<Subpass>> subpasses;
+		vector<std::reference_wrapper<Shader>> shaders;
 		vector<Attribute> attributes;
 		vector<Uniform> uniforms;
 		vector<Output> outputs;
@@ -99,7 +99,7 @@ namespace Pu
 		void Link(bool linkedViaLoader);
 		void LoadFields(void);
 		void Finalize(bool linkedViaLoader);
-		bool CheckIO(const Subpass &a, const Subpass &b) const;
+		bool CheckIO(const Shader &a, const Shader &b) const;
 		void LinkSucceeded(bool linkedViaLoader);
 		void LinkFailed(bool linkedViaLoader);
 		void Destroy(void);

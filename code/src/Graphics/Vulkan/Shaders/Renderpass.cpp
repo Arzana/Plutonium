@@ -6,17 +6,16 @@ Pu::Renderpass::Renderpass(LogicalDevice & device)
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {}
 
-Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper<Subpass>>&& subpasses)
-	: Asset(true),
-	device(device), subpasses(std::move(subpasses)), usable(false),
+Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper<Shader>>&& subpasses)
+	: Asset(true), device(device), shaders(std::move(subpasses)), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
-	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Subpass &cur) { return cur.GetName(); })));
+	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Shader &cur) { return cur.GetName(); })));
 	Link(false);
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
-	: Asset(std::move(value)), device(value.device), hndl(value.hndl), subpasses(std::move(value.subpasses)),
+	: Asset(std::move(value)), device(value.device), hndl(value.hndl), shaders(std::move(value.shaders)),
 	usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
 	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)),
 	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes)),
@@ -35,7 +34,7 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		Asset::operator=(std::move(other));
 		device = std::move(other.device);
 		hndl = other.hndl;
-		subpasses = std::move(other.subpasses);
+		shaders = std::move(other.shaders);
 		usable = other.usable;
 		OnLinkCompleted = std::move(other.OnLinkCompleted);
 		outputs = std::move(other.outputs);
@@ -125,25 +124,25 @@ const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
 Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
 {
 	Reference();
-	for (Subpass &cur : subpasses) cur.Reference();
+	for (Shader &cur : shaders) cur.Reference();
 	return *this;
 }
 
 void Pu::Renderpass::Link(bool linkedViaLoader)
 {
 	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
-	std::sort(subpasses.begin(), subpasses.end(), [](const Subpass &a, const Subpass &b)
+	std::sort(shaders.begin(), shaders.end(), [](const Shader &a, const Shader &b)
 	{
 		return _CrtEnum2Int(a.GetType()) < _CrtEnum2Int(b.GetType());
 	});
 
 	/* Check if the supplied shader modules can be linked together. */
-	for (size_t i = 0, j = 1; j < subpasses.size(); i++, j++)
+	for (size_t i = 0, j = 1; j < shaders.size(); i++, j++)
 	{
-		if (!CheckIO(subpasses[i], subpasses[j]))
+		if (!CheckIO(shaders[i], shaders[j]))
 		{
 			/* Shader is done loading but failed linking. */
-			Log::Error("Unable to link %s shader to %s shader!", to_string(subpasses[i].get().GetType()), to_string(subpasses[j].get().GetType()));
+			Log::Error("Unable to link %s shader to %s shader!", to_string(shaders[i].get().GetType()), to_string(shaders[j].get().GetType()));
 			LinkFailed(linkedViaLoader);
 			return;
 		}
@@ -162,7 +161,7 @@ void Pu::Renderpass::Link(bool linkedViaLoader)
 void Pu::Renderpass::LoadFields(void)
 {
 	/* Load all attributes. */
-	const Subpass &inputPass = subpasses.front();
+	const Shader &inputPass = shaders.front();
 	for (size_t i = 0; i < inputPass.GetFieldCount(); i++)
 	{
 		const FieldInfo &info = inputPass.GetField(i);
@@ -170,7 +169,7 @@ void Pu::Renderpass::LoadFields(void)
 	}
 
 	/* Load all uniforms. */
-	for (const Subpass &pass : subpasses)
+	for (const Shader &pass : shaders)
 	{
 		for (size_t i = 0; i < pass.GetFieldCount(); i++)
 		{
@@ -186,7 +185,7 @@ void Pu::Renderpass::LoadFields(void)
 	uint32 referenceCnt = 0;
 
 	/* Load all outputs. */
-	const Subpass &outputPass = subpasses.back();
+	const Shader &outputPass = shaders.back();
 	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
 	{
 		const FieldInfo &info = outputPass.GetField(i);
@@ -248,7 +247,7 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 	LinkSucceeded(linkedViaLoader);
 }
 
-bool Pu::Renderpass::CheckIO(const Subpass & a, const Subpass & b) const
+bool Pu::Renderpass::CheckIO(const Shader & a, const Shader & b) const
 {
 	bool result = true;
 	vector<size_t> checked;
@@ -319,7 +318,7 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 
 #ifdef _DEBUG
 	wstring modules;
-	for (const Subpass &pass : subpasses)
+	for (const Shader &pass : shaders)
 	{
 		modules += pass.GetName();
 		if (pass.GetType() != ShaderStageFlag::Fragment) modules += L" -> ";
@@ -349,7 +348,7 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 	for (auto[idx, path] : toLoad)
 	{
 		hashParams.emplace_back(path);
-		children.emplace_back(new Subpass::LoadTask(result.subpasses[idx], path));
+		children.emplace_back(new Shader::LoadTask(result.shaders[idx], path));
 	}
 
 	result.SetHash(std::hash<wstring>{}(hashParams));
@@ -358,7 +357,7 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 {
 	/* Spawn all still required load tasks. */
-	for (Subpass::LoadTask *task : children)
+	for (Shader::LoadTask *task : children)
 	{
 		task->SetParent(*this);
 		scheduler->Spawn(*task);
@@ -371,14 +370,14 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
 	/* Make sure that all subpasses are loaded on debug mode. */
 #ifdef _DEBUG
-	for (const Subpass &cur : result.subpasses)
+	for (const Shader &cur : result.shaders)
 	{
 		if (!cur.IsLoaded()) Log::Error("Not every subpass has completed loading!");
 	}
 #endif
 
 	/* Delete the child tasks. */
-	for (Subpass::LoadTask *subTask : children)
+	for (Shader::LoadTask *subTask : children)
 	{
 		delete subTask;
 	}

@@ -100,7 +100,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
 {
 	/* Make sure to release the subpasses as well. */
-	for (Subpass &cur : pipeline.GetRenderpass().subpasses)
+	for (Shader &cur : pipeline.GetRenderpass().shaders)
 	{
 		cache->Release(cur);
 	}

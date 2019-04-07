@@ -58,7 +58,7 @@ void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vec
 		attachments.emplace_back(&cur);
 
 		/* The additional views need to be added afterwards to comply with the attachment index order. */
-		for (const ImageView *cur : views) attachments.emplace_back(cur);
+		for (const ImageView *view : views) attachments.emplace_back(view);
 		tmpFramebuffers.emplace_back(new Framebuffer(device, renderPass, dimensions, attachments));
 	}
 

@@ -58,7 +58,7 @@ namespace Pu
 		friend class Queue;
 		friend class CommandBuffer;
 		friend class GameWindow;
-		friend class Subpass;
+		friend class Shader;
 		friend class Renderpass;
 		friend class ImageView;
 		friend class Framebuffer;

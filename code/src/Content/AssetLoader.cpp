@@ -1,6 +1,6 @@
 #include "Content/AssetLoader.h"
 #include "Graphics/Vulkan/CommandPool.h"
-#include "Graphics/Vulkan/Shaders/Subpass.h"
+#include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Config.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
@@ -33,17 +33,17 @@ void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass
 		/* Check if the subpass is already loaded. */
 		if (cache.Contains(subpassHash))
 		{
-			renderpass.subpasses.emplace_back(static_cast<Subpass&>(cache.Get(subpassHash)));
+			renderpass.shaders.emplace_back(static_cast<Shader&>(cache.Get(subpassHash)));
 		}
 		else
 		{
 			/* Create a new asset and store it in the cache. */
-			Subpass *subpass = new Subpass(device);
-			cache.Store(subpass);
+			Shader *shader = new Shader(device);
+			cache.Store(shader);
 
 			/* Add the subpass to the to-load list and add it to the renderpass. */
-			toLoad.emplace_back(renderpass.subpasses.size(), path);
-			renderpass.subpasses.emplace_back(*subpass);
+			toLoad.emplace_back(renderpass.shaders.size(), path);
+			renderpass.shaders.emplace_back(*shader);
 		}
 	}
 
