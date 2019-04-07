@@ -1,8 +1,9 @@
 #pragma once
 #include "AssetCache.h"
+#include "Core/Collections/pool.h"
+#include "Graphics/Textures/Texture.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
-#include "Graphics/Textures/Texture.h"
 
 namespace Pu
 {
@@ -42,11 +43,9 @@ namespace Pu
 		CommandPool *cmdPool;
 
 		Queue &transferQueue;
-		vector<std::tuple<bool, CommandBuffer>> buffers;
-		std::mutex lock;
+		pool<CommandBuffer> buffers;
 
 		void AllocateCmdBuffer(void);
 		CommandBuffer& GetCmdBuffer(void);
-		void RecycleCmdBuffer(CommandBuffer &cmdBuffer);
 	};
 }

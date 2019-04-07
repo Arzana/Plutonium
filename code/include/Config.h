@@ -35,7 +35,7 @@ namespace Pu
 	constexpr bool LogVulkanInfoMessages = false;
 	/* Defines the default number of level of detail available for minified image sampling. */
 	constexpr uint32 DefaultMipLevels = 4;
-	/* Defines the initial amount of command buffer allocated for asset loading. */
+	/* Defines the initial amount of command buffer allocated for asset loading and saving. */
 	constexpr size_t InitialLoadCommandBufferCount = 2;
 	/* Defines the minimum loadable GLTF version. */
 	constexpr float MinimumVersionGLTF = 2.0f;
@@ -43,4 +43,6 @@ namespace Pu
 	constexpr int PreferredImageComponentCount = 4;
 	/* Defines the time (in milliseconds) before the CPU usage is allowed to be queried again. */
 	constexpr int64 CPUUsageQueryMinimumElapsedTime = 250;
+	/* Defines whether images loaded from disk should be allowed to be saved to disk. */
+	constexpr bool AllowSaveOnLoadedImages = false;
 }

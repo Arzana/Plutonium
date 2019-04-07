@@ -1,7 +1,6 @@
 #include "Content/AssetLoader.h"
 #include "Graphics/Vulkan/CommandPool.h"
 #include "Graphics/Vulkan/Shaders/Shader.h"
-#include "Config.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
 	: cache(cache), scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
@@ -17,7 +16,6 @@ Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, 
 Pu::AssetLoader::~AssetLoader(void)
 {
 	buffers.clear();
-
 	delete cmdPool;
 }
 
@@ -88,7 +86,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			*/
 			if (staged)
 			{
-				parent.RecycleCmdBuffer(cmdBuffer);
+				parent.buffers.recycle(cmdBuffer);
 				result.Image.MarkAsLoaded(true);
 				delete child;
 				return Result::AutoDelete();
@@ -133,51 +131,12 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 
 void Pu::AssetLoader::AllocateCmdBuffer(void)
 {
-	buffers.emplace_back(std::make_tuple(true, cmdPool->Allocate()));
+	buffers.emplace(std::move(cmdPool->Allocate()));
 }
 
 Pu::CommandBuffer& Pu::AssetLoader::GetCmdBuffer(void)
 {
-	lock.lock();
-
-	size_t i;
-	for (i = 0; i < buffers.size(); i++)
-	{
-		/* Check if any buffer is usable. */
-		if (std::get<0>(buffers[i]))
-		{
-			/* Set the buffer to used and return the command buffer with it's asset list. */
-			std::get<0>(buffers[i]) = false;
-			lock.unlock();
-			return std::get<1>(buffers[i]);
-		}
-	}
-
-	/* No viable command buffer was found so create a new one. */
-	AllocateCmdBuffer();
-	std::get<0>(buffers[i]) = false;
-
-	lock.unlock();
-	return std::get<1>(buffers[i]);
-}
-
-void Pu::AssetLoader::RecycleCmdBuffer(CommandBuffer & cmdBuffer)
-{
-	lock.lock();
-
-	for (size_t i = 0; i < buffers.size(); i++)
-	{
-		/* Find the index of this command buffer and set it to usable again. */
-		if (std::get<1>(buffers[i]).hndl == cmdBuffer.hndl)
-		{
-			std::get<0>(buffers[i]) = true;
-			lock.unlock();
-			return;
-		}
-	}
-
-	/* this should never occur. */
-	lock.unlock();
-	Log::Warning("Cannot recycle command buffer (unable to find match)!");
-	return;
+	/* Allocate a new command buffer if the queue is empty. */
+	if (!buffers.available()) AllocateCmdBuffer();
+	return buffers.get();
 }

@@ -1,105 +1,147 @@
 #pragma once
-#include "SQueue.h"
+#include <shared_mutex>
+#include "vector.h"
 
 namespace Pu
 {
 	/* Defines a thread safe pool of a specifed type, this object holds ownership over the objects. */
-	template <class _Ty, class _Alloc = std::allocator<_Ty>>
+	template <typename element_t>
 	class pool
 	{
 	public:
-		/* Initializes a new instance of a object pool. */
+		/* Initializes a new instance of a pool. */
 		pool(void)
 		{}
 
-		/* Copy contructor. */
-		pool(_In_ const pool<_Ty, _Alloc> &value)
-			: heap(value.heap), allocator(value.allocator)
+		/* Copy constructor. */
+		pool(_In_ const pool<element_t> &value)
+			: buffer(value.buffer)
 		{}
 
 		/* Move constructor. */
-		pool(_In_ pool<_Ty, _Alloc> &&value)
-			: heap(std::move(value.heap)), allocator(std::move(value.allocator))
+		pool(_In_ pool<element_t> &&value)
+			: lock(std::move(value.lock)), buffer(std::move(value.buffer))
 		{}
 
-		/* Releases the resources held by the pool. */
-		~pool(void)
-		{
-			collect();
-		}
-
 		/* Copy assignment. */
-		_Check_return_ pool<_Ty, _Alloc>& operator =(_In_ const pool<_Ty, _Alloc> &other)
+		_Check_return_ inline pool<element_t>& operator =(_In_ const pool<element_t> &other)
 		{
 			if (this != &other)
 			{
-				collect();
+				lock.lock();
+				other.lock.lock_shared();
+				
+				buffer = other.buffer;
 
-				heap = other.heap;
-				allocator = other.allocator;
+				other.lock.unlock_shared();
+				lock.unlock();
 			}
 
-			return *this;
+			return this;
 		}
 
 		/* Move assignment. */
-		_Check_return_ pool<_Ty, _Alloc>& operator =(_In_ pool<_Ty, _Alloc> &&other)
+		_Check_return_ inline pool<element_t>& operator =(_In_ pool<element_t> &&other)
 		{
 			if (this != &other)
 			{
-				collect();
+				lock.lock();
+				other.lock.lock();
 
-				heap = std::move(other.heap);
-				allocator = std::move(other.allocator);
+				buffer = std::move(other.buffer);
+
+				other.lock.unlock();
+				lock.unlock();
 			}
 
 			return *this;
 		}
 
-		/* Spawns a new object from the pool. */
-		template <class ..._ArgTy>
-		_Check_return_ inline _Ty& spawn(_In_opt_ _ArgTy &&...args)
+		/* Adds a new item to the pool. */
+		inline void emplace(_In_ element_t&& item)
 		{
-			return heap.empty() ? create(args...) : recycle(args...);
+			lock.lock();
+			buffer.emplace_back(std::make_tuple(true, std::move(item)));
+			lock.unlock();
 		}
 
-		/* Releases the object back into the pool. */
-		void inline kill(_In_ _Ty &obj)
+		/* Gets and reserves an element from the pool. */
+		_Check_return_ inline element_t& get(void)
 		{
-			heap.push(std::addressof(obj));
-		}
+			lock.lock();
 
-		/* Clear the pool, releasing all it's resources. */
-		void inline collect(void)
-		{
-			while (!heap.empty())
+			for (auto &[free, item] : buffer)
 			{
-				ptr_t raw = heap.pop_front();
-				alloc_t::deallocate(allocator, raw, 1);
+				if (free)
+				{
+					free = false;
+					lock.unlock();
+					return item;
+				}
 			}
+
+			ArgOutOfRange();
+			lock.unlock();
+		}
+
+		/* Frees the element back into the pool. */
+		_Check_return_ inline void recycle(_In_ const element_t &item)
+		{
+			lock.lock();
+
+			for (auto &[free, cur] : buffer)
+			{
+				if (cur == item)
+				{
+					free = true;
+					lock.unlock();
+					return;
+				}
+			}
+
+			ArgOutOfRange();
+			lock.unlock();
+		}
+
+		/* Clears the pool. */
+		inline void clear(void)
+		{
+			lock.lock();
+			buffer.clear();
+			lock.unlock();
+		}
+
+		/* Gets the amount of elements in the pool. */
+		_Check_return_ inline size_t size(void) const
+		{
+			lock.lock_shared();
+			const size_t result = buffer.size();
+			lock.unlock_shared();
+			return result;
+		}
+
+		/* Gets the amount of free elements. */
+		_Check_return_ inline size_t available(void) const
+		{
+			lock.lock_shared();
+
+			size_t result = 0;
+			for (const auto &[free, item] : buffer)
+			{
+				if (free) result++;
+			}
+
+			lock.unlock_shared();
+			return result;
 		}
 
 	private:
-		using alloc_t = std::allocator_traits<_Alloc>;
-		using ptr_t = typename alloc_t::pointer;
+		vector<std::tuple<bool, element_t>> buffer;
+		mutable std::shared_mutex lock;
 
-		squeue<ptr_t> heap;
-		_Alloc allocator;
-
-		template <class ..._ArgsTy>
-		_Ty& create(_ArgsTy &&...args)
+		inline void ArgOutOfRange(void) const
 		{
-			ptr_t raw = alloc_t::allocate(allocator, 1);
-			alloc_t::construct(allocator, raw, std::move(args)...);
-			return *raw;
-		}
-
-		template <class ..._ArgsTy>
-		_Ty& recycle(_ArgsTy &&...args)
-		{
-			ptr_t raw = heap.pop_front();
-			*raw = _Ty(args...);
-			return *raw;
+			std::_Xout_of_range("Index was out of range!");
 		}
 	};
 }

@@ -5,71 +5,71 @@
 namespace Pu
 {
 	/* Defines a FIFO thread safe queue of generic type. */
-	template <class _Ty>
+	template <class element_t>
 	class squeue
-		: private std::queue<_Ty>
+		: private std::queue<element_t>
 	{
 	public:
-		using queue_t = typename std::queue<_Ty>;
+		using queue_t = typename std::queue<element_t>;
 
 		/* Initializes a new instance of a thread safe queue. */
 		squeue(void)
 			: queue_t()
 		{}
 		/* Copy constructor. */
-		squeue(_In_ const squeue<_Ty> &value)
+		squeue(_In_ const squeue<element_t> &value)
 			: queue_t(value)
 		{}
 		/* Move constructor. */
-		squeue(_In_ squeue<_Ty> &&value)
+		squeue(_In_ squeue<element_t> &&value)
 			: queue_t(std::move(value)), lock(std::move(value.lock))
 		{}
 
 		/* Copy assignment. */
-		_Check_return_ inline squeue<_Ty>& operator =(_In_ const squeue<_Ty> &other)
+		_Check_return_ inline squeue<element_t>& operator =(_In_ const squeue<element_t> &other)
 		{
 			if (&other != this) queue_t::operator=(other);
 			return *this;
 		}
 		/* Move assignment. */
-		_Check_return_ inline squeue<_Ty>& operator =(_In_ squeue<_Ty> &&other)
+		_Check_return_ inline squeue<element_t>& operator =(_In_ squeue<element_t> &&other)
 		{
 			if (&other != this) queue_t::operator=(std::move(other));
 			return *this;
 		}
 
 		/* Gets the element at the front of the queue. */
-		_Check_return_ inline _Ty& front(void)
+		_Check_return_ inline element_t& front(void)
 		{
 			lock.lock_shared();
-			_Ty& elem = queue_t::front();
+			element_t& elem = queue_t::front();
 			lock.unlock_shared();
 			return elem;
 		}
 
 		/* Gets the element at the front of the queue. */
-		_Check_return_ inline const _Ty& front(void) const
+		_Check_return_ inline const element_t& front(void) const
 		{
 			lock.lock_shared();
-			const _Ty& elem = queue_t::front();
+			const element_t& elem = queue_t::front();
 			lock.unlock_shared();
 			return elem;
 		}
 
 		/* Gets the element at the back of the queue. */
-		_Check_return_ inline _Ty& back(void)
+		_Check_return_ inline element_t& back(void)
 		{
 			lock.lock_shared();
-			_Ty& elem = queue_t::back();
+			element_t& elem = queue_t::back();
 			lock.unlock_shared();
 			return elem;
 		}
 
 		/* Gets the element at the back of the queue. */
-		_Check_return_ inline const _Ty& back(void) const
+		_Check_return_ inline const element_t& back(void) const
 		{
 			lock.lock_shared();
-			const _Ty& elem = queue_t::back();
+			const element_t& elem = queue_t::back();
 			lock.unlock_shared();
 			return elem;
 		}
@@ -93,7 +93,7 @@ namespace Pu
 		}
 
 		/* Pushes a new element to the back of the queue. */
-		void push(_In_ const _Ty &value)
+		void push(_In_ const element_t &value)
 		{
 			lock.lock();
 			queue_t::push(value);
@@ -101,7 +101,7 @@ namespace Pu
 		}
 
 		/* Pushes a new element to the back of the queue. */
-		void push(_In_ _Ty &&value)
+		void push(_In_ element_t &&value)
 		{
 			lock.lock();
 			queue_t::push(std::move(value));
@@ -123,16 +123,6 @@ namespace Pu
 			lock.lock();
 			queue_t::pop();
 			lock.unlock();
-		}
-
-		/* Removes the element at the front of the queue and return it. */
-		_Check_return_ _Ty& pop_front(void)
-		{
-			lock.lock();
-			_Ty &elem = queue_t::front();
-			queue_t::pop();
-			lock.unlock();
-			return elem;
 		}
 
 	private: 

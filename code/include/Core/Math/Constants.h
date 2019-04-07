@@ -25,6 +25,8 @@ namespace Pu
 	using byte = uint8;
 	/* Defines an unsigned 8-bit integer. */
 	using octet = uint8;
+	/* Defines a UTF-32 character. */
+	using char32 = char32_t;
 
 	/* Euler's constant. */
 	constexpr float E = 2.71828182845904523536f;

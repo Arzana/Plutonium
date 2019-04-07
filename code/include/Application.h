@@ -1,6 +1,7 @@
 #pragma once
 #include "Components/Component.h"
 #include "Content/AssetFetcher.h"
+#include "Content/AssetSaver.h"
 #include "Input/InputDeviceHandler.h"
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Graphics/Platform/GameWindow.h"
@@ -66,6 +67,12 @@ namespace Pu
 		_Check_return_ inline AssetFetcher& GetContent(void)
 		{
 			return *content;
+		}
+
+		/* Gets the asset saver. */
+		_Check_return_ inline AssetSaver& GetSaver(void)
+		{
+			return *saver;
 		}
 
 		/* Gets the input handler. */
@@ -135,6 +142,7 @@ namespace Pu
 		GameWindow *gameWnd;
 		TaskScheduler *scheduler;
 		AssetFetcher *content;
+		AssetSaver *saver;
 		InputDeviceHandler *input;
 		vector<Component*> components;
 

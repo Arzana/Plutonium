@@ -104,6 +104,7 @@ namespace Pu
 		PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
 		PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
 		PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+		PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

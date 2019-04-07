@@ -1513,6 +1513,12 @@ namespace Pu
 		return _CrtEnumBitOr(a, b);
 	}
 
+	/* Appends the flag bits of an image usage flag. */
+	_Check_return_ inline ImageUsageFlag operator |=(_In_ ImageUsageFlag &a, _In_ ImageUsageFlag b)
+	{
+		return a = _CrtEnumBitOr(a, b);
+	}
+
 	/* Appends the flag bits of an buffer usage flag. */
 	_Check_return_ inline BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
 	{

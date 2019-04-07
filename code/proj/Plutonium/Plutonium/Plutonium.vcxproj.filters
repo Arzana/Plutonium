@@ -157,6 +157,9 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{a174f361-c3e6-4bf4-aade-5117d13ffa9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Text">
+      <UniqueIdentifier>{5b32f7e0-3ce2-4a1b-8544-9bc0c9b0678b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -549,6 +552,18 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Shader.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\Font.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Textures\ImageSaveFormats.h">
+      <Filter>Header Files\Graphics\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\AssetSaver.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -784,6 +799,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Shader.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\AssetSaver.cpp">
+      <Filter>Source Files\Content</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

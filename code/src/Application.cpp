@@ -235,6 +235,7 @@ void Pu::Application::DoInitialize(void)
 
 	/* The fetcher needs to be created here as it needs the logical device. */
 	content = new AssetFetcher(*scheduler, *device);
+	saver = new AssetSaver(*scheduler, *device);
 
 	/* Window must be show at least once to give the correct size to the swapchain. */
 	wnd->Show();
@@ -266,6 +267,7 @@ void Pu::Application::DoFinalize(void)
 	components.clear();
 
 	delete content;
+	delete saver;
 	delete gameWnd;
 	delete device;
 	delete wnd;

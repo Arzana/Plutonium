@@ -108,6 +108,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdBindDescriptorSets);
 	LOAD_DEVICE_PROC(vkCmdBindIndexBuffer);
 	LOAD_DEVICE_PROC(vkCmdDrawIndexed);
+	LOAD_DEVICE_PROC(vkCmdCopyImageToBuffer);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

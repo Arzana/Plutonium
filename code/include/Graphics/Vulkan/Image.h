@@ -1,6 +1,7 @@
 #pragma once
 #include "LogicalDevice.h"
 #include "Content/Asset.h"
+#include "Graphics/Textures/ImageSaveFormats.h"
 
 namespace Pu
 {
@@ -26,6 +27,8 @@ namespace Pu
 
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlag aspect) const;
+		/* Gets the amount of channels in this image. */
+		_Check_return_ size_t GetChannels(void) const;
 
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent3D GetExtent(void) const

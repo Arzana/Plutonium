@@ -180,6 +180,7 @@
     <ClInclude Include="..\..\..\include\Content\AssetCache.h" />
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h" />
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h" />
+    <ClInclude Include="..\..\..\include\Content\AssetSaver.h" />
     <ClInclude Include="..\..\..\include\Content\GLTFLoader.h" />
     <ClInclude Include="..\..\..\include\Content\GLTFParser.h" />
     <ClInclude Include="..\..\..\include\Content\Patern.h" />
@@ -240,9 +241,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\StagingBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\DepthBuffer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\ImageSaveFormats.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Sampler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -311,6 +315,7 @@
     <ClCompile Include="..\..\..\src\Content\AssetCache.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp" />
+    <ClCompile Include="..\..\..\src\Content\AssetSaver.cpp" />
     <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp" />
     <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp" />
     <ClCompile Include="..\..\..\src\Content\Patern.cpp" />

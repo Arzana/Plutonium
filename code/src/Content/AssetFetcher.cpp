@@ -84,7 +84,10 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info = _CrtGetImageInfo(mutablePath);
 		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
-		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
+		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		if (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+
+		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
 		image->SetHash(hash);
 		cache->Store(image);

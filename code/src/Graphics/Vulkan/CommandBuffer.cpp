@@ -108,6 +108,15 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destinat
 	}
 }
 
+void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destination)
+{
+	if (CheckIfRecording("copy image to buffer"))
+	{
+		const BufferImageCopy region(source.GetExtent());
+		parent.parent.vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, 1, &region);
+	}
+}
+
 void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer, const vector<BufferCopy>& regions)
 {
 	if (CheckIfRecording("copy buffer"))
@@ -122,6 +131,14 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, c
 	if (CheckIfRecording("copy buffer to image"))
 	{
 		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
+	}
+}
+
+void Pu::CommandBuffer::CopyImage(const Image & source, Buffer & destination, const vector<BufferImageCopy>& regions)
+{
+	if (CheckIfRecording("copy image to buffer"))
+	{
+		parent.parent.vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 	}
 }
 

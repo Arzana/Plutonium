@@ -38,16 +38,32 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ CommandBuffer& operator =(_In_ CommandBuffer &&other);
 
+		/* Checks whether two command buffers are equal. */
+		_Check_return_ inline bool operator ==(_In_ const CommandBuffer &other) const
+		{
+			return other.hndl == hndl;
+		}
+
+		/* Checks whether two command buffers differ. */
+		_Check_return_ inline bool operator !=(_In_ const CommandBuffer &other) const
+		{
+			return other.hndl != hndl;
+		}
+
 		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
 		_Check_return_ bool CanBegin(_In_opt_ bool wait = false);
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
 		/* Appends a copy command for the entire source buffer into the destination image to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &source, _In_ Image &destination);
+		/* Appends a copy command for the entire source image into the destination buffer to the command buffer. */
+		void CopyEntireImage(_In_ const Image &source, _In_ Buffer &destination);
 		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
 		void CopyBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer, _In_ const vector<BufferCopy> &regions);
 		/* Appends a copy command from the source buffer to the destination image to the command buffer. */
 		void CopyBuffer(_In_ const Buffer &source, _In_ Image &destination, _In_ const vector<BufferImageCopy> &regions);
+		/* Appends a copy command from the source image to the destination buffer to the command buffer. */
+		void CopyImage(_In_ const Image &source, _In_ Buffer &destination, _In_ const vector<BufferImageCopy> &regions);
 		/* Appends a pipeline buffer memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None);
 		/* Appends a pipeline image memory barrier command to the command buffer. */
@@ -78,6 +94,7 @@ namespace Pu
 		friend class Queue;
 		friend class GameWindow;
 		friend class AssetLoader;
+		friend class AssetSaver;
 
 		CommandPool &parent;
 		Fence *submitFence;
