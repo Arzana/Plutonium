@@ -17,7 +17,7 @@ Pu::SPIRVReader::~SPIRVReader(void)
 	delete reader;
 }
 
-void Pu::SPIRVReader::HandleAllModules(ModuleHandler hndlr)
+void Pu::SPIRVReader::HandleAllModules(ModuleHandler &hndlr)
 {
 	/* Loop untill the end of the file has been reached. */
 	while (CanReadWord())
@@ -27,7 +27,7 @@ void Pu::SPIRVReader::HandleAllModules(ModuleHandler hndlr)
 		const size_t start = reader->GetLocation();
 
 		/* Let user handle the module. */
-		hndlr.HandlePost(*this, opCode, wordCnt);
+		hndlr.Invoke(*this, opCode, wordCnt);
 
 		/* Advance all bytes that the user hasn't handled. */
 		const size_t advanced = reader->GetLocation() - start;

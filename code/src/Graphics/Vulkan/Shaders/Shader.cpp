@@ -94,7 +94,8 @@ void Pu::Shader::Create(const wstring & path)
 		VK_VALIDATE(parent.vkCreateShaderModule(parent.hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
 
 		/* Perform reflection to get the inputs and outputs. */
-		spvr.HandleAllModules(SPIRVReader::ModuleHandler(*this, &Shader::HandleModule));
+		auto handler = DelegateMethod<SPIRVReader, Shader, spv::Op, size_t>(*this, &Shader::HandleModule);
+		spvr.HandleAllModules(handler);
 	}
 	else Log::Fatal("Unable to load shader module!");
 }

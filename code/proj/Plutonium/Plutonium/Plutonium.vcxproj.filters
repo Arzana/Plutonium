@@ -216,9 +216,6 @@
     <ClInclude Include="..\..\..\include\Core\Events\EventArgs.h">
       <Filter>Header Files\Core\Events</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Events\EventSubscriber.h">
-      <Filter>Header Files\Core\Events</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Events\EventBus.h">
       <Filter>Header Files\Core\Events</Filter>
     </ClInclude>

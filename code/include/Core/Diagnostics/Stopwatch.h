@@ -113,14 +113,14 @@ namespace Pu
 #endif
 
 		/* Gets the amount of clock ticks since End was called or now. */
-		template <typename _Ty>
+		template <typename duration_t>
 		_Check_return_ inline int64 GetDuration(void) const
 		{
 #ifdef _DEBUG
 			if (!startCalled) Log::Warning("Cannot get time of stopwatch that hasn't been started!");
 #endif
 
-			return std::chrono::duration_cast<_Ty>((endCalled ? end : clock::now()) - start).count();
+			return std::chrono::duration_cast<duration_t>((endCalled ? end : clock::now()) - start).count();
 		}
 	};
 }

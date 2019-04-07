@@ -198,7 +198,6 @@
     <ClInclude Include="..\..\..\include\Core\Events\DelegateObsevers.h" />
     <ClInclude Include="..\..\..\include\Core\Events\EventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Events\EventBus.h" />
-    <ClInclude Include="..\..\..\include\Core\Events\EventSubscriber.h" />
     <ClInclude Include="..\..\..\include\Core\Events\UserEventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Events\ValueChangedEventArgs.h" />
     <ClInclude Include="..\..\..\include\Core\Math\AABB.h" />

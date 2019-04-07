@@ -2,7 +2,7 @@
 #include <tuple>
 #include "Core/String.h"
 #include "Streams/BinaryReader.h"
-#include "Core/Events/EventSubscriber.h"
+#include "Core/Events/DelegateObsevers.h"
 #include "SPIRV.h"
 
 namespace Pu
@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Defines a handler for reading a module. */
-		using ModuleHandler = EventSubscriber<SPIRVReader, spv::Op, size_t>;
+		using ModuleHandler = DelegateBase<SPIRVReader, spv::Op, size_t>;
 
 		/* Creates a new reader from the specific file path. */
 		SPIRVReader(_In_ const wstring &path);
@@ -55,7 +55,7 @@ namespace Pu
 		}
 
 		/* Loops through all the modules defines and sends them to the handler. */
-		void HandleAllModules(_In_ ModuleHandler hndlr);
+		void HandleAllModules(_In_ ModuleHandler& hndlr);
 		/* Reads a null-terminated UTF-8 string from the stream. */
 		_Check_return_ string ReadLiteralString(void);
 
