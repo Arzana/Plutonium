@@ -160,6 +160,9 @@
     <Filter Include="Header Files\Graphics\Text">
       <UniqueIdentifier>{5b32f7e0-3ce2-4a1b-8544-9bc0c9b0678b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Text">
+      <UniqueIdentifier>{28107f05-cde0-4c72-b7c0-bb3e26e464f8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -564,6 +567,12 @@
     <ClInclude Include="..\..\..\include\Content\AssetSaver.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\CodeChart.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\CodeChartIterator.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -803,6 +812,12 @@
     <ClCompile Include="..\..\..\src\Content\AssetSaver.cpp">
       <Filter>Source Files\Content</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -836,6 +851,9 @@
       <Filter>Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Asset.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Font.natvis">
       <Filter>Visualizers</Filter>
     </Natvis>
   </ItemGroup>

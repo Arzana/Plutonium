@@ -32,7 +32,7 @@ wstring Pu::SPIRV::FromGLSLPath(const wstring & path)
 
 	/* Run the validator. */
 	const bool succeeded = _CrtRunProcess(L"glslangValidator.exe", args, log, SpirVCompilerTimeout);
-	HandleGLSLValidateLog(log, input.toASCII());
+	HandleGLSLValidateLog(log, input.toUTF8());
 
 	/* Log either success or failure. */
 	if (succeeded)

@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <string>
+#include <locale>
 #include "Core/Math/Basics.h"
 #include "Core/Collections/Vector.h"
 #include "Core/Platform/Windows/Windows.h"
@@ -86,7 +87,7 @@ namespace Pu
 
 		/* Implicitely converts the specified type to a string view. */
 		template <class other_char_t>
-		basic_string(_In_ const other_char_t &t, _In_opt_ const allocator_t &alloc = allocator_t())
+		explicit basic_string(_In_ const other_char_t &t, _In_opt_ const allocator_t &alloc = allocator_t())
 			: string_t(t, alloc)
 		{}
 
@@ -94,6 +95,11 @@ namespace Pu
 		template <class _Ty>
 		basic_string(_In_ const _Ty &t, _In_ size_t pos, _In_ size_t n, _In_opt_ const allocator_t &alloc = allocator_t())
 			: string_t(t, pos, n, alloc)
+		{}
+
+		/* Initializes a new instance of a Plutonium string from a std string. */
+		basic_string(_In_ const std::basic_string<char_t> &stdString)
+			: string_t(stdString)
 		{}
 #pragma endregion
 #pragma region operators
@@ -421,22 +427,8 @@ namespace Pu
 			if (len != prev) result.emplace_back(string_t::substr(prev, len - prev));
 			return result;
 		}
-
-		/* Attempts to convert the string to ASCII. */
-		_Check_return_ inline basic_string<char> toASCII(void) const
-		{
-			if constexpr (std::is_same<char_t, wchar_t>::value)
-			{
-#ifdef _WIN32
-				/* ANSI is the closest we can use. */
-				return wideToMultiByte<char>(CP_ACP);
-#else
-				throw NotImplementedException(typeid(toASCII));
-#endif
-			}
-			else throw NotImplementedException(typeid(toASCII));
-		}
-
+#pragma endregion
+#pragma region converters
 		/* Attempts to convert the string to UTF-8. */
 		_Check_return_ inline basic_string<char> toUTF8(void) const
 		{
@@ -451,18 +443,36 @@ namespace Pu
 			else throw NotImplementedException(typeid(toUTF8));
 		}
 
-		/* Attempts to convert the string to a wide string (expects ASCII string is UTF-8 flag is not set to true). */
-		_Check_return_ inline basic_string<wchar_t> toWide(_In_ bool isUTF8) const
+		/* Attempts to convert the string to a wide string. */
+		_Check_return_ inline basic_string<wchar_t> toWide(void) const
 		{
 			if constexpr (std::is_same<char_t, char>::value)
 			{
 #ifdef _WIN32
-				return multiByteToWide<wchar_t>(isUTF8 ? CP_UTF8 : CP_ACP);
+				return multiByteToWide<wchar_t>(CP_UTF8);
 #else
 				throw NotImplementedException(typeid(toWide));
 #endif
 			}
 			else throw NotImplementedException(typeid(toWide));
+		}
+
+		/* Attempt to convert the string to a unicode string. */
+		_Check_return_ inline basic_string<char32> toUTF32(void) const
+		{
+			if constexpr (std::is_same<char_t, char>::value)
+			{
+				return multiByteToUnicode();
+			}
+			else if constexpr (std::is_same<char_t, wchar_t>::value)
+			{
+#ifdef _WIN32
+				return wideToUnicode();
+#else
+				return *this;
+#endif
+			}
+			else return *this;
 		}
 #pragma endregion
 
@@ -500,6 +510,53 @@ namespace Pu
 			/* Convert using Win32 multi byte to multi byte. */
 			WideCharToMultiByte(codePage, 0, string_t::c_str(), -1, result.data(), static_cast<int>(reserveSize), nullptr, nullptr);
 			return result;
+		}
+
+		inline basic_string<char32> wideToUnicode() const
+		{
+			if constexpr (std::is_same<char_t, wchar_t>::value)
+			{
+				const size_type size = string_t::length();
+				basic_string<char32> result;
+				result.reserve(size);
+
+				for (const wchar_t *start = string_t::data(), *end = start + size; start < end;)
+				{
+					const wchar_t uc = *start++;
+					if ((uc - 0xD800u) >= 2048u) result += static_cast<char32>(uc);
+					else
+					{
+						if ((uc & 0xFFFFFC00) == 0xD800 && start < end && (uc & 0xFFFFFC0) == 0xDC00)
+						{
+							result += (static_cast<char32>(uc) << 10) + static_cast<char32>(*start++) - 0x35FDC00;
+						}
+					}
+				}
+
+				return result;
+			}
+			else throw;
+		}
+
+		inline basic_string<char32> multiByteToUnicode() const
+		{
+			if constexpr (std::is_same<char_t, char>::value)
+			{
+				auto &facet = std::use_facet<std::codecvt<char32, char, std::mbstate_t>>(std::locale());
+				basic_string<char32> result(string_t::length(), '\0');
+
+				std::mbstate_t mb = std::mbstate_t();
+				const char *from_next;
+				char32 *to_next;
+
+				facet.in(mb, 
+					string_t::data(), string_t::data() + string_t::length(), from_next,
+					result.data(), result.data() + string_t::length(), to_next);
+
+				result.resize(to_next - result.data());
+				return result;
+			}
+			else throw;
 		}
 #endif
 	};

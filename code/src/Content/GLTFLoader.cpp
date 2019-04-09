@@ -943,7 +943,7 @@ namespace Pu
 			{
 				if (string(key).toUpper() == "URI")
 				{
-					if (val.is_string()) image.Uri = string(val).toWide(false);
+					if (val.is_string()) image.Uri = string(val).toWide();
 					else LogCorruptJsonHeader("Image URI isn't a valid path");
 				}
 				else Log::Warning("GLTF loader doesn't currently handle embedded images!");
@@ -1078,7 +1078,7 @@ namespace Pu
 				const string upperKey = string(key).toUpper();
 				if (upperKey == "URI")
 				{
-					if (val.is_string()) buffer.Uri = string(val).toWide(false);
+					if (val.is_string()) buffer.Uri = string(val).toWide();
 					else LogCorruptJsonHeader("buffer URI isn't a string");
 				}
 				else if (upperKey == "BYTELENGTH")

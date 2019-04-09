@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Pu::Glyph">
+    <DisplayString>{Key}</DisplayString>
+  </Type>
+
+  <Type Name="Pu::Font">
+    <Expand>
+      <Item Name="Size">size</Item>
+      <Item Name="Line spacing">lineSpace</Item>
+      <Item Name="Default glyph">glyphs[defaultGlyphIndex]</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>
