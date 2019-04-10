@@ -314,7 +314,7 @@ bool Pu::Renderpass::CheckIO(const Shader & a, const Shader & b) const
 void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 {
 	usable = true;
-	MarkAsLoaded(linkedViaLoader);
+	MarkAsLoaded(linkedViaLoader, L"Renderpass");
 
 #ifdef _DEBUG
 	wstring modules;
@@ -331,7 +331,7 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 void Pu::Renderpass::LinkFailed(bool linkedViaLoader)
 {
 	usable = false;
-	MarkAsLoaded(linkedViaLoader);
+	MarkAsLoaded(linkedViaLoader, L"Renderpass");
 }
 
 void Pu::Renderpass::Destroy(void)

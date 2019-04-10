@@ -46,6 +46,12 @@ namespace Pu
 			return loaded.load();
 		}
 
+		/* Gets the human readable indentifier of the asset. */
+		_Check_return_ const wstring& GetName(void) const
+		{
+			return identifier;
+		}
+
 		/* Increases the reference count by one. */
 		inline void Reference(void)
 		{
@@ -71,10 +77,11 @@ namespace Pu
 		void SetHash(_In_ size_t hash);
 
 		/* Marks the current asset as ready for use. */
-		inline void MarkAsLoaded(_In_ bool viaLoader)
+		inline void MarkAsLoaded(_In_ bool viaLoader, _In_ wstring &&name)
 		{
 			loaded.store(true);
 			loadedViaLoader = viaLoader;
+			identifier = std::move(name);
 		}
 
 	private:
@@ -86,6 +93,7 @@ namespace Pu
 		size_t hash, instance;
 		bool allowDuplication, loadedViaLoader;
 		std::atomic_bool loaded;
+		wstring identifier;
 
 		template <typename asset_t>
 		asset_t& Duplicate(AssetCache &cache)

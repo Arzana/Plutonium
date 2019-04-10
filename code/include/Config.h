@@ -45,4 +45,8 @@ namespace Pu
 	constexpr int64 CPUUsageQueryMinimumElapsedTime = 250;
 	/* Defines whether images loaded from disk should be allowed to be saved to disk. */
 	constexpr bool AllowSaveOnLoadedImages = false;
+	/* Defines the horizontal offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */
+	constexpr uint32 FontAtlasHOffset = 2;
+	/* Defines the vertical offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */
+	constexpr uint32 FontAtlasVOffset = 2;
 }

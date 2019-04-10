@@ -1,7 +1,7 @@
 #pragma once
 #include "Glyph.h"
-#include "Graphics/Textures/Texture2D.h"
 #include "CodeChart.h"
+#include "Graphics/Textures/Texture2D.h"
 
 struct stbtt_fontinfo;
 
@@ -13,7 +13,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a font from a specific file. */
-		Font(_In_ LogicalDevice &device, _In_ const wstring &path, _In_ float size, _In_ const CodeChart &codeChart);
+		Font(_In_ LogicalDevice &device, _In_ float size, _In_ const CodeChart &codeChart);
 		Font(_In_ const Font&) = delete;
 		/* Move constructor. */
 		Font(_In_ Font &&value);
@@ -49,8 +49,10 @@ namespace Pu
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
-		LogicalDevice &device;
+		friend class AssetLoader;
+		friend class AssetFetcher;
 
+		LogicalDevice &device;
 		Image *atlasImg;
 		Texture2D *atlasTex;
 		stbtt_fontinfo *info;
@@ -58,15 +60,14 @@ namespace Pu
 
 		CodeChart codeChart;
 		vector<Glyph> glyphs;
-
 		size_t defaultGlyphIndex;
 		int32 lineSpace;
 		float size;
 		
 		float GetScale(void) const;
-		void Load(const wstring &path, bool viaLoader);
-		Vector2 LoadGlyphInfo(float scale);
-		void CreateAtlas(Vector2 size, float scale);
+		void Load(const wstring &path);
+		Vector2 LoadGlyphInfo(void);
+		void StageAtlas(Vector2 atlasSize, byte *dst);
 		void Destroy();
 	};
 }

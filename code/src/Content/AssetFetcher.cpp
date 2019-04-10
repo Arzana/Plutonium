@@ -10,6 +10,7 @@ Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device
 	AddWildcard(L"{Assets}", L"../assets/");
 	AddWildcard(L"{Shaders}", L"{Assets}shaders/");
 	AddWildcard(L"{Textures}", L"{Assets}images/");
+	AddWildcard(L"{Fonts}", L"{Assets}fonts/");
 }
 
 Pu::AssetFetcher::~AssetFetcher(void)
@@ -56,26 +57,16 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	The texture itself is not an asset but the sampler and image it stores are.
 	So first get the sampler and then get the image.
 	*/
-	Sampler *sampler;
-
-	/* Try to fetch the sampler, otherwise just create a new one. */
-	size_t hash = Sampler::CreateHash(samplerInfo);
-	if (cache->Contains(hash)) sampler = &cache->Get(hash).Duplicate<Sampler>(*cache);
-	else
-	{
-		sampler = new Sampler(loader->GetDevice(), samplerInfo);
-		sampler->loadedViaLoader = true;
-		cache->Store(sampler);
-	}
+	Sampler &sampler = FetchSampler(samplerInfo);
 
 	/* Try to fetch the image, otherwise just create a new one. */
-	hash = std::hash<wstring>{}(mutablePath);
+	const size_t hash = std::hash<wstring>{}(mutablePath);
 	if (cache->Contains(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
 
 		/* Create the final texture and return it. */
-		Texture2D *result = new Texture2D(image, *sampler);
+		Texture2D *result = new Texture2D(image, sampler);
 		textures.push_back(result);
 		return *result;
 	}
@@ -93,11 +84,67 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 		cache->Store(image);
 
 		/* Create the final texture and start the load/stage process. */
-		Texture2D *result = new Texture2D(*image, *sampler);
+		Texture2D *result = new Texture2D(*image, sampler);
 		textures.push_back(result);
 		loader->InitializeTexture(*result, mutablePath, info);
 		return *result;
 	}
+}
+
+Pu::Sampler & Pu::AssetFetcher::FetchSampler(const SamplerCreateInfo & samplerInfo)
+{
+	/* Try to fetch the sampler, otherwise just create a new one. */
+	size_t hash = Sampler::CreateHash(samplerInfo);
+	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Sampler>(*cache);
+	else
+	{
+		Sampler *result = new Sampler(loader->GetDevice(), samplerInfo);
+		result->loadedViaLoader = true;
+		cache->Store(result);
+		return *result;
+	}
+}
+
+Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const CodeChart & codeChart)
+{
+	/* Solve for the font path. */
+	wstring mutablePath(path);
+	Solve(mutablePath);
+
+	/* Try to fetch the font, create a new one. */
+	const size_t hash = std::hash<wstring>{}(mutablePath);
+	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Font>(*cache);
+
+	/* The sampler needs to be retrieved from the fetcher so we just add this as a continuation task. */
+	class CreateTextureTask
+		: public Task
+	{
+	public:
+		CreateTextureTask(Font &result, AssetFetcher &parent)
+			: result(result), parent(parent)
+		{}
+
+		virtual Result Execute(void) override
+		{
+			SamplerCreateInfo info(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToBorder);
+			result.atlasTex = new Texture2D(*result.atlasImg, parent.FetchSampler(info));
+			return Result::AutoDelete();
+		}
+
+	private:
+		Font &result;
+		AssetFetcher &parent;
+	};
+
+	/* Create the font and add it to the cache. */
+	Font *result = new Font(loader->GetDevice(), size, codeChart);
+	result->SetHash(hash);
+	cache->Store(result);
+
+	/* Load the font. */
+	CreateTextureTask *continuation = new CreateTextureTask(*result, *this);
+	loader->InitializeFont(*result, mutablePath, *continuation);
+	return *result;
 }
 
 void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
@@ -116,7 +163,7 @@ void Pu::AssetFetcher::Release(Texture & texture)
 {
 	/* Make sure to release the underlying resources. */
 	cache->Release(texture.Image);
-	cache->Release(texture.Sampler);
+	Release(texture.Sampler);
 
 	/* Delete the actual texture. */
 	for (Texture *cur : textures)
@@ -128,4 +175,15 @@ void Pu::AssetFetcher::Release(Texture & texture)
 			return;
 		}
 	}
+}
+
+void Pu::AssetFetcher::Release(Sampler & sampler)
+{
+	cache->Release(sampler);
+}
+
+void Pu::AssetFetcher::Release(Font & font)
+{
+	Release(font.atlasTex->Sampler);
+	cache->Release(font);
 }

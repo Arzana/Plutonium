@@ -1,9 +1,9 @@
 #pragma once
 #include "AssetCache.h"
 #include "Core/Collections/pool.h"
-#include "Graphics/Textures/Texture.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Text/Font.h"
 
 namespace Pu
 {
@@ -35,6 +35,8 @@ namespace Pu
 		void FinalizeGraphicsPipeline(_In_ GraphicsPipeline &pipeline, _In_ Renderpass &renderpass);
 		/* Loads and stages a texture from a specific path. */
 		void InitializeTexture(_In_ Texture &texture, _In_ const wstring &path, _In_ const ImageInformation &info);
+		/* Loads and stages a font from a specific path. */
+		void InitializeFont(_In_ Font &font, _In_ const wstring &path, _In_ Task &continuation);
 
 	private:
 		AssetCache &cache;

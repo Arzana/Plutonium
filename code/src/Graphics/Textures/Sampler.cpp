@@ -9,7 +9,7 @@ Pu::Sampler::Sampler(LogicalDevice & device, const SamplerCreateInfo & createInf
 	cmpOp(createInfo.CompareOp), clr(createInfo.BorderColor)
 {
 	VK_VALIDATE(parent.vkCreateSampler(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSampler);
-	MarkAsLoaded(false);	// Default to not loaded via load, loader will override this.
+	MarkAsLoaded(false, L"Sampler");	// Default to not loaded via load, loader will override this.
 }
 
 Pu::Sampler::Sampler(Sampler && value)

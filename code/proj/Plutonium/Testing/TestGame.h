@@ -31,6 +31,7 @@ private:
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
+	Pu::Font *font;
 	Pu::FreeCamera *cam;
 	Pu::Mesh *mesh;
 	TransformBlock *transform;

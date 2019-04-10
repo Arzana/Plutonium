@@ -5,6 +5,7 @@
   </Type>
 
   <Type Name="Pu::Font">
+    <DisplayString>{identifier, sb}({hash})</DisplayString>
     <Expand>
       <Item Name="Size">size</Item>
       <Item Name="Line spacing">lineSpace</Item>

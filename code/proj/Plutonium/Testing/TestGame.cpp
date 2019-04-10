@@ -3,7 +3,6 @@
 #include <Content/GLTFParser.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
-#include <Graphics/Text/Font.h>
 
 using namespace Pu;
 
@@ -87,8 +86,6 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	Font f(GetDevice(), L"../assets/fonts/LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
-
 	GLTFFile file;
 	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", file);
 
@@ -106,10 +103,12 @@ void TestGame::LoadContent(void)
 
 	/* Load the texture. */
 	image = &GetContent().FetchTexture2D(file.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+	font = &GetContent().FetchFont(L"{Fonts}OpenSans-Regular.ttf", 24.0f, CodeChart::ASCII());
 }
 
 void TestGame::UnLoadContent(void)
 {
+	GetContent().Release(*font);
 	GetContent().Release(*image);
 
 	delete mesh;

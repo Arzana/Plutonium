@@ -25,7 +25,8 @@ Pu::Asset::Asset(bool allowDuplication, size_t hash, size_t instance)
 {}
 
 Pu::Asset::Asset(Asset && value)
-	: refCnt(value.refCnt), hash(value.hash), instance(value.instance), allowDuplication(value.allowDuplication), loaded(value.IsLoaded())
+	: refCnt(value.refCnt), hash(value.hash), instance(value.instance), 
+	allowDuplication(value.allowDuplication), loaded(value.IsLoaded()), identifier(std::move(value.identifier))
 {
 	value.refCnt = 0;
 	value.hash = 0;
@@ -42,6 +43,7 @@ Pu::Asset & Pu::Asset::operator=(Asset && other)
 		refCnt = other.refCnt;
 		hash = other.hash;
 		instance = other.instance;
+		identifier = std::move(other.identifier);
 		allowDuplication = other.allowDuplication;
 		loaded.store(other.IsLoaded());
 

@@ -33,5 +33,5 @@ void Pu::StagingBuffer::Load(const void * data)
 	Mark the staging buffer as loaded, making it ready for use. 
 	This should never be called via a loader so don't mark it as such. 
 	*/
-	MarkAsLoaded(false);
+	MarkAsLoaded(false, L"StagingBuffer");
 }

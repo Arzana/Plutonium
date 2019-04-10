@@ -1,5 +1,6 @@
 #include "Graphics/Text/Font.h"
 #include "Streams/FileReader.h"
+#include "Graphics/Vulkan/CommandPool.h"
 
 #ifdef _DEBUG
 #include "Content/AssetSaver.h"
@@ -9,11 +10,10 @@
 
 #include <stb/stb/stb_truetype.h>
 
-Pu::Font::Font(LogicalDevice & device, const wstring & path, float size, const CodeChart &codeChart)
-	: Asset(true, std::hash<wstring>{}(path)), device(device), size(size), codeChart(codeChart)
+Pu::Font::Font(LogicalDevice & device, float size, const CodeChart &codeChart)
+	: Asset(true), device(device), size(size), codeChart(codeChart)
 {
 	info = new stbtt_fontinfo();
-	Load(path, false);
 }
 
 Pu::Font::Font(Font && value)
@@ -105,7 +105,7 @@ float Pu::Font::GetScale(void) const
 	return stbtt_ScaleForMappingEmToPixels(info, size);
 }
 
-void Pu::Font::Load(const wstring & path, bool viaLoader)
+void Pu::Font::Load(const wstring & path)
 {
 	/* Read the byte data from the file. */
 	FileReader reader(path);
@@ -114,25 +114,15 @@ void Pu::Font::Load(const wstring & path, bool viaLoader)
 	/* Initialize the global font information. */
 	stbtt_InitFont(info, reinterpret_cast<unsigned char*>(data.data()), 0);
 	glyphs.resize(min(codeChart.GetCharacterCount(), static_cast<size_t>(info->numGlyphs)));
-
-	/* Load the glyphs defined in the font. */
-	const float scale = GetScale();
-	const Vector2 requiredImgSize = LoadGlyphInfo(scale);
-
-	/* 
-	We call difference functions for the atlas creation.
-	If it's done via the loader we create a task for it so we can be optimal.
-	For the direct loading we just stall this thread to wait for the command to complete.
-	*/
-	if (viaLoader); //TODO implement loader.
-	else CreateAtlas(requiredImgSize, scale);
 }
 
-Pu::Vector2 Pu::Font::LoadGlyphInfo(float scale)
+Pu::Vector2 Pu::Font::LoadGlyphInfo()
 {
+	const float scale = GetScale();
+
 	/* Get the global vertical information of the font. */
-	int32 ascent, descent;
-	stbtt_GetFontVMetrics(info, &ascent, &descent, &lineSpace);
+	int32 ascent, descent, lineGap;
+	stbtt_GetFontVMetrics(info, &ascent, &descent, &lineGap);
 
 	/* Set the font information for all characters in the font or up until the UTF-16 limit. */
 	Vector2 finalImgSize, curLineSize;
@@ -154,6 +144,7 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo(float scale)
 			cur.Bounds = Rectangle(curLineSize.X, finalImgSize.Y, cur.Size.X, cur.Size.Y);
 			cur.Advance = static_cast<uint32>(rectify(x0 + advance * scale));
 			cur.Bearing = Vector2(static_cast<float>(lsb), static_cast<float>(y0));
+			if (cur.Size.Y > ipart(lineSpace)) lineSpace = static_cast<int32>(cur.Size.Y);
 
 			/* Create a new line in the font map after every 32 glyphs. */
 			if (j > 32)
@@ -168,8 +159,8 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo(float scale)
 			}
 			else
 			{
-				curLineSize.X += cur.Size.X;
-				curLineSize.Y = max(curLineSize.Y, cur.Size.Y);
+				curLineSize.X += cur.Size.X + FontAtlasHOffset;
+				curLineSize.Y = max(curLineSize.Y, cur.Size.Y + FontAtlasVOffset);
 			}
 
 			/* Set the default glyph to either the unicode standart or the question mark. */
@@ -181,6 +172,9 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo(float scale)
 		}
 	}
 
+	/* The linegap is just extra space left between lines, so add it after our default line space.  */
+	lineSpace += lineGap;
+
 	/* Release all the memory we didn't need in the end. */
 	Log::Verbose("Loaded font with %zu/%zu/%d characters.", i, glyphs.size(), info->numGlyphs);
 	glyphs.erase(glyphs.begin() + i, glyphs.end());
@@ -191,17 +185,12 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo(float scale)
 	return finalImgSize;
 }
 
-void Pu::Font::CreateAtlas(Vector2 size, float scale)
+void Pu::Font::StageAtlas(Vector2 atlasSize, byte *dst)
 {
-	/* Define the size of the staging buffer and create a converter from the bounds to the final uv coords. */
-	const size_t atlasSizeBytes = static_cast<size_t>(size.X) * static_cast<size_t>(size.Y);
-	const Vector2 b2uv = Vector2(1.0f) / size;
-	const int stride = ipart(size.X);
-
-	/* Create the staging buffer and get the CPU/GPU visible memory pointer. */
-	StagingBuffer src(device, atlasSizeBytes);
-	src.BeginMemoryTransfer();
-	byte *buffer = reinterpret_cast<byte*>(src.GetHostMemory());
+	/* Precalculate need information. */
+	const Vector2 b2uv = Vector2(1.0f) / atlasSize;
+	const int stride = ipart(atlasSize.X);
+	const float scale = GetScale();
 
 	for (Glyph &cur : glyphs)
 	{
@@ -212,19 +201,12 @@ void Pu::Font::CreateAtlas(Vector2 size, float scale)
 		const size_t x = static_cast<size_t>(cur.Bounds.Position.X);
 		const size_t y = static_cast<size_t>(cur.Bounds.Position.Y);
 		const size_t offset = y * stride + x;
-		stbtt_MakeCodepointBitmap(info, buffer + offset, ipart(cur.Size.X), ipart(cur.Size.Y), stride, scale, scale, cur.Key);
+		stbtt_MakeCodepointBitmap(info, dst + offset, ipart(cur.Size.X), ipart(cur.Size.Y), stride, scale, scale, cur.Key);
 
 		/* Convert the bouds to texture coordinates. */
 		cur.Bounds.Position *= b2uv;
 		cur.Bounds.Size *= b2uv;
 	}
-
-	/* Save the fontmap on debug for testing TODO add name to this. */
-#ifdef _DEBUG
-	AssetSaver::SaveImageInternal(buffer, ipart(size.X), ipart(size.Y), 1, L"Debug\\FontMap", ImageSaveFormats::Png);
-#endif
-
-	src.EndMemoryTransfer();
 }
 
 void Pu::Font::Destroy()

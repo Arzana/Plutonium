@@ -64,7 +64,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const wstring &path)
-			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), staged(false)
+			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), staged(false), name(path.fileNameWithoutExtension())
 		{
 			child = new Texture::LoadTask(texture, info, path);
 			child->SetParent(*this);
@@ -77,7 +77,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			return Result::Default();
 		}
 
-		virtual Result Continue(void) override 
+		virtual Result Continue(void) override
 		{
 			/*
 			There are two stages after the texels are loaded.
@@ -87,7 +87,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			if (staged)
 			{
 				parent.buffers.recycle(cmdBuffer);
-				result.Image.MarkAsLoaded(true);
+				result.Image.MarkAsLoaded(true, std::move(name));
 				delete child;
 				return Result::AutoDelete();
 			}
@@ -109,7 +109,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override 
+		virtual bool ShouldContinue(void) const override
 		{
 			/* The texture is done staging if the buffer can begin again. */
 			if (staged) return cmdBuffer.CanBegin();
@@ -121,11 +121,97 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 		AssetLoader &parent;
 		CommandBuffer &cmdBuffer;
 		Texture::LoadTask *child;
+		wstring name;
 		bool staged;
 	};
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, info, path);
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & continuation)
+{
+	class LoadTask
+		: public Task
+	{
+	public:
+		LoadTask(AssetLoader &parent, Font &font, const wstring &path, Task &continuation)
+			: result(font), parent(parent), cmdBuffer(parent.GetCmdBuffer()), 
+			path(path), continuation(continuation)
+		{}
+
+		virtual Result Execute(void) override
+		{
+			/* Load the glyph information. */
+			result.Load(path);
+			const Vector2 imgSize = result.LoadGlyphInfo();
+
+			/* Create and populate the staging buffer. */
+			const size_t stagingBufferSize = static_cast<size_t>(imgSize.X) * static_cast<size_t>(imgSize.Y);
+			buffer = new StagingBuffer(parent.device, stagingBufferSize);
+			buffer->BeginMemoryTransfer();
+			result.StageAtlas(imgSize, reinterpret_cast<byte*>(buffer->GetHostMemory()));
+			buffer->EndMemoryTransfer();
+
+			/* Create the result image. */
+			const Extent3D extent(static_cast<uint32>(imgSize.X), static_cast<uint32>(imgSize.Y), 1);
+			ImageCreateInfo info(ImageType::Image2D, Format::R8_UNORM, extent, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
+			result.atlasImg = new Image(parent.device, info);
+
+			/* Make sure the atlas has the correct layout. */
+			cmdBuffer.Begin();
+			cmdBuffer.MemoryBarrier(*result.atlasImg, 
+				PipelineStageFlag::TopOfPipe, 
+				PipelineStageFlag::Transfer, 
+				ImageLayout::TransferDstOptimal, 
+				AccessFlag::TransferWrite, 
+				result.atlasImg->GetFullRange(ImageAspectFlag::Color));
+
+			/* Copy actual data and end the buffer. */
+			cmdBuffer.CopyEntireBuffer(*buffer, *result.atlasImg);
+			cmdBuffer.End();
+
+			parent.transferQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+		virtual Result Continue(void) override
+		{
+			/* Recycle the buffer as soon as possible. */
+			parent.buffers.recycle(cmdBuffer);
+
+			/* Mark both the image and the font as loaded, font will delete the atlas so just mark it as not loaded via the loader. */
+			wstring name = L"Atlas ";
+			name += path.fileNameWithoutExtension();
+			result.atlasImg->MarkAsLoaded(false, std::move(name));
+			result.MarkAsLoaded(true, path.fileNameWithoutExtension());
+
+			/* Delete the staging buffer and this task. */
+			delete buffer;
+			Result result = Result::Continue(continuation);
+			result.Delete = true;
+			return result;
+		}
+
+	protected:
+		virtual bool ShouldContinue(void) const override
+		{
+			/* The texture is done staging if the buffer can begin again. */
+			return cmdBuffer.CanBegin();
+		}
+
+	private:
+		Font &result;
+		AssetLoader &parent;
+		Task &continuation;
+		CommandBuffer &cmdBuffer;
+		const wstring path;
+		StagingBuffer *buffer;
+	};
+
+	/* Simply create the task and spawn it. */
+	LoadTask *task = new LoadTask(*this, font, path, continuation);
 	scheduler.Spawn(*task);
 }
 

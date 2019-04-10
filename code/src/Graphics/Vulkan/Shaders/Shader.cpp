@@ -78,7 +78,7 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 
 	/* Set the information of the subpass. */
 	SetFieldInfo();
-	MarkAsLoaded(viaLoader);
+	MarkAsLoaded(viaLoader, path.fileNameWithoutExtension());
 }
 
 void Pu::Shader::Create(const wstring & path)
