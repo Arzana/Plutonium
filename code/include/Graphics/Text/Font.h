@@ -49,6 +49,8 @@ namespace Pu
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
+		LogicalDevice &device;
+
 		Image *atlasImg;
 		Texture2D *atlasTex;
 		stbtt_fontinfo *info;
@@ -64,6 +66,7 @@ namespace Pu
 		float GetScale(void) const;
 		void Load(const wstring &path, bool viaLoader);
 		Vector2 LoadGlyphInfo(float scale);
+		void CreateAtlas(Vector2 size, float scale);
 		void Destroy();
 	};
 }

@@ -30,7 +30,7 @@ namespace Pu
 		/* Gets the iterator at the end of the range. */
 		_Check_return_ CodeChartIterator end(void);
 
-		/* Basic Latin [0000, 007F]. */
+		/* Basic Latin. */
 		_Check_return_ static inline CodeChart ASCII(void)
 		{
 			return CodeChart(0x0000, 0x007F);
@@ -41,6 +41,13 @@ namespace Pu
 		{
 			return CodeChart(0x30A0, 0x30FF);
 		}
+
+		/* Miscellaneous Symbols. */
+		_Check_return_ static inline CodeChart MiscSymbols(void)
+		{
+			return CodeChart(0x2600, 0x26FF);
+		}
+
 
 	private:
 		using chart = std::pair<char32, char32>;

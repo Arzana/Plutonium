@@ -67,6 +67,12 @@ const void * Pu::Buffer::GetHostMemory(void) const
 	return buffer;
 }
 
+void * Pu::Buffer::GetHostMemory(void)
+{
+	if (!buffer) Log::Fatal("Attempting to get host memory on buffer that has no mapped memory!");
+	return buffer;
+}
+
 void Pu::Buffer::EndMemoryTransfer(void)
 {
 	/* Make sure the buffer was actually started. */

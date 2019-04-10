@@ -26,6 +26,10 @@ namespace Pu
 		void SaveImage(_In_ const Image &image, _In_ const wstring &path, _In_ ImageSaveFormats format);
 
 	private:
+#ifdef _DEBUG
+		friend class Font;
+#endif
+
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
 		CommandPool *cmdPool;
@@ -33,6 +37,7 @@ namespace Pu
 		Queue &transferQueue;
 		pool<CommandBuffer> buffers;
 
+		static void SaveImageInternal(const void *data, int w, int h, int c, const wstring &path, ImageSaveFormats format);
 		void AllocateCmdBuffer(void);
 		CommandBuffer& GetCmdBuffer(void);
 	};

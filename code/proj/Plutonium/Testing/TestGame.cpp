@@ -3,6 +3,7 @@
 #include <Content/GLTFParser.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
+#include <Graphics/Text/Font.h>
 
 using namespace Pu;
 
@@ -86,6 +87,8 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
+	Font f(GetDevice(), L"../assets/fonts/LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
+
 	GLTFFile file;
 	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", file);
 

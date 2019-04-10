@@ -52,6 +52,8 @@ namespace Pu
 		void BeginMemoryTransfer(void);
 		/* Gets the host mapped memory pointer. */
 		const void* GetHostMemory(void) const;
+		/* Gets the host mapped memory pointer. */
+		void* GetHostMemory(void);
 		/* Ends the process of transfering data from the CPU to this buffer. */
 		void EndMemoryTransfer(void);
 

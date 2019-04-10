@@ -74,37 +74,14 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			destination->BeginMemoryTransfer();
 			const void *data = destination->GetHostMemory();
 
-			/* Make sure the directory exists. */
-			FileWriter::CreateDirectory(path.fileDirectory());
-
 			/* Save the image to disk. */
-			int32 result = 0;
-			string pathU8 = path.toUTF8();
 			const Extent3D extent = image.GetExtent();
 			const int w = static_cast<int>(extent.Width), h = static_cast<int>(extent.Height), c = static_cast<int>(image.GetChannels());
+			AssetSaver::SaveImageInternal(data, w, h, c, path, format);
 
-			switch (format)
-			{
-			case Pu::ImageSaveFormats::Png:
-				result = stbi_write_png((pathU8 + u8".png").c_str(), w, h, c, data, 0);
-				break;
-			case Pu::ImageSaveFormats::Bmp:
-				result = stbi_write_bmp((pathU8 + u8".bmp").c_str(), w, h, c, data);
-				break;
-			case Pu::ImageSaveFormats::Tga:
-				result = stbi_write_tga((pathU8 + u8".tga").c_str(), w, h, c, data);
-				break;
-			case Pu::ImageSaveFormats::Jpg:
-				result = stbi_write_jpg((pathU8 + u8".jpg").c_str(), w, h, c, data, 100);
-				break;
-			case Pu::ImageSaveFormats::Hdr:
-				result = stbi_write_hdr((pathU8 + u8".hdr").c_str(), w, h, c, reinterpret_cast<const float*>(data));
-				break;
-			}
-
-			/* Check the result and end the map. */
-			if (!result) Log::Error("Unable to save image to '%ls', reason: '%ls'!", path.c_str(), _CrtGetErrorString().c_str());
+			/* Finalize the result. */
 			destination->EndMemoryTransfer();
+			delete destination;
 			return Result::AutoDelete();
 		}
 
@@ -127,6 +104,38 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	/* Create the save task. */
 	SaveTask *task = new SaveTask(*this, image, path, format);
 	scheduler.Spawn(*task);
+}
+
+void Pu::AssetSaver::SaveImageInternal(const void * data, int w, int h, int c, const wstring & path, ImageSaveFormats format)
+{
+	/* Make sure the directory exists. */
+	FileWriter::CreateDirectory(path.fileDirectory());
+
+	/* Save the image to disk. */
+	int32 result = 0;
+	string pathU8 = path.toUTF8();
+
+	switch (format)
+	{
+	case Pu::ImageSaveFormats::Png:
+		result = stbi_write_png((pathU8 += u8".png").c_str(), w, h, c, data, 0);
+		break;
+	case Pu::ImageSaveFormats::Bmp:
+		result = stbi_write_bmp((pathU8 += u8".bmp").c_str(), w, h, c, data);
+		break;
+	case Pu::ImageSaveFormats::Tga:
+		result = stbi_write_tga((pathU8 += u8".tga").c_str(), w, h, c, data);
+		break;
+	case Pu::ImageSaveFormats::Jpg:
+		result = stbi_write_jpg((pathU8 += u8".jpg").c_str(), w, h, c, data, 100);
+		break;
+	case Pu::ImageSaveFormats::Hdr:
+		result = stbi_write_hdr((pathU8 += u8".hdr").c_str(), w, h, c, reinterpret_cast<const float*>(data));
+		break;
+	}
+
+	/* Check the result and end the map. */
+	if (!result) Log::Error("Unable to save image to '%ls', reason: '%ls'!", path.c_str(), _CrtGetErrorString().c_str());
 }
 
 void Pu::AssetSaver::AllocateCmdBuffer(void)

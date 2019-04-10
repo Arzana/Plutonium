@@ -57,8 +57,10 @@ Pu::CodeChart & Pu::CodeChart::operator+=(const CodeChart & other)
 		}
 		else if (it->first > oit->first && oit->second < it->first)
 		{
+			const size_t dist = std::distance(ranges.begin(), it);
 			/* The other range is fully before this range so just add it. */
 			ranges.emplace(it, *oit);
+			it = ranges.begin() + dist;
 		}
 		else
 		{
