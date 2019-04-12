@@ -22,6 +22,9 @@ namespace Pu
 			/* Specifies whether the task needs to be put into a wait list, this is done automatically if it has childs. */
 			bool Wait;
 
+			/* Initializes a new instance of a task result. */
+			Result(_In_ Task *continuation, _In_ bool shouldDelete, _In_ bool shouldWait);
+
 			/* Gets a default result, nothing will happen after this. */
 			_Check_return_ static Result Default(void);
 			/* Gets a new task result as a continue task. */
@@ -30,9 +33,6 @@ namespace Pu
 			_Check_return_ static Result AutoDelete(void);
 			/* Gets a new task result as a custom wait result. */
 			_Check_return_ static Result CustomWait(void);
-
-		private:
-			Result(Task *continuation, bool shouldDelete, bool shouldWait);
 		};
 
 		Task(_In_ Task&&) = delete;

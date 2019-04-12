@@ -189,9 +189,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 			/* Delete the staging buffer and this task. */
 			delete buffer;
-			Result result = Result::Continue(continuation);
-			result.Delete = true;
-			return result;
+			return Result(&continuation, true, false);
 		}
 
 	protected:

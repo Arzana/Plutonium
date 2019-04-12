@@ -144,7 +144,7 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo()
 			cur.Bounds = Rectangle(curLineSize.X, finalImgSize.Y, cur.Size.X, cur.Size.Y);
 			cur.Advance = static_cast<uint32>(rectify(x0 + advance * scale));
 			cur.Bearing = Vector2(static_cast<float>(lsb), static_cast<float>(y0));
-			if (cur.Size.Y > ipart(lineSpace)) lineSpace = static_cast<int32>(cur.Size.Y);
+			if (cur.Size.Y > static_cast<float>(lineSpace)) lineSpace = static_cast<int32>(cur.Size.Y);
 
 			/* Create a new line in the font map after every 32 glyphs. */
 			if (j > 32)

@@ -31,12 +31,10 @@ public:
 
 protected:
 
-	virtual inline void Stage(Pu::StagingBuffer &dest) override
+	virtual inline void Stage(Pu::byte *dest) override
 	{
-		Pu::byte buffer[sizeof(Pu::Matrix) * 2]{};
-		memcpy(buffer, proj.GetComponents(), sizeof(Pu::Matrix));
-		memcpy(buffer + sizeof(Pu::Matrix), view.GetComponents(), sizeof(Pu::Matrix));
-		dest.Load(buffer);
+		memcpy(dest, proj.GetComponents(), sizeof(Pu::Matrix));
+		memcpy(dest + sizeof(Pu::Matrix), view.GetComponents(), sizeof(Pu::Matrix));
 	}
 
 	virtual inline void UpdateDescriptor(Pu::DescriptorSet &descriptor, const Pu::Buffer &uniformBuffer) override

@@ -4,20 +4,15 @@ Pu::UniformBlock::UniformBlock(LogicalDevice & device, size_t size, const Descri
 	: IsDirty(true), firstUpdate(true)
 {
 	descriptor = new DescriptorSet(std::move(pool.Allocate(set)));
-	targetBuffer = new Buffer(device, size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst, false);
-	stagingBuffer = new StagingBuffer(*targetBuffer);
+	target = new DynamicBuffer(device, size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
 }
 
 Pu::UniformBlock::UniformBlock(UniformBlock && value)
 	: IsDirty(value.IsDirty), firstUpdate(value.firstUpdate)
 {
 	descriptor = value.descriptor;
-	targetBuffer = value.targetBuffer;
-	stagingBuffer = value.stagingBuffer;
-
-	value.stagingBuffer = nullptr;
-	value.targetBuffer = nullptr;
-	value.stagingBuffer = nullptr;
+	target = value.target;
+	value.target = nullptr;
 }
 
 Pu::UniformBlock & Pu::UniformBlock::operator=(UniformBlock && other)
@@ -29,12 +24,9 @@ Pu::UniformBlock & Pu::UniformBlock::operator=(UniformBlock && other)
 		firstUpdate = other.firstUpdate;
 
 		descriptor = other.descriptor;
-		targetBuffer = other.targetBuffer;
-		stagingBuffer = other.stagingBuffer;
+		target = other.target;
 
-		other.stagingBuffer = nullptr;
-		other.targetBuffer = nullptr;
-		other.stagingBuffer = nullptr;
+		other.target = nullptr;
 	}
 
 	return *this;
@@ -46,10 +38,12 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 	if (IsDirty)
 	{
 		/* Ask the derived uniform block to upload its data to the staging buffer. */
-		Stage(*stagingBuffer);
+		target->BeginMemoryTransfer();
+		Stage(reinterpret_cast<byte*>(target->GetHostMemory()));
+		target->EndMemoryTransfer();
 
 		/* Copy the staging buffer into the uniform buffer. */
-		cmdBuffer.CopyEntireBuffer(*stagingBuffer, *targetBuffer);
+		target->Update(cmdBuffer);
 
 		/* 
 		The descriptor only needs to be set once and the memory barrier is only needed the first time.
@@ -58,8 +52,8 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 		*/
 		if (firstUpdate)
 		{
-			cmdBuffer.MemoryBarrier(*targetBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, AccessFlag::UniformRead);
-			UpdateDescriptor(*descriptor, *targetBuffer);
+			cmdBuffer.MemoryBarrier(*target, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, AccessFlag::UniformRead);
+			UpdateDescriptor(*descriptor, *target);
 			firstUpdate = false;
 		}
 
@@ -70,6 +64,5 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 void Pu::UniformBlock::Destroy(void)
 {
 	if (descriptor) delete descriptor;
-	if (targetBuffer) delete targetBuffer;
-	if (stagingBuffer) delete stagingBuffer;
+	if (target) delete target;
 }

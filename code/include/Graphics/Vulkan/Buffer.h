@@ -49,13 +49,13 @@ namespace Pu
 		}
 
 		/* Starts the process of transfering data from the CPU to this buffer. */
-		void BeginMemoryTransfer(void);
+		virtual void BeginMemoryTransfer(void);
 		/* Gets the host mapped memory pointer. */
-		const void* GetHostMemory(void) const;
+		virtual const void* GetHostMemory(void) const;
 		/* Gets the host mapped memory pointer. */
-		void* GetHostMemory(void);
+		virtual void* GetHostMemory(void);
 		/* Ends the process of transfering data from the CPU to this buffer. */
-		void EndMemoryTransfer(void);
+		virtual void EndMemoryTransfer(void);
 
 	protected:
 		/* Whether to allow the user to change the data of this buffer. */

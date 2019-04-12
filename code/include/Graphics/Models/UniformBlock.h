@@ -1,6 +1,6 @@
 #pragma once
-#include "Graphics/Vulkan/CommandBuffer.h"
 #include "Graphics/Vulkan/DescriptorPool.h"
+#include "Graphics/Resources/DynamicBuffer.h"
 
 namespace Pu
 {
@@ -44,14 +44,13 @@ namespace Pu
 		}
 
 		/* Loads the specified staging buffer with the new GPU data. */
-		virtual void Stage(_In_ StagingBuffer &destination) = 0;
+		virtual void Stage(_In_ byte *destination) = 0;
 		/* Updates the descriptor uniforms. */
 		virtual void UpdateDescriptor(_In_ DescriptorSet &descriptor, _In_ const Buffer &uniformBuffer) = 0;
 
 	private:
 		DescriptorSet *descriptor;
-		Buffer *targetBuffer;
-		StagingBuffer *stagingBuffer;
+		DynamicBuffer *target;
 		bool firstUpdate;
 
 		void Destroy(void);
