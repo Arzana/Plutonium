@@ -13,6 +13,7 @@ Pu::UniformBlock::UniformBlock(UniformBlock && value)
 	descriptor = value.descriptor;
 	target = value.target;
 	value.target = nullptr;
+	value.descriptor = nullptr;
 }
 
 Pu::UniformBlock & Pu::UniformBlock::operator=(UniformBlock && other)
@@ -27,6 +28,7 @@ Pu::UniformBlock & Pu::UniformBlock::operator=(UniformBlock && other)
 		target = other.target;
 
 		other.target = nullptr;
+		other.descriptor = nullptr;
 	}
 
 	return *this;

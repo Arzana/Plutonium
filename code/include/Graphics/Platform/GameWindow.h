@@ -68,6 +68,12 @@ namespace Pu
 			return native;
 		}
 
+		/* Gets the logical device associated with the game window. */
+		_Check_return_ inline LogicalDevice& GetDevice(void) const
+		{
+			return device;
+		}
+
 	private:
 		friend class Application;
 

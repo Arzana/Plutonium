@@ -250,6 +250,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChartIterator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -358,6 +361,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
@@ -407,15 +413,10 @@
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\assets\shaders\Image.frag" />
-    <None Include="..\..\..\assets\shaders\Image.vert" />
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag" />
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
-    <None Include="..\..\..\assets\shaders\Textured.vert" />
-    <None Include="..\..\..\assets\shaders\VertexColor.frag" />
-    <None Include="..\..\..\assets\shaders\Triangle.vert" />
-    <None Include="..\..\..\assets\shaders\VertexColor.vert" />
-    <None Include="..\..\..\assets\shaders\VertexColor2D.vert" />
+    <None Include="..\..\..\assets\shaders\Text.frag" />
+    <None Include="..\..\..\assets\shaders\Text.vert" />
     <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

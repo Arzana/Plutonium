@@ -15,7 +15,7 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 
 	/* Set the description used later to link images to render passes. */
 	attachmentDesc = AttachmentDescription(createInfo.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
-	//TODO: enable this once the screen gets fully rendered and not just parts of it. attachmentDesc.LoadOp = AttachmentLoadOp::DontCare;
+	attachmentDesc.LoadOp = AttachmentLoadOp::DontCare;
 }
 
 Pu::Swapchain::Swapchain(Swapchain && value)

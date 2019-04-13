@@ -576,6 +576,15 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\DynamicBuffer.h">
       <Filter>Header Files\Graphics\Resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -824,6 +833,15 @@
     <ClCompile Include="..\..\..\src\Graphics\Resources\DynamicBuffer.cpp">
       <Filter>Source Files\Graphics\Resources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -867,31 +885,16 @@
     <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\Triangle.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\VertexColor.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\VertexColor.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\VertexColor2D.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\Image.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\Image.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\Textured.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Text.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\Text.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

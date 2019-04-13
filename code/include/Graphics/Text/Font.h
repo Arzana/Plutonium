@@ -27,6 +27,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Font& operator =(_In_ Font &&other);
 
+		/* Gets the kerning advance between the first and second character. */
+		_Check_return_ float GetKerning(_In_ char32 first, _In_ char32 second) const;
 		/* Measures the dimensions of the specified string as if it was rendered using this font. */
 		_Check_return_ Vector2 MeasureString(_In_ const ustring &str) const;
 		/* Gets the glyph info of the specified character (or the default if it's not available in the font). */
@@ -42,6 +44,12 @@ namespace Pu
 		_Check_return_ inline float GetSize(void) const
 		{
 			return size;
+		}
+
+		/* Gets the combined image sampler for the font atlas. */
+		_Check_return_ inline const Texture2D& GetAtlas(void) const
+		{
+			return *atlasTex;
 		}
 
 	protected:

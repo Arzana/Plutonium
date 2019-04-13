@@ -26,13 +26,13 @@ protected:
 	virtual void Render(float, Pu::CommandBuffer &cmdBuffer);
 
 private: 
+	Pu::FreeCamera *cam;
+
 	Pu::GraphicsPipeline *pipeline;
 	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
-	Pu::Font *font;
-	Pu::FreeCamera *cam;
 	Pu::Mesh *mesh;
 	TransformBlock *transform;
 };

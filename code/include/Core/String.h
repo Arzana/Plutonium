@@ -284,7 +284,13 @@ namespace Pu
 		/* Gets whether the string contains a specified substring. */
 		_Check_return_ inline bool contains(_In_ basic_string<char_t> substr) const
 		{
-			return find_last_of(substr) != string_t::npos;
+			return string_t::find(substr) != string_t::npos;
+		}
+
+		/* Gets whether the string contains a specified substring. */
+		_Check_return_ inline bool contains(_In_ const char_t *substr) const
+		{
+			return string_t::find(substr) != string_t::npos;
 		}
 
 		/* Removes a specified character from the string. */

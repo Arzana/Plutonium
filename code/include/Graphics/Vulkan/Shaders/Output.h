@@ -30,6 +30,12 @@ namespace Pu
 			clear = value;
 		}
 
+		/* Sets the color load operation of this output. */
+		inline void SetLoadOperation(_In_ AttachmentLoadOp op)
+		{
+			description.LoadOp = op;
+		}
+
 		/* Sets the output to the specified swapchain format. */
 		void SetDescription(_In_ const Swapchain &swapchain);
 		/* Sets the output to the specified depth buffer format. */

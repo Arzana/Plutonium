@@ -16,15 +16,15 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
 	{
-		buffers.push_back(pool->Allocate());
+		buffers.emplace_back(pool->Allocate());
 	}
 
 	/*
 	Image available semaphore.
 	Render finish semaphore.
 	*/
-	semaphores.push_back(Semaphore(device));
-	semaphores.push_back(Semaphore(device));
+	semaphores.emplace_back(Semaphore(device));
+	semaphores.emplace_back(Semaphore(device));
 }
 
 Pu::GameWindow::~GameWindow(void)

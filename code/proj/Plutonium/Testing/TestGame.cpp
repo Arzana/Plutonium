@@ -79,8 +79,7 @@ void TestGame::Initialize(void)
 	/* Make sure the framebuffers are re-created of the window resizes. */
 	GetWindow().GetNative().OnSizeChanged += [this](const NativeWindow&, ValueChangedEventArgs<Vector2>)
 	{
-		const vector<const ImageView*> views;
-		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass(), views);
+		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
 	};
 }
 
@@ -103,12 +102,10 @@ void TestGame::LoadContent(void)
 
 	/* Load the texture. */
 	image = &GetContent().FetchTexture2D(file.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
-	font = &GetContent().FetchFont(L"{Fonts}OpenSans-Regular.ttf", 24.0f, CodeChart::ASCII());
 }
 
 void TestGame::UnLoadContent(void)
 {
-	GetContent().Release(*font);
 	GetContent().Release(*image);
 
 	delete mesh;

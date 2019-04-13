@@ -20,5 +20,10 @@ namespace Pu
 		Image2D(_In_ Vector2 pos, _In_ Vector2 uv)
 			: Position(pos), TexCoord(uv)
 		{}
+
+		/* Initializes a new instance of a 2D image vertex. */
+		Image2D(_In_ float x, _In_ float y, _In_ float u, _In_ float v)
+			: Position(x, y), TexCoord(u, v)
+		{}
 	};
 }

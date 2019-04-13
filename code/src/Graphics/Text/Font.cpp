@@ -53,6 +53,11 @@ Pu::Font & Pu::Font::operator=(Font && other)
 	return *this;
 }
 
+float Pu::Font::GetKerning(char32 first, char32 second) const
+{
+	return static_cast<float>(stbtt_GetCodepointKernAdvance(info, first, second)) * GetScale();
+}
+
 Pu::Vector2 Pu::Font::MeasureString(const ustring & str) const
 {
 	/* Early out. */
@@ -64,8 +69,14 @@ Pu::Vector2 Pu::Font::MeasureString(const ustring & str) const
 	Vector2 offset(0.0f, lineHeight);
 
 	/* Loop through all glyphs. */
+	bool firstChar = true;
+	char32 old = U'\0';
 	for (const char32 c : str)
 	{
+		/* Add kerning of the previous character. */
+		if (!firstChar) offset.X += GetKerning(old, c);
+		firstChar = false;
+
 		/* Handle newline. */
 		if (c == U'\r') continue;
 		if (c == U'\n')
@@ -79,6 +90,7 @@ Pu::Vector2 Pu::Font::MeasureString(const ustring & str) const
 
 		/* Add the advance to the character. */
 		offset.X += static_cast<float>(GetGlyph(c).Advance);
+		old = c;
 	}
 
 	return Vector2(max(width, offset.X), offset.Y);
@@ -143,7 +155,7 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo()
 			cur.Size = Vector2(static_cast<float>(x1 - x0), static_cast<float>(y1 - y0));
 			cur.Bounds = Rectangle(curLineSize.X, finalImgSize.Y, cur.Size.X, cur.Size.Y);
 			cur.Advance = static_cast<uint32>(rectify(x0 + advance * scale));
-			cur.Bearing = Vector2(static_cast<float>(lsb), static_cast<float>(y0));
+			cur.Bearing = Vector2(static_cast<float>(lsb) * scale, static_cast<float>(y0));
 			if (cur.Size.Y > static_cast<float>(lineSpace)) lineSpace = static_cast<int32>(cur.Size.Y);
 
 			/* Create a new line in the font map after every 32 glyphs. */
