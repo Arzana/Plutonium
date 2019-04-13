@@ -56,11 +56,17 @@ Pu::Output & Pu::Renderpass::AddDepthStencil(void)
 	FieldType type(ComponentType::Float, SizeType::Scalar);
 	FieldInfo info(0, "DepthStencil", std::move(type), spv::StorageClass::Output, Decoration());
 
-	/* Add it to the list and return it for direct use, the reference will always be 1 as we cannot have multiple depth stencil targets. */
+	/*
+	Add it to the list and return it for direct use, the reference will always be 1 as we cannot have multiple depth stencil targets.
+	We will not throw yet if the user creates multiple depth stencil targets, we'll throw on finalize.
+	*/
 	outputs.emplace_back(Output(info, 1, OutputUsage::DepthStencil));
 	return outputs[outputs.size() - 1];
 }
 
+/* The compiler complains that not all codepaths return a value, but Log::Fatal will always throw. */
+#pragma warning (push)
+#pragma warning (disable:4715)
 Pu::Output & Pu::Renderpass::GetOutput(const string & name)
 {
 	for (Output &cur : outputs)
@@ -120,6 +126,7 @@ const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
 
 	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
 }
+#pragma warning(pop)
 
 Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
 {
@@ -161,19 +168,16 @@ void Pu::Renderpass::Link(bool linkedViaLoader)
 void Pu::Renderpass::LoadFields(void)
 {
 	/* Load all attributes. */
-	const Shader &inputPass = shaders.front();
-	for (size_t i = 0; i < inputPass.GetFieldCount(); i++)
+	for (const FieldInfo &info : shaders.front().get().fields)
 	{
-		const FieldInfo &info = inputPass.GetField(i);
 		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
 	}
 
 	/* Load all uniforms. */
 	for (const Shader &pass : shaders)
 	{
-		for (size_t i = 0; i < pass.GetFieldCount(); i++)
+		for (const FieldInfo &info : pass.fields)
 		{
-			const FieldInfo &info = pass.GetField(i);
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
 				uniforms.emplace_back(Uniform(info, pass.GetType()));
@@ -181,14 +185,10 @@ void Pu::Renderpass::LoadFields(void)
 		}
 	}
 
-	/* Save a variable for how many attachment references are made. */
+	/* Save a variable for how many attachment references are made and load the outputs. */
 	uint32 referenceCnt = 0;
-
-	/* Load all outputs. */
-	const Shader &outputPass = shaders.back();
-	for (size_t i = 0; i < outputPass.GetFieldCount(); i++)
+	for (const FieldInfo &info : shaders.back().get().fields)
 	{
-		const FieldInfo &info = outputPass.GetField(i);
 		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++, OutputUsage::Color));
 	}
 }
@@ -196,7 +196,9 @@ void Pu::Renderpass::LoadFields(void)
 void Pu::Renderpass::Finalize(bool linkedViaLoader)
 {
 	/* Set all attachment references for the subpass. */
-	vector<AttachmentReference> colorAttachments, resolveAttachments, depthStencilAttachments, preserveAttachments;
+	vector<AttachmentReference> colorAttachments, resolveAttachments, preserveAttachments;
+	const AttachmentReference *depthStencil = nullptr;
+
 	for (const Output &cur : outputs)
 	{
 		switch (cur.type)
@@ -206,7 +208,8 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 			if (cur.resolve) resolveAttachments.emplace_back(cur.reference);
 			break;
 		case (OutputUsage::DepthStencil):
-			depthStencilAttachments.emplace_back(cur.reference);
+			if (depthStencil) Log::Error("Multiple depth/stencil attachments were added, only the firs one will be used!");
+			else depthStencil = &cur.reference;
 			break;
 		case (OutputUsage::Preserve):
 			preserveAttachments.emplace_back(cur.reference);
@@ -214,25 +217,11 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 		}
 	}
 
-	/* Make sure not too many depth/stencil attachment were created. */
-	if (depthStencilAttachments.size() > 1) Log::Error("Multiple depth stencil attachment were added to renderpass, only the first one will be used!");
-
-	vector<SubpassDescription> subpassDescriptions;
-	vector<AttachmentDescription> attachmentDescriptions;
-
-	// TODO: actually add descriptions based on shader information.
-	// Temporary block.
-	/*--------------------------------------------------------------------------------------------------------------*/
-	SubpassDescription temp;
-	temp.ColorAttachmentCount = static_cast<uint32>(colorAttachments.size());
-	temp.ColorAttachments = colorAttachments.data();
-	temp.DepthStencilAttachment = depthStencilAttachments.data();
-	temp.PreserveAttachmentCount = static_cast<uint32>(preserveAttachments.size());
-	temp.PreserveAttachments = preserveAttachments.data();
-	subpassDescriptions.emplace_back(temp);
-	/*--------------------------------------------------------------------------------------------------------------*/
+	/* We onyl support one subpass per renderpass as they're thus far not often used on non-mobile platforms. */
+	SubpassDescription subpass(colorAttachments, depthStencil, preserveAttachments);
 
 	/* Copy descriptions from the outputs to the attachmentDescription buffer. */
+	vector<AttachmentDescription> attachmentDescriptions;
 	for (const Output &output : outputs)
 	{
 		attachmentDescriptions.emplace_back(output.description);
@@ -240,9 +229,7 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 	}
 
 	/* Link the subpasses into a render pass. */
-	RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions);
-	createInfo.DependencyCount = static_cast<uint32>(dependencies.size());
-	createInfo.Dependencies = dependencies.data();
+	RenderPassCreateInfo createInfo(attachmentDescriptions, subpass, dependencies);
 	VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
 	LinkSucceeded(linkedViaLoader);
 }
@@ -250,60 +237,59 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 bool Pu::Renderpass::CheckIO(const Shader & a, const Shader & b) const
 {
 	bool result = true;
-	vector<size_t> checked;
+	vector<spv::Word> linkedLocations;
 
 	/* Check all field in the first module. */
-	for (size_t i = 0, j = 0; i < a.GetFieldCount(); i++)
+	for (const FieldInfo &aInfo : a.fields)
 	{
-		/* Only handle output fields. */
-		const FieldInfo &aInfo = a.GetField(i);
+		/* Output fields need to be linked to input fields in the next pass and any other can be ignored. */
 		if (aInfo.Storage != spv::StorageClass::Output) continue;
 
-		/* Attempt to find the matching field. */
-		for (j = 0; j < b.GetFieldCount(); j++)
+		bool found = false;
+		for (const FieldInfo &bInfo : b.fields)
 		{
-			const FieldInfo &bInfo = b.GetField(j);
-			if (bInfo.Storage == spv::StorageClass::Input && bInfo.GetLocation() == aInfo.GetLocation())
+			/* We can ignore non-input fields. */
+			if (bInfo.Storage != spv::StorageClass::Input) continue;
+			if (aInfo.GetLocation() == bInfo.GetLocation())
 			{
-				/* Raise if the types of the fields don't match. */
+				/* Check if the types differ. */
 				if (aInfo.Type != bInfo.Type)
 				{
-					Log::Error("Output field %s's type doesn't match input field %s's type!", aInfo.Name.c_str(), bInfo.Name.c_str());
+					Log::Error("The type of '%s' (%s) does't match '%s' (%s)!", aInfo.Name.c_str(), a.GetName().c_str(), bInfo.Name.c_str(), b.GetName().c_str());
 					result = false;
 					continue;
 				}
 
-				/* Raise if the input field is used by multiple outputs. */
-				if (checked.contains(j))
+				/* Check if the input is linked to multiple outputs. */
+				if (linkedLocations.contains(bInfo.GetLocation()))
 				{
-					Log::Error("Multiple output fields are using %s as an input field!", bInfo.Name.c_str());
+					Log::Error("Multiple output fields are using '%s' (%s) as an input field!", bInfo.Name.c_str(), b.GetName().c_str());
 					result = false;
 					continue;
 				}
 
-				/* Break to prevent j++. */
-				checked.emplace_back(j);
-				break;
+				/* We've validated this location so add it to the list.  */
+				linkedLocations.emplace_back(bInfo.GetLocation());
+				found = true;
 			}
 		}
 
-		/* Raise if no matching field could be found. */
-		if (j >= b.GetFieldCount())
+		/* Log an error if a link could not be made. */
+		if (!found)
 		{
-			Log::Error("Unable to find matching field in %s shader for %s shader's field %s!", to_string(b.GetType()), to_string(a.GetType()), aInfo.Name.c_str());
+			Log::Error("Unable top find matching field in %s shader (%s) for %s in %s shader (%s)!", to_string(b.GetType()), b.GetName().c_str(), aInfo.Name.c_str(), to_string(a.GetType()), b.GetName().c_str());
 			result = false;
 		}
 	}
 
 	/* Check if any input fields of b have gone unset. */
-	for (size_t i = 0; i < b.GetFieldCount(); i++)
+	for (const FieldInfo &info : b.fields)
 	{
-		const FieldInfo &bInfo = b.GetField(i);
-		if (bInfo.Storage != spv::StorageClass::Input) continue;
+		if (info.Storage != spv::StorageClass::Input) continue;
 
-		if (!checked.contains(i))
+		if (!linkedLocations.contains(info.GetLocation()))
 		{
-			Log::Error("Input field %s was not set by previous shader!", bInfo.Name.c_str());
+			Log::Error("%s in %s shader (%s) was not set by previous %s shader (%s)!", info.Name.c_str(), to_string(b.GetType()), b.GetName().c_str(), to_string(a.GetType()), b.GetName().c_str());
 			result = false;
 		}
 	}

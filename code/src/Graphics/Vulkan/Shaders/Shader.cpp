@@ -38,20 +38,6 @@ Pu::Shader & Pu::Shader::operator=(Shader && other)
 	return *this;
 }
 
-/* Name hides class member, checked and caused no unexpected behaviour. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-const Pu::FieldInfo & Pu::Shader::GetField(const string & name) const
-{
-	for (const FieldInfo &cur : fields)
-	{
-		if (name == cur.Name) return cur;
-	}
-
-	return invalid;
-}
-#pragma warning(pop)
-
 Pu::Asset & Pu::Shader::Duplicate(AssetCache &)
 {
 	Reference();
@@ -61,7 +47,6 @@ Pu::Asset & Pu::Shader::Duplicate(AssetCache &)
 void Pu::Shader::Load(const wstring & path, bool viaLoader)
 {
 	const wstring ext = path.fileExtension().toUpper();
-	name = path;
 
 	if (ext == L"SPV")
 	{
@@ -78,7 +63,7 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 
 	/* Set the information of the subpass. */
 	SetFieldInfo();
-	MarkAsLoaded(viaLoader, path.fileNameWithoutExtension());
+	MarkAsLoaded(viaLoader, path.fileName());
 }
 
 void Pu::Shader::Create(const wstring & path)

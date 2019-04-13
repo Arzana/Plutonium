@@ -21,6 +21,9 @@ namespace Pu
 		}
 	}
 
+	/* Not all codepaths return a value, Log::Fatal will always throw. */
+#pragma warning(push)
+#pragma warning(disable:4715)
 	inline PrimitiveTopology GLTFMode2Topology(GLTFMode mode)
 	{
 		switch (mode)
@@ -40,6 +43,7 @@ namespace Pu
 
 		Log::Fatal("Unknown GLTFMode passed!");
 	}
+#pragma warning(pop)
 
 	/* Loads the parsed buffers into staging buffers for the user to use. */
 	void InitializeStagingBuffers(const GLTFFile &file, byte **bufferData, const vector<std::reference_wrapper<Buffer>> &buffers, vector<StagingBuffer*> &stagingBuffers)

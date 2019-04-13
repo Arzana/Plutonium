@@ -37,6 +37,9 @@ bool Pu::AssetCache::Contains(size_t hash) const
 	return assets.contains([hash](const Asset *cur) { return *cur == hash; });
 }
 
+/* Not all codepaths return a value, Log::Fatal will always throw. */
+#pragma warning(push)
+#pragma warning(disable:4715)
 Pu::Asset & Pu::AssetCache::Get(size_t hash)
 {
 	lock.lock();
@@ -52,6 +55,7 @@ Pu::Asset & Pu::AssetCache::Get(size_t hash)
 
 	Log::Fatal("Attempting to retrieve unknown asset: '%zu'!", hash);
 }
+#pragma warning(pop)
 
 void Pu::AssetCache::Release(Asset & asset)
 {

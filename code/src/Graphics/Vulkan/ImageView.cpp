@@ -2,6 +2,9 @@
 
 using namespace Pu;
 
+/* Not all codepaths return a value, Log::Fatal will always throw. */
+#pragma warning(push)
+#pragma warning(disable:4715)
 static ImageViewType imgTypeToViewType(ImageType type)
 {
 	switch (type)
@@ -16,6 +19,7 @@ static ImageViewType imgTypeToViewType(ImageType type)
 
 	Log::Fatal("Unknown image type passed!");
 }
+#pragma warning(pop)
 
 Pu::ImageView::ImageView(const Image & image, ImageAspectFlag aspect)
 	: parent(image.parent)

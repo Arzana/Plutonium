@@ -1165,6 +1165,15 @@ namespace Pu
 			ColorAttachments(nullptr), ResolveAttachments(nullptr), DepthStencilAttachment(nullptr),
 			PreserveAttachmentCount(0), PreserveAttachments(nullptr)
 		{}
+
+		/* Initializes a new instance of a subpass description object. */
+		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments, _In_ const AttachmentReference *depthAttachment, _In_ const vector<AttachmentReference> &preserveAttachments)
+			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
+			InputAttachmentCount(0), InputAttachments(nullptr), 
+			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())), ColorAttachments(colorAttachments.data()), 
+			ResolveAttachments(nullptr), DepthStencilAttachment(depthAttachment),
+			PreserveAttachmentCount(static_cast<uint32>(preserveAttachments.size())), PreserveAttachments(preserveAttachments.data())
+		{}
 	};
 
 	/* Defines a subpass dependency. */
@@ -1229,12 +1238,20 @@ namespace Pu
 			DependencyCount(0), Dependencies(nullptr)
 		{}
 
-		/* Initializes a new instance of the render pass create info object. */
-		RenderPassCreateInfo(_In_ const vector<AttachmentDescription> &attachments, _In_ const vector<SubpassDescription> &subpasses)
+		/* Initializes a new instance of a renderpass create info object. */
+		RenderPassCreateInfo(_In_ const vector<AttachmentDescription> &attachments, _In_ const SubpassDescription &subpass, _In_ const vector<SubpassDependency> &dependencies)
+			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
+			AttachmentCount(static_cast<uint32>(attachments.size())), Attachments(attachments.data()),
+			SubpassCount(1), Subpasses(&subpass), 
+			DependencyCount(static_cast<uint32>(dependencies.size())), Dependencies(dependencies.data())
+		{}
+
+		/* Initializes a new instance of the renderpass create info object. */
+		RenderPassCreateInfo(_In_ const vector<AttachmentDescription> &attachments, _In_ const vector<SubpassDescription> &subpasses, _In_ const vector<SubpassDependency> &dependencies)
 			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
 			AttachmentCount(static_cast<uint32>(attachments.size())), Attachments(attachments.data()),
 			SubpassCount(static_cast<uint32>(subpasses.size())), Subpasses(subpasses.data()),
-			DependencyCount(0), Dependencies(nullptr)
+			DependencyCount(static_cast<uint32>(dependencies.size())), Dependencies(dependencies.data())
 		{}
 	};
 

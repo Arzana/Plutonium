@@ -99,6 +99,9 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 	return *this;
 }
 
+/* Not all codepaths return a value, Log::Fatal will always throw. */
+#pragma warning(push)
+#pragma warning(disable:4715)
 Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(const string & name)
 {
 	if (!renderpass) Log::Fatal("Unable to request blend state on non-initialized graphics pipeline!");
@@ -118,6 +121,7 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(c
 	/* Throw if no attachment could be found. */
 	Log::Fatal("Cannot get color blend state for unknown output '%s'!", name.c_str());
 }
+#pragma warning(pop)
 
 void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate inputRate)
 {

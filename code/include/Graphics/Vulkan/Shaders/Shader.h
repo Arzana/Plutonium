@@ -37,27 +37,6 @@ namespace Pu
 			return info.Stage;
 		}
 
-		/* Gets the name assigned to this shader module. */
-		_Check_return_ inline const wstring& GetName(void) const
-		{
-			return name;
-		}
-
-		/* Gets the amount of field defined by the shader module. */
-		_Check_return_ inline size_t GetFieldCount(void) const
-		{
-			return fields.size();
-		}
-
-		/* Gets the information for the field at the specified index. */
-		_Check_return_ inline const FieldInfo& GetField(_In_ size_t idx) const
-		{
-			return fields.size() > idx ? fields[idx] : invalid;
-		}
-
-		/* Gets the information for the specified field. */
-		_Check_return_ const FieldInfo& GetField(_In_ const string &name) const;
-
 	protected:
 		/* References the asset and return a self-reference. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
@@ -87,7 +66,6 @@ namespace Pu
 		LogicalDevice &parent;
 		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
-		wstring name;
 
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, vector<string>> memberNames;

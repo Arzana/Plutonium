@@ -80,8 +80,8 @@ namespace Pu
 				}
 			}
 
-			ArgOutOfRange();
 			lock.unlock();
+			throw "All items are in use in the pool!";
 		}
 
 		/* Frees the element back into the pool. */
@@ -99,8 +99,8 @@ namespace Pu
 				}
 			}
 
-			ArgOutOfRange();
 			lock.unlock();
+			throw "Item was not found in the pool!";
 		}
 
 		/* Clears the pool. */
@@ -138,10 +138,5 @@ namespace Pu
 	private:
 		vector<std::tuple<bool, element_t>> buffer;
 		mutable std::shared_mutex lock;
-
-		inline void ArgOutOfRange(void) const
-		{
-			std::_Xout_of_range("Index was out of range!");
-		}
 	};
 }
