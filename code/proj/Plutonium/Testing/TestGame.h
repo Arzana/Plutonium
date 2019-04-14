@@ -34,5 +34,6 @@ private:
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::Mesh *mesh;
+	Pu::DescriptorSet *material;
 	TransformBlock *transform;
 };

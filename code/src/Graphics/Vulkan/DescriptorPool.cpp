@@ -25,11 +25,11 @@ Pu::DescriptorSet Pu::DescriptorPool::Allocate(uint32 set) const
 {
 	/* Initialize creation info. */
 	const DescriptorSetAllocateInfo allocInfo(hndl, parent.descriptorSets.at(set));
-	DescriptorSetHndl descriptorSet;
+	DescriptorSetHndl setHndl;
 
 	/* Allocate new descriptor set. */
-	VK_VALIDATE(parent.parent.vkAllocateDescriptorSets(parent.parent.hndl, &allocInfo, &descriptorSet), PFN_vkAllocateDescriptorSets);
-	return DescriptorSet(const_cast<DescriptorPool&>(*this), descriptorSet);
+	VK_VALIDATE(parent.parent.vkAllocateDescriptorSets(parent.parent.hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
+	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
 }
 
 Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)

@@ -50,6 +50,7 @@ namespace Pu
 		ClearValue clear;
 		AttachmentReference reference;
 		AttachmentDescription description;
+		PipelineColorBlendAttachmentState attachment;
 
 		Output(const FieldInfo &data, uint32 attachment, OutputUsage type);
 	};

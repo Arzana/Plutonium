@@ -35,8 +35,9 @@ namespace Pu
 
 		DescriptorPool &parent;
 		DescriptorSetHndl hndl;
+		uint32 set;
 
-		DescriptorSet(DescriptorPool &pool, DescriptorSetHndl hndl);
+		DescriptorSet(DescriptorPool &pool, DescriptorSetHndl hndl, uint32 set);
 
 		void WriteDescriptor(const vector<WriteDescriptorSet> &writes);
 		void Free(void);

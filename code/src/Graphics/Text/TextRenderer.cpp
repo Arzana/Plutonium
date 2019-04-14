@@ -5,7 +5,7 @@ Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, std::
 	: wnd(window), loader(loader), curCmdBuffer(nullptr)
 {
 	/* Create the gaphics pipeline. */
-	pipeline = new GraphicsPipeline(window.GetDevice());
+	pipeline = new GraphicsPipeline(window.GetDevice(), 1);
 	pipeline->PostInitialize.Add(*this, &TextRenderer::OnPipelinePostInitialize);
 
 	/* Create the renderpass. */

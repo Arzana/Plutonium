@@ -247,7 +247,7 @@ void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
 {
 	if (CheckIfRecording("bind descriptor to graphics bind point"))
 	{
-		parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, 0, 1, &descriptor.hndl, 0, nullptr);
+		parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 	}
 }
 

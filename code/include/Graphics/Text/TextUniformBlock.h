@@ -21,8 +21,6 @@ namespace Pu
 
 		/* Updates the color of the uniform block. */
 		void SetColor(_In_ Color color);
-		/* Updates the font atlas of the uniform block. */
-		void SetAtlas(_In_ const Texture2D &atlas);
 
 	protected:
 		/* Stages the color to the uniform buffer. */

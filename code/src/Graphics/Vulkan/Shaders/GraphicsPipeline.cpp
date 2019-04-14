@@ -1,57 +1,34 @@
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 
-Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device)
-	: parent(device), renderpass(nullptr), tessellation(nullptr),
-	depthStencil(nullptr), dynamicState(nullptr), hndl(nullptr),
+Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, size_t maxSets)
+	: parent(device), renderpass(nullptr), hndl(nullptr), maxSets(maxSets),
 	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {}
 
-Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass)
-	: parent(device), renderpass(&renderpass), tessellation(nullptr),
-	depthStencil(nullptr), dynamicState(nullptr), hndl(nullptr),
+Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass, size_t maxSets)
+	: parent(device), renderpass(&renderpass), hndl(nullptr), maxSets(maxSets),
 	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {
 	Initialize();
 }
 
 Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
-	: parent(value.parent), renderpass(value.renderpass), hndl(value.hndl), layoutHndl(value.layoutHndl),
-	vertexInput(value.vertexInput), inputAssembly(value.inputAssembly), tessellation(value.tessellation), display(value.display),
-	rasterizer(value.rasterizer), multisample(value.multisample), depthStencil(value.depthStencil), colorBlend(value.colorBlend),
-	dynamicState(value.dynamicState), descriptorSets(std::move(value.descriptorSets)), PostInitialize(std::move(value.PostInitialize)),
-	colorBlendAttachments(std::move(value.colorBlendAttachments)), bindingDescriptions(std::move(value.bindingDescriptions)),
-	viewport(value.viewport), scissor(value.scissor), pool(value.pool)
+	: parent(value.parent), renderpass(value.renderpass), pool(value.pool),
+	hndl(value.hndl), layoutHndl(value.layoutHndl), vp(value.vp), maxSets(value.maxSets),
+	descriptorSets(std::move(value.descriptorSets)), scissor(value.scissor),
+	vertexInput(value.vertexInput), inputAssembly(value.inputAssembly),
+	tessellation(value.tessellation), display(value.display),
+	rasterizer(value.rasterizer), multisample(value.multisample),
+	depthStencil(value.depthStencil), colorBlend(value.colorBlend),
+	dynamicState(std::move(value.dynamicState)), PostInitialize(std::move(value.PostInitialize)),
+	colorBlendAttachments(std::move(value.colorBlendAttachments)),
+	bindingDescriptions(std::move(value.bindingDescriptions))
 {
 	value.renderpass = nullptr;
 	value.hndl = nullptr;
 	value.layoutHndl = nullptr;
-	value.vertexInput = nullptr;
-	value.inputAssembly = nullptr;
-	value.tessellation = nullptr;
-	value.display = nullptr;
-	value.rasterizer = nullptr;
-	value.multisample = nullptr;
-	value.depthStencil = nullptr;
-	value.colorBlend = nullptr;
-	value.dynamicState = nullptr;
 	value.pool = nullptr;
-}
-
-Pu::GraphicsPipeline::~GraphicsPipeline(void)
-{
-	Destroy();
-
-	if (renderpass)
-	{
-		delete vertexInput;
-		delete inputAssembly;
-		delete display;
-		delete rasterizer;
-		delete multisample;
-		delete depthStencil;
-		delete colorBlend;
-	}
 }
 
 Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other)
@@ -61,9 +38,14 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		Destroy();
 
 		parent = std::move(other.parent);
+		PostInitialize = std::move(other.PostInitialize);
 		renderpass = other.renderpass;
+		pool = other.pool;
 		hndl = other.hndl;
 		layoutHndl = other.layoutHndl;
+		vp = other.vp;
+		scissor = other.scissor;
+		maxSets = other.maxSets;
 		vertexInput = other.vertexInput;
 		inputAssembly = other.inputAssembly;
 		tessellation = other.tessellation;
@@ -76,23 +58,10 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		descriptorSets = std::move(other.descriptorSets);
 		colorBlendAttachments = std::move(other.colorBlendAttachments);
 		bindingDescriptions = std::move(other.bindingDescriptions);
-		PostInitialize = std::move(other.PostInitialize);
-		viewport = other.viewport;
-		scissor = other.scissor;
-		pool = other.pool;
-
+		
 		other.renderpass = nullptr;
 		other.hndl = nullptr;
 		other.layoutHndl = nullptr;
-		other.vertexInput = nullptr;
-		other.inputAssembly = nullptr;
-		other.tessellation = nullptr;
-		other.display = nullptr;
-		other.rasterizer = nullptr;
-		other.multisample = nullptr;
-		other.depthStencil = nullptr;
-		other.colorBlend = nullptr;
-		other.dynamicState = nullptr;
 		other.pool = nullptr;
 	}
 
@@ -149,29 +118,29 @@ void Pu::GraphicsPipeline::Finalize(void)
 
 	/* Add the vertex descriptions to the final version. */
 	const vector<VertexInputAttributeDescription> attrDesc = renderpass->attributes.select<VertexInputAttributeDescription>([](const Attribute &attr) { return attr.description; });
-	vertexInput->VertexAttributeDescriptionCount = static_cast<uint32>(renderpass->attributes.size());
-	vertexInput->VertexAttributeDescriptions = attrDesc.data();
-	vertexInput->VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
-	vertexInput->VertexBindingDescriptions = bindingDescriptions.data();
+	vertexInput.VertexAttributeDescriptionCount = static_cast<uint32>(renderpass->attributes.size());
+	vertexInput.VertexAttributeDescriptions = attrDesc.data();
+	vertexInput.VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
+	vertexInput.VertexBindingDescriptions = bindingDescriptions.data();
 
 	/* Create the descriptor set layouts and the pipeline layout. */
 	FinalizeLayout();
 
 	/* Create the pool from which the user can allocate descriptor sets. */
-	pool = new DescriptorPool(*this, 1);	//TODO: Don't hardcode this to one!
+	pool = new DescriptorPool(*this, maxSets);
 
 	/* Create graphics pipeline. */
 	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });
 	GraphicsPipelineCreateInfo createInfo(stages, layoutHndl, renderpass->hndl);
-	createInfo.VertexInputState = vertexInput;
-	createInfo.InputAssemblyState = inputAssembly;
-	createInfo.TessellationState = tessellation;
-	createInfo.ViewportState = display;
-	createInfo.RasterizationState = rasterizer;
-	createInfo.MultisampleState = multisample;
-	createInfo.DepthStencilState = depthStencil;
-	createInfo.ColorBlendState = colorBlend;
-	createInfo.DynamicState = dynamicState;
+	createInfo.VertexInputState = &vertexInput;
+	createInfo.InputAssemblyState = &inputAssembly;
+	createInfo.TessellationState = &tessellation;
+	createInfo.ViewportState = &display;
+	createInfo.RasterizationState = &rasterizer;
+	createInfo.MultisampleState = &multisample;
+	createInfo.DepthStencilState = &depthStencil;
+	createInfo.ColorBlendState = &colorBlend;
+	createInfo.DynamicState = &dynamicState;
 
 	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
@@ -229,7 +198,7 @@ void Pu::GraphicsPipeline::FinalizeLayout(void)
 	}
 
 	/* Create pipeline layout. */
-	PipelineLayoutCreateInfo layoutCreateInfo(descriptorSets);
+	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSets);
 	VK_VALIDATE(parent.vkCreatePipelineLayout(parent.hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
 }
 
@@ -238,17 +207,19 @@ void Pu::GraphicsPipeline::Initialize(void)
 	/* Add blend attachment for all color outputs. */
 	for (const Output &cur : renderpass->outputs)
 	{
-		if (cur.type == OutputUsage::Color) colorBlendAttachments.emplace_back();
+		if (cur.type == OutputUsage::Color) colorBlendAttachments.emplace_back(cur.attachment);
 	}
 
 	/* Only allocate the required structures. */
-	vertexInput = new PipelineVertexInputStateCreateInfo();
-	inputAssembly = new PipelineInputAssemblyStateCreateInfo(PrimitiveTopology::TriangleList);
-	display = new PipelineViewportStateCreateInfo(viewport, scissor);
-	rasterizer = new PipelineRasterizationStateCreateInfo(CullModeFlag::Back);
-	multisample = new PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit);
-	depthStencil = new PipelineDepthStencilStateCreateInfo();
-	colorBlend = new PipelineColorBlendStateCreateInfo(colorBlendAttachments);
+	vertexInput = PipelineVertexInputStateCreateInfo();
+	inputAssembly = PipelineInputAssemblyStateCreateInfo(PrimitiveTopology::TriangleList);
+	tessellation = PipelineTessellationStateCreateInfo();
+	display = PipelineViewportStateCreateInfo(vp, scissor);
+	rasterizer = PipelineRasterizationStateCreateInfo(CullModeFlag::Back);
+	multisample = PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit);
+	depthStencil = PipelineDepthStencilStateCreateInfo();
+	colorBlend = PipelineColorBlendStateCreateInfo(colorBlendAttachments);
+	dynamicState = PipelineDynamicStateCreateInfo();
 
 	/* Allow user to set paramaters. */
 	PostInitialize.Post(*this);

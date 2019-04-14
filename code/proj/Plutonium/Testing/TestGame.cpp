@@ -45,7 +45,7 @@ void TestGame::Initialize(void)
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 
 	/* Setup graphics pipeline. */
-	pipeline = new GraphicsPipeline(GetDevice());
+	pipeline = new GraphicsPipeline(GetDevice(), 2);
 	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline)
 	{
 		/* Set viewport, topology and add the vertex binding. */
@@ -117,6 +117,7 @@ void TestGame::Finalize(void)
 {
 	GetContent().Release(*pipeline);
 
+	delete material;
 	delete transform;
 	delete pipeline;
 	delete depthBuffer;
@@ -155,7 +156,8 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Update the descriptor. */
-		transform->SetTexture(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
+		material = new DescriptorSet(std::move(pipeline->GetDescriptorPool().Allocate(1)));
+		material->Write(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
 	}
 
 	/* Render scene. */
@@ -164,7 +166,8 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 
 	cmdBuffer.BindVertexBuffer(0, *mesh);
 	cmdBuffer.BindIndexBuffer(mesh->GetIndex());
-	cmdBuffer.BindGraphicsDescriptor(const_cast<const TransformBlock*>(transform)->GetDescriptor());
+	cmdBuffer.BindGraphicsDescriptor(transform->GetDescriptor());
+	cmdBuffer.BindGraphicsDescriptor(*material);
 	cmdBuffer.Draw(mesh->GetIndex().GetElementCount(), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();

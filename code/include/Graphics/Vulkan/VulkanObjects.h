@@ -1538,6 +1538,31 @@ namespace Pu
 			VertexBindingDescriptionCount(0), VertexBindingDescriptions(nullptr),
 			VertexAttributeDescriptionCount(0), VertexAttributeDescriptions(nullptr)
 		{}
+
+		/* Copy contructor. */
+		PipelineVertexInputStateCreateInfo(_In_ const PipelineVertexInputStateCreateInfo &value)
+			: Type(StructureType::PipelineVertexInputStateCreateInfo), Next(value.Next), Flags(value.Flags),
+			VertexBindingDescriptionCount(value.VertexBindingDescriptionCount), 
+			VertexBindingDescriptions(value.VertexBindingDescriptions),
+			VertexAttributeDescriptionCount(value.VertexAttributeDescriptionCount), 
+			VertexAttributeDescriptions(value.VertexAttributeDescriptions)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineVertexInputStateCreateInfo& operator =(_In_ const PipelineVertexInputStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				VertexAttributeDescriptionCount = other.VertexBindingDescriptionCount;
+				VertexBindingDescriptions = other.VertexBindingDescriptions;
+				VertexAttributeDescriptionCount = other.VertexAttributeDescriptionCount;
+				VertexAttributeDescriptions = other.VertexAttributeDescriptions;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information of a pipeline assembly state. */
@@ -1565,6 +1590,26 @@ namespace Pu
 			: Type(StructureType::PipelineInputAssemblyStateCreateInfo), Next(nullptr), Flags(0),
 			Topology(topology), PrimitiveRestartEnable(false)
 		{}
+
+		/* Copy constructor. */
+		PipelineInputAssemblyStateCreateInfo(_In_ const PipelineInputAssemblyStateCreateInfo &value)
+			: Type(StructureType::PipelineInputAssemblyStateCreateInfo), Next(value.Next),
+			Flags(value.Flags), Topology(value.Topology), PrimitiveRestartEnable(value.PrimitiveRestartEnable)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineInputAssemblyStateCreateInfo& operator =(_In_ const PipelineInputAssemblyStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				Topology = other.Topology;
+				PrimitiveRestartEnable = other.PrimitiveRestartEnable;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information for a pipeline tessellation state. */
@@ -1587,9 +1632,28 @@ namespace Pu
 
 		/* Initializes a new instance of a pipline tessellation state create info object. */
 		PipelineTessellationStateCreateInfo(_In_ uint32 pathControlPoints)
-			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(nullptr), Flags(0),
-			PathControlPoints(pathControlPoints)
+			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(nullptr),
+			Flags(0), PathControlPoints(pathControlPoints)
 		{}
+
+		/* Copy constructor. */
+		PipelineTessellationStateCreateInfo(_In_ const PipelineTessellationStateCreateInfo &value)
+			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(value.Next),
+			Flags(value.Flags), PathControlPoints(value.PathControlPoints)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineTessellationStateCreateInfo& operator =(_In_ const PipelineTessellationStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				PathControlPoints = other.PathControlPoints;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines a two-dimensional offset. */
@@ -1756,6 +1820,29 @@ namespace Pu
 			: Type(StructureType::PipelineViewportStateCreateInfo), Next(nullptr), Flags(0),
 			ViewportCount(1), Viewports(&viewport), ScissorCount(1), Scissors(&scissor)
 		{}
+
+		/* Copy constructor. */
+		PipelineViewportStateCreateInfo(_In_ const PipelineViewportStateCreateInfo &value)
+			: Type(StructureType::PipelineViewportStateCreateInfo), Next(value.Next), 
+			Flags(value.Flags), ViewportCount(value.ViewportCount), 
+			Viewports(value.Viewports), ScissorCount(value.ScissorCount), Scissors(value.Scissors)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineViewportStateCreateInfo& operator =(_In_ const PipelineViewportStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				ViewportCount = other.ViewportCount;
+				Viewports = other.Viewports;
+				ScissorCount = other.ScissorCount;
+				Scissors = other.Scissors;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information for a pipeline rasterizer. */
@@ -1801,6 +1888,37 @@ namespace Pu
 			CullMode(cullMode), FrontFace(FrontFace::CounterClockwise), DepthBiasEnable(false),
 			DepthBiasConstantFactor(0.0f), DepthBiasClamp(0.0f), DepthBiasSlopeFactor(0.0f), LineWidth(1.0f)
 		{}
+
+		/* Copy constructor. */
+		PipelineRasterizationStateCreateInfo(_In_ const PipelineRasterizationStateCreateInfo &value)
+			: Type(StructureType::PipelineRasterizationStateCreateInfo), Next(value.Next), Flags(value.Flags),
+			DepthClampEnable(value.DepthClampEnable), RasterizerDiscardEnable(value.RasterizerDiscardEnable), 
+			PolygonMode(value.PolygonMode), CullMode(value.CullMode), FrontFace(value.FrontFace), 
+			DepthBiasEnable(value.DepthBiasEnable), DepthBiasConstantFactor(value.DepthBiasConstantFactor), 
+			DepthBiasClamp(value.DepthBiasClamp), DepthBiasSlopeFactor(value.DepthBiasSlopeFactor), LineWidth(value.LineWidth)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineRasterizationStateCreateInfo& operator =(_In_ const PipelineRasterizationStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				DepthClampEnable = other.DepthClampEnable;
+				RasterizerDiscardEnable = other.RasterizerDiscardEnable;
+				PolygonMode = other.PolygonMode;
+				CullMode = other.CullMode;
+				FrontFace = other.FrontFace;
+				DepthBiasEnable = other.DepthBiasEnable;
+				DepthBiasConstantFactor = other.DepthBiasConstantFactor;
+				DepthBiasClamp = other.DepthBiasClamp;
+				DepthBiasSlopeFactor = other.DepthBiasSlopeFactor;
+				LineWidth = other.LineWidth;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information for a pipeline multisample state. */
@@ -1837,6 +1955,33 @@ namespace Pu
 			RasterizationSamples(samples), SampleShading(false), MinSampleShading(0.0f),
 			SampleMask(nullptr), AlphaToCoverageEnable(false), AlphaToOneEnable(false)
 		{}
+
+		/* Copy constructor. */
+		PipelineMultisampleStateCreateInfo(_In_ const PipelineMultisampleStateCreateInfo &value)
+			: Type(StructureType::PipelineMultiSampleStateCreateInfo), Next(value.Next), 
+			Flags(value.Flags), RasterizationSamples(value.RasterizationSamples), 
+			SampleShading(value.SampleShading), MinSampleShading(value.MinSampleShading),
+			SampleMask(value.SampleMask), AlphaToCoverageEnable(value.AlphaToCoverageEnable),
+			AlphaToOneEnable(value.AlphaToOneEnable)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineMultisampleStateCreateInfo& operator =(_In_ const PipelineMultisampleStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				RasterizationSamples = other.RasterizationSamples;
+				SampleShading = other.SampleShading;
+				MinSampleShading = other.MinSampleShading;
+				SampleMask = other.SampleMask;
+				AlphaToCoverageEnable = other.AlphaToCoverageEnable;
+				AlphaToOneEnable = other.AlphaToOneEnable;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines how stencil testing should be performed. */
@@ -1900,6 +2045,33 @@ namespace Pu
 			DepthTestEnable(true), DepthWriteEnable(true), DepthCompareOp(CompareOp::LessOrEqual),
 			DepthBoundsTestEnable(false), StencilTestEnable(false), MinDepthBounds(0.0f), MaxDepthBounds(0.0f)
 		{}
+
+		/* Copy constructor. */
+		PipelineDepthStencilStateCreateInfo(_In_ const PipelineDepthStencilStateCreateInfo &value)
+			: Type(StructureType::PipelineDepthStencilStateCreateInfo), Next(value.Next), Flags(value.Flags),
+			DepthTestEnable(value.DepthTestEnable), DepthWriteEnable(value.DepthWriteEnable), 
+			DepthCompareOp(value.DepthCompareOp), DepthBoundsTestEnable(value.DepthBoundsTestEnable),
+			StencilTestEnable(value.StencilTestEnable), MinDepthBounds(value.MinDepthBounds), MaxDepthBounds(value.MaxDepthBounds)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineDepthStencilStateCreateInfo& operator =(_In_ const PipelineDepthStencilStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				DepthTestEnable = other.DepthTestEnable;
+				DepthWriteEnable = other.DepthWriteEnable;
+				DepthCompareOp = other.DepthCompareOp;
+				DepthBoundsTestEnable = other.DepthBoundsTestEnable;
+				StencilTestEnable = other.StencilTestEnable;
+				MinDepthBounds = other.MinDepthBounds;
+				MaxDepthBounds = other.MaxDepthBounds;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information for a pipeline color blend attachment state. */
@@ -1965,6 +2137,31 @@ namespace Pu
 			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(static_cast<uint32>(states.size())), 
 			Attachments(states.data()), BlendConstants{0.0f, 0.0f, 0.0f, 0.0f}
 		{}
+
+		/* Copy constructor. */
+		PipelineColorBlendStateCreateInfo(_In_ const PipelineColorBlendStateCreateInfo &value)
+			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(value.Next), 
+			Flags(value.Flags), LogicOpEnable(value.LogicOpEnable), LogicOp(value.LogicOp), 
+			AttachmentCount(value.AttachmentCount), Attachments(value.Attachments)
+		{
+			memcpy(BlendConstants, value.BlendConstants, sizeof(BlendConstants));
+		}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineColorBlendStateCreateInfo& operator =(_In_ const PipelineColorBlendStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				LogicOpEnable = other.LogicOpEnable;
+				LogicOp = other.LogicOp;
+				AttachmentCount = other.AttachmentCount;
+				Attachments = other.Attachments;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines the information for a pipeline dynamic state. */
@@ -1993,6 +2190,26 @@ namespace Pu
 			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(nullptr), Flags(0),
 			DynamicStateCount(static_cast<uint32>(dynamicStates.size())), DynamicStates(dynamicStates.data())
 		{}
+
+		/* Copy constructor. */
+		PipelineDynamicStateCreateInfo(_In_ const PipelineDynamicStateCreateInfo &value)
+			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(value.Next), Flags(value.Flags), 
+			DynamicStateCount(value.DynamicStateCount), DynamicStates(value.DynamicStates)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ inline PipelineDynamicStateCreateInfo& operator =(_In_ const PipelineDynamicStateCreateInfo &other)
+		{
+			if (this != &other)
+			{
+				Next = other.Next;
+				Flags = other.Flags;
+				DynamicStateCount = other.DynamicStateCount;
+				DynamicStates = other.DynamicStates;
+			}
+
+			return *this;
+		}
 	};
 
 	/* Defines a push constant range. */

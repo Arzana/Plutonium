@@ -16,11 +16,6 @@ void Pu::TextUniformBlock::SetColor(Color color)
 	IsDirty = true;
 }
 
-void Pu::TextUniformBlock::SetAtlas(const Texture2D & atlas)
-{
-	GetDescriptor().Write(uniTex, atlas);
-}
-
 void Pu::TextUniformBlock::Stage(byte * dest)
 {
 	memcpy(dest, &clr, sizeof(Vector4));

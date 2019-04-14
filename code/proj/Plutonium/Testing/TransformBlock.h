@@ -24,13 +24,7 @@ public:
 		IsDirty = true;
 	}
 
-	inline void SetTexture(_In_ const Pu::Uniform &texture, _In_ const Pu::Texture2D &resource)
-	{
-		GetDescriptor().Write(texture, resource);
-	}
-
 protected:
-
 	virtual inline void Stage(Pu::byte *dest) override
 	{
 		memcpy(dest, proj.GetComponents(), sizeof(Pu::Matrix));

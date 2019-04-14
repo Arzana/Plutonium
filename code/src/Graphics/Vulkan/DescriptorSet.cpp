@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), set(value.set)
 {
 	value.hndl = nullptr;
 }
@@ -15,6 +15,7 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 
 		parent = std::move(other.parent);
 		hndl = other.hndl;
+		set = other.set;
 
 		other.hndl = nullptr;
 	}
@@ -58,8 +59,8 @@ void Pu::DescriptorSet::Write(const vector<const Uniform*>& uniforms, const Buff
 	WriteDescriptor({ write });
 }
 
-Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl)
-	: parent(pool), hndl(hndl)
+Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl, uint32 set)
+	: parent(pool), hndl(hndl), set(set)
 {}
 
 void Pu::DescriptorSet::WriteDescriptor(const vector<WriteDescriptorSet> & writes)

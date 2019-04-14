@@ -12,14 +12,17 @@ namespace Pu
 		EventBus<GraphicsPipeline> PostInitialize;
 
 		/* Initializes an empty instance of a graphics pipeline. */
-		GraphicsPipeline(_In_ LogicalDevice &device);
+		GraphicsPipeline(_In_ LogicalDevice &device, _In_ size_t maxSets);
 		/* Initializes a new instance of a graphics pipeline for the specified render pass. */
-		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass);
+		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass, _In_ size_t maxSets);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
 		/* Move constructor. */
 		GraphicsPipeline(_In_ GraphicsPipeline &&value);
 		/* Destroys the graphics pipeline. */
-		~GraphicsPipeline(void);
+		~GraphicsPipeline(void)
+		{
+			Destroy();
+		}
 
 		_Check_return_ GraphicsPipeline& operator =(_In_ const GraphicsPipeline&) = delete;
 		/* Move assignment. */
@@ -47,21 +50,21 @@ namespace Pu
 		/* Sets the cull mode to use. */
 		inline void SetCullMode(_In_ CullModeFlag mode)
 		{
-			rasterizer->CullMode = mode;
+			rasterizer.CullMode = mode;
 		}
 
 		/* Sets whether the depth and stencil tests are enabled. */
 		inline void SetDepthStencilMode(_In_ bool depthTestEnabled, _In_ bool depthWriteEnbled, _In_ bool stencilEnabled)
 		{
-			depthStencil->DepthTestEnable = depthTestEnabled;
-			depthStencil->DepthWriteEnable = depthWriteEnbled;
-			depthStencil->StencilTestEnable = stencilEnabled;
+			depthStencil.DepthTestEnable = depthTestEnabled;
+			depthStencil.DepthWriteEnable = depthWriteEnbled;
+			depthStencil.StencilTestEnable = stencilEnabled;
 		}
 
 		/* Sets which depth compare operation to use for depth testing. */
 		inline void SetDepthCompare(_In_ CompareOp operation)
 		{
-			depthStencil->DepthCompareOp = operation;
+			depthStencil.DepthCompareOp = operation;
 		}
 
 #pragma warning(push)
@@ -75,7 +78,7 @@ namespace Pu
 		/* Sets the viewport and scissor rectangle parameters of the graphics pipeline. */
 		inline void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor)
 		{
-			this->viewport = viewport;
+			this->vp = viewport;
 			this->scissor = scissor;
 		}
 #pragma warning(pop)
@@ -83,14 +86,14 @@ namespace Pu
 		/* Overrides the default topology (TriangleList) to the specified value. */
 		inline void SetTopology(_In_ PrimitiveTopology topology)
 		{
-			inputAssembly->Topology = topology;
+			inputAssembly.Topology = topology;
 		}
 
 		/* Adds a vertex input binding to the graphics pipeline. */
-		template <typename _Ty>
+		template <typename vertex_t>
 		void AddVertexBinding(_In_ uint32 binding, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex)
 		{
-			AddVertexBinding(binding, sizeof(_Ty), inputRate);
+			AddVertexBinding(binding, sizeof(vertex_t), inputRate);
 		}
 
 		/* Gets the blending state for a specific color blend attachment. */
@@ -124,15 +127,15 @@ namespace Pu
 			Renderpass::LoadTask *child;
 		};
 
-		PipelineVertexInputStateCreateInfo *vertexInput;
-		PipelineInputAssemblyStateCreateInfo *inputAssembly;
-		PipelineTessellationStateCreateInfo *tessellation;
-		PipelineViewportStateCreateInfo *display;
-		PipelineRasterizationStateCreateInfo *rasterizer;
-		PipelineMultisampleStateCreateInfo *multisample;
-		PipelineDepthStencilStateCreateInfo *depthStencil;
-		PipelineColorBlendStateCreateInfo *colorBlend;
-		PipelineDynamicStateCreateInfo *dynamicState;
+		PipelineVertexInputStateCreateInfo vertexInput;
+		PipelineInputAssemblyStateCreateInfo inputAssembly;
+		PipelineTessellationStateCreateInfo tessellation;
+		PipelineViewportStateCreateInfo display;
+		PipelineRasterizationStateCreateInfo rasterizer;
+		PipelineMultisampleStateCreateInfo multisample;
+		PipelineDepthStencilStateCreateInfo depthStencil;
+		PipelineColorBlendStateCreateInfo colorBlend;
+		PipelineDynamicStateCreateInfo dynamicState;
 
 		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
 		vector<VertexInputBindingDescription> bindingDescriptions;
@@ -143,9 +146,9 @@ namespace Pu
 		PipelineHndl hndl;
 		PipelineLayoutHndl layoutHndl;
 		vector<DescriptorSetLayoutHndl> descriptorSets;
-
-		Viewport viewport;
+		Viewport vp;
 		Rect2D scissor;
+		size_t maxSets;
 
 		void FinalizeLayout(void);
 		void Initialize(void);

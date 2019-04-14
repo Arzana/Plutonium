@@ -37,12 +37,6 @@ namespace Pu
 		/* Initializes a new instance of a uniform block. */
 		UniformBlock(_In_ LogicalDevice &device, _In_ size_t size, _In_ const DescriptorPool &pool, _In_ uint32 set);
 
-		/* Gets the object that describes the uniform buffer. */
-		_Check_return_ inline DescriptorSet& GetDescriptor(void)
-		{
-			return *descriptor;
-		}
-
 		/* Loads the specified staging buffer with the new GPU data. */
 		virtual void Stage(_In_ byte *destination) = 0;
 		/* Updates the descriptor uniforms. */
