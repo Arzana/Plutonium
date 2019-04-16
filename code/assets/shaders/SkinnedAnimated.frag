@@ -1,5 +1,4 @@
 #version 460 core
-#extension GL_KHR_vulkan_glsl : enable
 
 layout (binding = 0, set = 1) uniform sampler2D Albedo;
 

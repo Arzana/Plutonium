@@ -285,21 +285,28 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 {
 	switch (severity)
 	{
-	case Pu::DebugUtilsMessageSeverityFlag::Info:
-		if constexpr (LogVulkanInfoMessages) Log::Message(data->Message);
+	case DebugUtilsMessageSeverityFlag::Verbose:
+		Log::Verbose(data->Message);
 		break;
-	case Pu::DebugUtilsMessageSeverityFlag::Warning:
+	case DebugUtilsMessageSeverityFlag::Info:
+		Log::Message(data->Message);
+		break;
+	case DebugUtilsMessageSeverityFlag::Warning:
 		Log::Warning(data->Message);
 		break;
-	case Pu::DebugUtilsMessageSeverityFlag::Error:
+	case DebugUtilsMessageSeverityFlag::Error:
 		/*
-		Currently the validation layer doesn't like me updating my descriptor sets with one associated buffer.
-		It keeps track of which descriptors in the set are updated and doesn't count my one buffer update
-		for multiple uniforms as an update for multiple descriptors even through it covers the required range.
-		I also cannot pass multiple buffer updates to the function as it will be agains the graphicscards minimum offset.
-		So, until the bug is fixed I'm ignoring this specific error.
+		TODO:
+		There is a bug in the Vulkan validation layer that doesn't allow me to update multiple descriptors in the same uniform block correctly.
+		This issue has been noted to the makers of the validation layer in this issue and is fixed in release 1.1.106.0, 
+		this is however not yet available in the latest Vulkan SDK, we when it comes out check can be removed.
+		https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/825
 		*/
-		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated")) Log::Error(data->Message);
+		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated"))
+		{
+			if constexpr (VulkanRaiseOnError) Log::Fatal(data->Message);
+			else Log::Error(data->Message);
+		}
 		break;
 	}
 
@@ -308,7 +315,13 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 
 void Pu::VulkanInstance::SetUpDebugLayer(void)
 {
+	/* Only add the verbose and info messages if needed. */
 	DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
+#ifdef _DEBUG
+	if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Verbose);
+#endif
+	if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Info);
+
 	VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);
 }
 

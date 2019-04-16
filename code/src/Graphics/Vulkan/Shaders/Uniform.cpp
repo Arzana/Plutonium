@@ -1,7 +1,13 @@
 #include "Graphics/Vulkan/Shaders/Uniform.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
-Pu::Uniform::Uniform(const FieldInfo & data, ShaderStageFlag stage)
-	: Field(data), set(data.Decorations.Numbers.at(spv::Decoration::DescriptorSet))
+Pu::DeviceSize Pu::Uniform::GetAllignedOffset(DeviceSize offset) const
+{
+	return physicalDevice.GetUniformBufferOffsetAllignment(offset);
+}
+
+Pu::Uniform::Uniform(PhysicalDevice &physicalDevice, const FieldInfo & data, ShaderStageFlag stage)
+	: Field(data), physicalDevice(physicalDevice), set(data.Decorations.Numbers.at(spv::Decoration::DescriptorSet))
 {
 	layoutBinding.Binding = Info.Decorations.Numbers.at(spv::Decoration::Binding);
 	layoutBinding.StageFlags = stage;
@@ -16,5 +22,6 @@ Pu::Uniform::Uniform(const FieldInfo & data, ShaderStageFlag stage)
 	{
 		/* Assume uniform buffer for other types as it's most used. */
 		layoutBinding.DescriptorType = DescriptorType::UniformBuffer;
+		size = static_cast<DeviceSize>(Info.Type.GetSize());
 	}
 }

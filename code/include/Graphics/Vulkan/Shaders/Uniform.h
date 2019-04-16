@@ -4,6 +4,8 @@
 
 namespace Pu
 {
+	class PhysicalDevice;
+
 	/* Specifies information about a shaders uniform constants. */
 	class Uniform
 		: public Field
@@ -30,18 +32,36 @@ namespace Pu
 		/* Gets the size (in bytes) of the uniform (if not aplicable; 0). */
 		_Check_return_ inline DeviceSize GetSize(void) const 
 		{
-			return static_cast<DeviceSize>(Info.Type.GetSize());
+			return size;
 		}
+
+		/* Gets the parent set for this descriptor. */
+		_Check_return_ inline uint32 GetSet(void) const
+		{
+			return set;
+		}
+
+		/* Gets the binding of the descriptor. */
+		_Check_return_ inline uint32 GetBinding(void) const
+		{
+			return layoutBinding.Binding;
+		}
+
+		/* Gets the offset (in bytes) required after this uniform. */
+		_Check_return_ DeviceSize GetAllignedOffset(_In_ DeviceSize offset) const;
 
 	private:
 		friend class Renderpass;
 		friend class GraphicsPipeline;
 		friend class DescriptorSet;
 
+		PhysicalDevice &physicalDevice;
+
 		uint32 set;
+		DeviceSize size;
 
 		DescriptorSetLayoutBinding layoutBinding;
 
-		Uniform(const FieldInfo &data, ShaderStageFlag stage);
+		Uniform(PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
 	};
 }

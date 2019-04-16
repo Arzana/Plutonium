@@ -180,7 +180,7 @@ void Pu::Renderpass::LoadFields(void)
 		{
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
-				uniforms.emplace_back(Uniform(info, pass.GetType()));
+				uniforms.emplace_back(Uniform(device.parent, info, pass.GetType()));
 			}
 		}
 	}

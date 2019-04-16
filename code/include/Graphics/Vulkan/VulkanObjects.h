@@ -2494,7 +2494,7 @@ namespace Pu
 		/* Initializes a new instance of a debug utils messenger create info object. */
 		DebugUtilsMessengerCreateInfo(_In_ DebugUtilsMessengerCallback callback)
 			: Type(StructureType::DebugUtilsMessengerCreateInfoExt), Next(nullptr), Flags(0),
-			MessageSeverity(DebugUtilsMessageSeverityFlag::All), MessageType(DebugUtilsMessageTypeFlag::All),
+			MessageSeverity(DebugUtilsMessageSeverityFlag::Critical), MessageType(DebugUtilsMessageTypeFlag::All),
 			UserCallback(callback), UserData(nullptr)
 		{}
 	};

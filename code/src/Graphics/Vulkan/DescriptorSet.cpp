@@ -36,27 +36,53 @@ void Pu::DescriptorSet::Write(const Uniform & uniform, const Texture & texture)
 
 void Pu::DescriptorSet::Write(const vector<const Uniform*>& uniforms, const Buffer & buffer)
 {
-	uint32 binding = 0;
-	DeviceSize size = 0;
+	/*
+	All uniforms are in the same buffer and have the same binding (i.e. one UniformBlock)
+		For this we need to create only one WriteDescriptorSet with one DescriptorBufferInfo spanning the entire buffer.
+	All uniforms are in the same buffer but have different bindings (i.e. multiple UniformBlocks)
+		For this we need to create multiple WriteDescriptorSet's with multiple DescriptorBufferInfo's with alligned offsets.
+		The first rule still aplies for descriptors in the same binding.
+	*/
 
-	/* Loop through all uniforms to get the size and check the uniforms. */
-	for (size_t i = 0; i < uniforms.size(); i++)
+	/* Create all the buffers needed for this command. */
+	std::map<uint32, DescriptorBufferInfo> temp;
+	vector<DescriptorBufferInfo> bufferInfos;
+	vector<WriteDescriptorSet> writes;
+
+	DeviceSize offset = 0;
+	for (const Uniform *cur : uniforms)
 	{
-		const Uniform &cur = *uniforms[i];
+		/* Make sure the passed uniform is usable. */
+		if (cur->layoutBinding.DescriptorType != DescriptorType::UniformBuffer) Log::Fatal("Cannot update descriptor with buffer on non-buffer uniform!");
 
-		/* Check if the descriptor type is correct. */
-		if (cur.layoutBinding.DescriptorType != DescriptorType::UniformBuffer) Log::Fatal("Cannot update descriptor with buffer on non-buffer uniform!");
-
-		/* Make sure all the descriptors are in the same uniform buffer. */
-		if (!i) binding = cur.layoutBinding.Binding;
-		else if (cur.layoutBinding.Binding != binding) Log::Fatal("Cannot pass uniforms from seperate bindings to descriptor write!");
-
-		size += cur.GetSize();
+		/* Either add a new buffer info if it already exists or resize it if we already have a copy. */
+		decltype(temp)::iterator it = temp.find(cur->GetBinding());
+		if (it != temp.end())
+		{
+			it->second.Range += cur->GetSize();
+			offset += cur->GetSize();
+		}
+		else
+		{
+			offset = cur->GetAllignedOffset(offset);
+			temp.emplace(cur->GetBinding(), DescriptorBufferInfo(buffer.bufferHndl, offset, cur->GetSize()));
+			offset += cur->GetSize();
+		}
 	}
 
-	DescriptorBufferInfo info(buffer.bufferHndl, 0, size);
-	WriteDescriptorSet write(hndl, binding, info);
-	WriteDescriptor({ write });
+	/* Reserve to avoid memory locations changing as we add the values. */
+	bufferInfos.reserve(temp.size());
+	writes.reserve(temp.size());
+
+	/* Create the final command parameters. */
+	for (const auto[binding, info] : temp)
+	{
+		bufferInfos.emplace_back(info);
+		writes.emplace_back(WriteDescriptorSet(hndl, binding, bufferInfos.back()));
+	}
+
+	/* Update the descriptors. */
+	WriteDescriptor(writes);
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl, uint32 set)

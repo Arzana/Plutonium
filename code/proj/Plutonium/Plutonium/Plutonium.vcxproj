@@ -248,6 +248,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChart.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChartIterator.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Text\ConstTextUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
@@ -360,6 +361,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Text\ConstTextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />

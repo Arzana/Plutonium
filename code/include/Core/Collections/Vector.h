@@ -11,6 +11,8 @@ namespace Pu
 	public:
 		/* Defines the underlying vector type. */
 		using vector_t = typename std::vector<element_t>;
+		/* Defines a iterator type. */
+		using iterator = typename vector_t::iterator;
 		/* Defines a constant iterator type. */
 		using const_iterator = typename vector_t::const_iterator;
 
@@ -90,6 +92,32 @@ namespace Pu
 		_Check_return_ inline const_iterator iteratorOf(_In_ const element_t &element) const
 		{
 			return std::find(vector_t::begin(), vector_t::end(), element);
+		}
+
+		/* Gets the iterator at the location of the specified element. */
+		_Check_return_ inline iterator iteratorOf(_In_ const element_t &element)
+		{
+			return std::find(vector_t::begin(), vector_t::end(), element);
+		}
+
+		/* Gets the iterator at the location of the specified element. */
+		template <typename predicate_t>
+		_Check_return_ inline const_iterator iteratorOf(_In_ predicate_t predicate) const
+		{
+			for (const_iterator it = vector_t::begin(); it != vector_t::end(); it++)
+			{
+				if (predicate(*it)) return it;
+			}
+		}
+
+		/* Gets the iterator at the location of the specified element. */
+		template <typename predicate_t>
+		_Check_return_ inline iterator iteratorOf(_In_ predicate_t predicate)
+		{
+			for (iterator it = vector_t::begin(); it != vector_t::end(); it++)
+			{
+				if (predicate(*it)) return it;
+			}
 		}
 
 		/* Gets the index of the specified element. */

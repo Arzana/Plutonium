@@ -6,6 +6,7 @@ namespace Pu
 {
 	/* Defines a block of undefined uniforms in a shader. */
 	class UniformBlock
+		: public DescriptorSet
 	{
 	public:
 		UniformBlock(_In_ const UniformBlock&) = delete;
@@ -21,12 +22,6 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ UniformBlock& operator =(_In_ UniformBlock &&other);
 
-		/* Gets the object that describes the uniform buffer. */
-		_Check_return_ inline const DescriptorSet& GetDescriptor(void) const
-		{
-			return *descriptor;
-		}
-
 		/* Updates the uniform block if needed. */
 		void Update(_In_ CommandBuffer &cmdBuffer);
 
@@ -35,18 +30,17 @@ namespace Pu
 		bool IsDirty;
 
 		/* Initializes a new instance of a uniform block. */
-		UniformBlock(_In_ LogicalDevice &device, _In_ size_t size, _In_ const DescriptorPool &pool, _In_ uint32 set);
+		UniformBlock(_In_ LogicalDevice &device, _In_ const GraphicsPipeline &pipeline, _In_ std::initializer_list<string> uniforms);
 
 		/* Loads the specified staging buffer with the new GPU data. */
 		virtual void Stage(_In_ byte *destination) = 0;
-		/* Updates the descriptor uniforms. */
-		virtual void UpdateDescriptor(_In_ DescriptorSet &descriptor, _In_ const Buffer &uniformBuffer) = 0;
 
 	private:
-		DescriptorSet *descriptor;
 		DynamicBuffer *target;
+		vector<const Uniform*> uniforms;
 		bool firstUpdate;
 
+		uint32 CheckAndGetSet(const GraphicsPipeline &pipeline, std::initializer_list<string> uniforms);
 		void Destroy(void);
 	};
 }

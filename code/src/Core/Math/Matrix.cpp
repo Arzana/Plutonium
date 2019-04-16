@@ -80,25 +80,24 @@ Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 {
 	const float a = 2.0f / width;
-	const float f = -2.0f / height;
+	const float f = 2.0f / height;
 	const float k = 2.0f / (far - near);
 
 	return Matrix(
-		a, 0.0f, 0.0f, 0.0f, 
-		0.0f, f, 0.0f, 0.0f, 
-		0.0f, 0.0f, k, 0.0f, 
+		a, 0.0f, 0.0f, -1.0f, 
+		0.0f, f, 0.0f, -1.0f, 
+		0.0f, 0.0f, k, -1.0f, 
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 Matrix Pu::Matrix::CreateOrtho(float left, float right, float bottom, float top, float near, float far)
 {
-	/* Possibly broken after switch to Vulkan, I'm not using it so just leave it for now but check later! */
 	const float a = 2.0f / (right - left);
-	const float f = -2.0f / (top - bottom);
+	const float f = 2.0f / (top - bottom);
 	const float k = 2.0f / (far - near);
-	const float l = -(far + near) / (far - near);
 	const float d = -(right + left) / (right - left);
 	const float h = -(top + bottom) / (top - bottom);
+	const float l = -(far + near) / (far - near);
 
 	return Matrix(
 		a, 0.0f, 0.0f, d, 

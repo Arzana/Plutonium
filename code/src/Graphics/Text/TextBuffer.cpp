@@ -4,7 +4,7 @@
 Pu::TextBuffer::TextBuffer(LogicalDevice & device, size_t initialSize)
 	: device(device), view(nullptr)
 {
-	AllocBuffer(initialSize);
+	AllocBuffer(initialSize * sizeof(Image2D) * 6);
 }
 
 Pu::TextBuffer::TextBuffer(TextBuffer && value)
@@ -39,7 +39,7 @@ void Pu::TextBuffer::Update(CommandBuffer & cmdBuffer)
 void Pu::TextBuffer::SetText(const ustring & str, const Font &font)
 {
 	/* 6 vertices per quad of Image2D type per glyph. */
-	const size_t size = str.length() * 6;
+	const size_t size = str.length() * sizeof(Image2D) * 6;
 	const float lh = static_cast<float>(font.GetLineSpace());
 
 	/* If we can't store the specific string in this buffer, reallocate the buffer. */
@@ -84,7 +84,7 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font &font)
 
 	/* Delete the old buffer view if needed and create a new buffer view for rendering. */
 	if (view) delete view;
-	view = new BufferView(*buffer, 0, i, sizeof(Image2D));
+	view = new BufferView(*buffer, 0, i * sizeof(Image2D), sizeof(Image2D));
 }
 
 void Pu::TextBuffer::ReallocBuffer(size_t newSize)

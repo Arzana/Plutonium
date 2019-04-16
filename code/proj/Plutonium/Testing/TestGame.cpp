@@ -13,7 +13,7 @@ TestGame::TestGame(void)
 	{
 		switch (key)
 		{
-		case (_CrtEnum2Int(Keys::Escape)): 
+		case (_CrtEnum2Int(Keys::Escape)):
 			Exit();
 			break;
 		case (_CrtEnum2Int(Keys::Up)):
@@ -56,7 +56,7 @@ void TestGame::Initialize(void)
 		pipeline.Finalize();
 
 		/* Create the framebuffers and the required uniform block. */
-		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView()});
+		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView() });
 		transform = new TransformBlock(GetDevice(), pipeline);
 	};
 
@@ -102,12 +102,22 @@ void TestGame::LoadContent(void)
 
 	/* Load the texture. */
 	image = &GetContent().FetchTexture2D(file.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat));
+
+	/* Load the content for the fonts. */
+	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
+	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2, { L"{Shaders}Text.vert", L"{Shaders}Text.frag" });
 }
 
 void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
+	GetContent().Release(*font);
 
+	if (constTextInfo) delete constTextInfo;
+	if (strInfo) delete strInfo;
+	if (strBuffer) delete strBuffer;
+
+	delete textRenderer;
 	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -160,15 +170,50 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		material->Write(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
 	}
 
+	static bool firstTextRender = true;
+	if (firstTextRender)
+	{
+		if (font->IsLoaded() && textRenderer->CanBegin())
+		{
+			firstTextRender = false;
+
+			cmdBuffer.MemoryBarrier(font->GetAtlas(), PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, font->GetAtlas().GetFullRange());
+			const Viewport &vp = GetWindow().GetNative().GetClientBounds();
+
+			constTextInfo = new ConstTextUniformBlock(std::move(textRenderer->CreatFont()));
+			constTextInfo->SetAtlas(font->GetAtlas());
+			constTextInfo->SetProjection(Matrix::CreateOrtho(vp.Width, vp.Height, 0.0f, 1.0f));
+			constTextInfo->Update(cmdBuffer);
+
+			strInfo = new TextUniformBlock(std::move(textRenderer->CreateText()));
+			strInfo->SetModel(Matrix::CreateTranslation(100.0f, 100.0f, 0.5f));
+			strInfo->SetColor(Color::White());
+			strInfo->Update(cmdBuffer);
+
+			strBuffer = new TextBuffer(GetDevice(), 12);
+			strBuffer->SetText(U"Hello World!", *font);
+			strBuffer->Update(cmdBuffer);
+		}
+	}
+
 	/* Render scene. */
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
 	cmdBuffer.BindVertexBuffer(0, *mesh);
 	cmdBuffer.BindIndexBuffer(mesh->GetIndex());
-	cmdBuffer.BindGraphicsDescriptor(transform->GetDescriptor());
+	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
 	cmdBuffer.Draw(mesh->GetIndex().GetElementCount(), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();
+
+	/* Render debug text. */
+	if (!firstTextRender)
+	{
+		textRenderer->Begin(cmdBuffer);
+		textRenderer->SetFont(*constTextInfo);
+		textRenderer->Render(*strBuffer, *strInfo);
+		textRenderer->End();
+	}
 }

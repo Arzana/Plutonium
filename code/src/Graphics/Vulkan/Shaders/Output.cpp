@@ -1,5 +1,21 @@
 #include "Graphics/Vulkan/Shaders/Output.h"
 
+void Pu::Output::SetColorBlending(BlendFactor srcFactor, BlendOp op, BlendFactor dstFactor)
+{
+	attachment.BlendEnable = true;
+	attachment.SrcColorBlendFactor = srcFactor;
+	attachment.DstColorBlendFactor = dstFactor;
+	attachment.ColorBlendOp = op;
+}
+
+void Pu::Output::SetAlphaBlending(BlendFactor srcFactor, BlendOp op, BlendFactor dstFactor)
+{
+	attachment.BlendEnable = true;
+	attachment.SrcAlphaBlendFactor = srcFactor;
+	attachment.DstAlphaBlendFactor = dstFactor;
+	attachment.AlphaBlendOp = op;
+}
+
 void Pu::Output::SetDescription(const Swapchain & swapchain)
 {
 	description.Format = swapchain.GetImageFormat();

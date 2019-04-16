@@ -1,9 +1,9 @@
 #pragma once
 #include <Application.h>
-#include <Graphics/Textures/Texture2D.h>
-#include <Graphics/Resources/StagingBuffer.h>
+#include <Graphics/Text/Font.h>
 #include <Components/FreeCamera.h>
 #include <Graphics/Resources/Mesh.h>
+#include <Graphics/Text/TextRenderer.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -36,4 +36,10 @@ private:
 	Pu::Mesh *mesh;
 	Pu::DescriptorSet *material;
 	TransformBlock *transform;
+
+	Pu::Font *font;
+	Pu::TextRenderer *textRenderer;
+	Pu::ConstTextUniformBlock *constTextInfo;
+	Pu::TextBuffer *strBuffer;
+	Pu::TextUniformBlock *strInfo;
 };

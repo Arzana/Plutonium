@@ -152,7 +152,7 @@ namespace Pu
 			return Matrix::CreateTranslation(pos.X, pos.Y, 0.0f) * Matrix::CreateRoll(theta) * Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
 		}
 
-		/* Creates an orthographics projection matrix. */
+		/* Creates an orthographics projection matrix (assumes left and bottom are at [0,0]). */
 		_Check_return_ static Matrix CreateOrtho(_In_ float width, _In_ float height, _In_ float near, _In_ float far);
 		/* Creates an orthographics projection matrix. */
 		_Check_return_ static Matrix CreateOrtho(_In_ float left, _In_ float right, _In_ float bottom, _In_ float top, _In_ float near, _In_ float far);

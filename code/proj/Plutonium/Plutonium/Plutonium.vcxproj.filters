@@ -585,6 +585,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Text\ConstTextUniformBlock.h">
+      <Filter>Header Files\Graphics\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -840,6 +843,9 @@
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp">
+      <Filter>Source Files\Graphics\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Text\ConstTextUniformBlock.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
   </ItemGroup>

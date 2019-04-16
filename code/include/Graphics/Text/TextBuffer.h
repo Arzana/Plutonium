@@ -8,7 +8,7 @@ namespace Pu
 	class TextBuffer
 	{
 	public:
-		/* Initializes a new instance of a text buffer. */
+		/* Initializes a new instance of a text buffer (the initial size is in characters). */
 		TextBuffer(_In_ LogicalDevice &device, _In_ size_t initialSize);
 		TextBuffer(_In_ const TextBuffer&) = delete;
 		/* Move constructor. */

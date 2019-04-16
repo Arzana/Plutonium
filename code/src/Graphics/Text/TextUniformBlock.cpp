@@ -1,13 +1,18 @@
 #include "Graphics/Text/TextUniformBlock.h"
 
+/*
+The shader has two descriptor sets.
+The first one (0) is for constants across the shader (i.e. the atlas and projection matrix).
+The second one (1) is for the string specific data (i.e. the transform and color).
+*/
 Pu::TextUniformBlock::TextUniformBlock(LogicalDevice & device, const GraphicsPipeline & pipeline)
-	: UniformBlock(device, sizeof(Vector4), pipeline.GetDescriptorPool(), 0),
-	uniTex(pipeline.GetRenderpass().GetUniform("Atlas")),
-	uniClr(pipeline.GetRenderpass().GetUniform("Color"))
-{}
+	: UniformBlock(device, pipeline, { "Model", "Color" })
+{
+	allignedOffset = pipeline.GetRenderpass().GetUniform("Color").GetAllignedOffset(sizeof(Matrix));
+}
 
 Pu::TextUniformBlock::TextUniformBlock(TextUniformBlock && value)
-	: UniformBlock(std::move(value)), uniTex(std::move(value.uniTex)), uniClr(std::move(value.uniClr))
+	: UniformBlock(std::move(value)), allignedOffset(value.allignedOffset)
 {}
 
 void Pu::TextUniformBlock::SetColor(Color color)
@@ -16,12 +21,14 @@ void Pu::TextUniformBlock::SetColor(Color color)
 	IsDirty = true;
 }
 
-void Pu::TextUniformBlock::Stage(byte * dest)
+void Pu::TextUniformBlock::SetModel(const Matrix & matrix)
 {
-	memcpy(dest, &clr, sizeof(Vector4));
+	model = matrix;
+	IsDirty = true;
 }
 
-void Pu::TextUniformBlock::UpdateDescriptor(DescriptorSet & set, const Buffer & uniformBuffer)
+void Pu::TextUniformBlock::Stage(byte * dest)
 {
-	set.Write({ &uniClr }, uniformBuffer);
+	memcpy(dest, model.GetComponents(), sizeof(Matrix));
+	memcpy(dest + allignedOffset, &clr, sizeof(Vector4));
 }

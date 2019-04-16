@@ -771,12 +771,15 @@ namespace Pu
 	/* Defines the types of descriptors. */
 	enum class DescriptorType
 	{
+		/* Defines a standalone sampler (not possible in GLSL). */
 		Sampler = 0,
+		/* Defines an image and a sampler combined (Sampler in GLSL). */
 		CombinedImageSampler = 1,
 		SampledImage = 2,
 		StorageImage = 3,
 		UniformTexelBuffer = 4,
 		StorageTexelBuffer = 5,
+		/* Defines a uniform buffer (uniform block in GLSL). */
 		UniformBuffer = 6,
 		StorageBuffer = 7,
 		UniformBufferDynamic = 8,
@@ -1437,6 +1440,8 @@ namespace Pu
 		Warning = 0x00000100,
 		/* Indicates that the app is causes undefined results. */
 		Error = 0x00001000,
+		/* Warning and error are set. */
+		Critical = Warning | Error,
 		/* All flags are set. */
 		All = Verbose | Info | Warning | Error,
 	};

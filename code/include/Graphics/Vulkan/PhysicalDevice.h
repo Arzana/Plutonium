@@ -34,6 +34,8 @@ namespace Pu
 		_Check_return_ bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions) const;
 		/* Gets the format properties for the specified format. */
 		_Check_return_ FormatProperties GetFormatProperties(_In_ Format format) const;
+		/* Gets the alligned size for a specific object in a uniform buffer. */
+		_Check_return_ DeviceSize GetUniformBufferOffsetAllignment(_In_ DeviceSize size) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const

@@ -36,6 +36,10 @@ namespace Pu
 			description.LoadOp = op;
 		}
 
+		/* Enables and sets the blend operations on color. */
+		void SetColorBlending(_In_ BlendFactor srcFactor, _In_ BlendOp op, _In_ BlendFactor dstFactor);
+		/* Enables and sets the blend operations on alpha. */
+		void SetAlphaBlending(_In_ BlendFactor srcFactor, _In_ BlendOp op, _In_ BlendFactor dstFactor);
 		/* Sets the output to the specified swapchain format. */
 		void SetDescription(_In_ const Swapchain &swapchain);
 		/* Sets the output to the specified depth buffer format. */

@@ -31,6 +31,8 @@ namespace Pu
 	constexpr float ApplicationNoFocusTargetTime = 1.0f / 20.0f;
 	/* Defines the maxiumum amount of update lag (in seconds) an application is allowed to catch up on. */
 	constexpr float ApplicationMaxLagCompensation = 5.0f;
+	/* Defines whether Vulkan verbose messages should be logged. */
+	constexpr bool LogVulkanVerboseMessages = false;
 	/* Defines whether Vulkan info messages should be logged. */
 	constexpr bool LogVulkanInfoMessages = false;
 	/* Defines the default number of level of detail available for minified image sampling. */
@@ -49,4 +51,6 @@ namespace Pu
 	constexpr uint32 FontAtlasHOffset = 2;
 	/* Defines the vertical offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */
 	constexpr uint32 FontAtlasVOffset = 2;
+	/* Defines whether to log a fatal exception on Vulkan validation errors instead of just loggin it. */
+	constexpr bool VulkanRaiseOnError = false;
 }

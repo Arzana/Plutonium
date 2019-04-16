@@ -1,8 +1,12 @@
 #version 460 core
 
-layout (binding = 0) uniform Transforms
+layout (binding = 0, set = 0) uniform Constants
 {
 	mat4 Projection;
+};
+
+layout (binding = 0, set = 1) uniform StringSpecific
+{
 	mat4 Model;
 };
 

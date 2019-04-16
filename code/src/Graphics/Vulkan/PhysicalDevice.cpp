@@ -112,6 +112,13 @@ FormatProperties Pu::PhysicalDevice::GetFormatProperties(Format format) const
 	return result;
 }
 
+DeviceSize Pu::PhysicalDevice::GetUniformBufferOffsetAllignment(DeviceSize size) const
+{
+	/* If the minimum allignment is zero we can ignore it. */
+	if (properties.Limits.MinUniformBufferOffsetAlignment == 0) return size;
+	return (size + properties.Limits.MinUniformBufferOffsetAlignment - 1) & ~(properties.Limits.MinUniformBufferOffsetAlignment - 1);
+}
+
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(parent)
 {

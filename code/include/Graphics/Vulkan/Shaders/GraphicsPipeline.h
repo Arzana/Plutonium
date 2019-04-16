@@ -31,6 +31,9 @@ namespace Pu
 		/* Gets the renderpass used to in this graphics pipeline. */
 		_Check_return_ inline const Renderpass& GetRenderpass(void) const
 		{
+#ifdef _DEBUG
+			if (!renderpass) Log::Fatal("Cannot get renderpass from graphics pipeline that is not finalized!");
+#endif
 			return *renderpass;
 		}
 
@@ -43,7 +46,9 @@ namespace Pu
 		/* Gets the pool from which descriptors can be made. */
 		_Check_return_ inline const DescriptorPool& GetDescriptorPool(void) const
 		{
+#ifdef _DEBUG
 			if (!pool) Log::Fatal("Cannot get descriptor pool from graphics pipeline that is not finalized!");
+#endif
 			return *pool;
 		}
 

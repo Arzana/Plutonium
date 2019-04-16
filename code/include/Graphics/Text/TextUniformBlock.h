@@ -1,5 +1,4 @@
 #pragma once
-#include "Graphics/Textures/Texture2D.h"
 #include "Graphics/Models/UniformBlock.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 
@@ -21,18 +20,16 @@ namespace Pu
 
 		/* Updates the color of the uniform block. */
 		void SetColor(_In_ Color color);
+		/* Updates the model matrix of the uniform block. */
+		void SetModel(_In_ const Matrix &matrix);
 
 	protected:
-		/* Stages the color to the uniform buffer. */
+		/* Stages the model matrix and the color to the uniform buffer. */
 		virtual void Stage(byte *dest) override;
-		/* Updates the descriptors in the uniform buffer. */
-		virtual void UpdateDescriptor(DescriptorSet &set, const Buffer &uniformBuffer) override;
 
 	private:
-		const Uniform &uniTex;
-		const Uniform &uniClr;
-
-		const Texture2D *texture;
+		Matrix model;
 		Vector4 clr;
+		size_t allignedOffset;
 	};
 }
