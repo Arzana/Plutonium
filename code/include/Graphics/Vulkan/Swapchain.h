@@ -72,6 +72,8 @@ namespace Pu
 		Format format;
 		AttachmentDescription attachmentDesc;
 
+		static bool CanCreateInternal(const PhysicalDevice &physicalDevice, const Surface &surface, const SwapchainCreateInfo &createInfo, bool raise);
+		
 		void AquireImages(const SwapchainCreateInfo &createInfo);
 		void Destroy(void);
 	};

@@ -3,6 +3,7 @@
 #include <Content/GLTFParser.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
+#include <Core/Diagnostics/CPU.h>
 
 using namespace Pu;
 
@@ -142,7 +143,7 @@ void TestGame::Update(float)
 	}
 }
 
-void TestGame::Render(float, CommandBuffer & cmdBuffer)
+void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
 	if (!transform) return;
 	/* Update the descriptor if needed. */
@@ -186,13 +187,11 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 			constTextInfo->Update(cmdBuffer);
 
 			strInfo = new TextUniformBlock(std::move(textRenderer->CreateText()));
-			strInfo->SetModel(Matrix::CreateTranslation(100.0f, 100.0f, 0.5f));
+			strInfo->SetModel(Matrix::CreateTranslation(0.0f, 0.0f, 0.5f));
 			strInfo->SetColor(Color::White());
 			strInfo->Update(cmdBuffer);
 
-			strBuffer = new TextBuffer(GetDevice(), 12);
-			strBuffer->SetText(U"Hello World!", *font);
-			strBuffer->Update(cmdBuffer);
+			strBuffer = new TextBuffer(GetDevice(), 23);
 		}
 	}
 
@@ -211,6 +210,15 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 	/* Render debug text. */
 	if (!firstTextRender)
 	{
+		ustring text = U"Fps: ";
+		text += ustring::from(iround(1.0f / dt));
+		text += U"\nCPU Usage: ";
+		text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
+		text += U'%';
+
+		strBuffer->SetText(text, *font);
+		strBuffer->Update(cmdBuffer);
+
 		textRenderer->Begin(cmdBuffer);
 		textRenderer->SetFont(*constTextInfo);
 		textRenderer->Render(*strBuffer, *strInfo);

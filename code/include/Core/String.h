@@ -1,11 +1,8 @@
 #pragma once
 #include <algorithm>
 #include <string>
-#include <locale>
 #include "Core/Math/Basics.h"
 #include "Core/Collections/Vector.h"
-#include "Core/Platform/Windows/Windows.h"
-#include "Core/Diagnostics/NotImplementedException.h"
 
 namespace Pu
 {
@@ -435,50 +432,61 @@ namespace Pu
 		}
 #pragma endregion
 #pragma region converters
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ int32 value)
+		{
+			return to_string(value);
+		}
+
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ int64 value)
+		{
+			return to_string(value);
+		}
+
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ uint32 value)
+		{
+			return to_string(value);
+		}
+
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ uint64 value)
+		{
+			return to_string(value);
+		}
+
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ float value)
+		{
+			return to_string(value);
+		}
+
+		/* Converts the integer value to a string. */
+		_Check_return_ static inline basic_string<char_t> from(_In_ double value)
+		{
+			return to_string(value);
+		}
+
 		/* Attempts to convert the string to UTF-8. */
 		_Check_return_ inline basic_string<char> toUTF8(void) const
 		{
-			if constexpr (std::is_same<char_t, wchar_t>::value)
-			{
-#ifdef _WIN32
-				return wideToMultiByte<char>(CP_UTF8);
-#else
-				throw NotImplementedException(typeid(toUTF8));
-#endif
-			}
-			else throw NotImplementedException(typeid(toUTF8));
+			converter<basic_string<char>> conv;
+			return conv(*this);
 		}
 
 		/* Attempts to convert the string to a wide string. */
 		_Check_return_ inline basic_string<wchar_t> toWide(void) const
 		{
-			if constexpr (std::is_same<char_t, char>::value)
-			{
-#ifdef _WIN32
-				return multiByteToWide<wchar_t>(CP_UTF8);
-#else
-				throw NotImplementedException(typeid(toWide));
-#endif
-			}
-			else throw NotImplementedException(typeid(toWide));
+			converter<basic_string<wchar_t>> conv;
+			return conv(*this);
 		}
 
 		/* Attempt to convert the string to a unicode string. */
 		_Check_return_ inline basic_string<char32> toUTF32(void) const
 		{
-			if constexpr (std::is_same<char_t, char>::value)
-			{
-				return multiByteToUnicode();
-			}
-			else if constexpr (std::is_same<char_t, wchar_t>::value)
-			{
-#ifdef _WIN32
-				return wideToUnicode();
-#else
-				return *this;
-#endif
-			}
-			else return *this;
+			converter<basic_string<char32>> conv;
+			return conv(*this);
 		}
 #pragma endregion
 
@@ -491,80 +499,36 @@ namespace Pu
 			return copy;
 		}
 
-#ifdef _WIN32
-		template <typename result_char_t>
-		inline basic_string<result_char_t> multiByteToWide(UINT codePage) const
+		template <typename value_t>
+		static inline basic_string<char_t> to_string(value_t value)
 		{
-			/* Create result buffer with enough size. */
-			const size_type reserveSize = string_t::length() * sizeof(result_char_t);
-			basic_string<result_char_t> result;
-			result.resize(reserveSize);
-
-			/* Convert using Win32 multi byte to wide char. */
-			MultiByteToWideChar(codePage, 0, string_t::c_str(), -1, result.data(), static_cast<int>(reserveSize));
-			return result;
+			basic_string<char> result = std::to_string(value);
+			if constexpr (std::is_same_v<char_t, char>) return result;
+			else if constexpr (std::is_same_v<char_t, wchar_t>) return result.toWide();
+			else if constexpr (std::is_same_v<char_t, char32>) return result.toUTF32();
+			else static_assert(true, "Cannot convert from UTF-8 string to specified string!");
 		}
 
-		template <typename result_char_t>
-		inline basic_string<result_char_t> wideToMultiByte(UINT codePage) const
+		template <typename result_t>
+		struct converter
 		{
-			/* Create result buffer with enough size. */
-			const size_type reserveSize = string_t::length() * sizeof(result_char_t);
-			basic_string<result_char_t> result;
-			result.resize(reserveSize);
+			template <typename T, typename = void>
+			struct is_range
+				: std::false_type
+			{};
 
-			/* Convert using Win32 multi byte to multi byte. */
-			WideCharToMultiByte(codePage, 0, string_t::c_str(), -1, result.data(), static_cast<int>(reserveSize), nullptr, nullptr);
-			return result;
-		}
+			template <typename T>
+			struct is_range<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> final
+				: std::true_type
+			{};
 
-		inline basic_string<char32> wideToUnicode() const
-		{
-			if constexpr (std::is_same<char_t, wchar_t>::value)
+			template <typename in_t>
+			result_t operator ()(in_t arg)
 			{
-				const size_type size = string_t::length();
-				basic_string<char32> result;
-				result.reserve(size);
-
-				for (const wchar_t *start = string_t::data(), *end = start + size; start < end;)
-				{
-					const wchar_t uc = *start++;
-					if ((uc - 0xD800u) >= 2048u) result += static_cast<char32>(uc);
-					else
-					{
-						if ((uc & 0xFFFFFC00) == 0xD800 && start < end && (uc & 0xFFFFFC0) == 0xDC00)
-						{
-							result += (static_cast<char32>(uc) << 10) + static_cast<char32>(*start++) - 0x35FDC00;
-						}
-					}
-				}
-
-				return result;
+				if constexpr (is_range<in_t>::value) return { arg.begin(), arg.end() };
+				else return this->operator()(basic_string<std::remove_cv_t<std::remove_pointer<in_t>>>(arg));
 			}
-			else throw;
-		}
-
-		inline basic_string<char32> multiByteToUnicode() const
-		{
-			if constexpr (std::is_same<char_t, char>::value)
-			{
-				auto &facet = std::use_facet<std::codecvt<char32, char, std::mbstate_t>>(std::locale());
-				basic_string<char32> result(string_t::length(), '\0');
-
-				std::mbstate_t mb = std::mbstate_t();
-				const char *from_next;
-				char32 *to_next;
-
-				facet.in(mb, 
-					string_t::data(), string_t::data() + string_t::length(), from_next,
-					result.data(), result.data() + string_t::length(), to_next);
-
-				result.resize(to_next - result.data());
-				return result;
-			}
-			else throw;
-		}
-#endif
+		};
 	};
 
 	/* Defines a string sorted in 8-bit characters. */

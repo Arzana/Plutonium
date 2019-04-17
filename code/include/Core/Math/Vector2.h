@@ -147,9 +147,9 @@ namespace Pu
 		_Check_return_ inline operator string() const
 		{
 			string result("[X: ");
-			result += std::to_string(X);
+			result += string::from(X);
 			result += ", Y: ";
-			result += std::to_string(Y);
+			result += string::from(Y);
 			return result += ']';
 		}
 

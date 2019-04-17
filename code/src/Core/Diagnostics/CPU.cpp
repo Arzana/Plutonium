@@ -5,23 +5,18 @@
 #include "Config.h"
 
 bool Pu::CPU::firstRun = true;
-Pu::byte Pu::CPU::lastUsage = 0;
+float Pu::CPU::lastUsage = 0.0f;
+Pu::uint64 Pu::CPU::prevTotalTicks = 0;
+Pu::uint64 Pu::CPU::prevIdleTicks = 0;
 std::mutex Pu::CPU::lock;
 
-#ifdef _WIN32
-FILETIME Pu::CPU::prevSysKernel;
-FILETIME Pu::CPU::prevSysUser;
-FILETIME Pu::CPU::prevProcKernel;
-FILETIME Pu::CPU::prevProcUser;
-#endif
-
-Pu::byte Pu::CPU::GetCurrentProcessUsage(void)
+float Pu::CPU::GetCurrentProcessUsage(void)
 {
 	lock.lock();
 
 	/* We only need to query the CPU usage every now and then to prevent the CPU from hanging. */
 	if (HasEnoughTimePassed()) QueryUsage();
-	const byte result = lastUsage;
+	const float result = lastUsage;
 
 	lock.unlock();
 	return result;
@@ -30,52 +25,23 @@ Pu::byte Pu::CPU::GetCurrentProcessUsage(void)
 void Pu::CPU::QueryUsage()
 {
 #ifdef _WIN32
-	/* sysIdle, procCreation and procExit aren't used but must be passed. */
-	FILETIME sysIdle, sysKernel, sysUser;
-	FILETIME procCreation, procExit, procKernel, procUser;
-
-	/* Attempt to get the system timing information. */
-	if (!GetSystemTimes(&sysIdle, &sysKernel, &sysUser))
-	{
-		Log::Error("Unable to get system times ('%ls')!", _CrtGetErrorString().c_str());
-		return;
-	}
-
-	/* Attempt to get the process timing information. */
-	if (!GetProcessTimes(GetCurrentProcess(), &procCreation, &procExit, &procKernel, &procUser))
-	{
-		Log::Error("Unable to get process times ('%s')!", _CrtGetErrorString().c_str());
-		return;
-	}
-
-	if (!firstRun)
-	{
-		/* Calculate the difference in the previous system time and the current time. */
-		const uint64 sysKernelDiff = SubtrFileTimes(sysKernel, prevSysKernel);
-		const uint64 sysUserDiff = SubtrFileTimes(sysUser, prevSysUser);
-
-		/* Calculate the difference in the previous process time and the current time. */
-		const uint64 procKernelDiff = SubtrFileTimes(procKernel, prevProcKernel);
-		const uint64 procUserDiff = SubtrFileTimes(procUser, prevProcUser);
-
-		const uint64 sysTotal = sysKernelDiff + sysUserDiff;
-		const uint64 procTotal = procKernelDiff - procUserDiff;
-
-		/* Calculate the new CPU usage for the process. */
-		if (sysTotal) lastUsage = static_cast<byte>((100.0f * procTotal) / sysTotal);
-	}
-
-	/* Set the previous times for next run. */
-	firstRun = false;
-	prevSysKernel = sysKernel;
-	prevSysUser = sysUser;
-	prevProcKernel = procKernel;
-	prevProcUser = procUser;
-
+	FILETIME idle, kernel, user;
+	if (GetSystemTimes(&idle, &kernel, &user)) CalculateLoad(FileTimeToTicks(idle), FileTimeToTicks(kernel) + FileTimeToTicks(user));
+	else Log::Error("Unable to retrieve system times (%ls)!", _CrtGetErrorString().c_str());
 #else
 	Log::Warning("Querying CPU usage is not supported on this platform!");
-	return 0;
 #endif
+}
+
+void Pu::CPU::CalculateLoad(uint64 idle, uint64 total)
+{
+	const uint64 diffTotal = total - prevTotalTicks;
+	const uint64 diffIdle = idle - prevIdleTicks;
+
+	lastUsage = 1.0f - (diffTotal > 0 ? (static_cast<float>(diffIdle) / diffTotal) : 0.0f);
+
+	prevTotalTicks = total;
+	prevIdleTicks = idle;
 }
 
 bool Pu::CPU::HasEnoughTimePassed(void)
@@ -93,16 +59,11 @@ bool Pu::CPU::HasEnoughTimePassed(void)
 }
 
 #ifdef _WIN32
-Pu::uint64 Pu::CPU::SubtrFileTimes(const FILETIME & first, const FILETIME & second)
+Pu::uint64 Pu::CPU::FileTimeToTicks(FILETIME value)
 {
-	uint64 a = first.dwHighDateTime;
-	a <<= 32;
-	a |= first.dwLowDateTime;
-
-	uint64 b = second.dwHighDateTime;
-	b <<= 32;
-	b |= second.dwLowDateTime;
-
-	return a - b;
+	ULARGE_INTEGER result;
+	result.LowPart = value.dwLowDateTime;
+	result.HighPart = value.dwHighDateTime;
+	return result.QuadPart;
 }
 #endif

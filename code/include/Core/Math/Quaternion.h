@@ -64,13 +64,13 @@ namespace Pu
 		_Check_return_ inline operator string() const
 		{
 			string result("[I: ");
-			result += std::to_string(i);
+			result += string::from(i);
 			result += ", J: ";
-			result += std::to_string(j);
+			result += string::from(j);
 			result += ", K: ";
-			result += std::to_string(k);
+			result += string::from(k);
 			result += ", R: ";
-			result += std::to_string(r);
+			result += string::from(r);
 			return result += ']';
 		}
 

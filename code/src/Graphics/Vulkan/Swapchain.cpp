@@ -6,7 +6,7 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 	: parent(device), format(createInfo.ImageFormat)
 {
 	/* Check if the information specified is correct. */
-	if (!CanCreate(device.GetPhysicalDevice(), surface, createInfo)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
+	if (!CanCreateInternal(device.GetPhysicalDevice(), surface, createInfo, true)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
 
 	/* Create swapchain. */
 	VK_VALIDATE(parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);
@@ -40,6 +40,18 @@ Pu::Swapchain & Pu::Swapchain::operator=(Swapchain && other)
 
 bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surface & surface, const SwapchainCreateInfo & createInfo)
 {
+	return CanCreateInternal(physicalDevice, surface, createInfo, false);
+}
+
+Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout) const
+{
+	uint32 image;
+	VK_VALIDATE(parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
+	return image;
+}
+
+bool Pu::Swapchain::CanCreateInternal(const PhysicalDevice & physicalDevice, const Surface & surface, const SwapchainCreateInfo & createInfo, bool raise)
+{
 	/* Get required checking properties. */
 	const SurfaceCapabilities capabilities = surface.GetCapabilities(physicalDevice);
 	const vector<SurfaceFormat> formats = surface.GetSupportedFormats(physicalDevice);
@@ -61,7 +73,11 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 		}
 	}
 
-	if (!supported) return false;
+	if (!supported)
+	{
+		if (raise) Log::Warning("Surface format is not supported by window surface!");
+		return false;
+	}
 
 	/* Check if present mode is supported. */
 	supported = false;
@@ -74,28 +90,41 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 		}
 	}
 
-	if (!supported) return false;
+	if (!supported)
+	{
+		if (raise) Log::Warning("Present mode is not supported by physical device!");
+		return false;
+	}
 
 	/* Check if image size is supported. */
 	if (!capabilities.IsExtentAuto())
 	{
-		if (createInfo.ImageExtent < capabilities.MinImageExtent) return false;
-		if (capabilities.MaxImageExtent < createInfo.ImageExtent) return false;
+		if (createInfo.ImageExtent < capabilities.MinImageExtent)
+		{
+			if (raise) Log::Warning("Surface image size is too small for physical device!");
+			return false;
+		}
+		if (capabilities.MaxImageExtent < createInfo.ImageExtent)
+		{
+			if (raise) Log::Warning("Surface image size is too big for physical device!");
+			return false;
+		}
 	}
 
 	/* Check if image usage and transform are supported. */
-	if (!_CrtEnumCheckFlag(capabilities.SupportedUsages, createInfo.ImageUsage)) return false;
-	if (!_CrtEnumCheckFlag(capabilities.SupportedTransforms, createInfo.Transform)) return false;
-	
+	if (!_CrtEnumCheckFlag(capabilities.SupportedUsages, createInfo.ImageUsage))
+	{
+		if (raise) Log::Warning("Surface usage is not supported by the window surface!");
+		return false;
+	}
+	if (!_CrtEnumCheckFlag(capabilities.SupportedTransforms, createInfo.Transform))
+	{
+		if (raise) Log::Warning("Surface transform is not supported by the window surface!");
+		return false;
+	}
+
 	/* All checks passed so return true. */
 	return true;
-}
-
-Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout) const
-{
-	uint32 image;
-	VK_VALIDATE(parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
-	return image;
 }
 
 void Pu::Swapchain::AquireImages(const SwapchainCreateInfo & createInfo)
