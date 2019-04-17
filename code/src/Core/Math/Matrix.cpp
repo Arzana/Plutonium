@@ -86,7 +86,7 @@ Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 	return Matrix(
 		a, 0.0f, 0.0f, -1.0f, 
 		0.0f, f, 0.0f, -1.0f, 
-		0.0f, 0.0f, k, -1.0f, 
+		0.0f, 0.0f, k, 0.0f, 
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 

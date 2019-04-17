@@ -187,7 +187,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			constTextInfo->Update(cmdBuffer);
 
 			strInfo = new TextUniformBlock(std::move(textRenderer->CreateText()));
-			strInfo->SetModel(Matrix::CreateTranslation(0.0f, 0.0f, 0.5f));
 			strInfo->SetColor(Color::White());
 			strInfo->Update(cmdBuffer);
 
