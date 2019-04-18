@@ -5,6 +5,18 @@ Pu::Camera::Camera(Application & app)
 	: Component(app), viewDirty(false)
 {}
 
+Pu::Camera::Camera(const Camera & value)
+	: Component(value), viewDirty(value.viewDirty),
+	pos(value.pos), view(value.view), proj(value.proj),
+	iproj(value.iproj), iview(value.iview)
+{}
+
+Pu::Camera::Camera(Camera && value)
+	: Component(std::move(value)), viewDirty(value.viewDirty),
+	pos(value.pos), view(value.view), proj(value.proj),
+	iproj(value.iproj), iview(value.iview)
+{}
+
 Pu::Vector3 Pu::Camera::ScreenToWorldRay(Vector2 v) const
 {
 	/* Convert the screen coordinates to normalized device coordinates. */

@@ -29,9 +29,11 @@ Pu::TextUniformBlock Pu::TextRenderer::CreateText(void) const
 	return TextUniformBlock(wnd.GetDevice(), *pipeline);
 }
 
-Pu::ConstTextUniformBlock Pu::TextRenderer::CreatFont(void) const
+Pu::DescriptorSet Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const
 {
-	return ConstTextUniformBlock(wnd.GetDevice(), *pipeline);
+	DescriptorSet result(std::move(pipeline->GetDescriptorPool().Allocate(0)));
+	result.Write(pipeline->GetRenderpass().GetUniform("Atlas"), atlas);
+	return result;
 }
 
 void Pu::TextRenderer::Begin(CommandBuffer &cmdBuffer)
@@ -50,7 +52,7 @@ void Pu::TextRenderer::Begin(CommandBuffer &cmdBuffer)
 	else Log::Warning("Attempting to start invalid text renderer!");
 }
 
-void Pu::TextRenderer::SetFont(const ConstTextUniformBlock & info)
+void Pu::TextRenderer::SetFont(const DescriptorSet & info)
 {
 #ifdef _DEBUG
 	if (!curCmdBuffer) Log::Fatal("Attempting to set font on text renderer without calling Begin first!");

@@ -106,7 +106,7 @@ void TestGame::LoadContent(void)
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
-	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2, { L"{Shaders}Text.vert", L"{Shaders}Text.frag" });
+	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2, { L"{Shaders}2D.vert", L"{Shaders}Text.frag" });
 }
 
 void TestGame::UnLoadContent(void)
@@ -114,7 +114,7 @@ void TestGame::UnLoadContent(void)
 	GetContent().Release(*image);
 	GetContent().Release(*font);
 
-	if (constTextInfo) delete constTextInfo;
+	if (fontInfo) delete fontInfo;
 	if (strInfo) delete strInfo;
 	if (strBuffer) delete strBuffer;
 
@@ -179,13 +179,8 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			firstTextRender = false;
 
 			cmdBuffer.MemoryBarrier(font->GetAtlas(), PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, font->GetAtlas().GetFullRange());
-			const Viewport &vp = GetWindow().GetNative().GetClientBounds();
 
-			constTextInfo = new ConstTextUniformBlock(std::move(textRenderer->CreatFont()));
-			constTextInfo->SetAtlas(font->GetAtlas());
-			constTextInfo->SetProjection(Matrix::CreateOrtho(vp.Width, vp.Height, 0.0f, 1.0f));
-			constTextInfo->Update(cmdBuffer);
-
+			fontInfo = new DescriptorSet(std::move(textRenderer->CreatFont(font->GetAtlas())));
 			strInfo = new TextUniformBlock(std::move(textRenderer->CreateText()));
 			strInfo->SetColor(Color::White());
 			strInfo->Update(cmdBuffer);
@@ -215,11 +210,11 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
 		text += U'%';
 
-		strBuffer->SetText(text, *font);
+		strBuffer->SetText(text, *font, GetWindow().GetNative().GetClientBounds());
 		strBuffer->Update(cmdBuffer);
 
 		textRenderer->Begin(cmdBuffer);
-		textRenderer->SetFont(*constTextInfo);
+		textRenderer->SetFont(*fontInfo);
 		textRenderer->Render(*strBuffer, *strInfo);
 		textRenderer->End();
 	}

@@ -5,17 +5,17 @@
 namespace Pu
 {
 	/* Defines a structure to hold the event data for a value change. */
-	template <typename _Ty>
+	template <typename value_t>
 	struct ValueChangedEventArgs
 		: public EventArgs
 	{
 		/* The old value. */
-		const _Ty OldValue;
+		const value_t OldValue;
 		/* The new value. */
-		const _Ty NewValue;
+		const value_t NewValue;
 
 		/* Initializes a new instance of the value changed event args structure. */
-		ValueChangedEventArgs(_In_ const _Ty oldValue, _In_ const _Ty newValue)
+		ValueChangedEventArgs(_In_ const value_t oldValue, _In_ const value_t newValue)
 			: EventArgs(), OldValue(oldValue), NewValue(newValue)
 		{}
 	};

@@ -163,6 +163,24 @@
     <Filter Include="Source Files\Graphics\Text">
       <UniqueIdentifier>{28107f05-cde0-4c72-b7c0-bb3e26e464f8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\UI">
+      <UniqueIdentifier>{146ab8c9-754e-4f4d-bbc3-48ad3ca43574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\UI\Core">
+      <UniqueIdentifier>{ebb5c94a-b196-48d7-a51b-e5dde6c1d5c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\UI">
+      <UniqueIdentifier>{fd3e93de-8ca4-4214-96b6-08f0de3e559b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\UI\Core">
+      <UniqueIdentifier>{076b4b87-a048-43f8-88ac-45edb1ee130c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\UI\Rendering">
+      <UniqueIdentifier>{1239da1e-5bd7-4fa1-b6fd-42912017978d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\UI\Rendering">
+      <UniqueIdentifier>{df220fa6-98e5-46c1-85bc-c2fc5e083a8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -585,8 +603,32 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Text\ConstTextUniformBlock.h">
-      <Filter>Header Files\Graphics\Text</Filter>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\Anchors.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\FillStyle.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphType.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphRejectionArgs.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\InputFlags.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItem.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiItemRenderer.h">
+      <Filter>Header Files\Graphics\UI\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.h">
+      <Filter>Header Files\Graphics\UI\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiBackgroundUniformBlock.h">
+      <Filter>Header Files\Graphics\UI\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -845,8 +887,11 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Text\ConstTextUniformBlock.cpp">
-      <Filter>Source Files\Graphics\Text</Filter>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItem.cpp">
+      <Filter>Source Files\Graphics\UI\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp">
+      <Filter>Source Files\Graphics\UI\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -897,10 +942,13 @@
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\Text.vert">
+    <None Include="..\..\..\assets\shaders\Text.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\Text.frag">
+    <None Include="..\..\..\assets\shaders\2D.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\assets\shaders\UIBackground.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

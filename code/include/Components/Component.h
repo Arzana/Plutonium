@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/Math/Constants.h>
-#include <Core/Events/EventBus.h>
+#include "Core/Events/EventBus.h"
+#include "Core/Events/ValueChangedEventArgs.h"
 
 namespace Pu
 {
@@ -11,10 +11,12 @@ namespace Pu
 	{
 	public:
 		/* Occurs when the component is either enabled or disabled. */
-		EventBus<Component> StateChanged;
+		EventBus<Component, ValueChangedEventArgs<bool>> StateChanged;
 
-		Component(_In_ const Component&) = delete;
-		Component(_In_ Component&&) = delete;
+		/* Copy constructor. */
+		Component(_In_ const Component &value);
+		/* Move constructor. */
+		Component(_In_ Component &&value);
 		/* Releases the resources allocated by this component. */
 		virtual ~Component(void) {}
 
@@ -27,6 +29,12 @@ namespace Pu
 		void Disable(void);
 		/* Sets the prefered position in the update queue (0 means that the place doesn't matter). */
 		void SetUpdatePlace(_In_ int32 newPlace);
+
+		/* Gets whether this component is enabled. */
+		_Check_return_ inline bool IsEnabled(void) const
+		{
+			return enabled;
+		}
 
 	protected:
 		/* The application associated with this component. */

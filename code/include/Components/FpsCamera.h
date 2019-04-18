@@ -21,8 +21,10 @@ namespace Pu
 
 		/* Initializes a new instance of a first person camera. */
 		FpsCamera(_In_ Application &app);
-		FpsCamera(_In_ const FpsCamera&) = delete;
-		FpsCamera(_In_ FpsCamera&&) = delete;
+		/* Copy constructor. */
+		FpsCamera(_In_ const FpsCamera &value);
+		/* Move constructor. */
+		FpsCamera(_In_ FpsCamera &&value);
 
 		_Check_return_ FpsCamera& operator =(_In_ const FpsCamera&) = delete;
 		_Check_return_ FpsCamera& operator =(_In_ FpsCamera&&) = delete;

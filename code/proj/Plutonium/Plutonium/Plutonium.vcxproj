@@ -248,12 +248,20 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChart.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChartIterator.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Text\ConstTextUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\Anchors.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\FillStyle.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphRejectionArgs.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphType.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItem.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\InputFlags.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiBackgroundUniformBlock.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiItemRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -313,6 +321,9 @@
     <ClInclude Include="..\..\..\include\Streams\StreamWriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\assets\shaders\UIBackground.frag">
+      <FileType>Document</FileType>
+    </None>
     <ClCompile Include="..\..\..\src\Application.cpp" />
     <ClCompile Include="..\..\..\src\Components\Camera.cpp" />
     <ClCompile Include="..\..\..\src\Components\Component.cpp" />
@@ -361,11 +372,12 @@
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Text\ConstTextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItem.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
@@ -418,7 +430,7 @@
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag" />
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
     <None Include="..\..\..\assets\shaders\Text.frag" />
-    <None Include="..\..\..\assets\shaders\Text.vert" />
+    <None Include="..\..\..\assets\shaders\2D.vert" />
     <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

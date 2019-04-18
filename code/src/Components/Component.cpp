@@ -6,21 +6,38 @@ Pu::Component::Component(Application & app)
 	initialized(false), enabled(true), place(0)
 {}
 
+Pu::Component::Component(const Component & value)
+	: App(value.App), StateChanged(value.StateChanged),
+	initialized(value.initialized), enabled(value.enabled), place(value.place)
+{}
+
+Pu::Component::Component(Component && value)
+	: App(value.App), StateChanged(std::move(value.StateChanged)),
+	initialized(value.initialized), enabled(value.enabled), place(value.place)
+{
+	value.initialized = false;
+	value.enabled = false;
+}
+
 void Pu::Component::Enable(void)
 {
+	static ValueChangedEventArgs<bool> args(false, true);
+
 	if (!enabled)
 	{
 		enabled = true;
-		StateChanged.Post(*this);
+		StateChanged.Post(*this, args);
 	}
 }
 
 void Pu::Component::Disable(void)
 {
+	static ValueChangedEventArgs<bool> args(true, false);
+
 	if (enabled)
 	{
 		enabled = false;
-		StateChanged.Post(*this);
+		StateChanged.Post(*this, args);
 	}
 }
 

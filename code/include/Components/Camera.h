@@ -9,8 +9,10 @@ namespace Pu
 		: public Component
 	{
 	public:
-		Camera(_In_ const Camera&) = delete;
-		Camera(_In_ Camera&&) = delete;
+		/* Copy constructor. */
+		Camera(_In_ const Camera &value);
+		/* Move constructor. */
+		Camera(_In_ Camera &&value);
 
 		_Check_return_ Camera& operator =(_In_ const Camera&) = delete;
 		_Check_return_ Camera& operator =(_In_ Camera&&) = delete;

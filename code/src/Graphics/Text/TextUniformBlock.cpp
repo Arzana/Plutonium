@@ -29,6 +29,11 @@ void Pu::TextUniformBlock::SetModel(const Matrix & matrix)
 
 void Pu::TextUniformBlock::Stage(byte * dest)
 {
-	memcpy(dest, model.GetComponents(), sizeof(Matrix));
-	memcpy(dest + allignedOffset, &clr, sizeof(Vector4));
+	/* 
+	The model matrix is stored in binding 0 and the color is stored in binding 1.
+	This is because they need to be used in different shaders.
+	For this we need to make sure that the color is alligned properly.
+	*/
+	Copy(dest, &model);
+	Copy(dest + allignedOffset, &clr);
 }

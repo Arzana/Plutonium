@@ -2,12 +2,29 @@
 #include "Application.h"
 
 Pu::FpsCamera::FpsCamera(Application & app)
-	: Camera(app), projDirty(false),
-	near(0.1f), far(1000.0f), fov(PI4),
+	: Camera(app), near(0.1f), far(1000.0f), fov(PI4),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f)
 {
 	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
 	WindowResizeEventHandler(App.GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
+}
+
+Pu::FpsCamera::FpsCamera(const FpsCamera & value)
+	: Camera(value), projDirty(value.projDirty),
+	near(value.near), far(value.far), fov(value.fov),
+	Yaw(value.Yaw), Pitch(value.Pitch), Roll(value.Roll),
+	orien(value.orien), frustum(value.frustum)
+{
+	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
+}
+
+Pu::FpsCamera::FpsCamera(FpsCamera && value)
+	: Camera(std::move(value)), projDirty(value.projDirty),
+	near(value.near), far(value.far), fov(value.fov),
+	Yaw(value.Yaw), Pitch(value.Pitch), Roll(value.Roll),
+	orien(value.orien), frustum(value.frustum)
+{
+	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
 }
 
 void Pu::FpsCamera::SetNear(float value)

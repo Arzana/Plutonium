@@ -2,7 +2,6 @@
 #include "TextBuffer.h"
 #include "TextUniformBlock.h"
 #include "Content/AssetFetcher.h"
-#include "ConstTextUniformBlock.h"
 #include "Graphics/Platform/GameWindow.h"
 
 namespace Pu
@@ -26,11 +25,11 @@ namespace Pu
 		/* Creates a uniform block for string specific information for this text renderer. */
 		_Check_return_ TextUniformBlock CreateText(void) const;
 		/* Creates a uniform block for the constant information for this text renderer. */
-		_Check_return_ ConstTextUniformBlock CreatFont(void) const;
+		_Check_return_ DescriptorSet CreatFont(_In_ const Texture2D &atlas) const;
 		/* Starts the graphics pipeline. */
 		void Begin(_In_ CommandBuffer &cmdBuffer);
 		/* Sets the font to use. */
-		void SetFont(_In_ const ConstTextUniformBlock &info);
+		void SetFont(_In_ const DescriptorSet &info);
 		/* Renders a specific text mesh. */
 		void Render(_In_ const TextBuffer &text, _In_ const TextUniformBlock &uniforms);
 		/* Ends the graphics pipeline. */

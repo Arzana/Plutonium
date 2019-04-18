@@ -1,10 +1,5 @@
 #version 460 core
 
-layout (binding = 0, set = 0) uniform Constants
-{
-	mat4 Projection;
-};
-
 layout (binding = 0, set = 1) uniform StringSpecific
 {
 	mat4 Model;
@@ -22,6 +17,6 @@ layout (location = 0) out vec2 Uv;
 
 void main()
 {
-	gl_Position = Projection * Model * vec4(Position, 0.0f, 1.0f);
+	gl_Position = Model * vec4(Position, 0.0f, 1.0f);
 	Uv = TexCoord;
 }

@@ -39,7 +39,7 @@ private:
 
 	Pu::Font *font;
 	Pu::TextRenderer *textRenderer;
-	Pu::ConstTextUniformBlock *constTextInfo;
+	Pu::DescriptorSet *fontInfo;
 	Pu::TextBuffer *strBuffer;
 	Pu::TextUniformBlock *strInfo;
 };
