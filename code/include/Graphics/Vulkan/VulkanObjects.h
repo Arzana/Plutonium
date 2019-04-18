@@ -2425,8 +2425,13 @@ namespace Pu
 
 		/* Initializes an empty instance of a object name object. */
 		DebugUtilsObjectNameInfo(void)
+			: DebugUtilsObjectNameInfo(ObjectType::Unknown, 0, nullptr)
+		{}
+
+		/* Initializes a new instance of a debug marker name info object. */
+		DebugUtilsObjectNameInfo(_In_ Pu::ObjectType type, _In_ uint64 handle, _In_ const char *name)
 			: Type(StructureType::DebugUtilsObjectNameInfoExt), Next(nullptr),
-			ObjectType(ObjectType::Unknown), ObjectHandle(0), ObjectName(nullptr)
+			ObjectType(type), ObjectHandle(handle), ObjectName(name)
 		{}
 	};
 

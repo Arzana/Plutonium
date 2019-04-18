@@ -58,6 +58,7 @@ namespace Pu
 		friend class PhysicalDevice;
 		friend class LogicalDevice;
 		friend class Surface;
+		friend class Renderpass;
 
 		static PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
 		static PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
@@ -86,6 +87,7 @@ namespace Pu
 #ifdef _DEBUG
 		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 		PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
+		PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
 #endif
 
 #ifdef _WIN32

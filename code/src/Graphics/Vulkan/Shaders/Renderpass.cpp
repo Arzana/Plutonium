@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
+#include "Graphics/Vulkan/Instance.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: Asset(true), device(device), hndl(nullptr), usable(false),
@@ -303,6 +304,7 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 	MarkAsLoaded(linkedViaLoader, L"Renderpass");
 
 #ifdef _DEBUG
+	/* Generate a name based on the shaders passed. */
 	wstring modules;
 	for (const Shader &pass : shaders)
 	{
@@ -310,6 +312,17 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 		if (pass.GetType() != ShaderStageFlag::Fragment) modules += L" -> ";
 	}
 
+	/* Set the debug name. */
+	string debugName = "Renderpass ";
+	debugName += string::from(reinterpret_cast<uint64>(hndl));
+	debugName += " (";
+	debugName += modules.toUTF8();
+	debugName += ')';
+
+	const DebugUtilsObjectNameInfo nameInfo(ObjectType::Renderpass, reinterpret_cast<uint64>(hndl), debugName.c_str());
+	VK_VALIDATE(device.parent.parent.vkSetDebugUtilsObjectNameEXT(device.hndl, &nameInfo), PFN_vkDebugMarkerSetObjectNameEXT);
+
+	/* Log the creation. */
 	Log::Verbose("Successfully linked render pass: %ls.", modules.c_str());
 #endif
 }

@@ -1482,7 +1482,7 @@ namespace Pu
 		ShaderModule = 15,
 		PipelineCache = 16,
 		PipelineLayout = 17,
-		RenderPass = 18,
+		Renderpass = 18,
 		Pipeline = 19,
 		DescriptionSetLayout = 20,
 		Sampler = 21,
