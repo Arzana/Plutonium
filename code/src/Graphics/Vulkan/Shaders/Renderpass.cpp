@@ -319,10 +319,8 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 	debugName += modules.toUTF8();
 	debugName += ')';
 
-	const DebugUtilsObjectNameInfo nameInfo(ObjectType::Renderpass, reinterpret_cast<uint64>(hndl), debugName.c_str());
-	VK_VALIDATE(device.parent.parent.vkSetDebugUtilsObjectNameEXT(device.hndl, &nameInfo), PFN_vkDebugMarkerSetObjectNameEXT);
-
 	/* Log the creation. */
+	device.SetDebugName(ObjectType::Renderpass, hndl, debugName);
 	Log::Verbose("Successfully linked render pass: %ls.", modules.c_str());
 #endif
 }

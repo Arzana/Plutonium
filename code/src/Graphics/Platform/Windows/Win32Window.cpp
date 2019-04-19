@@ -97,6 +97,18 @@ bool Pu::Win32Window::operator!=(const NativeWindow & other)
 	}
 }
 
+Pu::int32 Pu::Win32Window::GetDefaultTitleBarHeight(void)
+{
+	/* Thickness of the sizing border around a resizable window. */
+	const int32 sizingBorder = GetSystemMetrics(SM_CYFRAME);
+	/* The height of the caption area. */
+	const int32 captionHeight = GetSystemMetrics(SM_CYCAPTION);
+	/* The amount of border padding for a captioned window. */
+	const int32 borderPadding = GetSystemMetrics(SM_CXPADDEDBORDER);
+
+	return sizingBorder + captionHeight + borderPadding;
+}
+
 void Pu::Win32Window::Show(void)
 {
 	ShowWindow(hndl, SW_SHOWNORMAL);

@@ -41,6 +41,8 @@ void Pu::TextRenderer::Begin(CommandBuffer &cmdBuffer)
 	/* Make sure we can actually begin this renderpass. */
 	if (CanBegin())
 	{
+		cmdBuffer.AddLabel(u8"TextRenderer", Color::Cyan());
+
 		/* Set the command buffer and start the pipeline. */
 		curCmdBuffer = &cmdBuffer;
 		cmdBuffer.BindGraphicsPipeline(*pipeline);
@@ -79,6 +81,7 @@ void Pu::TextRenderer::End(void)
 	else
 	{
 		curCmdBuffer->EndRenderPass();
+		curCmdBuffer->EndLabel();
 		curCmdBuffer = nullptr;
 	}
 }

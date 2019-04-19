@@ -81,7 +81,7 @@ namespace Pu
 		LogicalDevice &device;
 		Swapchain *swapchain;
 		CommandPool *pool;
-		uint32 queueIndex, curImgIdx;
+		uint32 curImgIdx;
 
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;

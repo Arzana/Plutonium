@@ -88,6 +88,10 @@ namespace Pu
 		void Draw(_In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 firstInstance, _In_ uint32 vertexOffset);
 		/* Appends a render pass end command to the command buffer. */
 		void EndRenderPass(void);
+		/* Appends a debug label to the command buffer (only active on debug). */
+		void AddLabel(_In_ const string &name, _In_ Color color);
+		/* Ends the last added label in the command buffer (only active on debug). */
+		void EndLabel(void);
 
 	private:
 		friend class CommandPool;

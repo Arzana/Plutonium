@@ -191,6 +191,10 @@ Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format 
 	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(device), imageHndl(hndl),
 	memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
 {
+#ifdef _DEBUG
+	parent.SetDebugName(ObjectType::Image, hndl, u8"OS Image");
+#endif
+
 	MarkAsLoaded(false, L"OS Image");
 }
 

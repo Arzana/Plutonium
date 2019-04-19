@@ -59,6 +59,9 @@ namespace Pu
 			return pos;
 		}
 
+		/* Gets the default height of a Win32 window title bar. */
+		_Check_return_ static int32 GetDefaultTitleBarHeight(void);
+
 		/* Displays the window and gives it focus. */
 		virtual void Show(void) override;
 		/* Hides the window and revokes its focus. */

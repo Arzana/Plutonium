@@ -133,8 +133,7 @@ void Pu::Application::InitializeVulkan(void)
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS);
 	device = physicalDevice.CreateLogicalDevice(&deviceCreateInfo);
-	device->graphicsQueueFamily = graphicsQueueFamily;
-	device->transferQueueFamily = transferQueueFamily;
+	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 }
 
 const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)

@@ -58,7 +58,6 @@ namespace Pu
 		friend class PhysicalDevice;
 		friend class LogicalDevice;
 		friend class Surface;
-		friend class Renderpass;
 
 		static PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
 		static PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
@@ -84,12 +83,6 @@ namespace Pu
 		PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
 		PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 
-#ifdef _DEBUG
-		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
-		PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
-		PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
-#endif
-
 #ifdef _WIN32
 		PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
@@ -101,6 +94,13 @@ namespace Pu
 		void GetPhysicalDevices(void);
 		
 #ifdef _DEBUG
+		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
+		PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
+		PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
+		PFN_vkQueueBeginDebugUtilsLabelEXT vkQueueBeginDebugUtilsLabelEXT;
+		PFN_vkQueueEndDebugUtilsLabelEXT vkQueueEndDebugUtilsLabelEXT;
+		PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
+		PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
 		DebugUtilsMessengerHndl msgHndl;
 
 		static VKAPI_ATTR Bool32 VKAPI_CALL DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData *data, void*);

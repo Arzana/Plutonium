@@ -110,7 +110,13 @@ void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vec
 
 	/* Gets the bottom right corner of the window. */
 	const Extent2D extent = wnd.GetSize();
-	POINT points[] = { { 0, 0 }, { static_cast<LONG>(extent.Width), static_cast<LONG>(extent.Height) } };
+	const int32 titleBarHeight = Win32Window::GetDefaultTitleBarHeight();
+
+	/*
+	We need to make sure that the title bar is still accessible when the mouse is clipped to ensure that we can still move the window.
+	Currently moving the screen and then locking the cursor doesn't lock the cursor properly but this is a small bug and the current result is better.
+	*/
+	POINT points[] = { { 0, -titleBarHeight }, { static_cast<LONG>(extent.Width), static_cast<LONG>(extent.Height - titleBarHeight) } };
 
 	/* Convert from window space to screen space. */
 	MapWindowPoints(wnd.hndl, nullptr, points, 2);

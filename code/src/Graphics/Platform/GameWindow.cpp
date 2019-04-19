@@ -4,14 +4,14 @@
 using namespace Pu;
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr), queueIndex(device.graphicsQueueFamily)
+	: native(native), device(device), swapchain(nullptr)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
 	CreateSwapchain(native.GetClientBounds().GetSize());
 
 	/* Create new command pool. */
-	pool = new CommandPool(device, queueIndex);
+	pool = new CommandPool(device, device.graphicsQueueFamily);
 
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
@@ -155,9 +155,11 @@ void Pu::GameWindow::EndRender(void)
 	cmdBuf.End();
 
 	/* Submit the command buffer to the render queue and present the queue. */
-	Queue &queue = device.GetQueue(queueIndex, 0);
+	Queue &queue = device.GetGraphicsQueue(0);
+	queue.BeginLabel(u8"GameWindow Render", Color::Blue());
 	queue.Submit(semaphores[0], cmdBuf, semaphores[1]);
 	queue.Present(semaphores[1], *swapchain, curImgIdx);
+	queue.EndLabel();
 }
 
 void Pu::GameWindow::DestroyFramebuffers(void)

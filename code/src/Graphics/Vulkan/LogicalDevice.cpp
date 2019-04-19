@@ -64,6 +64,45 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint3
 	}
 }
 
+#ifdef _DEBUG
+void Pu::LogicalDevice::SetDebugName(ObjectType type, const void * handle, const string & name)
+{
+	const DebugUtilsObjectNameInfo info(type, reinterpret_cast<uint64>(handle), name.c_str());
+	VK_VALIDATE(parent.parent.vkSetDebugUtilsObjectNameEXT(hndl, &info), PFN_vkSetDebugUtilsObjectNameEXT);
+}
+
+void Pu::LogicalDevice::BeginQueueLabel(QueueHndl queue, const DebugUtilsLabel & label)
+{
+	parent.parent.vkQueueBeginDebugUtilsLabelEXT(queue, &label);
+}
+
+void Pu::LogicalDevice::EndQueueLabel(QueueHndl queue)
+{
+	parent.parent.vkQueueEndDebugUtilsLabelEXT(queue);
+}
+
+void Pu::LogicalDevice::BeginCommandBufferLabel(CommandBufferHndl commandBuffer, const DebugUtilsLabel & label)
+{
+	parent.parent.vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &label);
+}
+
+void Pu::LogicalDevice::EndCommandBufferLabel(CommandBufferHndl commandBuffer)
+{
+	parent.parent.vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+}
+#endif
+
+void Pu::LogicalDevice::SetQueues(uint32 graphics, uint32 transfer)
+{
+	graphicsQueueFamily = graphics;
+	transferQueueFamily = transfer;
+
+#ifdef _DEBUG
+	for (Queue &cur : queues[graphics]) SetDebugName(ObjectType::Queue, cur.hndl, u8"Graphics Queue");
+	for (Queue &cur : queues[transfer]) SetDebugName(ObjectType::Queue, cur.hndl, u8"Transfer Queue");
+#endif
+}
+
 void Pu::LogicalDevice::LoadDeviceProcs(void)
 {
 	/* Logical device related functions. */

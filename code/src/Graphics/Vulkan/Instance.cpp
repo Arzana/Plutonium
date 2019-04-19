@@ -276,6 +276,10 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 		VK_LOAD_INSTANCE_PROC(hndl, vkCreateDebugUtilsMessengerEXT);
 		VK_LOAD_INSTANCE_PROC(hndl, vkDestroyDebugUtilsMessengerEXT);
 		VK_LOAD_INSTANCE_PROC(hndl, vkSetDebugUtilsObjectNameEXT);
+		VK_LOAD_INSTANCE_PROC(hndl, vkQueueBeginDebugUtilsLabelEXT);
+		VK_LOAD_INSTANCE_PROC(hndl, vkQueueEndDebugUtilsLabelEXT);
+		VK_LOAD_INSTANCE_PROC(hndl, vkCmdBeginDebugUtilsLabelEXT);
+		VK_LOAD_INSTANCE_PROC(hndl, vkCmdEndDebugUtilsLabelEXT);
 	}
 	else Log::Warning("Debug utilities is not supported on this platform!");
 #endif

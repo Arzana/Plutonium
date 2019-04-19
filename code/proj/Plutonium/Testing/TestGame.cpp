@@ -190,6 +190,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	}
 
 	/* Render scene. */
+	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
@@ -200,6 +201,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.Draw(mesh->GetIndex().GetElementCount(), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();
+	cmdBuffer.EndLabel();
 
 	/* Render debug text. */
 	if (!firstTextRender)

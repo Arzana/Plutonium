@@ -266,6 +266,32 @@ void Pu::CommandBuffer::EndRenderPass(void)
 	if (CheckIfRecording("end render pass")) parent.parent.vkCmdEndRenderPass(hndl);
 }
 
+void Pu::CommandBuffer::AddLabel(const string & name, Color color)
+{
+#ifdef _DEBUG
+	if (CheckIfRecording("add debug label"))
+	{
+		const Vector4 clr = color.ToVector4();
+
+		DebugUtilsLabel label;
+		label.LabelName = name.c_str();;
+		memcpy(label.Color, &clr, sizeof(Vector4));
+
+		parent.parent.BeginCommandBufferLabel(hndl, label);
+	}
+#else
+	(void)name;
+	(void)color;
+#endif
+}
+
+void Pu::CommandBuffer::EndLabel(void)
+{
+#ifdef _DEBUG
+	if (CheckIfRecording("end debug label")) parent.parent.EndCommandBufferLabel(hndl);
+#endif
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(pool), hndl(hndl), state(State::Initial)
 {

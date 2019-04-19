@@ -69,6 +69,29 @@ void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	VK_VALIDATE(parent.vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
 }
 
+void Pu::Queue::BeginLabel(const string & name, Color color)
+{
+#ifdef _DEBUG
+	const Vector4 clr = color.ToVector4();
+
+	DebugUtilsLabel label;
+	label.LabelName = name.c_str();
+	memcpy(label.Color, &clr, sizeof(Vector4));
+
+	parent.BeginQueueLabel(hndl, label);
+#else
+	(void)name;
+	(void)color;
+#endif
+}
+
+void Pu::Queue::EndLabel(void)
+{
+#ifdef _DEBUG
+	parent.EndQueueLabel(hndl);
+#endif
+}
+
 Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex)
 	: parent(device), hndl(hndl), index(familyIndex)
 {}

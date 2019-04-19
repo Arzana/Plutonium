@@ -122,7 +122,6 @@ namespace Pu
 		friend class Buffer;
 		friend class Image;
 		friend class Application;
-		friend class Renderpass;
 
 		VulkanInstance &parent;
 		PhysicalDeviceHndl hndl;
