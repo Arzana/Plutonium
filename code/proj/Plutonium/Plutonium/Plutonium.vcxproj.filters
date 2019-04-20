@@ -630,6 +630,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h">
       <Filter>Header Files\Graphics\Vulkan\Native</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -891,6 +894,12 @@
       <Filter>Source Files\Graphics\UI\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp">
+      <Filter>Source Files\Graphics\UI\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.cpp">
       <Filter>Source Files\Graphics\UI\Rendering</Filter>
     </ClCompile>
   </ItemGroup>

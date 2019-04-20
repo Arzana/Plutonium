@@ -1,107 +1,73 @@
 #include "Graphics/Text/TextRenderer.h"
 #include "Graphics/VertexLayouts/Image2D.h"
 
-Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, size_t maxSets, std::initializer_list<wstring> shaders)
-	: wnd(window), loader(loader), curCmdBuffer(nullptr)
-{
-	/* Create the gaphics pipeline. */
-	pipeline = new GraphicsPipeline(window.GetDevice(), maxSets);
-	pipeline->PostInitialize.Add(*this, &TextRenderer::OnPipelinePostInitialize);
-
-	/* Create the renderpass. */
-	loader.FetchRenderpass(*pipeline, shaders).OnLinkCompleted.Add(*this, &TextRenderer::OnRenderpassLinkComplete);
-	wnd.GetNative().OnSizeChanged.Add(*this, &TextRenderer::OnWindowSizeChanged);
-}
-
-Pu::TextRenderer::~TextRenderer(void)
-{
-	loader.Release(*pipeline);
-	delete pipeline;
-}
-
-bool Pu::TextRenderer::CanBegin(void) const
-{
-	return !curCmdBuffer && pipeline->IsUsable();
-}
+Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, size_t maxSets)
+	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert", L"{Shaders}Text.frag" })
+{}
 
 Pu::TextUniformBlock Pu::TextRenderer::CreateText(void) const
 {
-	return TextUniformBlock(wnd.GetDevice(), *pipeline);
+	return TextUniformBlock(GetWindow().GetDevice(), GetPipeline());
 }
 
 Pu::DescriptorSet Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const
 {
-	DescriptorSet result(std::move(pipeline->GetDescriptorPool().Allocate(0)));
-	result.Write(pipeline->GetRenderpass().GetUniform("Atlas"), atlas);
+	DescriptorSet result(std::move(GetPipeline().GetDescriptorPool().Allocate(1)));
+	result.Write(GetPipeline().GetRenderpass().GetUniform("Atlas"), atlas);
 	return result;
 }
 
 void Pu::TextRenderer::Begin(CommandBuffer &cmdBuffer)
 {
-	/* Make sure we can actually begin this renderpass. */
-	if (CanBegin())
-	{
-		cmdBuffer.AddLabel(u8"TextRenderer", Color::Cyan());
-
-		/* Set the command buffer and start the pipeline. */
-		curCmdBuffer = &cmdBuffer;
-		cmdBuffer.BindGraphicsPipeline(*pipeline);
-
-		/* Begin the renderpass. */
-		const Renderpass &renderpass = pipeline->GetRenderpass();
-		cmdBuffer.BeginRenderPass(renderpass, wnd.GetCurrentFramebuffer(renderpass), SubpassContents::Inline);
-	}
-	else Log::Warning("Attempting to start invalid text renderer!");
+	if (CanBegin()) cmdBuffer.AddLabel(u8"TextRenderer", Color::Cyan());
+	Renderer::Begin(cmdBuffer);
 }
 
 void Pu::TextRenderer::SetFont(const DescriptorSet & info)
 {
 #ifdef _DEBUG
-	if (!curCmdBuffer) Log::Fatal("Attempting to set font on text renderer without calling Begin first!");
+	if (!CmdBuffer) Log::Fatal("Attempting to set font on text renderer without calling Begin first!");
 #endif
 
-	curCmdBuffer->BindGraphicsDescriptor(info);
+	CmdBuffer->BindGraphicsDescriptor(info);
 }
 
 void Pu::TextRenderer::Render(const TextBuffer & text, const TextUniformBlock & uniforms)
 {
 #ifdef _DEBUG
-	if (!curCmdBuffer) Log::Fatal("Attempting to render text on text renderer without calling Begin first!");
+	if (!CmdBuffer) Log::Fatal("Attempting to render text on text renderer without calling Begin first!");
 #endif
 
 	/* Render the string. */
-	curCmdBuffer->BindVertexBuffer(0, text.GetView());
-	curCmdBuffer->BindGraphicsDescriptor(uniforms);
-	curCmdBuffer->Draw(static_cast<uint32>(text.GetView().GetElementCount()), 1, 0, 0);
+	CmdBuffer->BindVertexBuffer(0, text.GetView());
+	CmdBuffer->BindGraphicsDescriptor(uniforms);
+	CmdBuffer->Draw(static_cast<uint32>(text.GetView().GetElementCount()), 1, 0, 0);
 }
 
 void Pu::TextRenderer::End(void)
 {
-	if (CanBegin()) Log::Warning("Attempting to stop invalid text renderer!");
-	else
-	{
-		curCmdBuffer->EndRenderPass();
-		curCmdBuffer->EndLabel();
-		curCmdBuffer = nullptr;
-	}
+	CommandBuffer *cmdBuffer = CmdBuffer;
+	Renderer::End();
+
+	if (CanBegin()) cmdBuffer->EndLabel();
 }
 
-void Pu::TextRenderer::OnPipelinePostInitialize(GraphicsPipeline &)
+void Pu::TextRenderer::OnPipelinePostInitialize(GraphicsPipeline &gfx)
 {
 	/* Set the required parameters. */
-	pipeline->SetViewport(wnd.GetNative().GetClientBounds());
-	pipeline->SetTopology(PrimitiveTopology::TriangleList);
-	pipeline->AddVertexBinding(0, sizeof(Image2D));
-	pipeline->Finalize();
+	gfx.SetViewport(GetWindow().GetNative().GetClientBounds());
+	gfx.SetTopology(PrimitiveTopology::TriangleList);
+	gfx.AddVertexBinding<Image2D>(0);
+	gfx.Finalize();
 
 	/* Create the framebuffers for this graphics pipeline. */
-	wnd.CreateFrameBuffers(pipeline->GetRenderpass());
+	GetWindow().CreateFrameBuffers(gfx.GetRenderpass());
 }
 
 void Pu::TextRenderer::OnRenderpassLinkComplete(Renderpass & renderpass)
 {
 	Output &output = renderpass.GetOutput("FragColor");
-	output.SetDescription(wnd.GetSwapchain());
+	output.SetDescription(GetWindow().GetSwapchain());
 	output.SetLoadOperation(AttachmentLoadOp::Load);
 	output.SetColorBlending(BlendFactor::SrcAlpha, BlendOp::Add, BlendFactor::ISrcAlpha);
 	output.SetAlphaBlending(BlendFactor::One, BlendOp::Add, BlendFactor::Zero);
@@ -110,7 +76,7 @@ void Pu::TextRenderer::OnRenderpassLinkComplete(Renderpass & renderpass)
 	renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Image2D, TexCoord));
 }
 
-void Pu::TextRenderer::OnWindowSizeChanged(const NativeWindow &, ValueChangedEventArgs<Vector2>)
+void Pu::TextRenderer::RecreateFramebuffers(GameWindow & window, const Renderpass & renderpass)
 {
-	if (pipeline->IsUsable()) wnd.CreateFrameBuffers(pipeline->GetRenderpass());
+	window.CreateFrameBuffers(renderpass);
 }

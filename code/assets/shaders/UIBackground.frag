@@ -1,6 +1,6 @@
 #version 460 core
 
-layout (binding = 1, set = 1) uniform Specific
+layout (binding = 1, set = 0) uniform Specific
 {
 	vec4 Color;
 	float Border;

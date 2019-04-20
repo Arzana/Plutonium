@@ -106,7 +106,7 @@ void TestGame::LoadContent(void)
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
-	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2, { L"{Shaders}2D.vert", L"{Shaders}Text.frag" });
+	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2);
 }
 
 void TestGame::UnLoadContent(void)
@@ -198,7 +198,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindIndexBuffer(mesh->GetIndex());
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
-	cmdBuffer.Draw(mesh->GetIndex().GetElementCount(), 1, 0, 0, 0);
+	cmdBuffer.Draw(static_cast<uint32>(mesh->GetIndex().GetElementCount()), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.EndLabel();

@@ -1,6 +1,6 @@
 #version 460 core
 
-layout (binding = 0, set = 1) uniform StringSpecific
+layout (binding = 0, set = 0) uniform StringSpecific
 {
 	mat4 Model;
 };
