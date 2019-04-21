@@ -32,6 +32,12 @@ namespace Pu
 		/* Gets the framebuffer associated with a specific render pass for the current swapchain image. */
 		_Check_return_ const Framebuffer& GetCurrentFramebuffer(_In_ const Renderpass &renderPass) const;
 
+		/* Converts viewport coordinates to clip space coordinates linearly using an orthographics projection. */
+		_Check_return_ inline Vector4 ToLinearClipSpace(_In_ Vector4 v) const
+		{
+			return ortho * v;
+		}
+
 		/* Gets the current command buffer. */
 		_Check_return_ inline CommandBuffer& GetCommandBuffer(void)
 		{
@@ -82,6 +88,7 @@ namespace Pu
 		Swapchain *swapchain;
 		CommandPool *pool;
 		uint32 curImgIdx;
+		Matrix ortho;
 
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;

@@ -225,7 +225,8 @@ void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 	switch (decoration)
 	{
 	case (spv::Decoration::Block):			// Used for uniform blocks we don't have to define what is in which block.
-		break;
+	case (spv::Decoration::BuiltIn):		// Used to indicate build in variables, they'll not be used.
+		return;
 	case (spv::Decoration::Location):		// Location decoration stores a single literal number.
 		result.Numbers.emplace(decoration, reader.ReadWord());
 		break;

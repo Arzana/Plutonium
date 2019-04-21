@@ -75,6 +75,12 @@ namespace Pu
 		/* Implicitly converts the 4x4 matrix to a string. */
 		_Check_return_ operator string() const;
 
+		/* Creates a translation matrix from two individual components. */
+		_Check_return_ static inline Matrix CreateTranslation(_In_ Vector2 v)
+		{
+			return Matrix(1.0f, 0.0f, 0.0f, v.X, 0.0f, 1.0f, 0.0f, v.Y, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		}
+
 		/* Creates a translation matrix from three individual components. */
 		_Check_return_ static inline Matrix CreateTranslation(_In_ float x, _In_ float y, _In_ float z)
 		{

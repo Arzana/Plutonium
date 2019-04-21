@@ -17,8 +17,8 @@ namespace Pu
 		_Check_return_ BasicGuiBackgroundRenderer& operator =(_In_ const BasicGuiBackgroundRenderer&) = delete;
 		_Check_return_ BasicGuiBackgroundRenderer& operator =(_In_ BasicGuiBackgroundRenderer&&) = delete;
 
-		/* Creates a uniform block for a specific GUI item. */
-		_Check_return_ GuiBackgroundUniformBlock CreateGUI(void) const;
+		/* Creates a uniform block for a specific GUI item (requires delete). */
+		_Check_return_ GuiBackgroundUniformBlock* CreateGUI(void) const;
 		/* Renders a specific UI background mesh. */
 		void Render(_In_ const BufferView &mesh, _In_ const GuiBackgroundUniformBlock &uniforms);
 

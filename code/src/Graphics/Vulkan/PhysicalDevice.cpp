@@ -159,7 +159,7 @@ bool Pu::PhysicalDevice::SupportsPlutonium(const Surface & surface) const
 uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) const
 {
 	const vector<QueueFamilyProperties> families = GetQueueFamilies();
-	uint32 choosen = 0;
+	uint32 choosen = maxv<uint32>();
 	int32 highscore = -1, score = 0;
 
 	/* Loop through all families to find best one. */

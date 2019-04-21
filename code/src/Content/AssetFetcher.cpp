@@ -42,6 +42,7 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, 
 
 	/* Create a new renderpass and start loading it. */
 	Renderpass *renderpass = new Renderpass(loader->GetDevice());
+	renderpass->SetHash(hash);
 	loader->PopulateRenderpass(pipeline, *renderpass, mutableSubpasses);
 	cache->Store(renderpass);
 	return *renderpass;

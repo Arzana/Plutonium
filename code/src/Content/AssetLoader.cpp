@@ -31,7 +31,7 @@ void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass
 		/* Check if the subpass is already loaded. */
 		if (cache.Contains(subpassHash))
 		{
-			renderpass.shaders.emplace_back(static_cast<Shader&>(cache.Get(subpassHash)));
+			renderpass.shaders.emplace_back(cache.Get(subpassHash).Duplicate<Shader>(cache));
 		}
 		else
 		{

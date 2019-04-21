@@ -562,7 +562,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return operator()(str);
+			return std::hash<std::string>{}(str);
 		}
 
 		/* Calculates the hash from the specified arguments. */
@@ -570,7 +570,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return operator()(str);
+			return std::hash<std::string>{}(str);
 		}
 	};
 
@@ -595,7 +595,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return operator()(str);
+			return std::hash<std::wstring>{}(str);
 		}
 
 		/* Calculates the hash from the specified arguments. */
@@ -603,7 +603,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return operator()(str);
+			return std::hash<std::wstring>{}(str);
 		}
 	};
 }

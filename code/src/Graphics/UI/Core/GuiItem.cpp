@@ -1,22 +1,27 @@
 #include "Graphics/UI/Core/GuiItem.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 #include "Graphics/VertexLayouts/Image2D.h"
+#include "Graphics/UI/Rendering/GuiBackgroundUniformBlock.h"
 
-Pu::GuiItem::GuiItem(Application & parent)
-	: GuiItem(parent, Rectangle(0.0f, 0.0f, 100.0f, 50.0f))
+Pu::GuiItem::GuiItem(Application & parent, GuiBackgroundUniformBlock * descriptor)
+	: GuiItem(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), descriptor)
 {}
 
-Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds)
+Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds, GuiBackgroundUniformBlock * descriptor)
 	: Component(parent), parent(nullptr), container(nullptr), buffer(nullptr), view(nullptr),
 	over(false), ldown(false), rdown(false), lclickInvoked(false), rclickInvoked(false),
-	visible(true), focusable(false), focused(false), backColor(Color::Abbey()), roundingFactor(10.0f),
+	visible(true), focusable(false), focused(false), backgroundDescriptor(descriptor),
 	position(bounds.Position), anchor(Anchors::None), bounds(bounds), SuppressUpdate(false),
 	SuppressRender(false), BackColorChanged("GuiItemBackColorChanged"), Clicked("GuiItemClicked"),
 	FocusableChanged("GuiItemFocusableChanged"), GainedFocus("GuiItemGainedFocus"),
-	HoverEnter("GuiItemHoverEnter"), HoverLeave("GuiItemHoverLeave"), LostFocus("GuiItemLostFocus"), 
+	HoverEnter("GuiItemHoverEnter"), HoverLeave("GuiItemHoverLeave"), LostFocus("GuiItemLostFocus"),
 	Moved("GuiItemMovde"), NameChanged("GuiItemNameChanged"), Resized("GuiItemResized"),
 	VisibilityChanged("GuiItemVisibilityChanged")
 {
+	/* Initialize the descriptor to its default values. */
+	descriptor->SetModel(Matrix::CreateTranslation(position));
+	descriptor->SetColor(Color::Black() * 0.5f);
+
 	/* Make sure we update the anchors if the window size changes. */
 	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);
 
@@ -29,11 +34,10 @@ Pu::GuiItem::GuiItem(GuiItem && value)
 	: Component(std::move(value)), parent(value.parent), container(value.container), buffer(value.buffer),
 	view(value.view), over(value.over), ldown(value.ldown), rdown(value.rdown), visible(value.visible),
 	lclickInvoked(value.lclickInvoked), rclickInvoked(value.rclickInvoked), focusable(value.focusable),
-	focused(value.focused), backColor(value.backColor), roundingFactor(value.roundingFactor),
-	position(value.position), bounds(value.bounds), name(std::move(value.name)), anchor(value.anchor),
-	offsetFromAnchorPoint(value.offsetFromAnchorPoint), SuppressUpdate(value.SuppressUpdate), SuppressRender(value.SuppressRender),
-	BackColorChanged(std::move(value.BackColorChanged)), Clicked(std::move(value.Clicked)),
-	FocusableChanged(std::move(value.FocusableChanged)), GainedFocus(std::move(value.GainedFocus)),
+	focused(value.focused), backgroundDescriptor(value.backgroundDescriptor), position(value.position),
+	bounds(value.bounds), name(std::move(value.name)), anchor(value.anchor), offsetFromAnchorPoint(value.offsetFromAnchorPoint),
+	SuppressUpdate(value.SuppressUpdate), SuppressRender(value.SuppressRender), BackColorChanged(std::move(value.BackColorChanged)),
+	Clicked(std::move(value.Clicked)), FocusableChanged(std::move(value.FocusableChanged)), GainedFocus(std::move(value.GainedFocus)),
 	HoverEnter(std::move(value.HoverEnter)), HoverLeave(std::move(value.HoverLeave)), LostFocus(std::move(value.LostFocus)),
 	Moved(std::move(value.Moved)), NameChanged(std::move(value.NameChanged)), Resized(std::move(value.Resized)),
 	VisibilityChanged(std::move(value.VisibilityChanged))
@@ -43,6 +47,7 @@ Pu::GuiItem::GuiItem(GuiItem && value)
 
 	value.buffer = nullptr;
 	value.view = nullptr;
+	value.backgroundDescriptor = nullptr;
 }
 
 Pu::GuiItem::~GuiItem(void)
@@ -51,6 +56,7 @@ Pu::GuiItem::~GuiItem(void)
 
 	if (view) delete view;
 	if (buffer) delete buffer;
+	if (backgroundDescriptor) delete backgroundDescriptor;
 }
 
 void Pu::GuiItem::Initialize(void)
@@ -61,6 +67,11 @@ void Pu::GuiItem::Initialize(void)
 	bounds = Rectangle(position + GetBackgroundOffset(), bounds.Size);
 	CheckBounds(bounds.Size);
 	UpdateMesh();
+}
+
+void Pu::GuiItem::RenderGuiItem(GuiItemRenderer & renderer) const
+{
+	renderer.EnqueueBackground(*this, false);
 }
 
 void Pu::GuiItem::MoveRelative(Anchors value, float x, float y)
@@ -117,6 +128,11 @@ void Pu::GuiItem::Update(float)
 	}
 }
 
+void Pu::GuiItem::Render(GuiItemRenderer & renderer) const
+{
+	if (visible) RenderGuiItem(renderer);
+}
+
 void Pu::GuiItem::Show(void)
 {
 	Enable();
@@ -142,10 +158,11 @@ void Pu::GuiItem::SetAnchors(Anchors value, float xOffset, float yOffset)
 
 void Pu::GuiItem::SetBackColor(Color color)
 {
-	if (color == backColor) return;
+	if (color == GetBackColor()) return;
 
-	ValueChangedEventArgs<Color> args(backColor, color);
-	backColor = color;
+	ValueChangedEventArgs<Color> args(GetBackColor(), color);
+	backgroundDescriptor->SetColor(color);
+
 	BackColorChanged.Post(*this, args);
 }
 
@@ -225,11 +242,6 @@ void Pu::GuiItem::SetFocusable(bool value)
 	FocusableChanged.Post(*this, args);
 }
 
-void Pu::GuiItem::SetRoundingFactor(float value)
-{
-	roundingFactor = value;
-}
-
 void Pu::GuiItem::SetParent(const GuiItem & item)
 {
 	/* Make sure to remove the old event handlers from the GuiItem to avoid parent mismatch. */
@@ -274,18 +286,23 @@ void Pu::GuiItem::CheckBounds(Vector2 size)
 
 void Pu::GuiItem::UpdateMesh(void)
 {
-	const float w = GetSize().X;
-	const float h = GetSize().Y;
+	/* 
+	We need to convert the coordinates from normalized viewport space ([0,0] to [1, 1]) to clip space [-1, -1] to [1, 1].
+	The coordinates are in this system to force the use of relative positions and sizes to the screen.
+	This allows for a consistent UI for every display.
+	*/
+	const Vector2 tl = Vector2(-1.0f);
+	const Vector2 br = GetSize() * 2.0f - 1.0f;
 
 	buffer->BeginMemoryTransfer();
 	Image2D *data = reinterpret_cast<Image2D*>(buffer->GetHostMemory());
 
-	data[0] = Image2D(0.0f, 0.0f, 0.0f, 1.0f);
-	data[1] = Image2D(0.0f, h, 0.0f, 0.0f);
-	data[2] = Image2D(w, h, 1.0f, 0.0f);
-	data[3] = Image2D(0.0f, 0.0f, 0.0f, 1.0f);
-	data[4] = Image2D(w, h, 1.0f, 0.0f);
-	data[5] = Image2D(w, 0.0f, 1.0f, 1.0f);
+	data[0] = Image2D(tl, 0.0f, 1.0f);
+	data[1] = Image2D(tl.X, br.Y, 0.0f, 0.0f);
+	data[2] = Image2D(br, 1.0f, 0.0f);
+	data[3] = Image2D(tl, 0.0f, 1.0f);
+	data[4] = Image2D(br, 1.0f, 0.0f);
+	data[5] = Image2D(br.X, tl.Y, 1.0f, 1.0f);
 
 	buffer->EndMemoryTransfer();
 }
@@ -298,8 +315,11 @@ void Pu::GuiItem::UpdatePosition(Vector2 value)
 	if (offset.X < 0.0f) position.X -= offset.X;
 	if (offset.Y < 0.0f) position.Y -= offset.Y;
 
-	bounds.Position = position + GetBackgroundOffset();
+	bounds.Position = position + offset;
 	if (parent) bounds.Position += parent->GetBoundingBox().Position;
+
+	/* We have to scale by 2 to go from normalized viewport space offsets ([0, 0] to [1, 1]) to clip space offsets ([0, 0] to [2, 2]). */
+	backgroundDescriptor->SetModel(Matrix::CreateTranslation(bounds.Position * 2.0f));
 }
 
 void Pu::GuiItem::WindowResizedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2>)

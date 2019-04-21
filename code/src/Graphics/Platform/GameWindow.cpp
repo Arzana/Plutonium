@@ -95,6 +95,9 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size)
 {
+	/* Update the orthographics matrix used to convert the coordinates from viewport space to clip space. */
+	ortho = Matrix::CreateOrtho(static_cast<float>(size.Width), static_cast<float>(size.Height), 0.0f, 1.0f);
+
 	/* Every surface might have different supported formats so first query the formats. */
 	const vector<SurfaceFormat> supportedFormats = native.GetSurface().GetSupportedFormats(device.GetPhysicalDevice());
 

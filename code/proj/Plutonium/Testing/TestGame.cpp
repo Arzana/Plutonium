@@ -4,6 +4,7 @@
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Core/Diagnostics/CPU.h>
+#include <Graphics/UI/Rendering/BasicGuiBackgroundRenderer.h>
 
 using namespace Pu;
 
@@ -82,6 +83,9 @@ void TestGame::Initialize(void)
 	{
 		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
 	};
+
+	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2);
+	uiRenderer = new GuiItemRenderer(GetWindow(), GetContent(), 1);
 }
 
 void TestGame::LoadContent(void)
@@ -106,7 +110,6 @@ void TestGame::LoadContent(void)
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
-	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2);
 }
 
 void TestGame::UnLoadContent(void)
@@ -118,7 +121,6 @@ void TestGame::UnLoadContent(void)
 	if (strInfo) delete strInfo;
 	if (strBuffer) delete strBuffer;
 
-	delete textRenderer;
 	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -128,6 +130,8 @@ void TestGame::Finalize(void)
 {
 	GetContent().Release(*pipeline);
 
+	delete uiRenderer;
+	delete textRenderer;
 	delete material;
 	delete transform;
 	delete pipeline;
@@ -189,6 +193,17 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		}
 	}
 
+	static bool firstUiRender = true;
+	if (firstUiRender)
+	{
+		if (uiRenderer->GetBackgroundRenderer().CanBegin())
+		{
+			firstUiRender = false;
+			AddComponent(item = new GuiItem(*this, uiRenderer->GetBackgroundRenderer().CreateGUI()));
+			item->SetPosition(Vector2(0.5f));
+		}
+	}
+
 	/* Render scene. */
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
@@ -212,12 +227,19 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
 		text += U'%';
 
-		strBuffer->SetText(text, *font, GetWindow().GetNative().GetClientBounds());
+		strBuffer->SetText(text, *font, GetWindow());
 		strBuffer->Update(cmdBuffer);
 
 		textRenderer->Begin(cmdBuffer);
 		textRenderer->SetFont(*fontInfo);
 		textRenderer->Render(*strBuffer, *strInfo);
 		textRenderer->End();
+	}
+
+	/* Render the UI. */
+	if (!firstUiRender)
+	{
+		item->Render(*uiRenderer);
+		uiRenderer->Render(cmdBuffer);
 	}
 }

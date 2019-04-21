@@ -255,15 +255,24 @@ void Pu::Application::DoInitialize(void)
 
 void Pu::Application::DoFinalize(void)
 {
-	Finalize();
-
-	for (Component *cur : components)
+	/* Finalize all components that are set to update before the application update. */
+	size_t i = 0;
+	for (; i < components.size(); i++)
 	{
+		Component *cur = components[i];
+		if (cur->place > 0) break;
 		cur->Finalize();
 		delete cur;
 	}
 
-	components.clear();
+	Finalize();
+
+	/* Finalize all components that are set to update after the application update. */
+	for (; i < components.size(); i++)
+	{
+		components[i]->Finalize();
+		delete components[i];
+	}
 
 	delete content;
 	delete saver;

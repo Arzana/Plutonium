@@ -5,9 +5,9 @@ Pu::BasicGuiBackgroundRenderer::BasicGuiBackgroundRenderer(GameWindow & window, 
 	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert", L"{Shaders}UIBackground.frag" })
 {}
 
-Pu::GuiBackgroundUniformBlock Pu::BasicGuiBackgroundRenderer::CreateGUI(void) const
+Pu::GuiBackgroundUniformBlock* Pu::BasicGuiBackgroundRenderer::CreateGUI(void) const
 {
-	return GuiBackgroundUniformBlock(GetWindow().GetDevice(), GetPipeline());
+	return new GuiBackgroundUniformBlock(GetWindow().GetDevice(), GetPipeline());
 }
 
 void Pu::BasicGuiBackgroundRenderer::Render(const BufferView & mesh, const GuiBackgroundUniformBlock & uniforms)

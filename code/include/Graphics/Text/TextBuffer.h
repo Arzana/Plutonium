@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Text/Font.h"
 #include "Graphics/Resources/DynamicBuffer.h"
+#include "Graphics/Platform/GameWindow.h"
 
 namespace Pu
 {
@@ -26,7 +27,7 @@ namespace Pu
 		/* Updates the text buffer's GPU content if needed. */
 		void Update(_In_ CommandBuffer &cmdBuffer);
 		/* Updates the text mesh of the text buffer to the specific string for a specific viewport. */
-		void SetText(_In_ const ustring &str, _In_ const Font &font, _In_ const Viewport &vp);
+		void SetText(_In_ const ustring &str, _In_ const Font &font, _In_ const GameWindow &wnd);
 
 		/* Gets the view used for rendering the text mesh. */
 		_Check_return_ inline const BufferView& GetView(void) const
@@ -38,8 +39,6 @@ namespace Pu
 		LogicalDevice &device;
 		DynamicBuffer *buffer;
 		BufferView *view;
-
-		static Vector2 vec2MatMult(const Matrix &matrix, Vector2 v);
 
 		void ReallocBuffer(size_t newSize);
 		void AllocBuffer(size_t size);

@@ -1195,7 +1195,7 @@ namespace Pu
 		/* Specifies that back-facing triangles are discarded. */
 		Back = 0x00000002,
 		/* Specifies that all triangles are discarded. */
-		FrontAndBack = 0x00000003
+		FrontAndBack = Front | Back
 	};
 
 	/* Defines the color components that are writen to the framebuffer. */

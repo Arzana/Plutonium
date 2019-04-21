@@ -36,14 +36,8 @@ void Pu::TextBuffer::Update(CommandBuffer & cmdBuffer)
 	buffer->Update(cmdBuffer);
 }
 
-void Pu::TextBuffer::SetText(const ustring & str, const Font &font, const Viewport &vp)
+void Pu::TextBuffer::SetText(const ustring & str, const Font & font, const GameWindow & wnd)
 {
-	/* 
-	General UI like text is rendered directly in clip space to make everything relative to the display.
-	For this we need to pre-apply the projection matrix for the text as it's data is saved in pixels.
-	*/
-	const Matrix proj = Matrix::CreateOrtho(vp.Width, vp.Height, 0.0f, 1.0f);
-
 	/* 6 vertices per quad of Image2D type per glyph. */
 	const size_t size = str.length() * sizeof(Image2D) * 6;
 	const float lh = static_cast<float>(font.GetLineSpace());
@@ -70,8 +64,8 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font &font, const Viewpo
 
 		/* Gets the positional and texture information from the glyph. */
 		const Glyph &glyph = font.GetGlyph(key);
-		const Vector2 tl = vec2MatMult(proj, adder + glyph.Bearing);
-		const Vector2 br = vec2MatMult(proj, adder + glyph.Bearing + glyph.Size);
+		const Vector2 tl = wnd.ToLinearClipSpace(Vector4(adder + glyph.Bearing, 0.0f, 1.0f)).XY;
+		const Vector2 br = wnd.ToLinearClipSpace(Vector4(adder + glyph.Bearing + glyph.Size, 0.0f, 1.0f)).XY;
 		const Vector2 uv1 = glyph.Bounds.Position;
 		const Vector2 uv2 = glyph.Bounds.Position + glyph.Bounds.Size;
 
@@ -91,11 +85,6 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font &font, const Viewpo
 	/* Delete the old buffer view if needed and create a new buffer view for rendering. */
 	if (view) delete view;
 	view = new BufferView(*buffer, 0, i * sizeof(Image2D), sizeof(Image2D));
-}
-
-Pu::Vector2 Pu::TextBuffer::vec2MatMult(const Matrix & matrix, Vector2 v)
-{
-	return (matrix * Vector4(v, 0.0f, 1.0f)).XY;
 }
 
 void Pu::TextBuffer::ReallocBuffer(size_t newSize)

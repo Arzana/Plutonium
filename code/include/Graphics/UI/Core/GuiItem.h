@@ -2,6 +2,8 @@
 #include "Anchors.h"
 #include "Application.h"
 #include "Components/Component.h"
+#include "Graphics/UI/Rendering/GuiItemRenderer.h"
+#include "Graphics/UI/Rendering/GuiBackgroundUniformBlock.h"
 
 namespace Pu
 {
@@ -37,9 +39,9 @@ namespace Pu
 		EventBus<GuiItem, ValueChangedEventArgs<bool>> VisibilityChanged;
 
 		/* Initializes a new instance of a GUI item with default parameters. */
-		GuiItem(_In_ Application &parent);
+		GuiItem(_In_ Application &parent, _In_ GuiBackgroundUniformBlock *descriptor);
 		/* Initializes a new instance of a base GUI item with a specified position and size. */
-		GuiItem(_In_ Application &parent, _In_ Rectangle bounds);
+		GuiItem(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiBackgroundUniformBlock *descriptor);
 		GuiItem(_In_ const GuiItem&) = delete;
 		/* Move constructor. */
 		GuiItem(_In_ GuiItem &&value);
@@ -56,8 +58,10 @@ namespace Pu
 		void MoveRelative(_In_ Anchors value, _In_opt_ float x = 0.0f, _In_opt_ float y = 0.0f);
 		/* Simulated a cursor click event. */
 		void PerformClick(void);
-		/* Updates the GuiItem, checking if any event are occuring. */
+		/* Updates the UI item, checking if any event are occuring. */
 		virtual void Update(_In_ float);
+		/* Redners the UI item to the display. */
+		virtual void Render(_In_ GuiItemRenderer &renderer) const;
 		/* Enables the GuiItem and makes it visible. */
 		void Show(void);
 		/* Disables the GuiItem and makes it hiden. */
@@ -86,8 +90,6 @@ namespace Pu
 		virtual void SetY(_In_ float y);
 		/* Sets whether the GuiItem can be focused. */
 		virtual void SetFocusable(_In_ bool value);
-		/* Sets the rounding factor used to give the GuiItem background rounded edges. */
-		virtual void SetRoundingFactor(_In_ float value);
 		/* Sets the parent of this GuiItem. */
 		virtual void SetParent(const GuiItem &item);
 
@@ -100,7 +102,7 @@ namespace Pu
 		/* Gets the current value of the background color. */
 		_Check_return_ inline Color GetBackColor(void) const
 		{
-			return backColor;
+			return backgroundDescriptor->GetColor();
 		}
 
 		/* Gets the bounds of the GuiItem. */
@@ -181,12 +183,6 @@ namespace Pu
 			return focused;
 		}
 
-		/* Gets the rounding factor. */
-		_Check_return_ inline float GetRoundingFactor(void) const
-		{
-			return roundingFactor;
-		}
-
 		/* Gets the current offset from the defined anchor point. */
 		_Check_return_ inline Vector2 GetOffsetFromAnchor(void) const
 		{
@@ -207,6 +203,8 @@ namespace Pu
 
 		/* Initialized the GUI item. */
 		virtual void Initialize(void) override;
+		/* Renders the GUI item to the renderer, used for internal item skipping. */
+		void RenderGuiItem(_In_ GuiItemRenderer &renderer) const;
 		/* Gets the required size of the GuiItem at any time, max of background or focus image. */
 		_Check_return_ virtual Vector2 GetMinSize(void) const;
 		/* This function can be called to give the GuiItem focus or have it lose focus. */
@@ -230,12 +228,6 @@ namespace Pu
 			return rdown;
 		}
 
-		/* Gets the mesh used to render the background. */
-		_Check_return_ inline const BufferView& GetBackgroundMesh(void) const
-		{
-			return *view;
-		}
-
 		/* Gets the offset that shuold be used for the background bounds. */
 		_Check_return_ virtual inline Vector2 GetBackgroundOffset(void) const
 		{
@@ -244,16 +236,16 @@ namespace Pu
 
 	private:
 		friend class GuiItemContainer;
+		friend class GuiItemRenderer;
 
 		const GuiItem *parent;
 		GuiItemContainer *container;
 		DynamicBuffer *buffer;
 		BufferView *view;
+		GuiBackgroundUniformBlock *backgroundDescriptor;
 
 		bool over, ldown, rdown, lclickInvoked, rclickInvoked;
 		bool visible, focusable, focused;
-		Color backColor;
-		float roundingFactor;
 		Vector2 position;
 		Rectangle bounds;
 		string name;

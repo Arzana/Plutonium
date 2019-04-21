@@ -339,7 +339,9 @@ void Pu::Renderpass::Destroy(void)
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, wstring>>& toLoad)
 	: result(result)
 {
-	vector<wstring> hashParams(toLoad.size());
+	vector<wstring> hashParams;
+	hashParams.reserve(toLoad.size());
+	children.reserve(toLoad.size());
 
 	/* Create new load tasks for the to load subpasses. */
 	for (auto[idx, path] : toLoad)
@@ -347,8 +349,6 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 		hashParams.emplace_back(path);
 		children.emplace_back(new Shader::LoadTask(result.shaders[idx], path));
 	}
-
-	result.SetHash(std::hash<wstring>{}(hashParams));
 }
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
@@ -365,13 +365,19 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
-	/* Make sure that all subpasses are loaded on debug mode. */
-#ifdef _DEBUG
+	/* 
+	Make sure that all subpasses are loaded.
+	If two renderpasses are created at the same time with one or more matching shaders this can fuck up.
+	We can issue a custom wait but this tends to be done quickly so just sleep the thread instead.
+	*/
 	for (const Shader &cur : result.shaders)
 	{
-		if (!cur.IsLoaded()) Log::Error("Not every subpass has completed loading!");
+		if (!cur.IsLoaded())
+		{
+			Log::Warning("Not every subpass has completed loading (waiting for shader)!");
+			while (!cur.IsLoaded()) PuThread::Sleep(100);
+		}
 	}
-#endif
 
 	/* Delete the child tasks. */
 	for (Shader::LoadTask *subTask : children)

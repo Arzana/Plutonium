@@ -59,6 +59,11 @@ namespace Pu
 			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(static_cast<byte>(a * 255.0f))
 		{}
 
+		/* Initializes a new instance of a specified color. */
+		Color(_In_ Vector4 clr)
+			: Color(clr.X, clr.Y, clr.Z, clr.W)
+		{}
+
 		/* Adds two colors together. */
 		_Check_return_ Color operator +(_In_ Color other) const;
 		/* Subtracts a specifed color from this color. */

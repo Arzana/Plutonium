@@ -902,6 +902,9 @@
     <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.cpp">
       <Filter>Source Files\Graphics\UI\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiItemRenderer.cpp">
+      <Filter>Source Files\Graphics\UI\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
