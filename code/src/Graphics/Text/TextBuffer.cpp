@@ -51,8 +51,16 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font & font, const GameW
 
 	Vector2 adder(0.0f, lh);
 	size_t i = 0;
+
+	bool firstChar = true;
+	char32 old = U'\0';
+
 	for (char32 key : str)
 	{
+		/* Add kerning advance. */
+		if (!firstChar) adder.X += font.GetKerning(old, key);
+		else firstChar = true;
+
 		/* For newlines just add the line space to the adder and reset the horizontal adder. */
 		if (key == U'\n')
 		{

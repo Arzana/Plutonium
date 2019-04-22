@@ -71,7 +71,8 @@ void Pu::GuiItem::Initialize(void)
 
 void Pu::GuiItem::RenderGuiItem(GuiItemRenderer & renderer) const
 {
-	renderer.EnqueueBackground(*this, false);
+	/* Only render if the background will be visible. */
+	if (GetBackColor().A > 0) renderer.EnqueueBackground(*this, false);
 }
 
 void Pu::GuiItem::MoveRelative(Anchors value, float x, float y)
@@ -286,7 +287,7 @@ void Pu::GuiItem::CheckBounds(Vector2 size)
 
 void Pu::GuiItem::UpdateMesh(void)
 {
-	/* 
+	/*
 	We need to convert the coordinates from normalized viewport space ([0,0] to [1, 1]) to clip space [-1, -1] to [1, 1].
 	The coordinates are in this system to force the use of relative positions and sizes to the screen.
 	This allows for a consistent UI for every display.

@@ -19,9 +19,9 @@ namespace Pu
 		_Check_return_ TextRenderer& operator =(_In_ TextRenderer&&) = delete;
 
 		/* Creates a uniform block for string specific information for this text renderer. */
-		_Check_return_ TextUniformBlock CreateText(void) const;
+		_Check_return_ TextUniformBlock* CreateText(void) const;
 		/* Creates a uniform block for the constant information for this text renderer. */
-		_Check_return_ DescriptorSet CreatFont(_In_ const Texture2D &atlas) const;
+		_Check_return_ DescriptorSet* CreatFont(_In_ const Texture2D &atlas) const;
 		/* Starts the graphics pipeline. */
 		virtual void Begin(_In_ CommandBuffer &cmdBuffer);
 		/* Sets the font to use. */

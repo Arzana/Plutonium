@@ -23,6 +23,12 @@ namespace Pu
 		/* Updates the model matrix of the uniform block. */
 		void SetModel(_In_ const Matrix &matrix);
 
+		/* Gets the color of the text. */
+		_Check_return_ inline Color GetColor(void) const
+		{
+			return Color(clr);
+		}
+
 	protected:
 		/* Stages the model matrix and the color to the uniform buffer. */
 		virtual void Stage(byte *dest) override;

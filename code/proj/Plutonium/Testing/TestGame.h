@@ -4,7 +4,7 @@
 #include <Components/FreeCamera.h>
 #include <Graphics/Resources/Mesh.h>
 #include <Graphics/Text/TextRenderer.h>
-#include <Graphics/UI/Core/GuiItem.h>
+#include <Graphics/UI/Items/Label.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -39,11 +39,6 @@ private:
 	TransformBlock *transform;
 
 	Pu::Font *font;
-	Pu::TextRenderer *textRenderer;
-	Pu::DescriptorSet *fontInfo;
-	Pu::TextBuffer *strBuffer;
-	Pu::TextUniformBlock *strInfo;
-
 	Pu::GuiItemRenderer *uiRenderer;
-	Pu::GuiItem *item;
+	Pu::Label *item;
 };

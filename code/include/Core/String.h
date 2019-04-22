@@ -290,6 +290,12 @@ namespace Pu
 			return string_t::find(substr) != string_t::npos;
 		}
 
+		/* Gets the occurance of the specified character in the string. */
+		_Check_return_ inline size_t count(_In_ char_t ch) const
+		{
+			return std::count(string_t::begin(), string_t::end(), ch);
+		}
+
 		/* Removes a specified character from the string. */
 		inline void remove(_In_ char_t ch)
 		{

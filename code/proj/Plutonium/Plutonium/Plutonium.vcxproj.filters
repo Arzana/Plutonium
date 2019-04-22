@@ -181,6 +181,12 @@
     <Filter Include="Source Files\Graphics\UI\Rendering">
       <UniqueIdentifier>{df220fa6-98e5-46c1-85bc-c2fc5e083a8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\UI\Items">
+      <UniqueIdentifier>{f4c35c21-3ad7-4bef-bcb9-474374a29c97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\UI\Items">
+      <UniqueIdentifier>{10b81441-68e5-4fb3-96ac-a717ca7e393a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -633,6 +639,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Items\Label.h">
+      <Filter>Header Files\Graphics\UI\Items</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -904,6 +913,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiItemRenderer.cpp">
       <Filter>Source Files\Graphics\UI\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Items\Label.cpp">
+      <Filter>Source Files\Graphics\UI\Items</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

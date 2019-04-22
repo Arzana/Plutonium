@@ -84,8 +84,7 @@ void TestGame::Initialize(void)
 		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
 	};
 
-	textRenderer = new TextRenderer(GetWindow(), GetContent(), 2);
-	uiRenderer = new GuiItemRenderer(GetWindow(), GetContent(), 1);
+	uiRenderer = new GuiItemRenderer(GetWindow(), GetContent(), 2);
 }
 
 void TestGame::LoadContent(void)
@@ -117,10 +116,6 @@ void TestGame::UnLoadContent(void)
 	GetContent().Release(*image);
 	GetContent().Release(*font);
 
-	if (fontInfo) delete fontInfo;
-	if (strInfo) delete strInfo;
-	if (strBuffer) delete strBuffer;
-
 	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -131,7 +126,6 @@ void TestGame::Finalize(void)
 	GetContent().Release(*pipeline);
 
 	delete uiRenderer;
-	delete textRenderer;
 	delete material;
 	delete transform;
 	delete pipeline;
@@ -178,29 +172,16 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	static bool firstTextRender = true;
 	if (firstTextRender)
 	{
-		if (font->IsLoaded() && textRenderer->CanBegin())
+		if (font->IsLoaded() && uiRenderer->CanBegin())
 		{
 			firstTextRender = false;
 
 			cmdBuffer.MemoryBarrier(font->GetAtlas(), PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, font->GetAtlas().GetFullRange());
-
-			fontInfo = new DescriptorSet(std::move(textRenderer->CreatFont(font->GetAtlas())));
-			strInfo = new TextUniformBlock(std::move(textRenderer->CreateText()));
-			strInfo->SetColor(Color::White());
-			strInfo->Update(cmdBuffer);
-
-			strBuffer = new TextBuffer(GetDevice(), 23);
-		}
-	}
-
-	static bool firstUiRender = true;
-	if (firstUiRender)
-	{
-		if (uiRenderer->GetBackgroundRenderer().CanBegin())
-		{
-			firstUiRender = false;
-			AddComponent(item = new GuiItem(*this, uiRenderer->GetBackgroundRenderer().CreateGUI()));
-			item->SetPosition(Vector2(0.5f));
+			DescriptorSet *fontInfo = uiRenderer->GetTextRenderer().CreatFont(font->GetAtlas());
+			TextUniformBlock *textInfo = uiRenderer->GetTextRenderer().CreateText();
+			GuiBackgroundUniformBlock *uiInfo = uiRenderer->GetBackgroundRenderer().CreateGUI();
+			AddComponent(item = new Label(*this, uiInfo, textInfo, fontInfo, *font));
+			item->SetAutoSize(true);
 		}
 	}
 
@@ -227,18 +208,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
 		text += U'%';
 
-		strBuffer->SetText(text, *font, GetWindow());
-		strBuffer->Update(cmdBuffer);
-
-		textRenderer->Begin(cmdBuffer);
-		textRenderer->SetFont(*fontInfo);
-		textRenderer->Render(*strBuffer, *strInfo);
-		textRenderer->End();
-	}
-
-	/* Render the UI. */
-	if (!firstUiRender)
-	{
+		item->SetText(text);
 		item->Render(*uiRenderer);
 		uiRenderer->Render(cmdBuffer);
 	}

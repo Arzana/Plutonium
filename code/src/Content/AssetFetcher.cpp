@@ -121,18 +121,20 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 		: public Task
 	{
 	public:
-		CreateTextureTask(Font &result, AssetFetcher &parent)
-			: result(result), parent(parent)
+		CreateTextureTask(Font &result, AssetFetcher &parent, const wstring &path)
+			: result(result), parent(parent), path(path)
 		{}
 
 		virtual Result Execute(void) override
 		{
 			SamplerCreateInfo info(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToBorder);
 			result.atlasTex = new Texture2D(*result.atlasImg, parent.FetchSampler(info));
+			result.MarkAsLoaded(true, path.fileNameWithoutExtension());
 			return Result::AutoDelete();
 		}
 
 	private:
+		const wstring path;
 		Font &result;
 		AssetFetcher &parent;
 	};
@@ -143,7 +145,7 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	cache->Store(result);
 
 	/* Load the font. */
-	CreateTextureTask *continuation = new CreateTextureTask(*result, *this);
+	CreateTextureTask *continuation = new CreateTextureTask(*result, *this, mutablePath);
 	loader->InitializeFont(*result, mutablePath, *continuation);
 	return *result;
 }

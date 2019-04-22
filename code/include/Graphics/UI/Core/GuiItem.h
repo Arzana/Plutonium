@@ -60,7 +60,7 @@ namespace Pu
 		void PerformClick(void);
 		/* Updates the UI item, checking if any event are occuring. */
 		virtual void Update(_In_ float);
-		/* Redners the UI item to the display. */
+		/* Renders the UI item to the display. */
 		virtual void Render(_In_ GuiItemRenderer &renderer) const;
 		/* Enables the GuiItem and makes it visible. */
 		void Show(void);

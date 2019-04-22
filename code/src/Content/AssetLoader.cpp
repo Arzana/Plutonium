@@ -185,7 +185,6 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			wstring name = L"Atlas ";
 			name += path.fileNameWithoutExtension();
 			result.atlasImg->MarkAsLoaded(false, std::move(name));
-			result.MarkAsLoaded(true, path.fileNameWithoutExtension());
 
 			/* Delete the staging buffer and this task. */
 			delete buffer;

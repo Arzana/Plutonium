@@ -5,15 +5,15 @@ Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, size_
 	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert", L"{Shaders}Text.frag" })
 {}
 
-Pu::TextUniformBlock Pu::TextRenderer::CreateText(void) const
+Pu::TextUniformBlock * Pu::TextRenderer::CreateText(void) const
 {
-	return TextUniformBlock(GetWindow().GetDevice(), GetPipeline());
+	return new TextUniformBlock(GetWindow().GetDevice(), GetPipeline());
 }
 
-Pu::DescriptorSet Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const
+Pu::DescriptorSet * Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const
 {
-	DescriptorSet result(std::move(GetPipeline().GetDescriptorPool().Allocate(1)));
-	result.Write(GetPipeline().GetRenderpass().GetUniform("Atlas"), atlas);
+	DescriptorSet *result = new DescriptorSet(std::move(GetPipeline().GetDescriptorPool().Allocate(1)));
+	result->Write(GetPipeline().GetRenderpass().GetUniform("Atlas"), atlas);
 	return result;
 }
 
