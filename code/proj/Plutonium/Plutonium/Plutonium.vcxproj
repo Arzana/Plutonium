@@ -259,6 +259,7 @@
     <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphRejectionArgs.h" />
     <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphType.h" />
     <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItem.h" />
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItemContainer.h" />
     <ClInclude Include="..\..\..\include\Graphics\UI\Core\InputFlags.h" />
     <ClInclude Include="..\..\..\include\Graphics\UI\Items\Label.h" />
     <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.h" />
@@ -380,6 +381,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItem.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItemContainer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\UI\Items\Label.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp" />

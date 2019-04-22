@@ -642,6 +642,9 @@
     <ClInclude Include="..\..\..\include\Graphics\UI\Items\Label.h">
       <Filter>Header Files\Graphics\UI\Items</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItemContainer.h">
+      <Filter>Header Files\Graphics\UI\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -916,6 +919,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\UI\Items\Label.cpp">
       <Filter>Source Files\Graphics\UI\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItemContainer.cpp">
+      <Filter>Source Files\Graphics\UI\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
