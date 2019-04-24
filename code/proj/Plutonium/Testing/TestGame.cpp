@@ -189,10 +189,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			firstTextRender = false;
 
 			cmdBuffer.MemoryBarrier(font->GetAtlas(), PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, font->GetAtlas().GetFullRange());
-			DescriptorSet *fontInfo = uiRenderer->GetTextRenderer().CreatFont(font->GetAtlas());
-			TextUniformBlock *textInfo = uiRenderer->GetTextRenderer().CreateText();
-			GuiBackgroundUniformBlock *uiInfo = uiRenderer->GetBackgroundRenderer().CreateGUI();
-			AddComponent(item = new Button(*this, uiInfo, textInfo, fontInfo, *font));
+			AddComponent(item = new Button(*this, *uiRenderer, *font));
 			item->SetAutoSize(true);
 
 			item->HoverEnter += [](GuiItem &sender) { sender.SetBackColor(Color::Blue()); };

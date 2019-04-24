@@ -1,14 +1,13 @@
 #include "Graphics/UI/Items/Button.h"
 #include "Core/Platform/Windows/RegistryFetcher.h"
 
-Pu::Button::Button(Application & parent, GuiBackgroundUniformBlock * backgroundDescriptor, TextUniformBlock * textDescriptor, const DescriptorSet * fontDescriptor, const Font & font)
-	: Button(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), backgroundDescriptor, textDescriptor, fontDescriptor, font)
+Pu::Button::Button(Application & parent, GuiItemRenderer & renderer, const Font & font)
+	: Button(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), renderer, font)
 {}
 
-Pu::Button::Button(Application & parent, Rectangle bounds, GuiBackgroundUniformBlock * backgroundDescriptor, TextUniformBlock * textDescriptor, const DescriptorSet * fontDescriptor, const Font & font)
-	: Label(parent, bounds, backgroundDescriptor, textDescriptor, fontDescriptor, font), 
-	lclickInvoked(false), rclickInvoked(false), lclickQueued(false), rclickQueued(false),
-	doubleLclicked(0), doubleRclicked(0), timer(0.0f),
+Pu::Button::Button(Application & parent, Rectangle bounds, GuiItemRenderer & renderer, const Font & font)
+	: Label(parent, bounds, renderer, font), lclickInvoked(false), rclickInvoked(false),
+	lclickQueued(false), rclickQueued(false), doubleLclicked(0), doubleRclicked(0), timer(0.0f),
 	LeftClicked("ButtonLeftClicked"), RightClicked("ButtonRightClicked"), DoubleClicked("ButtonDoubleClicked")
 {
 	threshold = GetDefaultDoubleClickThreshold();

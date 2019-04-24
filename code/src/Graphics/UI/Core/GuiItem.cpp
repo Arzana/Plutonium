@@ -1,26 +1,27 @@
 #include "Graphics/UI/Core/GuiItem.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 #include "Graphics/VertexLayouts/Image2D.h"
-#include "Graphics/UI/Rendering/GuiBackgroundUniformBlock.h"
+#include "Graphics/UI/Rendering/BasicGuiBackgroundRenderer.h"
 
-Pu::GuiItem::GuiItem(Application & parent, GuiBackgroundUniformBlock * descriptor)
-	: GuiItem(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), descriptor)
+Pu::GuiItem::GuiItem(Application & parent, GuiItemRenderer & renderer)
+	: GuiItem(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), renderer)
 {}
 
-Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds, GuiBackgroundUniformBlock * descriptor)
+Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds, GuiItemRenderer & renderer)
 	: Component(parent), parent(nullptr), container(nullptr), buffer(nullptr), view(nullptr),
 	over(false), ldown(false), rdown(false), lclickInvoked(false), rclickInvoked(false),
-	visible(true), focusable(false), focused(false), backgroundDescriptor(descriptor),
-	position(bounds.Position), anchor(Anchors::None), bounds(bounds), SuppressUpdate(false),
-	SuppressRender(false), BackColorChanged("GuiItemBackColorChanged"), Clicked("GuiItemClicked"),
+	visible(true), focusable(false), focused(false), position(bounds.Position), 
+	anchor(Anchors::None), bounds(bounds), SuppressUpdate(false), SuppressRender(false),
+	BackColorChanged("GuiItemBackColorChanged"), Clicked("GuiItemClicked"),
 	FocusableChanged("GuiItemFocusableChanged"), GainedFocus("GuiItemGainedFocus"),
 	HoverEnter("GuiItemHoverEnter"), HoverLeave("GuiItemHoverLeave"), LostFocus("GuiItemLostFocus"),
 	Moved("GuiItemMovde"), NameChanged("GuiItemNameChanged"), Resized("GuiItemResized"),
 	VisibilityChanged("GuiItemVisibilityChanged")
 {
 	/* Initialize the descriptor to its default values. */
-	descriptor->SetModel(Matrix::CreateTranslation(position));
-	descriptor->SetColor(Color::Black() * 0.5f);
+	backgroundDescriptor = renderer.GetBackgroundRenderer().CreateGUI();
+	backgroundDescriptor->SetModel(Matrix::CreateTranslation(position));
+	backgroundDescriptor->SetColor(Color::Black() * 0.5f);
 
 	/* Make sure we update the anchors if the window size changes. */
 	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);

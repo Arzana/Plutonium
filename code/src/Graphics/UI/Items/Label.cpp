@@ -1,23 +1,27 @@
 #include "Graphics/UI/Items/Label.h"
 #include "Graphics/Text/TextBuffer.h"
+#include "Graphics/Text/TextRenderer.h"
 
-Pu::Label::Label(Application & parent, GuiBackgroundUniformBlock * backgroundDescriptor, TextUniformBlock * textDescriptor, const DescriptorSet * fontDescriptor, const Font & font)
-	: Label(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), backgroundDescriptor, textDescriptor, fontDescriptor, font)
+Pu::Label::Label(Application & parent, GuiItemRenderer & renderer, const Font & font)
+	: Label(parent, Rectangle(0.0f, 0.0f, 0.05f, 0.04f), renderer, font)
 {}
 
-Pu::Label::Label(Application & parent, Rectangle bounds, GuiBackgroundUniformBlock * backgroundDescriptor, TextUniformBlock * textDescriptor, const DescriptorSet * fontDescriptor, const Font & font)
-	: GuiItem(parent, bounds, backgroundDescriptor), autoSize(false), font(&font), offset(0.005f),
-	textDescriptor(textDescriptor), fontDescriptor(fontDescriptor), TextChanged("LabelTextChanged"),
-	TextColorChanged("LabelTextColorChanges"), TextOffsetChanged("LabelTextOffsetChanged")
+Pu::Label::Label(Application & parent, Rectangle bounds, GuiItemRenderer & renderer, const Font & font)
+	: GuiItem(parent, bounds, renderer), autoSize(false), font(&font), offset(0.005f),
+	TextChanged("LabelTextChanged"), TextColorChanged("LabelTextColorChanges"), TextOffsetChanged("LabelTextOffsetChanged")
 {
+	/* Initialize the font and text descriptor. */
+	fontDescriptor = renderer.GetTextRenderer().CreatFont(font.GetAtlas());
+	textDescriptor = renderer.GetTextRenderer().CreateText();
+	textDescriptor->SetColor(Color::White());
+
 	/* Initialize the text position. */
 	Moved.Add(*this, &Label::OnMoved);
 	OnMoved(*this, ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));	// Args aren't used.
 
-	/* Allocate the text mesh and initialize the text descriptor. */
+	/* Allocate the text mesh. */
 	textBuffer = new TextBuffer(App.GetDevice(), 64);
 	UpdateTextMesh();
-	textDescriptor->SetColor(Color::White());
 }
 
 Pu::Label::Label(Label && value)

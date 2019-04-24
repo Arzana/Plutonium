@@ -16,9 +16,9 @@ namespace Pu
 		EventBus<Button> DoubleClicked;
 
 		/* Initializes a new instance of a button with default settings. */
-		Button(_In_ Application &parent, _In_ GuiBackgroundUniformBlock *backgroundDescriptor, _In_ TextUniformBlock *textDescriptor, _In_ const DescriptorSet *fontDescriptor, _In_ const Font &font);
+		Button(_In_ Application &parent, _In_ GuiItemRenderer &renderer, _In_ const Font &font);
 		/* Initializes a new instance of a button with a specified size. */
-		Button(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiBackgroundUniformBlock *backgroundDescriptor, _In_ TextUniformBlock *textDescriptor, _In_ const DescriptorSet *fontDescriptor, _In_ const Font &font);
+		Button(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiItemRenderer &renderer, _In_ const Font &font);
 		Button(_In_ const Button&) = delete;
 		/* Move constructor. */
 		Button(_In_ Button &&value);

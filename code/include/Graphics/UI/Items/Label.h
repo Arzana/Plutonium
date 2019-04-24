@@ -20,9 +20,9 @@ namespace Pu
 		EventBus<Label, ValueChangedEventArgs<Vector2>> TextOffsetChanged;
 
 		/* Initializes a new instance of a label with default parameters. */
-		Label(_In_ Application &parent, _In_ GuiBackgroundUniformBlock *backgroundDescriptor, _In_ TextUniformBlock *textDescriptor, _In_ const DescriptorSet *fontDescriptor, _In_ const Font &font);
+		Label(_In_ Application &parent, _In_ GuiItemRenderer &renderer, _In_ const Font &font);
 		/* Initializes a new instance of a label with default parameters. */
-		Label(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiBackgroundUniformBlock *backgroundDescriptor, _In_ TextUniformBlock *textDescriptor, _In_ const DescriptorSet *fontDescriptor, _In_ const Font &font);
+		Label(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiItemRenderer &renderer, _In_ const Font &font);
 		Label(_In_ const Label&) = delete;
 		/* Move constructor. */
 		Label(_In_ Label &&value);

@@ -39,9 +39,9 @@ namespace Pu
 		EventBus<GuiItem, ValueChangedEventArgs<bool>> VisibilityChanged;
 
 		/* Initializes a new instance of a GUI item with default parameters. */
-		GuiItem(_In_ Application &parent, _In_ GuiBackgroundUniformBlock *descriptor);
+		GuiItem(_In_ Application &parent, _In_ GuiItemRenderer &renderer);
 		/* Initializes a new instance of a base GUI item with a specified position and size. */
-		GuiItem(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiBackgroundUniformBlock *descriptor);
+		GuiItem(_In_ Application &parent, _In_ Rectangle bounds, _In_ GuiItemRenderer &renderer);
 		GuiItem(_In_ const GuiItem&) = delete;
 		/* Move constructor. */
 		GuiItem(_In_ GuiItem &&value);
