@@ -40,6 +40,8 @@ namespace Pu
 		_Check_return_ virtual const wstring& GetTitle(void) const = 0;
 		/* Gets the graphics bounds of the window. */
 		_Check_return_ virtual const Viewport& GetClientBounds(void) const = 0;
+		/* Gets the position of the window relative the monitor. */
+		_Check_return_ virtual Vector2 GetPosition(void) const = 0;
 		/* Gets the current mode of the window. */
 		_Check_return_ virtual WindowMode GetWindowMode(void) const = 0;
 		/* Gets whether the window has focus. */

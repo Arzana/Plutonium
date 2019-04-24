@@ -16,23 +16,26 @@ Pu::FreeCamera::FreeCamera(Application & app, const Keyboard & keyboard, const M
 
 void Pu::FreeCamera::Update(float dt)
 {
-	/* Update the position. */
-	if (keyStates)
+	if (IsEnabled())
 	{
-		Vector3 moveDelta;
+		/* Update the position. */
+		if (keyStates)
+		{
+			Vector3 moveDelta;
 
-		if (keyStates & 1) moveDelta += GetOrientation().GetForward();
-		if (keyStates & 2) moveDelta += GetOrientation().GetBackward();
-		if (keyStates & 4) moveDelta += GetOrientation().GetLeft();
-		if (keyStates & 8) moveDelta += GetOrientation().GetRight();
+			if (keyStates & 1) moveDelta += GetOrientation().GetForward();
+			if (keyStates & 2) moveDelta += GetOrientation().GetBackward();
+			if (keyStates & 4) moveDelta += GetOrientation().GetLeft();
+			if (keyStates & 8) moveDelta += GetOrientation().GetRight();
 
-		Move(moveDelta * MoveSpeed * dt);
+			Move(moveDelta * MoveSpeed * dt);
+		}
+
+		/* Update the orientaion. */
+		Yaw -= lookDelta.X * DEG2RAD * LookSpeed * dt;
+		Pitch -= lookDelta.Y * DEG2RAD * LookSpeed * dt;
+		lookDelta = Vector2();
 	}
-
-	/* Update the orientaion. */
-	Yaw -= lookDelta.X * DEG2RAD * LookSpeed * dt;
-	Pitch -= lookDelta.Y * DEG2RAD * LookSpeed * dt;
-	lookDelta = Vector2();
 
 	FpsCamera::Update(dt);
 }

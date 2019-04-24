@@ -24,6 +24,18 @@ TestGame::TestGame(void)
 		case (_CrtEnum2Int(Keys::Down)):
 			cam->MoveSpeed--;
 			break;
+		case (_CrtEnum2Int(Keys::M)):
+			if (Mouse::IsCursorVisible())
+			{
+				Mouse::HideCursor();
+				cam->Enable();
+			}
+			else
+			{
+				Mouse::ShowCursor();
+				cam->Disable();
+			}
+			break;
 		}
 	};
 }
@@ -180,8 +192,11 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			DescriptorSet *fontInfo = uiRenderer->GetTextRenderer().CreatFont(font->GetAtlas());
 			TextUniformBlock *textInfo = uiRenderer->GetTextRenderer().CreateText();
 			GuiBackgroundUniformBlock *uiInfo = uiRenderer->GetBackgroundRenderer().CreateGUI();
-			AddComponent(item = new Label(*this, uiInfo, textInfo, fontInfo, *font));
+			AddComponent(item = new Button(*this, uiInfo, textInfo, fontInfo, *font));
 			item->SetAutoSize(true);
+
+			item->HoverEnter += [](GuiItem &sender) { sender.SetBackColor(Color::Blue()); };
+			item->HoverLeave += [](GuiItem &sender) { sender.SetBackColor(Color::Black() * 0.5f); };
 		}
 	}
 

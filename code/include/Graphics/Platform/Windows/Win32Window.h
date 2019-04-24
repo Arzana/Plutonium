@@ -54,7 +54,7 @@ namespace Pu
 		}
 
 		/* Gets the physical location of the window. */
-		_Check_return_ inline Vector2 GetPosition(void) const
+		_Check_return_ inline Vector2 GetPosition(void) const override
 		{
 			return pos;
 		}

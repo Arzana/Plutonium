@@ -18,11 +18,12 @@ static constexpr int GetHighWord(LPARAM lParam)
 	return static_cast<int>(static_cast<short>(HIWORD(lParam)));
 }
 
+/* Disable input event and char input logging. */
 Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vector2 size)
 	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed),
-	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent"),
+	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent", true),
 	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved"),
-	OnCharInput("Win32WindowOnCharInput")
+	OnCharInput("Win32WindowOnCharInput", true)
 {
 	/* Push this window as an active window. */
 	activeWindows.push_back(this);

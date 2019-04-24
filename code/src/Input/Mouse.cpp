@@ -22,6 +22,11 @@ Pu::Vector2 Pu::Mouse::GetPosition(void)
 #endif
 }
 
+Pu::Vector2 Pu::Mouse::GetPosition(const NativeWindow & wnd)
+{
+	return GetPosition() - wnd.GetPosition();
+}
+
 bool Pu::Mouse::IsCursorVisible(void)
 {
 #ifdef _WIN32
@@ -97,7 +102,7 @@ void Pu::Mouse::FreeCursor(void)
 Pu::Mouse::Mouse(HANDLE hndl, const wstring & name, const RID_DEVICE_INFO & info)
 	: InputDevice(hndl, name, InputDeviceType::Cursor, info),
 	ID(Info.mouse.dwId), ButtonCount(Info.mouse.dwNumberOfButtons), SampleRate(Info.mouse.dwSampleRate),
-	Moved("CursorMoved"), Button("CursorButtonEvent"), Scrolled("CursorScrolled")
+	Moved("CursorMoved", true), Button("CursorButtonEvent"), Scrolled("CursorScrolled")
 {}
 
 void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vector2>)

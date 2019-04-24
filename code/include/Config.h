@@ -19,7 +19,7 @@ namespace Pu
 	constexpr uint64 ThreadStartWaitInterval = 100;
 	/* Defines whether the task scheduler is allowed to steal tasks. */
 	constexpr bool TaskSchedulerStealing = true;
-	/* Defines whether the event bus should log subscriber changes. */
+	/* Defines whether the event bus should log subscriber changes and posts. */
 	constexpr bool EventBusLogging = false;
 	/* Defines whether the logger should display external code in stack traces. */
 	constexpr bool LoggerExternalsVisible = false;

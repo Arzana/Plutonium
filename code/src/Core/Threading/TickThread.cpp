@@ -2,9 +2,10 @@
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Logging.h"
 
+/* Disable the eventbus logging for the thread tick as it will spam the output a lot. */
 Pu::TickThread::TickThread(const wstring & name, uint32 cooldown, const void * param)
 	: PuThread(name), cooldown(cooldown), args(param),
-	Initialize("TickThreadInitialize"), Tick("TickThreadTick"), Terminate("TickThreadTerminate")
+	Initialize("TickThreadInitialize"), Tick("TickThreadTick", true), Terminate("TickThreadTerminate")
 {
 	allow.store(true);
 }

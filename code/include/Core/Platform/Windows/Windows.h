@@ -11,7 +11,10 @@ This breaks code as we define a type safe one ourselves.
 #define NOMINMAX
 #endif
 
+/* Force unicode throughout the Windows API. */
+#ifndef UNICODE
 #define UNICODE
+#endif
 
 #include <Windows.h>
 

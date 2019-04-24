@@ -43,6 +43,20 @@ namespace Pu
 			return Position != r.Position || Size != r.Size;
 		}
 
+		/* Implicitly converts the rectangle to a string. */
+		_Check_return_ inline operator string() const
+		{
+			string result("[x: ");
+			result += string::from(Position.X);
+			result += ", Y: ";
+			result += string::from(Position.Y);
+			result += ", W: ";
+			result += string::from(Size.X);
+			result += ", H: ";
+			result += string::from(Size.Y);
+			return result += ']';
+		}
+
 		/* Gets whether the rectangle has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
 		{

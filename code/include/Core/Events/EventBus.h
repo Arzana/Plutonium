@@ -22,7 +22,6 @@ namespace Pu
 		template <typename lambda_t>
 		using subscriberLambda_t = DelegateLambda<sender_t, lambda_t, argument_t...>;
 
-
 		/* Defines a function style delegate. */
 		using handlerFunc_t = typename subscriberFunc_t::handler_t;
 		/* Defines a method style delegate. */
@@ -30,20 +29,20 @@ namespace Pu
 		using handlerMethod_t = typename subscriberMethod_t<container_t>::handler_t;
 
 		/* Initializes a new instance of an event (name is only used on debug mode). */
-		EventBus(_In_ const char *name)
-			: callbacks(), name(name)
+		EventBus(_In_ const char *name, _In_opt_ bool suppressLogging = false)
+			: callbacks(), name(name), shouldLog(!suppressLogging)
 		{}
 
 		/* Initializes a new instance of an event bus as a copy of the specified bus. */
 		EventBus(_In_ const EventBus &value)
-			: name(value.name)
+			: name(value.name), shouldLog(value.shouldLog)
 		{
 			Copy(value);
 		}
 
 		/* Moves the specified subscriber instance to a new instance. */
 		EventBus(_In_ EventBus &&value)
-			: name(value.name), callbacks(std::move(value.callbacks))
+			: name(value.name), callbacks(std::move(value.callbacks)), shouldLog(value.shouldLog)
 		{
 			value.name = "";
 			value.callbacks.clear();
@@ -62,6 +61,7 @@ namespace Pu
 			{
 				Destroy();
 				name = other.name;
+				shouldLog = other.shouldLog;
 				Copy(other);
 			}
 
@@ -76,6 +76,7 @@ namespace Pu
 				Destroy();
 
 				name = other.name;
+				shouldLog = other.shouldLog;
 				callbacks = std::move(other.callbacks);
 
 				other.name = "";
@@ -111,7 +112,11 @@ namespace Pu
 			lock.lock();
 			callbacks.emplace_back(sub);
 			lock.unlock();
-			if constexpr (EventBusLogging) Log::Verbose("Registered callback(%llX) to event %s.", sub->GetID(), name);
+
+			if constexpr (EventBusLogging)
+			{
+				if (shouldLog) Log::Verbose("Registered callback(%llX) to event %s.", sub->GetID(), name);
+			}
 		}
 
 		/* Registers an event handler to this event. */
@@ -122,7 +127,11 @@ namespace Pu
 			lock.lock();
 			callbacks.emplace_back(sub);
 			lock.unlock();
-			if constexpr (EventBusLogging) Log::Verbose("Registered callback(%llX) to event %s.", sub->GetID(), name);
+
+			if constexpr (EventBusLogging)
+			{
+				if (shouldLog) Log::Verbose("Registered callback(%llX) to event %s.", sub->GetID(), name);
+			}
 		}
 
 		/* Registers an event handler to this event. */
@@ -133,7 +142,11 @@ namespace Pu
 			lock.lock();
 			callbacks.emplace_back(sub);
 			lock.unlock();
-			if constexpr (EventBusLogging) Log::Verbose("Registered callback(lambda) to event %s.", name);
+
+			if constexpr (EventBusLogging)
+			{
+				if (shouldLog) Log::Verbose("Registered callback(lambda) to event %s.", name);
+			}
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -141,7 +154,11 @@ namespace Pu
 		{
 			const int64 id = subscriberFunc_t::ComputeHash(func);
 			const size_t result = UnRegisterCallback(id);
-			if constexpr (EventBusLogging) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+
+			if constexpr (EventBusLogging)
+			{
+				if (shouldLog) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+			}
 		}
 
 		/* Unregisters an event handler from this event. */
@@ -150,7 +167,11 @@ namespace Pu
 		{
 			const int64 id = subscriberMethod_t<container_t>::ComputeHash(obj, func);
 			const size_t result = UnRegisterCallback(id);
-			if constexpr (EventBusLogging) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+
+			if constexpr (EventBusLogging)
+			{
+				if (shouldLog) Log::Verbose("Unregistered %zu callback(s)(%llX) from event %s.", result, id, name);
+			}
 		}
 
 		/* Posts an event to all registered subscribers. */
@@ -159,12 +180,19 @@ namespace Pu
 			lock.lock();
 			for (subscriber_t cur : callbacks) cur->Invoke(sender, args...);
 			lock.unlock();
+
+			if constexpr (EventBusLogging)
+			{
+				/* Only log if we're allowed to and if the event has actual callbacks. */
+				if (shouldLog && callbacks.size()) Log::Verbose("Event was posted to %zu subscribers for event %s.", callbacks.size(), name);
+			}
 		}
 
 	private:
 		mutable vector<subscriber_t> callbacks;
 		mutable std::mutex lock;
 		const char *name;
+		bool shouldLog;
 
 		size_t UnRegisterCallback(int64 id) const
 		{

@@ -50,12 +50,15 @@ void Pu::FpsCamera::Update(float)
 	/* Update the projection if needed. */
 	if (projDirty) WindowResizeEventHandler(App.GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
 
-	/* Update the camera's orientation. */
-	orien.SetOrientation(Yaw, Pitch, Roll);
+	if (IsEnabled())
+	{
+		/* Update the camera's orientation. */
+		orien.SetOrientation(Yaw, Pitch, Roll);
 
-	/* Update the view matrix and the clipping frustum. */
-	SetView(Matrix::CreateLookIn(GetPosition(), orien.GetForward(), orien.GetUp()));
-	frustum = Frustum(GetProjection() * GetView());
+		/* Update the view matrix and the clipping frustum. */
+		SetView(Matrix::CreateLookIn(GetPosition(), orien.GetForward(), orien.GetUp()));
+		frustum = Frustum(GetProjection() * GetView());
+	}
 }
 
 void Pu::FpsCamera::Finalize(void)

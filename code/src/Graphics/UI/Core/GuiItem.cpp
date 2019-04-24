@@ -97,8 +97,14 @@ void Pu::GuiItem::Update(float)
 	/* Only update if needed. */
 	if (IsEnabled())
 	{
-		/* Check for hover enter and leave events. */
-		const bool newOver = bounds.Contains(Mouse::GetPosition());
+		/*
+		Check for hover enter and leave events.
+		We need to convert from screen space ([0, 0] to [w, h]) where the cursor lives to
+		UI item space ([0, 0] to [1, 1]). We do this by first going to clip space ([-1, -1] to [1, 1])
+		and then converting to UI space.
+		*/
+		const Vector4 cursorPos = App.GetWindow().ToLinearClipSpace(Vector4(Mouse::GetPosition(App.GetWindow().GetNative()), 0.0f, 1.0f));
+		const bool newOver = bounds.Contains((cursorPos.XY + 1.0f) * 0.5f);
 		if (!over && newOver) HoverEnter.Post(*this);
 		else if (over && !newOver) HoverLeave.Post(*this);
 

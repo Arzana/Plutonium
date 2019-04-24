@@ -26,6 +26,8 @@ namespace Pu
 
 		/* Gets the absolute position of the on screen OS cursor. */
 		_Check_return_ static Vector2 GetPosition(void);
+		/* Gets the position of thge on screen OS cursor relative to the specified window. */
+		_Check_return_ static Vector2 GetPosition(_In_ const NativeWindow &wnd);
 		/* Gets whether the OS cursor is visible. */
 		_Check_return_ static bool IsCursorVisible(void);
 		/* Hides the OS cursor. */
