@@ -648,6 +648,12 @@
     <ClInclude Include="..\..\..\include\Graphics\UI\Items\Button.h">
       <Filter>Header Files\Graphics\UI\Items</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h">
+      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\GeometryBatch.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">

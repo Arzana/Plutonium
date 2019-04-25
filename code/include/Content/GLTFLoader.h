@@ -137,6 +137,11 @@ namespace Pu
 		vector<double> Minimum;
 		/* The maximum value of the type. */
 		vector<double> Maximum;
+
+		/* Initializes a default instance of a GLTF accessor. */
+		GLTFAccessor(void)
+			: BufferView(0), Start(0), Count(0)
+		{}
 	};
 
 	/* Defines the information about the buffers data. */
@@ -148,6 +153,11 @@ namespace Pu
 		size_t Start;
 		/* The length (in bytes) of the buffer available to this view. */
 		size_t Length;
+
+		/* Initializes a default instance of a GLTF buffer view. */
+		GLTFBufferView(void)
+			: Buffer(0), Start(0), Length(0)
+		{}
 	};
 
 	/* Defines the target information for an animation sampler. */
@@ -377,6 +387,11 @@ namespace Pu
 		size_t Sampler;
 		/* The index of the source image associated with the texture. */
 		size_t Image;
+
+		/* Initializes a default instance of a GLTF texture. */
+		GLTFTexture(void)
+			: Sampler(0), Image(0)
+		{}
 	};
 
 	/* Defines the raw image data. */

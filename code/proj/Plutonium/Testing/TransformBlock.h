@@ -7,8 +7,10 @@ class TransformBlock
 {
 public:
 	TransformBlock(_In_ Pu::LogicalDevice &device, _In_ const Pu::GraphicsPipeline &pipeline)
-		: UniformBlock(device, pipeline, { "Projection", "View" })
-	{}
+		: UniformBlock(device, pipeline, { "Projection", "View", "CamPos" })
+	{
+		offset = pipeline.GetRenderpass().GetUniform("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
+	}
 
 	inline void SetProjection(_In_ const Pu::Matrix &mtrx)
 	{
@@ -22,13 +24,22 @@ public:
 		IsDirty = true;
 	}
 
+	inline void SetCamPos(_In_ Pu::Vector3 v)
+	{
+		camPos = v;
+		IsDirty = true;
+	}
+
 protected:
 	virtual inline void Stage(Pu::byte *dest) override
 	{
-		memcpy(dest, proj.GetComponents(), sizeof(Pu::Matrix));
-		memcpy(dest + sizeof(Pu::Matrix), view.GetComponents(), sizeof(Pu::Matrix));
+		Copy(dest, &proj);
+		Copy(dest + sizeof(Pu::Matrix), &view);
+		Copy(dest + offset, &camPos);
 	}
 
 private:
+	size_t offset;
 	Pu::Matrix proj, view;
+	Pu::Vector3 camPos;
 };

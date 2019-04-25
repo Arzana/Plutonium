@@ -24,9 +24,6 @@ namespace Pu
 			: PBRMaterial(std::move(value)), ComplexMaterial(std::move(value))
 		{}
 
-		/* Releases the resources allocated by the material. */
-		virtual ~ComplexPBRMaterial(void) {}
-
 		/* Copy assignment. */
 		_Check_return_ inline ComplexPBRMaterial& operator =(_In_ const ComplexPBRMaterial &other)
 		{

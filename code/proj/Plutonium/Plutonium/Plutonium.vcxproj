@@ -226,10 +226,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexMaterial.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\MeshCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\GeometryBatch.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />

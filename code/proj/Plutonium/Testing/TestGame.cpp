@@ -150,6 +150,7 @@ void TestGame::Update(float)
 	{
 		transform->SetProjection(cam->GetProjection());
 		transform->SetView(cam->GetView());
+		transform->SetCamPos(cam->GetPosition());
 	}
 }
 

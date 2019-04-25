@@ -1,5 +1,5 @@
 #pragma once
-#include "ComplexMaterial.h"
+#include "Material.h"
 #include "Graphics/Color.h"
 
 namespace Pu
@@ -30,9 +30,6 @@ namespace Pu
 		PBRMaterial(_In_ PBRMaterial &&value)
 			: Material(std::move(value)), DiffuseFactor(value.DiffuseFactor), Glossiness(value.Glossiness), SpecularFactor(value.SpecularFactor)
 		{}
-
-		/* Releases the resources allocated by the material. */
-		virtual ~PBRMaterial(void) {}
 
 		/* Copy assignment. */
 		_Check_return_ inline PBRMaterial& operator =(_In_ const PBRMaterial &other)

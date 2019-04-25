@@ -18,9 +18,13 @@ out gl_PerVertex
 };
 
 layout (location = 0) out vec2 Uv;
+layout (location = 1) out vec3 VertexNormal;
+layout (location = 2) out vec3 WorldPos;
 
 void main()
 {
 	gl_Position = Projection * View * vec4(Position, 1.0f);
 	Uv = TexCoord;
+	VertexNormal = Normal;
+	WorldPos = Position;
 }
