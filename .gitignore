@@ -20,6 +20,8 @@ bld/
 [Ll]og/
 [Bb]in_x64_[Dd]ebug/
 [Bb]in_x64_[Rr]elease/
+[Bb]in_x64_[Dd]ebug_unit_tests/
+[Bb]in_x64_[Rr]elease_unit_tests/
 
 # Assets to ignore
 SanMiguel/

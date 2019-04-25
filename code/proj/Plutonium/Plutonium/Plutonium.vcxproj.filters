@@ -975,9 +975,6 @@
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
       <Filter>Resource Files</Filter>
     </None>
@@ -991,6 +988,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="..\..\..\assets\shaders\UIBackground.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
