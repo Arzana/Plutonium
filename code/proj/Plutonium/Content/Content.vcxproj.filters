@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{d93e6361-4d84-4d73-8e72-db7b7b01a440}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <SPIRVShader Include="..\..\..\assets\shaders\Triangle.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\2D.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Image.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Image.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Text.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Textured.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\UIBackground.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+  </ItemGroup>
+</Project>

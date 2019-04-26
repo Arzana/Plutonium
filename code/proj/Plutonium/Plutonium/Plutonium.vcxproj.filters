@@ -61,9 +61,6 @@
     <Filter Include="Source Files\Streams">
       <UniqueIdentifier>{2e09d89c-a68b-4535-af8b-53eca378e05b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Visualizers">
-      <UniqueIdentifier>{4787eeb9-1192-494f-91dc-a056f4f5e788}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{23e1d488-e531-49b2-95ab-983d2444cbf0}</UniqueIdentifier>
     </Filter>
@@ -186,6 +183,15 @@
     </Filter>
     <Filter Include="Source Files\Graphics\UI\Items">
       <UniqueIdentifier>{10b81441-68e5-4fb3-96ac-a717ca7e393a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Visualizers">
+      <UniqueIdentifier>{4787eeb9-1192-494f-91dc-a056f4f5e788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\BuildTargets">
+      <UniqueIdentifier>{3dc205ca-44d6-4fec-a53b-9311fae3a768}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\BuildTargets\SPIR-V">
+      <UniqueIdentifier>{767a97b3-6d14-4742-ad37-e376b9a8e0c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -347,9 +353,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h">
-      <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\StreamWriter.h">
       <Filter>Header Files\Streams</Filter>
@@ -740,9 +743,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp">
-      <Filter>Source Files\Graphics\Vulkan\SPIR-V</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp">
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
@@ -938,60 +938,50 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\EventBus.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Matrix.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Rectangle.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Vector3.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Vector4.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\AABB.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\FieldInfo.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\CommandBuffer.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Asset.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Font.natvis">
-      <Filter>Visualizers</Filter>
+      <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
-      <Filter>Resource Files</Filter>
+    <None Include="..\..\..\targets\spv.targets">
+      <Filter>Resource Files\BuildTargets\SPIR-V</Filter>
     </None>
-    <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\Text.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\2D.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\assets\shaders\UIBackground.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
-      <Filter>Resource Files</Filter>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\..\targets\spv.xml">
+      <Filter>Resource Files\BuildTargets\SPIR-V</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device
 
 	/* Add some of the default wildcards. */
 	AddWildcard(L"{Assets}", L"../assets/");
-	AddWildcard(L"{Shaders}", L"{Assets}shaders/");
+	AddWildcard(L"{Shaders}", L"assets/shaders/");
 	AddWildcard(L"{Textures}", L"{Assets}images/");
 	AddWildcard(L"{Fonts}", L"{Assets}fonts/");
 }

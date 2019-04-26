@@ -2,7 +2,7 @@
 #include "Graphics/VertexLayouts/Image2D.h"
 
 Pu::BasicGuiBackgroundRenderer::BasicGuiBackgroundRenderer(GameWindow & window, AssetFetcher & loader, size_t maxSets)
-	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert", L"{Shaders}UIBackground.frag" })
+	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert.spv", L"{Shaders}UIBackground.frag.spv" })
 {}
 
 Pu::GuiBackgroundUniformBlock* Pu::BasicGuiBackgroundRenderer::CreateGUI(void) const

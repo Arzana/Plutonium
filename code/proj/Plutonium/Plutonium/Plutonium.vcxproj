@@ -299,7 +299,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldType.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIR-VReader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\SPIRV.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Surface.h" />
@@ -327,9 +326,6 @@
     <ClInclude Include="..\..\..\include\Streams\StreamWriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\assets\shaders\UIBackground.frag">
-      <FileType>Document</FileType>
-    </None>
     <ClCompile Include="..\..\..\src\Application.cpp" />
     <ClCompile Include="..\..\..\src\Components\Camera.cpp" />
     <ClCompile Include="..\..\..\src\Components\Component.cpp" />
@@ -411,7 +407,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Shader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Uniform.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\FieldType.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VCompiler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
@@ -423,6 +418,9 @@
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\FileWriter.cpp" />
+    <None Include="..\..\..\targets\spv.targets">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\AABB.natvis" />
@@ -439,15 +437,10 @@
     <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\assets\shaders\SkinnedAnimated.frag" />
-    <None Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
-    <None Include="..\..\..\assets\shaders\Text.frag" />
-    <None Include="..\..\..\assets\shaders\2D.vert" />
-    <None Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Utilities.glsl">
-      <FileType>Document</FileType>
-    </None>
+    <Xml Include="..\..\..\targets\spv.xml">
+      <SubType>Designer</SubType>
+    </Xml>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

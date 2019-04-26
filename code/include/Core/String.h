@@ -436,6 +436,12 @@ namespace Pu
 			if (len != prev) result.emplace_back(string_t::substr(prev, len - prev));
 			return result;
 		}
+
+		/* Gets a specific substring from within this string. */
+		_Check_return_ inline basic_string<char_t> substr(_In_ size_type pos = 0, _In_ size_type count = string_t::npos) const
+		{
+			return string_t::substr(pos, count);
+		}
 #pragma endregion
 #pragma region converters
 		/* Converts the integer value to a string. */

@@ -1,6 +1,5 @@
 #include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Streams/FileReader.h"
-#include "Graphics/Vulkan/SPIR-V/SPIR-VCompiler.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
@@ -52,14 +51,9 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 	{
 		/* If the input shader is already defined as binary just load it. */
 		Create(path);
-		SetInfo(wstring(path, path.length() - 4).fileExtension().toUpper());
+		SetInfo(path.substr(0, path.length() - 4).fileExtension().toUpper());
 	}
-	else
-	{
-		/* First compile the shader to SPIR-V and then load it. */
-		Create(SPIRV::FromGLSLPath(path));
-		SetInfo(ext);
-	}
+	else Log::Fatal("'%ls' cannot be loaded as a shader (only SPIR-V shaders are valid)!", ext.c_str());
 
 	/* Set the information of the subpass. */
 	SetFieldInfo();

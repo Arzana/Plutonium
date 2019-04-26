@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)spv.xml" />
+    <AvailableItemName Include="SPIRVShader">
+      <Targets>CompileGlslShaders</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+
+  <Target Name="CompileGlslShaders" Condition="'@(SPIRVShader)' != ''" BeforeTargets="FinalizeBuildStatus">
+    <ItemGroup>
+      <SPIRVShader>
+        <Outputs>$(OutDir)Shaders\%(Filename)%(Extension).spv</Outputs>
+        <Command>
+          if not exist "$(OutDir)shaders" mkdir "$(OutDir)shaders"
+          glslangValidator -V -o "$(OutDir)shaders\%(Filename)%(Extension).spv" "%(FullPath)"
+        </Command>
+      </SPIRVShader>
+    </ItemGroup>
+
+    <CustomBuild 
+      Sources="@(SPIRVShader)" 
+      MinimalRebuildFromTracking="True" 
+      TrackerLogDirectory="$(TLogLocation)"
+      ErrorListRegex="(?'CATEGORY'ERROR|WARNING): (?'FILENAME'.+):(?'LINE'\d+): (?'TEXT'.*)"/>
+  </Target>
+</Project>

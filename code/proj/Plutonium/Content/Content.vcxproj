@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <SPIRVShader Include="..\..\..\assets\shaders\2D.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Image.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Image.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Text.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Textured.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Triangle.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\UIBackground.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{B191EC86-74A7-49CD-B197-D0320C82759D}</ProjectGuid>
+    <RootNamespace>Content</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\..\..\targets\spv.targets" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\assets\</OutDir>
+  </PropertyGroup>
+</Project>

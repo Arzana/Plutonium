@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ItemType Name="SPIRVShader" DisplayName="SPIR-V Shader"/>
+  <ContentType Name="SPIRVShader" ItemType="SPIRVShader" DisplayName="SPIR-V Shader"/>
+  
+  <FileExtension Name=".glsl" ContentType="SPIRVShader"/>
+  <FileExtension Name=".vert" ContentType="SPIRVShader"/>
+  <FileExtension Name=".tesc" ContentType="SPIRVShader"/>
+  <FileExtension Name=".tese" ContentType="SPIRVShader"/>
+  <FileExtension Name=".geom" ContentType="SPIRVShader"/>
+  <FileExtension Name=".frag" ContentType="SPIRVShader"/>
+  <FileExtension Name=".comp" ContentType="SPIRVShader"/>
+</ProjectSchemaDefinitions>

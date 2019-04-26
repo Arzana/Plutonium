@@ -2,7 +2,7 @@
 #include "Graphics/VertexLayouts/Image2D.h"
 
 Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, size_t maxSets)
-	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert", L"{Shaders}Text.frag" })
+	: Renderer(window, loader, maxSets, { L"{Shaders}2D.vert.spv", L"{Shaders}Text.frag.spv" })
 {}
 
 Pu::TextUniformBlock * Pu::TextRenderer::CreateText(void) const

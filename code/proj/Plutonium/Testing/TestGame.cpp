@@ -75,7 +75,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}SkinnedAnimated.vert", L"{Shaders}SkinnedAnimated.frag" }).OnLinkCompleted += [this](Renderpass &renderpass)
+	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" }).OnLinkCompleted += [this](Renderpass &renderpass)
 	{
 		/* Set description and layout of FragColor. */
 		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
