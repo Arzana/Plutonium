@@ -9,8 +9,10 @@ namespace Pu
 	public:
 		/* The indentifier for this glyph. */
 		char32 Key;
-		/* The texture bounds of this glyph (range: [0, 1]). */
-		Rectangle Bounds;
+		/* The top left uv coordinate of the glyph. */
+		Vector2 U;
+		/* The bottom right uv coordinate of the glyph. */
+		Vector2 V;
 		/* The actual size of the character. */
 		Vector2 Size;
 		/* The offset from the render position. */

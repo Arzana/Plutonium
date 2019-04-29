@@ -153,7 +153,8 @@ Pu::Vector2 Pu::Font::LoadGlyphInfo()
 			Glyph &cur = glyphs[i];
 			cur.Key = key;
 			cur.Size = Vector2(static_cast<float>(x1 - x0), static_cast<float>(y1 - y0));
-			cur.Bounds = Rectangle(curLineSize.X, finalImgSize.Y, cur.Size.X, cur.Size.Y);
+			cur.U = Vector2(curLineSize.X, finalImgSize.Y);
+			cur.V = cur.U + cur.Size;
 			cur.Advance = static_cast<uint32>(rectify(x0 + advance * scale));
 			cur.Bearing = Vector2(static_cast<float>(lsb) * scale, static_cast<float>(y0));
 			if (cur.Size.Y > static_cast<float>(lineSpace)) lineSpace = static_cast<int32>(cur.Size.Y);
@@ -210,14 +211,14 @@ void Pu::Font::StageAtlas(Vector2 atlasSize, byte *dst)
 		if (cur.Size.X < 1.0f || cur.Size.Y < 1.0f) continue;
 
 		/* Render the codepoint alpha to the result buffer. */
-		const size_t x = static_cast<size_t>(cur.Bounds.Position.X);
-		const size_t y = static_cast<size_t>(cur.Bounds.Position.Y);
+		const size_t x = static_cast<size_t>(cur.U.X);
+		const size_t y = static_cast<size_t>(cur.U.Y);
 		const size_t offset = y * stride + x;
 		stbtt_MakeCodepointBitmap(info, dst + offset, ipart(cur.Size.X), ipart(cur.Size.Y), stride, scale, scale, cur.Key);
 
 		/* Convert the bouds to texture coordinates. */
-		cur.Bounds.Position *= b2uv;
-		cur.Bounds.Size *= b2uv;
+		cur.U *= b2uv;
+		cur.V *= b2uv;
 	}
 }
 

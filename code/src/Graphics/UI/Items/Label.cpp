@@ -136,7 +136,7 @@ void Pu::Label::SetVisualString(const ustring & string)
 
 void Pu::Label::OnMoved(GuiItem &, ValueChangedEventArgs<Vector2>)
 {
-	textDescriptor->SetModel(Matrix::CreateTranslation(GetBounds().Position + offset));
+	textDescriptor->SetModel(Matrix::CreateTranslation(GetBounds().LowerBound + offset));
 }
 
 void Pu::Label::UpdateTextMesh(void)

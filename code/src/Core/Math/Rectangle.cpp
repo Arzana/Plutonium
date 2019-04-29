@@ -2,75 +2,42 @@
 
 void Pu::Rectangle::Inflate(float horizontal, float vertical)
 {
-	horizontal *= 0.5f;
-	vertical *= 0.5f;
-
-	if (Size.X > 0.0f)
-	{
-		Position.X -= horizontal;
-		Size.X += horizontal;
-	}
-	else
-	{
-		Position.X += horizontal;
-		Size.X -= horizontal;
-	}
-
-	if (Size.Y > 0.0f)
-	{
-		Position.Y -= vertical;
-		Size.Y += vertical;
-	}
-	else
-	{
-		Position.Y += vertical;
-		Size.Y -= vertical;
-	}
+	const Vector2 adder(horizontal * 0.5f, vertical * 0.5f);
+	LowerBound -= adder;
+	UpperBound += adder;
 }
 
 Pu::Rectangle Pu::Rectangle::Merge(const Rectangle & second) const
 {
-	if (IsEmpty()) return second;
-	if (second.IsEmpty()) return *this;
-
-	const float r = max(GetRight(), second.GetRight());
-	const float l = min(GetLeft(), second.GetLeft());
-	const float t = min(GetTop(), second.GetTop());
-	const float b = max(GetBottom(), second.GetBottom());
-	return Rectangle(l, t, r - l, b - t);
+	return Rectangle(min(LowerBound, second.LowerBound), max(UpperBound, second.UpperBound));
 }
 
 Pu::Vector2 Pu::Rectangle::Separate(const Rectangle & second) const
 {
-	const Rectangle merge = Merge(second);
-	const Rectangle overlap = GetOverlap(second);
-	return merge.Size - overlap.Size;
+	return Merge(second).GetSize() - GetOverlap(second).GetSize();
 }
 
 bool Pu::Rectangle::Contains(Vector2 point) const
 {
-	return GetLeft() <= point.X && GetRight() >= point.X && GetTop() <= point.Y && GetBottom() >= point.Y;
+	return LowerBound.X <= point.X && UpperBound.X >= point.X
+		&& LowerBound.Y <= point.Y && UpperBound.Y >= point.Y;
 }
 
 bool Pu::Rectangle::Contains(const Rectangle & r) const
 {
-	return GetLeft() <= r.GetLeft() && GetRight() >= r.GetRight() && GetTop() <= r.GetTop() && GetBottom() >= r.GetBottom();
+	return LowerBound.X <= r.LowerBound.X && UpperBound.X >= r.UpperBound.X
+		&& LowerBound.Y <= r.LowerBound.Y && UpperBound.Y >= r.UpperBound.Y;
 }
 
 bool Pu::Rectangle::Overlaps(const Rectangle & r) const
 {
-	return GetLeft() <= r.GetRight() && GetRight() >= r.GetLeft() && GetTop() <= r.GetBottom() && GetBottom() >= r.GetTop();
+	return LowerBound.X <= r.UpperBound.X && UpperBound.X >= r.LowerBound.X
+		&& LowerBound.Y <= r.UpperBound.Y && UpperBound.Y >= r.LowerBound.Y;
 }
 
 Pu::Rectangle Pu::Rectangle::GetOverlap(const Rectangle & r) const
 {
-	const float xl = max(GetLeft(), r.GetLeft());
-	const float xs = min(GetRight(), r.GetRight());
-	if (xs < xl) return Rectangle();
-
-	const float yl = max(GetTop(), r.GetTop());
-	const float ys = min(GetBottom(), r.GetBottom());
-	if (ys < yl) return Rectangle();
-
-	return Rectangle(xl, yl, xs - xl, ys - yl);
+	const Vector2 low = max(LowerBound, r.LowerBound);
+	const Vector2 upp = min(UpperBound, r.UpperBound);
+	return upp.X < low.X || upp.Y < low.Y ? Rectangle() : Rectangle(low, upp);
 }

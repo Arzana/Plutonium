@@ -10,7 +10,7 @@ Pu::GuiItem::GuiItem(Application & parent, GuiItemRenderer & renderer)
 Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds, GuiItemRenderer & renderer)
 	: Component(parent), parent(nullptr), container(nullptr), buffer(nullptr), view(nullptr),
 	over(false), ldown(false), rdown(false), lclickInvoked(false), rclickInvoked(false),
-	visible(true), focusable(false), focused(false), position(bounds.Position), 
+	visible(true), focusable(false), focused(false), position(bounds.LowerBound), 
 	anchor(Anchors::None), bounds(bounds), SuppressUpdate(false), SuppressRender(false),
 	BackColorChanged("GuiItemBackColorChanged"), Clicked("GuiItemClicked"),
 	FocusableChanged("GuiItemFocusableChanged"), GainedFocus("GuiItemGainedFocus"),
@@ -65,8 +65,8 @@ void Pu::GuiItem::Initialize(void)
 	Component::Initialize();
 
 	/* We can only properly set the bounds here because a virtual call might be needed. */
-	bounds = Rectangle(position + GetBackgroundOffset(), bounds.Size);
-	CheckBounds(bounds.Size);
+	bounds += GetBackgroundOffset();
+	CheckBounds(bounds.GetSize());
 	UpdateMesh();
 }
 
@@ -176,8 +176,8 @@ void Pu::GuiItem::SetBackColor(Color color)
 
 void Pu::GuiItem::SetBounds(Rectangle value)
 {
-	SetPosition(value.Position);
-	SetSize(value.Size);
+	SetPosition(value.LowerBound);
+	SetSize(value.GetSize());
 }
 
 void Pu::GuiItem::SetHeight(int32 height)
@@ -205,11 +205,11 @@ void Pu::GuiItem::SetPosition(Vector2 value)
 
 void Pu::GuiItem::SetSize(Vector2 size)
 {
-	if (size == bounds.Size) return;
+	if (size == bounds.GetSize()) return;
 	CheckBounds(size);
 
-	ValueChangedEventArgs<Vector2> args(bounds.Size, size);
-	bounds.Size = size;
+	ValueChangedEventArgs<Vector2> args(bounds.GetSize(), size);
+	bounds.UpperBound = bounds.LowerBound + size;
 
 	UpdateMesh();
 	if (anchor != Anchors::None) MoveRelativeInternal(anchor, Vector2(), offsetFromAnchorPoint);
@@ -323,11 +323,11 @@ void Pu::GuiItem::UpdatePosition(Vector2 value)
 	if (offset.X < 0.0f) position.X -= offset.X;
 	if (offset.Y < 0.0f) position.Y -= offset.Y;
 
-	bounds.Position = position + offset;
-	if (parent) bounds.Position += parent->GetBoundingBox().Position;
+	bounds.LowerBound = position + offset;
+	if (parent) bounds += parent->GetBoundingBox().LowerBound;
 
 	/* We have to scale by 2 to go from normalized viewport space offsets ([0, 0] to [1, 1]) to clip space offsets ([0, 0] to [2, 2]). */
-	backgroundDescriptor->SetModel(Matrix::CreateTranslation(bounds.Position * 2.0f));
+	backgroundDescriptor->SetModel(Matrix::CreateTranslation(bounds.LowerBound * 2.0f));
 }
 
 void Pu::GuiItem::WindowResizedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2>)
@@ -337,7 +337,9 @@ void Pu::GuiItem::WindowResizedHandler(const NativeWindow&, ValueChangedEventArg
 
 void Pu::GuiItem::ParentMovedHandler(GuiItem & sender, ValueChangedEventArgs<Vector2>)
 {
-	bounds.Position = sender.GetBoundingBox().Position + position + GetBackgroundOffset();
+	const Vector2 size = bounds.GetSize();
+	bounds.LowerBound = sender.GetBoundingBox().LowerBound + position + GetBackgroundOffset();
+	bounds.UpperBound += size;
 	Moved.Post(*this, ValueChangedEventArgs<Vector2>(position, position));
 }
 
@@ -362,12 +364,12 @@ void Pu::GuiItem::MoveRelativeInternal(Anchors value, Vector2 base, Vector2 adde
 	/* Check for horizontal anchors. */
 	if (_CrtEnumCheckFlag(value, Anchors::CenterWidth)) newPos.X = area.GetWidth() / 2.0f - (GetWidth() >> 1);
 	if (_CrtEnumCheckFlag(value, Anchors::Left)) newPos.X = 0.0f;
-	if (_CrtEnumCheckFlag(value, Anchors::Right)) newPos.X = area.GetRight() - GetWidth();
+	if (_CrtEnumCheckFlag(value, Anchors::Right)) newPos.X = area.UpperBound.X - GetWidth();
 
 	/* Check for vertical anchors. */
 	if (_CrtEnumCheckFlag(value, Anchors::CenterHeight)) newPos.Y = area.GetHeight() / 2.0f - (GetHeight() >> 1);
 	if (_CrtEnumCheckFlag(value, Anchors::Top)) newPos.Y = 0.0f;
-	if (_CrtEnumCheckFlag(value, Anchors::Bottom)) newPos.Y = area.GetBottom() - GetHeight();
+	if (_CrtEnumCheckFlag(value, Anchors::Bottom)) newPos.Y = area.UpperBound.Y - GetHeight();
 
 	/* Move the GUI item if needed. */
 	newPos += adder;

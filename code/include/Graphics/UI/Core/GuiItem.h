@@ -138,13 +138,13 @@ namespace Pu
 		/* Gets the current position of the GuiItem. */
 		_Check_return_ inline Vector2 GetPosition(void) const
 		{
-			return GetMaxBounds().Position;
+			return GetMaxBounds().LowerBound;
 		}
 
 		/* Gets the current size of the GuiItem. */
 		_Check_return_ inline Vector2 GetSize(void) const
 		{
-			return GetMaxBounds().Size;
+			return GetMaxBounds().GetSize();
 		}
 
 		/* Gets whether the GuiItem is currently visible. */

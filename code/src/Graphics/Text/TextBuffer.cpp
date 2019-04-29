@@ -74,16 +74,14 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font & font, const GameW
 		const Glyph &glyph = font.GetGlyph(key);
 		const Vector2 tl = wnd.ToLinearClipSpace(Vector4(adder + glyph.Bearing, 0.0f, 1.0f)).XY;
 		const Vector2 br = wnd.ToLinearClipSpace(Vector4(adder + glyph.Bearing + glyph.Size, 0.0f, 1.0f)).XY;
-		const Vector2 uv1 = glyph.Bounds.Position;
-		const Vector2 uv2 = glyph.Bounds.Position + glyph.Bounds.Size;
 
 		/* Copy the vertex data to the buffer. */
-		data[i++] = Image2D(tl, uv1);
-		data[i++] = Image2D(tl.X, br.Y, uv1.X, uv2.Y);
-		data[i++] = Image2D(br, uv2);
-		data[i++] = Image2D(tl, uv1);
-		data[i++] = Image2D(br, uv2);
-		data[i++] = Image2D(br.X, tl.Y, uv2.X, uv1.Y);
+		data[i++] = Image2D(tl, glyph.U);
+		data[i++] = Image2D(tl.X, br.Y, glyph.U.X, glyph.V.Y);
+		data[i++] = Image2D(br, glyph.V);
+		data[i++] = Image2D(tl, glyph.U);
+		data[i++] = Image2D(br, glyph.V);
+		data[i++] = Image2D(br.X, tl.Y, glyph.V.X, glyph.U.Y);
 
 		adder.X += static_cast<float>(glyph.Advance);
 	}
