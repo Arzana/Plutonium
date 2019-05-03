@@ -188,7 +188,6 @@ namespace Pu
 		A1R5G5B5_UNORM_PACK16 = 8,
 #pragma endregion
 #pragma region RGBA 8 bit
-
 		R8_UNORM = 9,
 		R8_SNORM = 10,
 		R8_USCALED = 11,

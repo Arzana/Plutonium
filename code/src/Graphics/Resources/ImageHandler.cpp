@@ -123,19 +123,36 @@ Pu::vector<byte> Pu::_CrtLoadImageLDR(const wstring & path)
 	}
 }
 
-Pu::Format Pu::ImageInformation::GetImageFormat(void) const
+Pu::Format Pu::ImageInformation::GetImageFormat(bool sRGB) const
 {
-	switch (Components)
+	if (IsHDR)
 	{
-	case (1):
-		return IsHDR ? Format::R32_SFLOAT : Format::R8_UNORM;
-	case (2):
-		return IsHDR ? Format::R32G32_SFLOAT : Format::R8G8_UNORM;
-	case (3):
-		return IsHDR ? Format::R32G32B32_SFLOAT : Format::R8G8B8_UNORM;
-	case (4):
-		return IsHDR ? Format::R32G32B32A32_SFLOAT : Format::R8G8B8A8_UNORM;
-	default:
-		return Format::Undefined;
+		switch (Components)
+		{ 
+		case 1:
+			return Format::R32_SFLOAT;
+		case 2:
+			return Format::R32G32_SFLOAT;
+		case 3:
+			return Format::R32G32B32_SFLOAT;
+		case 4:
+			return Format::R32G32B32A32_SFLOAT;
+		}
 	}
+	else
+	{
+		switch (Components)
+		{
+		case 1:
+			return sRGB ? Format::R8_SRGB : Format::R8_UNORM;
+		case 2:
+			return sRGB ? Format::R8G8_SRGB : Format::R8G8_UNORM;
+		case 3:
+			return sRGB ? Format::R8G8B8_SRGB : Format::R8G8B8_UNORM;
+		case 4:
+			return sRGB ? Format::R8G8B8A8_SRGB : Format::R8G8B8A8_UNORM;
+		}
+	}
+
+	return Format::Undefined;
 }

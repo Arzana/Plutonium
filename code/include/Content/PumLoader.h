@@ -2,6 +2,7 @@
 #include "Core/Math/AABB.h"
 #include "Graphics/Color.h"
 #include "Streams/BinaryReader.h"
+#include "Graphics/Resources/StagingBuffer.h"
 
 namespace Pu
 {
@@ -9,18 +10,18 @@ namespace Pu
 	enum class PumJointType
 	{
 		/* No joints or weights are present. */
-		None,
+		None = 0,
 		/* Joint indices are stored using bytes. */
-		Byte,
+		Byte = 1,
 		/* Joint indices are stored using unsigned shorts. */
-		UShort
+		UShort = 2
 	};
 
 	/* Defines the types of indices present in a model (this type can be casted to Vulkan IndexType). */
 	enum class PumIndexType
 	{
 		/* No index buffer is used. */
-		None = -1,
+		None = 2,
 		/* The index buffer stores UInt16's. */
 		UInt16 = _CrtEnum2Int(IndexType::UInt16),
 		/* The index buffer stores UInt32's. */
@@ -53,14 +54,14 @@ namespace Pu
 	enum class PumAlphaMode
 	{
 		/* The material should be rendered fully opaque. */
-		Opaque,
+		Opaque = 0,
 		/*
 		The material should be rendered fully opaque if the fragment's alpha is below the threshold
 		or the fragment should be discarded if it's above the threshold.
 		*/
-		Mask,
+		Mask = 1,
 		/* The material should be rendered using standard Porter & Duff blending. */
-		Blend
+		Blend = 2
 	};
 
 	/* Defines a core point in the model file. */
@@ -187,6 +188,10 @@ namespace Pu
 		vector<uint32> Frames;
 		/* Defines the total play time of the animation. */
 		float Duration;
+		/* Defines the (optional) first argument for the interplation. */
+		float Arg1;
+		/* Defines the (optional) second argument for the interpolation. */
+		float Arg2;
 
 		/* Initializes a new instance of a PuM animation from a binary stream. */
 		PumAnimation(_In_ BinaryReader &reader);
@@ -293,6 +298,7 @@ namespace Pu
 	/* Defines the data loaded from a PuM file. */
 	struct PuMData
 	{
+	public:
 		/* Defines the version used by the file. */
 		uint32 Version;
 		/* Defines the display name for the model. */
@@ -312,6 +318,24 @@ namespace Pu
 		vector<PumTexture> Textures;
 
 		/* Initializes a new instance of a Plutonium model from a binary stream. */
-		PuMData(_In_ BinaryReader &reader);
+		PuMData(_In_ LogicalDevice &device, _In_ BinaryReader &reader);
+		PuMData(_In_ const PuMData&) = delete;
+		/* Move constructor. */
+		PuMData(_In_ PuMData &&value);
+		/* Releases the resources allocated by the PuM data. */
+		~PuMData(void);
+
+		_Check_return_ PuMData& operator =(_In_ const PuMData&) = delete;
+		/* Move assignment. */
+		_Check_return_ PuMData& operator =(_In_ PuMData &&other);
+
+		/* Gets the staging buffer containing the GPU data. */
+		_Check_return_ inline const StagingBuffer& GetData(void) const
+		{
+			return *buffer;
+		}
+
+	private:
+		StagingBuffer *buffer;
 	};
 }

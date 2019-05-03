@@ -23,9 +23,17 @@ int SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 	writer.Write(static_cast<uint32>(data.Materials.size()));
 	writer.Write(static_cast<uint32>(data.Textures.size()));
 
+	/* The base offset depends on which offsets are even writen. */
+	size_t baseOffset = writer.GetSize() + sizeof(size_t) * 2;
+	if (data.Nodes.size()) baseOffset += sizeof(size_t);
+	if (data.Geometry.size()) baseOffset += sizeof(size_t);
+	if (data.Animations.size()) baseOffset += sizeof(size_t);
+	if (data.Skeletons.size()) baseOffset += sizeof(size_t);
+	if (data.Materials.size()) baseOffset += sizeof(size_t);
+	if (data.Textures.size()) baseOffset += sizeof(size_t);
+
 	/* Start by writing part of the header the offsets will be added once we go over the items themselves. */
 	file.Write(writer.GetData(), 0, writer.GetSize());
-	const size_t baseOffset = writer.GetSize() + sizeof(size_t) * 8;
 	writer.Reset();
 
 	size_t offset = baseOffset;

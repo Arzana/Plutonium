@@ -29,7 +29,7 @@ namespace Pu
 		{}
 
 		/* Gets the Vulkan format for the image. */
-		_Check_return_ Format GetImageFormat(void) const;
+		_Check_return_ Format GetImageFormat(_In_ bool sRGB) const;
 	};
 
 	/* Gets the extent of an image. */

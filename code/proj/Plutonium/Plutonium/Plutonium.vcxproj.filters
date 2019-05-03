@@ -950,6 +950,9 @@
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp">
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Content\PumLoader.cpp">
+      <Filter>Source Files\Content</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">

@@ -92,7 +92,7 @@ struct pum_mesh
 	pum_mesh(void)
 		: WriteMaterialIndex(false), HasNormals(false), HasTangents(false),
 		HasTextureUvs(false), HasVertexColors(false), HasJoints(0), 
-		IndexMode(0), Topology(0)
+		IndexMode(2), Topology(0)
 	{}
 
 	inline void SetMaterial(Pu::uint32 material)

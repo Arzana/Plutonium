@@ -86,9 +86,9 @@ The flags currently contain the following values:
 		0x1: uint8 joint indices, float weights
 		0x2: uint16 joint indices, float weights
 	- 0x80 & 0x100: The index mode: 
-		0x0: none
-		0x1: uint16
-		0x2: uint32
+		0x0: uint16
+		0x1: uint32
+		0x2: none
 	- 0x200 & 0x400 & 0x800: The render topology:
 		0x0: points
 		0x1: lines

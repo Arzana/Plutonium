@@ -23,7 +23,7 @@ namespace Pu
 		/* Fetches the desired renderpass. */
 		_Check_return_ Renderpass& FetchRenderpass(_In_ GraphicsPipeline &pipeline, _In_ std::initializer_list<wstring> subpasses);
 		/* Fetches the desired 2D texture. */
-		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_opt_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */
 		_Check_return_ Sampler& FetchSampler(_In_ const SamplerCreateInfo &samplerInfo);
 		/* Fetches the desired font. */

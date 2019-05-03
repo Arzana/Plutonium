@@ -265,6 +265,7 @@
     <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp" />
     <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp" />
     <ClCompile Include="..\..\..\src\Content\Patern.cpp" />
+    <ClCompile Include="..\..\..\src\Content\PumLoader.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\CPU.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
