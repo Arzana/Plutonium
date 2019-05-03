@@ -666,6 +666,9 @@
     <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h">
       <Filter>Header Files\Streams</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Content\PumLoader.h">
+      <Filter>Header Files\Content</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">

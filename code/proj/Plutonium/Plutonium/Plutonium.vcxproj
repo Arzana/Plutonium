@@ -107,6 +107,7 @@
     <ClInclude Include="..\..\..\include\Content\GLTFLoader.h" />
     <ClInclude Include="..\..\..\include\Content\GLTFParser.h" />
     <ClInclude Include="..\..\..\include\Content\Patern.h" />
+    <ClInclude Include="..\..\..\include\Content\PumLoader.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\sdeque.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\squeue.h" />
