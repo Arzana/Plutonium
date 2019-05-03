@@ -19,7 +19,7 @@ namespace Pu
 		/* Copy assignment. */
 		FileWriter(_In_ FileWriter &&value);
 		/* Closes the stream and releases the resources of the writer. */
-		virtual ~FileWriter(void) noexcept override;
+		virtual ~FileWriter(void) override;
 
 		/* Copy assignment. */
 		_Check_return_ FileWriter& operator =(_In_ const FileWriter &other);

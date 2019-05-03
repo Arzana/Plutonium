@@ -111,6 +111,7 @@ struct MESH
 
 	unsigned long long VertexViewStart;
 	unsigned long long VertexViewSize;
+	unsigned int Material;				// Optional
 	unsigned long long IndexViewStart;	// Optional
 	unsigned long long IndexViewSize;	// Optional
 };
@@ -137,8 +138,11 @@ struct SEQ
 };
 
 /*
-Defines a named animation that can affect multiple nodes within a model.
-The duration can be calculated by querying the highest timestamp in the frames.
+Defines a named animation that can either be skeletal or morph.
+An animation must either have sequences set or mesh frames set.
+Sequences defined the frames per node for a premade mesh.
+Mesh frames defined a completely new mesh to sample from instead of the default mesh.
+The duration (for skeletal) can be calculated by querying the highest timestamp in the frames.
 Current flags:
 	- 0x01 & 0x2 & 0x4: Interpolation mode
 		0x0: None
@@ -147,10 +151,14 @@ Current flags:
 		0x3: Spring		Args: Stiffness, Damping
 	- 0x08: looping
 	- 0x10: reverse
+	- 0x20: animation type:
+		0x0: skeletal	Seqences will be defined
+		0x1: morph		Frames and Duraction will be defined
+	- 0x40: should bake
 
 	 0 1 2 3 4 5 6 7
 	+-+-+-+-+-+-+-+-+
-	|I P M|L|R| Free|
+	|I P M|L|R|T|B| |
 	+-+-+-+-+-+-+-+-+
 */
 struct ANIM
@@ -159,8 +167,11 @@ struct ANIM
 	unsigned char Flags;
 	float Arg1;
 	float Arg2;
-	unsigned int SequenceCount;
-	SEQ Sequences[SequenceCount];
+
+	unsigned int Count;
+	SEQ Sequences[Count];				// Optional
+	unsigned int Frames[Count];			// Optional
+	float Duration;						// Optional
 };
 
 /* A joint defined a single point in a skeleton with its associated node and inverse bind matrix. */
@@ -191,7 +202,7 @@ Currently flags contains the following values:
 		0x2: Porter & Duff blending
 	- 0x08: diffuse texture present
 	- 0x10: speculargloss texture present
-	- 0x10: normal texture present.
+	- 0x20: normal texture present.
 	- 0x40: occlusion texture present.
 	- 0x80: emissive texture present.
 
@@ -242,13 +253,16 @@ struct TEXT
 	unsigned char Flags;
 };
 
+/*
+A Plutonium Model (.pum) file is always saved using Little Endian.
+*/
 struct PUM
 {
 	char MagicNumber[4];				// PUM0
 	unsigned int Version;				// Packed as Vulkan version numbers
 	STR Identifier;						// Used as a display string instead of the file name.
 
-	struct Amounts
+	struct Amounts						
 	{
 		unsigned int NodeCount;
 		unsigned int MeshCount;
@@ -258,7 +272,7 @@ struct PUM
 		unsigned int TextureCount;
 	};
 
-	struct Offsets
+	struct Offsets						// These are used to easily skip items if they are not needed they are only added to the file if the associated count > 0.
 	{
 		unsigned long long NodeOffset;
 		unsigned long long MeshOffset;
@@ -275,5 +289,6 @@ struct PUM
 	ANIM Animations[AnimationCount];
 	SKLT Skeletons[SkinCount];
 	MTLS Materials[MaterialCount];
-	unsigned char Data[BufferSize];
+	TEXT Textures[TextureCount];
+	unsigned char Data[BufferSize];		// Contains the vertex and index data in a format that's easy to stage to the GPU.
 };

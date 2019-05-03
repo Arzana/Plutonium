@@ -20,6 +20,9 @@
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\Knight\knight.md2" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B191EC86-74A7-49CD-B197-D0320C82759D}</ProjectGuid>
@@ -36,8 +39,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\..\targets\spv.targets" />
+  <Import Project="..\..\..\targets\pum.targets" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\assets\</OutDir>
+    <ExtensionsToDeleteOnClean>*.spv;*.pum;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
   </PropertyGroup>
 </Project>

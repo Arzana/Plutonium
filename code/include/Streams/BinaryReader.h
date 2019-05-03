@@ -4,27 +4,11 @@
 
 namespace Pu
 {
-	/* Defines the types of endians available for the binary reader. */
-	enum class Endian
-	{
-		/* Least significant bytes are first. */
-		Little,
-		/* Most significant bytes are first. */
-		Big
-	};
-
 	/* Defines an object that can read basic types from a binary source buffer. */
 	class BinaryReader
 		: public StreamReader
 	{
 	public:
-#ifdef _WIN32
-		/* Defines the endiant type native to the current platform. */
-		constexpr static Endian NativeEndian = Endian::Little;
-#else
-#error Native endian needs to be set for this platform!
-#endif
-
 		/* Initializes a new instance of a binary reader. */
 		BinaryReader(_In_ const void *source, _In_ size_t size, _In_opt_ Endian endian = NativeEndian);
 		/* Copy constructor. */
@@ -69,6 +53,10 @@ namespace Pu
 		_Check_return_ Quaternion ReadQuaternion(void);
 		/* Reads the next 64 bytes from the buffer as a matrix and increases the position by 64 bytes. */
 		_Check_return_ Matrix ReadMatrix(void);
+		/* Reads a variable amount of bytes from the buffer as a length first ANSI string and increases the position. */
+		_Check_return_ string ReadString(void);
+		/* Reads a variable amount of bytes from the buffer as a length first UTF-32 string and increases the position. */
+		_Check_return_ ustring ReadUString(void);
 		/*
 		Reads the next byte from the stream.
 		Returns -1 when no more bytes could be read.
@@ -112,6 +100,10 @@ namespace Pu
 		_Check_return_ Quaternion PeekQuaternion(void);
 		/* Reads the next 64 bytes from the buffer as a matrix. */
 		_Check_return_ Matrix PeekMatrix(void);
+		/* Reads a variable amount of bytes from the buffer as a length first ANSI string. */
+		_Check_return_ string PeekString(void);
+		/* Reads a variable amount of bytes from the buffer as a length first UTF-32 string. */
+		_Check_return_ ustring PeekUString(void);
 		/*
 		Reads the next byte from the stream without increasing the read position.
 		Returns -1 when no more bytes could be read.

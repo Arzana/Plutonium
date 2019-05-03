@@ -1,11 +1,12 @@
 #pragma once
-#include "Core\Math\Constants.h"
+#include "Stream.h"
 #include "SeekOrigin.h"
 
 namespace Pu
 {
 	/* Defines a base object for reading raw bytes. */
 	class StreamReader
+		: public Stream
 	{
 	public:
 		StreamReader(_In_ const StreamReader&) = delete;

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ItemType Name="PuModel" DisplayName="Plutonium Model"/>
+  <ContentType Name="PuModel" ItemType="PuModel" DisplayName="Plutonium Model"/>
+  
+  <FileExtension Name=".md2" ContentType="PuModel"/>
+  <FileExtension Name=".obj" ContentType="PuModel"/>
+  <FileExtension Name=".gltf" ContentType="PuModel"/>
+</ProjectSchemaDefinitions>

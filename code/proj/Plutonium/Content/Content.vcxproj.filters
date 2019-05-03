@@ -4,6 +4,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{d93e6361-4d84-4d73-8e72-db7b7b01a440}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Models">
+      <UniqueIdentifier>{63472200-ff95-4b8d-a501-55eb72f769ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\Triangle.vert">
@@ -42,5 +45,10 @@
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert">
       <Filter>Shaders</Filter>
     </SPIRVShader>
+  </ItemGroup>
+  <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>

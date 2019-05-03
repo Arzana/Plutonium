@@ -108,6 +108,8 @@ namespace Pu
 			{
 				if (predicate(*it)) return it;
 			}
+
+			return vector_t::end();
 		}
 
 		/* Gets the iterator at the location of the specified element. */
@@ -118,6 +120,8 @@ namespace Pu
 			{
 				if (predicate(*it)) return it;
 			}
+
+			return vector_t::end();
 		}
 
 		/* Gets the index of the specified element. */

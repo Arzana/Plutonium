@@ -105,6 +105,7 @@ namespace Pu
 
 	private:
 		friend struct Matrix;
+		friend class BinaryWriter;
 		friend float dot(Quaternion, Quaternion);
 
 		float i, j, k, r;

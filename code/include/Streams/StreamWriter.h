@@ -1,10 +1,11 @@
 #pragma once
-#include "Core/Math/Constants.h"
+#include "Stream.h"
 
 namespace Pu
 {
 	/* Defines a base object for writing raw bytes. */
 	class StreamWriter
+		: public Stream
 	{
 	public:
 		/* Specifies whether the stream writer should flush after every write. */
@@ -12,15 +13,12 @@ namespace Pu
 
 		StreamWriter(_In_ const StreamWriter&) = delete;
 		StreamWriter(_In_ StreamWriter&&) = delete;
-		/* Releases the resources allocated by the stream writer. */
-		virtual ~StreamWriter(void) noexcept
-		{}
 
 		_Check_return_ StreamWriter& operator =(const StreamWriter&) = delete;
 		_Check_return_ StreamWriter& operator =(StreamWriter&&) = delete;
 
 		/* Flushes the stream, writing the data into the underlying stream. */
-		virtual void Flush(void) = 0;
+		virtual void Flush(void) {}
 		/*Writes a single byte to the stream. */
 		virtual void Write(_In_ byte value) = 0;
 		/* Writes a specific range of bytes to the stream. */

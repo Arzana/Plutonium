@@ -124,11 +124,13 @@ void Pu::FileWriter::Flush(void)
 void Pu::FileWriter::Write(byte value)
 {
 	if (fwrite(&value, sizeof(byte), 1, hndl) != 1) Log::Error("Unable to write single byte to file '%ls' (%ls)!", fpath.fileName().c_str(), FileError().c_str());
+	else if (AutoFlush) Flush();
 }
 
 void Pu::FileWriter::Write(const byte * data, size_t offset, size_t amount)
 {
 	if (fwrite(data + offset, sizeof(byte), amount, hndl) != amount) Log::Error("Unable to write bytes to file '%ls' (%ls)!", fpath.fileName().c_str(), FileError().c_str());
+	else if (AutoFlush) Flush();
 }
 
 int64 Pu::FileWriter::GetPosition(void) const

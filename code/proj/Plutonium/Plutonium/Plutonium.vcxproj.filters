@@ -193,6 +193,9 @@
     <Filter Include="Resource Files\BuildTargets\SPIR-V">
       <UniqueIdentifier>{767a97b3-6d14-4742-ad37-e376b9a8e0c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\BuildTargets\PuM">
+      <UniqueIdentifier>{ffc1cb15-14d3-4399-ac47-8834dc6b3168}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -657,6 +660,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\GeometryBatch.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\Stream.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h">
+      <Filter>Header Files\Streams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -935,6 +944,9 @@
     <ClCompile Include="..\..\..\src\Graphics\UI\Items\Button.cpp">
       <Filter>Source Files\Graphics\UI\Items</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp">
+      <Filter>Source Files\Streams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -978,10 +990,16 @@
     <None Include="..\..\..\targets\spv.targets">
       <Filter>Resource Files\BuildTargets\SPIR-V</Filter>
     </None>
+    <None Include="..\..\..\targets\pum.targets">
+      <Filter>Resource Files\BuildTargets\PuM</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\..\targets\spv.xml">
       <Filter>Resource Files\BuildTargets\SPIR-V</Filter>
+    </Xml>
+    <Xml Include="..\..\..\targets\pum.xml">
+      <Filter>Resource Files\BuildTargets\PuM</Filter>
     </Xml>
   </ItemGroup>
 </Project>

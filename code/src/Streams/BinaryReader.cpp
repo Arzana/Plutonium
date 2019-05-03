@@ -4,42 +4,6 @@
 
 using namespace Pu;
 
-/* Swaps the bytes from its origional endian to the other endian. */
-template <typename _Ty>
-static _Ty byteSwap(_Ty value)
-{
-	union Cnvrtr
-	{
-		_Ty normal;
-		byte bytes[sizeof(_Ty)];
-
-		Cnvrtr(void) { memset(this, 0, sizeof(Cnvrtr)); }
-	} src, dst;
-
-	/* Convert bytes. */
-	src.normal = value;
-	for (size_t i = 0; i < sizeof(_Ty); i++) dst.bytes[i] = src.bytes[sizeof(_Ty) - i - 1];
-	return dst.normal;
-}
-
-/* Swaps the bytes per element from its origional endian to the other endian. */
-template <typename _Ty>
-static _Ty byteswap(_Ty value, size_t stride)
-{
-	union Cnvrtr
-	{
-		_Ty normal;
-		byte bytes[sizeof(_Ty)];
-
-		Cnvrtr(void) { memset(this, 0, sizeof(Cnvrtr)); }
-	} src, dst;
-
-	/* Convert bytes. */
-	src.normal = value;
-	for (size_t i = 0; i < sizeof(_Ty); i++) dst.bytes[i] = src.bytes[stride * (i / stride + 1) - (i % stride) - 1];
-	return dst.normal;
-}
-
 Pu::BinaryReader::BinaryReader(const void * source, size_t size, Endian endian)
 	: data(reinterpret_cast<const byte*>(source)), size(size), position(0), endian(endian)
 {}
@@ -118,91 +82,139 @@ int16 Pu::BinaryReader::PeekInt16(void)
 {
 	CheckOverflow(sizeof(int16), true);
 	const int16 raw = *reinterpret_cast<const int16*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 uint16 Pu::BinaryReader::PeekUInt16(void)
 {
 	CheckOverflow(sizeof(uint16), true);
 	const uint16 raw = *reinterpret_cast<const uint16*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 int32 Pu::BinaryReader::PeekInt32(void)
 {
 	CheckOverflow(sizeof(int32), true);
 	const int32 raw = *reinterpret_cast<const int32*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 uint32 Pu::BinaryReader::PeekUInt32(void)
 {
 	CheckOverflow(4, true);
 	const uint32 raw = *reinterpret_cast<const uint32*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 int64 Pu::BinaryReader::PeekInt64(void)
 {
 	CheckOverflow(sizeof(int64), true);
 	const int64 raw = *reinterpret_cast<const int64*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 uint64 Pu::BinaryReader::PeekUInt64(void)
 {
 	CheckOverflow(sizeof(uint64), true);
 	const uint64 raw = *reinterpret_cast<const uint64*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 float Pu::BinaryReader::PeekSingle(void)
 {
 	CheckOverflow(sizeof(float), true);
 	const float raw = *reinterpret_cast<const float*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 double Pu::BinaryReader::PeekDouble(void)
 {
 	CheckOverflow(sizeof(double), true);
 	const double raw = *reinterpret_cast<const double*>(data + position);
-	return endian == NativeEndian ? raw : byteSwap(raw);
+	return endian == NativeEndian ? raw : ByteSwap(raw);
 }
 
 Vector2 Pu::BinaryReader::PeekVector2(void)
 {
 	CheckOverflow(sizeof(Vector2), true);
 	const Vector2 raw = *reinterpret_cast<const Vector2*>(data + position);
-	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
+	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
 }
 
 Vector3 Pu::BinaryReader::PeekVector3(void)
 {
 	CheckOverflow(sizeof(Vector3), true);
 	const Vector3 raw = *reinterpret_cast<const Vector3*>(data + position);
-	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
+	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
 }
 
 Vector4 Pu::BinaryReader::PeekVector4(void)
 {
 	CheckOverflow(sizeof(Vector4), true);
 	const Vector4 raw = *reinterpret_cast<const Vector4*>(data + position);
-	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
+	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
 }
 
 Quaternion Pu::BinaryReader::PeekQuaternion(void)
 {
 	CheckOverflow(sizeof(Quaternion), true);
 	const Quaternion raw = *reinterpret_cast<const Quaternion*>(data + position);
-	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
+	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
 }
 
 Matrix Pu::BinaryReader::PeekMatrix(void)
 {
 	CheckOverflow(sizeof(Matrix), true);
 	const Matrix raw = *reinterpret_cast<const Matrix*>(data + position);
-	return endian == NativeEndian ? raw : byteswap(raw, sizeof(float));
+	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
+}
+
+string Pu::BinaryReader::PeekString(void)
+{
+	/* Start be peeking the length. */
+	CheckOverflow(sizeof(string_length_t), true);
+	string_length_t len = *reinterpret_cast<const string_length_t*>(data + position);
+	if (endian != NativeEndian) len = ByteSwap(len);
+
+	/* Check the required length again, make sure to add the length as well. */
+	CheckOverflow(len + sizeof(string_length_t), true);
+
+	/* Create the result string with the correct length. */
+	string result;
+	result.reserve(len);
+
+	/* Add the characters individually. */
+	for (size_t i = 0, start = position + sizeof(string_length_t); i < len; i++)
+	{
+		result += *reinterpret_cast<const char*>(data + start + i);
+	}
+
+	return result;
+}
+
+ustring Pu::BinaryReader::PeekUString(void)
+{
+	/* Start be peeking the length. */
+	CheckOverflow(sizeof(string_length_t), true);
+	string_length_t len = *reinterpret_cast<const string_length_t*>(data + position);
+	if (endian != NativeEndian) len = ByteSwap(len);
+
+	/* Check the required length again, make sure to add the length as well. */
+	const size_t byteSize = len * sizeof(char32);
+	CheckOverflow(byteSize + sizeof(string_length_t), true);
+
+	/* Create the result string with the correct length. */
+	ustring result;
+	result.reserve(len);
+
+	/* Add the characters individually. */
+	for (size_t i = 0, start = position + sizeof(string_length_t); i < byteSize; i += sizeof(char32))
+	{
+		const char32 c = *reinterpret_cast<const char32*>(data + start + i);
+		result += endian == NativeEndian ? c : ByteSwap(c);
+	}
+
+	return result;
 }
 
 int32 Pu::BinaryReader::Peek(void)
@@ -366,5 +378,19 @@ Matrix Pu::BinaryReader::ReadMatrix(void)
 {
 	const Matrix result = PeekMatrix();
 	position += sizeof(Matrix);
+	return result;
+}
+
+string Pu::BinaryReader::ReadString(void)
+{
+	const string result = PeekString();
+	position += sizeof(string_length_t) + result.length();
+	return result;
+}
+
+ustring Pu::BinaryReader::ReadUString(void)
+{
+	const ustring result = PeekUString();
+	position += sizeof(string_length_t) + result.length() * sizeof(char32);
 	return result;
 }

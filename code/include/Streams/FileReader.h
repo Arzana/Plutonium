@@ -50,6 +50,16 @@ namespace Pu
 		*/
 		_Check_return_ virtual int32 Read(void) override;
 		/*
+		Attempts to read the specified structure from the file.
+		Returns whether the operation was successful, but will advance the stream even if it fails!
+		A false result should be considered an error.
+		*/
+		template <typename struct_t>
+		_Check_return_ inline bool Read(_Out_ struct_t &result, _In_ size_t offset)
+		{
+			return Read(reinterpret_cast<byte*>(&result), offset, sizeof(struct_t)) == sizeof(struct_t);
+		}
+		/*
 		Reads a specified amount of bytes from the file.
 		Returns the amount of bytes read.
 		*/

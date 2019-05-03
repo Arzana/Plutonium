@@ -8,20 +8,19 @@
   </ItemGroup>
 
   <Target Name="CompileGlslShaders" Condition="'@(SPIRVShader)' != ''" BeforeTargets="FinalizeBuildStatus">
+    <MakeDir Directories="$(OutDir)Shaders;$(IntDir)$(ProjectName).tlog"/>
+
     <ItemGroup>
       <SPIRVShader>
         <Outputs>$(OutDir)Shaders\%(Filename)%(Extension).spv</Outputs>
-        <Command>
-          if not exist "$(OutDir)shaders" mkdir "$(OutDir)shaders"
-          glslangValidator -V -o "$(OutDir)shaders\%(Filename)%(Extension).spv" "%(FullPath)"
-        </Command>
+        <Command>call glslangValidator -V -o "$(OutDir)Shaders\%(Filename)%(Extension).spv" "%(FullPath)"</Command>
       </SPIRVShader>
     </ItemGroup>
 
     <CustomBuild 
       Sources="@(SPIRVShader)" 
-      MinimalRebuildFromTracking="True" 
-      TrackerLogDirectory="$(TLogLocation)"
+      MinimalRebuildFromTracking="True"
+      TrackerLogDirectory="$(IntDir)$(ProjectName).tlog\"
       ErrorListRegex="(?'CATEGORY'ERROR|WARNING): (?'FILENAME'.+):(?'LINE'\d+): (?'TEXT'.*)"/>
   </Target>
 </Project>
