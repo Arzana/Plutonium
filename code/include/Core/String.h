@@ -26,6 +26,14 @@ namespace Pu
 			: string_t(alloc)
 		{}
 
+		/* Initializes a new instance of a Plutonium string with a specific amount of uninitialized characters. */
+		basic_string(_In_ size_t count, _In_opt_ const allocator_t &alloc = allocator_t())
+			: string_t(alloc)
+		{
+			string_t::reserve(count);
+			string_t::_Get_data()._Mysize = count;
+		}
+
 		/* Initializes a new instance of a Plutonium string with a specified amount of characters initializes to a specified value. */
 		basic_string(_In_ size_t count, _In_ char_t ch, _In_opt_ const allocator_t &alloc = allocator_t())
 			: string_t(count, ch, alloc)

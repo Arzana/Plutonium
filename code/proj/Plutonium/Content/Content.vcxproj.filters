@@ -50,5 +50,11 @@
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
       <Filter>Models</Filter>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Fire\fire.md2">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>

@@ -34,7 +34,7 @@ namespace Pu
 		_Check_return_ Stream& operator =(_In_ Stream&&) = delete;
 
 		/* Gets the magic number for a specified string on compile time. */
-		_Check_return_ constexpr static inline int32 GetMagicNum(_In_ const char *str, _In_opt_ int32 start = 0)
+		_Check_return_ constexpr static inline uint32 GetMagicNum(_In_ const char *str, _In_opt_ uint32 start = 0)
 		{
 			/*
 			Loop through string using recursion to allow it to be a constexpr function in C++11.

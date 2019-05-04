@@ -130,7 +130,7 @@ size_t Pu::FileReader::Read(byte * buffer, size_t offset, size_t amount)
 {
 	/* On debug check if file is open. */
 	FileNotOpen();
-	return fread(buffer + offset, 1, amount, hndlr);
+	return fread(buffer + offset, sizeof(byte), amount, hndlr);
 }
 
 string Pu::FileReader::ReadLine(void)
@@ -180,15 +180,15 @@ string Pu::FileReader::ReadToEnd(void)
 	/* Get the remaining length of the file. */
 	const int64 pos = GetPosition();
 	SeekInternal(SeekOrigin::End, 0);
-	const int64 len = GetPosition();
+	const size_t len = static_cast<size_t>(GetPosition());
 	SeekInternal(SeekOrigin::Begin, pos);
 
 	/* Allocate space for string and populate it. */
-	string result(len, ' ');
-	const size_t checkLen = Read(reinterpret_cast<byte*>(result.data()), 0, len);
+	string result(len);
+	const size_t checkLen = fread(result.data(), sizeof(char), len, hndlr);
 
 	/* Check for errors. */
-	if (static_cast<int64>(checkLen) > len) Log::Fatal("Expected length of string doesn't match actual length!");
+	if (checkLen > len) Log::Fatal("Expected length of string doesn't match actual length!");
 	return result;
 }
 
@@ -257,7 +257,7 @@ void Pu::FileReader::Open(void)
 			open = true;
 			Log::Verbose("Successfully opened file '%ls'.", fname.c_str());
 		}
-		else Log::Error("Failed to open file '%ls' (%ls)!", fname.c_str(), _CrtGetErrorString().c_str());
+		else Log::Error("Failed to open '%ls' (%ls)!", fpath.c_str(), _CrtGetErrorString().c_str());
 	}
 	else Log::Warning("Cannot open already opened file '%ls'!", fname.c_str());
 }

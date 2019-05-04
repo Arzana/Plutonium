@@ -34,7 +34,7 @@ private:
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
-	Pu::Mesh *mesh;
+	Pu::BufferView *mesh;
 	Pu::DescriptorSet *material;
 	TransformBlock *transform;
 

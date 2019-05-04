@@ -19,12 +19,12 @@ bool clstrcmp(const char *a, const char *b)
 	return true;
 }
 
-int main(int argc, char **argv)
+int run(int argc, char **argv)
 {
 	/*
-	Check the command line arguments for the needed settings.
-	Skip first as it's just the exe name.
-	*/
+Check the command line arguments for the needed settings.
+Skip first as it's just the exe name.
+*/
 	CLArgs args;
 	for (size_t i = 1; i < argc; i++)
 	{
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 		const size_t len = args.Input.length() - strlen(strrchr(args.Input.c_str(), '.'));
 		args.Output.resize(len, ' ');
 		memcpy(args.Output.data(), args.Input.c_str(), len);
-		
+
 		switch (args.Type)
 		{
 		case ContentType::PUM:
@@ -124,6 +124,19 @@ int main(int argc, char **argv)
 		return CompileToPum(args);
 	default:
 		Pu::Log::Error("Invalid type used in command line arguments!");
+		return EXIT_FAILURE;
+	}
+}
+
+int main(int argc, char **argv)
+{
+	try
+	{
+		return run(argc, argv);
+	}
+	catch (...)
+	{
+		/* This is to make sure that we don't crash on content compiling but simply return a failed state. */
 		return EXIT_FAILURE;
 	}
 }

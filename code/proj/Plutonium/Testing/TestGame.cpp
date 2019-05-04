@@ -6,6 +6,9 @@
 #include <Core/Diagnostics/CPU.h>
 #include <Graphics/UI/Rendering/BasicGuiBackgroundRenderer.h>
 
+#include <Streams/FileReader.h>
+#include <Content/PumLoader.h>
+
 using namespace Pu;
 
 TestGame::TestGame(void)
@@ -65,6 +68,7 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleList);
+		pipeline.SetCullMode(CullModeFlag::None);
 		pipeline.SetDepthStencilMode(true, true, false);
 		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
 		pipeline.Finalize();
@@ -86,8 +90,6 @@ void TestGame::Initialize(void)
 		/* Set offset for uv attribute (position is default). */
 		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
 		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
-		renderpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
-		renderpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -101,23 +103,16 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	GLTFFile file;
-	_CrtLoadGLTF(L"../assets/models/Monster/Monster.gltf", file);
+	FileReader file(L"assets/Models/knight.pum");
+	const string raw = file.ReadToEnd();
+	BinaryReader reader(raw.data(), raw.length(), Endian::Little);
+	PuMData pum(GetDevice(), reader);
 
-	/* Initialize the final vertex buffer and setup the staging buffer with our quad. */
-	vrtxBuffer = new Buffer(GetDevice(), file.Buffers[0].Size, BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+	mesh = new BufferView(*vrtxBuffer, pum.Geometry.front().VertexViewStart, pum.Geometry.front().VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
+	vrtxStagingBuffer = pum.Buffer;
 
-	vector<std::reference_wrapper<Buffer>> buffers;
-	buffers.emplace_back(*vrtxBuffer);
-	vector<StagingBuffer*> stagingBuffers;
-	vector<Mesh*> meshes;
-
-	_CrtLoadAndParseGLTF(file, buffers, stagingBuffers, meshes);
-	vrtxStagingBuffer = stagingBuffers[0];
-	mesh = meshes[0];
-
-	/* Load the texture. */
-	image = &GetContent().FetchTexture2D(file.Images[0].Uri, SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat), false);
+	image = &GetContent().FetchTexture2D(L"../assets/models/Knight/knight.bmp", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat), false);
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
@@ -199,15 +194,14 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	}
 
 	/* Render scene. */
-	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
+	cmdBuffer.AddLabel(u8"Knight", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
 	cmdBuffer.BindVertexBuffer(0, *mesh);
-	cmdBuffer.BindIndexBuffer(mesh->GetIndex());
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
-	cmdBuffer.Draw(static_cast<uint32>(mesh->GetIndex().GetElementCount()), 1, 0, 0, 0);
+	cmdBuffer.Draw(static_cast<uint32>(mesh->GetElementCount()), 1, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.EndLabel();

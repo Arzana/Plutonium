@@ -213,43 +213,6 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 	reader.Seek(SeekOrigin::Begin, static_cast<int64>(textureOffset));
 	for (uint32 i = 0; i < textureCount; i++) Textures.emplace_back(reader);
 
-	buffer = new StagingBuffer(device, bufferSize);
-	buffer->Load(reinterpret_cast<const byte*>(reader.GetData()) + bufferOffset);
-}
-
-Pu::PuMData::PuMData(PuMData && value)
-	: Version(value.Version), Identifier(std::move(value.Identifier)),
-	Nodes(std::move(value.Nodes)), Geometry(std::move(value.Geometry)),
-	Animations(std::move(value.Animations)), Skeletons(std::move(value.Skeletons)),
-	Materials(std::move(value.Materials)), Textures(std::move(value.Textures)),
-	buffer(value.buffer)
-{
-	value.buffer = nullptr;
-}
-
-Pu::PuMData::~PuMData(void)
-{
-	if (buffer) delete buffer;
-}
-
-Pu::PuMData& Pu::PuMData::operator=(PuMData && other)
-{
-	if (this != &other)
-	{
-		if (buffer) delete buffer;
-
-		Version = other.Version;
-		Identifier = std::move(other.Identifier);
-		Nodes = std::move(other.Nodes);
-		Geometry = std::move(other.Geometry);
-		Animations = std::move(other.Animations);
-		Skeletons = std::move(other.Skeletons);
-		Materials = std::move(other.Materials);
-		Textures = std::move(other.Textures);
-		buffer = other.buffer;
-
-		other.buffer = nullptr;
-	}
-
-	return *this;
+	Buffer = new StagingBuffer(device, bufferSize);
+	Buffer->Load(reinterpret_cast<const byte*>(reader.GetData()) + bufferOffset);
 }

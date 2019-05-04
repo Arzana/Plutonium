@@ -359,7 +359,7 @@ int LoadMd2(const Pu::string & path, Md2LoaderResult & result)
 
 void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 {
-	static std::regex regex("([a-zA-Z]+[0-9]*?)([0-9]{1,2})");
+	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]*)");
 
 	/*
 	MD2 doesn't have nodes but will always have one mesh.
@@ -399,13 +399,12 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 		std::smatch matches;
 		std::regex_match(frame.name, matches, regex);
 		const ustring animationName = string(matches[1].str()).toUTF32();
-		const size_t idx = std::stoull(matches[2].str());
 
 		/* Check if we already have this animation in the result list; if so just add the frame to it. */
 		vector<pum_animation>::iterator it = result.Animations.iteratorOf([animationName](const pum_animation &cur) { return cur.Identifier == animationName; });
 		if (it != result.Animations.end())
 		{	// Currently we assume that they're in the correct order already.... don't know if that's a good idea.
-			it->Frames.emplace_back(result.Geometry.size());
+			it->Frames.emplace_back(static_cast<uint32>(result.Geometry.size()));
 		}
 		else
 		{
@@ -422,7 +421,7 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 			}
 			else animation.Duration = 10.0f;	// Default to 10 seconds.
 
-			animation.Frames.emplace_back(result.Geometry.size());
+			animation.Frames.emplace_back(static_cast<uint32>(result.Geometry.size()));
 			result.Animations.emplace_back(std::move(animation));
 		}
 
@@ -442,7 +441,11 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 			{
 				/* Gets the vertex and calculate the final position. */
 				const md2_vertex_t &vrtx = frame.vertices[tris.vertex_indices[i]];
-				const Vector3 pos = frame.scale * vrtx.position + frame.translation;
+				const Vector2 uv = input.texcoords[tris.texture_indices[i]];
+
+				/* We need to pitch the model by -90 degrees to flip it the right way. */
+				Vector3 pos = frame.scale * vrtx.position + frame.translation;
+				pos = Vector3(pos.X, -pos.Z, -pos.Y);
 
 				/* Merge the point into the bounding box . */
 				if (firstVrtx)
@@ -453,10 +456,14 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 				}
 				else mesh.Bounds = mesh.Bounds.Merge(pos);
 
-				/* Write the vertex to the buffer. */
+				/* 
+				Write the vertex to the buffer.
+				Texture coordinates are stored in OpenGL's way,
+				so we flip them on the horizontal axis to be usable for Vulkan.
+				*/
 				result.Data.Write(pos);
 				result.Data.Write(vrtx.normal);
-				result.Data.Write(input.texcoords[tris.texture_indices[i]]);
+				result.Data.Write(Vector2(uv.X, 1.0f - uv.Y));
 			}
 		}
 

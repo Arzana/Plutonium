@@ -316,26 +316,10 @@ namespace Pu
 		vector<PumMaterial> Materials;
 		/* Defines the textures of the model. */
 		vector<PumTexture> Textures;
+		/* Defines the vertex and index data for the model (requires delete)! */
+		StagingBuffer *Buffer;
 
 		/* Initializes a new instance of a Plutonium model from a binary stream. */
 		PuMData(_In_ LogicalDevice &device, _In_ BinaryReader &reader);
-		PuMData(_In_ const PuMData&) = delete;
-		/* Move constructor. */
-		PuMData(_In_ PuMData &&value);
-		/* Releases the resources allocated by the PuM data. */
-		~PuMData(void);
-
-		_Check_return_ PuMData& operator =(_In_ const PuMData&) = delete;
-		/* Move assignment. */
-		_Check_return_ PuMData& operator =(_In_ PuMData &&other);
-
-		/* Gets the staging buffer containing the GPU data. */
-		_Check_return_ inline const StagingBuffer& GetData(void) const
-		{
-			return *buffer;
-		}
-
-	private:
-		StagingBuffer *buffer;
 	};
 }

@@ -21,7 +21,9 @@
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert" />
   </ItemGroup>
   <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\Fire\fire.md2" />
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2" />
+    <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
