@@ -1,129 +1,127 @@
 #include "CompileToPum.h"
 #include <Core/Diagnostics/Logging.h>
 
-/*
-Quickly checks if the command line argument matches.
-a is the input which is case insensitive.
-b is the match to check and must be upper case.
-*/
-bool clstrcmp(const char *a, const char *b)
+using namespace Pu;
+
+void logHelp(void)
 {
-	const size_t len = strlen(a);
-	if (strlen(b) != len) return false;
-
-	for (size_t i = 0; i < len; i++)
-	{
-		if (toupper(a[i]) != b[i]) return false;
-	}
-
-	return true;
+	Log::Message(
+		"Usage: ContentCompiler [option]... [file]\n\n"
+		"Options:\n"
+		"--help				Displays this message.\n"
+		"-o <path>			Specifies the output file.\n"
+		"-dn <name>			Overrides the default model name.\n"
+		"-n					(Re)calculate face normals.\n"
+		"-t					(Re)calculate vertex tangents.\n"
+		"-at <path>;<path>;	Adds the specified textures to the output model.");
 }
 
-int run(int argc, char **argv)
+int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 {
-	/*
-Check the command line arguments for the needed settings.
-Skip first as it's just the exe name.
-*/
-	CLArgs args;
-	for (size_t i = 1; i < argc; i++)
+	int state = EXIT_SUCCESS;
+
+	for (size_t i = 0; i < args.size(); i++)
 	{
-		if (!strcmp(argv[i], "-o"))
+		const string &cur = args[i];
+		const bool notLast = i + 1 < args.size();
+
+		if (cur == "--help")		// Help output.
 		{
-			if (i + 1 < argc) args.Output = argv[++i];
-			else
-			{
-				Pu::Log::Error("Missing path for output file after -o!");
-				args.IsValid = false;
-			}
-		}
-		else if (!strcmp(argv[i], "-t"))
-		{
-			if (i + i < argc)
-			{
-				i++;
-				if (clstrcmp(argv[i], "PUM")) args.Type = ContentType::PUM;
-				else
-				{
-					Pu::Log::Error("'%s' is not a valid content type!", argv[i]);
-					args.IsValid = false;
-				}
-			}
-			else Pu::Log::Error("Missing type for input type after -t!");
-		}
-		else if (!strcmp(argv[i], "-n"))
-		{
-			if (i + 1 < argc) args.DisplayName = argv[++i];
-			else Pu::Log::Error("Missing name for nput type after -n!");
-		}
-		else if (!strcmp(argv[i], "--help"))
-		{
-			Pu::Log::Message(
-				"Usage: ContentCompiler [option]... [file]\n\n"
-				"Options:\n"
-				"-t\tSpecifies the required compile type.\n"
-				"-o\tSpecifies the output file.");
+			logHelp();
 			return EXIT_SUCCESS;
 		}
-		else if (i + 1 >= argc) args.Input = argv[i];
+		else if (cur == "-o")		// Output path.
+		{
+			if (notLast) result.Output = args[++i];
+			else
+			{
+				Log::Error("Missing path for output file after -o!");
+				state = EXIT_FAILURE;
+			}
+		}
+		else if (cur == "-dn")		// Display name.
+		{
+			if (notLast) result.Output = args[++i];
+			else
+			{
+				Log::Error("Missing name for output file after -dn!");
+				state = EXIT_FAILURE;
+			}
+		}
+		else if (cur == "-n")		// Generate normals.
+		{
+			result.RecalcNormals = true;
+		}
+		else if (cur == "-t")		// Generate tangents.
+		{
+			result.RecalcTangents = true;
+		}
+		else if (cur == "-at")		// Additional textures.
+		{
+			if (notLast) result.AdditionalTextures = args[++i].split(';');
+			else
+			{
+				Log::Error("Missing textures for additional textures option!");
+				state = EXIT_FAILURE;
+			}
+		}
+		else if (!notLast)			// Input file (must be the last else if statement!).
+		{
+			result.Input = cur;
+		}
 		else
 		{
-			Pu::Log::Error("'%s' is not a valid command line argument!\nUse --help for help.", argv[i]);
-			args.IsValid = false;
+			Log::Error("'%s' is not recognized as a valid command line argument!", cur.c_str());
+			state = EXIT_FAILURE;
 		}
 	}
 
-	/* Make sure the input file was set. */
-	if (!args.Input.length())
+	return state;
+}
+
+int setDefaultArgs(CLArgs &args)
+{
+	/* Set the output type to the correct value. */
+	const string ext = args.Input.fileExtension().toUpper();
+	if (ext == "GLTF" || ext == "OBJ" || ext == "MD2") args.Type = ContentType::PUM;
+	else
 	{
-		Pu::Log::Error("No input file was specified!");
-		args.IsValid = false;
+		Log::Error("Cannot deduce output type from input file type '%s'!", ext.c_str());
+		return EXIT_FAILURE;
 	}
 
-	/* Try to generate the input file type. */
-	if (args.Type == ContentType::Unknown)
-	{
-		const char *ext = strrchr(args.Input.c_str(), '.') + 1;
+	/* Set the default display name if none is specified. */
+	if (args.DisplayName.empty()) args.DisplayName = args.Input.fileNameWithoutExtension();
 
-		if (clstrcmp(ext, "GLTF")) args.Type = ContentType::PUM;
-		else if (clstrcmp(ext, "OBJ")) args.Type = ContentType::PUM;
-		else if (clstrcmp(ext, "MD2")) args.Type = ContentType::PUM;
-		else
-		{
-			Pu::Log::Error("File type cannot be deduced from file extension, specify -t for the type!");
-			args.IsValid = false;
-		}
+	/* Set the default output file if none is specified. */
+	if (args.Output.empty())
+	{
+		args.Output = args.Input.fileWithoutExtension();
+		if (args.Type == ContentType::PUM) args.Output += ".pum";
 	}
 
-	/* Default the display name to the input file name without the extension. */
-	if (!args.DisplayName.length()) args.DisplayName = args.Input.fileNameWithoutExtension();
+	return EXIT_SUCCESS;
+}
 
-	/* Default set the output file. */
-	if (!args.Output.length())
+int run(const vector<string> &args)
+{
+	CLArgs finalArgs;
+
+	/* Check the user input. */
+	if (initCmdLineArgs(args, finalArgs) == EXIT_FAILURE) return EXIT_FAILURE;
+	if (setDefaultArgs(finalArgs) == EXIT_FAILURE) return EXIT_FAILURE;
+
+	/* Final command line check. */
+	if (finalArgs.Input.empty())
 	{
-		const size_t len = args.Input.length() - strlen(strrchr(args.Input.c_str(), '.'));
-		args.Output.resize(len, ' ');
-		memcpy(args.Output.data(), args.Input.c_str(), len);
-
-		switch (args.Type)
-		{
-		case ContentType::PUM:
-			args.Output += ".pum";
-			break;
-		default:	// This will can only occur if previous functions failed so just skip.
-			break;
-		}
+		Log::Error("No input file was specified!");
+		return EXIT_FAILURE;
 	}
 
-	/* Exit here is the command line argument were invalid. */
-	if (!args.IsValid) return EXIT_FAILURE;
-
-	switch (args.Type)
+	if (finalArgs.Type == ContentType::PUM) return CompileToPum(finalArgs);
+	else
 	{
-	case ContentType::PUM:
-		return CompileToPum(args);
-	default:
-		Pu::Log::Error("Invalid type used in command line arguments!");
+		Log::Fatal("Unknown type was set, this should never occur!");
 		return EXIT_FAILURE;
 	}
 }
@@ -132,7 +130,12 @@ int main(int argc, char **argv)
 {
 	try
 	{
-		return run(argc, argv);
+		vector<string> args;
+		args.reserve(argc);
+
+		/* Skip the exe identity. */
+		for (int i = 1; i < argc; i++) args.emplace_back(argv[i]);
+		return run(args);
 	}
 	catch (...)
 	{

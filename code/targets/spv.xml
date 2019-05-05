@@ -2,7 +2,7 @@
 <ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
   <ItemType Name="SPIRVShader" DisplayName="SPIR-V Shader"/>
   <ContentType Name="SPIRVShader" ItemType="SPIRVShader" DisplayName="SPIR-V Shader"/>
-  
+
   <FileExtension Name=".glsl" ContentType="SPIRVShader"/>
   <FileExtension Name=".vert" ContentType="SPIRVShader"/>
   <FileExtension Name=".tesc" ContentType="SPIRVShader"/>
@@ -10,4 +10,30 @@
   <FileExtension Name=".geom" ContentType="SPIRVShader"/>
   <FileExtension Name=".frag" ContentType="SPIRVShader"/>
   <FileExtension Name=".comp" ContentType="SPIRVShader"/>
+
+  <Rule Name="ConfigurationSpv" DisplayName="SPIR-V" PageTemplate="generic" Description="Options for glslangValidator.">
+    <Rule.DataSource>
+      <DataSource Persistence="ProjectFile" ItemType="SPIRVShader"/>
+    </Rule.DataSource>
+
+    <EnumProperty Name="LogHumanReadableSpv" DisplayName="Log Human Readable" Description="Whether to print a human readable version of the SPIR-V output.">
+      <EnumValue Name="-H" DisplayName="Yes (-H)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <EnumProperty Name="DisableOptimizationSpv" DisplayName="Disable Optimizations" Description="Whether to disable optimization for the SPIR-V output.">
+      <EnumValue Name="-Od" DisplayName="Yes (-Od)"/>
+      <EnumValue DisplayName="No" />
+    </EnumProperty>
+
+    <EnumProperty Name="MinimalSizeSpv" DisplayName="Minimal Size" Description="Whether to optimize the SPIR-V to minimize size.">
+      <EnumValue Name="-Os" DisplayName="Yes (-Os)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <EnumProperty Name="MultiThreaderSpv" DisplayName="Multi-processor Compilation" Description="Whether to enable multithreaded mode for glslangValidator.">
+      <EnumValue Name="-t" DisplayName="Yes (-t)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+  </Rule>
 </ProjectSchemaDefinitions>

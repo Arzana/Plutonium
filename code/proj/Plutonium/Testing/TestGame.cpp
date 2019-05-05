@@ -112,7 +112,7 @@ void TestGame::LoadContent(void)
 	mesh = new BufferView(*vrtxBuffer, pum.Geometry.front().VertexViewStart, pum.Geometry.front().VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
 	vrtxStagingBuffer = pum.Buffer;
 
-	image = &GetContent().FetchTexture2D(L"../assets/models/Knight/knight.bmp", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::Repeat), false);
+	image = &GetContent().FetchTexture2D(L"../assets/models/Knight/" + pum.Textures.front().Path.toWide(), pum.Textures.front().GetSamplerCreateInfo(), false);
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());

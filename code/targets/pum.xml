@@ -6,4 +6,24 @@
   <FileExtension Name=".md2" ContentType="PuModel"/>
   <FileExtension Name=".obj" ContentType="PuModel"/>
   <FileExtension Name=".gltf" ContentType="PuModel"/>
+
+  <Rule Name="ConfigurationPum" DisplayName="Models" PageTemplate="generic" Description="Options for PuM model compiler.">
+    <Rule.DataSource>
+      <DataSource Persistence="ProjectFile" ItemType="PuModel"/>
+    </Rule.DataSource>
+
+    <StringProperty Name="DisplayNamePum" DisplayName="Display Name" Description="Overrides the default ebug display name of the model."/>
+
+    <EnumProperty Name="RecalcNormalsPum" DisplayName="Recalculate Normals" Description="Forces the use of face normals in the output model and recalculates them if they are already defined.">
+      <EnumValue Name="-n" DisplayName="Yes (-n)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <EnumProperty Name="RecalcTangentsPum" DisplayName="Recalculate Tangents" Description="Forces the use of tangents in the output model and recalculates them if they are already defined.">
+      <EnumValue Name="-t" DisplayName="Yes (-t)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <StringListProperty Name="AdditionalTexturesPum" DisplayName="Additional Textures" Description="Includes the specified textures in the output file (used for missing textures)."/>
+  </Rule>
 </ProjectSchemaDefinitions>

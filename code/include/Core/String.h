@@ -284,6 +284,13 @@ namespace Pu
 			const size_type len = find_last_of({ static_cast<char_t>(U'/'), static_cast<char_t>(U'\\') });
 			return len != string_t::npos ? string_t::substr(0, len + 1) : basic_string<char_t>();
 		}
+
+		/* Gets the file directory and file name from the string, or an empty string if it could not be calculated. */
+		_Check_return_ basic_string<char_t> fileWithoutExtension(void) const
+		{
+			const size_type len = find_last_of(static_cast<char_t>(U'.'));
+			return len != string_t::npos ? string_t::substr(0, len) : basic_string<char_t>();
+		}
 #pragma endregion
 #pragma region queries
 		/* Gets whether the string contains a specified substring. */

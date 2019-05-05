@@ -162,6 +162,17 @@ Pu::PumTexture::PumTexture(BinaryReader & reader)
 	AddressModeV = _CrtInt2Enum<SamplerAddressMode>((flags & 0x60) >> 3);
 }
 
+Pu::SamplerCreateInfo Pu::PumTexture::GetSamplerCreateInfo(void) const
+{
+	SamplerCreateInfo info;
+	info.MagFilter = Magnification;
+	info.MinFilter = Minification;
+	info.MipmapMode = MipMap;
+	info.AddressModeU = AddressModeU;
+	info.AddressModeV = AddressModeV;
+	return info;
+}
+
 Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 {
 	if (reader.ReadUInt32() != Stream::GetMagicNum("PUM0"))

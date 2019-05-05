@@ -11,7 +11,9 @@ struct CLArgs
 {
 	Pu::string Input;							// Last argument (required).
 	Pu::string Output;							// -o (optional)
-	Pu::string DisplayName;						// -n (optional)
-	ContentType Type = ContentType::Unknown;	// -t (optional)
-	bool IsValid = true;
+	Pu::string DisplayName;						// -dn (optional)
+	ContentType Type = ContentType::Unknown;	// Generated (required).
+	bool RecalcNormals;							// -n (optional)
+	bool RecalcTangents;						// -t (optional)
+	Pu::vector<Pu::string> AdditionalTextures;	// -at (optional)
 };

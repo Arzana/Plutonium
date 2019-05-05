@@ -339,9 +339,9 @@ void readMd2Frames(FileReader &reader, const md2_header_t &header, Md2LoaderResu
 	}
 }
 
-int LoadMd2(const Pu::string & path, Md2LoaderResult & result)
+int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
 {
-	FileReader reader(path.toWide());
+	FileReader reader(args.Input.toWide());
 
 	/* Check if file is available. */
 	if (!reader.IsOpen()) Log::Fatal("Unable to open MD2 file!");
@@ -353,6 +353,9 @@ int LoadMd2(const Pu::string & path, Md2LoaderResult & result)
 	readMd2Triangles(reader, header, result);
 	readMd2Frames(reader, header, result);
 	// We don't handle OpenGL command so just ignore them.
+
+	/* Add the additional textures here so they get handled properly. */
+	for (const string &cur : args.AdditionalTextures) result.textures.emplace_back(cur);
 
 	return EXIT_SUCCESS;
 }
@@ -432,6 +435,7 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 		mesh.HasNormals = true;
 		mesh.HasTextureUvs = true;
 		mesh.VertexViewStart = static_cast<uint32>(result.Data.GetSize());
+		if (!input.textures.empty()) mesh.SetMaterial(0);	// Default set the material to the first one if we actually have textures.
 
 		/* Loop through all triangles in the model. */
 		bool firstVrtx = true;

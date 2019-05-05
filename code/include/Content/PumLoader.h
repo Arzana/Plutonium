@@ -293,6 +293,9 @@ namespace Pu
 
 		/* Initializes a new instance of a PuM texture from a binary stream. */
 		PumTexture(_In_ BinaryReader &reader);
+
+		/* Constructs the create information for a sampler from the options. */
+		_Check_return_ SamplerCreateInfo GetSamplerCreateInfo(void) const;
 	};
 
 	/* Defines the data loaded from a PuM file. */

@@ -52,5 +52,5 @@ namespace Pu
 	/* Defines the vertical offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */
 	constexpr uint32 FontAtlasVOffset = 2;
 	/* Defines whether to log a fatal exception on Vulkan validation errors instead of just loggin it. */
-	constexpr bool VulkanRaiseOnError = false;
+	constexpr bool VulkanRaiseOnError = true;
 }

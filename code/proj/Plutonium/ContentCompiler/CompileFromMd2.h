@@ -1,4 +1,5 @@
 #pragma once
+#include "CommandLineArguments.h"
 #include "PumData.h"
 
 /* Defines a simple 3 vertex face, defined by vertex indices and texture indices. */
@@ -46,5 +47,5 @@ struct Md2LoaderResult
 };
 
 /* Excecutes phase one of the MD2 loading and parsing process. */
-int LoadMd2(const Pu::string &path, Md2LoaderResult &result);
+int LoadMd2(const CLArgs &args, Md2LoaderResult &result);
 void Md2ToPum(const Md2LoaderResult &input, PumIntermediate &result);

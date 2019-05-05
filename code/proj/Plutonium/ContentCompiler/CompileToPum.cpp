@@ -202,7 +202,7 @@ int CompileToPum(const CLArgs & args)
 	{
 		Md2LoaderResult raw;
 
-		LoadMd2(args.Input, raw);
+		LoadMd2(args, raw);
 		Md2ToPum(raw, data);
 	}
 	else
