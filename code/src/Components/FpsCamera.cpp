@@ -1,6 +1,14 @@
 #include "Components/FpsCamera.h"
 #include "Application.h"
 
+#ifdef far
+#undef far
+#endif
+
+#ifdef near
+#undef near
+#endif
+
 Pu::FpsCamera::FpsCamera(Application & app)
 	: Camera(app), near(0.1f), far(1000.0f), fov(PI4),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f)

@@ -1094,6 +1094,8 @@ namespace Pu
 	/* Defines how and when result are returned. */
 	enum class QueryResultFlag
 	{
+		/* No flags were set. */
+		None = 0x00000000,
 		/* Specifies the result will be written as an array of 64-bit unsigned values. */
 		Result64Bit = 0x00000001,
 		/* Specifies that Vulkan will wait for each query's status to become available before retrieving its results. */
@@ -1533,6 +1535,12 @@ namespace Pu
 	_Check_return_ inline ImageAspectFlag operator |(_In_ ImageAspectFlag a, _In_ ImageAspectFlag b)
 	{
 		return _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an query result flag. */
+	_Check_return_ inline QueryResultFlag operator |=(_In_ QueryResultFlag &a, _In_ QueryResultFlag b)
+	{
+		return a = _CrtEnumBitOr(a, b);
 	}
 
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)

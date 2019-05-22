@@ -1,6 +1,5 @@
 #include "TestGame.h"
 #include <Input/Keys.h>
-#include <Content/GLTFParser.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Core/Diagnostics/CPU.h>
@@ -60,6 +59,7 @@ void TestGame::Initialize(void)
 
 	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
+	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
 
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice(), 2);
@@ -141,6 +141,7 @@ void TestGame::Finalize(void)
 	delete transform;
 	delete pipeline;
 	delete depthBuffer;
+	delete queryPool;
 }
 
 void TestGame::Update(float)
@@ -197,6 +198,10 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		}
 	}
 
+	/* Timestamps. */
+	cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queryPool, 0);
+	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queryPool, 1);
+
 	/* Render scene. */
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
@@ -214,13 +219,20 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	/* Render debug text. */
 	if (!firstTextRender)
 	{
-		ustring text = U"Fps: ";
-		text += ustring::from(iround(1.0f / dt));
-		text += U"\nCPU Usage: ";
-		text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
-		text += U'%';
+		vector<uint32> timestamps = queryPool->GetResults(0, 2, true, false);
+		if (timestamps[0])
+		{
+			const float period = GetDevice().GetPhysicalDevice().GetLimits().TimestampPeriod;
 
-		item->SetText(text);
+			ustring text = ustring::from((timestamps[1] - timestamps[0]) * period  * 0.000001f);
+			text += U" ms";
+			text += U"\nCPU Usage: ";
+			text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
+			text += U'%';
+
+			item->SetText(text);
+		}
+
 		item->Render(*uiRenderer);
 		uiRenderer->Render(cmdBuffer);
 	}

@@ -2,7 +2,6 @@
 #include <Application.h>
 #include <Graphics/Text/Font.h>
 #include <Components/FreeCamera.h>
-#include <Graphics/Resources/Mesh.h>
 #include <Graphics/Text/TextRenderer.h>
 #include <Graphics/UI/Items/Button.h>
 #include "TransformBlock.h"
@@ -36,6 +35,7 @@ private:
 	Pu::Texture2D *image;
 	Pu::BufferView *mesh, *index;
 	Pu::DescriptorSet *material;
+	Pu::QueryPool *queryPool;
 	TransformBlock *transform;
 
 	Pu::Font *font;

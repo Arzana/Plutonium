@@ -657,6 +657,9 @@
     <ClInclude Include="..\..\..\include\Content\PumLoader.h">
       <Filter>Header Files\Content</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\QueryPool.h">
+      <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -928,6 +931,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Content\PumLoader.cpp">
       <Filter>Source Files\Content</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\QueryPool.cpp">
+      <Filter>Source Files\Graphics\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

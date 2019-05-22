@@ -148,6 +148,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdBindIndexBuffer);
 	LOAD_DEVICE_PROC(vkCmdDrawIndexed);
 	LOAD_DEVICE_PROC(vkCmdCopyImageToBuffer);
+	LOAD_DEVICE_PROC(vkCmdWriteTimestamp);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);
@@ -205,6 +206,11 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateDescriptorSetLayout);
 	LOAD_DEVICE_PROC(vkDestroyDescriptorSetLayout);
 	LOAD_DEVICE_PROC(vkUpdateDescriptorSets);
+
+	/* Query related functions. */
+	LOAD_DEVICE_PROC(vkCreateQueryPool);
+	LOAD_DEVICE_PROC(vkDestroyQueryPool);
+	LOAD_DEVICE_PROC(vkGetQueryPoolResults);
 }
 
 void Pu::LogicalDevice::Destory(void)

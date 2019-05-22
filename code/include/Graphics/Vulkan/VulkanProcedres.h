@@ -98,6 +98,10 @@ namespace Pu
 	using PFN_vkQueueEndDebugUtilsLabelEXT = void(VKAPI_PTR)(_In_ QueueHndl queue);
 	using PFN_vkCmdBeginDebugUtilsLabelEXT = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ const DebugUtilsLabel *labelInfo);
 	using PFN_vkCmdEndDebugUtilsLabelEXT = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
+	using PFN_vkCreateQueryPool = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const QueryPoolCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ QueryPoolHndl *queryPool);
+	using PFN_vkDestroyQueryPool = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkGetQueryPoolResults = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ size_t dataSize, _Out_ void *data, _In_ DeviceSize stride, _In_ QueryResultFlag flags);
+	using PFN_vkCmdWriteTimestamp = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag pipelineStage, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

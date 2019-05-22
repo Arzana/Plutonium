@@ -206,6 +206,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Loader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\QueryPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Attribute.h" />
@@ -317,6 +318,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Instance.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\QueryPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Attribute.cpp" />

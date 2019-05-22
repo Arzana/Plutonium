@@ -1,8 +1,9 @@
 #pragma once
-#include "Graphics/Resources/BufferAccessor.h"
+#include "Graphics/Resources/BufferView.h"
 #include "Shaders/GraphicsPipeline.h"
 #include "Graphics/Color.h"
 #include "Framebuffer.h"
+#include "QueryPool.h"
 #include "Fence.h"
 
 namespace Pu
@@ -92,6 +93,8 @@ namespace Pu
 		void AddLabel(_In_ const string &name, _In_ Color color);
 		/* Ends the last added label in the command buffer (only active on debug). */
 		void EndLabel(void);
+		/* Writes a timestamp at a specific point in the pipeline to the specific query. */
+		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
 
 	private:
 		friend class CommandPool;

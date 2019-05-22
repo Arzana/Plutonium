@@ -69,6 +69,7 @@ namespace Pu
 		friend class DescriptorPool;
 		friend class DescriptorSet;
 		friend class Sampler;
+		friend class QueryPool;
 
 		PhysicalDevice &parent;
 		DeviceHndl hndl;
@@ -105,6 +106,7 @@ namespace Pu
 		PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
 		PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 		PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
+		PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
@@ -144,6 +146,9 @@ namespace Pu
 		PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
 		PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 		PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
+		PFN_vkCreateQueryPool vkCreateQueryPool;
+		PFN_vkDestroyQueryPool vkDestroyQueryPool;
+		PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

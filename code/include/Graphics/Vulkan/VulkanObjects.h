@@ -3137,6 +3137,40 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information needed to create a new query pool. */
+	struct QueryPoolCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* The type of queries managed by the pool. */
+		QueryType QueryType;
+		/* The number of queries managed by the pool. */
+		uint32 QueryCount;
+		/* Specifies which counters will be returned in queries on the new pool. */
+		QueryPipelineStatisticFlag PipelineStatistics;
+
+		/* Initializes an empty instance of a query pool create info object. */
+		QueryPoolCreateInfo(void)
+			: QueryPoolCreateInfo(QueryType::Timestamp, 0)
+		{}
+
+		/* Initializes a new instance of a query pool create info object. */
+		QueryPoolCreateInfo(_In_ Pu::QueryType type, _In_ uint32 count)
+			: QueryPoolCreateInfo(type, count, QueryPipelineStatisticFlag::None)
+		{}
+
+		/* Initializes a new instance of a query pool create info object. */
+		QueryPoolCreateInfo(_In_ Pu::QueryType type, _In_ uint32 count, _In_ QueryPipelineStatisticFlag stats)
+			: Type(StructureType::QueryPoolCreatInfo), Next(nullptr), Flags(0),
+			QueryType(type), QueryCount(count), PipelineStatistics(stats)
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

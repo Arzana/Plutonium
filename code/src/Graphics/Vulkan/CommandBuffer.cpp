@@ -274,6 +274,11 @@ void Pu::CommandBuffer::EndLabel(void)
 #endif
 }
 
+void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool, uint32 queryIndex)
+{
+	if (CheckIfRecording("write timestamp")) parent.parent.vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(pool), hndl(hndl), state(State::Initial)
 {
