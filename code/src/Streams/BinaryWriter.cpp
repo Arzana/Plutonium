@@ -186,11 +186,11 @@ void Pu::BinaryWriter::Write(const byte * data, size_t offset, size_t amount)
 
 	if (endian == NativeEndian)
 	{
-		for (size_t i = offset; i < amount; i++, size++) this->data[size] = data[i];
+		for (size_t i = offset; i < offset + amount; i++) this->data[size++] = data[i];
 	}
 	else
 	{
-		for (size_t i = amount; i > offset; i--, size++) this->data[size] = data[i];
+		for (size_t i = offset + amount; i > offset;) this->data[size++] = data[i];
 		this->data[size++] = data[offset];
 	}
 }

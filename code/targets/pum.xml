@@ -2,7 +2,7 @@
 <ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
   <ItemType Name="PuModel" DisplayName="Plutonium Model"/>
   <ContentType Name="PuModel" ItemType="PuModel" DisplayName="Plutonium Model"/>
-  
+
   <FileExtension Name=".md2" ContentType="PuModel"/>
   <FileExtension Name=".obj" ContentType="PuModel"/>
   <FileExtension Name=".gltf" ContentType="PuModel"/>
@@ -21,6 +21,11 @@
 
     <EnumProperty Name="RecalcTangentsPum" DisplayName="Recalculate Tangents" Description="Forces the use of tangents in the output model and recalculates them if they are already defined.">
       <EnumValue Name="-t" DisplayName="Yes (-t)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <EnumProperty Name="ReorderFaceVerticesPum" DisplayName="Reorder Face Vertices" Description="Reorders the vertices in the faces according to their normals to work with backface culling.">
+      <EnumValue Name="-rf" DisplayName="Yes (-rf)"/>
       <EnumValue DisplayName="No"/>
     </EnumProperty>
 

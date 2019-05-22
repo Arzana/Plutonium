@@ -284,8 +284,6 @@ struct pum_texture
 
 struct PumIntermediate
 {
-	Pu::ustring Identifier;
-
 	Pu::vector<pum_node> Nodes;
 	Pu::vector<pum_mesh> Geometry;
 	Pu::vector<pum_animation> Animations;

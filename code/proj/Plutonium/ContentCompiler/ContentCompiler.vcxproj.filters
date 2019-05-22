@@ -20,6 +20,9 @@
     <ClCompile Include="CompileFromMd2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CompileFromGltf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h">
@@ -32,6 +35,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PumData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileFromGltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

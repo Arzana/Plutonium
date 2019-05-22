@@ -12,6 +12,11 @@ namespace Pu
 			: r(1.0f), i(0.0f), j(0.0f), k(0.0f)
 		{}
 
+		/* Initializes a new instance of a quaternion with specific components. */
+		Quaternion(_In_ float r, _In_ float i, _In_ float j, _In_ float k)
+			: r(r), i(i), j(j), k(k)
+		{}
+
 		/* Adds the input vector to the quaternion. */
 		_Check_return_ inline Quaternion operator +(_In_ Quaternion q) const
 		{
@@ -109,10 +114,6 @@ namespace Pu
 		friend float dot(Quaternion, Quaternion);
 
 		float i, j, k, r;
-
-		Quaternion(float r, float i, float j, float k)
-			: r(r), i(i), j(j), k(k)
-		{}
 	};
 
 	/* Calculates the dot product of the two specified quaternions. */

@@ -23,8 +23,9 @@
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Fire\fire.md2" />
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
-      <AdditionalTexturesPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">knight.bmp;%(AdditionalTexturesPum)</AdditionalTexturesPum>
+      <AdditionalTexturesPum>knight.bmp;%(AdditionalTexturesPum)</AdditionalTexturesPum>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\Monster\Monster.gltf" />
     <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

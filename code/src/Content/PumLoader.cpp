@@ -57,6 +57,8 @@ Pu::PumFrame::PumFrame(BinaryReader & reader)
 	Translation = reader.ReadVector3();
 	Rotation = reader.ReadQuaternion();
 	Scale = reader.ReadVector3();
+	Bounds.LowerBound = reader.ReadVector3();
+	Bounds.UpperBound = reader.ReadVector3();
 }
 
 Pu::PumSequence::PumSequence(BinaryReader & reader)

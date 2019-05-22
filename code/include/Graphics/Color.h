@@ -132,6 +132,13 @@ namespace Pu
 			return result;
 		}
 
+		/* Defines the specular color of a dielectric material. */
+		_Check_return_ static inline Color CodGray(void)
+		{
+			static Color result((byte)0x0A, 0x0A, 0x0A);
+			return result;
+		}
+
 		/* Defines a green opaque color. */
 		_Check_return_ static inline Color Green(void)
 		{

@@ -10,6 +10,7 @@
       <Item Name="Size">size</Item>
       <Item Name="Line spacing">lineSpace</Item>
       <Item Name="Default glyph">glyphs[defaultGlyphIndex]</Item>
+      <Item Name="Glyphs">glyphs</Item>
     </Expand>
   </Type>
 </AutoVisualizer>

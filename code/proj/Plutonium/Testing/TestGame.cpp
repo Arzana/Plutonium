@@ -68,7 +68,6 @@ void TestGame::Initialize(void)
 		/* Set viewport, topology and add the vertex binding. */
 		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
 		pipeline.SetTopology(PrimitiveTopology::TriangleList);
-		pipeline.SetCullMode(CullModeFlag::None);
 		pipeline.SetDepthStencilMode(true, true, false);
 		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
 		pipeline.Finalize();
@@ -90,6 +89,8 @@ void TestGame::Initialize(void)
 		/* Set offset for uv attribute (position is default). */
 		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
 		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		renderpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
+		renderpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
@@ -103,16 +104,18 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	FileReader file(L"assets/Models/knight.pum");
+	FileReader file(L"assets/Models/Monster.pum");
 	const string raw = file.ReadToEnd();
 	BinaryReader reader(raw.data(), raw.length(), Endian::Little);
 	PuMData pum(GetDevice(), reader);
+	PumMesh &geometry = pum.Geometry.front();
 
-	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
-	mesh = new BufferView(*vrtxBuffer, pum.Geometry.front().VertexViewStart, pum.Geometry.front().VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
+	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+	mesh = new BufferView(*vrtxBuffer, geometry.VertexViewStart, geometry.VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
+	index = new BufferView(*vrtxBuffer, geometry.IndexViewStart, geometry.IndexViewSize, sizeof(uint16));
 	vrtxStagingBuffer = pum.Buffer;
 
-	image = &GetContent().FetchTexture2D(L"../assets/models/Knight/" + pum.Textures.front().Path.toWide(), pum.Textures.front().GetSamplerCreateInfo(), false);
+	image = &GetContent().FetchTexture2D(pum.Textures.front().Path.toWide(), pum.Textures.front().GetSamplerCreateInfo(), false);
 
 	/* Load the content for the fonts. */
 	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
@@ -123,6 +126,7 @@ void TestGame::UnLoadContent(void)
 	GetContent().Release(*image);
 	GetContent().Release(*font);
 
+	delete index;
 	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
@@ -194,14 +198,15 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	}
 
 	/* Render scene. */
-	cmdBuffer.AddLabel(u8"Knight", Color::Lime());
+	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
+	cmdBuffer.BindIndexBuffer(*index, IndexType::UInt16);
 	cmdBuffer.BindVertexBuffer(0, *mesh);
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
-	cmdBuffer.Draw(static_cast<uint32>(mesh->GetElementCount()), 1, 0, 0);
+	cmdBuffer.Draw(static_cast<uint32>(index->GetElementCount()), 1, 0, 0, 0);
 
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.EndLabel();

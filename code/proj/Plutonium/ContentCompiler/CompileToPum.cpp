@@ -1,5 +1,6 @@
 #include "CompileToPum.h"
 #include "CompileFromMd2.h"
+#include "CompileFromGltf.h"
 #include <Streams/FileWriter.h>
 #include <Streams/BinaryWriter.h>
 
@@ -72,7 +73,7 @@ int SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 			writer.Write(mesh.VertexViewSize);
 
 			if (mesh.WriteMaterialIndex) writer.Write(mesh.Material);
-			if (mesh.IndexMode)
+			if (mesh.IndexMode != 2)
 			{
 				writer.Write(mesh.IndexViewStart);
 				writer.Write(mesh.IndexViewSize);
@@ -203,7 +204,14 @@ int CompileToPum(const CLArgs & args)
 		Md2LoaderResult raw;
 
 		LoadMd2(args, raw);
-		Md2ToPum(raw, data);
+		Md2ToPum(args, raw, data);
+	}
+	else if (ext == "GLTF" || ext == "GLB")
+	{
+		GLTFLoaderResult raw;
+
+		LoadGLTF(args, raw);
+		GltfToPum(args, raw, data);
 	}
 	else
 	{

@@ -13,6 +13,7 @@ void logHelp(void)
 		"-dn <name>			Overrides the default model name.\n"
 		"-n					(Re)calculate face normals.\n"
 		"-t					(Re)calculate vertex tangents.\n"
+		"-rf				Reorders the verices in the faces to match backface culling.\n"
 		"-at <path>;<path>;	Adds the specified textures to the output model.");
 }
 
@@ -50,7 +51,12 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 		}
 		else if (cur == "-n")		// Generate normals.
 		{
-			result.RecalcNormals = true;
+			if (!result.ReorderFaces) result.RecalcNormals = true;
+			else
+			{
+				Log::Error("Recalculate normals (-n) cannot be active at the same time as reoder face vertices (-rf)!");
+				state = EXIT_FAILURE;
+			}
 		}
 		else if (cur == "-t")		// Generate tangents.
 		{
@@ -62,6 +68,15 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 			else
 			{
 				Log::Error("Missing textures for additional textures option!");
+				state = EXIT_FAILURE;
+			}
+		}
+		else if (cur == "-rf")		// Reorder face vertices.
+		{
+			if (!result.RecalcNormals) result.ReorderFaces = true;
+			else
+			{
+				Log::Error("Reoder face vertices (-rf) cannot be active at the same time as recalculate normales (-n)!");
 				state = EXIT_FAILURE;
 			}
 		}
@@ -83,7 +98,7 @@ int setDefaultArgs(CLArgs &args)
 {
 	/* Set the output type to the correct value. */
 	const string ext = args.Input.fileExtension().toUpper();
-	if (ext == "GLTF" || ext == "OBJ" || ext == "MD2") args.Type = ContentType::PUM;
+	if (ext == "GLTF" || ext == "GLB" || ext == "OBJ" || ext == "MD2") args.Type = ContentType::PUM;
 	else
 	{
 		Log::Error("Cannot deduce output type from input file type '%s'!", ext.c_str());

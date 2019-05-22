@@ -48,4 +48,4 @@ struct Md2LoaderResult
 
 /* Excecutes phase one of the MD2 loading and parsing process. */
 int LoadMd2(const CLArgs &args, Md2LoaderResult &result);
-void Md2ToPum(const Md2LoaderResult &input, PumIntermediate &result);
+void Md2ToPum(const CLArgs &args, Md2LoaderResult &input, PumIntermediate &result);

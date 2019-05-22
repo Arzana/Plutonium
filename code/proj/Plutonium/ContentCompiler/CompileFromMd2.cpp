@@ -360,9 +360,9 @@ int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
 	return EXIT_SUCCESS;
 }
 
-void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
+void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & result)
 {
-	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]*)");
+	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]{1,2})");
 
 	/*
 	MD2 doesn't have nodes but will always have one mesh.
@@ -439,7 +439,7 @@ void Md2ToPum(const Md2LoaderResult & input, PumIntermediate & result)
 
 		/* Loop through all triangles in the model. */
 		bool firstVrtx = true;
-		for (const md2_triangle_t &tris : input.shapes)
+		for (md2_triangle_t &tris : input.shapes)
 		{
 			for (size_t i = 0; i < 3; i++)
 			{

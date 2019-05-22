@@ -14,8 +14,8 @@ namespace Pu
 		/* The texture coordinate of the vertex. */
 		Vector2 TexCoord;
 		/* The indeces of the joints affecting the vertex. */
-		//uint16 Joints[4];
+		uint16 Joints[4];
 		/* The weights of each joints. */
-		//Vector4 Weights;
+		Vector4 Weights;
 	};
 }

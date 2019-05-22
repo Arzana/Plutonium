@@ -217,29 +217,11 @@ void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const BufferView & view
 	}
 }
 
-void Pu::CommandBuffer::BindIndexBuffer(const BufferAccessor & accessor)
+void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 {
 	if (CheckIfRecording("bind index buffer"))
 	{
-		IndexType type;
-		if (accessor.GetElementType().ContainerType == SizeType::Scalar)
-		{
-			switch (accessor.elementType.ComponentType)
-			{
-			case ComponentType::UShort:
-				type = IndexType::UInt16;
-				break;
-			case ComponentType::UInt:
-				type = IndexType::UInt32;
-				break;
-			default:
-				Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName().c_str());
-				return;
-			}
-
-			parent.parent.vkCmdBindIndexBuffer(hndl, accessor.view.buffer.bufferHndl, static_cast<DeviceSize>(accessor.view.offset + accessor.offset), type);
-		}
-		else Log::Fatal("Accessor of element type '%s' cannot be used as an index buffer!", accessor.elementType.GetName().c_str());
+		parent.parent.vkCmdBindIndexBuffer(hndl, view.buffer.bufferHndl, static_cast<DeviceSize>(view.offset), type);
 	}
 }
 

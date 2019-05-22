@@ -104,8 +104,6 @@
     <ClInclude Include="..\..\..\include\Content\AssetFetcher.h" />
     <ClInclude Include="..\..\..\include\Content\AssetLoader.h" />
     <ClInclude Include="..\..\..\include\Content\AssetSaver.h" />
-    <ClInclude Include="..\..\..\include\Content\GLTFLoader.h" />
-    <ClInclude Include="..\..\..\include\Content\GLTFParser.h" />
     <ClInclude Include="..\..\..\include\Content\Patern.h" />
     <ClInclude Include="..\..\..\include\Content\PumLoader.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\pool.h" />
@@ -162,11 +160,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Resources\BufferAccessor.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\BufferView.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\DynamicBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Resources\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\StagingBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\DepthBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\ImageSaveFormats.h" />
@@ -262,8 +258,6 @@
     <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetLoader.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetSaver.cpp" />
-    <ClCompile Include="..\..\..\src\Content\GLTFLoader.cpp" />
-    <ClCompile Include="..\..\..\src\Content\GLTFParser.cpp" />
     <ClCompile Include="..\..\..\src\Content\Patern.cpp" />
     <ClCompile Include="..\..\..\src\Content\PumLoader.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\CPU.cpp" />
@@ -291,11 +285,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Resources\BufferAccessor.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\BufferView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\DynamicBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Resources\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\StagingBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\DepthBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Sampler.cpp" />
