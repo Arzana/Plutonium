@@ -3,13 +3,13 @@
 #include "Core/EnumUtils.h"
 
 Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const SwapchainCreateInfo & createInfo)
-	: parent(device), format(createInfo.ImageFormat)
+	: parent(&device), format(createInfo.ImageFormat)
 {
 	/* Check if the information specified is correct. */
 	if (!CanCreateInternal(device.GetPhysicalDevice(), surface, createInfo, true)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
 
 	/* Create swapchain. */
-	VK_VALIDATE(parent.vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);
+	VK_VALIDATE(parent->vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);
 
 	AquireImages(createInfo);
 
@@ -46,7 +46,7 @@ bool Pu::Swapchain::CanCreate(const PhysicalDevice & physicalDevice, const Surfa
 Pu::uint32 Pu::Swapchain::NextImage(const Semaphore & semaphore, uint64 timeout) const
 {
 	uint32 image;
-	VK_VALIDATE(parent.vkAcquireNextImageKHR(parent.hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
+	VK_VALIDATE(parent->vkAcquireNextImageKHR(parent->hndl, hndl, timeout, semaphore.hndl, nullptr, &image), PFN_vkAcquireNextImageKHR);
 	return image;
 }
 
@@ -131,22 +131,22 @@ void Pu::Swapchain::AquireImages(const SwapchainCreateInfo & createInfo)
 {
 	/* Get how mnay images the swapchain has created. */
 	uint32 imageCount;
-	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, nullptr), PFN_vkGetSwapchainImagesKHR);
+	VK_VALIDATE(parent->vkGetSwapchainImagesKHR(parent->hndl, hndl, &imageCount, nullptr), PFN_vkGetSwapchainImagesKHR);
 
 	/* Aquire the handles to all swapchain images. */
 	vector<ImageHndl> handles(imageCount, nullptr);
-	VK_VALIDATE(parent.vkGetSwapchainImagesKHR(parent.hndl, hndl, &imageCount, handles.data()), PFN_vkGetSwapchainImagesKHR);
+	VK_VALIDATE(parent->vkGetSwapchainImagesKHR(parent->hndl, hndl, &imageCount, handles.data()), PFN_vkGetSwapchainImagesKHR);
 
 	/* Create image handler and image views. */
 	const Extent3D extent(createInfo.ImageExtent, 0);
 	for (size_t i = 0; i < imageCount; i++)
 	{
-		images.emplace_back(Image(parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlag::MemoryRead));
+		images.emplace_back(Image(*parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlag::MemoryRead));
 		views.emplace_back(images[i], ImageAspectFlag::Color);
 	}
 }
 
 void Pu::Swapchain::Destroy(void)
 {
-	if (hndl) parent.vkDestroySwapchainKHR(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroySwapchainKHR(parent->hndl, hndl, nullptr);
 }

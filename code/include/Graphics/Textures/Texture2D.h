@@ -21,7 +21,7 @@ namespace Pu
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent2D GetSize(void) const 
 		{
-			return Image.GetExtent().To2D();
+			return Image->GetExtent().To2D();
 		}
 	};
 }

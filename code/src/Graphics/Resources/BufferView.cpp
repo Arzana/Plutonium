@@ -1,11 +1,11 @@
 #include "Graphics/Resources/BufferView.h"
 
 Pu::BufferView::BufferView(Buffer & buffer, size_t stride)
-	: buffer(buffer), offset(0), size(buffer.size), stride(stride)
+	: buffer(&buffer), offset(0), size(buffer.size), stride(stride)
 {}
 
 Pu::BufferView::BufferView(Buffer & buffer, size_t offset, size_t size, size_t stride)
-	: buffer(buffer), offset(offset), size(size), stride(stride)
+	: buffer(&buffer), offset(offset), size(size), stride(stride)
 {}
 
 Pu::BufferView::BufferView(const BufferView & value)
@@ -20,7 +20,7 @@ Pu::BufferView & Pu::BufferView::operator=(BufferView && other)
 {
 	if (this != &other)
 	{
-		buffer = std::move(other.buffer);
+		buffer = other.buffer;
 		offset = other.offset;
 		size = other.size;
 		stride = other.stride;
@@ -35,6 +35,6 @@ Pu::BufferView & Pu::BufferView::operator=(BufferView && other)
 void Pu::BufferView::SetData(const void * data, size_t internalOffset, size_t elementSize, size_t elementCount)
 {
 	/* Stride is either the view stride (if set) or just the element stride. */
-	buffer.SetData(data, elementSize * elementCount, elementSize, offset + internalOffset, stride ? stride : elementSize);
+	buffer->SetData(data, elementSize * elementCount, elementSize, offset + internalOffset, stride ? stride : elementSize);
 }
 #pragma warning(pop)

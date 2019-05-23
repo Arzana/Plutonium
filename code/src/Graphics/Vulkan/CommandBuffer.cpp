@@ -20,7 +20,7 @@ const char* to_string(Pu::CommandBuffer::State state)
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandBuffer && value)
-	: parent(value.parent), hndl(value.hndl), state(value.state), submitFence(value.submitFence)
+	: parent(value.parent), device(value.device), hndl(value.hndl), state(value.state), submitFence(value.submitFence)
 {
 	value.hndl = nullptr;
 	value.submitFence = nullptr;
@@ -40,7 +40,8 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 		Free();
 
 		hndl = other.hndl;
-		parent = std::move(other.parent);
+		parent = other.parent;
+		device = other.device;
 		state = other.state;
 		submitFence = other.submitFence;
 
@@ -95,7 +96,7 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstB
 		const BufferCopy region(0, 0, srcBuffer.GetSize());
 
 		/* Append command to the command buffer and set the new element count for the buffer. */
-		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
+		device->vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
 	}
 }
 
@@ -104,7 +105,7 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destinat
 	if (CheckIfRecording("copy buffer to image"))
 	{
 		const BufferImageCopy region(destination.GetExtent());
-		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
+		device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
 	}
 }
 
@@ -113,7 +114,7 @@ void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destinati
 	if (CheckIfRecording("copy image to buffer"))
 	{
 		const BufferImageCopy region(source.GetExtent());
-		parent.parent.vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, 1, &region);
+		device->vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, 1, &region);
 	}
 }
 
@@ -122,7 +123,7 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer,
 	if (CheckIfRecording("copy buffer"))
 	{
 		/* Append command to the command buffer and set the new element count for the buffer. */
-		parent.parent.vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
+		device->vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 	}
 }
 
@@ -130,7 +131,7 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, c
 {
 	if (CheckIfRecording("copy buffer to image"))
 	{
-		parent.parent.vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
+		device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
 	}
 }
 
@@ -138,7 +139,7 @@ void Pu::CommandBuffer::CopyImage(const Image & source, Buffer & destination, co
 {
 	if (CheckIfRecording("copy image to buffer"))
 	{
-		parent.parent.vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
+		device->vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 	}
 }
 
@@ -152,7 +153,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 		barrier.DstAccessMask = dstAccess;
 
 		/* Append the command. */
-		parent.parent.vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 1, &barrier, 0, nullptr);
+		device->vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 1, &barrier, 0, nullptr);
 
 		/* Set new buffer access. */
 		buffer.srcAccess = dstAccess;
@@ -172,7 +173,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 		barrier.SubresourceRange = range;
 
 		/* Append the command. */
-		parent.parent.vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 0, nullptr, 1, &barrier);
+		device->vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 0, nullptr, 1, &barrier);
 
 		/* Set new image access and layout. */
 		image.access = dstAccess;
@@ -184,7 +185,7 @@ void Pu::CommandBuffer::ClearImage(Image & image, Color color)
 {
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);
 
-	if (CheckIfRecording("clear image")) parent.parent.vkCmdClearColorImage(hndl, image.imageHndl, image.layout, color.ToClearColor(), 1, &range);
+	if (CheckIfRecording("clear image")) device->vkCmdClearColorImage(hndl, image.imageHndl, image.layout, color.ToClearColor(), 1, &range);
 }
 
 void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Framebuffer & framebuffer, SubpassContents contents)
@@ -200,20 +201,20 @@ void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Fra
 		info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
 		info.ClearValues = renderPass.clearValues.data();
 
-		parent.parent.vkCmdBeginRenderPass(hndl, &info, contents);
+		device->vkCmdBeginRenderPass(hndl, &info, contents);
 	}
 }
 
 void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 {
-	if (CheckIfRecording("bind graphics pipeline")) parent.parent.vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
+	if (CheckIfRecording("bind graphics pipeline")) device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
 }
 
 void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const BufferView & view)
 {
 	if (CheckIfRecording("bind vertex buffer"))
 	{
-		parent.parent.vkCmdBindVertexBuffers(hndl, binding, 1, &view.buffer.bufferHndl, static_cast<const DeviceSize*>(&view.offset));
+		device->vkCmdBindVertexBuffers(hndl, binding, 1, &view.buffer->bufferHndl, static_cast<const DeviceSize*>(&view.offset));
 	}
 }
 
@@ -221,7 +222,7 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 {
 	if (CheckIfRecording("bind index buffer"))
 	{
-		parent.parent.vkCmdBindIndexBuffer(hndl, view.buffer.bufferHndl, static_cast<DeviceSize>(view.offset), type);
+		device->vkCmdBindIndexBuffer(hndl, view.buffer->bufferHndl, static_cast<DeviceSize>(view.offset), type);
 	}
 }
 
@@ -229,23 +230,23 @@ void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
 {
 	if (CheckIfRecording("bind descriptor to graphics bind point"))
 	{
-		parent.parent.vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent.parent.layoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
+		device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent->parent->layoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 	}
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
-	if (CheckIfRecording("draw")) parent.parent.vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
+	if (CheckIfRecording("draw")) device->vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 firstInstance, uint32 vertexOffset)
 {
-	if (CheckIfRecording("draw")) parent.parent.vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+	if (CheckIfRecording("draw")) device->vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void Pu::CommandBuffer::EndRenderPass(void)
 {
-	if (CheckIfRecording("end render pass")) parent.parent.vkCmdEndRenderPass(hndl);
+	if (CheckIfRecording("end render pass")) device->vkCmdEndRenderPass(hndl);
 }
 
 void Pu::CommandBuffer::AddLabel(const string & name, Color color)
@@ -259,7 +260,7 @@ void Pu::CommandBuffer::AddLabel(const string & name, Color color)
 		label.LabelName = name.c_str();;
 		memcpy(label.Color, &clr, sizeof(Vector4));
 
-		parent.parent.BeginCommandBufferLabel(hndl, label);
+		device->BeginCommandBufferLabel(hndl, label);
 	}
 #else
 	(void)name;
@@ -270,19 +271,19 @@ void Pu::CommandBuffer::AddLabel(const string & name, Color color)
 void Pu::CommandBuffer::EndLabel(void)
 {
 #ifdef _DEBUG
-	if (CheckIfRecording("end debug label")) parent.parent.EndCommandBufferLabel(hndl);
+	if (CheckIfRecording("end debug label")) device->EndCommandBufferLabel(hndl);
 #endif
 }
 
 void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool, uint32 queryIndex)
 {
-	if (CheckIfRecording("write timestamp")) parent.parent.vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
+	if (CheckIfRecording("write timestamp")) device->vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
-	: parent(pool), hndl(hndl), state(State::Initial)
+	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial)
 {
-	submitFence = new Fence(pool.parent);
+	submitFence = new Fence(*device);
 }
 
 void Pu::CommandBuffer::Begin(void)
@@ -292,7 +293,7 @@ void Pu::CommandBuffer::Begin(void)
 	/* Wait for the commandbuffer to be released by the device if it's been submitted before. */
 	if (CanBegin(true))
 	{
-		VK_VALIDATE(parent.parent.vkBeginCommandBuffer(hndl, &info), PFN_vkBeginCommandBuffer);
+		VK_VALIDATE(device->vkBeginCommandBuffer(hndl, &info), PFN_vkBeginCommandBuffer);
 		state = State::Recording;
 	}
 	else Log::Error("Attempted to call begin on %s command buffer!", ::to_string(state));
@@ -302,7 +303,7 @@ void Pu::CommandBuffer::End(void)
 {
 	if (state == State::Recording)
 	{
-		VK_VALIDATE(parent.parent.vkEndCommandBuffer(hndl), PFN_vkEndCommandBuffer);
+		VK_VALIDATE(device->vkEndCommandBuffer(hndl), PFN_vkEndCommandBuffer);
 		state = State::Executable;
 	}
 	else Log::Error("Attempted to call end on %s command buffer!", ::to_string(state));
@@ -316,7 +317,7 @@ void Pu::CommandBuffer::Reset(void)
 
 void Pu::CommandBuffer::Free(void)
 {
-	if (hndl) parent.FreeBuffer(hndl);
+	if (hndl) parent->FreeBuffer(hndl);
 }
 
 bool Pu::CommandBuffer::CheckIfRecording(const char * operation) const

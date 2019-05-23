@@ -46,7 +46,7 @@ namespace Pu
 		/* Gets the physical device the logical device was created on. */
 		_Check_return_ inline const PhysicalDevice& GetPhysicalDevice(void) const
 		{
-			return parent;
+			return *parent;
 		}
 
 	private:
@@ -71,7 +71,7 @@ namespace Pu
 		friend class Sampler;
 		friend class QueryPool;
 
-		PhysicalDevice &parent;
+		PhysicalDevice *parent;
 		DeviceHndl hndl;
 		std::map<uint32, vector<Queue>> queues;
 		uint32 graphicsQueueFamily, transferQueueFamily;

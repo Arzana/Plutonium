@@ -2,12 +2,12 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 
 Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, size_t maxSets)
-	: parent(device), renderpass(nullptr), hndl(nullptr), maxSets(maxSets),
+	: parent(&device), renderpass(nullptr), hndl(nullptr), maxSets(maxSets),
 	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {}
 
 Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass, size_t maxSets)
-	: parent(device), renderpass(&renderpass), hndl(nullptr), maxSets(maxSets),
+	: parent(&device), renderpass(&renderpass), hndl(nullptr), maxSets(maxSets),
 	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
 {
 	Initialize();
@@ -37,7 +37,7 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 	{
 		Destroy();
 
-		parent = std::move(other.parent);
+		parent = other.parent;
 		PostInitialize = std::move(other.PostInitialize);
 		renderpass = other.renderpass;
 		pool = other.pool;
@@ -142,7 +142,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	createInfo.ColorBlendState = &colorBlend;
 	createInfo.DynamicState = &dynamicState;
 
-	VK_VALIDATE(parent.vkCreateGraphicsPipelines(parent.hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
+	VK_VALIDATE(parent->vkCreateGraphicsPipelines(parent->hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
 
 void Pu::GraphicsPipeline::FinalizeLayout(void)
@@ -194,12 +194,12 @@ void Pu::GraphicsPipeline::FinalizeLayout(void)
 		info.Bindings = bindings.data();
 
 		/* Actually create the set. */
-		VK_VALIDATE(parent.vkCreateDescriptorSetLayout(parent.hndl, &info, nullptr, &descriptorSets[i]), PFN_vkCreateDescriptorSetLayout);
+		VK_VALIDATE(parent->vkCreateDescriptorSetLayout(parent->hndl, &info, nullptr, &descriptorSets[i]), PFN_vkCreateDescriptorSetLayout);
 	}
 
 	/* Create pipeline layout. */
 	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSets);
-	VK_VALIDATE(parent.vkCreatePipelineLayout(parent.hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
+	VK_VALIDATE(parent->vkCreatePipelineLayout(parent->hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
 }
 
 void Pu::GraphicsPipeline::Initialize(void)
@@ -229,10 +229,10 @@ void Pu::GraphicsPipeline::Destroy(void)
 {
 	if (hndl)
 	{
-		parent.vkDestroyPipeline(parent.hndl, hndl, nullptr);
-		parent.vkDestroyPipelineLayout(parent.hndl, layoutHndl, nullptr);
+		parent->vkDestroyPipeline(parent->hndl, hndl, nullptr);
+		parent->vkDestroyPipelineLayout(parent->hndl, layoutHndl, nullptr);
 
-		for (DescriptorSetHndl set : descriptorSets) parent.vkDestroyDescriptorSetLayout(parent.hndl, set, nullptr);
+		for (DescriptorSetHndl set : descriptorSets) parent->vkDestroyDescriptorSetLayout(parent->hndl, set, nullptr);
 		descriptorSets.clear();
 
 		delete pool;

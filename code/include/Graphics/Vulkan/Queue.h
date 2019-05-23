@@ -44,7 +44,7 @@ namespace Pu
 
 		QueueHndl hndl;
 		uint32 index;
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 
 		Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex);
 	};

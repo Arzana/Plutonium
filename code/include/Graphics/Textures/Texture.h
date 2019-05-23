@@ -27,26 +27,26 @@ namespace Pu
 		/* Implicit convertion to get the image. */
 		_Check_return_ inline operator const Image&(void) const 
 		{
-			return Image;
+			return *Image;
 		}
 
 		/* Gets whether the underlying image is usable. */
 		_Check_return_ inline bool IsUsable(void) const
 		{
-			return Image.IsLoaded();
+			return Image->IsLoaded();
 		}
 
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
 		{
-			return Image.GetFullRange(ImageAspectFlag::Color);
+			return Image->GetFullRange(ImageAspectFlag::Color);
 		}
 
 	protected:
 		/* The sampler used to sample the texure. */
-		Sampler &Sampler;
+		Sampler *Sampler;
 		/* The image data of the texture. */
-		Image &Image;
+		Image *Image;
 
 		Texture(_In_ Pu::Sampler &sampler, _In_ Pu::Image &image);
 

@@ -5,7 +5,7 @@
 using namespace Pu;
 
 /* Ease of use define for loading within the logical device class. */
-#define LOAD_DEVICE_PROC(name)	VK_LOAD_DEVICE_PROC(parent.parent.hndl, hndl, name)
+#define LOAD_DEVICE_PROC(name)	VK_LOAD_DEVICE_PROC(parent->parent->hndl, hndl, name)
 
 Pu::LogicalDevice::LogicalDevice(LogicalDevice && value)
 	: parent(value.parent), hndl(value.hndl), queues(std::move(value.queues)), 
@@ -22,7 +22,7 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 	if (this != &other)
 	{
 		Destory();
-		parent = std::move(other.parent);
+		parent = other.parent;
 		queues = std::move(other.queues);
 		graphicsQueueFamily = other.graphicsQueueFamily;
 		transferQueueFamily = other.transferQueueFamily;
@@ -38,7 +38,7 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 }
 
 Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo * queueCreateInfos)
-	: parent(parent), hndl(hndl), graphicsQueueFamily(0), transferQueueFamily(0)
+	: parent(&parent), hndl(hndl), graphicsQueueFamily(0), transferQueueFamily(0)
 {
 	LoadDeviceProcs();
 
@@ -68,27 +68,27 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint3
 void Pu::LogicalDevice::SetDebugName(ObjectType type, const void * handle, const string & name)
 {
 	const DebugUtilsObjectNameInfo info(type, reinterpret_cast<uint64>(handle), name.c_str());
-	VK_VALIDATE(parent.parent.vkSetDebugUtilsObjectNameEXT(hndl, &info), PFN_vkSetDebugUtilsObjectNameEXT);
+	VK_VALIDATE(parent->parent->vkSetDebugUtilsObjectNameEXT(hndl, &info), PFN_vkSetDebugUtilsObjectNameEXT);
 }
 
 void Pu::LogicalDevice::BeginQueueLabel(QueueHndl queue, const DebugUtilsLabel & label)
 {
-	parent.parent.vkQueueBeginDebugUtilsLabelEXT(queue, &label);
+	parent->parent->vkQueueBeginDebugUtilsLabelEXT(queue, &label);
 }
 
 void Pu::LogicalDevice::EndQueueLabel(QueueHndl queue)
 {
-	parent.parent.vkQueueEndDebugUtilsLabelEXT(queue);
+	parent->parent->vkQueueEndDebugUtilsLabelEXT(queue);
 }
 
 void Pu::LogicalDevice::BeginCommandBufferLabel(CommandBufferHndl commandBuffer, const DebugUtilsLabel & label)
 {
-	parent.parent.vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &label);
+	parent->parent->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &label);
 }
 
 void Pu::LogicalDevice::EndCommandBufferLabel(CommandBufferHndl commandBuffer)
 {
-	parent.parent.vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+	parent->parent->vkCmdEndDebugUtilsLabelEXT(commandBuffer);
 }
 #endif
 
@@ -112,7 +112,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkDeviceWaitIdle);
 
 	/* Swapchain related functions. */
-	if (parent.IsExtensionSupported(u8"VK_KHR_swapchain"))
+	if (parent->IsExtensionSupported(u8"VK_KHR_swapchain"))
 	{
 		LOAD_DEVICE_PROC(vkCreateSwapchainKHR);
 		LOAD_DEVICE_PROC(vkDestroySwapchainKHR);
@@ -120,7 +120,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 		LOAD_DEVICE_PROC(vkAcquireNextImageKHR);
 		LOAD_DEVICE_PROC(vkQueuePresentKHR);
 	}
-	else Log::Warning("%s doesn't support required swapchain extension!", parent.GetName());
+	else Log::Warning("%s doesn't support required swapchain extension!", parent->GetName());
 
 	/* Semaphore related functions. */
 	LOAD_DEVICE_PROC(vkCreateSemaphore);

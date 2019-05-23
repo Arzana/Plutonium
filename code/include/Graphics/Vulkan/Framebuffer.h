@@ -36,7 +36,7 @@ namespace Pu
 
 		FramebufferHndl hndl;
 		Rect2D area;
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 
 		void Destroy(void);
 	};

@@ -49,7 +49,7 @@ namespace Pu
 		/* Gets the logical device on which this image is stored. */
 		_Check_return_ inline LogicalDevice& GetDevice(void)
 		{
-			return parent;
+			return *parent;
 		}
 
 	private:
@@ -58,7 +58,7 @@ namespace Pu
 		friend class CommandBuffer;
 		friend class Texture;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		ImageHndl imageHndl;
 		DeviceMemoryHndl memoryHndl;
 

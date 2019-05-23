@@ -1,7 +1,7 @@
 #include "Graphics/Resources/StagingBuffer.h"
 
 Pu::StagingBuffer::StagingBuffer(Buffer & target)
-	: Buffer(target.parent, target.GetSize(), BufferUsageFlag::TransferSrc, true)
+	: Buffer(*target.parent, target.GetSize(), BufferUsageFlag::TransferSrc, true)
 {}
 
 Pu::StagingBuffer::StagingBuffer(LogicalDevice & device, size_t size)

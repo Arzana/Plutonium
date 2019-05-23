@@ -29,7 +29,7 @@ namespace Pu
 	private:
 		friend class CommandBuffer;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		CommandPoolHndl hndl;
 
 		void Destroy(void);

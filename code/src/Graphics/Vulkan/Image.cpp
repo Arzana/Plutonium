@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Image::Image(LogicalDevice & device, const ImageCreateInfo & createInfo)
-	: Asset(true), parent(device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
+	: Asset(true), parent(&device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
 	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlag::None)
 {
 	Create(createInfo);
@@ -23,7 +23,7 @@ Pu::Image & Pu::Image::operator=(Image && other)
 		Destroy();
 
 		Asset::operator=(std::move(other));
-		parent = std::move(other.parent);
+		parent = other.parent;
 		imageHndl = other.imageHndl;
 		memoryHndl = other.memoryHndl;
 		type = other.type;
@@ -188,11 +188,11 @@ Pu::Asset & Pu::Image::Duplicate(AssetCache &)
 
 /* We don't allow this image to be copied as it's memory is handled by another system (like the OS). */
 Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access)
-	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(device), imageHndl(hndl),
+	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(&device), imageHndl(hndl),
 	memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
 {
 #ifdef _DEBUG
-	parent.SetDebugName(ObjectType::Image, hndl, u8"OS Image");
+	parent->SetDebugName(ObjectType::Image, hndl, u8"OS Image");
 #endif
 
 	MarkAsLoaded(false, L"OS Image");
@@ -205,17 +205,17 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 	MemoryPropertyFlag properties = MemoryPropertyFlag::None;
 
 	/* Create image object. */
-	VK_VALIDATE(parent.vkCreateImage(parent.hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
+	VK_VALIDATE(parent->vkCreateImage(parent->hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
 	SetHash(std::hash<ImageHndl>{}(imageHndl));
 
 	/* Find the type of memory that best supports our needs. */
 	uint32 typeIdx;
 	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, properties, false, typeIdx))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, properties, false, typeIdx))
 	{
 		/* Allocate the image's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);
-		VK_VALIDATE(parent.vkAllocateMemory(parent.hndl, &allocateInfo, nullptr, &memoryHndl), PFN_vkAllocateMemory);
+		VK_VALIDATE(parent->vkAllocateMemory(parent->hndl, &allocateInfo, nullptr, &memoryHndl), PFN_vkAllocateMemory);
 
 		/* Bind the memory to the image. */
 		Bind();
@@ -228,7 +228,7 @@ void Pu::Image::CanCreate(const ImageCreateInfo & info)
 	bool log = false;
 	string error = "Unable to create image";
 
-	const FormatProperties formatProps = parent.parent.GetFormatProperties(info.Format);
+	const FormatProperties formatProps = parent->parent->GetFormatProperties(info.Format);
 	if (!_CrtEnumCheckFlag(info.Tiling == ImageTiling::Optimal ? formatProps.OptimalTilingFeatures : formatProps.LinearTilingFeatures, FormatFeatureFlag::SampledImage))
 	{
 		log = true;
@@ -238,7 +238,7 @@ void Pu::Image::CanCreate(const ImageCreateInfo & info)
 	/* Don't check for the format properties if we've already failed. */
 	if (!log)
 	{
-		const ImageFormatProperties imgProps = parent.parent.GetImageFormatProperties(info);
+		const ImageFormatProperties imgProps = parent->parent->GetImageFormatProperties(info);
 		if (imgProps.MaxArrayLayers < info.ArrayLayers)
 		{
 			log = true;
@@ -262,13 +262,13 @@ void Pu::Image::CanCreate(const ImageCreateInfo & info)
 void Pu::Image::Bind(void) const
 {
 	// TODO: We should not allocate a memory object for ever image but rather make one big one and set a proper offset to increase cache hits.
-	VK_VALIDATE(parent.vkBindImageMemory(parent.hndl, imageHndl, memoryHndl, 0), PFN_vkBindImageMemory);
+	VK_VALIDATE(parent->vkBindImageMemory(parent->hndl, imageHndl, memoryHndl, 0), PFN_vkBindImageMemory);
 }
 
 Pu::MemoryRequirements Pu::Image::GetMemoryRequirements(void)
 {
 	MemoryRequirements result;
-	parent.vkGetImageMemoryRequirements(parent.hndl, imageHndl, &result);
+	parent->vkGetImageMemoryRequirements(parent->hndl, imageHndl, &result);
 	return result;
 }
 
@@ -277,7 +277,7 @@ void Pu::Image::Destroy(void)
 	/* We don't need to destroy swapchain images so make sure both are set for a user created image. */
 	if (memoryHndl && imageHndl)
 	{
-		parent.vkDestroyImage(parent.hndl, imageHndl, nullptr);
-		parent.vkFreeMemory(parent.hndl, memoryHndl, nullptr);
+		parent->vkDestroyImage(parent->hndl, imageHndl, nullptr);
+		parent->vkFreeMemory(parent->hndl, memoryHndl, nullptr);
 	}
 }

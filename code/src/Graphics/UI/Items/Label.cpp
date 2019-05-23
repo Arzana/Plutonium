@@ -20,7 +20,7 @@ Pu::Label::Label(Application & parent, Rectangle bounds, GuiItemRenderer & rende
 	OnMoved(*this, ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));	// Args aren't used.
 
 	/* Allocate the text mesh. */
-	textBuffer = new TextBuffer(App.GetDevice(), 64);
+	textBuffer = new TextBuffer(App->GetDevice(), 64);
 	UpdateTextMesh();
 }
 
@@ -111,7 +111,7 @@ void Pu::Label::HandleAutoSize(void)
 			So convert to go from clip space ([-1, -1] to [1, 1]) to size space ([0, 0] to [1, 1]).
 			We also add the offset twice, once for each side.
 			*/
-			dim = (App.GetWindow().ToLinearClipSpace(Vector4(font->MeasureString(visibleText), 0.0f, 1.0f)).XY + 1.0f) * 0.5f;
+			dim = (App->GetWindow().ToLinearClipSpace(Vector4(font->MeasureString(visibleText), 0.0f, 1.0f)).XY + 1.0f) * 0.5f;
 			dim += offset * 2.0f;
 		}
 		else dim = GetMinSize();
@@ -141,5 +141,5 @@ void Pu::Label::OnMoved(GuiItem &, ValueChangedEventArgs<Vector2>)
 
 void Pu::Label::UpdateTextMesh(void)
 {
-	textBuffer->SetText(visibleText, *font, App.GetWindow());
+	textBuffer->SetText(visibleText, *font, App->GetWindow());
 }

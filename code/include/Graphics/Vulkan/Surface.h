@@ -39,7 +39,7 @@ namespace Pu
 		friend class Win32Window;
 
 		SurfaceHndl hndl;
-		VulkanInstance &parent;
+		VulkanInstance *parent;
 
 #ifdef _WIN32
 		Surface(VulkanInstance &parent, HINSTANCE hinstance, HWND hwnd);

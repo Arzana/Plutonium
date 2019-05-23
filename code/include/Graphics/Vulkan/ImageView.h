@@ -27,7 +27,7 @@ namespace Pu
 		friend class DescriptorSet;
 
 		ImageViewHndl hndl;
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 
 		void Destroy(void);
 	};

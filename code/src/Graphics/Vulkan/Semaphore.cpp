@@ -2,10 +2,10 @@
 #include "Core/Diagnostics/Logging.h"
 
 Pu::Semaphore::Semaphore(LogicalDevice & device)
-	: parent(device)
+	: parent(&device)
 {
 	const SemaphoreCreateInfo info;
-	VK_VALIDATE(parent.vkCreateSemaphore(parent.hndl, &info, nullptr, &hndl), PFN_vkCreateSemaphore);
+	VK_VALIDATE(parent->vkCreateSemaphore(parent->hndl, &info, nullptr, &hndl), PFN_vkCreateSemaphore);
 }
 
 Pu::Semaphore::Semaphore(Semaphore && value)
@@ -19,7 +19,7 @@ Pu::Semaphore & Pu::Semaphore::operator=(Semaphore && other)
 	if (this != &other)
 	{
 		Destroy();
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 
 		other.hndl = nullptr;
@@ -30,5 +30,5 @@ Pu::Semaphore & Pu::Semaphore::operator=(Semaphore && other)
 
 void Pu::Semaphore::Destroy(void)
 {
-	if (hndl) parent.vkDestroySemaphore(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroySemaphore(parent->hndl, hndl, nullptr);
 }

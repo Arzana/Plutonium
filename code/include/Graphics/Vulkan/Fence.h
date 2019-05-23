@@ -37,7 +37,7 @@ namespace Pu
 		friend class Queue;
 
 		FenceHndl hndl;
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 
 		static bool WaitInternal(const LogicalDevice &device, uint32 fenceCnt, const FenceHndl *fences, bool waitAll, uint64 timeout);
 		void Destroy(void);

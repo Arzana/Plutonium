@@ -501,9 +501,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h">
       <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Models\MeshCreator.h">
-      <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
@@ -644,9 +641,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h">
       <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Models\GeometryBatch.h">
-      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\Stream.h">
       <Filter>Header Files\Streams</Filter>
@@ -832,9 +826,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Resources\StagingBuffer.cpp">
       <Filter>Source Files\Graphics\Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Models\MeshCreator.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Input\InputDevice.cpp">
       <Filter>Source Files\Input</Filter>

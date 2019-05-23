@@ -1,10 +1,10 @@
 #include "Graphics/Vulkan/Fence.h"
 
 Pu::Fence::Fence(LogicalDevice & device, bool signaled)
-	: parent(device)
+	: parent(&device)
 {
 	const FenceCreateInfo createInfo(signaled ? FenceCreateFlag::Signaled : FenceCreateFlag::None);
-	VK_VALIDATE(parent.vkCreateFence(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFence);
+	VK_VALIDATE(parent->vkCreateFence(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFence);
 }
 
 Pu::Fence::Fence(Fence && value)
@@ -19,7 +19,7 @@ Pu::Fence & Pu::Fence::operator=(Fence && other)
 	{
 		Destroy();
 		
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 
 		other.hndl = nullptr;
@@ -36,19 +36,19 @@ bool Pu::Fence::IsSignaled(void) const
 	- VK_NOT_READY:			The fence is unsignaled.
 	- VK_ERROR_DEVICE_LOST:	The device parent has been lost.
 	*/
-	const VkApiResult result = parent.vkGetFenceStatus(parent.hndl, hndl);
+	const VkApiResult result = parent->vkGetFenceStatus(parent->hndl, hndl);
 	if (result == VkApiResult::DeviceLost) Log::Error("Parent device of fence has been lost!");
 	return result == VkApiResult::Success;
 }
 
 void Pu::Fence::Reset(void)
 {
-	VK_VALIDATE(parent.vkResetFences(parent.hndl, 1, &hndl), PFN_vkResetFences);
+	VK_VALIDATE(parent->vkResetFences(parent->hndl, 1, &hndl), PFN_vkResetFences);
 }
 
 bool Pu::Fence::Wait(uint64 timeout) const
 {
-	return WaitInternal(parent, 1, &hndl, true, timeout);
+	return WaitInternal(*parent, 1, &hndl, true, timeout);
 }
 
 bool Pu::Fence::WaitAll(const LogicalDevice & device, const vector<const Fence*>& fences, uint64 timeout)
@@ -80,5 +80,5 @@ bool Pu::Fence::WaitInternal(const LogicalDevice & device, uint32 fenceCnt, cons
 
 void Pu::Fence::Destroy(void)
 {
-	if (hndl) parent.vkDestroyFence(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroyFence(parent->hndl, hndl, nullptr);
 }

@@ -2,10 +2,10 @@
 #include "Core/Diagnostics/Logging.h"
 
 Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex)
-	: parent(device)
+	: parent(&device)
 {
 	const CommandPoolCreateInfo createInfo(queueFamilyIndex);
-	VK_VALIDATE(parent.vkCreateCommandPool(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateCommandPool);
+	VK_VALIDATE(parent->vkCreateCommandPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateCommandPool);
 }
 
 Pu::CommandPool::CommandPool(CommandPool && value)
@@ -20,7 +20,7 @@ Pu::CommandPool & Pu::CommandPool::operator=(CommandPool && other)
 	{
 		Destroy();
 		hndl = other.hndl;
-		parent = std::move(other.parent);
+		parent = other.parent;
 
 		other.hndl = nullptr;
 	}
@@ -35,16 +35,16 @@ Pu::CommandBuffer Pu::CommandPool::Allocate(void) const
 	CommandBufferHndl commandBuffer;
 
 	/* Allocate new buffer. */
-	VK_VALIDATE(parent.vkAllocateCommandBuffers(parent.hndl, &allocInfo, &commandBuffer), PFN_vkAllocateCommandBuffers);
+	VK_VALIDATE(parent->vkAllocateCommandBuffers(parent->hndl, &allocInfo, &commandBuffer), PFN_vkAllocateCommandBuffers);
 	return CommandBuffer(const_cast<CommandPool&>(*this), commandBuffer);
 }
 
 void Pu::CommandPool::Destroy(void)
 {
-	if (hndl) parent.vkDestroyCommandPool(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroyCommandPool(parent->hndl, hndl, nullptr);
 }
 
 void Pu::CommandPool::FreeBuffer(CommandBufferHndl commandBuffer) const
 {
-	parent.vkFreeCommandBuffers(parent.hndl, hndl, 1, &commandBuffer);
+	parent->vkFreeCommandBuffers(parent->hndl, hndl, 1, &commandBuffer);
 }

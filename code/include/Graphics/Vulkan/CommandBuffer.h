@@ -103,7 +103,8 @@ namespace Pu
 		friend class AssetLoader;
 		friend class AssetSaver;
 
-		CommandPool &parent;
+		CommandPool *parent;
+		LogicalDevice *device;
 		Fence *submitFence;
 		CommandBufferHndl hndl;
 		State state;

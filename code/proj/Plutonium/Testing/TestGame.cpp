@@ -154,7 +154,7 @@ void TestGame::Update(float)
 	}
 }
 
-void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
+void TestGame::Render(float, CommandBuffer & cmdBuffer)
 {
 	if (!transform) return;
 	/* Update the descriptor if needed. */

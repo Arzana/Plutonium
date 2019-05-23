@@ -24,7 +24,7 @@ Pu::GuiItem::GuiItem(Application & parent, Rectangle bounds, GuiItemRenderer & r
 	backgroundDescriptor->SetColor(Color::Black() * 0.5f);
 
 	/* Make sure we update the anchors if the window size changes. */
-	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);
 
 	/* Create our background mesh buffer. */
 	buffer = new DynamicBuffer(parent.GetDevice(), sizeof(Image2D) * 6, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -44,7 +44,7 @@ Pu::GuiItem::GuiItem(GuiItem && value)
 	VisibilityChanged(std::move(value.VisibilityChanged))
 {
 	/* Make sure we update the anchors if the window size changes. */
-	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Add(*this, &GuiItem::WindowResizedHandler);
 
 	value.buffer = nullptr;
 	value.view = nullptr;
@@ -53,7 +53,7 @@ Pu::GuiItem::GuiItem(GuiItem && value)
 
 Pu::GuiItem::~GuiItem(void)
 {
-	App.GetWindow().GetNative().OnSizeChanged.Remove(*this, &GuiItem::WindowResizedHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Remove(*this, &GuiItem::WindowResizedHandler);
 
 	if (view) delete view;
 	if (buffer) delete buffer;
@@ -104,7 +104,7 @@ void Pu::GuiItem::Update(float)
 		UI item space ([0, 0] to [1, 1]). We do this by first going to clip space ([-1, -1] to [1, 1])
 		and then converting to UI space.
 		*/
-		const Vector4 cursorPos = App.GetWindow().ToLinearClipSpace(Vector4(Mouse::GetPosition(App.GetWindow().GetNative()), 0.0f, 1.0f));
+		const Vector4 cursorPos = App->GetWindow().ToLinearClipSpace(Vector4(Mouse::GetPosition(App->GetWindow().GetNative()), 0.0f, 1.0f));
 		const bool newOver = bounds.Contains((cursorPos.XY + 1.0f) * 0.5f);
 		if (!over && newOver) HoverEnter.Post(*this);
 		else if (over && !newOver) HoverLeave.Post(*this);
@@ -355,7 +355,7 @@ void Pu::GuiItem::MoveRelativeInternal(Anchors value, Vector2 base, Vector2 adde
 	if (parent) area = parent->GetBoundingBox();
 	else
 	{
-		const Viewport vp = App.GetWindow().GetNative().GetClientBounds();
+		const Viewport vp = App->GetWindow().GetNative().GetClientBounds();
 		area = Rectangle(vp.X, vp.Y, vp.Width, vp.Height);
 	}
 

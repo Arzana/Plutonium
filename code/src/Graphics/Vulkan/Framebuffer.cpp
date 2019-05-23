@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/ImageView.h"
 
 Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPass, Extent2D dimensions, const vector<const ImageView*>& attachments)
-	: parent(device), area(dimensions.Width, dimensions.Height)
+	: parent(&device), area(dimensions.Width, dimensions.Height)
 {
 	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
 
@@ -10,7 +10,7 @@ Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPa
 	createInfo.AttachmentCount = static_cast<uint32>(attachments.size());
 	createInfo.Attachments = handles.data();
 
-	VK_VALIDATE(parent.vkCreateFramebuffer(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
+	VK_VALIDATE(parent->vkCreateFramebuffer(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
 }
 
 Pu::Framebuffer::Framebuffer(Framebuffer && value)
@@ -25,7 +25,7 @@ Pu::Framebuffer & Pu::Framebuffer::operator=(Framebuffer && other)
 	{
 		Destroy();
 
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 		area = other.area;
 
@@ -37,5 +37,5 @@ Pu::Framebuffer & Pu::Framebuffer::operator=(Framebuffer && other)
 
 void Pu::Framebuffer::Destroy(void)
 {
-	if (hndl) parent.vkDestroyFramebuffer(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroyFramebuffer(parent->hndl, hndl, nullptr);
 }

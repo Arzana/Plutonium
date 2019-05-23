@@ -75,7 +75,7 @@ namespace Pu
 		friend class CommandBuffer;
 		friend class DescriptorSet;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		mutable AccessFlag srcAccess;
 
 		size_t size, gpuSize;

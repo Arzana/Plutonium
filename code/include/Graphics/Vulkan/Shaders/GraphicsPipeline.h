@@ -145,7 +145,7 @@ namespace Pu
 		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
 		vector<VertexInputBindingDescription> bindingDescriptions;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		const Renderpass *renderpass;
 		const DescriptorPool *pool;
 		PipelineHndl hndl;

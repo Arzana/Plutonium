@@ -38,7 +38,7 @@ namespace Pu
 
 	protected:
 		/* The application associated with this component. */
-		Application &App;
+		Application *App;
 
 		/* Initializes a new instance of a component. */
 		Component(_In_ Application &app);

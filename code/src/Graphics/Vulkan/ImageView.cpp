@@ -25,7 +25,7 @@ Pu::ImageView::ImageView(const Image & image, ImageAspectFlag aspect)
 	: parent(image.parent)
 {
 	const ImageViewCreateInfo createInfo(image.imageHndl, imgTypeToViewType(image.type), image.format, aspect);
-	VK_VALIDATE(parent.vkCreateImageView(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
+	VK_VALIDATE(parent->vkCreateImageView(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
 }
 
 Pu::ImageView::ImageView(ImageView && value)
@@ -50,5 +50,5 @@ Pu::ImageView & Pu::ImageView::operator=(ImageView && other)
 
 void Pu::ImageView::Destroy(void)
 {
-	if (hndl) parent.vkDestroyImageView(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroyImageView(parent->hndl, hndl, nullptr);
 }

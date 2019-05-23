@@ -13,8 +13,8 @@ Pu::FpsCamera::FpsCamera(Application & app)
 	: Camera(app), near(0.1f), far(1000.0f), fov(PI4),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f)
 {
-	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
-	WindowResizeEventHandler(App.GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
+	App->GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
+	WindowResizeEventHandler(App->GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
 }
 
 Pu::FpsCamera::FpsCamera(const FpsCamera & value)
@@ -23,7 +23,7 @@ Pu::FpsCamera::FpsCamera(const FpsCamera & value)
 	Yaw(value.Yaw), Pitch(value.Pitch), Roll(value.Roll),
 	orien(value.orien), frustum(value.frustum)
 {
-	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
 }
 
 Pu::FpsCamera::FpsCamera(FpsCamera && value)
@@ -32,7 +32,7 @@ Pu::FpsCamera::FpsCamera(FpsCamera && value)
 	Yaw(value.Yaw), Pitch(value.Pitch), Roll(value.Roll),
 	orien(value.orien), frustum(value.frustum)
 {
-	App.GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Add(*this, &FpsCamera::WindowResizeEventHandler);
 }
 
 void Pu::FpsCamera::SetNear(float value)
@@ -56,7 +56,7 @@ void Pu::FpsCamera::SetFoV(float value)
 void Pu::FpsCamera::Update(float)
 {
 	/* Update the projection if needed. */
-	if (projDirty) WindowResizeEventHandler(App.GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
+	if (projDirty) WindowResizeEventHandler(App->GetWindow().GetNative(), ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
 
 	if (IsEnabled())
 	{
@@ -72,7 +72,7 @@ void Pu::FpsCamera::Update(float)
 void Pu::FpsCamera::Finalize(void)
 {
 	Camera::Finalize();
-	App.GetWindow().GetNative().OnSizeChanged.Remove(*this, &FpsCamera::WindowResizeEventHandler);
+	App->GetWindow().GetNative().OnSizeChanged.Remove(*this, &FpsCamera::WindowResizeEventHandler);
 }
 
 void Pu::FpsCamera::WindowResizeEventHandler(const NativeWindow & sender, ValueChangedEventArgs<Vector2>)

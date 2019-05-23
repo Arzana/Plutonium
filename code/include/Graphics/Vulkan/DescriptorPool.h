@@ -31,7 +31,8 @@ namespace Pu
 		friend class CommandBuffer;
 		friend class GraphicsPipeline;
 
-		GraphicsPipeline &parent;
+		GraphicsPipeline *parent;
+		LogicalDevice *device;
 		DescriptorPoolHndl hndl;
 
 		DescriptorPool(_In_ GraphicsPipeline &parent, _In_ size_t maxSets);

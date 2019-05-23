@@ -123,7 +123,7 @@ namespace Pu
 		friend class Image;
 		friend class Application;
 
-		VulkanInstance &parent;
+		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceFeatures features;

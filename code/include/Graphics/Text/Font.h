@@ -13,7 +13,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a font from a specific file. */
-		Font(_In_ LogicalDevice &device, _In_ float size, _In_ const CodeChart &codeChart);
+		Font(_In_ float size, _In_ const CodeChart &codeChart);
 		Font(_In_ const Font&) = delete;
 		/* Move constructor. */
 		Font(_In_ Font &&value);
@@ -60,7 +60,6 @@ namespace Pu
 		friend class AssetLoader;
 		friend class AssetFetcher;
 
-		LogicalDevice &device;
 		Image *atlasImg;
 		Texture2D *atlasTex;
 		stbtt_fontinfo *info;

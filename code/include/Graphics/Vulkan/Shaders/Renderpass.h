@@ -85,7 +85,7 @@ namespace Pu
 			vector<Shader::LoadTask*> children;
 		};
 
-		LogicalDevice &device;
+		LogicalDevice *device;
 		RenderPassHndl hndl;
 		bool usable;
 

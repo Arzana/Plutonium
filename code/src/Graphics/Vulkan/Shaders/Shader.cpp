@@ -5,11 +5,11 @@
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
 
 Pu::Shader::Shader(LogicalDevice & device)
-	: Asset(true), parent(device)
+	: Asset(true), parent(&device)
 {}
 
 Pu::Shader::Shader(LogicalDevice & device, const wstring & path)
-	: Asset(true, std::hash<wstring>{}(path)), parent(device)
+	: Asset(true, std::hash<wstring>{}(path)), parent(&device)
 {
 	Load(path, false);
 }
@@ -27,7 +27,7 @@ Pu::Shader & Pu::Shader::operator=(Shader && other)
 		Destroy();
 
 		Asset::operator=(std::move(other));
-		parent = std::move(other.parent);
+		parent = other.parent;
 		info = other.info;
 		fields = std::move(other.fields);
 
@@ -70,7 +70,7 @@ void Pu::Shader::Create(const wstring & path)
 
 		/* Compile the SPIR-V shader module. */
 		ShaderModuleCreateInfo createInfo(spvr.GetStream().GetSize(), spvr.GetStream().GetData());
-		VK_VALIDATE(parent.vkCreateShaderModule(parent.hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
+		VK_VALIDATE(parent->vkCreateShaderModule(parent->hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
 
 		/* Perform reflection to get the inputs and outputs. */
 		auto handler = DelegateMethod<SPIRVReader, Shader, spv::Op, size_t>(*this, &Shader::HandleModule);
@@ -391,7 +391,7 @@ void Pu::Shader::SetInfo(const wstring & ext)
 
 void Pu::Shader::Destroy(void)
 {
-	if (info.Module) parent.vkDestroyShaderModule(parent.hndl, info.Module, nullptr);
+	if (info.Module) parent->vkDestroyShaderModule(parent->hndl, info.Module, nullptr);
 }
 
 Pu::Shader::LoadTask::LoadTask(Shader & result, const wstring & path)

@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), device(value.device), hndl(value.hndl)
 {
 	value.hndl = nullptr;
 }
@@ -12,7 +12,8 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 	if (this != &other)
 	{
 		Destroy();
-		parent = std::move(other.parent);
+		parent = other.parent;
+		device = other.device;
 		hndl = other.hndl;
 
 		other.hndl = nullptr;
@@ -24,16 +25,16 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 Pu::DescriptorSet Pu::DescriptorPool::Allocate(uint32 set) const
 {
 	/* Initialize creation info. */
-	const DescriptorSetAllocateInfo allocInfo(hndl, parent.descriptorSets.at(set));
+	const DescriptorSetAllocateInfo allocInfo(hndl, parent->descriptorSets.at(set));
 	DescriptorSetHndl setHndl;
 
 	/* Allocate new descriptor set. */
-	VK_VALIDATE(parent.parent.vkAllocateDescriptorSets(parent.parent.hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
+	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
 	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
 }
 
 Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)
-	: parent(parent)
+	: parent(&parent), device(parent.parent)
 {
 	/* Determine how many of each descriptor type are needed. */
 	vector<DescriptorPoolSize> sizes;
@@ -58,15 +59,15 @@ Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)
 
 	/* Create the pool. */
 	const DescriptorPoolCreateInfo createInfo(static_cast<uint32>(maxSets), sizes);
-	VK_VALIDATE(parent.parent.vkCreateDescriptorPool(parent.parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
+	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
 }
 
 void Pu::DescriptorPool::Destroy(void)
 {
-	if (hndl) parent.parent.vkDestroyDescriptorPool(parent.parent.hndl, hndl, nullptr);
+	if (hndl) device->vkDestroyDescriptorPool(device->hndl, hndl, nullptr);
 }
 
 void Pu::DescriptorPool::FreeSet(DescriptorSetHndl set) const
 {
-	parent.parent.vkFreeDescriptorSets(parent.parent.hndl, hndl, 1, &set);
+	device->vkFreeDescriptorSets(device->hndl, hndl, 1, &set);
 }

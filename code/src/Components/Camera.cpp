@@ -69,6 +69,6 @@ void Pu::Camera::SetProjection(const Matrix & value)
 
 Pu::Vector2 Pu::Camera::ToNDC(Vector2 v) const
 {
-	const Viewport vp = App.GetWindow().GetNative().GetClientBounds();
+	const Viewport vp = App->GetWindow().GetNative().GetClientBounds();
 	return v / Vector2(vp.Width, vp.Height) * 2.0f - Vector2(1.0f);
 }

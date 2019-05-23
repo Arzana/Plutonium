@@ -2,7 +2,7 @@
 #include "Graphics/VertexLayouts/Image2D.h"
 
 Pu::TextBuffer::TextBuffer(LogicalDevice & device, size_t initialSize)
-	: device(device), view(nullptr)
+	: device(&device), view(nullptr)
 {
 	AllocBuffer(initialSize * sizeof(Image2D) * 6);
 }
@@ -20,7 +20,7 @@ Pu::TextBuffer & Pu::TextBuffer::operator=(TextBuffer && other)
 	{
 		Destroy();
 
-		device = std::move(other.device);
+		device = other.device;
 		buffer = other.buffer;
 		view = other.view;
 
@@ -104,7 +104,7 @@ void Pu::TextBuffer::ReallocBuffer(size_t newSize)
 void Pu::TextBuffer::AllocBuffer(size_t size)
 {
 	/* Currently we're not index rendering the text as it doesn't improve our memory usage by much but it increases complexity. */
-	buffer = new DynamicBuffer(device, size, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
+	buffer = new DynamicBuffer(*device, size, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
 }
 
 void Pu::TextBuffer::Destroy(void)

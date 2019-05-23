@@ -140,7 +140,7 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	};
 
 	/* Create the font and add it to the cache. */
-	Font *result = new Font(loader->GetDevice(), size, codeChart);
+	Font *result = new Font(size, codeChart);
 	result->SetHash(hash);
 	cache->Store(result);
 
@@ -165,8 +165,8 @@ void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
 void Pu::AssetFetcher::Release(Texture & texture)
 {
 	/* Make sure to release the underlying resources. */
-	cache->Release(texture.Image);
-	Release(texture.Sampler);
+	cache->Release(*texture.Image);
+	Release(*texture.Sampler);
 
 	/* Delete the actual texture. */
 	for (Texture *cur : textures)
@@ -187,6 +187,6 @@ void Pu::AssetFetcher::Release(Sampler & sampler)
 
 void Pu::AssetFetcher::Release(Font & font)
 {
-	Release(font.atlasTex->Sampler);
+	Release(*font.atlasTex->Sampler);
 	cache->Release(font);
 }

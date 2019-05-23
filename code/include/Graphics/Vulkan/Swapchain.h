@@ -65,7 +65,7 @@ namespace Pu
 		friend class Queue;
 		friend class GameWindow;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		SwapchainHndl hndl;
 		vector<Image> images;
 		vector<ImageView> views;

@@ -36,7 +36,7 @@ namespace Pu
 		}
 
 	private:
-		LogicalDevice &device;
+		LogicalDevice *device;
 		DynamicBuffer *buffer;
 		BufferView *view;
 

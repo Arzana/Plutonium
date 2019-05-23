@@ -63,7 +63,7 @@ namespace Pu
 
 		const static FieldInfo invalid;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
 

@@ -2,7 +2,7 @@
 #include "Application.h"
 
 Pu::Component::Component(Application & app)
-	: App(app), StateChanged("ComponentStateChanged"),
+	: App(&app), StateChanged("ComponentStateChanged"),
 	initialized(false), enabled(true), place(0)
 {}
 

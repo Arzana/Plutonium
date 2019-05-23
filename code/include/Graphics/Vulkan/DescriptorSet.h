@@ -33,7 +33,7 @@ namespace Pu
 		friend class DescriptorPool;
 		friend class CommandBuffer;
 
-		DescriptorPool &parent;
+		DescriptorPool *parent;
 		DescriptorSetHndl hndl;
 		uint32 set;
 

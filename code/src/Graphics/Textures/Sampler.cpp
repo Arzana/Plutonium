@@ -1,14 +1,14 @@
 #include "Graphics/Textures/Sampler.h"
 
 Pu::Sampler::Sampler(LogicalDevice & device, const SamplerCreateInfo & createInfo)
-	: Asset(true, CreateHash(createInfo)), parent(device), 
+	: Asset(true, CreateHash(createInfo)), parent(&device), 
 	magFilter(createInfo.MagFilter), minFilter(createInfo.MinFilter), mipmapMode(createInfo.MipmapMode),
 	uMode(createInfo.AddressModeU), vMode(createInfo.AddressModeV), wMode(createInfo.AddressModeW),
 	loDBias(createInfo.MipLodBias), maxAnisotropy(createInfo.MaxAnisotropy), minLoD(createInfo.MinLoD), maxLoD(createInfo.MaxLoD),
 	anisotropy(createInfo.AnisotropyEnable), compare(createInfo.CompareModeEnable), unnormalizedCoordinates(createInfo.UnnormalizedCoordinates),
 	cmpOp(createInfo.CompareOp), clr(createInfo.BorderColor)
 {
-	VK_VALIDATE(parent.vkCreateSampler(parent.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSampler);
+	VK_VALIDATE(parent->vkCreateSampler(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSampler);
 	MarkAsLoaded(false, L"Sampler");	// Default to not loaded via load, loader will override this.
 }
 
@@ -30,7 +30,7 @@ Pu::Sampler & Pu::Sampler::operator=(Sampler && other)
 		Destroy();
 
 		Asset::operator=(std::move(other));
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 
 		other.hndl = nullptr;
@@ -102,5 +102,5 @@ size_t Pu::Sampler::CreateHash(const SamplerCreateInfo & info)
 
 void Pu::Sampler::Destroy(void)
 {
-	if (hndl) parent.vkDestroySampler(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroySampler(parent->hndl, hndl, nullptr);
 }

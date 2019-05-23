@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, bool requiresHostAccess)
-	: Asset(true), parent(device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None), Mutable(true)
+	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None), Mutable(true)
 {
 	memoryProperties = requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None;
 	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage));
@@ -24,7 +24,7 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 		Destroy();
 		Asset::operator=(std::move(other));
 
-		parent = std::move(other.parent);
+		parent = other.parent;
 		size = other.size;
 		memoryHndl = other.memoryHndl;
 		bufferHndl = other.bufferHndl;
@@ -121,14 +121,14 @@ Pu::Asset & Pu::Buffer::Duplicate(AssetCache &)
 #pragma warning(disable:4458)
 void Pu::Buffer::Map(size_t size, size_t offset)
 {
-	VK_VALIDATE(parent.vkMapMemory(parent.hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, reinterpret_cast<void**>(&buffer)), PFN_vkMapMemory);
+	VK_VALIDATE(parent->vkMapMemory(parent->hndl, memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size), 0, reinterpret_cast<void**>(&buffer)), PFN_vkMapMemory);
 }
 #pragma warning(pop)
 
 void Pu::Buffer::UnMap(void)
 {
 	/* Resset the buffer back to nullptr to indicate that we no longer have access to the buffer. */
-	parent.vkUnmapMemory(parent.hndl, memoryHndl);
+	parent->vkUnmapMemory(parent->hndl, memoryHndl);
 	buffer = nullptr;
 }
 
@@ -139,36 +139,36 @@ void Pu::Buffer::Flush(size_t size, size_t offset)
 {
 	/* Flush the section of the buffer indicated by the user. */
 	const MappedMemoryRange range{ memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size) };
-	VK_VALIDATE(parent.vkFlushMappedMemoryRanges(parent.hndl, 1, &range), PFN_vkFlushMappedMemoryRanges);
+	VK_VALIDATE(parent->vkFlushMappedMemoryRanges(parent->hndl, 1, &range), PFN_vkFlushMappedMemoryRanges);
 }
 #pragma warning(pop)
 
 void Pu::Buffer::Create(const BufferCreateInfo & createInfo)
 {
-	VK_VALIDATE(parent.vkCreateBuffer(parent.hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
+	VK_VALIDATE(parent->vkCreateBuffer(parent->hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
 	Allocate();
 }
 
 void Pu::Buffer::Destroy(void)
 {
 	Free();
-	if (bufferHndl) parent.vkDestroyBuffer(parent.hndl, bufferHndl, nullptr);
+	if (bufferHndl) parent->vkDestroyBuffer(parent->hndl, bufferHndl, nullptr);
 }
 
 void Pu::Buffer::Allocate(void)
 {
 	/* Get the requirements for this block of memory. */
 	MemoryRequirements requirements;
-	parent.vkGetBufferMemoryRequirements(parent.hndl, bufferHndl, &requirements);
+	parent->vkGetBufferMemoryRequirements(parent->hndl, bufferHndl, &requirements);
 
 	/* Get the best type of memory available to us. */
-	if (parent.parent.GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, false, memoryType))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, false, memoryType))
 	{
 		gpuSize = static_cast<size_t>(requirements.Size);
 
 		/* Allocate the memory. */
 		const MemoryAllocateInfo info{ requirements.Size, memoryType };
-		VK_VALIDATE(parent.vkAllocateMemory(parent.hndl, &info, nullptr, &memoryHndl), PFN_vkAllocateMemory);
+		VK_VALIDATE(parent->vkAllocateMemory(parent->hndl, &info, nullptr, &memoryHndl), PFN_vkAllocateMemory);
 
 		/* Bind the memory to the buffer. */
 		Bind();
@@ -178,10 +178,10 @@ void Pu::Buffer::Allocate(void)
 
 void Pu::Buffer::Bind(void)
 {
-	VK_VALIDATE(parent.vkBindBufferMemory(parent.hndl, bufferHndl, memoryHndl, 0), PFN_vkBindBufferMemory);
+	VK_VALIDATE(parent->vkBindBufferMemory(parent->hndl, bufferHndl, memoryHndl, 0), PFN_vkBindBufferMemory);
 }
 
 void Pu::Buffer::Free(void)
 {
-	if (memoryHndl) parent.vkFreeMemory(parent.hndl, memoryHndl, nullptr);
+	if (memoryHndl) parent->vkFreeMemory(parent->hndl, memoryHndl, nullptr);
 }

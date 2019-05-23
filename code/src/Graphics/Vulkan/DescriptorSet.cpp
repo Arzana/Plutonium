@@ -13,7 +13,7 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 	{
 		Free();
 
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 		set = other.set;
 
@@ -29,7 +29,7 @@ void Pu::DescriptorSet::Write(const Uniform & uniform, const Texture & texture)
 	if (uniform.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image uniform!");
 
 	/* Write the descriptor. */
-	DescriptorImageInfo info(texture.Sampler.hndl, texture.view->hndl);
+	DescriptorImageInfo info(texture.Sampler->hndl, texture.view->hndl);
 	WriteDescriptorSet write(hndl, uniform.layoutBinding.Binding, info);
 	WriteDescriptor({ write });
 }
@@ -86,15 +86,15 @@ void Pu::DescriptorSet::Write(const vector<const Uniform*>& uniforms, const Buff
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl, uint32 set)
-	: parent(pool), hndl(hndl), set(set)
+	: parent(&pool), hndl(hndl), set(set)
 {}
 
 void Pu::DescriptorSet::WriteDescriptor(const vector<WriteDescriptorSet> & writes)
 {
-	parent.parent.parent.vkUpdateDescriptorSets(parent.parent.parent.hndl, static_cast<uint32>(writes.size()), writes.data(), 0, nullptr);
+	parent->parent->parent->vkUpdateDescriptorSets(parent->parent->parent->hndl, static_cast<uint32>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void Pu::DescriptorSet::Free(void)
 {
-	if (hndl) parent.FreeSet(hndl);
+	if (hndl) parent->FreeSet(hndl);
 }

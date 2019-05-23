@@ -23,13 +23,13 @@ namespace Pu
 		/* Gets the underlying buffer of this view. */
 		_Check_return_ inline Buffer& GetBuffer(void)
 		{
-			return buffer;
+			return *buffer;
 		}
 		
 		/* Gets the underlying buffer of this view. */
 		_Check_return_ inline const Buffer& GetBuffer(void) const
 		{
-			return buffer;
+			return *buffer;
 		}
 
 		/* Gets the amount of elements in this buffer view. */
@@ -42,7 +42,7 @@ namespace Pu
 		friend class BufferAccessor;
 		friend class CommandBuffer;
 
-		Buffer &buffer;
+		Buffer *buffer;
 		size_t offset, size, stride;
 
 		void SetData(const void *data, size_t internalOffset, size_t elementSize, size_t elementCount);

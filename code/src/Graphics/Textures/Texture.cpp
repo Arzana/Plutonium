@@ -13,8 +13,8 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 	{
 		Destroy();
 
-		Image = std::move(other.Image);
-		Sampler = std::move(other.Sampler);
+		Image = other.Image;
+		Sampler = other.Sampler;
 		view = other.view;
 
 		other.view = nullptr;
@@ -24,7 +24,7 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 }
 
 Pu::Texture::Texture(Pu::Sampler & sampler, Pu::Image & image)
-	: Image(image), Sampler(sampler)
+	: Image(&image), Sampler(&sampler)
 {
 	view = new ImageView(*this, ImageAspectFlag::Color);
 }
@@ -65,7 +65,7 @@ Pu::Task::Result Pu::Texture::LoadTask::Continue(void)
 		const vector<float> &texels = loadTask->GetData();
 
 		/* Copy texel information to staging buffer. */
-		stagingBuffer = new StagingBuffer(result.Image.GetDevice(), texels.size() * sizeof(float));
+		stagingBuffer = new StagingBuffer(result.Image->GetDevice(), texels.size() * sizeof(float));
 		stagingBuffer->Load(texels.data());
 
 		delete loadTask;
@@ -77,7 +77,7 @@ Pu::Task::Result Pu::Texture::LoadTask::Continue(void)
 		const vector<byte> &texels = loadTask->GetData();
 
 		/* Copy texel information to staging buffer. */
-		stagingBuffer = new StagingBuffer(result.Image.GetDevice(), texels.size() * sizeof(byte));
+		stagingBuffer = new StagingBuffer(result.Image->GetDevice(), texels.size() * sizeof(byte));
 		stagingBuffer->Load(texels.data());
 
 		delete loadTask;

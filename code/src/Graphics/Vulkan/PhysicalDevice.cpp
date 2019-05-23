@@ -5,25 +5,25 @@
 using namespace Pu;
 
 Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
-	: PhysicalDevice(value.parent, value.hndl)
+	: PhysicalDevice(*value.parent, value.hndl)
 {
 	value.hndl = nullptr;
 }
 
 Pu::PhysicalDevice::~PhysicalDevice(void)
 {
-	parent.OnDestroy.Remove(*this, &PhysicalDevice::OnParentDestroyed);
+	parent->OnDestroy.Remove(*this, &PhysicalDevice::OnParentDestroyed);
 }
 
 PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 {
 	if (this != &other)
 	{
-		parent.OnDestroy.Remove(*this, &PhysicalDevice::OnParentDestroyed);
+		parent->OnDestroy.Remove(*this, &PhysicalDevice::OnParentDestroyed);
 
 		hndl = other.hndl;
-		parent = std::move(other.parent);
-		parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
+		parent = other.parent;
+		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 
 		other.hndl = nullptr;
 	}
@@ -35,14 +35,14 @@ vector<QueueFamilyProperties> Pu::PhysicalDevice::GetQueueFamilies(void) const
 {
 	/* Query the amount of queue families defined. */
 	uint32 count;
-	parent.vkGetPhysicalDeviceQueueFamilyProperties(hndl, &count, nullptr);
+	parent->vkGetPhysicalDeviceQueueFamilyProperties(hndl, &count, nullptr);
 
 	/* Early out if the count is less than one. */
 	if (count < 1) return vector<QueueFamilyProperties>();
 
 	/* Query all queue familie properties. */
 	vector<QueueFamilyProperties> result(count);
-	parent.vkGetPhysicalDeviceQueueFamilyProperties(hndl, &count, result.data());
+	parent->vkGetPhysicalDeviceQueueFamilyProperties(hndl, &count, result.data());
 
 	return result;
 }
@@ -51,7 +51,7 @@ LogicalDevice * Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo *
 {
 	/* Create new logical device. */
 	DeviceHndl device;
-	VK_VALIDATE(parent.vkCreateDevice(hndl, createInfo, nullptr, &device), PFN_vkCreateDevice);
+	VK_VALIDATE(parent->vkCreateDevice(hndl, createInfo, nullptr, &device), PFN_vkCreateDevice);
 
 	/* Log creation. */
 	const auto[major, minor, patch] = GetVulkanVersion();
@@ -64,14 +64,14 @@ vector<ExtensionProperties> Pu::PhysicalDevice::GetSupportedExtensions(const cha
 {
 	/* Query the amount of properties defined. */
 	uint32 count;
-	parent.vkEnumerateDeviceExtensionProperties(hndl, layer, &count, nullptr);
+	parent->vkEnumerateDeviceExtensionProperties(hndl, layer, &count, nullptr);
 
 	/* Realy out if the count is less than one. */
 	if (count < 1) return vector<ExtensionProperties>();
 
 	/* Query all extension properties. */
 	vector<ExtensionProperties> result(count);
-	parent.vkEnumerateDeviceExtensionProperties(hndl, layer, &count, result.data());
+	parent->vkEnumerateDeviceExtensionProperties(hndl, layer, &count, result.data());
 
 	return result;
 }
@@ -108,7 +108,7 @@ bool Pu::PhysicalDevice::AreExtensionsSupported(std::initializer_list<const char
 FormatProperties Pu::PhysicalDevice::GetFormatProperties(Format format) const
 {
 	FormatProperties result;
-	parent.vkGetPhysicalDeviceFormatProperties(hndl, format, &result);
+	parent->vkGetPhysicalDeviceFormatProperties(hndl, format, &result);
 	return result;
 }
 
@@ -120,7 +120,7 @@ DeviceSize Pu::PhysicalDevice::GetUniformBufferOffsetAllignment(DeviceSize size)
 }
 
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
-	: hndl(hndl), parent(parent)
+	: hndl(hndl), parent(&parent)
 {
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
@@ -132,7 +132,7 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 ImageFormatProperties Pu::PhysicalDevice::GetImageFormatProperties(const ImageCreateInfo & createInfo)
 {
 	ImageFormatProperties result;
-	parent.vkGetPhysicalDeviceImageFormatProperties(hndl, createInfo.Format, createInfo.ImageType, createInfo.Tiling, createInfo.Usage, createInfo.Flags, &result);
+	parent->vkGetPhysicalDeviceImageFormatProperties(hndl, createInfo.Format, createInfo.ImageType, createInfo.Tiling, createInfo.Usage, createInfo.Flags, &result);
 	return result;
 }
 

@@ -26,7 +26,7 @@ namespace Pu
 		friend class Swapchain;
 		friend class Queue;
 
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 		SemaphoreHndl hndl;
 
 		void Destroy(void);

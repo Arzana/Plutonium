@@ -10,8 +10,8 @@
 
 #include <stb/stb/stb_truetype.h>
 
-Pu::Font::Font(LogicalDevice & device, float size, const CodeChart &codeChart)
-	: Asset(true), device(device), size(size), codeChart(codeChart)
+Pu::Font::Font(float size, const CodeChart &codeChart)
+	: Asset(true), size(size), codeChart(codeChart)
 {
 	info = new stbtt_fontinfo();
 }
@@ -19,7 +19,7 @@ Pu::Font::Font(LogicalDevice & device, float size, const CodeChart &codeChart)
 Pu::Font::Font(Font && value)
 	: Asset(std::move(value)), atlasImg(value.atlasImg), atlasTex(value.atlasTex),
 	glyphs(std::move(value.glyphs)), defaultGlyphIndex(value.defaultGlyphIndex),
-	lineSpace(value.lineSpace), size(value.size), info(value.info), device(value.device),
+	lineSpace(value.lineSpace), size(value.size), info(value.info),
 	data(std::move(value.data)), codeChart(std::move(value.codeChart))
 {
 	value.atlasImg = nullptr;
@@ -34,7 +34,6 @@ Pu::Font & Pu::Font::operator=(Font && other)
 		Destroy();
 
 		Asset::operator=(std::move(other));
-		device = std::move(other.device);
 		atlasImg = other.atlasImg;
 		atlasTex = other.atlasTex;
 		glyphs = std::move(glyphs);

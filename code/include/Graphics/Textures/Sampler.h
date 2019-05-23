@@ -40,7 +40,7 @@ namespace Pu
 		friend class AssetFetcher;
 
 		SamplerHndl hndl;
-		LogicalDevice &parent;
+		LogicalDevice *parent;
 
 		Filter magFilter, minFilter;
 		SamplerMipmapMode mipmapMode;

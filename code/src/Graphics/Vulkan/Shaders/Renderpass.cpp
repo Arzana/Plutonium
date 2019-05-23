@@ -3,12 +3,12 @@
 #include "Graphics/Vulkan/Instance.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
-	: Asset(true), device(device), hndl(nullptr), usable(false),
+	: Asset(true), device(&device), hndl(nullptr), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper<Shader>>&& subpasses)
-	: Asset(true), device(device), shaders(std::move(subpasses)), usable(false),
+	: Asset(true), device(&device), shaders(std::move(subpasses)), usable(false),
 	OnLinkCompleted("RenderpassOnLinkCompleted")
 {
 	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Shader &cur) { return cur.GetName(); })));
@@ -33,7 +33,7 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		Destroy();
 
 		Asset::operator=(std::move(other));
-		device = std::move(other.device);
+		device = other.device;
 		hndl = other.hndl;
 		shaders = std::move(other.shaders);
 		usable = other.usable;
@@ -181,7 +181,7 @@ void Pu::Renderpass::LoadFields(void)
 		{
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
-				uniforms.emplace_back(Uniform(device.parent, info, pass.GetType()));
+				uniforms.emplace_back(Uniform(*device->parent, info, pass.GetType()));
 			}
 		}
 	}
@@ -231,7 +231,7 @@ void Pu::Renderpass::Finalize(bool linkedViaLoader)
 
 	/* Link the subpasses into a render pass. */
 	RenderPassCreateInfo createInfo(attachmentDescriptions, subpass, dependencies);
-	VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
+	VK_VALIDATE(device->vkCreateRenderPass(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
 	LinkSucceeded(linkedViaLoader);
 }
 
@@ -320,7 +320,7 @@ void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
 	debugName += ')';
 
 	/* Log the creation. */
-	device.SetDebugName(ObjectType::Renderpass, hndl, debugName);
+	device->SetDebugName(ObjectType::Renderpass, hndl, debugName);
 	Log::Verbose("Successfully linked render pass: %ls.", modules.c_str());
 #endif
 }
@@ -333,7 +333,7 @@ void Pu::Renderpass::LinkFailed(bool linkedViaLoader)
 
 void Pu::Renderpass::Destroy(void)
 {
-	if (hndl) device.vkDestroyRenderPass(device.hndl, hndl, nullptr);
+	if (hndl) device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, wstring>>& toLoad)

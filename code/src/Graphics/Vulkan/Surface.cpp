@@ -14,7 +14,7 @@ Surface & Pu::Surface::operator=(Surface && other)
 	if (this != &other)
 	{
 		Destroy();
-		parent = std::move(other.parent);
+		parent = other.parent;
 		hndl = other.hndl;
 
 		other.hndl = nullptr;
@@ -27,7 +27,7 @@ SurfaceCapabilities Pu::Surface::GetCapabilities(const PhysicalDevice & physical
 {
 	/* Request capabilities. */
 	SurfaceCapabilities capabilities;
-	VK_VALIDATE(parent.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.hndl, hndl, &capabilities), PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+	VK_VALIDATE(parent->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice.hndl, hndl, &capabilities), PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 	return capabilities;
 }
 
@@ -35,14 +35,14 @@ vector<SurfaceFormat> Pu::Surface::GetSupportedFormats(const PhysicalDevice & ph
 {
 	/* Query amount of formats specified. */
 	uint32 count;
-	parent.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.hndl, hndl, &count, nullptr);
+	parent->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.hndl, hndl, &count, nullptr);
 
 	/* Early out if no formats are specified. */
 	if (count < 1) return vector<SurfaceFormat>();
 
 	/* Query formats. */
 	vector<SurfaceFormat> result(count);
-	parent.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.hndl, hndl, &count, result.data());
+	parent->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice.hndl, hndl, &count, result.data());
 	return result;
 }
 
@@ -50,26 +50,26 @@ vector<PresentMode> Pu::Surface::GetSupportedPresentModes(const PhysicalDevice &
 {
 	/* Query the amount of present modes. */
 	uint32 count;
-	parent.vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.hndl, hndl, &count, nullptr);
+	parent->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.hndl, hndl, &count, nullptr);
 
 	/* Early out if no present modes are supported. */
 	if (count < 1) return vector<PresentMode>();
 
 	vector<PresentMode> result(count);
-	parent.vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.hndl, hndl, &count, result.data());
+	parent->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice.hndl, hndl, &count, result.data());
 	return result;
 }
 
 bool Pu::Surface::QueueFamilySupportsPresenting(uint32 queueFamilyIndex, const PhysicalDevice & physicalDevice) const
 {
 	Bool32 result;
-	parent.vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.hndl, queueFamilyIndex, hndl, &result);
+	parent->vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice.hndl, queueFamilyIndex, hndl, &result);
 	return result;
 }
 
 #ifdef _WIN32
 Pu::Surface::Surface(VulkanInstance & parent, HINSTANCE hinstance, HWND hwnd)
-	: parent(parent)
+	: parent(&parent)
 {
 	/* Create new surface. */
 	const Win32SurfaceCreateInfo info(hinstance, hwnd);
@@ -79,5 +79,5 @@ Pu::Surface::Surface(VulkanInstance & parent, HINSTANCE hinstance, HWND hwnd)
 
 void Pu::Surface::Destroy(void)
 {
-	if (hndl) parent.vkDestroySurfaceKHR(parent.hndl, hndl, nullptr);
+	if (hndl) parent->vkDestroySurfaceKHR(parent->hndl, hndl, nullptr);
 }

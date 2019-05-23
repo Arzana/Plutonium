@@ -19,7 +19,7 @@ Queue & Pu::Queue::operator=(Queue && other)
 	{
 		hndl = other.hndl;
 		index = other.index;
-		parent = std::move(other.parent);
+		parent = other.parent;
 
 		other.hndl = nullptr;
 	}
@@ -36,7 +36,7 @@ void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 	info.CommandBuffers = &commandBuffer.hndl;
 
 	/* Submit command buffer. */
-	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
 	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
@@ -54,7 +54,7 @@ void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandB
 	info.SignalSemaphores = &signalSemaphore.hndl;
 
 	/* Submit command buffer. */
-	VK_VALIDATE(parent.vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
 	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
@@ -66,7 +66,7 @@ void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	info.WaitSemaphores = &waitSemaphore.hndl;
 
 	/* Present image. */
-	VK_VALIDATE(parent.vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
+	VK_VALIDATE(parent->vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
 }
 
 void Pu::Queue::BeginLabel(const string & name, Color color)
@@ -78,7 +78,7 @@ void Pu::Queue::BeginLabel(const string & name, Color color)
 	label.LabelName = name.c_str();
 	memcpy(label.Color, &clr, sizeof(Vector4));
 
-	parent.BeginQueueLabel(hndl, label);
+	parent->BeginQueueLabel(hndl, label);
 #else
 	(void)name;
 	(void)color;
@@ -88,10 +88,10 @@ void Pu::Queue::BeginLabel(const string & name, Color color)
 void Pu::Queue::EndLabel(void)
 {
 #ifdef _DEBUG
-	parent.EndQueueLabel(hndl);
+	parent->EndQueueLabel(hndl);
 #endif
 }
 
 Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex)
-	: parent(device), hndl(hndl), index(familyIndex)
+	: parent(&device), hndl(hndl), index(familyIndex)
 {}
