@@ -3,7 +3,7 @@
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Core/Diagnostics/CPU.h>
-#include <Graphics/UI/Rendering/BasicGuiBackgroundRenderer.h>
+#include <imgui.h>
 
 #include <Streams/FileReader.h>
 #include <Content/PumLoader.h>
@@ -98,8 +98,6 @@ void TestGame::Initialize(void)
 	{
 		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
 	};
-
-	uiRenderer = new GuiItemRenderer(GetWindow(), GetContent(), 2);
 }
 
 void TestGame::LoadContent(void)
@@ -116,15 +114,11 @@ void TestGame::LoadContent(void)
 	vrtxStagingBuffer = pum.Buffer;
 
 	image = &GetContent().FetchTexture2D(pum.Textures.front().Path.toWide(), pum.Textures.front().GetSamplerCreateInfo(), false);
-
-	/* Load the content for the fonts. */
-	font = &GetContent().FetchFont(L"{Fonts}LucidaConsole.ttf", 24.0f, CodeChart::ASCII());
 }
 
 void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
-	GetContent().Release(*font);
 
 	delete index;
 	delete mesh;
@@ -136,7 +130,6 @@ void TestGame::Finalize(void)
 {
 	GetContent().Release(*pipeline);
 
-	delete uiRenderer;
 	delete material;
 	delete transform;
 	delete pipeline;
@@ -154,7 +147,7 @@ void TestGame::Update(float)
 	}
 }
 
-void TestGame::Render(float, CommandBuffer & cmdBuffer)
+void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
 	if (!transform) return;
 	/* Update the descriptor if needed. */
@@ -181,21 +174,22 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 		material = new DescriptorSet(std::move(pipeline->GetDescriptorPool().Allocate(1)));
 		material->Write(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
 	}
-
-	static bool firstTextRender = true;
-	if (firstTextRender)
+	else	// Render ImGui
 	{
-		if (font->IsLoaded() && uiRenderer->CanBegin())
+		ImGui::Begin("Performance");
+		ImGui::Text("FPS: %d", iround(1.0f / dt));
+
+		vector<uint32> timestamps = queryPool->GetResults(0, 2, true, false);
+		if (timestamps[0])
 		{
-			firstTextRender = false;
-
-			cmdBuffer.MemoryBarrier(font->GetAtlas(), PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, font->GetAtlas().GetFullRange());
-			AddComponent(item = new Button(*this, *uiRenderer, *font));
-			item->SetAutoSize(true);
-
-			item->HoverEnter += [](GuiItem &sender) { sender.SetBackColor(Color::Blue()); };
-			item->HoverLeave += [](GuiItem &sender) { sender.SetBackColor(Color::Black() * 0.5f); };
+			const float period = GetDevice().GetPhysicalDevice().GetLimits().TimestampPeriod;
+			ImGui::SameLine();
+			ImGui::Text("(%f ms)", (timestamps[1] - timestamps[0]) * period * 0.000001f);
 		}
+
+		ImGui::Text("CPU: %d%%", ipart(CPU::GetCurrentProcessUsage() * 100.0f));
+
+		ImGui::End();
 	}
 
 	/* Timestamps. */
@@ -215,25 +209,4 @@ void TestGame::Render(float, CommandBuffer & cmdBuffer)
 
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.EndLabel();
-
-	/* Render debug text. */
-	if (!firstTextRender)
-	{
-		vector<uint32> timestamps = queryPool->GetResults(0, 2, true, false);
-		if (timestamps[0])
-		{
-			const float period = GetDevice().GetPhysicalDevice().GetLimits().TimestampPeriod;
-
-			ustring text = ustring::from((timestamps[1] - timestamps[0]) * period  * 0.000001f);
-			text += U" ms";
-			text += U"\nCPU Usage: ";
-			text += ustring::from(ipart(CPU::GetCurrentProcessUsage() * 100.0f));
-			text += U'%';
-
-			item->SetText(text);
-		}
-
-		item->Render(*uiRenderer);
-		uiRenderer->Render(cmdBuffer);
-	}
 }

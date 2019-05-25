@@ -41,6 +41,7 @@ namespace Pu
 
 	private:
 		friend class LogicalDevice;
+		friend class GameWindow;
 
 		QueueHndl hndl;
 		uint32 index;

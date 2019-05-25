@@ -29,6 +29,9 @@ namespace Pu
 		/* Fetches the desired font. */
 		_Check_return_ Font& FetchFont(_In_ const wstring &path, _In_ float size, _In_ const CodeChart &codeChart);
 
+		/* Creates a new 2D texture from the specified RGBA data. */
+		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const byte *data, _In_ uint32 width, _In_ uint32 height, _In_ const SamplerCreateInfo &samplerInfo);
+
 		/* Releases the renderpass. */
 		void Release(_In_ GraphicsPipeline &pipeline);
 		/* Releases the texture. */

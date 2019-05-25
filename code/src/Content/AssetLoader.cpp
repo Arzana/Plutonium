@@ -130,6 +130,66 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	scheduler.Spawn(*task);
 }
 
+void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, size_t size)
+{
+	class StageTask
+		: public Task
+	{
+	public:
+		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size)
+			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), data(data)
+		{
+			stagingBuffer = new StagingBuffer(parent.GetDevice(), size);
+		}
+
+		~StageTask()
+		{
+			delete stagingBuffer;
+		}
+
+		virtual Result Execute(void) override
+		{
+			/* Load the image data into the staging buffer. */
+			stagingBuffer->Load(data);
+
+			/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+			cmdBuffer.Begin();
+			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
+
+			/* Copy actual data and end the buffer. */
+			cmdBuffer.CopyEntireBuffer(*stagingBuffer, *result.Image);
+			cmdBuffer.End();
+
+			/* Submit and wait for completion. */
+			parent.transferQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+		virtual Result Continue(void) override
+		{
+			return Result::AutoDelete();
+		}
+
+	protected:
+		virtual bool ShouldContinue(void) const override
+		{
+			/* The texture is done staging if the buffer can begin again. */
+			return cmdBuffer.CanBegin();
+		}
+
+	private:
+		Texture &result;
+		AssetLoader &parent;
+		CommandBuffer &cmdBuffer;
+		StagingBuffer *stagingBuffer;
+		const byte *data;
+	};
+
+	/* Simply create the task and spawn it. */
+	StageTask *task = new StageTask(*this, texture, data, size);
+	scheduler.Spawn(*task);
+}
+
 void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & continuation)
 {
 	class LoadTask

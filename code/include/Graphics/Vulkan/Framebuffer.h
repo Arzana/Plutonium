@@ -33,10 +33,13 @@ namespace Pu
 	private:
 		friend class CommandBuffer;
 		friend class Renderpass;
+		friend class GameWindow;
 
 		FramebufferHndl hndl;
 		Rect2D area;
 		LogicalDevice *parent;
+
+		Framebuffer(LogicalDevice &device, RenderPassHndl renderPass, Extent2D dimensions, ImageViewHndl attachment);
 
 		void Destroy(void);
 	};

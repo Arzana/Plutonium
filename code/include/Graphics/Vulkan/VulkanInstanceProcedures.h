@@ -1,0 +1,122 @@
+/*
+This file contains instance level function calls for Vulkan.
+These calls have to be initialized using Pu::vkInit();
+It is not recommended to use these functions as they will call dispatch code
+on platforms that have multiple Vulkan capable devices.
+For normal use of Vulkan use the Plutonium structures, but if instance level access is needed than this can be used.
+*/
+
+#pragma once
+#include "VulkanProcedres.h"
+
+namespace Pu
+{
+	extern PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
+	extern PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
+	extern PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties;
+	extern PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+	extern PFN_vkCreateInstance vkCreateInstance;
+	extern PFN_vkDestroyInstance vkDestroyInstance;
+	extern PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
+	extern PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+	extern PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
+	extern PFN_vkCreateDevice vkCreateDevice;
+	extern PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
+	extern PFN_vkDestroyDevice vkDestroyDevice;
+	extern PFN_vkGetDeviceQueue vkGetDeviceQueue;
+	extern PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
+	extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+	extern PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+	extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
+	extern PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
+	extern PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+	extern PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
+	extern PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+	extern PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+	extern PFN_vkQueuePresentKHR vkQueuePresentKHR;
+	extern PFN_vkCreateSemaphore vkCreateSemaphore;
+	extern PFN_vkDestroySemaphore vkDestroySemaphore;
+	extern PFN_vkCreateCommandPool vkCreateCommandPool;
+	extern PFN_vkDestroyCommandPool vkDestroyCommandPool;
+	extern PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
+	extern PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
+	extern PFN_vkQueueSubmit vkQueueSubmit;
+	extern PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+	extern PFN_vkEndCommandBuffer vkEndCommandBuffer;
+	extern PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
+	extern PFN_vkCmdClearColorImage vkCmdClearColorImage;
+	extern PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
+	extern PFN_vkCreateRenderPass vkCreateRenderPass;
+	extern PFN_vkDestroyRenderPass vkDestroyRenderPass;
+	extern PFN_vkCreateShaderModule vkCreateShaderModule;
+	extern PFN_vkDestroyShaderModule vkDestroyShaderModule;
+	extern PFN_vkCreateImageView vkCreateImageView;
+	extern PFN_vkDestroyImageView vkDestroyImageView;
+	extern PFN_vkCreateFramebuffer vkCreateFramebuffer;
+	extern PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
+	extern PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
+	extern PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
+	extern PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+	extern PFN_vkDestroyPipeline vkDestroyPipeline;
+	extern PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+	extern PFN_vkCmdBindPipeline vkCmdBindPipeline;
+	extern PFN_vkCmdDraw vkCmdDraw;
+	extern PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
+	extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
+	extern PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
+	extern PFN_vkCreateFence vkCreateFence;
+	extern PFN_vkDestroyFence vkDestroyFence;
+	extern PFN_vkGetFenceStatus vkGetFenceStatus;
+	extern PFN_vkResetFences vkResetFences;
+	extern PFN_vkWaitForFences vkWaitForFences;
+	extern PFN_vkCreateBuffer vkCreateBuffer;
+	extern PFN_vkDestroyBuffer vkDestroyBuffer;
+	extern PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+	extern PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
+	extern PFN_vkAllocateMemory vkAllocateMemory;
+	extern PFN_vkFreeMemory vkFreeMemory;
+	extern PFN_vkBindBufferMemory vkBindBufferMemory;
+	extern PFN_vkMapMemory vkMapMemory;
+	extern PFN_vkFlushMappedMemoryRanges vkFlushMappedMemoryRanges;
+	extern PFN_vkUnmapMemory vkUnmapMemory;
+	extern PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
+	extern PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+	extern PFN_vkCreateImage vkCreateImage;
+	extern PFN_vkDestroyImage vkDestroyImage;
+	extern PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
+	extern PFN_vkBindImageMemory vkBindImageMemory;
+	extern PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage;
+	extern PFN_vkCreateSampler vkCreateSampler;
+	extern PFN_vkDestroySampler vkDestroySampler;
+	extern PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+	extern PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+	extern PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
+	extern PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
+	extern PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+	extern PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
+	extern PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
+	extern PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
+	extern PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
+	extern PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+	extern PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties;
+	extern PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatProperties;
+	extern PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
+	extern PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
+	extern PFN_vkQueueBeginDebugUtilsLabelEXT vkQueueBeginDebugUtilsLabelEXT;
+	extern PFN_vkQueueEndDebugUtilsLabelEXT vkQueueEndDebugUtilsLabelEXT;
+	extern PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
+	extern PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
+	extern PFN_vkCreateQueryPool vkCreateQueryPool;
+	extern PFN_vkDestroyQueryPool vkDestroyQueryPool;
+	extern PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
+	extern PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
+	extern PFN_vkCmdSetViewport vkCmdSetViewport;
+	extern PFN_vkCmdSetScissor vkCmdSetScissor;
+	extern PFN_vkCmdPushConstants vkCmdPushConstants;
+
+#ifdef _WIN32
+	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
+#endif
+	
+	void vkInit(InstanceHndl instance);
+}

@@ -197,11 +197,7 @@ void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Fra
 {
 	if (CheckIfRecording("begin render pass"))
 	{
-		RenderPassBeginInfo info(renderPass.hndl, framebuffer.hndl, renderArea);
-		info.ClearValueCount = static_cast<uint32>(renderPass.clearValues.size());
-		info.ClearValues = renderPass.clearValues.data();
-
-		device->vkCmdBeginRenderPass(hndl, &info, contents);
+		BeginRenderPassInternal(renderPass.hndl, renderPass.clearValues, framebuffer, renderArea, contents);
 	}
 }
 
@@ -280,10 +276,29 @@ void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool
 	if (CheckIfRecording("write timestamp")) device->vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
 }
 
+void Pu::CommandBuffer::SetViewport(const Viewport& viewport)
+{
+	if (CheckIfRecording("set viewport")) device->vkCmdSetViewport(hndl, 0, 1, &viewport);
+}
+
+void Pu::CommandBuffer::SetScissor(Rect2D scissor)
+{
+	if (CheckIfRecording("set scissor")) device->vkCmdSetScissor(hndl, 0, 1, &scissor);
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial)
 {
 	submitFence = new Fence(*device);
+}
+
+void Pu::CommandBuffer::BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue>& clearValues, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
+{
+	RenderPassBeginInfo info(renderPass, framebuffer.hndl, renderArea);
+	info.ClearValueCount = static_cast<uint32>(clearValues.size());
+	info.ClearValues = clearValues.data();
+
+	device->vkCmdBeginRenderPass(hndl, &info, contents);
 }
 
 void Pu::CommandBuffer::Begin(void)

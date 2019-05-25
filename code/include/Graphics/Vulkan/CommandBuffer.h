@@ -95,6 +95,10 @@ namespace Pu
 		void EndLabel(void);
 		/* Writes a timestamp at a specific point in the pipeline to the specific query. */
 		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
+		/* Sets the viewport information for a graphics pipeline with dynamic state viewports. */
+		void SetViewport(_In_ const Viewport &viewport);
+		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */
+		void SetScissor(_In_ Rect2D scissor);
 
 	private:
 		friend class CommandPool;
@@ -111,6 +115,7 @@ namespace Pu
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 
+		void BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue> &clearValues, const Framebuffer &framebuffer, Rect2D renderArea, SubpassContents contents);
 		void Begin(void);
 		void End(void);
 		void Reset(void);

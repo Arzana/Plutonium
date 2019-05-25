@@ -160,30 +160,6 @@
     <Filter Include="Source Files\Graphics\Text">
       <UniqueIdentifier>{28107f05-cde0-4c72-b7c0-bb3e26e464f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Graphics\UI">
-      <UniqueIdentifier>{146ab8c9-754e-4f4d-bbc3-48ad3ca43574}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphics\UI\Core">
-      <UniqueIdentifier>{ebb5c94a-b196-48d7-a51b-e5dde6c1d5c9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\UI">
-      <UniqueIdentifier>{fd3e93de-8ca4-4214-96b6-08f0de3e559b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\UI\Core">
-      <UniqueIdentifier>{076b4b87-a048-43f8-88ac-45edb1ee130c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphics\UI\Rendering">
-      <UniqueIdentifier>{1239da1e-5bd7-4fa1-b6fd-42912017978d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\UI\Rendering">
-      <UniqueIdentifier>{df220fa6-98e5-46c1-85bc-c2fc5e083a8d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphics\UI\Items">
-      <UniqueIdentifier>{f4c35c21-3ad7-4bef-bcb9-474374a29c97}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Graphics\UI\Items">
-      <UniqueIdentifier>{10b81441-68e5-4fb3-96ac-a717ca7e393a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Visualizers">
       <UniqueIdentifier>{4787eeb9-1192-494f-91dc-a056f4f5e788}</UniqueIdentifier>
     </Filter>
@@ -195,6 +171,15 @@
     </Filter>
     <Filter Include="Resource Files\BuildTargets\PuM">
       <UniqueIdentifier>{ffc1cb15-14d3-4399-ac47-8834dc6b3168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third Party">
+      <UniqueIdentifier>{ab258529-616b-4256-8c4d-e172f69f8217}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Third Party\Source Files">
+      <UniqueIdentifier>{739d154c-c3ca-40a9-91be-0f55ae0b013f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Vulkan\Native">
+      <UniqueIdentifier>{bf319ebd-44ce-431a-a381-83f6af01d96d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -597,47 +582,11 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\Anchors.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\FillStyle.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphType.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphRejectionArgs.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\InputFlags.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItem.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiItemRenderer.h">
-      <Filter>Header Files\Graphics\UI\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.h">
-      <Filter>Header Files\Graphics\UI\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiBackgroundUniformBlock.h">
-      <Filter>Header Files\Graphics\UI\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h">
       <Filter>Header Files\Graphics\Vulkan\Native</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h">
       <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Items\Label.h">
-      <Filter>Header Files\Graphics\UI\Items</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItemContainer.h">
-      <Filter>Header Files\Graphics\UI\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\UI\Items\Button.h">
-      <Filter>Header Files\Graphics\UI\Items</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h">
       <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
@@ -653,6 +602,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\QueryPool.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanInstanceProcedures.h">
+      <Filter>Header Files\Graphics\Vulkan\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\deps\imgui\include\imconfig.h">
+      <Filter>Third Party</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -893,29 +848,8 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItem.cpp">
-      <Filter>Source Files\Graphics\UI\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp">
-      <Filter>Source Files\Graphics\UI\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.cpp">
-      <Filter>Source Files\Graphics\UI\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiItemRenderer.cpp">
-      <Filter>Source Files\Graphics\UI\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Items\Label.cpp">
-      <Filter>Source Files\Graphics\UI\Items</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItemContainer.cpp">
-      <Filter>Source Files\Graphics\UI\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\UI\Items\Button.cpp">
-      <Filter>Source Files\Graphics\UI\Items</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp">
       <Filter>Source Files\Streams</Filter>
@@ -925,6 +859,24 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\QueryPool.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_draw.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_vulkan.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_win32.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\VulkanInstanceProcedures.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Native</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

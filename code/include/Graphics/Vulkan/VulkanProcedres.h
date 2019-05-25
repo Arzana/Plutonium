@@ -102,6 +102,9 @@ namespace Pu
 	using PFN_vkDestroyQueryPool = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkGetQueryPoolResults = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ size_t dataSize, _Out_ void *data, _In_ DeviceSize stride, _In_ QueryResultFlag flags);
 	using PFN_vkCmdWriteTimestamp = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag pipelineStage, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
+	using PFN_vkCmdSetViewport = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 firstViewport, _In_ uint32 viewportCount, const Viewport *viewports);
+	using PFN_vkCmdSetScissor = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 firstScissor, _In_ uint32 scissorCount, _In_ const Rect2D *scissors);
+	using PFN_vkCmdPushConstants = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineLayoutHndl layout, _In_ ShaderStageFlag stageFlags, _In_ uint32 offset, _In_ uint32 size, _In_ const void *values);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

@@ -2,8 +2,12 @@
 #include "Graphics/Platform/Windows/Win32Window.h"
 #include "Graphics/Vulkan/Surface.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include <imgui/include/imgui.h>
+#include <imgui/include/imgui_impl_win32.h>
 
 static Pu::vector<Pu::Win32Window*> activeWindows;
+
+IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 constexpr DWORD STYLE_WINDOWED = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
 constexpr DWORD STYLE_BORDERLESS_WINDOWED = WS_POPUP | WS_MAXIMIZE;
@@ -57,12 +61,24 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 	hndl = CreateWindow(title.c_str(), title.c_str(), STYLE_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
 	if (!hndl) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
+	if constexpr (ImGuiAvailable)
+	{
+		/* Setup ImGui for this Win32 window. */
+		if (!ImGui_ImplWin32_Init(hndl)) Log::Fatal("Unable to setup ImGui for Win32!");
+	}
+
 	/* Create new surface. */
 	surface = new Surface(vulkan, instance, hndl);
 }
 
 Pu::Win32Window::~Win32Window(void)
 {
+	if constexpr (ImGuiAvailable)
+	{
+		/* Finalize ImGui for this Win32 window. */
+		ImGui_ImplWin32_Shutdown();
+	}
+
 	/* Destroy handles. */
 	delete surface;
 	if (hndl) DestroyWindow(hndl);
@@ -191,7 +207,11 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 {
 	for (Win32Window *window : activeWindows)
 	{
-		if (window->hndl == hWnd) return window->HandleProc(message, wParam, lParam);
+		if (window->hndl == hWnd)
+		{
+			if constexpr (ImGuiAvailable) ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+			return window->HandleProc(message, wParam, lParam);
+		}
 	}
 
 	/*

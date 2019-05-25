@@ -1167,6 +1167,15 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a subpass description object. */
+		SubpassDescription(_In_ const AttachmentReference &colorAttachment)
+			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
+			InputAttachmentCount(0), InputAttachments(nullptr),
+			ColorAttachmentCount(1), ColorAttachments(&colorAttachment),
+			ResolveAttachments(nullptr), DepthStencilAttachment(nullptr),
+			PreserveAttachmentCount(0), PreserveAttachments(nullptr)
+		{}
+
+		/* Initializes a new instance of a subpass description object. */
 		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments, _In_ const AttachmentReference *depthAttachment, _In_ const vector<AttachmentReference> &preserveAttachments)
 			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
 			InputAttachmentCount(0), InputAttachments(nullptr), 
@@ -1191,7 +1200,7 @@ namespace Pu
 		/* Specifies the source access. */
 		AccessFlag SrcAccessMask;
 		/* Specifies the destination access. */
-		AccessFlag DstAcccessMask;
+		AccessFlag DstAccessMask;
 		/* Specifies optional parameters for the subpass dependency.  */
 		DependencyFlag DependencyFlags;
 
@@ -1204,7 +1213,7 @@ namespace Pu
 		SubpassDependency(_In_ uint32 source, _In_ uint32 destination)
 			: SrcSubpass(source), DstSubpass(destination), 
 			SrcStageMask(PipelineStageFlag::AllCommands), DstStageMask(PipelineStageFlag::AllCommands),
-			SrcAccessMask(AccessFlag::None), DstAcccessMask(AccessFlag::None), DependencyFlags(DependencyFlag::None)
+			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None), DependencyFlags(DependencyFlag::None)
 		{}
 	};
 
@@ -1236,6 +1245,14 @@ namespace Pu
 			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
 			AttachmentCount(0), Attachments(nullptr), SubpassCount(0), Subpasses(nullptr),
 			DependencyCount(0), Dependencies(nullptr)
+		{}
+
+		/* Initializes a new instance of a renderpass create info object. */
+		RenderPassCreateInfo(_In_ const AttachmentDescription &attachment, _In_ const SubpassDescription &subpass, _In_ const SubpassDependency &depencency)
+			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
+			AttachmentCount(1), Attachments(&attachment),
+			SubpassCount(1), Subpasses(&subpass),
+			DependencyCount(1), Dependencies(&depencency)
 		{}
 
 		/* Initializes a new instance of a renderpass create info object. */

@@ -93,6 +93,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\deps\imgui\include\imconfig.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Components\Camera.h" />
     <ClInclude Include="..\..\..\include\Components\Component.h" />
@@ -174,18 +175,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\Anchors.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\FillStyle.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphRejectionArgs.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GlyphType.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItem.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\GuiItemContainer.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Core\InputFlags.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Items\Button.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Items\Label.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiBackgroundUniformBlock.h" />
-    <ClInclude Include="..\..\..\include\Graphics\UI\Rendering\GuiItemRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -225,6 +214,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanEnums.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanFunctions.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanGlobals.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanInstanceProcedures.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanObjects.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanPlatform.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h" />
@@ -247,6 +237,11 @@
     <ClInclude Include="..\..\..\include\Streams\StreamWriter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui.cpp" />
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp" />
     <ClCompile Include="..\..\..\src\Application.cpp" />
     <ClCompile Include="..\..\..\src\Components\Camera.cpp" />
     <ClCompile Include="..\..\..\src\Components\Component.cpp" />
@@ -296,13 +291,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItem.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Core\GuiItemContainer.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Items\Button.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Items\Label.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\BasicGuiBackgroundRenderer.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiBackgroundUniformBlock.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\UI\Rendering\GuiItemRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
@@ -328,6 +316,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Swapchain.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\VulkanInstanceProcedures.cpp" />
     <ClCompile Include="..\..\..\src\Input\Mouse.cpp" />
     <ClCompile Include="..\..\..\src\Input\InputDevice.cpp" />
     <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp" />

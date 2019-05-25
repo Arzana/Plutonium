@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/Instance.h"
 #include "Graphics/Vulkan/Loader.h"
+#include "Graphics/Vulkan/VulkanInstanceProcedures.h"
 
 using namespace Pu;
 
@@ -40,6 +41,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	VulkanLoader::GetInstance().AddDeviceProcAddr(hndl);
 
 	/* Load the procedures needed for the instance and get all physical devices. */
+	vkInit(hndl);
 	LoadInstanceProcs();
 	GetPhysicalDevices();
 

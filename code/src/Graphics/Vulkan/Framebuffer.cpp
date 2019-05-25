@@ -13,6 +13,17 @@ Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPa
 	VK_VALIDATE(parent->vkCreateFramebuffer(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
 }
 
+/* This constructor is used for Imgui. */
+Pu::Framebuffer::Framebuffer(LogicalDevice & device, RenderPassHndl renderPass, Extent2D dimensions, ImageViewHndl attachment)
+	: parent(&device), area(dimensions.Width, dimensions.Height)
+{
+	FramebufferCreateInfo createInfo(renderPass, dimensions.Width, dimensions.Height);
+	createInfo.AttachmentCount = 1;
+	createInfo.Attachments = &attachment;
+
+	VK_VALIDATE(parent->vkCreateFramebuffer(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
+}
+
 Pu::Framebuffer::Framebuffer(Framebuffer && value)
 	: parent(value.parent), hndl(value.hndl), area(value.area)
 {

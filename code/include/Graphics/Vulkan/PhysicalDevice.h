@@ -85,6 +85,12 @@ namespace Pu
 			return features;
 		}
 
+		/* Gets the capabilities of all memory types supported by this physical device. */
+		_Check_return_ inline const PhysicalDeviceMemoryProperties& GetMemoryProperties(void) const
+		{
+			return memory;
+		}
+
 		/* Gets whether all single-sample 2D sparse resources use standard image block shapes. */
 		_Check_return_ inline bool IsStandard2DBlockShape(void) const
 		{
@@ -122,6 +128,7 @@ namespace Pu
 		friend class Buffer;
 		friend class Image;
 		friend class Application;
+		friend class GameWindow;
 
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;

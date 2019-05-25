@@ -53,4 +53,6 @@ namespace Pu
 	constexpr uint32 FontAtlasVOffset = 2;
 	/* Defines whether to log a fatal exception on Vulkan validation errors instead of just loggin it. */
 	constexpr bool VulkanRaiseOnError = true;
+	/* Defines whether ImGui should be available. */
+	constexpr bool ImGuiAvailable = true;
 }

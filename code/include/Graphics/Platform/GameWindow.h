@@ -91,13 +91,16 @@ namespace Pu
 		uint32 curImgIdx;
 		Matrix ortho;
 
+		RenderPassHndl imGuiRenderPass;
+		DescriptorPoolHndl imGuiDescriptorPool;
+
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;
 		std::map<RenderPassHndl, vector<Framebuffer*>> frameBuffers;
 
 		bool HasFrameBuffer(const Renderpass &renderPass) const;
 		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
-		void CreateSwapchain(Extent2D size);
+		void CreateSwapchain(Extent2D size, bool firstCall);
 		void MakeSwapchainImageWritable(void);
 		void MakeImagePresentable(void);
 		void BeginRender(void);

@@ -107,6 +107,9 @@ namespace Pu
 		PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 		PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer;
 		PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
+		PFN_vkCmdSetViewport vkCmdSetViewport;
+		PFN_vkCmdSetScissor vkCmdSetScissor;
+		PFN_vkCmdPushConstants vkCmdPushConstants;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

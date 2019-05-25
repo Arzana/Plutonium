@@ -3,6 +3,7 @@
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include <imgui/include/imgui.h>
 
 #ifdef _WIN32
 #include "Graphics/Platform/Windows/Win32Window.h"
@@ -16,12 +17,24 @@ Pu::Application::Application(const wstring & name, float width, float height)
 	InitializePlutonium();
 	scheduler = new TaskScheduler();
 	input = new InputDeviceHandler();
+
+	/* Initialize ImGui if needed. */
+	if constexpr (ImGuiAvailable)
+	{
+#ifdef _DEBUG
+		IMGUI_CHECKVERSION();
+#endif
+		ImGui::CreateContext();
+	}
 }
 
 Pu::Application::~Application(void)
 {
 	delete input;
 	delete scheduler;
+
+	/* Finalize ImGui if needed. */
+	if constexpr (ImGuiAvailable) ImGui::DestroyContext();
 
 	/* Make sure the debugging symbols are freed. */
 #ifdef _WIN32

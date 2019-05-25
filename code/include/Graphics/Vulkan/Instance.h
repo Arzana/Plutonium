@@ -58,6 +58,7 @@ namespace Pu
 		friend class PhysicalDevice;
 		friend class LogicalDevice;
 		friend class Surface;
+		friend class GameWindow;
 
 		static PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
 		static PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;

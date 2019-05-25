@@ -3,14 +3,14 @@
 Pu::QueryPool::QueryPool(LogicalDevice & device, QueryType type, size_t count)
 	: parent(&device)
 {
-	const QueryPoolCreateInfo createInfo(type, count);
+	const QueryPoolCreateInfo createInfo(type, static_cast<uint32>(count));
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, size_t count, QueryPipelineStatisticFlag statistics)
 	: parent(&device)
 {
-	const QueryPoolCreateInfo createInfo(QueryType::PipelineStatistics, count, statistics);
+	const QueryPoolCreateInfo createInfo(QueryType::PipelineStatistics, static_cast<uint32>(count), statistics);
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
