@@ -26,6 +26,8 @@ namespace Pu
 
 		/* Attempts to get the result from specific queries. */
 		vector<uint32> GetResults(_In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ bool wait, _In_ bool partial) const;
+		/* Gets the difference between two timesteps (in nanoseconds) from specific queries. */
+		float GetTimeDelta(_In_ uint32 firstQuery, bool wait);
 
 	private:
 		friend class CommandBuffer;

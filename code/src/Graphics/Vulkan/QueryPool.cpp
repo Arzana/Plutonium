@@ -1,4 +1,5 @@
 #include "Graphics/Vulkan/QueryPool.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, QueryType type, size_t count)
 	: parent(&device)
@@ -49,6 +50,20 @@ Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 query
 	/* If the result is not ready, just resturn an empty result. */
 	if (result == VkApiResult::NotReady) return vector<uint32>();
 	return results;
+}
+
+float Pu::QueryPool::GetTimeDelta(uint32 firstQuery, bool wait)
+{
+	/* Get the number of nanoseconds requireed for a timestamp to be incremented by 1. */
+	const float period = parent->GetPhysicalDevice().GetLimits().TimestampPeriod;
+
+	/* Query the two timestamps. */
+	uint32 timestamps[2];
+	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint32), wait ? QueryResultFlag::Wait : QueryResultFlag::None);
+
+	/* Only return if we could get the timestamps, otherwise just return zero. */
+	if (result == VkApiResult::NotReady) return 0.0f;
+	else return (timestamps[1] - timestamps[0]) * period;
 }
 
 void Pu::QueryPool::Destroy(void)

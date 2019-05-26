@@ -163,7 +163,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		/* Initialize the depth buffer for writing. */
 		depthBuffer->MakeWritable(cmdBuffer);
 
-		/* Copy quad to final vertex buffer. */
+		/* Copy model to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
 		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 
@@ -176,20 +176,12 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	}
 	else	// Render ImGui
 	{
-		ImGui::Begin("Performance");
-		ImGui::Text("FPS: %d", iround(1.0f / dt));
-
-		vector<uint32> timestamps = queryPool->GetResults(0, 2, true, false);
-		if (timestamps[0])
+		if (ImGui::BeginMainMenuBar())
 		{
-			const float period = GetDevice().GetPhysicalDevice().GetLimits().TimestampPeriod;
-			ImGui::SameLine();
-			ImGui::Text("(%f ms)", (timestamps[1] - timestamps[0]) * period * 0.000001f);
+			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), queryPool->GetTimeDelta(0, false) * 0.000001f);
+			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
+			ImGui::EndMainMenuBar();
 		}
-
-		ImGui::Text("CPU: %d%%", ipart(CPU::GetCurrentProcessUsage() * 100.0f));
-
-		ImGui::End();
 	}
 
 	/* Timestamps. */
