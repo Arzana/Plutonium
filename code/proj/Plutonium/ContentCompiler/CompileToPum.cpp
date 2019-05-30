@@ -1,6 +1,7 @@
 #include "CompileToPum.h"
 #include "CompileFromMd2.h"
 #include "CompileFromGltf.h"
+#include "CompileFromObj.h"
 #include <Streams/FileWriter.h>
 #include <Streams/BinaryWriter.h>
 
@@ -212,6 +213,13 @@ int CompileToPum(const CLArgs & args)
 
 		LoadGLTF(args, raw);
 		GltfToPum(args, raw, data);
+	}
+	else if (ext == "OBJ")
+	{
+		ObjLoaderResult raw;
+
+		LoadObjMtl(args.Input, raw);
+		ObjToPum(raw, data);
 	}
 	else
 	{

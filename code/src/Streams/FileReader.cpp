@@ -138,37 +138,18 @@ string Pu::FileReader::ReadLine(void)
 	/* On debug check if file is open. */
 	FileNotOpen();
 
-	/* Get the current position and set the newline length to a default of one. */
-	size_t len = 0, nll = 0;
-	const int64 pos = GetPosition();
-
-	/* Read characters until some end specifier is found. */
-	for (int32 c;; ++len)
+	/* Read characters until the end of file is reached or a newline character is reached. */
+	string result;
+	for (int32 c;;)
 	{
 		c = fgetc(hndlr);
 
-		/* Newline and end of file can break right away. */
-		if (c == '\n' || c == EOF) break;
+		if (c == EOF || c == '\n') break;
 
-		/* For carriage return, check if a second control character is used.  */
-		if (c == '\r')
-		{
-			/* Increase newline length if needed. */
-			if (Peek() == '\n') ++nll;
-			break;
-		}
+		/* Handle \r\n by just skipping any cartridge return in the result but still reading it. */
+		if (c != '\r') result += static_cast<char>(c);
 	}
 
-	/* If actual line is empty just return empty string, else seek back to the old position. */
-	if (len < 1) return string();
-	Seek(SeekOrigin::Begin, pos);
-
-	/* Create and populate result buffer. */
-	string result(len + nll, ' ');
-	const size_t checkLen = Read(reinterpret_cast<byte*>(&result[0]), 0, len + nll);
-
-	/* Check for reading errors. */
-	if (checkLen > (len + nll)) Log::Fatal("Expected length of string doesn't match actual length, this should never occur!");
 	return result;
 }
 

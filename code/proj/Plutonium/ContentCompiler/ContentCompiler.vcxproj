@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="CompileFromGltf.cpp" />
     <ClCompile Include="CompileFromMd2.cpp" />
+    <ClCompile Include="CompileFromObj.cpp" />
     <ClCompile Include="CompileToPum.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
@@ -87,6 +88,7 @@
     <ClInclude Include="CommandLineArguments.h" />
     <ClInclude Include="CompileFromGltf.h" />
     <ClInclude Include="CompileFromMd2.h" />
+    <ClInclude Include="CompileFromObj.h" />
     <ClInclude Include="CompileToPum.h" />
     <ClInclude Include="PumData.h" />
   </ItemGroup>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Pu::Color">
+    <DisplayString>[{Packed, X}]</DisplayString>
+    <Expand>
+      <Item Name="R">R</Item>
+      <Item Name="G">G</Item>
+      <Item Name="B">B</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -28,6 +28,11 @@
     <PuModel Include="..\..\..\assets\models\Monster\Monster.gltf" />
     <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2" />
   </ItemGroup>
+  <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\Sponza\sponza.obj">
+      <FileType>Document</FileType>
+    </PuModel>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B191EC86-74A7-49CD-B197-D0320C82759D}</ProjectGuid>

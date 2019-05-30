@@ -23,6 +23,9 @@
     <ClCompile Include="CompileFromGltf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CompileFromObj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h">
@@ -38,6 +41,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CompileFromGltf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileFromObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
