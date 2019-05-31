@@ -108,6 +108,12 @@ namespace Pu
 		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
 		void Finalize(void);
 
+		/* Gets the device on which the graphics pipeline was made. */
+		_Check_return_ inline LogicalDevice& GetDevice(void) const
+		{
+			return *parent;
+		}
+
 	private:
 		friend class CommandBuffer;
 		friend class DescriptorPool;
@@ -145,7 +151,7 @@ namespace Pu
 		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
 		vector<VertexInputBindingDescription> bindingDescriptions;
 
-		LogicalDevice *parent;
+		mutable LogicalDevice *parent;
 		const Renderpass *renderpass;
 		const DescriptorPool *pool;
 		PipelineHndl hndl;

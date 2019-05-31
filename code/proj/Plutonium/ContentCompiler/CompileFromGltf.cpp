@@ -1556,18 +1556,6 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 			else if (value.StringValue == "BLEND") material.AlphaMode = 2;
 		}
 
-		/* Check for the diffuse factor or the albedo factor. */
-		if (cur.TryGetValue("DIFFUSEFACTOR", value)) material.DiffuseFactor = value.GetColor();
-		else if (cur.TryGetValue("BASECOLORFACTOR", value)) material.DiffuseFactor = value.GetColor();
-
-		/* Check for the specular factor. */
-		if (cur.TryGetValue("SPECULARFACTOR", value)) material.SpecularFactor = value.GetColor();
-		else if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
-		{
-			double number;
-			if (value.TryGetNamedNumber("METALLICFACTOR", number)) material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, static_cast<float>(number));
-		}
-
 		/* Check for the emissive factor and intensity. */
 		if (cur.TryGetValue("EMISSIVEFACTOR", value)) material.EmissiveFactor = value.GetHDRColor(material.EmissiveInternsity);
 
@@ -1582,6 +1570,22 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		/* Check for specular glossiness texture. */
 		if (cur.TryGetValue("SPECULARGLOSSINESSTEXTURE", value)) material.SetSpecGlossTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
 		else if (cur.ContainsValue("METALLICROUGHNESSTEXTURE")) Log::Warning("Plutonium models can only handle specular glossiness workflow textures!");
+
+		/* 
+		Check for the diffuse factor or the albedo factor.
+		This is used as a scalar if a map is defined so de default changed if a map is defined.
+		*/
+		if (cur.TryGetValue("DIFFUSEFACTOR", value)) material.DiffuseFactor = value.GetColor();
+		else if (cur.TryGetValue("BASECOLORFACTOR", value)) material.DiffuseFactor = value.GetColor();
+		else if (material.HasDiffuseTexture) material.DiffuseFactor = Color::White();
+
+		/* Check for the specular factor. */
+		if (cur.TryGetValue("SPECULARFACTOR", value)) material.SpecularFactor = value.GetColor();
+		else if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
+		{
+			double number;
+			if (value.TryGetNamedNumber("METALLICFACTOR", number)) material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, static_cast<float>(number));
+		}
 
 		/* Check for normal texture. */
 		if (cur.TryGetValue("NORMALTEXTURE", value)) material.SetNormalTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));

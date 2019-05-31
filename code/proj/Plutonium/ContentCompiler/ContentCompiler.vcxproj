@@ -60,6 +60,10 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>Plutonium.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -91,11 +95,6 @@
     <ClInclude Include="CompileFromObj.h" />
     <ClInclude Include="CompileToPum.h" />
     <ClInclude Include="PumData.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Plutonium\Plutonium.vcxproj">
-      <Project>{7a4e82a6-2aed-4ece-ac70-4336c1c3b7a8}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

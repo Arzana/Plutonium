@@ -36,7 +36,7 @@ namespace Pu
 		bool IsDirty;
 
 		/* Initializes a new instance of a uniform block. */
-		UniformBlock(_In_ LogicalDevice &device, _In_ const GraphicsPipeline &pipeline, _In_ std::initializer_list<string> uniforms);
+		UniformBlock(_In_ const GraphicsPipeline &pipeline, _In_ std::initializer_list<string> uniforms);
 
 		/* Loads the specified staging buffer with the new GPU data. */
 		virtual void Stage(_In_ byte *destination) = 0;

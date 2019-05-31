@@ -7,7 +7,7 @@ Pu::TextRenderer::TextRenderer(GameWindow & window, AssetFetcher & loader, size_
 
 Pu::TextUniformBlock * Pu::TextRenderer::CreateText(void) const
 {
-	return new TextUniformBlock(GetWindow().GetDevice(), GetPipeline());
+	return new TextUniformBlock(GetPipeline());
 }
 
 Pu::DescriptorSet * Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const

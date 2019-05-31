@@ -1,6 +1,6 @@
 #include "Graphics/Models/UniformBlock.h"
 
-Pu::UniformBlock::UniformBlock(LogicalDevice & device, const GraphicsPipeline & pipeline, std::initializer_list<string> uniforms)
+Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializer_list<string> uniforms)
 	: DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(CheckAndGetSet(pipeline, uniforms)))),
 	IsDirty(false), firstUpdate(true)
 {
@@ -22,7 +22,7 @@ Pu::UniformBlock::UniformBlock(LogicalDevice & device, const GraphicsPipeline & 
 		}
 	}
 
-	target = new DynamicBuffer(device, size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
+	target = new DynamicBuffer(pipeline.GetDevice(), size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
 }
 
 Pu::UniformBlock::UniformBlock(UniformBlock && value)

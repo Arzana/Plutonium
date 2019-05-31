@@ -1,5 +1,10 @@
 #include "Content/PumLoader.h"
 
+Pu::PumNode::PumNode(void)
+	: HasMesh(false), HasSkin(false), HasTranslation(false),
+	HasRotation(false), HasScale(false), Mesh(0), Skin(0)
+{}
+
 Pu::PumNode::PumNode(BinaryReader & reader)
 	: Mesh(0), Skin(0)
 {
@@ -21,6 +26,12 @@ Pu::PumNode::PumNode(BinaryReader & reader)
 	if (HasRotation) Rotation = reader.ReadQuaternion();
 	if (HasScale) Scale = reader.ReadVector3();
 }
+
+Pu::PumMesh::PumMesh(void)
+	: HasMaterial(false), HasNormals(false), HasTangents(false), HasTextureCoordinates(false),
+	HasColors(false), JointType(PumJointType::None), Topology(PrimitiveTopology::PointList),
+	Material(0), VertexViewStart(0), VertexViewSize(0)
+{}
 
 Pu::PumMesh::PumMesh(BinaryReader & reader)
 	: Material(0), IndexViewStart(0), IndexViewSize(0)
@@ -51,6 +62,10 @@ Pu::PumMesh::PumMesh(BinaryReader & reader)
 	}
 }
 
+Pu::PumFrame::PumFrame(void)
+	: TimeStamp(0.0f)
+{}
+
 Pu::PumFrame::PumFrame(BinaryReader & reader)
 {
 	TimeStamp = reader.ReadSingle();
@@ -61,6 +76,10 @@ Pu::PumFrame::PumFrame(BinaryReader & reader)
 	Bounds.UpperBound = reader.ReadVector3();
 }
 
+Pu::PumSequence::PumSequence(void)
+	: Node(0)
+{}
+
 Pu::PumSequence::PumSequence(BinaryReader & reader)
 {
 	Node = reader.ReadUInt32();
@@ -69,6 +88,11 @@ Pu::PumSequence::PumSequence(BinaryReader & reader)
 	Frames.reserve(frameCount);
 	for (uint32 i = 0; i < frameCount; i++) Frames.emplace_back(reader);
 }
+
+Pu::PumAnimation::PumAnimation(void)
+	: Interpolation(PumInterpolationType::None), ShouldLoop(false), PlayInReverse(false), 
+	IsMorphAnimation(false), ShouldBake(false), Duration(0.0f)
+{}
 
 Pu::PumAnimation::PumAnimation(BinaryReader & reader)
 	: Arg1(0.0f), Arg2(0.0f), Duration(0.0f)
@@ -107,11 +131,19 @@ Pu::PumAnimation::PumAnimation(BinaryReader & reader)
 	}
 }
 
+Pu::PumJoint::PumJoint(void)
+	: Node(0)
+{}
+
 Pu::PumJoint::PumJoint(BinaryReader & reader)
 {
 	Node = reader.ReadUInt32();
 	IBind = reader.ReadMatrix();
 }
+
+Pu::PumSkeleton::PumSkeleton(void)
+	: Root(0)
+{}
 
 Pu::PumSkeleton::PumSkeleton(BinaryReader & reader)
 {
@@ -122,6 +154,12 @@ Pu::PumSkeleton::PumSkeleton(BinaryReader & reader)
 	Joints.reserve(jointCount);
 	for (uint32 i = 0; i < jointCount; i++) Joints.emplace_back(reader);
 }
+
+Pu::PumMaterial::PumMaterial(void)
+	: DoubleSided(false), AlphaMode(PumAlphaMode::Opaque), HasDiffuseTexture(false),
+	HasSpecGlossTexture(false), HasNormalTexture(false), HasOcclusionTexture(false),
+	HasEmissiveTexture(false), Glossiness(0.0f), EmissiveIntensity(0.0f)
+{}
 
 Pu::PumMaterial::PumMaterial(BinaryReader & reader)
 	: AlphaTheshold(0.0f), DiffuseTexture(0), SpecGlossTexture(0),
@@ -151,6 +189,11 @@ Pu::PumMaterial::PumMaterial(BinaryReader & reader)
 	if (HasOcclusionTexture) OcclusionTexture = reader.ReadUInt32();
 	if (HasEmissiveTexture) EmissiveTexture = reader.ReadUInt32();
 }
+
+Pu::PumTexture::PumTexture(void)
+	: Magnification(Filter::Nearest), Minification(Filter::Nearest), MipMap(SamplerMipmapMode::Nearest),
+	AddressModeU(SamplerAddressMode::Repeat), AddressModeV(SamplerAddressMode::Repeat)
+{}
 
 Pu::PumTexture::PumTexture(BinaryReader & reader)
 {

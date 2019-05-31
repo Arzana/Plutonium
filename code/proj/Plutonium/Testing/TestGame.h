@@ -1,7 +1,9 @@
 #pragma once
 #include <Application.h>
 #include <Components/FreeCamera.h>
+#include <Content/PumLoader.h>
 #include "TransformBlock.h"
+#include "MonsterMaterial.h"
 
 class TestGame
 	: public Pu::Application
@@ -29,9 +31,11 @@ private:
 	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
-	Pu::Texture2D *image, *imguiTexture;
+	Pu::Texture2D *image;
 	Pu::BufferView *mesh, *index;
-	Pu::DescriptorSet *material;
 	Pu::QueryPool *queryPool;
+
 	TransformBlock *transform;
+	MonsterMaterial *material;
+	Pu::PumMaterial rawMaterial;
 };

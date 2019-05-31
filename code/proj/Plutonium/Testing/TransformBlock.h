@@ -6,8 +6,8 @@ class TransformBlock
 	: public Pu::UniformBlock
 {
 public:
-	TransformBlock(_In_ Pu::LogicalDevice &device, _In_ const Pu::GraphicsPipeline &pipeline)
-		: UniformBlock(device, pipeline, { "Projection", "View", "CamPos" })
+	TransformBlock(_In_ const Pu::GraphicsPipeline &pipeline)
+		: UniformBlock(pipeline, { "Projection", "View", "CamPos" })
 	{
 		offset = pipeline.GetRenderpass().GetUniform("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
 	}

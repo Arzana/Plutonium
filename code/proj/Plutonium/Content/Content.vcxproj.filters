@@ -9,40 +9,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <SPIRVShader Include="..\..\..\assets\shaders\Triangle.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\2D.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Image.frag">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Image.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
       <Filter>Shaders</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Text.frag">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Textured.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\UIBackground.frag">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor2D.vert">
       <Filter>Shaders</Filter>
     </SPIRVShader>
   </ItemGroup>

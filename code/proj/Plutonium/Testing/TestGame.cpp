@@ -4,9 +4,7 @@
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Core/Diagnostics/CPU.h>
 #include <imgui.h>
-
 #include <Streams/FileReader.h>
-#include <Content/PumLoader.h>
 
 using namespace Pu;
 
@@ -74,7 +72,8 @@ void TestGame::Initialize(void)
 
 		/* Create the framebuffers and the required uniform block. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView() });
-		transform = new TransformBlock(GetDevice(), pipeline);
+		transform = new TransformBlock(pipeline);
+		material = new MonsterMaterial(pipeline);
 	};
 
 	/* Setup and load render pass. */
@@ -105,15 +104,17 @@ void TestGame::LoadContent(void)
 	FileReader file(L"assets/Models/Monster.pum");
 	const string raw = file.ReadToEnd();
 	BinaryReader reader(raw.data(), raw.length(), Endian::Little);
+
 	PuMData pum(GetDevice(), reader);
 	PumMesh &geometry = pum.Geometry.front();
+	rawMaterial = pum.Materials[geometry.Material];
 
 	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
 	mesh = new BufferView(*vrtxBuffer, geometry.VertexViewStart, geometry.VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
 	index = new BufferView(*vrtxBuffer, geometry.IndexViewStart, geometry.IndexViewSize, sizeof(uint16));
 	vrtxStagingBuffer = pum.Buffer;
 
-	image = &GetContent().FetchTexture2D(pum.Textures.front().Path.toWide(), pum.Textures.front().GetSamplerCreateInfo(), false);
+	image = &GetContent().FetchTexture2D(pum.Textures[rawMaterial.DiffuseTexture].Path.toWide(), pum.Textures[rawMaterial.DiffuseTexture].GetSamplerCreateInfo(), false);
 }
 
 void TestGame::UnLoadContent(void)
@@ -150,8 +151,6 @@ void TestGame::Update(float)
 void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
 	if (!transform) return;
-	/* Update the descriptor if needed. */
-	transform->Update(cmdBuffer);
 
 	static bool firstRender = true;
 	if (firstRender)
@@ -171,8 +170,8 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Update the descriptor. */
-		material = new DescriptorSet(std::move(pipeline->GetDescriptorPool().Allocate(1)));
-		material->Write(pipeline->GetRenderpass().GetUniform("Albedo"), *image);
+		material->SetParameters(rawMaterial);
+		material->Write(pipeline->GetRenderpass().GetUniform("Diffuse"), *image);
 	}
 	else	// Render ImGui
 	{
@@ -183,6 +182,10 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			ImGui::EndMainMenuBar();
 		}
 	}
+
+	/* Update the descriptor if needed. */
+	transform->Update(cmdBuffer);
+	material->Update(cmdBuffer);
 
 	/* Timestamps. */
 	cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queryPool, 0);

@@ -89,6 +89,7 @@
     <ClCompile Include="TestGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MonsterMaterial.h" />
     <ClInclude Include="TestGame.h" />
     <ClInclude Include="TransformBlock.h" />
   </ItemGroup>

@@ -11,7 +11,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a text uniform block. */
-		TextUniformBlock(_In_ LogicalDevice &device, _In_ const GraphicsPipeline &pipeline);
+		TextUniformBlock(_In_ const GraphicsPipeline &pipeline);
 		TextUniformBlock(_In_ const TextUniformBlock&) = delete;
 		/* Move constructor. */
 		TextUniformBlock(_In_ TextUniformBlock &&value);

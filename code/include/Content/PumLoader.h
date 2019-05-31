@@ -92,6 +92,8 @@ namespace Pu
 		/* Defines the (optional) scale of this node. */
 		Vector3 Scale;
 
+		/* Default initializes a new instance of a PuM node. */
+		PumNode(void);
 		/* Initializes a new instance of a PuM node from a binary data stream. */
 		PumNode(_In_ BinaryReader &reader);
 	};
@@ -132,6 +134,8 @@ namespace Pu
 		/* Defines the size (in bytes) of the (optional) index view. */
 		size_t IndexViewSize;
 
+		/* Default initializes a new instance of a PuM mesh. */
+		PumMesh(void);
 		/* Initializes a new instance of a PuM mesh from a binary stream. */
 		PumMesh(_In_ BinaryReader &reader);
 	};
@@ -150,6 +154,8 @@ namespace Pu
 		/* Defines the bounds of the node's associated vertices during this frame. */
 		AABB Bounds;
 
+		/* Default initializes a new instance of a PuM frame. */
+		PumFrame(void);
 		/* Initializes a new instance of a PuM frame from a binary stream. */
 		PumFrame(_In_ BinaryReader &reader);
 	};
@@ -162,6 +168,8 @@ namespace Pu
 		/* Defines the frames of this sequence. */
 		vector<PumFrame> Frames;
 
+		/* Default intializes a new instance of a PuM sequence. */
+		PumSequence(void);
 		/* Initializes a new instance of a PuM sequence from a binary stream. */
 		PumSequence(_In_ BinaryReader &reader);
 	};
@@ -193,6 +201,8 @@ namespace Pu
 		/* Defines the (optional) second argument for the interpolation. */
 		float Arg2;
 
+		/* Default initializes a new instance of a PuM animation. */
+		PumAnimation(void);
 		/* Initializes a new instance of a PuM animation from a binary stream. */
 		PumAnimation(_In_ BinaryReader &reader);
 	};
@@ -205,6 +215,8 @@ namespace Pu
 		/* The inverse bind matrix of this joint. */
 		Matrix IBind;
 
+		/* Default initializes a new instance of a PuM joint. */
+		PumJoint(void);
 		/* Initializes a new instance of a PuM joint from a binary stream. */
 		PumJoint(_In_ BinaryReader &reader);
 	};
@@ -219,6 +231,8 @@ namespace Pu
 		/* Defines the joints associated with the skeleton. */
 		vector<PumJoint> Joints;
 
+		/* Default initializes a new instance of a PuM skeleton. */
+		PumSkeleton(void);
 		/* Initializes a new instance of a PuM skeleon from a binary stream. */
 		PumSkeleton(_In_ BinaryReader &reader);
 	};
@@ -271,6 +285,8 @@ namespace Pu
 		/* Defines the (optional) index to the emissive texture. */
 		uint32 EmissiveTexture;
 
+		/* Default initializes a new instance of a PuM material. */
+		PumMaterial(void);
 		/* Initializes a new instance of a PuM material from a binary stream. */
 		PumMaterial(_In_ BinaryReader &reader);
 	};
@@ -291,6 +307,8 @@ namespace Pu
 		/* The address mode for the vertical coordinates. */
 		SamplerAddressMode AddressModeV;
 
+		/* Default initializes a new instance of a PuM texture. */
+		PumTexture(void);
 		/* Initializes a new instance of a PuM texture from a binary stream. */
 		PumTexture(_In_ BinaryReader &reader);
 
