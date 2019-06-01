@@ -153,6 +153,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
@@ -274,6 +275,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />

@@ -110,10 +110,9 @@ void TestGame::LoadContent(void)
 	rawMaterial = pum.Materials[geometry.Material];
 
 	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
-	mesh = new BufferView(*vrtxBuffer, geometry.VertexViewStart, geometry.VertexViewSize, sizeof(Vector3) * 2 + sizeof(Vector2));
-	index = new BufferView(*vrtxBuffer, geometry.IndexViewStart, geometry.IndexViewSize, sizeof(uint16));
 	vrtxStagingBuffer = pum.Buffer;
 
+	mesh = Mesh(*vrtxBuffer, geometry);
 	image = &GetContent().FetchTexture2D(pum.Textures[rawMaterial.DiffuseTexture].Path.toWide(), pum.Textures[rawMaterial.DiffuseTexture].GetSamplerCreateInfo(), false);
 }
 
@@ -121,8 +120,6 @@ void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
 
-	delete index;
-	delete mesh;
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -192,16 +189,15 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queryPool, 1);
 
 	/* Render scene. */
-	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
 
-	cmdBuffer.BindIndexBuffer(*index, IndexType::UInt16);
-	cmdBuffer.BindVertexBuffer(0, *mesh);
+	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
-	cmdBuffer.Draw(static_cast<uint32>(index->GetElementCount()), 1, 0, 0, 0);
+	mesh.Bind(cmdBuffer, 0);
+	mesh.Draw(cmdBuffer);
+	cmdBuffer.EndLabel();
 
 	cmdBuffer.EndRenderPass();
-	cmdBuffer.EndLabel();
 }

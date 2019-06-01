@@ -2,6 +2,7 @@
 #include <Application.h>
 #include <Components/FreeCamera.h>
 #include <Content/PumLoader.h>
+#include <Graphics/Models/Mesh.h>
 #include "TransformBlock.h"
 #include "MonsterMaterial.h"
 
@@ -32,7 +33,7 @@ private:
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
-	Pu::BufferView *mesh, *index;
+	Pu::Mesh mesh;
 	Pu::QueryPool *queryPool;
 
 	TransformBlock *transform;
