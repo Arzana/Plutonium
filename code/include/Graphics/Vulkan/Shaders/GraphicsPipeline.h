@@ -54,6 +54,12 @@ namespace Pu
 			depthStencil.DepthCompareOp = operation;
 		}
 
+		/* Sets the width of the lines drawn using the line primitive topology. */
+		inline void SetLineWidth(_In_ float width)
+		{
+			rasterizer.LineWidth = width;
+		}
+
 #pragma warning(push)
 #pragma warning(disable:4458)
 		/* Sets the viewport parameters of the graphics pipeline. */
@@ -89,6 +95,8 @@ namespace Pu
 		_Check_return_ const DescriptorPool& GetDescriptorPool(void) const;
 		/* Gets the blending state for a specific color blend attachment. */
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendStateFor(_In_ const string &name);
+		/* Adds a dynamic state parameter to the list. */
+		void AddDynamicState(_In_ DynamicState state);
 		/* Adds a vertex input binding to the graphics pipeline. */
 		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex);
 		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
@@ -143,6 +151,7 @@ namespace Pu
 		PipelineHndl hndl;
 		PipelineLayoutHndl layoutHndl;
 		vector<DescriptorSetLayoutHndl> descriptorSets;
+		vector<DynamicState> dynamicStates;
 		Viewport vp;
 		Rect2D scissor;
 		size_t maxSets;

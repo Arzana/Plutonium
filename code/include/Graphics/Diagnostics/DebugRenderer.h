@@ -2,6 +2,7 @@
 #include "Core/Math/Line.h"
 #include "Core/Math/AABB.h"
 #include "Graphics/Models/Renderer.h"
+#include "Graphics/Textures/DepthBuffer.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
 
 namespace Pu
@@ -15,7 +16,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a debug renderer. */
-		DebugRenderer(_In_ GameWindow &window, _In_ AssetFetcher &loader);
+		DebugRenderer(_In_ GameWindow &window, _In_ AssetFetcher &loader, _In_opt_ const DepthBuffer *depthBuffer, _In_ float lineWidth);
 		DebugRenderer(_In_ const DebugRenderer&) = delete;
 		DebugRenderer(_In_ DebugRenderer&&) = delete;
 		/* Releases the resources allocated by the debug renderer. */
@@ -47,8 +48,11 @@ namespace Pu
 		DebugRendererUniformBlock *uniforms;
 		DynamicBuffer *buffer;
 		BufferView *bufferView;
+		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
 		uint32 size;
+		float lineWidth;
+		bool dynamicLineWidth;
 
 		void AddVertex(Vector3 p, Color c);
 	};

@@ -27,13 +27,15 @@ void Pu::Output::SetDescription(const Swapchain & swapchain)
 
 void Pu::Output::SetDescription(const DepthBuffer & depthBuffer)
 {
+	/* Set the format and default the clear value to the far plane and no stencil. */
 	description.Format = depthBuffer.GetFormat();
-	description.InitialLayout = ImageLayout::Undefined;
-	description.FinalLayout = ImageLayout::DepthStencilAttachmentOptimal;
-
-	/* Default set the clear value to the far plane and no stencil if it's setup as a depth buffer. */
-	SetLayout(ImageLayout::DepthStencilAttachmentOptimal);
 	SetClearValue({ 1.0f, 0 });
+
+	/* Set the default layout to either read-only or read-write. */
+	const ImageLayout defaultLayout = ImageLayout::DepthStencilAttachmentOptimal;
+	description.InitialLayout = defaultLayout;
+	description.FinalLayout = defaultLayout;
+	SetLayout(defaultLayout);
 }
 
 Pu::Output::Output(const FieldInfo & data, uint32 attachment, OutputUsage type)

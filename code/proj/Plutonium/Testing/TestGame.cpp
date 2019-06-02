@@ -58,7 +58,7 @@ void TestGame::Initialize(void)
 	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
-	debugRenderer = new DebugRenderer(GetWindow(), GetContent());
+	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice(), 2);

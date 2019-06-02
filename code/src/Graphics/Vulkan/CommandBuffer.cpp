@@ -286,6 +286,11 @@ void Pu::CommandBuffer::SetScissor(Rect2D scissor)
 	if (CheckIfRecording("set scissor")) device->vkCmdSetScissor(hndl, 0, 1, &scissor);
 }
 
+void Pu::CommandBuffer::SetLineWidth(float width)
+{
+	if (CheckIfRecording("set dynamic line width")) device->vkCmdSetLineWidth(hndl, width);
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial)
 {

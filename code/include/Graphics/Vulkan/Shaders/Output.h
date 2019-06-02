@@ -17,6 +17,18 @@ namespace Pu
 			reference.Layout = layout;
 		}
 
+		/* Sets the layout of the output before this output is used in the render pass. */
+		inline void SetInitialLayout(_In_ ImageLayout layout)
+		{
+			description.InitialLayout = layout;
+		}
+
+		/* Sets the layout of the output after this output is used in the render pass. */
+		inline void SetFinalLayout(_In_ ImageLayout layout)
+		{
+			description.FinalLayout = layout;
+		}
+
 		/* Sets how the output field should be handled, multisample can only be used if the usage is Color. */
 		inline void SetUsage(_In_ OutputUsage usage, _In_opt_ bool multisample = false)
 		{

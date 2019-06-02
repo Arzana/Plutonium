@@ -305,11 +305,16 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 		/*
 		TODO:
 		There is a bug in the Vulkan validation layer that doesn't allow me to update multiple descriptors in the same uniform block correctly.
-		This issue has been noted to the makers of the validation layer in this issue and is fixed in release 1.1.106.0, 
+		This issue has been noted to the makers of the validation layer in this issue and is fixed in release 1.1.106.0 (it isn't), 
 		this is however not yet available in the latest Vulkan SDK, we when it comes out check can be removed.
 		https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/825
+
+		There is another bug in the Vulkan validation layer that doesn't allow me to set the line width at all.
+		It doesn't set the physical device features properly which makes a check think that a feature is never enabled.
+
 		*/
-		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated"))
+		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated") &&
+			strcmp(data->MessageIdName, "VUID-VkGraphicsPipelineCreateInfo-pDynamicStates-00749"))
 		{
 			if constexpr (VulkanRaiseOnError) Log::Fatal(data->Message);
 			else Log::Error(data->Message);

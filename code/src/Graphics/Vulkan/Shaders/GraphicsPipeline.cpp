@@ -23,7 +23,7 @@ Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
 	depthStencil(value.depthStencil), colorBlend(value.colorBlend),
 	dynamicState(std::move(value.dynamicState)), PostInitialize(std::move(value.PostInitialize)),
 	colorBlendAttachments(std::move(value.colorBlendAttachments)),
-	bindingDescriptions(std::move(value.bindingDescriptions))
+	bindingDescriptions(std::move(value.bindingDescriptions)), dynamicStates(std::move(dynamicStates))
 {
 	value.renderpass = nullptr;
 	value.hndl = nullptr;
@@ -58,6 +58,7 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		descriptorSets = std::move(other.descriptorSets);
 		colorBlendAttachments = std::move(other.colorBlendAttachments);
 		bindingDescriptions = std::move(other.bindingDescriptions);
+		dynamicStates = std::move(other.dynamicStates);
 		
 		other.renderpass = nullptr;
 		other.hndl = nullptr;
@@ -111,6 +112,12 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(c
 }
 #pragma warning(pop)
 
+void Pu::GraphicsPipeline::AddDynamicState(DynamicState state)
+{
+	/* No need to throw, just a simple check. */
+	if (!dynamicStates.contains(state)) dynamicStates.emplace_back(state);
+}
+
 void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate inputRate)
 {
 	/* Make sure binding isn't added mutliple times. */
@@ -141,6 +148,10 @@ void Pu::GraphicsPipeline::Finalize(void)
 	vertexInput.VertexAttributeDescriptions = attrDesc.data();
 	vertexInput.VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
 	vertexInput.VertexBindingDescriptions = bindingDescriptions.data();
+
+	/* Add the dynamic states to the final version. */
+	dynamicState.DynamicStateCount = static_cast<uint32>(dynamicStates.size());
+	dynamicState.DynamicStates = dynamicStates.data();
 
 	/* Create the descriptor set layouts and the pipeline layout. */
 	FinalizeLayout();

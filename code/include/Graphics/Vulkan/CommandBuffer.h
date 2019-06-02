@@ -99,6 +99,8 @@ namespace Pu
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */
 		void SetScissor(_In_ Rect2D scissor);
+		/* Sets the dynamic line width state. */
+		void SetLineWidth(_In_ float width);
 
 	private:
 		friend class CommandPool;

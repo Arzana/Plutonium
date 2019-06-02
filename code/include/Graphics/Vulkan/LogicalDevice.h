@@ -110,6 +110,7 @@ namespace Pu
 		PFN_vkCmdSetViewport vkCmdSetViewport;
 		PFN_vkCmdSetScissor vkCmdSetScissor;
 		PFN_vkCmdPushConstants vkCmdPushConstants;
+		PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
