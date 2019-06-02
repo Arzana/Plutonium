@@ -130,6 +130,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Conversion.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Frustum.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Line.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Plane.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h" />
@@ -148,11 +149,8 @@
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexMaterial.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
@@ -275,6 +273,8 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />

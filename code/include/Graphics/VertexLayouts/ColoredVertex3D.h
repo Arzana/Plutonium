@@ -10,20 +10,15 @@ namespace Pu
 		/* The location of the vertex. */
 		Vector3 Position;
 		/* The color of the vertex. */
-		Vector4 Color;
+		Color Color;
 
 		/* Initializes an empty instance of a colored vertex. */
 		ColoredVertex3D(void)
 		{}
 
 		/* Initializes a new instance of a colored vertex. */
-		ColoredVertex3D(_In_ Vector3 pos, _In_ Vector4 clr)
-			: Position(pos), Color(clr)
-		{}
-
-		/* Initializes a new instance of a colored vertex. */
 		ColoredVertex3D(_In_ Vector3 pos, _In_ Pu::Color clr)
-			: Position(pos), Color(clr.ToVector4())
+			: Position(pos), Color(clr)
 		{}
 	};
 }

@@ -127,17 +127,8 @@
     <Filter Include="Source Files\Content">
       <UniqueIdentifier>{71357709-dff2-4df7-af9c-6c51e1680c92}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Graphics\Materials">
-      <UniqueIdentifier>{375151f6-1fba-42f5-b70f-9402e933ac34}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Graphics\Models">
       <UniqueIdentifier>{2dde9088-7adf-460f-93e5-1b9848f992f7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphics\Materials\Extensions">
-      <UniqueIdentifier>{5a54a374-c238-4296-b150-fefb235b6847}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphics\Materials\Physically Based">
-      <UniqueIdentifier>{937b25ff-eb0c-4fda-9b59-463533f31104}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Graphics\Models">
       <UniqueIdentifier>{15cd08ee-a26c-40ed-a26c-1d9e2f0913d1}</UniqueIdentifier>
@@ -180,6 +171,12 @@
     </Filter>
     <Filter Include="Source Files\Graphics\Vulkan\Native">
       <UniqueIdentifier>{bf319ebd-44ce-431a-a381-83f6af01d96d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Diagnostics">
+      <UniqueIdentifier>{068075a9-7d87-4e9c-ac1e-61d6a83d8695}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Diagnostics">
+      <UniqueIdentifier>{de2c4484-e4a9-4ac2-a072-7f1c87a60565}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -474,18 +471,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Resources\StagingBuffer.h">
       <Filter>Header Files\Graphics\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Materials\Material.h">
-      <Filter>Header Files\Graphics\Materials</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexMaterial.h">
-      <Filter>Header Files\Graphics\Materials\Extensions</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Materials\PBRMaterial.h">
-      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Materials\ComplexPBRMaterial.h">
-      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
@@ -588,9 +573,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Materials\MappedPBRMaterial.h">
-      <Filter>Header Files\Graphics\Materials\Physically Based</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\Stream.h">
       <Filter>Header Files\Streams</Filter>
     </ClInclude>
@@ -614,6 +596,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h">
       <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h">
+      <Filter>Header Files\Graphics\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Line.h">
+      <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -889,6 +880,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp">
+      <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -55,4 +55,6 @@ namespace Pu
 	constexpr bool VulkanRaiseOnError = true;
 	/* Defines whether ImGui should be available. */
 	constexpr bool ImGuiAvailable = true;
+	/* Defines the maximum amount of vertices that can be rendered in one frame of the debug renderer. */
+	constexpr size_t MaxDebugRendererVertices = 4096;
 }

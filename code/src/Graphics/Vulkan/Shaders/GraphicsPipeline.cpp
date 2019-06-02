@@ -68,6 +68,25 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 	return *this;
 }
 
+const Pu::Renderpass & Pu::GraphicsPipeline::GetRenderpass(void) const
+{
+#ifdef _DEBUG
+	if (!renderpass) Log::Fatal("Cannot get render pass from graphics pipeline that isn't finalized!");
+#endif
+
+	return *renderpass;
+}
+
+const Pu::DescriptorPool & Pu::GraphicsPipeline::GetDescriptorPool(void) const
+{
+#ifdef _DEBUG
+	if (!renderpass) Log::Fatal("Cannot get descriptor pool from graphics pipeline that isn't finalized!");
+	if (!pool) Log::Fatal("This graphics pipeline doesn't define any descriptors!");
+#endif
+
+	return *pool;
+}
+
 /* Not all codepaths return a value, Log::Fatal will always throw. */
 #pragma warning(push)
 #pragma warning(disable:4715)
@@ -127,7 +146,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	FinalizeLayout();
 
 	/* Create the pool from which the user can allocate descriptor sets. */
-	pool = new DescriptorPool(*this, maxSets);
+	if (!renderpass->uniforms.empty()) pool = new DescriptorPool(*this, maxSets);
 
 	/* Create graphics pipeline. */
 	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });

@@ -3,6 +3,7 @@
 #include <Components/FreeCamera.h>
 #include <Content/PumLoader.h>
 #include <Graphics/Models/Mesh.h>
+#include <Graphics/Diagnostics/DebugRenderer.h>
 #include "TransformBlock.h"
 #include "MonsterMaterial.h"
 
@@ -27,6 +28,7 @@ protected:
 
 private: 
 	Pu::FreeCamera *cam;
+	Pu::DebugRenderer *debugRenderer;
 
 	Pu::GraphicsPipeline *pipeline;
 	Pu::DepthBuffer *depthBuffer;
@@ -34,6 +36,7 @@ private:
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::Mesh mesh;
+	Pu::AABB bb;
 	Pu::QueryPool *queryPool;
 
 	TransformBlock *transform;

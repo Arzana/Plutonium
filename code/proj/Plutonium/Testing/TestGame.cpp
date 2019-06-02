@@ -58,6 +58,7 @@ void TestGame::Initialize(void)
 	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
+	debugRenderer = new DebugRenderer(GetWindow(), GetContent());
 
 	/* Setup graphics pipeline. */
 	pipeline = new GraphicsPipeline(GetDevice(), 2);
@@ -113,6 +114,7 @@ void TestGame::LoadContent(void)
 	vrtxStagingBuffer = pum.Buffer;
 
 	mesh = Mesh(*vrtxBuffer, geometry);
+	bb = geometry.Bounds;
 	image = &GetContent().FetchTexture2D(pum.Textures[rawMaterial.DiffuseTexture].Path.toWide(), pum.Textures[rawMaterial.DiffuseTexture].GetSamplerCreateInfo(), false);
 }
 
@@ -131,6 +133,7 @@ void TestGame::Finalize(void)
 	delete material;
 	delete transform;
 	delete pipeline;
+	delete debugRenderer;
 	delete depthBuffer;
 	delete queryPool;
 }
@@ -200,4 +203,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.EndLabel();
 
 	cmdBuffer.EndRenderPass();
+
+	debugRenderer->AddBox(bb, Color::Red());
+	debugRenderer->Render(cmdBuffer, cam->GetProjection(), cam->GetView());
 }

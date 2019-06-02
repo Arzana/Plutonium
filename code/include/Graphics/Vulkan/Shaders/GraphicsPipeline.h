@@ -28,28 +28,10 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline &&other);
 
-		/* Gets the renderpass used to in this graphics pipeline. */
-		_Check_return_ inline const Renderpass& GetRenderpass(void) const
-		{
-#ifdef _DEBUG
-			if (!renderpass) Log::Fatal("Cannot get renderpass from graphics pipeline that is not finalized!");
-#endif
-			return *renderpass;
-		}
-
 		/* Gets whether the graphics pipeline is ready for use. */
 		_Check_return_ inline bool IsUsable(void) const 
 		{
 			return hndl;
-		}
-
-		/* Gets the pool from which descriptors can be made. */
-		_Check_return_ inline const DescriptorPool& GetDescriptorPool(void) const
-		{
-#ifdef _DEBUG
-			if (!pool) Log::Fatal("Cannot get descriptor pool from graphics pipeline that is not finalized!");
-#endif
-			return *pool;
 		}
 
 		/* Sets the cull mode to use. */
@@ -101,6 +83,10 @@ namespace Pu
 			AddVertexBinding(binding, sizeof(vertex_t), inputRate);
 		}
 
+		/* Gets the renderpass used to in this graphics pipeline. */
+		_Check_return_ const Renderpass& GetRenderpass(void) const;
+		/* Gets the pool from which descriptors can be made. */
+		_Check_return_ const DescriptorPool& GetDescriptorPool(void) const;
 		/* Gets the blending state for a specific color blend attachment. */
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendStateFor(_In_ const string &name);
 		/* Adds a vertex input binding to the graphics pipeline. */

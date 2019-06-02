@@ -15,6 +15,12 @@
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
       <Filter>Shaders</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
