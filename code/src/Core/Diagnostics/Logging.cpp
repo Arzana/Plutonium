@@ -6,15 +6,17 @@
 #endif
 
 #include "Core/Diagnostics/Logging.h"
-#include "Core/Diagnostics/StackTrace.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include "Core/Diagnostics/StackTrace.h"
+#include "Streams/FileWriter.h"
 #include "Config.h"
 #include <cstdio>
 #include <ctime>
 #include <crtdbg.h>
 #include <io.h>
 #include <fcntl.h>
+
 using namespace Pu;
 
 void Pu::Log::Verbose(const char * format, ...)
@@ -62,6 +64,23 @@ void Pu::Log::Fatal(const char * format, ...)
 	GetInstance().LogExc("An unhandled exception occurred!", format, args);
 }
 
+void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring & reportDir, RaiseCallback callback)
+{
+	GetInstance().mode = mode;
+
+	switch (mode)
+	{
+	case Pu::RaiseMode::CrashReport:
+		GetInstance().reportDir = reportDir;
+		if (reportDir.back() != L'\\') GetInstance().reportDir += L'\\';
+		break;
+	case Pu::RaiseMode::Custom:
+		if (!callback) Log::Error("Raise callback should not be null!");
+		GetInstance().callback = callback;
+		break;
+	}
+}
+
 void Pu::Log::SetBufferWidth(uint32 width)
 {
 #if defined(_WIN32)
@@ -103,7 +122,7 @@ void Pu::Log::Move(int32 x, int32 y)
 #else
 	Warning("Moving the output window is not supported on this platform!");
 #endif
-	}
+}
 
 void Pu::Log::Resize(uint32 w, uint32 h)
 {
@@ -201,7 +220,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	/* Make sure the color is correct. */
 	UpdateType(LogType::Error);
 
-	/* 
+	/*
 	Get the information needed to nicely format the stack frames.
 	Line 0 doesn't exist so we print unknown for that, which is 7 digits.
 	All initial values are the lengths for their headers.
@@ -296,15 +315,22 @@ void Pu::Log::LogExc(const char * msg, const char * format, va_list args)
 	- Log::Fatal
 	*/
 	LogExcFtr(4);
-
-	/* Make sure we halt excecution for all threads. */
-	throw std::exception(msg);
+	Raise(format, args);
 }
 
 Pu::Log::Log(void)
 	: shouldAddLinePrefix(true), suppressLogging(false),
-	lastType(LogType::None), typeStr("")
+	lastType(LogType::None), typeStr(""), reportDir(L"CrashReports\\"), callback(nullptr),
+#ifdef _DEBUG
+	mode(RaiseMode::CrashWindow)
+#else
+	mode(RaiseMode::CrashReport)
+#endif
 {
+#ifdef _WIN32
+	_CrtSetReportHook(&CrtErrorHandler);
+#endif
+
 	SetBufferWidth(1024);
 }
 
@@ -312,6 +338,82 @@ Log & Pu::Log::GetInstance(void)
 {
 	static Log logger;
 	return logger;
+}
+
+int32 Pu::Log::CrtErrorHandler(int32 category, char * msg, int32 * retVal)
+{
+	if (category == _CRT_WARN)
+	{
+		Log::Warning(msg);
+		*retVal = 0;
+	}
+	else
+	{
+		Log::Fatal(msg);
+		*retVal = 1;
+	}
+
+	return true;
+}
+
+void Pu::Log::Raise(const char * msg, va_list args)
+{
+	switch (mode)
+	{
+	case Pu::RaiseMode::Ignore:
+		return;
+	case Pu::RaiseMode::CrashReport:
+		CreateCrashReport();
+		exit(1);
+		break;
+	case Pu::RaiseMode::CrashWindow:
+		throw std::exception(msg);
+	case Pu::RaiseMode::Custom:
+		if (callback) callback(msg, args);
+		break;
+	}
+}
+
+void Pu::Log::CreateCrashReport(void)
+{
+	/* Create the crash report file. */
+	const time_t now = std::time(nullptr);
+	char buffer[100];
+	std::strftime(buffer, sizeof(buffer), "%d-%m-%Y_%H-%M-%S", std::localtime(&now));
+	FileWriter file(reportDir + L"CrashReport_" + string(buffer).toWide() + L".txt");
+
+#ifdef _WIN32
+	/* Get the handle to the console. */
+	const HANDLE hconsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	/* Only attempt to get the console lines if we can retrieve the buffer width. */
+	CONSOLE_SCREEN_BUFFER_INFO info;
+	if (GetConsoleScreenBufferInfo(hconsole, &info))
+	{
+		/* Create a temporary buffer, lineLen is not used. */
+		string buffer(static_cast<size_t>(info.dwSize.X));
+		DWORD lineLen;
+
+		/* Read untill either there are no more lines found or until the function crashes. */
+		size_t emptyCount = 0;
+		for (SHORT y = 0; ReadConsoleOutputCharacterA(hconsole, buffer.data(), info.dwSize.X, { 0, y }, &lineLen); y++)
+		{
+			/* Remove leading and trailing whitespaces. */
+			const string trimmed = buffer.trim(" \t");
+			if (trimmed.empty())
+			{
+				if (++emptyCount > 3) break;
+			}
+			else
+			{
+				/* Add the logged line to the file's content. */
+				file.Write(reinterpret_cast<const byte*>(trimmed.c_str()), 0, trimmed.size());
+				file.Write('\n');
+				emptyCount = 0;
+			}
+		}
+	}
+#endif
 }
 
 void Pu::Log::LogMsgVa(LogType type, bool addNl, const char * format, ...)

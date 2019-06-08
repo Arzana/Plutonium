@@ -457,6 +457,17 @@ namespace Pu
 		{
 			return string_t::substr(pos, count);
 		}
+
+		/* Removes leading and trailing character from the string. */
+		_Check_return_ inline basic_string<char_t> trim(_In_ const char_t *characters) const
+		{
+			const size_type begin = string_t::find_first_not_of(characters);
+			if (begin == string_t::npos) return basic_string<char_t>();
+
+			const size_type end = string_t::find_last_not_of(characters);
+			const size_type range = end - begin + 1;
+			return string_t::substr(begin, end);
+		}
 #pragma endregion
 #pragma region converters
 		/* Converts the integer value to a string. */

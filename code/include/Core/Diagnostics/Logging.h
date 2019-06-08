@@ -2,7 +2,6 @@
 #include <map>
 #include <mutex>
 #include "Core/String.h"
-#include "Core/Math/Constants.h"
 
 #if defined (ASSERT)
 #undef ASSERT
@@ -25,6 +24,22 @@ namespace Pu
 		Error
 	};
 
+	/* Defines the modes available for fatal messages. */
+	enum class RaiseMode
+	{
+		/* Just logs the fatal exception to the console and continues execution. */
+		Ignore,
+		/* Creates a crash report file in the specified directory and exits with exit code 1. */
+		CrashReport,
+		/* Creates a message box to display the error message and alows the used to pick the response. */
+		CrashWindow,
+		/* Calls a custom function to handle fatal exceptions. */
+		Custom
+	};
+
+	/* Defines the custom callback signature used for custom raise callbacks. */
+	using RaiseCallback = void(*)(_In_ const char *format, _In_ va_list args);
+
 	/* Defines an application global interface for the logging pipeline. */
 	class Log
 	{
@@ -46,6 +61,12 @@ namespace Pu
 		/* Logs a fatal error message to the output and raises a std::exception. */
 		static void Fatal(_In_ const char *format, _In_opt_ ...);
 
+		/* 
+		Sets the mode that should be used for fatal messages.
+		reportDir is only used if the mode is CrashReport. 
+		callback is only used if the mode is Custom.
+		*/
+		static void SetRaiseMode(_In_ RaiseMode mode, _In_opt_ const wstring &reportDir = nullptr, _In_opt_ RaiseCallback callback = nullptr);
 		/* Makes sure that the output buffer is large enough to fit strings with the specified length. */
 		static void SetBufferWidth(_In_ uint32 width);
 		/* Moves the output window to a specified location. */
@@ -73,6 +94,10 @@ namespace Pu
 		LogType lastType;
 		const char *typeStr;
 
+		RaiseMode mode;
+		wstring reportDir;
+		RaiseCallback callback;
+
 		std::map<uint64, wstring> processNames;
 		std::map<uint64, wstring> threadNames;
 
@@ -82,7 +107,11 @@ namespace Pu
 
 		static Log& GetInstance(void);
 
-		void LogMsgVa(LogType type, bool addNl, const char *format, _In_opt_ ...);
+		static int32 CrtErrorHandler(int32 category, char *msg, int32 *retVal);
+
+		void Raise(const char *msg, va_list args);
+		void CreateCrashReport(void);
+		void LogMsgVa(LogType type, bool addNl, const char *format, ...);
 		void UpdateType(LogType type);
 		void LogLinePrefix(LogType type);
 	};

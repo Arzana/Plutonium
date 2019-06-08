@@ -177,9 +177,16 @@ namespace Pu
 		/* Posts an event to all registered subscribers. */
 		void Post(_In_ sender_t &sender, _In_ argument_t ... args)
 		{
-			lock.lock();
-			for (subscriber_t cur : callbacks) cur->Invoke(sender, args...);
-			lock.unlock();
+			/* For posts we simply try to lock the eventbus, if this is not possible we ignore the call. */
+			if (lock.try_lock())
+			{
+				for (subscriber_t cur : callbacks) cur->Invoke(sender, args...);
+				lock.unlock();
+			}
+			else if (shouldLog)
+			{
+				if constexpr (EventBusLogging) Log::Error("Unable to lock eventbus whilst posting message, possible recursive eventbus call!");
+			}
 
 			if constexpr (EventBusLogging)
 			{
