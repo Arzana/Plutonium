@@ -51,6 +51,8 @@ namespace Pu
 		virtual void Write(_In_ byte value) override;
 		/* Writes a specific range of bytes to the stream. */
 		virtual void Write(_In_ const byte *data, _In_ size_t offset, _In_ size_t amount) override;
+		/* Writes a specific line to the stream. */
+		void Write(_In_ const string &line);
 		/* Gets the current write position of the stream. */
 		_Check_return_ int64 GetPosition(void) const;
 

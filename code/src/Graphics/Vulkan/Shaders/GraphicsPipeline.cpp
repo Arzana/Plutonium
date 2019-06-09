@@ -131,7 +131,7 @@ void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, Verte
 	bindingDescriptions.emplace_back(binding, stride, inputRate);
 }
 
-void Pu::GraphicsPipeline::Finalize(void)
+void Pu::GraphicsPipeline::Finalize(uint32 subpass)
 {
 	if (!renderpass) Log::Fatal("Unable to finalize non-initialized graphics pipeline!");
 
@@ -162,6 +162,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	/* Create graphics pipeline. */
 	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });
 	GraphicsPipelineCreateInfo createInfo(stages, layoutHndl, renderpass->hndl);
+	createInfo.Subpass = subpass;
 	createInfo.VertexInputState = &vertexInput;
 	createInfo.InputAssemblyState = &inputAssembly;
 	createInfo.TessellationState = &tessellation;

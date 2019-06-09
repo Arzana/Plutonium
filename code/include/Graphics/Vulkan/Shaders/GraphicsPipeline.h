@@ -100,7 +100,7 @@ namespace Pu
 		/* Adds a vertex input binding to the graphics pipeline. */
 		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex);
 		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
-		void Finalize(void);
+		void Finalize(_In_ uint32 subpass);
 
 		/* Gets the device on which the graphics pipeline was made. */
 		_Check_return_ inline LogicalDevice& GetDevice(void) const

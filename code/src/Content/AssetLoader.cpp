@@ -54,7 +54,7 @@ void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass
 void Pu::AssetLoader::FinalizeGraphicsPipeline(GraphicsPipeline & pipeline, Renderpass & renderpass)
 {
 	pipeline.renderpass = &renderpass;
-	pipeline.Finalize();
+	pipeline.Finalize(0);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)

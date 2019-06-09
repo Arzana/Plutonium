@@ -140,7 +140,7 @@ void Pu::DebugRenderer::OnPipelinePostInitialize(GraphicsPipeline & gfx)
 	if (dynamicLineWidth) gfx.AddDynamicState(DynamicState::LineWidth);
 	else gfx.SetLineWidth(lineWidth);
 
-	gfx.Finalize();
+	gfx.Finalize(0);
 	RecreateFramebuffers(GetWindow(), gfx.GetRenderpass());
 	uniforms = new DebugRendererUniformBlock(gfx);
 }

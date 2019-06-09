@@ -69,7 +69,7 @@ void TestGame::Initialize(void)
 		pipeline.SetTopology(PrimitiveTopology::TriangleList);
 		pipeline.SetDepthStencilMode(true, true, false);
 		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
-		pipeline.Finalize();
+		pipeline.Finalize(0);
 
 		/* Create the framebuffers and the required uniform block. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView() });
@@ -192,8 +192,8 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queryPool, 1);
 
 	/* Render scene. */
-	cmdBuffer.BindGraphicsPipeline(*pipeline);
 	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
+	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
 	cmdBuffer.BindGraphicsDescriptor(*transform);

@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #include "Core/Platform/Windows/Windows.h"
 #include <DbgHelp.h>
+#include <Psapi.h>
 #endif
 
 #include "Core/Diagnostics/DbgUtils.h"
@@ -24,6 +25,43 @@ Pu::wstring Pu::_CrtGetErrorString(void)
 	Log::Error("Cannot get error string on this platform!");
 	return U"";
 #endif
+}
+
+Pu::vector<Pu::wstring> Pu::_CrtGetLoadedModules(uint64 processID)
+{
+	vector<wstring> result;
+
+#ifdef _WIN32
+	const HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, static_cast<DWORD>(processID));
+	if (hProcess)
+	{
+		HMODULE hModules[1024];
+		DWORD byteCount;
+
+		/* Attempt to get the handles to all modules. */
+		if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &byteCount))
+		{
+			/* Enumerate through the result. */
+			for (size_t i = 0; i < byteCount / sizeof(HMODULE); i++)
+			{
+				/* Attempt to get the module name. */
+				WCHAR name[MAX_PATH];
+				if (GetModuleFileNameExW(hProcess, hModules[i], name, sizeof(name) / sizeof(WCHAR)))
+				{
+					result.emplace_back(name);
+				}
+			}
+		}
+		else Log::Error("Unable to enumerate process modules for process %#016x: %ls", hProcess, _CrtGetErrorString().c_str());
+
+		CloseHandle(hProcess);
+	}
+	else Log::Error("Unable to open process %ull: %ls!", processID, _CrtGetErrorString().c_str());
+#else
+	Log::Error("Cannot get loaded modules on this platform!");
+#endif
+
+	return result;
 }
 
 #ifdef _WIN32

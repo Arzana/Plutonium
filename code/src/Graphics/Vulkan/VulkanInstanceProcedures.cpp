@@ -108,6 +108,7 @@ namespace Pu
 	PFN_vkCmdSetScissor vkCmdSetScissor;
 	PFN_vkCmdPushConstants vkCmdPushConstants;
 	PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
+	PFN_vkCmdNextSubpass vkCmdNextSubpass;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -224,6 +225,7 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkCmdSetScissor);
 	LOAD_INSTANCE_PROC(vkCmdPushConstants);
 	LOAD_INSTANCE_PROC(vkCmdSetLineWidth);
+	LOAD_INSTANCE_PROC(vkCmdNextSubpass);
 
 #ifdef _WIN32
 	LOAD_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

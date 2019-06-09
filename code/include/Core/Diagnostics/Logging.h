@@ -86,7 +86,7 @@ namespace Pu
 		/* Logs a fatal error footer to the output. */
 		void LogExcFtr(_In_ uint32 framesToSkip);
 		/* Logs a fatal exception to the output and breaks excecution. */
-		void LogExc(_In_ const char *msg, _In_ const char *format, _In_opt_ va_list args);
+		void LogExc(_In_ const char *msg, _In_ uint32 framesToSkip, _In_opt_ va_list args);
 
 	private:
 		bool shouldAddLinePrefix;

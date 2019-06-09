@@ -240,6 +240,11 @@ void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 fir
 	if (CheckIfRecording("draw")) device->vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
+void Pu::CommandBuffer::NextSubpass(SubpassContents contents)
+{
+	if (CheckIfRecording("transition to next subpass")) device->vkCmdNextSubpass(hndl, contents);
+}
+
 void Pu::CommandBuffer::EndRenderPass(void)
 {
 	if (CheckIfRecording("end render pass")) device->vkCmdEndRenderPass(hndl);

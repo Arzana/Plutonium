@@ -58,10 +58,17 @@ void Pu::Log::Error(const char * format, ...)
 
 void Pu::Log::Fatal(const char * format, ...)
 {
-	/* va_end isn't needed as LogExc will throw. */
+	/*
+	Skip last four frames:
+	- StackFrame::GetStackTrace
+	- Log::LogExcFtr
+	- Log::LogExc
+	- Log::Fatal
+	*/
 	va_list args;
 	va_start(args, format);
-	GetInstance().LogExc("An unhandled exception occurred!", format, args);
+	GetInstance().LogExc(format, 4, args);
+	va_end(args);
 }
 
 void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring & reportDir, RaiseCallback callback)
@@ -282,40 +289,33 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	printLock.unlock();
 }
 
-void Pu::Log::LogExc(const char * msg, const char * format, va_list args)
+void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 {
 	/* Get last stack frame for file information. */
 	StackFrame frame;
-	StackFrame::GetCallerInfo(3, frame);
+	StackFrame::GetCallerInfo(framesToSkip, frame);
 
 	/* log error header. */
 	LogExcHdr(nullptr, frame.FileName, frame.FunctionName, frame.Line);
 
 	/* Get length and make sure we don't print empty strings. */
-	const size_t len = strlen(format);
+	const size_t len = strlen(msg);
 	if (len > 0 && !suppressLogging)
 	{
 		/* Lock logger. */
 		printLock.lock();
 
 		/* Log to output and add newline if needed. */
-		vprintf(format, args);
-		if (format[len - 1] != '\n') printf("\n");
+		vprintf(msg, args);
+		if (msg[len - 1] != '\n') printf("\n");
 
 		/* Unlock logger. */
 		printLock.unlock();
 	}
 
-	/*
-	Log error footer.
-	Skip last four frames:
-	- StackFrame::GetStackTrace
-	- Log::LogExcFtr
-	- Log::LogExc
-	- Log::Fatal
-	*/
-	LogExcFtr(4);
-	Raise(format, args);
+	/* Log error footer. */
+	LogExcFtr(framesToSkip + 1);
+	Raise(msg, args);
 }
 
 Pu::Log::Log(void)
@@ -345,12 +345,20 @@ int32 Pu::Log::CrtErrorHandler(int32 category, char * msg, int32 * retVal)
 	if (category == _CRT_WARN)
 	{
 		Log::Warning(msg);
-		*retVal = 0;
+		*retVal = 0;	// Specify that the debugger should not break.
 	}
 	else
 	{
-		Log::Fatal(msg);
-		*retVal = 1;
+		/*
+		Skip last five frames:
+		- StackFrame::GetStackTrace
+		- Log::LogExcFtr
+		- Log::LogExc
+		- Log::Fatal
+		- CrtErrorHandler
+		*/
+		GetInstance().LogExc(msg, 5, nullptr);
+		*retVal = 1;	// Debugger should break (if we don't do that already).
 	}
 
 	return true;
@@ -362,12 +370,12 @@ void Pu::Log::Raise(const char * msg, va_list args)
 	{
 	case Pu::RaiseMode::Ignore:
 		return;
+	case Pu::RaiseMode::CrashWindow:
+		throw std::exception(msg);
 	case Pu::RaiseMode::CrashReport:
 		CreateCrashReport();
 		exit(1);
 		break;
-	case Pu::RaiseMode::CrashWindow:
-		throw std::exception(msg);
 	case Pu::RaiseMode::Custom:
 		if (callback) callback(msg, args);
 		break;
@@ -382,26 +390,30 @@ void Pu::Log::CreateCrashReport(void)
 	std::strftime(buffer, sizeof(buffer), "%d-%m-%Y_%H-%M-%S", std::localtime(&now));
 	FileWriter file(reportDir + L"CrashReport_" + string(buffer).toWide() + L".txt");
 
+	file.Write("Plutonium Crash Report\n");
+
 #ifdef _WIN32
 	/* Get the handle to the console. */
 	const HANDLE hconsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	file.Write("\n\nLog:\n");
 
 	/* Only attempt to get the console lines if we can retrieve the buffer width. */
 	CONSOLE_SCREEN_BUFFER_INFO info;
 	if (GetConsoleScreenBufferInfo(hconsole, &info))
 	{
 		/* Create a temporary buffer, lineLen is not used. */
-		string buffer(static_cast<size_t>(info.dwSize.X));
+		string line(static_cast<size_t>(info.dwSize.X));
 		DWORD lineLen;
 
 		/* Read untill either there are no more lines found or until the function crashes. */
 		size_t emptyCount = 0;
-		for (SHORT y = 0; ReadConsoleOutputCharacterA(hconsole, buffer.data(), info.dwSize.X, { 0, y }, &lineLen); y++)
+		for (SHORT y = 0; ReadConsoleOutputCharacterA(hconsole, line.data(), info.dwSize.X, { 0, y }, &lineLen); y++)
 		{
-			/* Remove leading and trailing whitespaces. */
-			const string trimmed = buffer.trim(" \t");
+			/* Remove trailing whitespaces. */
+			const string trimmed = line.trim_back(" \t");
 			if (trimmed.empty())
 			{
+				/* We allow for up to 3 whitespaces before canceling the log. */
 				if (++emptyCount > 3) break;
 			}
 			else
@@ -414,6 +426,13 @@ void Pu::Log::CreateCrashReport(void)
 		}
 	}
 #endif
+
+	/* Append the loaded modules to the crash report. */
+	file.Write("\n\nLoaded Modules:\n");
+	for (const wstring &cur : _CrtGetLoadedModules(_CrtGetCurrentProcessId()))
+	{
+		file.Write(cur.toUTF8() + '\n');
+	}
 }
 
 void Pu::Log::LogMsgVa(LogType type, bool addNl, const char * format, ...)

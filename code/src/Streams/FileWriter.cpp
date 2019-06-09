@@ -133,6 +133,11 @@ void Pu::FileWriter::Write(const byte * data, size_t offset, size_t amount)
 	else if (AutoFlush) Flush();
 }
 
+void Pu::FileWriter::Write(const string & line)
+{
+	Write(reinterpret_cast<const byte*>(line.data()), 0, line.length());
+}
+
 int64 Pu::FileWriter::GetPosition(void) const
 {
 	return ftell(hndl);

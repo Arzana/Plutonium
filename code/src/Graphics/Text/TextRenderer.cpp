@@ -58,7 +58,7 @@ void Pu::TextRenderer::OnPipelinePostInitialize(GraphicsPipeline &gfx)
 	gfx.SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfx.SetTopology(PrimitiveTopology::TriangleList);
 	gfx.AddVertexBinding<Image2D>(0);
-	gfx.Finalize();
+	gfx.Finalize(0);
 
 	/* Create the framebuffers for this graphics pipeline. */
 	GetWindow().CreateFrameBuffers(gfx.GetRenderpass());

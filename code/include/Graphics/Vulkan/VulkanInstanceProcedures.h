@@ -114,6 +114,7 @@ namespace Pu
 	extern PFN_vkCmdSetScissor vkCmdSetScissor;
 	extern PFN_vkCmdPushConstants vkCmdPushConstants;
 	extern PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
+	extern PFN_vkCmdNextSubpass vkCmdNextSubpass;
 
 #ifdef _WIN32
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;

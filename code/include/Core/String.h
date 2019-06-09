@@ -465,8 +465,24 @@ namespace Pu
 			if (begin == string_t::npos) return basic_string<char_t>();
 
 			const size_type end = string_t::find_last_not_of(characters);
-			const size_type range = end - begin + 1;
-			return string_t::substr(begin, end);
+			if (end == string_t::npos) return string_t::substr(begin);
+			return string_t::substr(begin, end - begin + 1);
+		}
+
+		/* Removes leading characters from the string. */
+		_Check_return_ inline basic_string<char_t> trim_front(_In_ const char_t *characters) const
+		{
+			const size_type begin = string_t::find_first_not_of(characters);
+			if (begin == string_t::npos) return basic_string<char_t>();
+			return string_t::substr(begin);
+		}
+
+		/* Remobes trailing characters from the string. */
+		_Check_return_ inline basic_string<char_t> trim_back(_In_ const char_t *characters) const
+		{
+			const size_type end = string_t::find_last_not_of(characters);
+			if (end == string_t::npos) return basic_string<char_t>();
+			return string_t::substr(0, end + 1);
 		}
 #pragma endregion
 #pragma region converters

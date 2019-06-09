@@ -153,6 +153,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdSetScissor);
 	LOAD_DEVICE_PROC(vkCmdPushConstants);
 	LOAD_DEVICE_PROC(vkCmdSetLineWidth);
+	LOAD_DEVICE_PROC(vkCmdNextSubpass);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);
