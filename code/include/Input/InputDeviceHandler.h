@@ -1,6 +1,7 @@
 #pragma once
 #include "Mouse.h"
 #include "Keyboard.h"
+#include "GamePad.h"
 #include "Graphics/Platform/NativeWindow.h"
 
 namespace Pu
@@ -11,16 +12,34 @@ namespace Pu
 	class InputDeviceHandler
 	{
 	public:
-		/* Defines a special cursor that hooks into all cursors used by the host. */
-		Mouse AnyMouse;
-		/* Defines a special keyboard that hooks into all keyboards used by the host. */
-		Keyboard AnyKeyboard;
+		/* Occurs when any key on any input device is pressed. */
+		EventBus<const InputDevice, const ButtonEventArgs&> AnyKeyDown;
+		/* Occurs when any key on any input device is released. */
+		EventBus<const InputDevice, const ButtonEventArgs&> AnyKeyUp;
+		/* Occurs when any slider value is changed. */
+		EventBus<const InputDevice, const ValueEventArgs&> AnyValueChanged;
+		/* Occurs when a mouse is scrolled. */
+		EventBus<const Mouse, int16> AnyMouseScrolled;
+		/* Occurs when a mouse is moved. */
+		EventBus<const Mouse, Vector2> AnyMouseMoved;
 
 		InputDeviceHandler(_In_ const InputDeviceHandler&) = delete;
 		InputDeviceHandler(_In_ InputDeviceHandler&&) = delete;
 
 		_Check_return_ InputDeviceHandler& operator =(_In_ const InputDeviceHandler&) = delete;
 		_Check_return_ InputDeviceHandler& operator =(_In_ InputDeviceHandler&&) = delete;
+
+		/* Gets the amount of other human interface devices currently available. */
+		_Check_return_ inline size_t GetHIDCount(void) const
+		{
+			return hids.size();
+		}
+
+		/* Gets the human interface device at the specific index. */
+		_Check_return_ inline InputDevice& GetHID(_In_ size_t idx)
+		{
+			return hids.at(idx);
+		}
 
 		/* Gets the amount of cursors currently available. */
 		_Check_return_ inline size_t GetCursorCount(void) const
@@ -34,7 +53,7 @@ namespace Pu
 			return mouses.at(idx);
 		}
 
-		/* Gets the amount of keybaords currently available. */
+		/* Gets the amount of keyboards currently available. */
 		_Check_return_ inline size_t GetKeyboardCount(void) const
 		{
 			return keyboards.size();
@@ -46,11 +65,24 @@ namespace Pu
 			return keyboards.at(idx);
 		}
 
+		/* Gets the amount of game pads currently available. */
+		_Check_return_ inline size_t GetGamePadCount(void) const
+		{
+			return gamepads.size();
+		}
+
+		/* Gets the game pad at the specific index. */
+		_Check_return_ inline GamePad& GetGamePad(_In_ size_t idx)
+		{
+			return gamepads.at(idx);
+		}
+
 	private:
 		friend class Application;
 
 		vector<Mouse> mouses;
 		vector<Keyboard> keyboards;
+		vector<GamePad> gamepads;
 		vector<InputDevice> hids;
 
 		InputDeviceHandler(void);

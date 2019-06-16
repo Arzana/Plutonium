@@ -11,13 +11,11 @@ namespace Pu
 	public:
 		/* Occurs when a Unicode character is given by the user. */
 		static EventBus<const Keyboard, wchar_t> CharInput;
-		/* Occurs when a specific physical key is pressed. */
-		EventBus<const Keyboard, uint16> KeyDown;
-		/* Occurs when a specific physical key is released. */
-		EventBus<const Keyboard, uint16> KeyUp;
 
 	private:
 		friend class InputDeviceHandler;
+
+		static ButtonInformation buttonInfo;
 
 #ifdef _WIN32
 		Keyboard(HANDLE hndl, const wstring &name, const RID_DEVICE_INFO &info);

@@ -1,9 +1,11 @@
 #include "Input/Mouse.h"
+#include "Input/MouseButtons.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Graphics/Platform/Windows/Win32Window.h"
 
 const Pu::NativeWindow* Pu::Mouse::lockedWnd = nullptr;
+Pu::ButtonInformation Pu::Mouse::buttonInfo = Pu::ButtonInformation(Pu::HIDUsageGenericDesktop::Mouse);
 
 Pu::Vector2 Pu::Mouse::GetPosition(void)
 {
@@ -102,7 +104,7 @@ void Pu::Mouse::FreeCursor(void)
 Pu::Mouse::Mouse(HANDLE hndl, const wstring & name, const RID_DEVICE_INFO & info)
 	: InputDevice(hndl, name, InputDeviceType::Cursor, info),
 	ID(Info.mouse.dwId), ButtonCount(Info.mouse.dwNumberOfButtons), SampleRate(Info.mouse.dwSampleRate),
-	Moved("CursorMoved", true), Button("CursorButtonEvent"), Scrolled("CursorScrolled")
+	Moved("CursorMoved", true), Scrolled("CursorScrolled")
 {}
 
 void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vector2>)
@@ -154,24 +156,24 @@ void Pu::Mouse::HandleWin32Event(const RAWMOUSE & info)
 	if (info.usButtonFlags)
 	{
 		/* Check for left button. */
-		if (info.usButtonFlags & RI_MOUSE_BUTTON_1_DOWN) Button.Post(*this, ButtonEventArgs(MouseButtons::Left, true));
-		else if (info.usButtonFlags & RI_MOUSE_BUTTON_1_UP) Button.Post(*this, ButtonEventArgs(MouseButtons::Left, false));
+		if (info.usButtonFlags & RI_MOUSE_BUTTON_1_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Left)));
+		else if (info.usButtonFlags & RI_MOUSE_BUTTON_1_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Left)));
 
 		/* Check for right button. */
-		if (info.usButtonFlags & RI_MOUSE_BUTTON_2_DOWN) Button.Post(*this, ButtonEventArgs(MouseButtons::Right, true));
-		else if (info.usButtonFlags & RI_MOUSE_BUTTON_2_UP) Button.Post(*this, ButtonEventArgs(MouseButtons::Right, false));
+		if (info.usButtonFlags & RI_MOUSE_BUTTON_2_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Right)));
+		else if (info.usButtonFlags & RI_MOUSE_BUTTON_2_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Right)));
 
 		/* Check for middle button. */
-		if (info.usButtonFlags & RI_MOUSE_BUTTON_3_DOWN) Button.Post(*this, ButtonEventArgs(MouseButtons::Middle, true));
-		else if (info.usButtonFlags & RI_MOUSE_BUTTON_3_UP) Button.Post(*this, ButtonEventArgs(MouseButtons::Middle, false));
+		if (info.usButtonFlags & RI_MOUSE_BUTTON_3_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Middle)));
+		else if (info.usButtonFlags & RI_MOUSE_BUTTON_3_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Middle)));
 
 		/* Check for X button 1. */
-		if (info.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) Button.Post(*this, ButtonEventArgs(MouseButtons::Extra1, true));
-		else if (info.usButtonFlags & RI_MOUSE_BUTTON_4_UP) Button.Post(*this, ButtonEventArgs(MouseButtons::Extra1, false));
+		if (info.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra1)));
+		else if (info.usButtonFlags & RI_MOUSE_BUTTON_4_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra1)));
 
 		/* Check for X button 2. */
-		if (info.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) Button.Post(*this, ButtonEventArgs(MouseButtons::Extra2, true));
-		else if (info.usButtonFlags & RI_MOUSE_BUTTON_5_UP) Button.Post(*this, ButtonEventArgs(MouseButtons::Extra2, false));
+		if (info.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra2)));
+		else if (info.usButtonFlags & RI_MOUSE_BUTTON_5_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra2)));
 
 		/* Check for scroll wheel, delta is stored as a signed value so cast it. */
 		if (info.usButtonFlags & RI_MOUSE_HWHEEL) Scrolled.Post(*this, *reinterpret_cast<const int16*>(&info.usButtonData));

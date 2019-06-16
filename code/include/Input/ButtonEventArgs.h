@@ -1,23 +1,22 @@
 #pragma once
-#include <sal.h>
-#include "MouseButtons.h"
 #include "Core/Events/EventArgs.h"
+#include "ButtonInformation.h"
 
 namespace Pu
 {
-	/* Defines the information for a cursor button event. */
+	/* Defines all the information about a button press. */
 	struct ButtonEventArgs
 		: public EventArgs
 	{
 	public:
-		/* True if the button is pressed, otherwise; false. */
-		const bool Down;
-		/* Defines the button which invoked the event. */
-		const MouseButtons Button;
+		/* Defines the information available for the specific key. */
+		ButtonInformation &Information;
+		/* Defines the button's keycode. */
+		uint16 KeyCode;
 
-		/* Initializes a new instance of a button event argument. */
-		ButtonEventArgs(_In_ MouseButtons button, _In_ bool down)
-			: Down(down), Button(button)
+		/* Initializes a new instance of a button event args object. */
+		ButtonEventArgs(_In_ ButtonInformation &info, uint16 code)
+			: Information(info), KeyCode(code)
 		{}
 	};
 }

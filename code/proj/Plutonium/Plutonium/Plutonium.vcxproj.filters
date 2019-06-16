@@ -606,6 +606,21 @@
     <ClInclude Include="..\..\..\include\Core\Math\Line.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\GamePad.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\Sliders.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\ButtonInformation.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\ValueInformation.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Input\ValueEventArgs.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -887,6 +902,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\Input\GamePad.cpp">
+      <Filter>Source Files\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\..\..\visualizers\Vector2.natvis">
@@ -926,6 +944,9 @@
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Color.natvis">
+      <Filter>Resource Files\Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\InputDevice.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
   </ItemGroup>

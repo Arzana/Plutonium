@@ -5,8 +5,11 @@
 #include "Input/HID.h"
 
 Pu::InputDeviceHandler::InputDeviceHandler(void)
-	: AnyMouse(nullptr, L"Any", RID_DEVICE_INFO()),
-	AnyKeyboard(nullptr, L"Any", RID_DEVICE_INFO())
+	: AnyKeyDown("InputDeviceHandlerAnyKeyDown"),
+	AnyKeyUp("InputDeviceHandlerAnyKeyUp"),
+	AnyValueChanged("InputDeviceHandlerAnyValueChanged"),
+	AnyMouseScrolled("InputDeviceHandlerAnyMouseScrolled"),
+	AnyMouseMoved("InputDeviceHandlerAnyMouseMoved")
 {
 #ifdef _WIN32
 	/* Get the number of raw input devices currently active. */
@@ -39,38 +42,39 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 	wnd.OnInputEvent.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputEvent);
 	wnd.InputDeviceAdded.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceAdded);
 	wnd.InputDeviceRemoved.Add(const_cast<InputDeviceHandler&>(*this), &InputDeviceHandler::HandleWin32InputDeviceRemoved);
-	wnd.OnCharInput += [this](const Win32Window&, wchar_t character) { Keyboard::CharInput.Post(AnyKeyboard, character); };
 
 	vector<RAWINPUTDEVICE> devices;
 
-	/* Only add a cursor listener if a cursor is present. */
-	if (mouses.size())
+	/* Enable add and remove events, we want legacy mouse events for window moves and close button presses etc. */
+	RAWINPUTDEVICE cursorDevices =
 	{
-		/* Enable add and remove events, we want legacy mouse events for window moves and close button presses etc. */
-		RAWINPUTDEVICE cursorDevices =
-		{
-			_CrtEnum2Int(HIDUsagePage::GenericDesktop),
-			_CrtEnum2Int(HIDUsageGenericDesktop::Mouse),
-			RIDEV_DEVNOTIFY,
-			wnd.hndl
-		};
+		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
+		_CrtEnum2Int(HIDUsageGenericDesktop::Mouse),
+		RIDEV_DEVNOTIFY,
+		wnd.hndl
+	};
 
-		devices.emplace_back(cursorDevices);
-	}
-
-	if (keyboards.size())
+	/* Enable add and remove events, we want legacy keyboard events for WM_CHAR. */
+	RAWINPUTDEVICE keyboardDevices =
 	{
-		/* Enable add and remove events, we want legacy keyboard events for WM_CHAR. */
-		RAWINPUTDEVICE keyboardDevices =
-		{
-			_CrtEnum2Int(HIDUsagePage::GenericDesktop),
-			_CrtEnum2Int(HIDUsageGenericDesktop::Keyboard),
-			RIDEV_DEVNOTIFY,
-			wnd.hndl
-		};
+		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
+		_CrtEnum2Int(HIDUsageGenericDesktop::Keyboard),
+		RIDEV_DEVNOTIFY,
+		wnd.hndl
+	};
 
-		devices.emplace_back(keyboardDevices);
-	}
+	/* Enable add and remove events. */
+	RAWINPUTDEVICE gamepadDevices =
+	{
+		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
+		_CrtEnum2Int(HIDUsageGenericDesktop::GamePad),
+		RIDEV_DEVNOTIFY,
+		wnd.hndl
+	};
+
+	devices.emplace_back(cursorDevices);
+	devices.emplace_back(keyboardDevices);
+	devices.emplace_back(gamepadDevices);
 
 	/* Register the listeners to the window. */
 	if (!RegisterRawInputDevices(devices.data(), static_cast<uint32>(devices.size()), sizeof(RAWINPUTDEVICE)))
@@ -98,6 +102,25 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.keyboard);
+				break;
+			}
+		}
+		break;
+	case RIM_TYPEHID:
+		for (GamePad &cur : gamepads)
+		{
+			if (cur.Hndl == input.header.hDevice)
+			{
+				cur.HandleWin32Event(input.data.hid);
+				break;
+			}
+		}
+
+		for (InputDevice &cur : hids)
+		{
+			if (cur.Hndl == input.header.hDevice)
+			{
+				cur.HandleWin32Event(input.data.hid);
 				break;
 			}
 		}
@@ -130,6 +153,16 @@ void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, 
 		}
 	}
 
+	/* Attempt to remove the input device from the gamepad list. */
+	for (size_t i = 0; i < gamepads.size(); i++)
+	{
+		if (hndl == gamepads[i].Hndl)
+		{
+			gamepads.removeAt(i);
+			return;
+		}
+	}
+
 	/* Attempt to remove the input device from the other list. */
 	hids.removeAll([hndl](const InputDevice &cur) { return hndl == cur.Hndl; });
 }
@@ -139,6 +172,7 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 	/* Make sure we don't add the same HID multiple times. */
 	if (mouses.contains([hndl](const Mouse &cur) { return hndl == cur.Hndl; })) return;
 	if (keyboards.contains([hndl](const Keyboard &cur) { return hndl == cur.Hndl; })) return;
+	if (gamepads.contains([hndl](const GamePad &cur) { return hndl == cur.Hndl; })) return;
 	if (hids.contains([hndl](const InputDevice &cur) { return hndl == cur.Hndl; })) return;
 
 	/* Get the length of the device name. */
@@ -167,31 +201,46 @@ void Pu::InputDeviceHandler::AddWin32InputDevice(HANDLE hndl)
 		return;
 	}
 
+	InputDevice *device = nullptr;
+
 	/* Handle cursor specific code. */
 	if (info.dwType == RIM_TYPEMOUSE)
 	{
 		/* Create new cursor. */
-		const size_t i = mouses.size();
 		mouses.emplace_back(Mouse(hndl, name, info));
+		device = &mouses.back();
 
-		/* Add the any cursor handles to the new cursor, cannot be done directly cause then we needed a move assignment operator. */
-		mouses[i].Moved.Add(AnyMouse.Moved, &EventBus<const Mouse, Vector2>::Post);
-		mouses[i].Button.Add(AnyMouse.Button, &EventBus<const Mouse, ButtonEventArgs>::Post);
-		mouses[i].Scrolled.Add(AnyMouse.Scrolled, &EventBus<const Mouse, int16>::Post);
+		/* Add the mouse specific event handlers. */
+		mouses.back().Moved.Add(AnyMouseMoved, &decltype(AnyMouseMoved)::Post);
+		mouses.back().Scrolled.Add(AnyMouseScrolled, &decltype(AnyMouseScrolled)::Post);
 	}
 	else if (info.dwType == RIM_TYPEKEYBOARD)
 	{
 		/* Create new keyboard. */
 		const size_t i = keyboards.size();
 		keyboards.emplace_back(Keyboard(hndl, name, info));
-
-		/* Add the any keyboard handles to the new keyboard, cannot be done directly cause then we needed a move assignment operator. */
-		keyboards[i].KeyDown.Add(AnyKeyboard.KeyDown, &EventBus<const Keyboard, uint16>::Post);
-		keyboards[i].KeyUp.Add(AnyKeyboard.KeyUp, &EventBus<const Keyboard, uint16>::Post);
+		device = &keyboards.back();
 	}
 	else if (info.dwType == RIM_TYPEHID)
 	{
-		hids.emplace_back(InputDevice(hndl, name, InputDeviceType::Other, info));
+		if (info.hid.usUsagePage == _CrtEnum2Int(HIDUsagePage::GenericDesktop) && info.hid.usUsage == _CrtEnum2Int(HIDUsageGenericDesktop::GamePad))
+		{
+			gamepads.emplace_back(GamePad(hndl, name, info));
+			device = &gamepads.back();
+		}
+		else
+		{
+			hids.emplace_back(InputDevice(hndl, name, InputDeviceType::Other, info));
+			device = &hids.back();
+		}
+	}
+
+	/* Hook the any key events into the new input device. */
+	if (device)
+	{
+		device->KeyDown.Add(AnyKeyDown, &decltype(AnyKeyDown)::Post);
+		device->KeyUp.Add(AnyKeyUp, &decltype(AnyKeyUp)::Post);
+		device->ValueChanged.Add(AnyValueChanged, &decltype(AnyValueChanged)::Post);
 	}
 }
 #endif

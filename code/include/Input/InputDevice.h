@@ -1,6 +1,9 @@
 #pragma once
 #include "Core/Platform/Windows/Windows.h"
-#include "Core/Platform/DynamicLibLoader.h"
+#include "Core/Events/EventBus.h"
+#include "ButtonEventArgs.h"
+#include "ValueEventArgs.h"
+#include "Core/String.h"
 
 namespace Pu
 {
@@ -11,6 +14,8 @@ namespace Pu
 		Cursor,
 		/* A generic keyboard. */
 		Keyboard,
+		/* A generic game pad. */
+		GamePad,
 		/* Any other HID device. */
 		Other
 	};
@@ -23,6 +28,13 @@ namespace Pu
 		wstring Name;
 		/* The type of input device. */
 		InputDeviceType Type;
+
+		/* Occurs when a button is released. */
+		EventBus<const InputDevice, const ButtonEventArgs&> KeyUp;
+		/* Occurs when a button is pressed. */
+		EventBus<const InputDevice, const ButtonEventArgs&> KeyDown;
+		/* Occurs when a varaible slider's value changes. */
+		EventBus<const InputDevice, const ValueEventArgs&> ValueChanged;
 
 		InputDevice(const InputDevice&) = delete;
 		/* Move constructor. */
@@ -37,32 +49,44 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ InputDevice& operator =(_In_ InputDevice &&other);
 
+		/* Gets the amount of button on this HID. */
+		_Check_return_ inline size_t GetButtonCount(void) const
+		{
+			return btnCnt;
+		}
+
 	protected:
 		friend class InputDeviceHandler;
 
 #ifdef _WIN32
 		/* Defines the information about the RID on Windows. */
 		RID_DEVICE_INFO Info;
+		/* Defines the handle used to indenfity the input device on Windows. */
 		HANDLE Hndl;
 
 		/* Initializes a new instance of an input device on Windows. */
 		InputDevice(HANDLE hndl, const wstring &deviceInstancePath, InputDeviceType type, const RID_DEVICE_INFO &info);
-
 #endif
+
+		/* Gets the variable value for the specified usage value. */
+		_Check_return_ float GetUsageValue(_In_ uint16 usageID) const;
 
 	private:
+		size_t btnCnt;
+
+		vector<ButtonInformation> btnCaps;
+		vector<ValueInformation> valueCaps;
+		vector<vector<bool>> btnStates;
+		vector<float> valueStates;
+
 #ifdef _WIN32
-		using PFN_HidD_GetProductString = BOOLEAN(*)(HANDLE, PVOID, ULONG);
-
-		static DynamicLibLoader hidLibLoader;
-		static PFN_HidD_GetProductString HidD_GetProductString;
-
-		void TrySetName(HANDLE hHid);
+		PHIDP_PREPARSED_DATA data;
+		vector<USAGE> tmpUsageList;
+		
+		void HandleWin32Event(const RAWHID &info);
 #endif
 
-		bool nameSet;
-
-		void Init();
+		void GetCapacities();
 		void Destroy();
 	};
 }

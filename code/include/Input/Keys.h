@@ -137,8 +137,24 @@ namespace Pu
 		RightShift = VK_RSHIFT,
 		RightControl = VK_RCONTROL,
 		RightWindows = VK_RWIN,
-		Menu = VK_MENU
+		Menu = VK_MENU,
 #pragma endregion
 #endif
+#pragma region XBOX
+			XBoxA = 0,
+			XBoxB = 1,
+			XBoxX = 2,
+			XBoxY = 3,
+			XBoxLeftBumper = 4,
+			XBoxRightBumper = 5,
+			XBoxChangeView = 6,
+			XBoxMenu = 7,
+			XBoxLeftStick = 8,
+			XBoxRightStick = 9,
+			XBoxDPadUp = 10,
+			XBoxDPadRight = 11,
+			XBoxDPadDown = 12,
+			XBoxDPadLeft = 13
+#pragma endregion
 	};
 }

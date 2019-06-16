@@ -108,6 +108,7 @@ namespace Pu
 	_Check_return_ inline constexpr _Ty maxv(void)
 	{
 		static_assert(true, "Cannot get the maximum value of the specified type!");
+		return _Ty();
 	}
 
 	/* Gets the maximum value of the specified type. */

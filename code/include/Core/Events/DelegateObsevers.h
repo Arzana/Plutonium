@@ -157,7 +157,7 @@ namespace Pu
 
 		/* Initializes a new instance of a method style generic delegate. */
 		DelegateMethod(_In_ container_t &cnt, handler_t func)
-			: base_t(ComputeHash(cnt, func)), obj(cnt), hndlr(func)
+			: base_t(ComputeHash(cnt, func)), obj(&cnt), hndlr(func)
 		{}
 
 		/* Copy constructor. */
@@ -167,7 +167,7 @@ namespace Pu
 
 		/* Move constructor. */
 		DelegateMethod(_In_ method_t &&value)
-			: base_t(std::move(value)), obj(std::move(value.obj)), hndlr(value.hndlr)
+			: base_t(std::move(value)), obj(value.obj), hndlr(value.hndlr)
 		{}
 
 		/* Copy assignment. */
@@ -189,7 +189,7 @@ namespace Pu
 			if (this != &other)
 			{
 				base_t::operator=(std::move(other));
-				obj = std::move(other.obj);
+				obj = other.obj;
 				hndlr = other.hndlr;
 			}
 
@@ -199,13 +199,13 @@ namespace Pu
 		/* Invokes this delegate. */
 		virtual inline void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) override
 		{
-			(obj.*hndlr)(sender, arg...);
+			((*obj).*hndlr)(sender, arg...);
 		}
 
 		/* Copies this delegate (requires delete!). */
 		_Check_return_ virtual inline base_t* Copy(void) override
 		{
-			return new method_t(obj, hndlr);
+			return new method_t(*obj, hndlr);
 		}
 
 		/* Computes the hash for a method delegate. */
@@ -215,7 +215,7 @@ namespace Pu
 		}
 
 	private:
-		container_t &obj;
+		container_t *obj;
 		handler_t hndlr;
 	};
 

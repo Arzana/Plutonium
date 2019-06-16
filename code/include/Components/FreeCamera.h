@@ -1,7 +1,6 @@
 #pragma once
 #include "FpsCamera.h"
-#include "Input/Keyboard.h"
-#include "Input/Mouse.h"
+#include "Input/InputDeviceHandler.h"
 
 namespace Pu
 {
@@ -22,7 +21,7 @@ namespace Pu
 		Default controlls are WASD for movement and normal cursor controlls.
 		The keyboard to take input from can only be specified here.
 		*/
-		FreeCamera(_In_ Application &app, _In_ const Keyboard &keyboard, _In_ const Mouse &cursor);
+		FreeCamera(_In_ Application &app, _In_ const InputDeviceHandler &inputHandler);
 		FreeCamera(_In_ const FreeCamera&) = delete;
 		FreeCamera(_In_ FreeCamera&&) = delete;
 
@@ -62,12 +61,11 @@ namespace Pu
 	private:
 		uint16 keyFrwd, keyBkwd, keyLeft, keyRight;
 		byte keyStates;
-		const Keyboard &keyboard;
-		const Mouse &cursor;
 		Vector2 lookDelta;
+		const InputDeviceHandler &inputHandler;
 
-		void KeyDownEventHandler(const Keyboard&, uint16 key);
-		void KeyUpEventHandler(const Keyboard&, uint16 key);
+		void KeyDownEventHandler(const InputDevice&, const ButtonEventArgs &args);
+		void KeyUpEventHandler(const InputDevice&, const ButtonEventArgs &args);
 		void MouseMovedEventHandler(const Mouse&, Vector2 delta);
 	};
 }

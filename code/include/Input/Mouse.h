@@ -12,8 +12,6 @@ namespace Pu
 	public:
 		/* Occurs when the cursor is moved, gives the delta movement. */
 		EventBus<const Mouse, Vector2> Moved;
-		/* Occurs when the state of a button changed on the cursor. */
-		EventBus<const Mouse, ButtonEventArgs> Button;
 		/* Occurs when the scroll wheel state changes, gives the delta movement. */
 		EventBus<const Mouse, int16> Scrolled;
 
@@ -43,7 +41,9 @@ namespace Pu
 		friend class InputDeviceHandler;
 
 		Vector2 oldPos;
+
 		static const NativeWindow *lockedWnd;
+		static ButtonInformation buttonInfo;
 
 #ifdef _WIN32
 		Mouse(HANDLE hndl, const wstring &name, const RID_DEVICE_INFO &info);

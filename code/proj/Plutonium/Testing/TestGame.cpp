@@ -11,31 +11,43 @@ using namespace Pu;
 TestGame::TestGame(void)
 	: Application(L"TestGame", 1920.0f, 1080.0f)
 {
-	GetInput().AnyKeyboard.KeyDown += [this](const Keyboard&, uint16 key)
+	GetInput().AnyKeyDown += [this](const InputDevice &sender, const ButtonEventArgs args)
 	{
-		switch (key)
+		if (sender.Type == InputDeviceType::Keyboard)
 		{
-		case (_CrtEnum2Int(Keys::Escape)):
-			Exit();
-			break;
-		case (_CrtEnum2Int(Keys::Up)):
-			cam->MoveSpeed++;
-			break;
-		case (_CrtEnum2Int(Keys::Down)):
-			cam->MoveSpeed--;
-			break;
-		case (_CrtEnum2Int(Keys::M)):
-			if (Mouse::IsCursorVisible())
+			switch (args.KeyCode)
 			{
-				Mouse::HideCursor();
-				cam->Enable();
+			case (_CrtEnum2Int(Keys::Escape)):
+				Exit();
+				break;
+			case (_CrtEnum2Int(Keys::Up)):
+				cam->MoveSpeed++;
+				break;
+			case (_CrtEnum2Int(Keys::Down)):
+				cam->MoveSpeed--;
+				break;
+			case (_CrtEnum2Int(Keys::M)):
+				if (Mouse::IsCursorVisible())
+				{
+					Mouse::HideCursor();
+					cam->Enable();
+				}
+				else
+				{
+					Mouse::ShowCursor();
+					cam->Disable();
+				}
+				break;
 			}
-			else
+		}
+		else if (sender.Type == InputDeviceType::GamePad)
+		{
+			switch (args.KeyCode)
 			{
-				Mouse::ShowCursor();
-				cam->Disable();
+			case (_CrtEnum2Int(Keys::XBoxB)):
+				Exit();
+				break;
 			}
-			break;
 		}
 	};
 }
@@ -55,7 +67,7 @@ void TestGame::Initialize(void)
 		Mouse::FreeCursor();
 	};
 
-	AddComponent(cam = new FreeCamera(*this, GetInput().AnyKeyboard, GetInput().AnyMouse));
+	AddComponent(cam = new FreeCamera(*this, GetInput()));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
 	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
@@ -73,8 +85,8 @@ void TestGame::Initialize(void)
 
 		/* Create the framebuffers and the required uniform block. */
 		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView() });
-		transform = new TransformBlock(pipeline);
 		material = new MonsterMaterial(pipeline);
+		transform = new TransformBlock(pipeline);
 	};
 
 	/* Setup and load render pass. */

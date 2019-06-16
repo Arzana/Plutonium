@@ -3,15 +3,15 @@
 #include "Core/EnumUtils.h"
 #include "Application.h"
 
-Pu::FreeCamera::FreeCamera(Application & app, const Keyboard & keyboard, const Mouse & cursor)
-	: FpsCamera(app), keyboard(keyboard), cursor(cursor), keyStates(0),
+Pu::FreeCamera::FreeCamera(Application & app, const InputDeviceHandler & inputHandler)
+	: FpsCamera(app), keyStates(0), inputHandler(inputHandler),
 	keyFrwd(_CrtEnum2Int(Keys::W)), keyBkwd(_CrtEnum2Int(Keys::S)),
 	keyLeft(_CrtEnum2Int(Keys::A)), keyRight(_CrtEnum2Int(Keys::D)),
 	MoveSpeed(1.0f), LookSpeed(6.0f), Inverted(false)
 {
-	keyboard.KeyDown.Add(*this, &FreeCamera::KeyDownEventHandler);
-	keyboard.KeyUp.Add(*this, &FreeCamera::KeyUpEventHandler);
-	cursor.Moved.Add(*this, &FreeCamera::MouseMovedEventHandler);
+	inputHandler.AnyKeyDown.Add(*this, &FreeCamera::KeyDownEventHandler);
+	inputHandler.AnyKeyUp.Add(*this, &FreeCamera::KeyUpEventHandler);
+	inputHandler.AnyMouseMoved.Add(*this, &FreeCamera::MouseMovedEventHandler);
 }
 
 void Pu::FreeCamera::Update(float dt)
@@ -44,24 +44,25 @@ void Pu::FreeCamera::Finalize(void)
 {
 	FpsCamera::Finalize();
 
-	keyboard.KeyDown.Remove(*this, &FreeCamera::KeyDownEventHandler);
-	cursor.Moved.Remove(*this, &FreeCamera::MouseMovedEventHandler);
+	inputHandler.AnyKeyDown.Remove(*this, &FreeCamera::KeyDownEventHandler);
+	inputHandler.AnyKeyUp.Remove(*this, &FreeCamera::KeyUpEventHandler);
+	inputHandler.AnyMouseMoved.Remove(*this, &FreeCamera::MouseMovedEventHandler);
 }
 
-void Pu::FreeCamera::KeyDownEventHandler(const Keyboard &, uint16 key)
+void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)
 {
-	if (key == keyFrwd) keyStates |= 1;
-	else if (key == keyBkwd) keyStates |= 2;
-	else if (key == keyLeft) keyStates |= 4;
-	else if (key == keyRight) keyStates |= 8;
+	if (args.KeyCode == keyFrwd) keyStates |= 1;
+	else if (args.KeyCode == keyBkwd) keyStates |= 2;
+	else if (args.KeyCode == keyLeft) keyStates |= 4;
+	else if (args.KeyCode == keyRight) keyStates |= 8;
 }
 
-void Pu::FreeCamera::KeyUpEventHandler(const Keyboard &, uint16 key)
+void Pu::FreeCamera::KeyUpEventHandler(const InputDevice &, const ButtonEventArgs & args)
 {
-	if (key == keyFrwd) keyStates &= ~1;
-	else if (key == keyBkwd) keyStates &= ~2;
-	else if (key == keyLeft) keyStates &= ~4;
-	else if (key == keyRight) keyStates &= ~8;
+	if (args.KeyCode == keyFrwd) keyStates &= ~1;
+	else if (args.KeyCode == keyBkwd) keyStates &= ~2;
+	else if (args.KeyCode == keyLeft) keyStates &= ~4;
+	else if (args.KeyCode == keyRight) keyStates &= ~8;
 }
 
 void Pu::FreeCamera::MouseMovedEventHandler(const Mouse &, Vector2 delta)
