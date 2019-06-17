@@ -9,13 +9,13 @@
 #include "Graphics/Platform/Windows/Win32Window.h"
 #endif
 
-Pu::Application::Application(const wstring & name, float width, float height)
+Pu::Application::Application(const wstring & name, float width, float height, size_t threadCount)
 	: IsFixedTimeStep(true), suppressUpdate(false), name(name), initialWndSize(width, height),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
 	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), initialized(false)
 {
 	InitializePlutonium();
-	scheduler = new TaskScheduler();
+	scheduler = new TaskScheduler(threadCount);
 	input = new InputDeviceHandler();
 
 	/* Initialize ImGui if needed. */
@@ -110,10 +110,13 @@ void Pu::Application::InitializePlutonium(void)
 
 void Pu::Application::InitializeVulkan(void)
 {
-	constexpr const char *DEVICE_EXTENSIONS[1] = { u8"VK_KHR_swapchain" };
+	constexpr const char *DEVICE_EXTENSIONS[2] = { u8"VK_KHR_swapchain" };
 	constexpr float PRIORITIES[1] = { 1.0f };
 
-	/* Create the Vulkan instance, ew need the surface extensions for the native window. */
+	/* 
+	Create the Vulkan instance, we need the surface extensions for the native window. 
+	Additional color spaces are nice to support but we can do with just sRGB.
+	*/
 	instance = new VulkanInstance(name.toUTF8().c_str(),
 		{
 			u8"VK_KHR_surface",
@@ -123,6 +126,9 @@ void Pu::Application::InitializeVulkan(void)
 #ifdef _WIN32
 			u8"VK_KHR_win32_surface",
 #endif
+		},
+		{
+			u8"VK_EXT_swapchain_colorspace"
 		});
 
 	/* Create the native window. */

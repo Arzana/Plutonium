@@ -16,7 +16,7 @@ namespace Pu
 		bool IsFixedTimeStep;
 
 		/* Initializes a new instance of an application object. */
-		Application(_In_ const wstring &name, _In_ float width, _In_ float height);
+		Application(_In_ const wstring &name, _In_ float width, _In_ float height, _In_opt_ size_t threadCount = PuThread::GetMaxConcurrent() - 1);
 		Application(_In_ const Application&) = delete;
 		Application(_In_ Application&&) = delete;
 		/* Releases the resources allocated by the application. */

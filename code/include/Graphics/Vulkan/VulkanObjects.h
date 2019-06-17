@@ -62,15 +62,18 @@ namespace Pu
 
 		/* Initializes an empty instance of an instance create information object.  */
 		InstanceCreateInfo(void)
-			: InstanceCreateInfo(nullptr)
+			: Type(StructureType::InstanceCreateInfo), Next(nullptr),
+			Flags(0), ApplicationInfo(nullptr),
+			EnabledLayerCount(0), EnabledLayerNames(nullptr),
+			EnabledExtensionCount(0), EnabledExtensionNames(nullptr)
 		{}
 
 		/* Initializes a new instance of a instance create information object. */
-		InstanceCreateInfo(_In_ const Pu::ApplicationInfo *applicationInfo)
+		InstanceCreateInfo(_In_ const Pu::ApplicationInfo &applicationInfo, _In_ const vector<const char*> &extensions)
 			: Type(StructureType::InstanceCreateInfo), Next(nullptr),
-			Flags(0), ApplicationInfo(applicationInfo),
+			Flags(0), ApplicationInfo(&applicationInfo),
 			EnabledLayerCount(0), EnabledLayerNames(nullptr),
-			EnabledExtensionCount(0), EnabledExtensionNames(nullptr)
+			EnabledExtensionCount(static_cast<uint32>(extensions.size())), EnabledExtensionNames(extensions.data())
 		{}
 	};
 
@@ -685,6 +688,11 @@ namespace Pu
 		/* Initializes an empty instance of a surface pixel format object. */
 		SurfaceFormat(void)
 			: Format(Format::Undefined), ColorSpace(ColorSpace::SRGB)
+		{}
+
+		/* Initializes a new instance of a surface pixel format object. */
+		SurfaceFormat(_In_ Pu::Format format, _In_ Pu::ColorSpace colorSpace)
+			: Format(format), ColorSpace(colorSpace)
 		{}
 	};
 

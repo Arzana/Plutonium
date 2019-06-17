@@ -1397,11 +1397,45 @@ namespace Pu
 		Inherit = 0x00000008
 	};
 
-	/* Defines different types of color space. */
+	/* 
+	Defines different types of color space. 
+	https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkColorSpaceKHR.html
+	*/
 	enum class ColorSpace
 	{
 		/* Non-linear sRGB color space. */
 		SRGB = 0,
+		/* Non-linear Display-P3 color space. */
+		DisplayP3 = 1000104001,
+		/* Linear extended sRGB color space. */
+		LinearExtendedsRGB = 1000104002,
+		/* Linear Display-P3 color space. */
+		LinearDisplayP3 = 1000104003,
+		/* Non-linear DCI-P3 color space. */
+		DCIP3 = 1000104004,
+		/* Linear BT709 color space. */
+		LinearBT709 = 1000104005,
+		/* Non-linear BT709 color space. */
+		BT709 = 1000104006,
+		/* Linear BT2020 color space. */
+		LinearBT2020 = 1000104007,
+		/* HDR10 color space using PQ EOTF. */
+		HDR10_ST2084 = 1000104008,
+		/* Dolby Vision color space. */
+		DolbyVision = 1000104009,
+		/* HDR10 color space using HLG EOTF. */
+		HDR10_HLG = 1000104010,
+		/* Linear Adobe RGB color space. */
+		LinearAdobeRGB = 1000104011,
+		/* Non-linear Adobe RGB color space. */
+		AdobeRGB = 1000104012,
+		/* 
+		This is not a color space but rather a catch all scenario, 
+		the color components are passed through to the display "as is".
+		*/
+		PassThrough = 1000104013,
+		/* Non-linear extended sRGB color space. */
+		ExtendedsRGB = 1000104014
 	};
 
 	/* Defines types of image present modes. */
@@ -1670,6 +1704,45 @@ namespace Pu
 			return "Fragment";
 		case ShaderStageFlag::Compute:
 			return "Compute";
+		default:
+			return "Unknown";
+		}
+	}
+
+	/* Converts a color space to string. */
+	_Check_return_ inline const char* to_string(_In_ ColorSpace colorSpace)
+	{
+		switch (colorSpace)
+		{
+		case Pu::ColorSpace::SRGB:
+			return "Non-linear sRGB";
+		case Pu::ColorSpace::DisplayP3:
+			return "Non-linear Display-P3";
+		case Pu::ColorSpace::LinearExtendedsRGB:
+			return "Extended linear sRGB";
+		case Pu::ColorSpace::LinearDisplayP3:
+			return "Linear Display-P3";
+		case Pu::ColorSpace::DCIP3:
+			return "DCI-P3";
+		case Pu::ColorSpace::LinearBT709:
+			return "Linear BT709";
+		case Pu::ColorSpace::BT709:
+			return "Non-linear BT709";
+		case Pu::ColorSpace::LinearBT2020:
+			return "Linear BT2020";
+		case Pu::ColorSpace::HDR10_ST2084:
+			return "HDR10 (ST2084)";
+		case Pu::ColorSpace::DolbyVision:
+			return "Dolby Vision";
+		case Pu::ColorSpace::HDR10_HLG:
+			return "HDR10 (HLG)";
+		case Pu::ColorSpace::LinearAdobeRGB:
+			return "Linear Adobe RGB";
+		case Pu::ColorSpace::AdobeRGB:
+			return "Non-linear Adobe RGB";
+		case Pu::ColorSpace::ExtendedsRGB:
+			return "Extended non-linear sRGB";
+		case Pu::ColorSpace::PassThrough:
 		default:
 			return "Unknown";
 		}

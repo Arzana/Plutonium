@@ -52,7 +52,13 @@ namespace Pu
 		/* Gets the underlying format of the swapchain images. */
 		_Check_return_ inline Format GetImageFormat(void) const
 		{
-			return format;
+			return format.Format;
+		}
+
+		/* Gets the color space of the swapchain images. */
+		_Check_return_ inline ColorSpace GetColorSpace(void) const
+		{
+			return format.ColorSpace;
 		}
 
 		/* Gets the amount of images created by the operating system. */
@@ -69,7 +75,7 @@ namespace Pu
 		SwapchainHndl hndl;
 		vector<Image> images;
 		vector<ImageView> views;
-		Format format;
+		SurfaceFormat format;
 		AttachmentDescription attachmentDesc;
 
 		static bool CanCreateInternal(const PhysicalDevice &physicalDevice, const Surface &surface, const SwapchainCreateInfo &createInfo, bool raise);

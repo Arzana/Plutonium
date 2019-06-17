@@ -9,7 +9,7 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 1920.0f, 1080.0f)
+	: Application(L"TestGame", 2560.0f, 1440.0f, 2)
 {
 	GetInput().AnyKeyDown += [this](const InputDevice &sender, const ButtonEventArgs args)
 	{
@@ -106,7 +106,7 @@ void TestGame::Initialize(void)
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
-	GetWindow().GetNative().OnSizeChanged += [this](const NativeWindow&, ValueChangedEventArgs<Vector2>)
+	GetWindow().SwapchainRecreated += [this](const GameWindow&)
 	{
 		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
 	};
@@ -189,6 +189,21 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
+			if (ImGui::BeginMenu("Settings"))
+			{
+				if (ImGui::BeginCombo("##ColorSpace", to_string(GetWindow().GetSwapchain().GetColorSpace())))
+				{
+					for (const SurfaceFormat &format : GetWindow().GetSupportedFormats())
+					{
+						if (ImGui::Selectable(to_string(format.ColorSpace))) GetWindow().SetColorSpace(format.ColorSpace);
+					}
+
+					ImGui::EndCombo();
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), queryPool->GetTimeDelta(0, false) * 0.000001f);
 			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
 			ImGui::EndMainMenuBar();

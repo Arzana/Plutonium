@@ -9,18 +9,24 @@ PFN_vkEnumerateInstanceExtensionProperties Pu::VulkanInstance::vkEnumerateInstan
 PFN_vkEnumerateInstanceLayerProperties Pu::VulkanInstance::vkEnumerateInstanceLayerProperties = nullptr;
 PFN_vkCreateInstance Pu::VulkanInstance::vkCreateInstance = nullptr;
 
-Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initializer_list<const char*> extensions, int32 major, int32 minor, int32 patch)
+Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initializer_list<const char*> extensions, std::initializer_list<const char*> optionalExtensions, int32 major, int32 minor, int32 patch)
 	: hndl(nullptr), vkDestroyInstance(nullptr), vkEnumeratePhysicalDevices(nullptr),
 	OnDestroy("VulkanInstance::OnDestory")
 {
 	/* Make sure the create procedure is loaded. */
 	LoadStaticProcs();
 
+	/* Make sure the optional extensions are only enabled when they're available. */
+	vector<const char*> enabledExtensions = extensions;
+	for (const char *cur : optionalExtensions)
+	{
+		if (IsExtensionSupported(cur)) enabledExtensions.emplace_back(cur);
+		else Log::Warning("%s is not supported!", cur);
+	}
+
 	/* Create application info and instance info. */
 	const ApplicationInfo appInfo(applicationName, major, minor, patch, u8"Plutonium", 0, 1, 0);
-	InstanceCreateInfo createInfo(&appInfo);
-	createInfo.EnabledExtensionCount = static_cast<uint32>(extensions.size());
-	createInfo.EnabledExtensionNames = extensions.begin();
+	InstanceCreateInfo createInfo(appInfo, enabledExtensions);
 
 #ifdef _DEBUG
 	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();

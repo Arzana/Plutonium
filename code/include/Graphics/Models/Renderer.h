@@ -65,6 +65,6 @@ namespace Pu
 		AssetFetcher &loader;
 		GraphicsPipeline *pipeline;
 
-		void OnWindowSizeChanged(const NativeWindow&, ValueChangedEventArgs<Vector2>);
+		void OnSwapchainChanged(const GameWindow&);
 	};
 }

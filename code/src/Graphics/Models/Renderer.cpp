@@ -9,7 +9,7 @@ Pu::Renderer::Renderer(GameWindow & window, AssetFetcher & loader, size_t maxSet
 
 	/* Create the renderpass. */
 	loader.FetchRenderpass(*pipeline, shaders).OnLinkCompleted.Add(*this, &Renderer::OnRenderpassLinkComplete);
-	window.GetNative().OnSizeChanged.Add(*this, &Renderer::OnWindowSizeChanged);
+	window.SwapchainRecreated.Add(*this, &Renderer::OnSwapchainChanged);
 }
 
 Pu::Renderer::~Renderer(void)
@@ -49,7 +49,7 @@ void Pu::Renderer::End(void)
 	}
 }
 
-void Pu::Renderer::OnWindowSizeChanged(const NativeWindow &, ValueChangedEventArgs<Vector2>)
+void Pu::Renderer::OnSwapchainChanged(const GameWindow&)
 {
 	if (pipeline->IsUsable()) RecreateFramebuffers(wnd, pipeline->GetRenderpass());
 }

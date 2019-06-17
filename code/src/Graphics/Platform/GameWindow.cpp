@@ -16,11 +16,20 @@ static void ImGuiVkValidate(VkApiResult result)
 }
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr)
+	: native(native), device(device), swapchain(nullptr), SwapchainRecreated("GameWindowSwapchainRecreated")
 {
+	/* Non-linear sRGB is always supported so search for that one and use it. */
+	for (const SurfaceFormat &format : GetSupportedFormats())
+	{
+		if (format.ColorSpace == ColorSpace::SRGB)
+		{
+			CreateSwapchain(native.GetClientBounds().GetSize(), format, true);
+			break;
+		}
+	}
+
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
-	CreateSwapchain(native.GetClientBounds().GetSize(), true);
 
 	/* Create new command pool. */
 	pool = new CommandPool(device, device.graphicsQueueFamily);
@@ -54,12 +63,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 Pu::GameWindow::~GameWindow(void)
 {
 	/* Shutdown ImGui if needed. */
-	if constexpr (ImGuiAvailable)
-	{
-		ImGui_ImplVulkan_Shutdown();
-		device.vkDestroyDescriptorPool(device.hndl, imGuiDescriptorPool, nullptr);
-		device.vkDestroyRenderPass(device.hndl, imGuiRenderPass, nullptr);
-	}
+	if constexpr (ImGuiAvailable) DestroyImGui();
 
 	native.OnSizeChanged.Remove(*this, &GameWindow::OnNativeSizeChangedHandler);
 	DestroyFramebuffers();
@@ -106,6 +110,40 @@ const Framebuffer & Pu::GameWindow::GetCurrentFramebuffer(const Renderpass & ren
 	return *it->second[curImgIdx];
 }
 
+const vector<SurfaceFormat>& Pu::GameWindow::GetSupportedFormats(void) const
+{
+	/* This operation is quite slow so we use a cache to speed it up, this list only needs to be updated once anyway. */
+	if (supportedFormats.empty()) supportedFormats = native.GetSurface().GetSupportedFormats(device.GetPhysicalDevice());
+	return supportedFormats;
+}
+
+void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
+{
+	/* Make sure we don't change if it's not needed. */
+	if (swapchain)
+	{
+		if (colorSpace == swapchain->GetColorSpace()) return;
+	}
+
+	/* Check if the desired format is supported by the monitor. */
+	for (const SurfaceFormat &format : GetSupportedFormats())
+	{
+		if (format.ColorSpace == colorSpace)
+		{
+			/* Make sure non of the resources are in use. */
+			Log::Warning("Changing window color space, this might cause lag!");
+			Finalize();
+
+			/* Update the swapchain images and free the framebuffers bound to it. */
+			DestroyFramebuffers();
+			CreateSwapchain(native.GetClientBounds().GetSize(), format, false);
+			return;
+		}
+	}
+
+	Log::Warning("Color space is not supported by the surface!");
+}
+
 bool Pu::GameWindow::HasFrameBuffer(const Renderpass & renderPass) const
 {
 	return frameBuffers.find(renderPass.hndl) != frameBuffers.end();
@@ -113,107 +151,100 @@ bool Pu::GameWindow::HasFrameBuffer(const Renderpass & renderPass) const
 
 void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
 {
-	Log::Warning("Window is being resized, this might cause lag!");
+	/* Make sure this is not called before the swapchain is even created, rare but who knows. */
+	if (swapchain)
+	{
+		Log::Warning("Window is being resized, this might cause lag!");
 
-	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
-	Finalize();
+		/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
+		Finalize();
 
-	/* Update the swapchain images. */
-	CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), false);
+		/* Free all framebuffers bound to the native window size. */
+		DestroyFramebuffers();
 
-	/* Free all framebuffers bound to the native window size. */
-	DestroyFramebuffers();
+		/* Update the swapchain images. */
+		CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, false);
+	}
 }
 
-void Pu::GameWindow::CreateSwapchain(Extent2D size, bool firstCall)
+void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall)
 {
 	/* Update the orthographics matrix used to convert the coordinates from viewport space to clip space. */
 	ortho = Matrix::CreateOrtho(static_cast<float>(size.Width), static_cast<float>(size.Height), 0.0f, 1.0f);
 
-	/* Every surface might have different supported formats so first query the formats. */
-	const vector<SurfaceFormat> supportedFormats = native.GetSurface().GetSupportedFormats(device.GetPhysicalDevice());
+	/* Create swapchain information for a general LDR color RT, just pick the first available format. */
+	SwapchainCreateInfo info(native.GetSurface().hndl, size);
+	info.PresentMode = PresentMode::MailBox;
+	info.ImageColorSpace = format.ColorSpace;
+	info.ImageFormat = format.Format;
+	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
+	info.Transform = SurfaceTransformFlag::Identity;
+	if (swapchain) info.OldSwapChain = swapchain->hndl;
 
-	/* Highly unlikely that this will every occur but check anyway so we get a proper exception. */
-	if (supportedFormats.size() > 0)
+	/* Create new swapchain or replace the old one. */
+	if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);
+	else swapchain = new Swapchain(device, native.GetSurface(), info);
+
+	/* Update the window size and minimum images for ImGui if needed. */
+	if constexpr (ImGuiAvailable)
 	{
-		/* Create swapchain information for a general LDR color RT, just pick the first available format. */
-		SwapchainCreateInfo info(native.GetSurface().hndl, size);
-		info.PresentMode = PresentMode::MailBox;
-		info.ImageFormat = supportedFormats[0].Format;
-		info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
-		info.Transform = SurfaceTransformFlag::Identity;
-		if (swapchain) info.OldSwapChain = swapchain->hndl;
+		if (!firstCall) DestroyImGui();
 
-		/* Create new swapchain or replace the old one. */
-		if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);
-		else swapchain = new Swapchain(device, native.GetSurface(), info);
+		ImGui::GetIO().DisplaySize = size;
 
-		/* Update the window size and minimum images for ImGui if needed. */
-		if constexpr (ImGuiAvailable)
+		AttachmentDescription attachment(info.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
+		attachment.LoadOp = AttachmentLoadOp::Load;
+
+		const AttachmentReference reference(0, ImageLayout::ColorAttachmentOptimal);
+		const SubpassDescription subpass(reference);
+
+		SubpassDependency dependency(SubpassExternal, 0);
+		dependency.SrcStageMask = PipelineStageFlag::ColorAttachmentOutput;
+		dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
+		dependency.DstAccessMask = AccessFlag::ColorAttachmentWrite;
+
+		const RenderPassCreateInfo renderPassInfo(attachment, subpass, dependency);
+		VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &renderPassInfo, nullptr, &imGuiRenderPass), PFN_vkCreateRenderPass);
+
+		/*
+		These values predict the amount of objects created for ImGui,
+		If they need to be changed then all of them need to allign.
+		*/
+		const vector<DescriptorPoolSize> poolSizes =
 		{
-			ImGui::GetIO().DisplaySize = size;
+			{ DescriptorType::UniformBuffer, 2 },
+			{ DescriptorType::CombinedImageSampler, 1 }
+		};
 
-			/*
-			We're initializing ImGui here for the first time as we need the swapchain format. 
-			We need global information to start ImGui but also a render pass and a descriptor pool.
-			We're also allocating the framebuffers for ImGui here.
-			*/
-			if (firstCall)
-			{
-				AttachmentDescription attachment(info.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
-				attachment.LoadOp = AttachmentLoadOp::Load;
+		const DescriptorPoolCreateInfo descriptorPoolInfo(3, poolSizes);
+		VK_VALIDATE(device.vkCreateDescriptorPool(device.hndl, &descriptorPoolInfo, nullptr, &imGuiDescriptorPool), PFN_vkCreateDescriptorPool);
 
-				const AttachmentReference reference(0, ImageLayout::ColorAttachmentOptimal);
-				const SubpassDescription subpass(reference);
+		ImGui_ImplVulkan_InitInfo initInfo = {};
+		initInfo.Instance = device.parent->parent->hndl;
+		initInfo.PhysicalDevice = device.parent->hndl;
+		initInfo.Device = device.hndl;
+		initInfo.QueueFamily = device.graphicsQueueFamily;
+		initInfo.Queue = device.GetGraphicsQueue(0).hndl;
+		initInfo.PipelineCache = nullptr;
+		initInfo.DescriptorPool = imGuiDescriptorPool;
+		initInfo.Allocator = nullptr;
+		initInfo.MinImageCount = info.MinImageCount;
+		initInfo.ImageCount = static_cast<uint32>(swapchain->GetImageCount());
+		initInfo.CheckVkResultFn = ImGuiVkValidate;
+		ImGui_ImplVulkan_Init(&initInfo, imGuiRenderPass);
 
-				SubpassDependency dependency(SubpassExternal, 0);
-				dependency.SrcStageMask = PipelineStageFlag::ColorAttachmentOutput;
-				dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
-				dependency.DstAccessMask = AccessFlag::ColorAttachmentWrite;
-
-				const RenderPassCreateInfo renderPassInfo(attachment, subpass, dependency);
-				VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &renderPassInfo, nullptr, &imGuiRenderPass), PFN_vkCreateRenderPass);
-
-				/* 
-				These values predict the amount of objects created for ImGui, 
-				If they need to be changed then all of them need to allign.
-				*/
-				const vector<DescriptorPoolSize> poolSizes =
-				{
-					{ DescriptorType::UniformBuffer, 1000 },
-					{ DescriptorType::CombinedImageSampler, 1000 }
-				};
-
-				const DescriptorPoolCreateInfo descriptorPoolInfo(2000, poolSizes);
-				VK_VALIDATE(device.vkCreateDescriptorPool(device.hndl, &descriptorPoolInfo, nullptr, &imGuiDescriptorPool), PFN_vkCreateDescriptorPool);
-
-				ImGui_ImplVulkan_InitInfo initInfo = {};
-				initInfo.Instance = device.parent->parent->hndl;
-				initInfo.PhysicalDevice = device.parent->hndl;
-				initInfo.Device = device.hndl;
-				initInfo.QueueFamily = device.graphicsQueueFamily;
-				initInfo.Queue = device.GetGraphicsQueue(0).hndl;
-				initInfo.PipelineCache = nullptr;
-				initInfo.DescriptorPool = imGuiDescriptorPool;
-				initInfo.Allocator = nullptr;
-				initInfo.MinImageCount = info.MinImageCount;
-				initInfo.ImageCount = static_cast<uint32>(swapchain->GetImageCount());
-				initInfo.CheckVkResultFn = ImGuiVkValidate;
-				ImGui_ImplVulkan_Init(&initInfo, imGuiRenderPass);
-
-				vector<Framebuffer*> imGuiFrameBuffers;
-				const Extent2D dimensions = native.GetClientBounds().GetSize();
-				for (const ImageView &cur : swapchain->views)
-				{
-					imGuiFrameBuffers.emplace_back(new Framebuffer(device, imGuiRenderPass, dimensions, cur.hndl));
-				}
-
-				frameBuffers.emplace(imGuiRenderPass, imGuiFrameBuffers);
-			}
-			else ImGui_ImplVulkan_SetMinImageCount(info.MinImageCount);
+		vector<Framebuffer*> imGuiFrameBuffers;
+		const Extent2D dimensions = native.GetClientBounds().GetSize();
+		for (const ImageView &cur : swapchain->views)
+		{
+			imGuiFrameBuffers.emplace_back(new Framebuffer(device, imGuiRenderPass, dimensions, cur.hndl));
 		}
+
+		frameBuffers.emplace(imGuiRenderPass, imGuiFrameBuffers);
 	}
-	else Log::Fatal("Cannot create GameWindow (Surface doesn't support any image formats)!");
+
+	/* Notify the subscribers of the change in size or format. */
+	if (!firstCall) SwapchainRecreated.Post(*this);
 }
 
 void Pu::GameWindow::MakeSwapchainImageWritable(void)
@@ -287,12 +318,30 @@ void Pu::GameWindow::EndRender(void)
 	queue.EndLabel();
 }
 
+void Pu::GameWindow::DestroyImGui(void)
+{
+	ImGui_ImplVulkan_Shutdown();
+
+	for (const auto &[key, framebuffers] : frameBuffers)
+	{
+		if (key == imGuiRenderPass)
+		{
+			for (const Framebuffer *cur : framebuffers) delete cur;
+			frameBuffers.erase(key);
+			break;
+		}
+	}
+
+	device.vkDestroyRenderPass(device.hndl, imGuiRenderPass, nullptr);
+	device.vkDestroyDescriptorPool(device.hndl, imGuiDescriptorPool, nullptr);
+}
+
 void Pu::GameWindow::DestroyFramebuffers(void)
 {
 	/* One is with a capital and one is without, not the best naming... */
 	for (const auto &[key, framebuffers] : frameBuffers)
 	{
-		for (size_t i = 0; i < framebuffers.size(); i++) delete framebuffers[i];
+		for (const Framebuffer *cur : framebuffers) delete cur;
 	}
 
 	frameBuffers.clear();
