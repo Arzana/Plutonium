@@ -13,7 +13,7 @@ Pu::TextUniformBlock * Pu::TextRenderer::CreateText(void) const
 Pu::DescriptorSet * Pu::TextRenderer::CreatFont(_In_ const Texture2D & atlas) const
 {
 	DescriptorSet *result = new DescriptorSet(std::move(GetPipeline().GetDescriptorPool().Allocate(1)));
-	result->Write(GetPipeline().GetRenderpass().GetUniform("Atlas"), atlas);
+	result->Write(GetPipeline().GetRenderpass().GetDescriptor("Atlas"), atlas);
 	return result;
 }
 

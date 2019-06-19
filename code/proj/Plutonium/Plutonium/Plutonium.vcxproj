@@ -203,7 +203,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Shader.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Uniform.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Descriptor.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldType.h" />
@@ -320,7 +320,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Shader.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Uniform.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Descriptor.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\FieldType.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />

@@ -435,9 +435,6 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h">
       <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Uniform.h">
-      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorPool.h">
       <Filter>Header Files\Graphics\Vulkan</Filter>
     </ClInclude>
@@ -621,6 +618,9 @@
     <ClInclude Include="..\..\..\include\Input\ValueEventArgs.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Descriptor.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -757,9 +757,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Uniform.cpp">
-      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorPool.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
@@ -904,6 +901,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Input\GamePad.cpp">
       <Filter>Source Files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Descriptor.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

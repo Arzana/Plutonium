@@ -182,8 +182,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 
 		/* Update the descriptor. */
-		material->SetParameters(rawMaterial);
-		material->Write(pipeline->GetRenderpass().GetUniform("Diffuse"), *image);
+		material->SetParameters(rawMaterial, *image);
 	}
 	else	// Render ImGui
 	{

@@ -20,7 +20,7 @@ Pu::Renderpass::Renderpass(Renderpass && value)
 	usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
 	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)),
 	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes)),
-	uniforms(std::move(value.uniforms))
+	descriptors(std::move(value.descriptors))
 {
 	value.hndl = nullptr;
 	value.usable = false;
@@ -42,7 +42,7 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		clearValues = std::move(other.clearValues);
 		dependencies = std::move(other.dependencies);
 		attributes = std::move(other.attributes);
-		uniforms = std::move(other.uniforms);
+		descriptors = std::move(other.descriptors);
 
 		other.hndl = nullptr;
 		other.usable = false;
@@ -108,24 +108,24 @@ const Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name) const
 	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
 }
 
-Pu::Uniform & Pu::Renderpass::GetUniform(const string & name)
+Pu::Descriptor & Pu::Renderpass::GetDescriptor(const string & name)
 {
-	for (Uniform &cur : uniforms)
+	for (Descriptor &cur : descriptors)
 	{
 		if (name == cur.Info.Name) return cur;
 	}
 
-	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
+	Log::Fatal("Unable to find descriptor field '%s'!", name.c_str());
 }
 
-const Pu::Uniform & Pu::Renderpass::GetUniform(const string & name) const
+const Pu::Descriptor & Pu::Renderpass::GetDescriptor(const string & name) const
 {
-	for (const Uniform &cur : uniforms)
+	for (const Descriptor &cur : descriptors)
 	{
 		if (name == cur.Info.Name) return cur;
 	}
 
-	Log::Fatal("Unable to find uniform field '%s'!", name.c_str());
+	Log::Fatal("Unable to find descriptor field '%s'!", name.c_str());
 }
 #pragma warning(pop)
 
@@ -174,14 +174,14 @@ void Pu::Renderpass::LoadFields(void)
 		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
 	}
 
-	/* Load all uniforms. */
+	/* Load all descriptors. */
 	for (const Shader &pass : shaders)
 	{
 		for (const FieldInfo &info : pass.fields)
 		{
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
-				uniforms.emplace_back(Uniform(*device->parent, info, pass.GetType()));
+				descriptors.emplace_back(Descriptor(*device->parent, info, pass.GetType()));
 			}
 		}
 	}

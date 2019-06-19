@@ -50,7 +50,7 @@ namespace Pu
 
 	private:
 		DynamicBuffer *target;
-		vector<const Uniform*> uniforms;
+		vector<const Descriptor*> descriptors;
 		bool firstUpdate;
 
 		uint32 CheckAndGetSet(const GraphicsPipeline &pipeline, std::initializer_list<string> uniforms);

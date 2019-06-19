@@ -2,7 +2,7 @@
 #include "Shader.h"
 #include "Output.h"
 #include "Attribute.h"
-#include "Uniform.h"
+#include "Descriptor.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/EventArgs.h"
 
@@ -49,10 +49,10 @@ namespace Pu
 		_Check_return_ Attribute& GetAttribute(_In_ const string &name);
 		/* Gets the specified shader input attribute. */
 		_Check_return_ const Attribute& GetAttribute(_In_ const string &name) const;
-		/* Gets the specified shader input uniform. */
-		_Check_return_ Uniform& GetUniform(_In_ const string &name);
-		/* Gets the specified shader input uniform. */
-		_Check_return_ const Uniform& GetUniform(_In_ const string &name) const;
+		/* Gets the specified shader input descriptor. */
+		_Check_return_ Descriptor& GetDescriptor(_In_ const string &name);
+		/* Gets the specified shader input descriptor. */
+		_Check_return_ const Descriptor& GetDescriptor(_In_ const string &name) const;
 
 	protected:
 		/* References the assets and its sub-assets and return itself. */
@@ -91,7 +91,7 @@ namespace Pu
 
 		vector<std::reference_wrapper<Shader>> shaders;
 		vector<Attribute> attributes;
-		vector<Uniform> uniforms;
+		vector<Descriptor> descriptors;
 		vector<Output> outputs;
 		vector<ClearValue> clearValues;
 		vector<SubpassDependency> dependencies;

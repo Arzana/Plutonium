@@ -10,15 +10,15 @@ Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializ
 	for (const string &name : uniforms)
 	{
 		/* We can only add them here; not in the CheckAndGetSet because that has to be called in the initializer list. */
-		const Uniform &uniform = pipeline.GetRenderpass().GetUniform(name);
-		this->uniforms.emplace_back(&uniform);
+		const Descriptor &descriptor = pipeline.GetRenderpass().GetDescriptor(name);
+		this->descriptors.emplace_back(&descriptor);
 
 		/* If the binding already exists we just append, but if it doesn't exist we need to take the GPU allignment into account. */
-		if (knownBindings.contains(uniform.GetBinding())) size += uniform.GetSize();
+		if (knownBindings.contains(descriptor.GetBinding())) size += descriptor.GetSize();
 		else
 		{
-			knownBindings.emplace_back(uniform.GetBinding());
-			size = uniform.GetAllignedOffset(size) + uniform.GetSize();
+			knownBindings.emplace_back(descriptor.GetBinding());
+			size = descriptor.GetAllignedOffset(size) + descriptor.GetSize();
 		}
 	}
 
@@ -26,7 +26,7 @@ Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializ
 }
 
 Pu::UniformBlock::UniformBlock(UniformBlock && value)
-	: DescriptorSet(std::move(value)), uniforms(std::move(value.uniforms)),
+	: DescriptorSet(std::move(value)), descriptors(std::move(value.descriptors)),
 	IsDirty(value.IsDirty), firstUpdate(value.firstUpdate)
 {
 	target = value.target;
@@ -40,7 +40,7 @@ Pu::UniformBlock & Pu::UniformBlock::operator=(UniformBlock && other)
 		Destroy();
 
 		DescriptorSet::operator=(std::move(other));
-		uniforms = std::move(other.uniforms);
+		descriptors = std::move(other.descriptors);
 		IsDirty = other.IsDirty;
 		firstUpdate = other.firstUpdate;
 		target = other.target;
@@ -72,7 +72,7 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 		if (firstUpdate)
 		{
 			cmdBuffer.MemoryBarrier(*target, PipelineStageFlag::Transfer, PipelineStageFlag::VertexShader, AccessFlag::UniformRead);
-			Write(uniforms, *target);
+			Write(descriptors, *target);
 			firstUpdate = false;
 		}
 
@@ -89,7 +89,7 @@ Pu::uint32 Pu::UniformBlock::CheckAndGetSet(const GraphicsPipeline & pipeline, s
 
 	for (std::initializer_list<string>::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
 	{
-		const Uniform &uniform = pipeline.GetRenderpass().GetUniform(*it);
+		const Descriptor &uniform = pipeline.GetRenderpass().GetDescriptor(*it);
 
 		/* Make sure all the descriptors are from the same set. */
 		if (it != uniforms.begin())

@@ -38,12 +38,12 @@ Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)
 {
 	/* Determine how many of each descriptor type are needed. */
 	vector<DescriptorPoolSize> sizes;
-	for (const Uniform &uniform : parent.renderpass->uniforms)
+	for (const Descriptor &uniform : parent.renderpass->descriptors)
 	{
 		/* Check if size already exists. */
 		for (DescriptorPoolSize &size : sizes)
 		{
-			if (size.Type == uniform.GetDescriptorType())
+			if (size.Type == uniform.GetType())
 			{
 				/* Increase the descriptor count and skip creating a new pool size by goto. */
 				++size.DescriptorCount;
@@ -52,7 +52,7 @@ Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)
 		}
 
 		/* If the type was not found then just add a new one with one count. */
-		sizes.emplace_back(uniform.GetDescriptorType(), 1);
+		sizes.emplace_back(uniform.GetType(), 1);
 
 	Continue:;
 	}

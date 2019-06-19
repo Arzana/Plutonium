@@ -9,7 +9,7 @@ public:
 	TransformBlock(_In_ const Pu::GraphicsPipeline &pipeline)
 		: UniformBlock(pipeline, { "Projection", "View", "CamPos" })
 	{
-		offset = pipeline.GetRenderpass().GetUniform("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
+		offset = pipeline.GetRenderpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
 	}
 
 	inline void SetProjection(_In_ const Pu::Matrix &mtrx)

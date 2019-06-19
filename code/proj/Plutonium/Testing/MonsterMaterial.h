@@ -7,16 +7,19 @@ class MonsterMaterial
 	: public Pu::UniformBlock
 {
 public:
-	MonsterMaterial(_In_ const Pu::GraphicsPipeline &pipeline)
-		: UniformBlock(pipeline, { "Glossiness", "F0", "DiffuseFactor" })
+	MonsterMaterial(const Pu::GraphicsPipeline &pipeline)
+		: UniformBlock(pipeline, { "Glossiness", "F0", "DiffuseFactor" }),
+		albedoDescriptor(pipeline.GetRenderpass().GetDescriptor("Diffuse"))
 	{}
 
-	inline void SetParameters(_In_ const Pu::PumMaterial &material)
+	inline void SetParameters(const Pu::PumMaterial &material, const Pu::Texture2D &albedo)
 	{
 		glossiness = material.Glossiness;
 		specular = material.SpecularFactor.ToVector4().XYZ;
 		diffuse = material.DiffuseFactor.ToVector4().XYZ;
 		IsDirty = true;
+
+		Write(albedoDescriptor, albedo);
 	}
 
 protected:
@@ -31,4 +34,5 @@ private:
 	float glossiness;
 	Pu::Vector3 specular;
 	Pu::Vector3 diffuse;
+	const Pu::Descriptor &albedoDescriptor;
 };

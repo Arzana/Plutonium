@@ -7,18 +7,18 @@ namespace Pu
 	class PhysicalDevice;
 
 	/* Specifies information about a shaders uniform constants. */
-	class Uniform
+	class Descriptor
 		: public Field
 	{
 	public:
 		/* Overrides the default descriptor type for this uniform. */
-		inline void SetDescriptor(_In_ DescriptorType type)
+		inline void SetType(_In_ DescriptorType type)
 		{
 			layoutBinding.DescriptorType = type;
 		}
 
 		/* Gets the descriptor type currently assigned to the uniform. */
-		_Check_return_ inline DescriptorType GetDescriptorType(void) const
+		_Check_return_ inline DescriptorType GetType(void) const
 		{
 			return layoutBinding.DescriptorType;
 		}
@@ -47,7 +47,7 @@ namespace Pu
 			return layoutBinding.Binding;
 		}
 
-		/* Gets the offset (in bytes) required after this uniform. */
+		/* Gets the offset (in bytes) required after this descriptor. */
 		_Check_return_ DeviceSize GetAllignedOffset(_In_ DeviceSize offset) const;
 
 	private:
@@ -62,6 +62,6 @@ namespace Pu
 
 		DescriptorSetLayoutBinding layoutBinding;
 
-		Uniform(PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
+		Descriptor(PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
 	};
 }

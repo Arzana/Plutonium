@@ -8,7 +8,7 @@ The second one (1) is for the string specific data (i.e. the transform and color
 Pu::TextUniformBlock::TextUniformBlock(const GraphicsPipeline & pipeline)
 	: UniformBlock(pipeline, { "Model", "Color" })
 {
-	allignedOffset = pipeline.GetRenderpass().GetUniform("Color").GetAllignedOffset(sizeof(Matrix));
+	allignedOffset = pipeline.GetRenderpass().GetDescriptor("Color").GetAllignedOffset(sizeof(Matrix));
 }
 
 Pu::TextUniformBlock::TextUniformBlock(TextUniformBlock && value)

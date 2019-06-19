@@ -157,7 +157,7 @@ void Pu::GraphicsPipeline::Finalize(uint32 subpass)
 	FinalizeLayout();
 
 	/* Create the pool from which the user can allocate descriptor sets. */
-	if (!renderpass->uniforms.empty()) pool = new DescriptorPool(*this, maxSets);
+	if (!renderpass->descriptors.empty()) pool = new DescriptorPool(*this, maxSets);
 
 	/* Create graphics pipeline. */
 	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });
@@ -181,7 +181,7 @@ void Pu::GraphicsPipeline::FinalizeLayout(void)
 	/* Get the information about the descriptor sets. */
 	vector<DescriptorSetLayoutCreateInfo> createInfos;
 	std::map<uint32, vector<DescriptorSetLayoutBinding>> setBindings;
-	for (const Uniform &cur : renderpass->uniforms)
+	for (const Descriptor &cur : renderpass->descriptors)
 	{
 		/* Make sure we have a descriptor set for each defined set. */
 		if (cur.set >= createInfos.size())
