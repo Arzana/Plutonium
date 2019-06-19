@@ -186,6 +186,27 @@ namespace Pu
 		R5G5B5A1_UNORM_PACK16 = 6,
 		B5G5R5A1_UNORM_PACK16 = 7,
 		A1R5G5B5_UNORM_PACK16 = 8,
+		A8B8G8R8_UNORM_PACK32 = 51,
+		A8B8G8R8_SNORM_PACK32 = 52,
+		A8B8G8R8_USCALED_PACK32 = 53,
+		A8B8G8R8_SSCALED_PACK32 = 54,
+		A8B8G8R8_UINT_PACK32 = 55,
+		A8B8G8R8_SINT_PACK32 = 56,
+		A8B8G8R8_SRGB_PACK32 = 57,
+		A2R10G10B10_UNORM_PACK32 = 58,
+		A2R10G10B10_SNORM_PACK32 = 59,
+		A2R10G10B10_USCALED_PACK32 = 60,
+		A2R10G10B10_SSCALED_PACK32 = 61,
+		A2R10G10B10_UINT_PACK32 = 62,
+		A2R10G10B10_SINT_PACK32 = 63,
+		A2B10G10R10_UNORM_PACK32 = 64,
+		A2B10G10R10_SNORM_PACK32 = 65,
+		A2B10G10R10_USCALED_PACK32 = 66,
+		A2B10G10R10_SSCALED_PACK32 = 67,
+		A2B10G10R10_UINT_PACK32 = 68,
+		A2B10G10R10_SINT_PACK32 = 69,
+		B10G11R11_UFLOAT_PACK32 = 122,
+		E5B9G9R9_UFLOAT_PACK32 = 123,
 #pragma endregion
 #pragma region RGBA 8 bit
 		R8_UNORM = 9,
@@ -232,31 +253,6 @@ namespace Pu
 		B8G8R8A8_UINT = 48,
 		B8G8R8A8_SINT = 49,
 		B8G8R8A8_SRGB = 50,
-#pragma endregion
-#pragma region ABGR 8 bit
-		A8B8G8R8_UNORM_PACK32 = 51,
-		A8B8G8R8_SNORM_PACK32 = 52,
-		A8B8G8R8_USCALED_PACK32 = 53,
-		A8B8G8R8_SSCALED_PACK32 = 54,
-		A8B8G8R8_UINT_PACK32 = 55,
-		A8B8G8R8_SINT_PACK32 = 56,
-		A8B8G8R8_SRGB_PACK32 = 57,
-#pragma endregion
-#pragma region ARGB 10 bit
-		A2R10G10B10_UNORM_PACK32 = 58,
-		A2R10G10B10_SNORM_PACK32 = 59,
-		A2R10G10B10_USCALED_PACK32 = 60,
-		A2R10G10B10_SSCALED_PACK32 = 61,
-		A2R10G10B10_UINT_PACK32 = 62,
-		A2R10G10B10_SINT_PACK32 = 63,
-#pragma endregion
-#pragma region ABGR 10 bit
-		A2B10G10R10_UNORM_PACK32 = 64,
-		A2B10G10R10_SNORM_PACK32 = 65,
-		A2B10G10R10_USCALED_PACK32 = 66,
-		A2B10G10R10_SSCALED_PACK32 = 67,
-		A2B10G10R10_UINT_PACK32 = 68,
-		A2B10G10R10_SINT_PACK32 = 69,
 #pragma endregion
 #pragma region RGBA 16 bit
 		R16_UNORM = 70,
@@ -315,10 +311,6 @@ namespace Pu
 		R64G64B64A64_UINT = 119,
 		R64G64B64A64_SINT = 120,
 		R64G64B64A64_SFLOAT = 121,
-#pragma endregion
-#pragma region MISCELLANEOUS
-		B10G11R11_UFLOAT_PACK32 = 122,
-		E5B9G9R9_UFLOAT_PACK32 = 123,
 #pragma endregion
 #pragma region Depth Stencil
 		D16_UNORM = 124,
@@ -1743,6 +1735,334 @@ namespace Pu
 		case Pu::ColorSpace::ExtendedsRGB:
 			return "Extended non-linear sRGB";
 		case Pu::ColorSpace::PassThrough:
+		default:
+			return "Unknown";
+		}
+	}
+
+	/* Converts an image format to string. */
+	_Check_return_ inline const char* to_string(_In_ Format format)
+	{
+		switch (format)
+		{
+		case Format::R4G4_UNORM_PACK8:
+			return "RG 4-bit unsigned normalized packed in 8-bits";
+		case Format::R4G4B4A4_UNORM_PACK16:
+			return "RGBA 4-bit unsigned normalized packed in 16-bits";
+		case Format::B4G4R4A4_UNORM_PACK16:
+			return "BGRA 4-bit unsigned normalized packed in 16-bits";
+		case Format::R5G6B5_UNORM_PACK16:
+			return "RGB 5-bit unsigned normalized packed in 16-bits";
+		case Format::B5G6R5_UNORM_PACK16:
+			return "BGR 5-bit unsigned normalized packed in 16-bits";
+		case Format::R5G5B5A1_UNORM_PACK16:
+			return "RGBA 5-bit unsigned normalized packed in 16-bits with 1-bit for alpha";
+		case Format::B5G5R5A1_UNORM_PACK16:
+			return "BGRA 5-bit unsigned normalized packed in 16-bits with 1-bit for alpha";
+		case Format::A1R5G5B5_UNORM_PACK16:
+			return "ARGB 5-bit unsigned normalized packed in 16-bits with 1-bit for alpha";
+		case Format::R8_UNORM:
+			return "R 8-bit unsigned normalized";
+		case Format::R8_SNORM:
+			return "R 8-bit normalized";
+		case Format::R8_USCALED:
+			return "R 8-bit unsigned scaled";
+		case Format::R8_SSCALED:
+			return "R 8-bit scaled";
+		case Format::R8_UINT:
+			return "R 8-bit unsigned integer";
+		case Format::R8_SINT:
+			return "R 8-bit integer";
+		case Format::R8_SRGB:
+			return "R 8-bit sRGB";
+		case Format::R8G8_UNORM:
+			return "RG 8-bit unsigned normalized";
+		case Format::R8G8_SNORM:
+			return "RG 8-bit normalized";
+		case Format::R8G8_USCALED:
+			return "RG 8-bit unsigned scaled";
+		case Format::R8G8_SSCALED:
+			return "RG 8-bit scaled";
+		case Format::R8G8_UINT:
+			return "RG unsigned integer";
+		case Format::R8G8_SINT:
+			return "RG 8-bit integer";
+		case Format::R8G8_SRGB:
+			return "RG 8-bit sRGB";
+		case Format::R8G8B8_UNORM:
+			return "RGB 8-bit unsigned normalized";
+		case Format::R8G8B8_SNORM:
+			return "RGB 8-bit normalized";
+		case Format::R8G8B8_USCALED:
+			return "RGB 8-bit unsigned scaled";
+		case Format::R8G8B8_SSCALED:
+			return "RGB 8-bit scaled";
+		case Format::R8G8B8_UINT:
+			return "RGB 8-bit unsigned integer";
+		case Format::R8G8B8_SINT:
+			return "RGB 8-bit integer";
+		case Format::R8G8B8_SRGB:
+			return "RGB 8-bit sRGB";
+		case Format::B8G8R8_UNORM:
+			return "BGR 8-bit unsigned normalized";
+		case Format::B8G8R8_SNORM:
+			return "BGR 8-bit normalized";
+		case Format::B8G8R8_USCALED:
+			return "BGR 8-bit unsigned scaled";
+		case Format::B8G8R8_SSCALED:
+			return "BGR 8-bit scaled";
+		case Format::B8G8R8_UINT:
+			return "BGR 8-bit unsigned integer";
+		case Format::B8G8R8_SINT:
+			return "BGR 8-bit integer";
+		case Format::B8G8R8_SRGB:
+			return "BGR 8-bit sRGB";
+		case Format::R8G8B8A8_UNORM:
+			return "RGBA 8-bit unsigned normalized";
+		case Format::R8G8B8A8_SNORM:
+			return "RGBA 8-bit normalized";
+		case Format::R8G8B8A8_USCALED:
+			return "RGBA 8-bit unsigned scaled";
+		case Format::R8G8B8A8_SSCALED:
+			return "RGBA 8-bit scaled";
+		case Format::R8G8B8A8_UINT:
+			return "RGBA 8-bit unsigned integer";
+		case Format::R8G8B8A8_SINT:
+			return "RGBA 8-bit integer";
+		case Format::R8G8B8A8_SRGB:
+			return "RGBA 8-bit sRGB";
+		case Format::B8G8R8A8_UNORM:
+			return "BGRA 8-bit unsigned normalized";
+		case Format::B8G8R8A8_SNORM:
+			return "BGRA 8-bit normalized";
+		case Format::B8G8R8A8_USCALED:
+			return "BGRA 8-bit unsigned scaled";
+		case Format::B8G8R8A8_SSCALED:
+			return "BGRA 8-bit scaled";
+		case Format::B8G8R8A8_UINT:
+			return "BGRA 8-bit unsigned integer";
+		case Format::B8G8R8A8_SINT:
+			return "BGRA 8-bit integer";
+		case Format::B8G8R8A8_SRGB:
+			return "BGRA 8-bit sRGB";
+		case Format::A8B8G8R8_UNORM_PACK32:
+			return "ABGR 8-bit unsigned normalized packed in 32-bits";
+		case Format::A8B8G8R8_SNORM_PACK32:
+			return "ABGR 8-bit normalized packed in 32-bits";
+		case Format::A8B8G8R8_USCALED_PACK32:
+			return "ABGR 8-bit unsigned scaled packed in 32-bits";
+		case Format::A8B8G8R8_SSCALED_PACK32:
+			return "ABGR 8-bit scaled packed in 32-bits";
+		case Format::A8B8G8R8_UINT_PACK32:
+			return "ABGR 8-bit unsigned integer packed in 32-bits";
+		case Format::A8B8G8R8_SINT_PACK32:
+			return "ABGR 8-bit integer packed in 32-bits";
+		case Format::A8B8G8R8_SRGB_PACK32:
+			return "ABGR 8-bits sRGB packed in 32-bits";
+		case Format::A2R10G10B10_UNORM_PACK32:
+			return "ARGB 10-bits unsigned normalized packed in 32-bits with 2-bits for alpha";
+		case Format::A2R10G10B10_SNORM_PACK32:
+			return "ARGB 10-bit normalized packed in 32-bits with 2-bits for alpha";
+		case Format::A2R10G10B10_USCALED_PACK32:
+			return "ARGB 10-bits unsigned scaled packed in 32-bits with 2-bits for alpha";
+		case Format::A2R10G10B10_SSCALED_PACK32:
+			return "ARGB 10-bits scaled packed in 32-bits with 2-bits for alpha";
+		case Format::A2R10G10B10_UINT_PACK32:
+			return "ARGB 10-bits unsigned integer packed in 32-bits with 2-bits for alpha";
+		case Format::A2R10G10B10_SINT_PACK32:
+			return "ARGB 10-bits integer packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_UNORM_PACK32:
+			return "ABGR 10-bit unsigned normalized packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_SNORM_PACK32:
+			return "ABGR 10-bit normalized packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_USCALED_PACK32:
+			return "ABGR 10-bit unsigned scaled packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_SSCALED_PACK32:
+			return "ABGR 10-bit scaled packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_UINT_PACK32:
+			return "ABGR 10-bit unsigned integer packed in 32-bits with 2-bits for alpha";
+		case Format::A2B10G10R10_SINT_PACK32:
+			return "ABGR 10-bit integer packed in 32-bits with 2-bits for alpha";
+		case Format::R16_UNORM:
+			return "R 16-bit unsigned normalized";
+		case Format::R16_SNORM:
+			return "R 16-bit normalized";
+		case Format::R16_USCALED:
+			return "R 16-bit unsigned scaled";
+		case Format::R16_SSCALED:
+			return "R 16-bit scaled";
+		case Format::R16_UINT:
+			return "R 16-bit unsigned integer";
+		case Format::R16_SINT:
+			return "R 16-bit integer";
+		case Format::R16_SFLOAT:
+			return "R 16-bit floating point";
+		case Format::R16G16_UNORM:
+			return "RG 16-bit unsigned normalized";
+		case Format::R16G16_SNORM:
+			return "RG 16-bit normalized";
+		case Format::R16G16_USCALED:
+			return "RG 16-bit unsigned scaled";
+		case Format::R16G16_SSCALED:
+			return "RG 16-bit scaled";
+		case Format::R16G16_UINT:
+			return "RG 16-bit unsigned integer";
+		case Format::R16G16_SINT:
+			return "RG 16-bit integer";
+		case Format::R16G16_SFLOAT:
+			return "RG 16-bit floating point";
+		case Format::R16G16B16_UNORM:
+			return "RGB 16-bit unsigned normalized";
+		case Format::R16G16B16_SNORM:
+			return "RGB 16-bit normalized";
+		case Format::R16G16B16_USCALED:
+			return "RGB 16-bit unsigned scaled";
+		case Format::R16G16B16_SSCALED:
+			return "RGB 16-bit scaled";
+		case Format::R16G16B16_UINT:
+			return "RGB 16-bit unsigned integer";
+		case Format::R16G16B16_SINT:
+			return "RGB 16-bit integer";
+		case Format::R16G16B16_SFLOAT:
+			return "RGB 16-bit floating point";
+		case Format::R16G16B16A16_UNORM:
+			return "RGBA 16-bit unsigned normalized";
+		case Format::R16G16B16A16_SNORM:
+			return "RGBA 16-bit normalized";
+		case Format::R16G16B16A16_USCALED:
+			return "RGBA 16-bit unsigned scaled";
+		case Format::R16G16B16A16_SSCALED:
+			return "RGBA 16-bit scaled";
+		case Format::R16G16B16A16_UINT:
+			return "RGBA 16-bit unsigned integer";
+		case Format::R16G16B16A16_SINT:
+			return "RGBA 16-bit unteger";
+		case Format::R16G16B16A16_SFLOAT:
+			return "RGBA 16-bit floating point";
+		case Format::R32_UINT:
+			return "R 32-bit unsigned integer";
+		case Format::R32_SINT:
+			return "R 32-bit integer";
+		case Format::R32_SFLOAT:
+			return "R 32-bit floating point";
+		case Format::R32G32_UINT:
+			return "RG 32-bit unsigned integer";
+		case Format::R32G32_SINT:
+			return "RG 32-bit integer";
+		case Format::R32G32_SFLOAT:
+			return "RG 32-bit floating point";
+		case Format::R32G32B32_UINT:
+			return "RGB unsigned integer";
+		case Format::R32G32B32_SINT:
+			return "RGB 32-bit integer";
+		case Format::R32G32B32_SFLOAT:
+			return "RGB 32-bit floating point";
+		case Format::R32G32B32A32_UINT:
+			return "RGBA 32-bit unsigned integer";
+		case Format::R32G32B32A32_SINT:
+			return "RGBA 32-bit integer";
+		case Format::R32G32B32A32_SFLOAT:
+			return "RGBA 32-bit floating point";
+		case Format::R64_UINT:
+			return "R 64-bit unsigned integer";
+		case Format::R64_SINT:
+			return "R 64-bit integer";
+		case Format::R64_SFLOAT:
+			return "R 64-bit floating point";
+		case Format::R64G64_UINT:
+			return "RG 64-bit unsigned integer";
+		case Format::R64G64_SINT:
+			return "RG 64-bit integer";
+		case Format::R64G64_SFLOAT:
+			return "RG 64-bit floating point";
+		case Format::R64G64B64_UINT:
+			return "RGB 64-bit unsigned integer";
+		case Format::R64G64B64_SINT:
+			return "RGB 64-bit integer";
+		case Format::R64G64B64_SFLOAT:
+			return "RGB 64-bit floating point";
+		case Format::R64G64B64A64_UINT:
+			return "RGBA 64-bit unsigned integer";
+		case Format::R64G64B64A64_SINT:
+			return "RGBA 64-bit integer";
+		case Format::R64G64B64A64_SFLOAT:
+			return "RGBA 64-bit floating point";
+		case Format::B10G11R11_UFLOAT_PACK32:
+			return "B 10-bit RG 11-bit unsigned floating point packed in 32-bits";
+		case Format::E5B9G9R9_UFLOAT_PACK32:
+			return "BGR shared 5-bit exponent component 9-bit mantissa packed in 32-bits";
+		case Format::D16_UNORM:
+			return "Depth 16-bit unsigned normalized";
+		case Format::X8_D24_UNORM_PACK32:
+			return "Depth 24-bit unsigned normalized";
+		case Format::D32_SFLOAT:
+			return "Depth 32-bit floating point";
+		case Format::S8_UINT:
+			return "Stencil 8-bit";
+		case Format::D16_UNORM_S8_UINT:
+			return "Depth 16-bit unsigned normalized with 8-bit stencil";
+		case Format::D24_UNORM_S8_UINT:
+			return "Depth 24-bit unsigned normalized with 8-bit stencil";
+		case Format::D32_SFLOAT_S8_UINT:
+			return "Depth 32-bit floating point with 8-bit stencil";
+		case Format::BC1_RGB_UNORM_BLOCK:
+		case Format::BC1_RGB_SRGB_BLOCK:
+		case Format::BC1_RGBA_UNORM_BLOCK:
+		case Format::BC1_RGBA_SRGB_BLOCK:
+		case Format::BC2_UNORM_BLOCK:
+		case Format::BC2_SRGB_BLOCK:
+		case Format::BC3_UNORM_BLOCK:
+		case Format::BC3_SRGB_BLOCK:
+		case Format::BC4_UNORM_BLOCK:
+		case Format::BC4_SNORM_BLOCK:
+		case Format::BC5_UNORM_BLOCK:
+		case Format::BC5_SNORM_BLOCK:
+		case Format::BC6H_UFLOAT_BLOCK:
+		case Format::BC6H_SFLOAT_BLOCK:
+		case Format::BC7_UNORM_BLOCK:
+		case Format::BC7_SRGB_BLOCK:
+			return "Block-compressed";
+		case Format::ETC2_R8G8B8_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8_SRGB_BLOCK:
+		case Format::ETC2_R8G8B8A1_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8A1_SRGB_BLOCK:
+		case Format::ETC2_R8G8B8A8_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8A8_SRGB_BLOCK:
+		case Format::EAC_R11_UNORM_BLOCK:
+		case Format::EAC_R11_SNORM_BLOCK:
+		case Format::EAC_R11G11_UNORM_BLOCK:
+		case Format::EAC_R11G11_SNORM_BLOCK:
+			return "ETC2 compressed";
+		case Format::ASTC_4x4_UNORM_BLOCK:
+		case Format::ASTC_4x4_SRGB_BLOCK:
+		case Format::ASTC_5x4_UNORM_BLOCK:
+		case Format::ASTC_5x4_SRGB_BLOCK:
+		case Format::ASTC_5x5_UNORM_BLOCK:
+		case Format::ASTC_5x5_SRGB_BLOCK:
+		case Format::ASTC_6x5_UNORM_BLOCK:
+		case Format::ASTC_6x5_SRGB_BLOCK:
+		case Format::ASTC_6x6_UNORM_BLOCK:
+		case Format::ASTC_6x6_SRGB_BLOCK:
+		case Format::ASTC_8x5_UNORM_BLOCK:
+		case Format::ASTC_8x5_SRGB_BLOCK:
+		case Format::ASTC_8x6_UNORM_BLOCK:
+		case Format::ASTC_8x6_SRGB_BLOCK:
+		case Format::ASTC_8x8_UNORM_BLOCK:
+		case Format::ASTC_8x8_SRGB_BLOCK:
+		case Format::ASTC_10x5_UNORM_BLOCK:
+		case Format::ASTC_10x5_SRGB_BLOCK:
+		case Format::ASTC_10x6_UNORM_BLOCK:
+		case Format::ASTC_10x6_SRGB_BLOCK:
+		case Format::ASTC_10x8_UNORM_BLOCK:
+		case Format::ASTC_10x8_SRGB_BLOCK:
+		case Format::ASTC_10x10_UNORM_BLOCK:
+		case Format::ASTC_10x10_SRGB_BLOCK:
+		case Format::ASTC_12x10_UNORM_BLOCK:
+		case Format::ASTC_12x10_SRGB_BLOCK:
+		case Format::ASTC_12x12_UNORM_BLOCK:
+		case Format::ASTC_12x12_SRGB_BLOCK:
+			return "ASTC compressed";
+		case Format::Undefined:
 		default:
 			return "Unknown";
 		}

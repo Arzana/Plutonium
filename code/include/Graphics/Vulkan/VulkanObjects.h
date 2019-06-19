@@ -694,6 +694,16 @@ namespace Pu
 		SurfaceFormat(_In_ Pu::Format format, _In_ Pu::ColorSpace colorSpace)
 			: Format(format), ColorSpace(colorSpace)
 		{}
+
+		/* Gets the string representation of the surface format. */
+		_Check_return_ inline operator string(void) const
+		{
+			string result = to_string(ColorSpace);
+			result += " (";
+			result += to_string(Format);
+			result += ')';
+			return result;
+		}
 	};
 
 	/* Defines the information required to create a swapchain. */

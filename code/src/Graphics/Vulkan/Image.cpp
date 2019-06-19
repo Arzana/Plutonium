@@ -232,7 +232,9 @@ void Pu::Image::CanCreate(const ImageCreateInfo & info)
 	if (!_CrtEnumCheckFlag(info.Tiling == ImageTiling::Optimal ? formatProps.OptimalTilingFeatures : formatProps.LinearTilingFeatures, FormatFeatureFlag::SampledImage))
 	{
 		log = true;
-		error += ", cannot create sampled image with specified format";
+		error += ", cannot create sampled image with '";
+		error += to_string(info.Format);
+		error += "' format";
 	}
 
 	/* Don't check for the format properties if we've already failed. */

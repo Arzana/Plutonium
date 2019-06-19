@@ -195,7 +195,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 				{
 					for (const SurfaceFormat &format : GetWindow().GetSupportedFormats())
 					{
-						if (ImGui::Selectable(to_string(format.ColorSpace))) GetWindow().SetColorSpace(format.ColorSpace);
+						if (ImGui::Selectable(((string)format).c_str())) GetWindow().SetColorSpace(format.ColorSpace);
 					}
 
 					ImGui::EndCombo();
