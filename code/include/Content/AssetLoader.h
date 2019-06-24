@@ -30,9 +30,7 @@ namespace Pu
 		}
 
 		/* Loads the renderpass with the specified subpasses and finalizes the graphics pipeline. */
-		void PopulateRenderpass(_In_ GraphicsPipeline &pipeline, _In_ Renderpass &renderpass, _In_ const vector<wstring> &subpasses);
-		/* Finalizes the graphics pipeline. */
-		void FinalizeGraphicsPipeline(_In_ GraphicsPipeline &pipeline, _In_ Renderpass &renderpass);
+		void PopulateRenderpass(_In_ Renderpass &renderpass, _In_ const vector<vector<wstring>> &shaders);
 		/* Loads and stages a texture from a specific path. */
 		void InitializeTexture(_In_ Texture &texture, _In_ const wstring &path, _In_ const ImageInformation &info);
 		/* Stages a texture from the specified source. */

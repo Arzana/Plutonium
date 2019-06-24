@@ -25,25 +25,31 @@ Pu::AssetFetcher::~AssetFetcher(void)
 	delete cache;
 }
 
-Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(GraphicsPipeline & pipeline, std::initializer_list<wstring> subpasses)
+Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::initializer_list<wstring>> shaders)
 {
 	/* Make sure the wildcards are solved. */
-	const vector<wstring> mutableSubpasses = Solve(subpasses);
+	vector<vector<wstring>> mutableShaders;
+	wstring hashParameter;
+	for (const std::initializer_list<wstring> &subpass : shaders)
+	{
+		mutableShaders.emplace_back();
+
+		for (const wstring &path : subpass)
+		{
+			mutableShaders.back().emplace_back(path);
+			Solve(mutableShaders.back().back());
+			hashParameter += mutableShaders.back().back();
+		}
+	}
 
 	/* Create the hash and check if the cache contains the requested asset. */
-	const size_t hash = std::hash<wstring>{}(mutableSubpasses);
-	if (cache->Contains(hash))
-	{
-		/* Duplicate the top level asset and finalize the graphics pipeline with the duplicated renderpass. */
-		Renderpass &renderpass = cache->Get(hash).Duplicate<Renderpass>(*cache);
-		loader->FinalizeGraphicsPipeline(pipeline, renderpass);
-		return renderpass;
-	}
+	const size_t hash = std::hash<wstring>{}(hashParameter);
+	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Renderpass>(*cache);
 
 	/* Create a new renderpass and start loading it. */
 	Renderpass *renderpass = new Renderpass(loader->GetDevice());
 	renderpass->SetHash(hash);
-	loader->PopulateRenderpass(pipeline, *renderpass, mutableSubpasses);
+	loader->PopulateRenderpass(*renderpass, mutableShaders);
 	cache->Store(renderpass);
 	return *renderpass;
 }
@@ -190,16 +196,18 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte *
 	}
 }
 
-void Pu::AssetFetcher::Release(GraphicsPipeline & pipeline)
+void Pu::AssetFetcher::Release(Renderpass & renderpass)
 {
 	/* Make sure to release the subpasses as well. */
-	for (Shader &cur : pipeline.GetRenderpass().shaders)
+	for (const Subpass &subpass : renderpass.subpasses)
 	{
-		cache->Release(cur);
+		for (Shader *shader : subpass.GetShaders()) 
+		{
+			cache->Release(*shader);
+		}
 	}
 
-	/* const cast here shouldn't matter too much as this is basically a delete statement. */
-	cache->Release(const_cast<Renderpass&>(pipeline.GetRenderpass()));
+	cache->Release(renderpass);
 }
 
 void Pu::AssetFetcher::Release(Texture & texture)

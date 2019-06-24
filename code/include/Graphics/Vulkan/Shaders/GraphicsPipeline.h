@@ -1,24 +1,18 @@
 #pragma once
 #include "Renderpass.h"
-#include "Graphics/Vulkan/DescriptorPool.h"
 
 namespace Pu
 {
-	/* Defines the enviroment for a single render pass. */
+	/* Defines a Vulkan graphics pipeline that can be used with a specific subpass. */
 	class GraphicsPipeline
 	{
 	public:
-		/* Occurs after the graphics pipeline has been initialized. */
-		EventBus<GraphicsPipeline> PostInitialize;
-
-		/* Initializes an empty instance of a graphics pipeline. */
-		GraphicsPipeline(_In_ LogicalDevice &device, _In_ size_t maxSets);
-		/* Initializes a new instance of a graphics pipeline for the specified render pass. */
-		GraphicsPipeline(_In_ LogicalDevice &device, _In_ const Renderpass &renderpass, _In_ size_t maxSets);
+		/* Initializes a new instance of a Vulkan graphics pipeline from a specific render pass. */
+		GraphicsPipeline(_In_ const Renderpass &renderpass, _In_ uint32 subpass);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
 		/* Move constructor. */
 		GraphicsPipeline(_In_ GraphicsPipeline &&value);
-		/* Destroys the graphics pipeline. */
+		/* Releases the resources allocated by the graphics pipeline. */
 		~GraphicsPipeline(void)
 		{
 			Destroy();
@@ -28,136 +22,93 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline &&other);
 
-		/* Gets whether the graphics pipeline is ready for use. */
-		_Check_return_ inline bool IsUsable(void) const 
+		/* Gets whether this graphics pipeline can be bound. */
+		_Check_return_ inline bool IsUsable(void) const
 		{
 			return hndl;
 		}
 
-		/* Sets the cull mode to use. */
-		inline void SetCullMode(_In_ CullModeFlag mode)
-		{
-			rasterizer.CullMode = mode;
-		}
-
-		/* Sets whether the depth and stencil tests are enabled. */
-		inline void SetDepthStencilMode(_In_ bool depthTestEnabled, _In_ bool depthWriteEnbled, _In_ bool stencilEnabled)
-		{
-			depthStencil.DepthTestEnable = depthTestEnabled;
-			depthStencil.DepthWriteEnable = depthWriteEnbled;
-			depthStencil.StencilTestEnable = stencilEnabled;
-		}
-
-		/* Sets which depth compare operation to use for depth testing. */
-		inline void SetDepthCompare(_In_ CompareOp operation)
-		{
-			depthStencil.DepthCompareOp = operation;
-		}
-
-		/* Sets the width of the lines drawn using the line primitive topology. */
-		inline void SetLineWidth(_In_ float width)
-		{
-			rasterizer.LineWidth = width;
-		}
-
-#pragma warning(push)
-#pragma warning(disable:4458)
-		/* Sets the viewport parameters of the graphics pipeline. */
-		inline void SetViewport(_In_ const Viewport &viewport)
-		{
-			SetViewport(viewport, viewport.GetScissor());
-		}
-
-		/* Sets the viewport and scissor rectangle parameters of the graphics pipeline. */
-		inline void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor)
-		{
-			this->vp = viewport;
-			this->scissor = scissor;
-		}
-#pragma warning(pop)
-
-		/* Overrides the default topology (TriangleList) to the specified value. */
-		inline void SetTopology(_In_ PrimitiveTopology topology)
-		{
-			inputAssembly.Topology = topology;
-		}
-
-		/* Adds a vertex input binding to the graphics pipeline. */
+		/* Adds a vertex binding to the graphics pipeline. */
 		template <typename vertex_t>
-		void AddVertexBinding(_In_ uint32 binding, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex)
+		void AddVertexBinding(_In_ uint32 binding, _In_opt_ VertexInputRate rate = VertexInputRate::Vertex)
 		{
-			AddVertexBinding(binding, sizeof(vertex_t), inputRate);
+			AddVertexBinding(binding, sizeof(vertex_t), rate);
 		}
 
-		/* Gets the renderpass used to in this graphics pipeline. */
-		_Check_return_ const Renderpass& GetRenderpass(void) const;
-		/* Gets the pool from which descriptors can be made. */
-		_Check_return_ const DescriptorPool& GetDescriptorPool(void) const;
-		/* Gets the blending state for a specific color blend attachment. */
-		_Check_return_ PipelineColorBlendAttachmentState& GetBlendStateFor(_In_ const string &name);
-		/* Adds a dynamic state parameter to the list. */
+		/* Finalizes the graphics pipeline, creation the underlying resources. */
+		void Finalize(void);
+		/* Sets how the input assembler should assemble the vertices passed to this graphics pipeline. */
+		void SetTopology(_In_ PrimitiveTopology topology);
+		/* Sets the amount of path control points, if it's supported by the hardware. */
+		_Check_return_ bool SetPathControlPoints(_In_ uint32 points);
+		/* Sets the viewport of the graphics pipeline. */
+		void SetViewport(_In_ const Viewport &viewport);
+		/* Sets the viewport and the scissor rectangle of the graphics pipeline. */
+		void SetViewport(_In_ const Viewport &viewport, _In_ Rect2D scissor);
+		/* Enables depth clamping, if it's enabled by the hardware. */
+		_Check_return_ bool EnableDepthClamp(void);
+		/* Sets how the rasterizer should handle polygons, returns whether the mode is supported by the hardware. */
+		_Check_return_ bool SetPolygonMode(_In_ PolygonMode mode);
+		/* Sets which faces should be culled. */
+		void SetCullMode(_In_ CullModeFlag mode);
+		/* Sets how the front face is determined. */
+		void SetFrontFace(_In_ FrontFace front);
+		/* Enables depth bias and sets the scalar values for it, if it's supported by the hardware. */
+		_Check_return_ bool EnableDepthBias(_In_ float constant, _In_ float clamp, _In_ float slope);
+		/* Sets the line width for this graphics pipeline, if it's supported by the hardware. */
+		_Check_return_ bool SetLineWidth(_In_ float width);
+		/* Sets the amount of samples active in the subpass. */
+		void SetSampleCount(_In_ SampleCountFlag samples);
+		/* Enabled shading per sample instead of per fragment. */
+		void EnableSampleShading(_In_ float min);
+		/* Sets a color mask that's used for static coverage. */
+		void SetSampleMask(_In_ SampleMask mask);
+		/* Enabled the use of the fragments alpha to coverage for multisampling. */
+		void EnableAlphaToCoverage(void);
+		/* Hardsets a fragments alpha to one, if it's suported by the hardware. */
+		_Check_return_ bool EnableAlphaToOne(void);
+		/* Enables depth testing, which operation it should use and whether writing to depth is enabled as well. */
+		void EnableDepthTest(_In_ bool enableWrites, _In_ CompareOp operation);
+		/* Enabled a boudning region for depth values, if it's suported by the hardware. */
+		_Check_return_ bool EnableDepthBoundsTest(_In_ float min, _In_ float max);
+		/* Enables stencil testing and sets the variabled for it. */
+		void EnableStencilTest(_In_ const StencilOpState &front, _In_ const StencilOpState &back);
+		/* Sets the logical operation used for color blending, if it's supported by the hardware. */
+		_Check_return_ bool SetBlendOperation(_In_ LogicOp operation);
+		/* Sets an optional constant color used in some blend operations (default is black). */
+		void SetConstantBlendColor(_In_ Color color);
+		/* Marks a specific property of the graphics pipeline as dynamic. */
 		void AddDynamicState(_In_ DynamicState state);
-		/* Adds a vertex input binding to the graphics pipeline. */
-		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate inputRate = VertexInputRate::Vertex);
-		/* Finalizes the graphics pipeline, no changes are allowed to be made after this is called. */
-		void Finalize(_In_ uint32 subpass);
-
-		/* Gets the device on which the graphics pipeline was made. */
-		_Check_return_ inline LogicalDevice& GetDevice(void) const
-		{
-			return *parent;
-		}
+		/* Adds a vertex binding to the graphics pipeline. */
+		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate rate = VertexInputRate::Vertex);
+		/* Gets the blend state for a specific output attachent. */
+		_Check_return_ PipelineColorBlendAttachmentState& GetBlendState(_In_ const string &output);
 
 	private:
 		friend class CommandBuffer;
-		friend class DescriptorPool;
-		friend class DescriptorSet;
-		friend class AssetLoader;
 
-		class LoadTask
-			: public Task
-		{
-		public:
-			LoadTask(GraphicsPipeline &pipelineResult, Renderpass &passResult, const vector<std::tuple<size_t, wstring>> &toLoad);
-			LoadTask(const LoadTask&) = delete;
+		const Renderpass *renderpass;
+		PipelineHndl hndl;
+		uint32 subpass;
 
-			LoadTask& operator =(const LoadTask&) = delete;
-
-			virtual Result Execute(void) override;
-			virtual Result Continue(void) override;
-
-		private:
-			GraphicsPipeline &result;
-			Renderpass &renderPass;
-			Renderpass::LoadTask *child;
-		};
-
-		PipelineVertexInputStateCreateInfo vertexInput;
-		PipelineInputAssemblyStateCreateInfo inputAssembly;
-		PipelineTessellationStateCreateInfo tessellation;
-		PipelineViewportStateCreateInfo display;
-		PipelineRasterizationStateCreateInfo rasterizer;
-		PipelineMultisampleStateCreateInfo multisample;
-		PipelineDepthStencilStateCreateInfo depthStencil;
-		PipelineColorBlendStateCreateInfo colorBlend;
+		PipelineVertexInputStateCreateInfo vertexInputState;
+		PipelineInputAssemblyStateCreateInfo inputAssemblyState;
+		PipelineTessellationStateCreateInfo tessellationState;
+		PipelineViewportStateCreateInfo viewportState;
+		PipelineRasterizationStateCreateInfo rasterizationState;
+		PipelineMultisampleStateCreateInfo multisampleState;
+		PipelineDepthStencilStateCreateInfo depthStencilState;
+		PipelineColorBlendStateCreateInfo colorBlendState;
 		PipelineDynamicStateCreateInfo dynamicState;
 
 		vector<PipelineColorBlendAttachmentState> colorBlendAttachments;
 		vector<VertexInputBindingDescription> bindingDescriptions;
-
-		mutable LogicalDevice *parent;
-		const Renderpass *renderpass;
-		const DescriptorPool *pool;
-		PipelineHndl hndl;
-		PipelineLayoutHndl layoutHndl;
-		vector<DescriptorSetLayoutHndl> descriptorSets;
 		vector<DynamicState> dynamicStates;
-		Viewport vp;
+		Viewport viewport;
 		Rect2D scissor;
-		size_t maxSets;
+		SampleMask sampleMask;
 
-		void FinalizeLayout(void);
-		void Initialize(void);
+		const PhysicalDeviceFeatures& GetHardwareSupport(void) const;
 		void Destroy(void);
 	};
 }

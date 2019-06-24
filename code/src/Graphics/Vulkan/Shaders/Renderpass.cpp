@@ -1,29 +1,49 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "Graphics/Vulkan/Instance.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
-	: Asset(true), device(&device), hndl(nullptr), usable(false),
-	OnLinkCompleted("RenderpassOnLinkCompleted")
+	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false),
+	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate")
 {}
 
-Pu::Renderpass::Renderpass(LogicalDevice & device, vector<std::reference_wrapper<Shader>>&& subpasses)
-	: Asset(true), device(&device), shaders(std::move(subpasses)), usable(false),
-	OnLinkCompleted("RenderpassOnLinkCompleted")
+Pu::Renderpass::Renderpass(LogicalDevice & device, std::initializer_list<std::initializer_list<wstring>> shaderModules)
+	: Renderpass(device)
 {
-	SetHash(std::hash<wstring>{}(subpasses.select<wstring>([](const Shader &cur) { return cur.GetName(); })));
-	Link(false);
+	ownsShaders = true;
+	subpasses.reserve(shaderModules.size());
+
+	/* Inline load all the shader modules and then start the creation process. */
+	for (const std::initializer_list<wstring> &modules : shaderModules)
+	{
+		vector<Shader*> shaders(modules.size());
+
+		for (const wstring &shader : modules)
+		{
+			shaders.emplace_back(new Shader(device, shader));
+		}
+
+		subpasses.emplace_back(device.GetPhysicalDevice(), shaders);
+	}
+
+	Create(false);
+}
+
+Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
+	: Renderpass(device)
+{
+	this->subpasses = std::move(subpasses);
+	Create(false);
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
-	: Asset(std::move(value)), device(value.device), hndl(value.hndl), shaders(std::move(value.shaders)),
-	usable(value.usable), OnLinkCompleted(std::move(value.OnLinkCompleted)),
-	outputs(std::move(value.outputs)), clearValues(std::move(value.clearValues)),
-	dependencies(std::move(value.dependencies)), attributes(std::move(value.attributes)),
-	descriptors(std::move(value.descriptors))
+	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
+	subpasses(std::move(value.subpasses)), clearValues(std::move(value.clearValues)),
+	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), layoutHndl(value.layoutHndl),
+	inputAttachments(std::move(value.inputAttachments)), depthStencilAttachments(std::move(value.depthStencilAttachments)),
+	preserveAttachments(std::move(value.preserveAttachments)), descriptorSetLayouts(std::move(value.descriptorSetLayouts))
 {
 	value.hndl = nullptr;
-	value.usable = false;
+	value.layoutHndl = nullptr;
 }
 
 Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
@@ -35,357 +55,314 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		Asset::operator=(std::move(other));
 		device = other.device;
 		hndl = other.hndl;
-		shaders = std::move(other.shaders);
-		usable = other.usable;
-		OnLinkCompleted = std::move(other.OnLinkCompleted);
-		outputs = std::move(other.outputs);
+		layoutHndl = other.layoutHndl;
+		ownsShaders = other.ownsShaders;
+		subpasses = std::move(other.subpasses);
 		clearValues = std::move(other.clearValues);
-		dependencies = std::move(other.dependencies);
-		attributes = std::move(other.attributes);
-		descriptors = std::move(other.descriptors);
+		PreCreate = std::move(other.PreCreate);
+		PostCreate = std::move(other.PostCreate);
+		inputAttachments = std::move(other.inputAttachments);
+		depthStencilAttachments = std::move(other.depthStencilAttachments);
+		preserveAttachments = std::move(other.preserveAttachments);
+		descriptorSetLayouts = std::move(other.descriptorSetLayouts);
 
 		other.hndl = nullptr;
-		other.usable = false;
+		other.layoutHndl = nullptr;
 	}
 
 	return *this;
 }
 
-Pu::Output & Pu::Renderpass::AddDepthStencil(void)
+void Pu::Renderpass::Preserve(const Output & field, uint32 subpass)
 {
-	/* Create some default info for the field. */
-	FieldType type(ComponentType::Float, SizeType::Scalar);
-	FieldInfo info(0, "DepthStencil", std::move(type), spv::StorageClass::Output, Decoration());
-
-	/*
-	Add it to the list and return it for direct use, the reference will always be 1 as we cannot have multiple depth stencil targets.
-	We will not throw yet if the user creates multiple depth stencil targets, we'll throw on finalize.
-	*/
-	outputs.emplace_back(Output(info, 1, OutputUsage::DepthStencil));
-	return outputs[outputs.size() - 1];
-}
-
-/* The compiler complains that not all codepaths return a value, but Log::Fatal will always throw. */
-#pragma warning (push)
-#pragma warning (disable:4715)
-Pu::Output & Pu::Renderpass::GetOutput(const string & name)
-{
-	for (Output &cur : outputs)
+	/* Check if the specified subpass already has preserve attachments. */
+	decltype(preserveAttachments)::iterator it = preserveAttachments.find(subpass);
+	if (it != preserveAttachments.end())
 	{
-		if (name == cur.Info.Name) return cur;
+		/* Add the attachment to the pre-existing list. */
+		it->second.emplace_back(field.reference.Attachment, field.reference.Layout);
 	}
-
-	Log::Fatal("Unable to find output field '%s'!", name.c_str());
-}
-
-const Pu::Output & Pu::Renderpass::GetOutput(const string & name) const
-{
-	for (const Output &cur : outputs)
+	else
 	{
-		if (name == cur.Info.Name) return cur;
+		/* Just add a new vector (with the reference) to the list. */
+		vector<AttachmentReference> value = { AttachmentReference(field.reference.Attachment, field.reference.Layout) };
+		preserveAttachments.emplace(subpass, value);
 	}
-
-	Log::Fatal("Unable to find output field '%s'!", name.c_str());
 }
 
-Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name)
+void Pu::Renderpass::SetAsInput(const Output & field, ImageLayout layout, uint32 subpass)
 {
-	for (Attribute &cur : attributes)
+	/* Only color and depth/stencil attachments can be passed to this method. */
+	if (field.type == OutputUsage::Color)
 	{
-		if (name == cur.Info.Name) return cur;
+		/* Check if the subpass already exists. */
+		decltype(inputAttachments)::iterator it = inputAttachments.find(subpass);
+		if (it != inputAttachments.end())
+		{
+			/* Add the attachment to the pre-existing list. */
+			it->second.emplace_back(field.reference.Attachment, layout);
+		}
+		else
+		{
+			/* Just add a new vector (with the reference) to the list. */
+			vector<AttachmentReference> value = { AttachmentReference(field.reference.Attachment, layout) };
+			inputAttachments.emplace(subpass, value);
+		}
 	}
-
-	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
-}
-
-const Pu::Attribute & Pu::Renderpass::GetAttribute(const string & name) const
-{
-	for (const Attribute &cur : attributes)
+	else if (field.type == OutputUsage::DepthStencil)
 	{
-		if (name == cur.Info.Name) return cur;
+		/* Check if the subpass already exists. */
+		decltype(depthStencilAttachments)::iterator it = depthStencilAttachments.find(subpass);
+		if (it == depthStencilAttachments.end())
+		{
+			/* Check if we can add a depth/stencil attachment to the specified subpass. */
+			for (const Output &output : subpasses[subpass].outputs)
+			{
+				if (output.type == OutputUsage::DepthStencil)
+				{
+					Log::Error("Subpass %u already defined a depth/stencil attachment!", subpass);
+					return;
+				}
+			}
+
+			depthStencilAttachments.emplace(subpass, AttachmentReference(field.reference.Attachment, layout));
+		}
+		else Log::Error("Subpass %u already has a depth/stencil attachment defined!", subpass);
 	}
-
-	Log::Fatal("Unable to find attribute field '%s'!", name.c_str());
+	else Log::Error("Cannot use '%s' (%s attachment) as an input!", field.GetInfo().Name.c_str(), to_string(field.type));
 }
-
-Pu::Descriptor & Pu::Renderpass::GetDescriptor(const string & name)
-{
-	for (Descriptor &cur : descriptors)
-	{
-		if (name == cur.Info.Name) return cur;
-	}
-
-	Log::Fatal("Unable to find descriptor field '%s'!", name.c_str());
-}
-
-const Pu::Descriptor & Pu::Renderpass::GetDescriptor(const string & name) const
-{
-	for (const Descriptor &cur : descriptors)
-	{
-		if (name == cur.Info.Name) return cur;
-	}
-
-	Log::Fatal("Unable to find descriptor field '%s'!", name.c_str());
-}
-#pragma warning(pop)
 
 Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
 {
 	Reference();
-	for (Shader &cur : shaders) cur.Reference();
+
+	/* The underlying shaders need to be references as well in case they were loaded with the loader. */
+	for (const Subpass &subpass : subpasses)
+	{
+		for (Shader *shader : subpass.GetShaders()) shader->Reference();
+	}
+
 	return *this;
 }
 
-void Pu::Renderpass::Link(bool linkedViaLoader)
+void Pu::Renderpass::Create(bool viaLoader)
 {
-	/* Start by sorting all subpasses on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
-	std::sort(shaders.begin(), shaders.end(), [](const Shader &a, const Shader &b)
+	/*
+	We need to set a subpass indicator for all outputs, this is used for checking later on.
+	We also need to set the attachment reference attachment index,
+	otherwise we'll have overlapping indices with multiple subpasses.
+	*/
+	for (uint32 i = 0, start = 0; i < subpasses.size(); i++)
 	{
-		return _CrtEnum2Int(a.GetType()) < _CrtEnum2Int(b.GetType());
-	});
-
-	/* Check if the supplied shader modules can be linked together. */
-	for (size_t i = 0, j = 1; j < shaders.size(); i++, j++)
-	{
-		if (!CheckIO(shaders[i], shaders[j]))
+		for (Output &output : subpasses[i].outputs)
 		{
-			/* Shader is done loading but failed linking. */
-			Log::Error("Unable to link %s shader to %s shader!", to_string(shaders[i].get().GetType()), to_string(shaders[j].get().GetType()));
-			LinkFailed(linkedViaLoader);
-			return;
+			output.subpass = i;
+			output.reference.Attachment += start;
 		}
+
+		start += static_cast<uint32>(subpasses[i].outputs.size());
 	}
 
-	/* Load all fields that need to be accessed outside the shaders. */
-	LoadFields();
+	/*
+	We call pre-create to give the owner the chance to initialize the subpasses.
+	In create we actually create the renderpass.
+	After this we call post-create for optional ownder code and then mark it as loaded.
+	Marking as loaded should always be the last thing to do for thread safety.
+	*/
+	if (viaLoader) PreCreate.Post(*this);
 
-	/* Give user the opertunity to set descriptions for all used fields. */
-	OnLinkCompleted.Post(*this);
+	CreateRenderpass();
+	CreateDescriptorSetLayouts();
 
-	/* Finalize the render pass. */
-	Finalize(linkedViaLoader);
+	if (viaLoader) PostCreate.Post(*this);
+	MarkAsLoaded(viaLoader, L"Renderpass");
 }
 
-void Pu::Renderpass::LoadFields(void)
+void Pu::Renderpass::CreateRenderpass(void)
 {
-	/* Load all attributes. */
-	for (const FieldInfo &info : shaders.front().get().fields)
-	{
-		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
-	}
-
-	/* Load all descriptors. */
-	for (const Shader &pass : shaders)
-	{
-		for (const FieldInfo &info : pass.fields)
-		{
-			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
-			{
-				descriptors.emplace_back(Descriptor(*device->parent, info, pass.GetType()));
-			}
-		}
-	}
-
-	/* Save a variable for how many attachment references are made and load the outputs. */
-	uint32 referenceCnt = 0;
-	for (const FieldInfo &info : shaders.back().get().fields)
-	{
-		if (info.Storage == spv::StorageClass::Output) outputs.emplace_back(Output(info, referenceCnt++, OutputUsage::Color));
-	}
-}
-
-void Pu::Renderpass::Finalize(bool linkedViaLoader)
-{
-	/* Set all attachment references for the subpass. */
-	vector<AttachmentReference> colorAttachments, resolveAttachments, preserveAttachments;
-	const AttachmentReference *depthStencil = nullptr;
-
-	for (const Output &cur : outputs)
-	{
-		switch (cur.type)
-		{
-		case (OutputUsage::Color):
-			colorAttachments.emplace_back(cur.reference);
-			if (cur.resolve) resolveAttachments.emplace_back(cur.reference);
-			break;
-		case (OutputUsage::DepthStencil):
-			if (depthStencil) Log::Error("Multiple depth/stencil attachments were added, only the firs one will be used!");
-			else depthStencil = &cur.reference;
-			break;
-		case (OutputUsage::Preserve):
-			preserveAttachments.emplace_back(cur.reference);
-			break;
-		}
-	}
-
-	/* We onyl support one subpass per renderpass as they're thus far not often used on non-mobile platforms. */
-	SubpassDescription subpass(colorAttachments, depthStencil, preserveAttachments);
-
-	/* Copy descriptions from the outputs to the attachmentDescription buffer. */
+	/* Copy the attachment descriptions from the initial output fields. */
 	vector<AttachmentDescription> attachmentDescriptions;
-	for (const Output &output : outputs)
+	for (const Subpass &subpass : subpasses)
 	{
-		attachmentDescriptions.emplace_back(output.description);
-		clearValues.emplace_back(output.clear);
+		for (const Output &output : subpass.outputs)
+		{
+			attachmentDescriptions.emplace_back(output.description);
+			clearValues.emplace_back(output.clear);
+		}
 	}
 
-	/* Link the subpasses into a render pass. */
-	RenderPassCreateInfo createInfo(attachmentDescriptions, subpass, dependencies);
+	/* Generate the subpass descriptions. */
+	uint32 i = 0;
+	size_t j = 0;
+	vector<SubpassDescription> subpassDescriptions;
+	vector<AttachmentReference> colorAttachments;
+
+	/* Make sure the vector doesn't resize. */
+	colorAttachments.reserve(attachmentDescriptions.size());
+
+	for (const Subpass &subpass : subpasses)
+	{
+		SubpassDescription description;
+
+		/* Add all the input attachments to the description. */
+		decltype(inputAttachments)::const_iterator it = inputAttachments.find(i);
+		if (it != inputAttachments.end())
+		{
+			description.InputAttachmentCount = static_cast<uint32>(it->second.size());
+			description.InputAttachments = it->second.data();
+		}
+
+		/*
+		Add all the color and resolve attachments to a temporary vector
+		and set the depth/stencil attachment (if needed).
+		*/
+		for (const Output &output : subpass.outputs)
+		{
+			if (output.type == OutputUsage::Color) colorAttachments.emplace_back(output.reference);
+			// TODO: handle resolve attachments.
+			else if (output.type == OutputUsage::DepthStencil) description.DepthStencilAttachment = &output.reference;
+		}
+
+		description.ColorAttachmentCount = static_cast<uint32>(colorAttachments.size() - j);
+		description.ColorAttachments = colorAttachments.data() + j;
+		// TODO: handle resolve attachments.
+
+		/* Set the depth/stencil attachment (if needed), a check for multiple has already occured. */
+		decltype(depthStencilAttachments)::const_iterator it2 = depthStencilAttachments.find(i);
+		if (it2 != depthStencilAttachments.end()) description.DepthStencilAttachment = &it2->second;
+
+		/* Set the preserve attachments. */
+		decltype(preserveAttachments)::const_iterator it3 = preserveAttachments.find(i);
+		if (it3 != preserveAttachments.end())
+		{
+			description.PreserveAttachmentCount = static_cast<uint32>(it3->second.size());
+			description.PreserveAttachments = it3->second.data();
+		}
+
+		i++;
+		j += description.ColorAttachmentCount;
+		subpassDescriptions.emplace_back(description);
+	}
+
+	/* Copy the dependencies from the subpasses. */
+	vector<SubpassDependency> dependencies;
+	for (const Subpass &subpass : subpasses)
+	{
+		if (subpass.dependencyUsed) dependencies.emplace_back(subpass.dependency);
+	}
+
+	/* Create the renderpass. */
+	const RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions, dependencies);
 	VK_VALIDATE(device->vkCreateRenderPass(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
-	LinkSucceeded(linkedViaLoader);
 }
 
-bool Pu::Renderpass::CheckIO(const Shader & a, const Shader & b) const
+void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 {
-	bool result = true;
-	vector<spv::Word> linkedLocations;
+	/*
+	We want to precreate a list of all descriptor sets with their specific bindings.
+	For each of these sets we need to create a layout handle.
+	*/
+	std::map<uint32, vector<DescriptorSetLayoutBinding>> layoutBindings;
 
-	/* Check all field in the first module. */
-	for (const FieldInfo &aInfo : a.fields)
+	for (const Subpass &subpass : subpasses)
 	{
-		/* Output fields need to be linked to input fields in the next pass and any other can be ignored. */
-		if (aInfo.Storage != spv::StorageClass::Output) continue;
-
-		bool found = false;
-		for (const FieldInfo &bInfo : b.fields)
+		for (const Descriptor &descriptor : subpass.descriptors)
 		{
-			/* We can ignore non-input fields. */
-			if (bInfo.Storage != spv::StorageClass::Input) continue;
-			if (aInfo.GetLocation() == bInfo.GetLocation())
+			/* Check if the set is already in the list. */
+			decltype(layoutBindings)::iterator it = layoutBindings.find(descriptor.set);
+			if (it != layoutBindings.end())
 			{
-				/* Check if the types differ. */
-				if (aInfo.Type != bInfo.Type)
-				{
-					Log::Error("The type of '%s' (%s) does't match '%s' (%s)!", aInfo.Name.c_str(), a.GetName().c_str(), bInfo.Name.c_str(), b.GetName().c_str());
-					result = false;
-					continue;
-				}
-
-				/* Check if the input is linked to multiple outputs. */
-				if (linkedLocations.contains(bInfo.GetLocation()))
-				{
-					Log::Error("Multiple output fields are using '%s' (%s) as an input field!", bInfo.Name.c_str(), b.GetName().c_str());
-					result = false;
-					continue;
-				}
-
-				/* We've validated this location so add it to the list.  */
-				linkedLocations.emplace_back(bInfo.GetLocation());
-				found = true;
+				/* Either add the descriptor count to the binding or add a new binding to the set. */
+				vector<DescriptorSetLayoutBinding>::iterator it2 = it->second.iteratorOf([&descriptor](const DescriptorSetLayoutBinding &cur) { return cur.Binding == descriptor.GetBinding(); });
+				if (it2 != it->second.end()) it2->DescriptorCount += descriptor.layoutBinding.DescriptorCount;
+				else it->second.emplace_back(descriptor.layoutBinding);
+			}
+			else
+			{
+				/* Just add the descriptor to the list with its parent set. */
+				vector<DescriptorSetLayoutBinding> value = { descriptor.layoutBinding };
+				layoutBindings.emplace(descriptor.set, std::move(value));
 			}
 		}
-
-		/* Log an error if a link could not be made. */
-		if (!found)
-		{
-			Log::Error("Unable top find matching field in %s shader (%s) for %s in %s shader (%s)!", to_string(b.GetType()), b.GetName().c_str(), aInfo.Name.c_str(), to_string(a.GetType()), b.GetName().c_str());
-			result = false;
-		}
 	}
 
-	/* Check if any input fields of b have gone unset. */
-	for (const FieldInfo &info : b.fields)
+	/* Create the descriptor sets. */
+	descriptorSetLayouts.resize(layoutBindings.size());
+	size_t i = 0;
+	for (const auto &[set, bindings] : layoutBindings)
 	{
-		if (info.Storage != spv::StorageClass::Input) continue;
-
-		if (!linkedLocations.contains(info.GetLocation()))
-		{
-			Log::Error("%s in %s shader (%s) was not set by previous %s shader (%s)!", info.Name.c_str(), to_string(b.GetType()), b.GetName().c_str(), to_string(a.GetType()), b.GetName().c_str());
-			result = false;
-		}
+		const DescriptorSetLayoutCreateInfo createInfo(bindings);
+		VK_VALIDATE(device->vkCreateDescriptorSetLayout(device->hndl, &createInfo, nullptr, &descriptorSetLayouts[i++]), PFN_vkCreateDescriptorSetLayout);
 	}
 
-	return result;
-}
-
-void Pu::Renderpass::LinkSucceeded(bool linkedViaLoader)
-{
-	usable = true;
-	MarkAsLoaded(linkedViaLoader, L"Renderpass");
-
-#ifdef _DEBUG
-	/* Generate a name based on the shaders passed. */
-	wstring modules;
-	for (const Shader &pass : shaders)
-	{
-		modules += pass.GetName();
-		if (pass.GetType() != ShaderStageFlag::Fragment) modules += L" -> ";
-	}
-
-	/* Set the debug name. */
-	string debugName = "Renderpass ";
-	debugName += string::from(reinterpret_cast<uint64>(hndl));
-	debugName += " (";
-	debugName += modules.toUTF8();
-	debugName += ')';
-
-	/* Log the creation. */
-	device->SetDebugName(ObjectType::Renderpass, hndl, debugName);
-	Log::Verbose("Successfully linked render pass: %ls.", modules.c_str());
-#endif
-}
-
-void Pu::Renderpass::LinkFailed(bool linkedViaLoader)
-{
-	usable = false;
-	MarkAsLoaded(linkedViaLoader, L"Renderpass");
+	/* Create the pipeline layout. */
+	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSetLayouts);
+	VK_VALIDATE(device->vkCreatePipelineLayout(device->hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
 }
 
 void Pu::Renderpass::Destroy(void)
 {
 	if (hndl) device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
+	if (layoutHndl) device->vkDestroyPipelineLayout(device->hndl, layoutHndl, nullptr);
+
+	/* This means we loaded the shaders inline, which means we need to free them. */
+	if (ownsShaders)
+	{
+		for (const Subpass &subpass : subpasses)
+		{
+			for (const Shader *shader : subpass.GetShaders()) delete shader;
+		}
+	}
+
+	/* Release the descriptor set layouts. */
+	for (DescriptorSetLayoutHndl cur : descriptorSetLayouts) device->vkDestroyDescriptorSetLayout(device->hndl, cur, nullptr);
 }
 
-Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, wstring>>& toLoad)
-	: result(result)
+Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, size_t, wstring>>& toLoad)
+	: renderpass(result)
 {
-	vector<wstring> hashParams;
-	hashParams.reserve(toLoad.size());
 	children.reserve(toLoad.size());
-
-	/* Create new load tasks for the to load subpasses. */
-	for (auto[idx, path] : toLoad)
+	for (const auto &[subpass, idx, path] : toLoad)
 	{
-		hashParams.emplace_back(path);
-		children.emplace_back(new Shader::LoadTask(result.shaders[idx], path));
+		children.emplace_back(new Shader::LoadTask(*renderpass.subpasses[subpass].shaders[idx], path));
 	}
 }
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 {
-	/* Spawn all still required load tasks. */
 	for (Shader::LoadTask *task : children)
 	{
 		task->SetParent(*this);
 		scheduler->Spawn(*task);
 	}
 
-	return Result::Default();
+	return Result::CustomWait();
+}
+
+bool Pu::Renderpass::LoadTask::ShouldContinue(void) const
+{
+	/* 
+	We want to check if all shaders are loaded before we continue. 
+	We can have a race if two renderpasses use the same shader and are loaded at the same time.
+	*/
+	for (const Subpass &subpass : renderpass.subpasses)
+	{
+		for (const Shader *shader : subpass.shaders)
+		{
+			if (!shader->IsLoaded()) return false;
+		}
+	}
+
+	return Task::ShouldContinue();
 }
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
-	/* 
-	Make sure that all subpasses are loaded.
-	If two renderpasses are created at the same time with one or more matching shaders this can fuck up.
-	We can issue a custom wait but this tends to be done quickly so just sleep the thread instead.
-	*/
-	for (const Shader &cur : result.shaders)
-	{
-		if (!cur.IsLoaded())
-		{
-			Log::Warning("Not every subpass has completed loading (waiting for shader)!");
-			while (!cur.IsLoaded()) PuThread::Sleep(100);
-		}
-	}
+	/* Make sure that the subpasses are compatible and initialized. */
+	for (Subpass &subpass : renderpass.subpasses) subpass.Link(renderpass.device->GetPhysicalDevice());
 
-	/* Delete the child tasks. */
-	for (Shader::LoadTask *subTask : children)
-	{
-		delete subTask;
-	}
-
-	/* Perform linking (this should always be called from the loader) and return. */
-	result.Link(true);
-	return Result::Default();
+	/* Delete the underlying shader load tasks, create the renderpass and finally allow the scheduler to delete this task. */
+	for (const Shader::LoadTask *task : children) delete task;
+	renderpass.Create(true);
+	return Result::AutoDelete();
 }

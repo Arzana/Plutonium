@@ -27,9 +27,19 @@ namespace Pu
 		{}
 		
 		/* Initializes a new instance of the fieldinfo object. */
-		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ FieldType &&type, _In_ spv::StorageClass storage, _In_ const Decoration &decorations)
+		FieldInfo(_In_ spv::Id id, _In_ string &&name, _In_ const FieldType &type, _In_ spv::StorageClass storage, _In_ const Decoration &decorations)
 			: Id(id), Name(name), Type(type), ArrayElements(0), Storage(storage), Decorations(decorations)
 		{}
+
+		/* Copy contructor. */
+		FieldInfo(_In_ const FieldInfo&) = default;
+		/* Move constructor. */
+		FieldInfo(_In_ FieldInfo&&) = default;
+
+		/* Copy assignment. */
+		_Check_return_ FieldInfo& operator =(_In_ const FieldInfo&) = default;
+		/* Move assignment. */
+		_Check_return_ FieldInfo& operator =(_In_ FieldInfo&&) = default;
 
 		/* Gets whether the field type is valid. */
 		_Check_return_ inline bool IsValid(void) const
@@ -40,7 +50,10 @@ namespace Pu
 		/* Gets the location decoration literal. */
 		_Check_return_ inline spv::Word GetLocation(void) const
 		{
-			return Decorations.Numbers.at(spv::Decoration::Location);
+			std::map<spv::Decoration, spv::Word>::const_iterator it = Decorations.Numbers.find(spv::Decoration::Location);
+			if (it == Decorations.Numbers.end()) return 0;
+			
+			return it->second;
 		}
 	};
 }

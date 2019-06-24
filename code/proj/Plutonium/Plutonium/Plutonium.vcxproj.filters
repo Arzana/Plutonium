@@ -378,9 +378,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h">
       <Filter>Header Files\Graphics\Vulkan\SPIR-V</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h">
-      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
@@ -401,9 +398,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
       <Filter>Header Files\Graphics\Platform</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
-      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Config.h">
       <Filter>Header Files</Filter>
@@ -558,17 +552,11 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h">
-      <Filter>Header Files\Graphics\Text</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h">
       <Filter>Header Files\Graphics\Vulkan\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h">
-      <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\Stream.h">
       <Filter>Header Files\Streams</Filter>
@@ -619,6 +607,15 @@
       <Filter>Header Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Descriptor.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Subpass.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -719,9 +716,6 @@
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp">
       <Filter>Source Files\Core\Threading\Tasks</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp">
-      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
@@ -736,9 +730,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp">
       <Filter>Source Files\Graphics\Platform</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp">
-      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp">
       <Filter>Source Files\Graphics\Vulkan</Filter>
@@ -854,12 +845,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp">
-      <Filter>Source Files\Graphics\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp">
       <Filter>Source Files\Streams</Filter>
     </ClCompile>
@@ -903,6 +888,15 @@
       <Filter>Source Files\Input</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Descriptor.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,6 +12,16 @@ namespace Pu
 		: public Field 
 	{
 	public:
+		/* Copy constructor. */
+		Attribute(_In_ const Attribute&) = default;
+		/* Move constructor. */
+		Attribute(_In_ Attribute&&) = default;
+
+		/* Copy assignment. */
+		_Check_return_ Attribute& operator =(_In_ const Attribute&) = default;
+		/* Move assignment. */
+		_Check_return_ Attribute& operator =(_In_ Attribute&&) = default;
+
 		/* Overrides the default format given to the attribute. */
 		inline void SetFormat(_In_ Format format)
 		{
@@ -31,7 +41,7 @@ namespace Pu
 		}
 
 	private:
-		friend class Renderpass;
+		friend class Subpass;
 		friend class GraphicsPipeline;
 
 		VertexInputAttributeDescription description;

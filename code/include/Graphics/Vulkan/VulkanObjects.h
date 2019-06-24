@@ -1161,7 +1161,7 @@ namespace Pu
 		PipelineBindPoint BindPoint;
 		/* Specifies the amount of input attachments. */
 		uint32 InputAttachmentCount;
-		/* Specifies which of the render pass's attachments can be read in the fragment shader stage. */
+		/* Specifies which of the render pass's attachments can be read in the input shader stage. */
 		const AttachmentReference *InputAttachments;
 		/* Specifies the amount of color attachments. */
 		uint32 ColorAttachmentCount;
@@ -1209,7 +1209,7 @@ namespace Pu
 	public:
 		/* Specifies the index of the first subpass in the dependency. */
 		uint32 SrcSubpass;
-		/* Specifies the index of the seconds subpass in the dependency. */
+		/* Specifies the index of this subpass in the dependency. */
 		uint32 DstSubpass;
 		/* Specifies the source stage mask. */
 		PipelineStageFlag SrcStageMask;
@@ -2162,7 +2162,7 @@ namespace Pu
 		/* Initializes an empty instance of the pipeline color blend state create info object. */
 		PipelineColorBlendStateCreateInfo(void)
 			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(nullptr), Flags(0),
-			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(1), Attachments(nullptr),
+			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(0), Attachments(nullptr),
 			BlendConstants{ 0.0f, 0.0f, 0.0f, 0.0f }
 		{}
 
@@ -2354,12 +2354,12 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a graphics pipeline create info object. */
-		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass)
+		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass, _In_ uint32 subpass)
 			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
 			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(nullptr),
 			InputAssemblyState(nullptr), ViewportState(nullptr), TessellationState(nullptr), RasterizationState(nullptr), 
 			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
-			Layout(layout), Renderpass(renderpass), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
+			Layout(layout), Renderpass(renderpass), Subpass(subpass), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
 	};
 

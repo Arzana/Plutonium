@@ -1,7 +1,7 @@
 #include "Graphics/Diagnostics/DebugRendererUniformBlock.h"
 
-Pu::DebugRendererUniformBlock::DebugRendererUniformBlock(const GraphicsPipeline & pipeline)
-	: UniformBlock(pipeline, { "Projection", "View" })
+Pu::DebugRendererUniformBlock::DebugRendererUniformBlock(const Subpass & subpass, DescriptorPool & pool)
+	: UniformBlock(subpass, pool, { "Projection", "View" })
 {}
 
 Pu::DebugRendererUniformBlock::DebugRendererUniformBlock(DebugRendererUniformBlock && value)

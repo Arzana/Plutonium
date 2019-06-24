@@ -30,6 +30,7 @@ private:
 	Pu::FreeCamera *cam;
 	Pu::DebugRenderer *debugRenderer;
 
+	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
 	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
@@ -39,6 +40,7 @@ private:
 	Pu::AABB bb;
 	Pu::QueryPool *queryPool;
 
+	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
 	MonsterMaterial *material;
 	Pu::PumMaterial rawMaterial;

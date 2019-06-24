@@ -152,7 +152,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Models\Renderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
@@ -173,7 +172,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Text\TextRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
@@ -204,6 +202,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Shader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Descriptor.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Subpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\Decoration.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldInfo.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\SPIR-V\FieldType.h" />
@@ -281,7 +280,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Models\Renderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
@@ -298,7 +296,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Text\TextRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
@@ -321,6 +318,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Shader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Descriptor.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Subpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\FieldType.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\SPIR-V\SPIR-VReader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Surface.cpp" />

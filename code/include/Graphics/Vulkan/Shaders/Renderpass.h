@@ -1,30 +1,32 @@
 #pragma once
-#include "Shader.h"
-#include "Output.h"
-#include "Attribute.h"
-#include "Descriptor.h"
+#include "Subpass.h"
+#include "Content/Asset.h"
 #include "Core/Events/EventBus.h"
-#include "Core/Events/EventArgs.h"
+#include "Graphics/Vulkan/DescriptorPool.h"
 
 namespace Pu
 {
-	/* Defines a single Vulkan render pass. */
+	/* Defines a Vulkan renderpass that's made up of multiple subpasses. */
 	class Renderpass
 		: public Asset
 	{
 	public:
-		/* Occurs during linking and gives the user the chance to change attachment descriptions. */
-		EventBus<Renderpass> OnLinkCompleted;
+		/* Occurs before the renderpass is created. */
+		EventBus<Renderpass> PreCreate;
+		/* Occurs after the renderpass has been created. */
+		EventBus<Renderpass> PostCreate;
 
-		/* Initializes an empty instance of a render pass. */
+		/* Initializes an empty instance of a renderpass. */
 		Renderpass(_In_ LogicalDevice &device);
-		/* Initializes a new render pass from the specified subpasses. */
-		Renderpass(_In_ LogicalDevice &device, _In_ vector < std::reference_wrapper<Shader>> &&subpasses);
+		/* Initializes a new instance of a renderpass with specified shader modules for specified subpasses. */
+		Renderpass(_In_ LogicalDevice &device, _In_ std::initializer_list<std::initializer_list<wstring>> shaderModules);
+		/* Initializes a new instance of a renderpass with specified subpasses. */
+		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;
-		/* Move contructor. */
+		/* Move constructor. */
 		Renderpass(_In_ Renderpass &&value);
-		/* Destroys the render pass. */
-		virtual ~Renderpass(void)
+		/* Releases the resources allocated by the renderpass. */
+		~Renderpass(void)
 		{
 			Destroy();
 		}
@@ -33,78 +35,70 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Renderpass& operator =(_In_ Renderpass &&other);
 
-		/* Adds a dependency to this rener pass. */
-		inline void AddDependency(_In_ const SubpassDependency &dependency)
+		/* Preserves the specified output field for the specified subpass. */
+		void Preserve(_In_ const Output &field, _In_ uint32 subpass);
+		/* Sets the specified output as an input attachment (or depth/stencil) for the specified subpass. */
+		void SetAsInput(_In_ const Output &field, _In_ ImageLayout layout, _In_ uint32 subpass);
+
+		/* Gets the subpass at the specified position in the renderpass. */
+		_Check_return_ inline Subpass& GetSubpass(_In_ size_t index)
 		{
-			dependencies.push_back(dependency);
+			return subpasses.at(index);
 		}
 
-		/* Adds a depth/stencil buffer to the renderpass. */
-		_Check_return_ Output& AddDepthStencil(void);
-		/* Gets the specified shader output. */
-		_Check_return_ Output& GetOutput(_In_ const string &name);
-		/* Gets the specified shader output. */
-		_Check_return_ const Output& GetOutput(_In_ const string &name) const;
-		/* Gets the specified shader input attribute. */
-		_Check_return_ Attribute& GetAttribute(_In_ const string &name);
-		/* Gets the specified shader input attribute. */
-		_Check_return_ const Attribute& GetAttribute(_In_ const string &name) const;
-		/* Gets the specified shader input descriptor. */
-		_Check_return_ Descriptor& GetDescriptor(_In_ const string &name);
-		/* Gets the specified shader input descriptor. */
-		_Check_return_ const Descriptor& GetDescriptor(_In_ const string &name) const;
+		/* Gets the subpass at the specified position in the renderpass. */
+		_Check_return_ inline const Subpass& GetSubpass(_In_ size_t index) const
+		{
+			return subpasses.at(index);
+		}
 
 	protected:
-		/* References the assets and its sub-assets and return itself. */
+		/* References the renderpass and its underlying shaders and returns itself. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
-		friend class GraphicsPipeline;
-		friend class CommandBuffer;
-		friend class Framebuffer;
-		friend class GameWindow;
 		friend class DescriptorPool;
-		friend class AssetLoader;
+		friend class GraphicsPipeline;
 		friend class AssetFetcher;
-		friend struct SavedAsset;
+		friend class AssetLoader;
+		friend class CommandBuffer;
+		friend class DescriptorSet;
+		friend class GameWindow;
+		friend class Framebuffer;
 
 		class LoadTask
 			: public Task
 		{
 		public:
-			LoadTask(Renderpass &result, const vector<std::tuple<size_t, wstring>> &toLoad);
-			LoadTask(const LoadTask&) = delete;
-
-			LoadTask& operator =(const LoadTask&) = delete;
+			LoadTask(Renderpass &result, const vector<std::tuple<size_t, size_t, wstring>> &toLoad);
 
 			virtual Result Execute(void) override;
 			virtual Result Continue(void) override;
 
+		protected:
+			virtual bool ShouldContinue(void) const;
+
 		private:
-			Renderpass &result;
+			Renderpass &renderpass;
 			vector<Shader::LoadTask*> children;
 		};
 
 		LogicalDevice *device;
 		RenderPassHndl hndl;
-		bool usable;
+		PipelineLayoutHndl layoutHndl;
+		bool ownsShaders;
 
-		vector<std::reference_wrapper<Shader>> shaders;
-		vector<Attribute> attributes;
-		vector<Descriptor> descriptors;
-		vector<Output> outputs;
+		vector<DescriptorSetLayoutHndl> descriptorSetLayouts;
+		vector<Subpass> subpasses;
 		vector<ClearValue> clearValues;
-		vector<SubpassDependency> dependencies;
 
-		void Link(bool linkedViaLoader);
-		void LoadFields(void);
-		void Finalize(bool linkedViaLoader);
-		bool CheckIO(const Shader &a, const Shader &b) const;
-		void LinkSucceeded(bool linkedViaLoader);
-		void LinkFailed(bool linkedViaLoader);
+		std::map<uint32, vector<AttachmentReference>> inputAttachments;
+		std::map<uint32, AttachmentReference> depthStencilAttachments;
+		std::map<uint32, vector<AttachmentReference>> preserveAttachments;
+
+		void Create(bool viaLoader);
+		void CreateRenderpass(void);
+		void CreateDescriptorSetLayouts(void);
 		void Destroy(void);
-
-		/* Needs to be defined for the saved asset. */
-		inline Renderpass* Copy(void) { return nullptr; }
 	};
 }

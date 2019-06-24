@@ -1,7 +1,8 @@
 #pragma once
 #include "Core/Math/Line.h"
 #include "Core/Math/AABB.h"
-#include "Graphics/Models/Renderer.h"
+#include "Content/AssetFetcher.h"
+#include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Textures/DepthBuffer.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
 
@@ -12,7 +13,6 @@ namespace Pu
 
 	/* Defines an obect used to render debug shapes. */
 	class DebugRenderer
-		: private Renderer
 	{
 	public:
 		/* Initializes a new instance of a debug renderer. */
@@ -36,24 +36,27 @@ namespace Pu
 		/* Renders all shapes stored in the debug renderer. */
 		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view);
 
-	protected:
-		/* Called after the graphics pipeline has been initialized. */
-		virtual void OnPipelinePostInitialize(_In_ GraphicsPipeline &pipeline);
-		/* Called after the renderpass has completed linking the underlying shaders. */
-		virtual void OnRenderpassLinkComplete(_In_ Renderpass &renderpass);
-		/* Called when the framebuffers need to be recreated (after window resize event). */
-		virtual void RecreateFramebuffers(_In_ GameWindow &window, _In_ const Renderpass &renderpass);
-
 	private: 
+		AssetFetcher &loader;
+		GameWindow &wnd;
+
+		Renderpass *renderpass;
+		GraphicsPipeline *pipeline;
+		DescriptorPool *descriptorPool;
 		DebugRendererUniformBlock *uniforms;
+
 		DynamicBuffer *buffer;
 		BufferView *bufferView;
 		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
 		uint32 size;
+
 		float lineWidth;
 		bool dynamicLineWidth;
 
 		void AddVertex(Vector3 p, Color c);
+		void InitializeRenderpass(Renderpass&);
+		void InitializePipeline(Renderpass&);
+		void CreateFramebuffers(const GameWindow&);
 	};
 }

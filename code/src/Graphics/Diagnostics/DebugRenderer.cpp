@@ -4,28 +4,33 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: Renderer(window, loader, 1, { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" }),
-	uniforms(nullptr), size(0), lineWidth(lineWidth), depthBuffer(depthBuffer)
+	: loader(loader), wnd(window), uniforms(nullptr), pipeline(nullptr), descriptorPool(nullptr), size(0), lineWidth(lineWidth), depthBuffer(depthBuffer)
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
 	bufferView = new BufferView(*buffer, sizeof(ColoredVertex3D));
 	queue = reinterpret_cast<ColoredVertex3D*>(malloc(sizeof(ColoredVertex3D) * MaxDebugRendererVertices));
 
-	/*
-	Static line width is a feature that not all graphics cards support
-	so we can either set it in the graphics pipeline (fastest)
-	or we ned to add it as a command (works on all devices).
-	*/
-	dynamicLineWidth = !window.GetDevice().GetPhysicalDevice().GetFeatures().WideLines;
+	renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
+	renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
+	renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
+	window.SwapchainRecreated.Add(*this, &DebugRenderer::CreateFramebuffers);
+
+	/* We might need to manually initialize the pipeline because the renderpass might already be loaded. */
+	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
 }
 
 Pu::DebugRenderer::~DebugRenderer(void)
 {
+	if (pipeline) delete pipeline;
+	if (uniforms) delete uniforms;
+	if (descriptorPool) delete descriptorPool;
+
+	loader.Release(*renderpass);
+
 	delete buffer;
 	delete bufferView;
 	delete queue;
-	if (uniforms) delete uniforms;
 }
 
 void Pu::DebugRenderer::AddLine(const Line & line, Color color)
@@ -100,7 +105,7 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view)
 {
 	/* Only render if the pipeline is loaded. */
-	if (CanBegin() && size)
+	if (pipeline->IsUsable() && size)
 	{
 		cmdBuffer.AddLabel("Debug Renderer", Color::CodGray());
 
@@ -115,66 +120,83 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 		uniforms->SetView(view);
 		uniforms->Update(cmdBuffer);
 
-		/* Render the debug lines. */
-		Begin(cmdBuffer);
+		/* Begin the renderpass. */
+		cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
+		cmdBuffer.BindGraphicsPipeline(*pipeline);
 		if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
+
+		/* Render the debug lines. */
 		cmdBuffer.BindGraphicsDescriptor(*uniforms);
 		cmdBuffer.BindVertexBuffer(0, *bufferView);
 		cmdBuffer.Draw(size, 1, 0, 0);
-		End();
 
+		/* End the renderpass. */
+		cmdBuffer.EndRenderPass();
 		cmdBuffer.EndLabel();
 		size = 0;
 	}
-}
-
-void Pu::DebugRenderer::OnPipelinePostInitialize(GraphicsPipeline & gfx)
-{
-	/* We only want to read from the depth buffer, debug information should not be writen to the depth buffer. */
-	gfx.SetViewport(GetWindow().GetNative().GetClientBounds());
-	gfx.SetTopology(PrimitiveTopology::LineList);
-	if (depthBuffer) gfx.SetDepthStencilMode(true, false, false);
-	gfx.AddVertexBinding<ColoredVertex3D>(0);
-
-	/* Set the line width as a static parameter is possible, otherwise enable the dynamic line width. */
-	if (dynamicLineWidth) gfx.AddDynamicState(DynamicState::LineWidth);
-	else gfx.SetLineWidth(lineWidth);
-
-	gfx.Finalize(0);
-	RecreateFramebuffers(GetWindow(), gfx.GetRenderpass());
-	uniforms = new DebugRendererUniformBlock(gfx);
-}
-
-void Pu::DebugRenderer::OnRenderpassLinkComplete(Renderpass & renderpass)
-{
-	Output &output = renderpass.GetOutput("FragColor");
-	output.SetDescription(GetWindow().GetSwapchain());
-	output.SetLoadOperation(AttachmentLoadOp::Load);
-
-	/* 
-	Only add the depth buffer if needed,
-	the initial layout will probably be read-write so just leave it 
-	but change the in-flight layout to read-only because we don't plan on writing to it
-	*/
-	if (depthBuffer)
-	{
-		Output &depth = renderpass.AddDepthStencil();
-		depth.SetDescription(*depthBuffer);
-		depth.SetLayout(ImageLayout::DepthStencilReadOnlyOptimal);
-		depth.SetLoadOperation(AttachmentLoadOp::Load);
-	}
-
-	renderpass.GetAttribute("Color").SetOffset(vkoffsetof(ColoredVertex3D, Color));
-}
-
-void Pu::DebugRenderer::RecreateFramebuffers(GameWindow & window, const Renderpass & renderpass)
-{
-	if (depthBuffer) window.CreateFrameBuffers(renderpass, { &depthBuffer->GetView() });
-	else window.CreateFrameBuffers(renderpass);
 }
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)
 {
 	queue[size].Position = p;
 	queue[size++].Color = c;
+}
+
+void Pu::DebugRenderer::InitializeRenderpass(Renderpass &)
+{
+	/* There is only one subpass that we need to initialize. */
+	Subpass &subpass = renderpass->GetSubpass(0);
+
+	Output &output = subpass.GetOutput("FragColor");
+	output.SetDescription(wnd.GetSwapchain());
+	output.SetLoadOperation(AttachmentLoadOp::Load);
+
+	/*
+	Only add the depth buffer if needed,
+	the initial layout will probably be read-write so just leave it
+	but change the in-flight layout to read-only because we don't plan on writing to it
+	*/
+	if (depthBuffer)
+	{
+		Output &depth = subpass.AddDepthStencil();
+		depth.SetDescription(*depthBuffer);
+		depth.SetLayout(ImageLayout::DepthStencilReadOnlyOptimal);
+		depth.SetLoadOperation(AttachmentLoadOp::Load);
+	}
+
+	subpass.GetAttribute("Color").SetOffset(vkoffsetof(ColoredVertex3D, Color));
+}
+
+void Pu::DebugRenderer::InitializePipeline(Renderpass &)
+{
+	/* Allocate a descriptor pool and descriptors. */
+	descriptorPool = new DescriptorPool(*renderpass, 1);
+	uniforms = new DebugRendererUniformBlock(renderpass->GetSubpass(0), *descriptorPool);
+
+	/* Initialize the pipeline. */
+	pipeline = new GraphicsPipeline(*renderpass, 0);
+	pipeline->SetViewport(wnd.GetNative().GetClientBounds());
+	pipeline->SetTopology(PrimitiveTopology::LineList);
+	pipeline->AddVertexBinding<ColoredVertex3D>(0);
+
+	if (depthBuffer) pipeline->EnableDepthTest(false, CompareOp::LessOrEqual);
+
+	/* Only use dynamic line width if the hardware cannot handle static one. */
+	if (!pipeline->SetLineWidth(lineWidth))
+	{
+		dynamicLineWidth = true;
+		pipeline->AddDynamicState(DynamicState::LineWidth);
+	}
+
+	/* Create the first framebuffers and finalize the pipeline. */
+	CreateFramebuffers(wnd);
+	pipeline->Finalize();
+}
+
+void Pu::DebugRenderer::CreateFramebuffers(const GameWindow &)
+{
+	/* Only add the depth buffer to the frame buffers if needed. */
+	if (depthBuffer) wnd.CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
+	else wnd.CreateFrameBuffers(*renderpass);
 }

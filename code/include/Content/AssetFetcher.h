@@ -21,7 +21,7 @@ namespace Pu
 		_Check_return_ AssetFetcher& operator =(_In_ AssetFetcher&&) = delete;
 
 		/* Fetches the desired renderpass. */
-		_Check_return_ Renderpass& FetchRenderpass(_In_ GraphicsPipeline &pipeline, _In_ std::initializer_list<wstring> subpasses);
+		_Check_return_ Renderpass& FetchRenderpass(_In_ std::initializer_list<std::initializer_list<wstring>> shaders);
 		/* Fetches the desired 2D texture. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_opt_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */
@@ -33,7 +33,7 @@ namespace Pu
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const byte *data, _In_ uint32 width, _In_ uint32 height, _In_ const SamplerCreateInfo &samplerInfo);
 
 		/* Releases the renderpass. */
-		void Release(_In_ GraphicsPipeline &pipeline);
+		void Release(_In_ Renderpass &renderpass);
 		/* Releases the texture. */
 		void Release(_In_ Texture &texture);
 		/* Releases the sampler. */

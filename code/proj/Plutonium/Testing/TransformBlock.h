@@ -6,10 +6,10 @@ class TransformBlock
 	: public Pu::UniformBlock
 {
 public:
-	TransformBlock(_In_ const Pu::GraphicsPipeline &pipeline)
-		: UniformBlock(pipeline, { "Projection", "View", "CamPos" })
+	TransformBlock(_In_ const Pu::Subpass &subpass, Pu::DescriptorPool &pool)
+		: UniformBlock(subpass, pool, { "Projection", "View", "CamPos" })
 	{
-		offset = pipeline.GetRenderpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
+		offset = subpass.GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) << 1);
 	}
 
 	inline void SetProjection(_In_ const Pu::Matrix &mtrx)

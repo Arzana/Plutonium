@@ -11,7 +11,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a debug renderer uniform block. */
-		DebugRendererUniformBlock(_In_ const GraphicsPipeline &pipeline);
+		DebugRendererUniformBlock(_In_ const Subpass &subpass, _In_ DescriptorPool &pool);
 		DebugRendererUniformBlock(_In_ const DebugRendererUniformBlock&) = delete;
 		/* Move constructor. */
 		DebugRendererUniformBlock(_In_ DebugRendererUniformBlock &&value);

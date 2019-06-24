@@ -7,9 +7,9 @@ class MonsterMaterial
 	: public Pu::UniformBlock
 {
 public:
-	MonsterMaterial(const Pu::GraphicsPipeline &pipeline)
-		: UniformBlock(pipeline, { "Glossiness", "F0", "DiffuseFactor" }),
-		albedoDescriptor(pipeline.GetRenderpass().GetDescriptor("Diffuse"))
+	MonsterMaterial(const Pu::Subpass &subpass, Pu::DescriptorPool &pool)
+		: UniformBlock(subpass, pool, { "Glossiness", "F0", "DiffuseFactor" }),
+		albedoDescriptor(subpass.GetDescriptor("Diffuse"))
 	{}
 
 	inline void SetParameters(const Pu::PumMaterial &material, const Pu::Texture2D &albedo)

@@ -37,13 +37,20 @@ namespace Pu
 			return info.Stage;
 		}
 
+		/* Gets the logical device of the shader module. */
+		_Check_return_ inline LogicalDevice& GetDevice(void) const
+		{
+			return *parent;
+		}
+
 	protected:
 		/* References the asset and return a self-reference. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
-		friend class GraphicsPipeline;
+		friend class Subpass;
 		friend class Renderpass;
+		friend class GraphicsPipeline;
 
 		class LoadTask
 			: public Task

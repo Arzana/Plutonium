@@ -11,6 +11,16 @@ namespace Pu
 		: public Field
 	{
 	public:
+		/* Copy constructor. */
+		Descriptor(_In_ const Descriptor&) = default;
+		/* Move constructor. */
+		Descriptor(_In_ Descriptor&&) = default;
+
+		/* Copy assignment. */
+		_Check_return_ Descriptor& operator =(_In_ const Descriptor&) = default;
+		/* Move assignment. */
+		_Check_return_ Descriptor& operator =(_In_ Descriptor&&) = default;
+
 		/* Overrides the default descriptor type for this uniform. */
 		inline void SetType(_In_ DescriptorType type)
 		{
@@ -26,7 +36,7 @@ namespace Pu
 		/* Gets the offset specified for the uniform buffer member (if not in uniform buffer; 0). */
 		_Check_return_ inline DeviceSize GetOffset(void) const 
 		{
-			return static_cast<DeviceSize>(Info.Decorations.MemberOffset);
+			return static_cast<DeviceSize>(GetInfo().Decorations.MemberOffset);
 		}
 
 		/* Gets the size (in bytes) of the uniform (if not aplicable; 0). */
@@ -51,17 +61,18 @@ namespace Pu
 		_Check_return_ DeviceSize GetAllignedOffset(_In_ DeviceSize offset) const;
 
 	private:
+		friend class Subpass;
 		friend class Renderpass;
-		friend class GraphicsPipeline;
 		friend class DescriptorSet;
 
-		PhysicalDevice &physicalDevice;
+		const PhysicalDevice *physicalDevice;
 
 		uint32 set;
 		DeviceSize size;
 
 		DescriptorSetLayoutBinding layoutBinding;
 
-		Descriptor(PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
+		Descriptor(const FieldInfo &data);
+		Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
 	};
 }

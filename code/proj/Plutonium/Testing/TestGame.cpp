@@ -72,43 +72,43 @@ void TestGame::Initialize(void)
 	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
 	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
-	/* Setup graphics pipeline. */
-	pipeline = new GraphicsPipeline(GetDevice(), 2);
-	pipeline->PostInitialize += [this](GraphicsPipeline &pipeline)
+	/* Setup and load the renderpass. */
+	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" } });
+	renderpass->PreCreate += [this](Renderpass&)
 	{
-		/* Set viewport, topology and add the vertex binding. */
-		pipeline.SetViewport(GetWindow().GetNative().GetClientBounds());
-		pipeline.SetTopology(PrimitiveTopology::TriangleList);
-		pipeline.SetDepthStencilMode(true, true, false);
-		pipeline.AddVertexBinding(0, sizeof(SkinnedAnimated));
-		pipeline.Finalize(0);
+		Subpass &subpass = renderpass->GetSubpass(0);
+		
+		subpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+		subpass.AddDepthStencil().SetDescription(*depthBuffer);
 
-		/* Create the framebuffers and the required uniform block. */
-		GetWindow().CreateFrameBuffers(pipeline.GetRenderpass(), { &depthBuffer->GetView() });
-		material = new MonsterMaterial(pipeline);
-		transform = new TransformBlock(pipeline);
+		subpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+		subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		subpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
+		subpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
 	};
 
-	/* Setup and load render pass. */
-	GetContent().FetchRenderpass(*pipeline, { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" }).OnLinkCompleted += [this](Renderpass &renderpass)
+	/* Setup the graphics pipeline and the descriptors. */
+	renderpass->PostCreate += [this](Renderpass&)
 	{
-		/* Set description and layout of FragColor. */
-		renderpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+		/* Create the descirptor pool and uniforms. */
+		descriptorPool = new DescriptorPool(*renderpass, 2);
+		material = new MonsterMaterial(renderpass->GetSubpass(0), *descriptorPool);
+		transform = new TransformBlock(renderpass->GetSubpass(0), *descriptorPool);
 
-		/* Set the description and layout of the depth buffer. */
-		renderpass.AddDepthStencil().SetDescription(*depthBuffer);
+		pipeline = new GraphicsPipeline(*renderpass, 0);
+		pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
+		pipeline->SetTopology(PrimitiveTopology::TriangleList);
+		pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
+		pipeline->AddVertexBinding<SkinnedAnimated>(0);
 
-		/* Set offset for uv attribute (position is default). */
-		renderpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-		renderpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
-		renderpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
-		renderpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
+		GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
+		pipeline->Finalize();
 	};
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
 	GetWindow().SwapchainRecreated += [this](const GameWindow&)
 	{
-		GetWindow().CreateFrameBuffers(pipeline->GetRenderpass());
+		GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
 	};
 }
 
@@ -140,14 +140,15 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
-	GetContent().Release(*pipeline);
-
 	delete material;
 	delete transform;
+	delete descriptorPool;
 	delete pipeline;
 	delete debugRenderer;
 	delete depthBuffer;
 	delete queryPool;
+
+	GetContent().Release(*renderpass);
 }
 
 void TestGame::Update(float)
@@ -162,7 +163,7 @@ void TestGame::Update(float)
 
 void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
-	if (!transform) return;
+	if (!transform || !pipeline->IsUsable()) return;
 
 	static bool firstRender = true;
 	if (firstRender)
@@ -218,7 +219,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queryPool, 1);
 
 	/* Render scene. */
-	cmdBuffer.BeginRenderPass(pipeline->GetRenderpass(), GetWindow().GetCurrentFramebuffer(pipeline->GetRenderpass()), SubpassContents::Inline);
+	cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());

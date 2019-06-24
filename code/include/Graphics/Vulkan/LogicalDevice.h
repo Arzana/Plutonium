@@ -49,6 +49,12 @@ namespace Pu
 			return *parent;
 		}
 
+		/* Halts the current thread until the logical device has reached an idle state, this should only be used when no other method of synchronization is possible! */
+		void WaitIdle(void) const
+		{
+			VK_VALIDATE(vkDeviceWaitIdle(hndl), PFN_vkDeviceWaitIdle);
+		}
+
 	private:
 		friend class Application;
 		friend class PhysicalDevice;

@@ -235,6 +235,12 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	size_t maxFunctionNameLength = 8, maxLineLength = 4, maxModuleNameLength = 6, maxFileNameLength = 4;
 	for (const StackFrame &cur : callStack)
 	{
+		if constexpr (!LoggerExternalsVisible)
+		{
+			if (cur.FunctionName == L"Pu::_CrtPuThreadStart") break;
+			if (cur.FunctionName == L"main") break;
+		}
+
 		maxFunctionNameLength = max(maxFunctionNameLength, cur.FunctionName.length());
 		maxLineLength = max(maxLineLength, cur.Line ? string::count_digits(static_cast<uint64>(cur.Line)) : 7);
 		maxModuleNameLength = max(maxModuleNameLength, cur.ModuleName.length());
@@ -278,7 +284,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */
 			if constexpr (!LoggerExternalsVisible)
 			{
-				if (cur.FunctionName == L"_CrtPuThreadStart") suppressLog = true;
+				if (cur.FunctionName == L"Pu::_CrtPuThreadStart") suppressLog = true;
 				if (cur.FunctionName == L"main") suppressLog = true;
 				if (suppressLog) printf("		[External Code]\n");
 			}
@@ -371,7 +377,8 @@ void Pu::Log::Raise(const char * msg, va_list args)
 	case Pu::RaiseMode::Ignore:
 		return;
 	case Pu::RaiseMode::CrashWindow:
-		throw std::exception(msg);
+		_CrtDbgBreak();
+		break;
 	case Pu::RaiseMode::CrashReport:
 		CreateCrashReport();
 		exit(1);

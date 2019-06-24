@@ -1,8 +1,33 @@
 #include "Graphics/Vulkan/DescriptorPool.h"
-#include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Vulkan/Shaders/Renderpass.h"
+
+Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, size_t maxSets)
+	: renderpass(&renderpass), max(static_cast<uint32>(maxSets)), used(0)
+{
+	/* Determine how many of each descriptor type are needed. */
+	vector<DescriptorPoolSize> sizes;
+	for (const Subpass &subpass : renderpass.subpasses)
+	{
+		for (const Descriptor &descriptor : subpass.descriptors)
+		{
+			/*
+			Check if the descriptor type is already defined,
+			if it is, then just increate the size by one,
+			otherwise; add the type with a size of one.
+			*/
+			decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
+			if (it != sizes.end()) ++it->DescriptorCount;
+			else sizes.emplace_back(descriptor.GetType(), 1);
+		}
+	}
+
+	/* Create the pool. */
+	const DescriptorPoolCreateInfo createInfo(static_cast<uint32>(maxSets), sizes);
+	VK_VALIDATE(renderpass.device->vkCreateDescriptorPool(renderpass.device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
+}
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
-	: parent(value.parent), device(value.device), hndl(value.hndl)
+	: renderpass(value.renderpass), hndl(value.hndl), max(value.max), used(value.used)
 {
 	value.hndl = nullptr;
 }
@@ -12,9 +37,11 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 	if (this != &other)
 	{
 		Destroy();
-		parent = other.parent;
-		device = other.device;
+
+		renderpass = other.renderpass;
 		hndl = other.hndl;
+		max = other.max;
+		used = other.used;
 
 		other.hndl = nullptr;
 	}
@@ -24,50 +51,25 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 
 Pu::DescriptorSet Pu::DescriptorPool::Allocate(uint32 set) const
 {
+	/* Make sure we don't alocate over our maximum. */
+	if (++used > max) Log::Error("Cannot allocate more the maximum defined amount of sets!");
+
 	/* Initialize creation info. */
-	const DescriptorSetAllocateInfo allocInfo(hndl, parent->descriptorSets.at(set));
+	const DescriptorSetAllocateInfo allocInfo(hndl, renderpass->descriptorSetLayouts.at(set));
 	DescriptorSetHndl setHndl;
 
 	/* Allocate new descriptor set. */
-	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
+	VK_VALIDATE(renderpass->device->vkAllocateDescriptorSets(renderpass->device->hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
 	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
-}
-
-Pu::DescriptorPool::DescriptorPool(GraphicsPipeline & parent, size_t maxSets)
-	: parent(&parent), device(parent.parent)
-{
-	/* Determine how many of each descriptor type are needed. */
-	vector<DescriptorPoolSize> sizes;
-	for (const Descriptor &uniform : parent.renderpass->descriptors)
-	{
-		/* Check if size already exists. */
-		for (DescriptorPoolSize &size : sizes)
-		{
-			if (size.Type == uniform.GetType())
-			{
-				/* Increase the descriptor count and skip creating a new pool size by goto. */
-				++size.DescriptorCount;
-				goto Continue;
-			}
-		}
-
-		/* If the type was not found then just add a new one with one count. */
-		sizes.emplace_back(uniform.GetType(), 1);
-
-	Continue:;
-	}
-
-	/* Create the pool. */
-	const DescriptorPoolCreateInfo createInfo(static_cast<uint32>(maxSets), sizes);
-	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
 }
 
 void Pu::DescriptorPool::Destroy(void)
 {
-	if (hndl) device->vkDestroyDescriptorPool(device->hndl, hndl, nullptr);
+	if (hndl) renderpass->device->vkDestroyDescriptorPool(renderpass->device->hndl, hndl, nullptr);
 }
 
 void Pu::DescriptorPool::FreeSet(DescriptorSetHndl set) const
 {
-	device->vkFreeDescriptorSets(device->hndl, hndl, 1, &set);
+	--used;
+	renderpass->device->vkFreeDescriptorSets(renderpass->device->hndl, hndl, 1, &set);
 }

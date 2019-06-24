@@ -19,42 +19,46 @@ Pu::AssetLoader::~AssetLoader(void)
 	delete cmdPool;
 }
 
-void Pu::AssetLoader::PopulateRenderpass(GraphicsPipeline & pipeline, Renderpass & renderpass, const vector<wstring> &subpasses)
+void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<vector<wstring>> & shaders)
 {
-	vector<std::tuple<size_t, wstring>> toLoad;
+	vector<std::tuple<size_t, size_t, wstring>> toLoad;
 
-	for (const wstring &path : subpasses)
+	size_t i = 0, j = 0;
+	for (const vector<wstring> &subpass : shaders)
 	{
-		/* Create an unique indentifier for the subpass. */
-		const size_t subpassHash = std::hash<wstring>{}(path);
+		/* Add an empty subpass to the renderpass. */
+		renderpass.subpasses.emplace_back();
 
-		/* Check if the subpass is already loaded. */
-		if (cache.Contains(subpassHash))
+		for (const wstring &path : subpass)
 		{
-			renderpass.shaders.emplace_back(cache.Get(subpassHash).Duplicate<Shader>(cache));
-		}
-		else
-		{
-			/* Create a new asset and store it in the cache. */
-			Shader *shader = new Shader(device);
-			cache.Store(shader);
+			/* Create an unique indentifier for the subpass. */
+			const size_t shaderHash = std::hash<wstring>{}(path);
 
-			/* Add the subpass to the to-load list and add it to the renderpass. */
-			toLoad.emplace_back(renderpass.shaders.size(), path);
-			renderpass.shaders.emplace_back(*shader);
+			/* Check if the subpass is already loaded. */
+			if (cache.Contains(shaderHash))
+			{
+				renderpass.subpasses.back().shaders.emplace_back(&cache.Get(shaderHash).Duplicate<Shader>(cache));
+			}
+			else
+			{
+				/* Create a new asset and store it in the cache. */
+				Shader *shader = new Shader(device);
+				cache.Store(shader);
+
+				/* Add the subpass to the to-load list and add it to the renderpass. */
+				toLoad.emplace_back(i, j, path);
+				renderpass.subpasses.back().shaders.emplace_back(shader);
+			}
+
+			++j;
 		}
+
+		++i;
 	}
 
 	/* The load task is deleted by the scheduler as the continue has an auto delete set. */
-	GraphicsPipeline::LoadTask *loadTask = new GraphicsPipeline::LoadTask(pipeline, renderpass, toLoad);
-
-	scheduler.Spawn(*loadTask);
-}
-
-void Pu::AssetLoader::FinalizeGraphicsPipeline(GraphicsPipeline & pipeline, Renderpass & renderpass)
-{
-	pipeline.renderpass = &renderpass;
-	pipeline.Finalize(0);
+	Renderpass::LoadTask *task = new Renderpass::LoadTask(renderpass, toLoad);
+	scheduler.Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)

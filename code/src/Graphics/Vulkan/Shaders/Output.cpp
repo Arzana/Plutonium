@@ -1,5 +1,16 @@
 #include "Graphics/Vulkan/Shaders/Output.h"
 
+void Pu::Output::SetUsage(OutputUsage usage)
+{
+	if (usage == OutputUsage::Input || usage == OutputUsage::Unknown)
+	{
+		Log::Error("Output field '%s' cannot be used as %s an attachment!", to_string(usage));
+		return;
+	}
+
+	type = usage;
+}
+
 void Pu::Output::SetColorBlending(BlendFactor srcFactor, BlendOp op, BlendFactor dstFactor)
 {
 	attachment.BlendEnable = true;
@@ -39,8 +50,11 @@ void Pu::Output::SetDescription(const DepthBuffer & depthBuffer)
 }
 
 Pu::Output::Output(const FieldInfo & data, uint32 attachment, OutputUsage type)
-	: Field(data), type(type), resolve(false), clear{0.0f, 0.0f, 0.0f, 0.0f},
-	reference(attachment, ImageLayout::General), description(Format::Undefined, ImageLayout::General, ImageLayout::General)
+	: Field(data), type(type), clear{0.0f, 0.0f, 0.0f, 0.0f}, reference(attachment, ImageLayout::General),
+	description(Format::Undefined, ImageLayout::General, ImageLayout::General)
 {
-	if (data.Storage != spv::StorageClass::Output) Log::Fatal("The output class cannot be used to store '%s'!", to_string(data.Storage));
+	if (!data.Name.empty())
+	{
+		if (data.Storage != spv::StorageClass::Output) Log::Fatal("The output class cannot be used to store '%s'!", to_string(data.Storage));
+	}
 }

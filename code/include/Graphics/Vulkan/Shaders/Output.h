@@ -29,13 +29,6 @@ namespace Pu
 			description.FinalLayout = layout;
 		}
 
-		/* Sets how the output field should be handled, multisample can only be used if the usage is Color. */
-		inline void SetUsage(_In_ OutputUsage usage, _In_opt_ bool multisample = false)
-		{
-			type = usage;
-			if (type == OutputUsage::Color) resolve = multisample;
-		}
-
 		/* Sets how this output should be cleared before use. */
 		inline void SetClearValue(_In_ ClearValue value)
 		{
@@ -48,6 +41,8 @@ namespace Pu
 			description.LoadOp = op;
 		}
 
+		/* Sets how the output field should be handled. */
+		void SetUsage(_In_ OutputUsage usage);
 		/* Enables and sets the blend operations on color. */
 		void SetColorBlending(_In_ BlendFactor srcFactor, _In_ BlendOp op, _In_ BlendFactor dstFactor);
 		/* Enables and sets the blend operations on alpha. */
@@ -58,10 +53,11 @@ namespace Pu
 		void SetDescription(_In_ const DepthBuffer &depthBuffer);
 
 	private:
+		friend class Subpass;
 		friend class Renderpass;
 		friend class GraphicsPipeline;
 
-		bool resolve;
+		uint32 subpass;
 		OutputUsage type;
 		ClearValue clear;
 		AttachmentReference reference;

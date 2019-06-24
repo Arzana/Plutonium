@@ -5,10 +5,10 @@ The shader has two descriptor sets.
 The first one (0) is for constants across the shader (i.e. the atlas and projection matrix).
 The second one (1) is for the string specific data (i.e. the transform and color).
 */
-Pu::TextUniformBlock::TextUniformBlock(const GraphicsPipeline & pipeline)
-	: UniformBlock(pipeline, { "Model", "Color" })
+Pu::TextUniformBlock::TextUniformBlock(const Subpass & subpass, _In_ DescriptorPool & pool)
+	: UniformBlock(subpass, pool, { "Model", "Color" })
 {
-	allignedOffset = pipeline.GetRenderpass().GetDescriptor("Color").GetAllignedOffset(sizeof(Matrix));
+	allignedOffset = subpass.GetDescriptor("Color").GetAllignedOffset(sizeof(Matrix));
 }
 
 Pu::TextUniformBlock::TextUniformBlock(TextUniformBlock && value)

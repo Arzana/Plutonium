@@ -3,17 +3,21 @@
 
 Pu::DeviceSize Pu::Descriptor::GetAllignedOffset(DeviceSize offset) const
 {
-	return physicalDevice.GetUniformBufferOffsetAllignment(offset);
+	return physicalDevice ? physicalDevice->GetUniformBufferOffsetAllignment(offset) : 0;
 }
 
-Pu::Descriptor::Descriptor(PhysicalDevice &physicalDevice, const FieldInfo & data, ShaderStageFlag stage)
-	: Field(data), physicalDevice(physicalDevice), set(data.Decorations.Numbers.at(spv::Decoration::DescriptorSet))
-{
-	layoutBinding.Binding = Info.Decorations.Numbers.at(spv::Decoration::Binding);
-	layoutBinding.StageFlags = stage;
-	layoutBinding.DescriptorCount = max(1u, Info.ArrayElements);
+Pu::Descriptor::Descriptor(const FieldInfo & data)
+	: Field(data), physicalDevice(nullptr), set(0)
+{}
 
-	if (Info.Type.ComponentType == ComponentType::Image)
+Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo & data, ShaderStageFlag stage)
+	: Field(data), physicalDevice(&physicalDevice), set(data.Decorations.Numbers.at(spv::Decoration::DescriptorSet))
+{
+	layoutBinding.Binding = GetInfo().Decorations.Numbers.at(spv::Decoration::Binding);
+	layoutBinding.StageFlags = stage;
+	layoutBinding.DescriptorCount = max(1u, GetInfo().ArrayElements);
+
+	if (GetInfo().Type.ComponentType == ComponentType::Image)
 	{
 		/* GLSL restrics us to only use combined descriptors. */
 		layoutBinding.DescriptorType = DescriptorType::CombinedImageSampler;
@@ -22,6 +26,6 @@ Pu::Descriptor::Descriptor(PhysicalDevice &physicalDevice, const FieldInfo & dat
 	{
 		/* Assume uniform buffer for other types as it's most used. */
 		layoutBinding.DescriptorType = DescriptorType::UniformBuffer;
-		size = static_cast<DeviceSize>(Info.Type.GetSize());
+		size = static_cast<DeviceSize>(GetInfo().Type.GetSize());
 	}
 }

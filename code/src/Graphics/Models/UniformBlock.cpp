@@ -1,7 +1,7 @@
 #include "Graphics/Models/UniformBlock.h"
 
-Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializer_list<string> uniforms)
-	: DescriptorSet(std::move(pipeline.GetDescriptorPool().Allocate(CheckAndGetSet(pipeline, uniforms)))),
+Pu::UniformBlock::UniformBlock(const Subpass & subpass, DescriptorPool & pool, std::initializer_list<string> uniforms)
+	: DescriptorSet(std::move(pool.Allocate(CheckAndGetSet(subpass, uniforms)))),
 	IsDirty(false), firstUpdate(true)
 {
 	/* Calculate the size based on the uniforms. */
@@ -10,7 +10,7 @@ Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializ
 	for (const string &name : uniforms)
 	{
 		/* We can only add them here; not in the CheckAndGetSet because that has to be called in the initializer list. */
-		const Descriptor &descriptor = pipeline.GetRenderpass().GetDescriptor(name);
+		const Descriptor &descriptor = subpass.GetDescriptor(name);
 		this->descriptors.emplace_back(&descriptor);
 
 		/* If the binding already exists we just append, but if it doesn't exist we need to take the GPU allignment into account. */
@@ -22,7 +22,7 @@ Pu::UniformBlock::UniformBlock(const GraphicsPipeline & pipeline, std::initializ
 		}
 	}
 
-	target = new DynamicBuffer(pipeline.GetDevice(), size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
+	target = new DynamicBuffer(subpass.GetShaders().front()->GetDevice(), size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
 }
 
 Pu::UniformBlock::UniformBlock(UniformBlock && value)
@@ -83,13 +83,13 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 /* uniforms hides class member. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-Pu::uint32 Pu::UniformBlock::CheckAndGetSet(const GraphicsPipeline & pipeline, std::initializer_list<string> uniforms)
+Pu::uint32 Pu::UniformBlock::CheckAndGetSet(const Subpass & subpass, std::initializer_list<string> uniforms)
 {
 	uint32 result = 0;
 
 	for (std::initializer_list<string>::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
 	{
-		const Descriptor &uniform = pipeline.GetRenderpass().GetDescriptor(*it);
+		const Descriptor &uniform = subpass.GetDescriptor(*it);
 
 		/* Make sure all the descriptors are from the same set. */
 		if (it != uniforms.begin())

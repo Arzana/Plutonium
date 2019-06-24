@@ -1,34 +1,41 @@
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
-#include "Core/Threading/Tasks/Scheduler.h"
 
-Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, size_t maxSets)
-	: parent(&device), renderpass(nullptr), hndl(nullptr), maxSets(maxSets),
-	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
-{}
-
-Pu::GraphicsPipeline::GraphicsPipeline(LogicalDevice & device, const Renderpass & renderpass, size_t maxSets)
-	: parent(&device), renderpass(&renderpass), hndl(nullptr), maxSets(maxSets),
-	PostInitialize("GraphicsPipelinePostInitialze"), pool(nullptr)
+Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 subpass)
+	: renderpass(&renderpass), hndl(nullptr), subpass(subpass)
 {
-	Initialize();
+	/* Initialize the viewport state. */
+	viewportState.ViewportCount = 1;
+	viewportState.Viewports = &viewport;
+
+	viewportState.ScissorCount = 1;
+	viewportState.Scissors = &scissor;
+
+	/* Initialize the color attachments. */
+	for (const Output &output : renderpass.subpasses[subpass].outputs)
+	{
+		if (output.type == OutputUsage::Color) colorBlendAttachments.emplace_back(output.attachment);
+	}
+
+	colorBlendState.AttachmentCount = static_cast<uint32>(colorBlendAttachments.size());
+	colorBlendState.Attachments = colorBlendAttachments.data();
 }
 
 Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
-	: parent(value.parent), renderpass(value.renderpass), pool(value.pool),
-	hndl(value.hndl), layoutHndl(value.layoutHndl), vp(value.vp), maxSets(value.maxSets),
-	descriptorSets(std::move(value.descriptorSets)), scissor(value.scissor),
-	vertexInput(value.vertexInput), inputAssembly(value.inputAssembly),
-	tessellation(value.tessellation), display(value.display),
-	rasterizer(value.rasterizer), multisample(value.multisample),
-	depthStencil(value.depthStencil), colorBlend(value.colorBlend),
-	dynamicState(std::move(value.dynamicState)), PostInitialize(std::move(value.PostInitialize)),
-	colorBlendAttachments(std::move(value.colorBlendAttachments)),
-	bindingDescriptions(std::move(value.bindingDescriptions)), dynamicStates(std::move(dynamicStates))
+	: renderpass(value.renderpass), hndl(value.hndl), subpass(value.subpass),
+	vertexInputState(std::move(value.vertexInputState)), inputAssemblyState(std::move(value.inputAssemblyState)),
+	tessellationState(std::move(value.tessellationState)), viewportState(std::move(value.viewportState)),
+	rasterizationState(std::move(value.rasterizationState)), depthStencilState(std::move(value.depthStencilState)),
+	colorBlendState(std::move(value.colorBlendState)), dynamicState(std::move(value.dynamicState)),
+	colorBlendAttachments(std::move(value.colorBlendAttachments)), bindingDescriptions(std::move(value.bindingDescriptions)),
+	dynamicStates(std::move(value.dynamicStates)), viewport(value.viewport), scissor(value.scissor), sampleMask(value.sampleMask)
 {
-	value.renderpass = nullptr;
+	viewportState.Viewports = &viewport;
+	viewportState.Scissors = &scissor;
+	colorBlendState.AttachmentCount = static_cast<uint32>(colorBlendAttachments.size());
+	colorBlendState.Attachments = colorBlendAttachments.data();
+	if (multisampleState.SampleMask) multisampleState.SampleMask = &sampleMask;
+
 	value.hndl = nullptr;
-	value.layoutHndl = nullptr;
-	value.pool = nullptr;
 }
 
 Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other)
@@ -37,265 +44,300 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 	{
 		Destroy();
 
-		parent = other.parent;
-		PostInitialize = std::move(other.PostInitialize);
 		renderpass = other.renderpass;
-		pool = other.pool;
 		hndl = other.hndl;
-		layoutHndl = other.layoutHndl;
-		vp = other.vp;
-		scissor = other.scissor;
-		maxSets = other.maxSets;
-		vertexInput = other.vertexInput;
-		inputAssembly = other.inputAssembly;
-		tessellation = other.tessellation;
-		display = other.display;
-		rasterizer = other.rasterizer;
-		multisample = other.multisample;
-		depthStencil = other.depthStencil;
-		colorBlend = other.colorBlend;
-		dynamicState = other.dynamicState;
-		descriptorSets = std::move(other.descriptorSets);
+		subpass = other.subpass;
+
+		vertexInputState = std::move(other.vertexInputState);
+		inputAssemblyState = std::move(other.inputAssemblyState);
+		tessellationState = std::move(other.tessellationState);
+		viewportState = std::move(other.viewportState);
+		rasterizationState = std::move(other.rasterizationState);
+		multisampleState = std::move(other.multisampleState);
+		depthStencilState = std::move(other.depthStencilState);
+		colorBlendState = std::move(other.colorBlendState);
+		dynamicState = std::move(other.dynamicState);
+
 		colorBlendAttachments = std::move(other.colorBlendAttachments);
 		bindingDescriptions = std::move(other.bindingDescriptions);
 		dynamicStates = std::move(other.dynamicStates);
-		
-		other.renderpass = nullptr;
+		viewport = other.viewport;
+		scissor = other.scissor;
+		sampleMask = other.sampleMask;
+
+		viewportState.Viewports = &viewport;
+		viewportState.Scissors = &scissor;
+		colorBlendState.AttachmentCount = static_cast<uint32>(colorBlendAttachments.size());
+		colorBlendState.Attachments = colorBlendAttachments.data();
+		if (multisampleState.SampleMask) multisampleState.SampleMask = &sampleMask;
+
 		other.hndl = nullptr;
-		other.layoutHndl = nullptr;
-		other.pool = nullptr;
 	}
 
 	return *this;
 }
 
-const Pu::Renderpass & Pu::GraphicsPipeline::GetRenderpass(void) const
+void Pu::GraphicsPipeline::Finalize(void)
 {
-#ifdef _DEBUG
-	if (!renderpass) Log::Fatal("Cannot get render pass from graphics pipeline that isn't finalized!");
-#endif
-
-	return *renderpass;
-}
-
-const Pu::DescriptorPool & Pu::GraphicsPipeline::GetDescriptorPool(void) const
-{
-#ifdef _DEBUG
-	if (!renderpass) Log::Fatal("Cannot get descriptor pool from graphics pipeline that isn't finalized!");
-	if (!pool) Log::Fatal("This graphics pipeline doesn't define any descriptors!");
-#endif
-
-	return *pool;
-}
-
-/* Not all codepaths return a value, Log::Fatal will always throw. */
-#pragma warning(push)
-#pragma warning(disable:4715)
-Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendStateFor(const string & name)
-{
-	if (!renderpass) Log::Fatal("Unable to request blend state on non-initialized graphics pipeline!");
-
-	/* We have to inline search for the output because the index of the attachment is used to link it to the blend state. */
-	for (size_t i = 0; i < renderpass->outputs.size(); i++)
-	{
-		const Output &cur = renderpass->outputs[i];
-		if (cur.Info.Name == name)
-		{
-			/* Throw if the attachment requested is not a color attachment. */
-			if (cur.type == OutputUsage::Color) return colorBlendAttachments[i];
-			else Log::Fatal("Attempting to request color blend state of non-color output '%s'!", name.c_str());
-		}
-	}
-
-	/* Throw if no attachment could be found. */
-	Log::Fatal("Cannot get color blend state for unknown output '%s'!", name.c_str());
-}
-#pragma warning(pop)
-
-void Pu::GraphicsPipeline::AddDynamicState(DynamicState state)
-{
-	/* No need to throw, just a simple check. */
-	if (!dynamicStates.contains(state)) dynamicStates.emplace_back(state);
-}
-
-void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate inputRate)
-{
-	/* Make sure binding isn't added mutliple times. */
-	if (bindingDescriptions.contains([binding](const VertexInputBindingDescription &cur) { return cur.Binding == binding; }))
-	{
-		Log::Error("Attempting to add vertex binding description for already added binding!");
-		return;
-	}
-
-	/* Add binding. */
-	bindingDescriptions.emplace_back(binding, stride, inputRate);
-}
-
-void Pu::GraphicsPipeline::Finalize(uint32 subpass)
-{
-	if (!renderpass) Log::Fatal("Unable to finalize non-initialized graphics pipeline!");
-
-	/* If finalize is called a second time; first destroy the old one. */
+	/*
+	Just destroy the old one if the graphics pipeline needs to be recreated.
+	We do need to wait for the old one to become available again so just wait idle here.
+	*/
 	if (hndl)
 	{
-		Log::Warning("Recreating graphics pipeline, may cause lag!");
+		Log::Warning("Recreating graphics pipeline, this may cause lag!");
+		renderpass->device->WaitIdle();
 		Destroy();
 	}
 
-	/* Add the vertex descriptions to the final version. */
-	const vector<VertexInputAttributeDescription> attrDesc = renderpass->attributes.select<VertexInputAttributeDescription>([](const Attribute &attr) { return attr.description; });
-	vertexInput.VertexAttributeDescriptionCount = static_cast<uint32>(renderpass->attributes.size());
-	vertexInput.VertexAttributeDescriptions = attrDesc.data();
-	vertexInput.VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
-	vertexInput.VertexBindingDescriptions = bindingDescriptions.data();
+	/* Add the vertex input binding descriptions to the final create information. */
+	vector<VertexInputAttributeDescription> attributeDescriptions;
+		for (const Attribute &attrib : renderpass->subpasses[subpass].attributes) attributeDescriptions.emplace_back(attrib.description);
 
-	/* Add the dynamic states to the final version. */
+	/* Add the shader stages to the final create information. */
+	vector<PipelineShaderStageCreateInfo> shaderStages;
+	for (const Subpass &cur : renderpass->subpasses)
+	{
+		for (const Shader *shader : cur.shaders) shaderStages.emplace_back(shader->info);
+	}
+
+	/* Finalize the vertex input state. */
+	vertexInputState.VertexAttributeDescriptionCount = static_cast<uint32>(attributeDescriptions.size());
+	vertexInputState.VertexAttributeDescriptions = attributeDescriptions.data();
+	vertexInputState.VertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
+	vertexInputState.VertexBindingDescriptions = bindingDescriptions.data();
+
+	/* Finalize the dynamic state. */
 	dynamicState.DynamicStateCount = static_cast<uint32>(dynamicStates.size());
 	dynamicState.DynamicStates = dynamicStates.data();
 
-	/* Create the descriptor set layouts and the pipeline layout. */
-	FinalizeLayout();
-
-	/* Create the pool from which the user can allocate descriptor sets. */
-	if (!renderpass->descriptors.empty()) pool = new DescriptorPool(*this, maxSets);
-
-	/* Create graphics pipeline. */
-	const vector<PipelineShaderStageCreateInfo> stages = renderpass->shaders.select<PipelineShaderStageCreateInfo>([](const Shader &shader) { return shader.info; });
-	GraphicsPipelineCreateInfo createInfo(stages, layoutHndl, renderpass->hndl);
-	createInfo.Subpass = subpass;
-	createInfo.VertexInputState = &vertexInput;
-	createInfo.InputAssemblyState = &inputAssembly;
-	createInfo.TessellationState = &tessellation;
-	createInfo.ViewportState = &display;
-	createInfo.RasterizationState = &rasterizer;
-	createInfo.MultisampleState = &multisample;
-	createInfo.DepthStencilState = &depthStencil;
-	createInfo.ColorBlendState = &colorBlend;
+	/* Create the graphics pipeline. */
+	GraphicsPipelineCreateInfo createInfo(shaderStages, renderpass->layoutHndl, renderpass->hndl, subpass);
+	createInfo.VertexInputState = &vertexInputState;
+	createInfo.InputAssemblyState = &inputAssemblyState;
+	createInfo.TessellationState = &tessellationState;
+	createInfo.ViewportState = &viewportState;
+	createInfo.RasterizationState = &rasterizationState;
+	createInfo.MultisampleState = &multisampleState;
+	createInfo.DepthStencilState = &depthStencilState;
+	createInfo.ColorBlendState = &colorBlendState;
 	createInfo.DynamicState = &dynamicState;
-
-	VK_VALIDATE(parent->vkCreateGraphicsPipelines(parent->hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
+	VK_VALIDATE(renderpass->device->vkCreateGraphicsPipelines(renderpass->device->hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
 }
 
-void Pu::GraphicsPipeline::FinalizeLayout(void)
+void Pu::GraphicsPipeline::SetTopology(PrimitiveTopology topology)
 {
-	/* Get the information about the descriptor sets. */
-	vector<DescriptorSetLayoutCreateInfo> createInfos;
-	std::map<uint32, vector<DescriptorSetLayoutBinding>> setBindings;
-	for (const Descriptor &cur : renderpass->descriptors)
-	{
-		/* Make sure we have a descriptor set for each defined set. */
-		if (cur.set >= createInfos.size())
-		{
-			/* Add the layout binding for the uniform to the set as well. */
-			createInfos.resize(cur.set + 1);
-			setBindings.emplace(cur.set, vector<DescriptorSetLayoutBinding>());
-			setBindings[cur.set].emplace_back(cur.layoutBinding);
-		}
-		else
-		{
-			/* The current set is already defined so search in the list for it. */
-			for (DescriptorSetLayoutBinding &binding : setBindings[cur.set])
-			{
-				if (binding.Binding == cur.layoutBinding.Binding)
-				{
-					/* Just increase the descriptor count. */
-					binding.DescriptorCount += cur.layoutBinding.DescriptorCount;
-					goto Found;
-				}
-			}
-
-			/* The binding wasn't found so just add it like normal. */
-			setBindings[cur.set].emplace_back(cur.layoutBinding);
-
-		Found:;
-		}
-	}
-
-	/* Resize the result vector outside of the loop to increase performance. */
-	descriptorSets.resize(createInfos.size(), nullptr);
-
-	/* Create all required descriptor sets. */
-	for (size_t i = 0; i < createInfos.size(); i++)
-	{
-		DescriptorSetLayoutCreateInfo &info = createInfos[i];
-		const vector<DescriptorSetLayoutBinding> bindings = setBindings.at(static_cast<uint32>(i));
-
-		/* Set final bindings, this has to be done here as vector resizing might reallocate and thusly will give wrong addresses. */
-		info.BindingCount = static_cast<uint32>(bindings.size());
-		info.Bindings = bindings.data();
-
-		/* Actually create the set. */
-		VK_VALIDATE(parent->vkCreateDescriptorSetLayout(parent->hndl, &info, nullptr, &descriptorSets[i]), PFN_vkCreateDescriptorSetLayout);
-	}
-
-	/* Create pipeline layout. */
-	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSets);
-	VK_VALIDATE(parent->vkCreatePipelineLayout(parent->hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
+	inputAssemblyState.Topology = topology;
 }
 
-void Pu::GraphicsPipeline::Initialize(void)
+bool Pu::GraphicsPipeline::SetPathControlPoints(uint32 points)
 {
-	/* Add blend attachment for all color outputs. */
-	for (const Output &cur : renderpass->outputs)
+	/* Make sure our hardware supports tessellation shaders. */
+	if (GetHardwareSupport().TessellationShader)
 	{
-		if (cur.type == OutputUsage::Color) colorBlendAttachments.emplace_back(cur.attachment);
+		tessellationState.PathControlPoints = points;
+		return true;
 	}
 
-	/* Only allocate the required structures. */
-	vertexInput = PipelineVertexInputStateCreateInfo();
-	inputAssembly = PipelineInputAssemblyStateCreateInfo(PrimitiveTopology::TriangleList);
-	tessellation = PipelineTessellationStateCreateInfo();
-	display = PipelineViewportStateCreateInfo(vp, scissor);
-	rasterizer = PipelineRasterizationStateCreateInfo(CullModeFlag::Back);
-	multisample = PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit);
-	depthStencil = PipelineDepthStencilStateCreateInfo();
-	colorBlend = PipelineColorBlendStateCreateInfo(colorBlendAttachments);
-	dynamicState = PipelineDynamicStateCreateInfo();
+	return false;
+}
 
-	/* Allow user to set paramaters. */
-	PostInitialize.Post(*this);
+/* viewport and scissor hide class members. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::GraphicsPipeline::SetViewport(const Viewport & viewport)
+{
+	this->viewport = viewport;
+	this->scissor = viewport.GetScissor();
+}
+
+void Pu::GraphicsPipeline::SetViewport(const Viewport & viewport, Rect2D scissor)
+{
+	this->viewport = viewport;
+	this->scissor = scissor;
+}
+#pragma warning(pop)
+
+bool Pu::GraphicsPipeline::EnableDepthClamp(void)
+{
+	if (GetHardwareSupport().DepthClamp)
+	{
+		rasterizationState.DepthClampEnable = true;
+		return true;
+	}
+
+	return false;
+}
+
+bool Pu::GraphicsPipeline::SetPolygonMode(PolygonMode mode)
+{
+	/* Fill mode is always supported but line and point might not be. */
+	if ((mode != PolygonMode::Fill && GetHardwareSupport().FillModeNonSolid) || mode == PolygonMode::Fill)
+	{
+		rasterizationState.PolygonMode = mode;
+		return true;
+	}
+
+	return false;
+}
+
+void Pu::GraphicsPipeline::SetCullMode(CullModeFlag mode)
+{
+	rasterizationState.CullMode = mode;
+}
+
+void Pu::GraphicsPipeline::SetFrontFace(FrontFace front)
+{
+	rasterizationState.FrontFace = front;
+}
+
+bool Pu::GraphicsPipeline::EnableDepthBias(float constant, float clamp, float slope)
+{
+	rasterizationState.DepthBiasEnable = true;
+	rasterizationState.DepthBiasConstantFactor = constant;
+	rasterizationState.DepthBiasSlopeFactor = slope;
+
+	/* Only the clamp for the depth bias is hardware dependent. */
+	if (GetHardwareSupport().DepthBiasClamp)
+	{
+		rasterizationState.DepthBiasClamp = clamp;
+		return true;
+	}
+
+	return false;
+}
+
+bool Pu::GraphicsPipeline::SetLineWidth(float width)
+{
+	if (GetHardwareSupport().WideLines)
+	{
+		rasterizationState.LineWidth = width;
+		return true;
+	}
+
+	return false;
+}
+
+void Pu::GraphicsPipeline::SetSampleCount(SampleCountFlag samples)
+{
+	multisampleState.RasterizationSamples = samples;
+}
+
+void Pu::GraphicsPipeline::EnableSampleShading(float min)
+{
+	multisampleState.SampleShading = true;
+	multisampleState.MinSampleShading = min;
+}
+
+void Pu::GraphicsPipeline::SetSampleMask(SampleMask mask)
+{
+	sampleMask = mask;
+	multisampleState.SampleMask = &sampleMask;
+}
+
+void Pu::GraphicsPipeline::EnableAlphaToCoverage(void)
+{
+	multisampleState.AlphaToCoverageEnable = true;
+}
+
+bool Pu::GraphicsPipeline::EnableAlphaToOne(void)
+{
+	if (GetHardwareSupport().AlphaToOne)
+	{
+		multisampleState.AlphaToOneEnable = true;
+		return true;
+	}
+
+	return false;
+}
+
+void Pu::GraphicsPipeline::EnableDepthTest(bool enableWrites, CompareOp operation)
+{
+	depthStencilState.DepthTestEnable = true;
+	depthStencilState.DepthWriteEnable = enableWrites;
+	depthStencilState.DepthCompareOp = operation;
+}
+
+bool Pu::GraphicsPipeline::EnableDepthBoundsTest(float min, float max)
+{
+	if (GetHardwareSupport().DepthBounds)
+	{
+		depthStencilState.DepthBoundsTestEnable = true;
+		depthStencilState.MinDepthBounds = min;
+		depthStencilState.MaxDepthBounds = max;
+		return true;
+	}
+
+	return false;
+}
+
+void Pu::GraphicsPipeline::EnableStencilTest(const StencilOpState & front, const StencilOpState & back)
+{
+	depthStencilState.StencilTestEnable = true;
+	depthStencilState.Front = front;
+	depthStencilState.Back = back;
+}
+
+bool Pu::GraphicsPipeline::SetBlendOperation(LogicOp operation)
+{
+	if (GetHardwareSupport().LogicOp)
+	{
+		colorBlendState.LogicOpEnable = true;
+		colorBlendState.LogicOp = operation;
+		return true;
+	}
+
+	return false;
+}
+
+void Pu::GraphicsPipeline::SetConstantBlendColor(Color color)
+{
+	const Vector4 value = color.ToVector4();
+	colorBlendState.BlendConstants[0] = value.X;
+	colorBlendState.BlendConstants[1] = value.Y;
+	colorBlendState.BlendConstants[2] = value.Z;
+	colorBlendState.BlendConstants[3] = value.W;
+}
+
+void Pu::GraphicsPipeline::AddDynamicState(DynamicState state)
+{
+	/* Make sure that we don't add the same state twice. */
+	if (!dynamicStates.contains(state)) dynamicStates.emplace_back(state);
+}
+
+void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, VertexInputRate rate)
+{
+	/* Update the stride and the input rate if it's already defined, otherwise just add it. */
+	decltype(bindingDescriptions)::iterator it = bindingDescriptions.iteratorOf([binding](const VertexInputBindingDescription &cur) { return cur.Binding == binding; });
+	if (it != bindingDescriptions.end())
+	{
+		it->Stride = stride;
+		it->InputRate = rate;
+	}
+	else bindingDescriptions.emplace_back(binding, stride, rate);
+}
+
+Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(const string & name)
+{
+	uint32 index = 0;
+	for (const Output &output : renderpass->subpasses[subpass].outputs)
+	{
+		if (output.GetInfo().Name == name)
+		{
+			if (output.type == OutputUsage::Color) return colorBlendAttachments[index];
+			else Log::Fatal("Attempting to request color blend state of non-color output!");
+		}
+
+		++index;
+	}
+}
+
+const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareSupport(void) const
+{
+	return renderpass->device->GetPhysicalDevice().GetFeatures();
 }
 
 void Pu::GraphicsPipeline::Destroy(void)
 {
-	if (hndl)
-	{
-		parent->vkDestroyPipeline(parent->hndl, hndl, nullptr);
-		parent->vkDestroyPipelineLayout(parent->hndl, layoutHndl, nullptr);
-
-		for (DescriptorSetHndl set : descriptorSets) parent->vkDestroyDescriptorSetLayout(parent->hndl, set, nullptr);
-		descriptorSets.clear();
-
-		delete pool;
-	}
-}
-
-Pu::GraphicsPipeline::LoadTask::LoadTask(GraphicsPipeline & pipelineResult, Renderpass & passResult, const vector<std::tuple<size_t, wstring>>& toLoad)
-	: result(pipelineResult), renderPass(passResult)
-{
-	child = new Renderpass::LoadTask(passResult, toLoad);
-	child->SetParent(*this);
-}
-
-Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Execute(void)
-{
-	/* Spawn the render pass load task. */
-	scheduler->Spawn(*child);
-	return Result::Default();
-}
-
-Pu::Task::Result Pu::GraphicsPipeline::LoadTask::Continue(void)
-{
-	/* Make sure that the render pass is loaded on debug mode. */
-#ifdef _DEBUG
-	if (!renderPass.IsLoaded()) Log::Fatal("Render pass failed to load!");
-#endif
-
-	/* Destroy child task and set the render pass for the result. */
-	delete child;
-	result.renderpass = &renderPass;
-
-	/* Initializes the graphics pipeline and return that we're done loading. */
-	result.Initialize();
-	return Result::AutoDelete();
+	if (hndl) renderpass->device->vkDestroyPipeline(renderpass->device->hndl, hndl, nullptr);
 }
