@@ -97,6 +97,7 @@ namespace Pu
 		CommandPool *pool;
 		uint32 curImgIdx;
 		Matrix ortho;
+		bool swapchainOutOfDate;
 
 		RenderPassHndl imGuiRenderPass;
 		DescriptorPoolHndl imGuiDescriptorPool;
@@ -106,8 +107,8 @@ namespace Pu
 		mutable vector<SurfaceFormat> supportedFormats;
 		std::map<RenderPassHndl, vector<Framebuffer*>> frameBuffers;
 
-		bool HasFrameBuffer(const Renderpass &renderPass) const;
 		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
+		void ReCreateSwapchain(Extent2D size, SurfaceFormat format);
 		void CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall);
 		void MakeSwapchainImageWritable(void);
 		void MakeImagePresentable(void);

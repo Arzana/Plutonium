@@ -32,7 +32,7 @@ void Pu::DepthBuffer::MakeWritable(CommandBuffer & cmdBuffer)
 {
 	/*
 	The access mask needs to read write as we want to use it for writing and depth testing.
-	These read operations happen at the early fragment test and the writes at the late fragment test.
+	The earliest stage where read/writes to this depth buffer can occur is the early fragment tests.
 	*/
 	const ImageSubresourceRange range(aspect);
 	cmdBuffer.MemoryBarrier(*this, PipelineStageFlag::TopOfPipe, PipelineStageFlag::EarlyFragmentTests, ImageLayout::DepthStencilAttachmentOptimal, AccessFlag::DepthStencilAttachmentReadWrite, range);

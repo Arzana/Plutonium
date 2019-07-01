@@ -10,7 +10,7 @@ Pu::Image::Image(LogicalDevice & device, const ImageCreateInfo & createInfo)
 
 Pu::Image::Image(Image && value)
 	: Asset(std::move(value)), parent(value.parent), imageHndl(value.imageHndl), memoryHndl(value.memoryHndl), type(value.type), 
-	format(value.format), mipmaps(value.mipmaps), usage(value.usage), layout(value.layout), access(value.access)
+	format(value.format), mipmaps(value.mipmaps), usage(value.usage), layout(value.layout), access(value.access), dimensions(value.dimensions)
 {
 	value.imageHndl = nullptr;
 	value.memoryHndl = nullptr;
@@ -32,6 +32,7 @@ Pu::Image & Pu::Image::operator=(Image && other)
 		usage = other.usage;
 		layout = other.layout;
 		access = other.access;
+		dimensions = other.dimensions;
 
 		other.imageHndl = nullptr;
 		other.memoryHndl = nullptr;

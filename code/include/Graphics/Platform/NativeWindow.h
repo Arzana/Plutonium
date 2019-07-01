@@ -66,6 +66,12 @@ namespace Pu
 			return Display::GetDisplayAt(GetClientBounds().GetPosition());
 		}
 
+		/* Resizes the window to the specified size. */
+		inline void Resize(_In_ float width, _In_ float height)
+		{
+			Resize(Vector2(width, height));
+		}
+
 		/* Displays the window and gives it focus. */
 		virtual void Show(void) = 0;
 		/* Hides the window and revokes its focus. */

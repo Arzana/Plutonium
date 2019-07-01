@@ -374,17 +374,18 @@ void Pu::Log::Raise(const char * msg, va_list args)
 {
 	switch (mode)
 	{
-	case Pu::RaiseMode::Ignore:
+	case RaiseMode::Ignore:
 		return;
-	case Pu::RaiseMode::CrashWindow:
+	case RaiseMode::CrashWindow:
 		_CrtDbgBreak();
 		break;
-	case Pu::RaiseMode::CrashReport:
+	case RaiseMode::CrashReport:
 		CreateCrashReport();
 		exit(1);
 		break;
-	case Pu::RaiseMode::Custom:
+	case RaiseMode::Custom:
 		if (callback) callback(msg, args);
+		else _CrtDbgBreak();
 		break;
 	}
 }

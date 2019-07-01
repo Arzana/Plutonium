@@ -57,6 +57,6 @@ namespace Pu
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);
 		void InitializePipeline(Renderpass&);
-		void CreateFramebuffers(const GameWindow&);
+		void SwapchainRecreated(const GameWindow&);
 	};
 }

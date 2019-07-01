@@ -16,8 +16,12 @@ static void ImGuiVkValidate(VkApiResult result)
 }
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr), SwapchainRecreated("GameWindowSwapchainRecreated")
+	: native(native), device(device), swapchain(nullptr),
+	SwapchainRecreated("GameWindowSwapchainRecreated"), swapchainOutOfDate(false)
 {
+	/* Make sure we update the swapchains size upon a window size change. */
+	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
+
 	/* Non-linear sRGB is always supported so search for that one and use it. */
 	for (const SurfaceFormat &format : GetSupportedFormats())
 	{
@@ -28,9 +32,6 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 		}
 	}
 
-	/* Make sure we update the swapchains size upon a window size change. */
-	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
-
 	/* Create new command pool. */
 	pool = new CommandPool(device, device.graphicsQueueFamily);
 
@@ -40,15 +41,16 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 		buffers.emplace_back(pool->Allocate());
 	}
 
-	/* Upload the font atlas for ImGui. */
 	if constexpr (ImGuiAvailable)
 	{
+		/* Record the ImGui texture stage commands. */
 		GetCommandBuffer().Begin();
 		ImGui_ImplVulkan_CreateFontsTexture(GetCommandBuffer().hndl);
 		GetCommandBuffer().End();
 
+		/* Submit the command buffer. */
 		device.GetGraphicsQueue(0).Submit(GetCommandBuffer());
-		device.vkDeviceWaitIdle(device.hndl);
+		device.GetGraphicsQueue(0).WaitIdle();
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
 
@@ -77,10 +79,12 @@ Pu::GameWindow::~GameWindow(void)
 void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vector<const ImageView*> & views)
 {
 	/* Make sure we don't create too many. */
-	if (HasFrameBuffer(renderPass))
+	decltype(frameBuffers)::iterator it = frameBuffers.find(renderPass.hndl);
+	if (it != frameBuffers.end())
 	{
-		Log::Warning("Attempting to create framebuffers for render pass that already has framebuffers defined!");
-		return;
+		Log::Warning("Recreating framebuffers for renderpass!");
+		for (const Framebuffer *cur : it->second) delete cur;
+		frameBuffers.erase(it);
 	}
 
 	/* Get dimensions of the window and create buffer for storage. */
@@ -132,21 +136,12 @@ void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
 		{
 			/* Make sure non of the resources are in use. */
 			Log::Warning("Changing window color space, this might cause lag!");
-			Finalize();
-
-			/* Update the swapchain images and free the framebuffers bound to it. */
-			DestroyFramebuffers();
-			CreateSwapchain(native.GetClientBounds().GetSize(), format, false);
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format);
 			return;
 		}
 	}
 
 	Log::Warning("Color space is not supported by the surface!");
-}
-
-bool Pu::GameWindow::HasFrameBuffer(const Renderpass & renderPass) const
-{
-	return frameBuffers.find(renderPass.hndl) != frameBuffers.end();
 }
 
 void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
@@ -155,16 +150,20 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 	if (swapchain)
 	{
 		Log::Warning("Window is being resized, this might cause lag!");
-
-		/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
-		Finalize();
-
-		/* Free all framebuffers bound to the native window size. */
-		DestroyFramebuffers();
-
-		/* Update the swapchain images. */
-		CreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, false);
+		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format);
 	}
+}
+
+void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format)
+{
+	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
+	Finalize();
+
+	/* Free all framebuffers bound to the native window size. */
+	DestroyFramebuffers();
+
+	/* Update the swapchain images. */
+	CreateSwapchain(size, format, false);
 }
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall)
@@ -188,10 +187,11 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 	/* Update the window size and minimum images for ImGui if needed. */
 	if constexpr (ImGuiAvailable)
 	{
+		/* Destroy the old Vulkan handles if this is the second time we're creating the swapchain. */
 		if (!firstCall) DestroyImGui();
-
 		ImGui::GetIO().DisplaySize = size;
 
+		/* The only attachment is the swapchain image, we're calling this after our own draw calls so we want to load. */
 		AttachmentDescription attachment(info.ImageFormat, ImageLayout::PresentSrcKhr, ImageLayout::PresentSrcKhr);
 		attachment.LoadOp = AttachmentLoadOp::Load;
 
@@ -233,6 +233,19 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 		initInfo.CheckVkResultFn = ImGuiVkValidate;
 		ImGui_ImplVulkan_Init(&initInfo, imGuiRenderPass);
 
+		/* We need command buffers to do this and we don't have one yet on the first call. */
+		if (!firstCall)
+		{
+			/* Record the ImGui texture stage commands. */
+			GetCommandBuffer().Begin();
+			ImGui_ImplVulkan_CreateFontsTexture(GetCommandBuffer().hndl);
+			GetCommandBuffer().End();
+
+			/* Submit the command buffer. */
+			device.GetGraphicsQueue(0).Submit(GetCommandBuffer());
+		}
+
+		/* Create the framebuffers needed for ImGui, this will probably be two. */
 		vector<Framebuffer*> imGuiFrameBuffers;
 		const Extent2D dimensions = native.GetClientBounds().GetSize();
 		for (const ImageView &cur : swapchain->views)
@@ -241,6 +254,16 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 		}
 
 		frameBuffers.emplace(imGuiRenderPass, imGuiFrameBuffers);
+
+		if (!firstCall)
+		{
+			/*
+			Wait for the tasks to complete and then delete the pending objects.
+			We're doing this as late as possible (excluding actually setting up a synchronizer).
+			*/
+			device.GetGraphicsQueue(0).WaitIdle();
+			ImGui_ImplVulkan_DestroyFontUploadObjects();
+		}
 	}
 
 	/* Notify the subscribers of the change in size or format. */
@@ -265,6 +288,14 @@ void Pu::GameWindow::MakeImagePresentable(void)
 
 void Pu::GameWindow::BeginRender(void)
 {
+	/* Make sure that we don't work with an old swapchain. */
+	if (swapchainOutOfDate)
+	{
+		device.WaitIdle();
+		swapchainOutOfDate = false;
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format);
+	}
+
 	/* Request new image from the swapchain. */
 	curImgIdx = swapchain->NextImage(semaphores[0]);
 
@@ -314,7 +345,7 @@ void Pu::GameWindow::EndRender(void)
 	Queue &queue = device.GetGraphicsQueue(0);
 	queue.BeginLabel(u8"GameWindow Render", Color::Blue());
 	queue.Submit(semaphores[0], cmdBuf, semaphores[1]);
-	queue.Present(semaphores[1], *swapchain, curImgIdx);
+	swapchainOutOfDate = !queue.Present(semaphores[1], *swapchain, curImgIdx);
 	queue.EndLabel();
 }
 

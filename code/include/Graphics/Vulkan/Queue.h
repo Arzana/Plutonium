@@ -28,12 +28,14 @@ namespace Pu
 			return index;
 		}
 
+		/* Wait for the queue to complete its outstanding operations. */
+		void WaitIdle(void) const;
 		/* Submits the commands in the specified command buffer to the queue. */
 		void Submit(_In_ CommandBuffer &commandBuffer);
 		/* Submits the commands in the specified command buffer to the queue. */
 		void Submit(_In_ const Semaphore &waitSemaphore, _In_ CommandBuffer &commandBuffer, _In_ const Semaphore &signalSemaphore);
-		/* Presents the image to the swapchain ofter the semaphore has completed. */
-		void Present(_In_ const Semaphore &waitSemaphore, _In_ const Swapchain &swapchain, _In_ uint32 image);
+		/* Presents the image to the swapchain after the semaphore has completed, returns whether this was allowed. */
+		_Check_return_ bool Present(_In_ const Semaphore &waitSemaphore, _In_ const Swapchain &swapchain, _In_ uint32 image);
 		/* Starts a debug label with a specific name and color (only active on debug). */
 		void BeginLabel(_In_ const string &name, _In_ Color color);
 		/* End a the last added debug label (only active on debug). */

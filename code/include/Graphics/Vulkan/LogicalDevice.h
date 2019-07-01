@@ -160,6 +160,7 @@ namespace Pu
 		PFN_vkCreateQueryPool vkCreateQueryPool;
 		PFN_vkDestroyQueryPool vkDestroyQueryPool;
 		PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
+		PFN_vkQueueWaitIdle vkQueueWaitIdle;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
 

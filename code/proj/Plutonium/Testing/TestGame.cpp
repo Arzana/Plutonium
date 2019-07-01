@@ -9,7 +9,7 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 2560.0f, 1440.0f, 2)
+	: Application(L"TestGame", 1280.0f, 720.0f, 2), remarkDepthBuffer(false)
 {
 	GetInput().AnyKeyDown += [this](const InputDevice &sender, const ButtonEventArgs args)
 	{
@@ -54,6 +54,8 @@ TestGame::TestGame(void)
 
 void TestGame::Initialize(void)
 {
+	newMode = GetWindow().GetNative().GetWindowMode();
+
 	/* Make sure that the cursor is hiden and locked if the window is focused. */
 	GetWindow().GetNative().OnGainedFocus += [](const NativeWindow &sender)
 	{
@@ -74,41 +76,32 @@ void TestGame::Initialize(void)
 
 	/* Setup and load the renderpass. */
 	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" } });
-	renderpass->PreCreate += [this](Renderpass&)
-	{
-		Subpass &subpass = renderpass->GetSubpass(0);
-		
-		subpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
-		subpass.AddDepthStencil().SetDescription(*depthBuffer);
-
-		subpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-		subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
-		subpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
-		subpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
-	};
-
-	/* Setup the graphics pipeline and the descriptors. */
-	renderpass->PostCreate += [this](Renderpass&)
-	{
-		/* Create the descirptor pool and uniforms. */
-		descriptorPool = new DescriptorPool(*renderpass, 2);
-		material = new MonsterMaterial(renderpass->GetSubpass(0), *descriptorPool);
-		transform = new TransformBlock(renderpass->GetSubpass(0), *descriptorPool);
-
-		pipeline = new GraphicsPipeline(*renderpass, 0);
-		pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
-		pipeline->SetTopology(PrimitiveTopology::TriangleList);
-		pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-		pipeline->AddVertexBinding<SkinnedAnimated>(0);
-
-		GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
-		pipeline->Finalize();
-	};
+	renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
+	renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 
 	/* Make sure the framebuffers are re-created of the window resizes. */
 	GetWindow().SwapchainRecreated += [this](const GameWindow&)
 	{
-		GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
+		*depthBuffer = DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
+
+		if (renderpass->IsLoaded())
+		{
+			delete pipeline;
+			delete material;
+			delete transform;
+			delete descriptorPool;
+			GetContent().Release(*renderpass);
+
+			pipeline = nullptr;
+			material = nullptr;
+			transform = nullptr;
+			descriptorPool = nullptr;
+
+			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" } });
+			renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
+			renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
+			if (renderpass->IsLoaded()) RenderpassPostCreate(*renderpass);
+		}
 	};
 }
 
@@ -159,21 +152,25 @@ void TestGame::Update(float)
 		transform->SetView(cam->GetView());
 		transform->SetCamPos(cam->GetPosition());
 	}
+
+	/* This cannot happen in the render method because it would require resources to change. */
+	if (newMode != GetWindow().GetNative().GetWindowMode())
+	{
+		remarkDepthBuffer = true;
+		GetWindow().GetNative().SetMode(newMode);
+	}
 }
 
 void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
-	if (!transform || !pipeline->IsUsable()) return;
+	/* Wait for the graphics pipeline and image to be usable. */
+	if (!image->IsUsable() || !pipeline || !pipeline->IsUsable()) return;
 
 	static bool firstRender = true;
 	if (firstRender)
 	{
-		/* Wait for the graphics pipeline to be usable. */
-		if (!image->IsUsable()) return;
 		firstRender = false;
-
-		/* Initialize the depth buffer for writing. */
-		depthBuffer->MakeWritable(cmdBuffer);
+		remarkDepthBuffer = true;
 
 		/* Copy model to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
@@ -191,13 +188,11 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		{
 			if (ImGui::BeginMenu("Settings"))
 			{
-				if (ImGui::BeginCombo("##ColorSpace", to_string(GetWindow().GetSwapchain().GetColorSpace())))
+				if (ImGui::BeginCombo("##Mode", "Window mode"))
 				{
-					for (const SurfaceFormat &format : GetWindow().GetSupportedFormats())
-					{
-						if (ImGui::Selectable(((string)format).c_str())) GetWindow().SetColorSpace(format.ColorSpace);
-					}
-
+					if (ImGui::Selectable("Windowed")) newMode = WindowMode::Windowed;
+					if (ImGui::Selectable("Borderless")) newMode = WindowMode::Borderless;
+					if (ImGui::Selectable("Fullscreen")) newMode = WindowMode::Fullscreen;
 					ImGui::EndCombo();
 				}
 
@@ -208,6 +203,13 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
 			ImGui::EndMainMenuBar();
 		}
+	}
+
+	if (remarkDepthBuffer)
+	{
+		remarkDepthBuffer = false;
+		depthBuffer->MakeWritable(cmdBuffer);
+		material->SetParameters(rawMaterial, *image);
 	}
 
 	/* Update the descriptor if needed. */
@@ -233,4 +235,34 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 
 	debugRenderer->AddBox(bb, Color::Red());
 	debugRenderer->Render(cmdBuffer, cam->GetProjection(), cam->GetView());
+}
+
+void TestGame::RenderpassPreCreate(Pu::Renderpass &)
+{
+	Subpass &subpass = renderpass->GetSubpass(0);
+
+	subpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+	subpass.AddDepthStencil().SetDescription(*depthBuffer);
+
+	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+	subpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
+	subpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
+}
+
+void TestGame::RenderpassPostCreate(Pu::Renderpass &)
+{
+	/* Create the descirptor pool and uniforms. */
+	descriptorPool = new DescriptorPool(*renderpass, 2);
+	material = new MonsterMaterial(renderpass->GetSubpass(0), *descriptorPool);
+	transform = new TransformBlock(renderpass->GetSubpass(0), *descriptorPool);
+
+	pipeline = new GraphicsPipeline(*renderpass, 0);
+	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
+	pipeline->SetTopology(PrimitiveTopology::TriangleList);
+	pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
+	pipeline->AddVertexBinding<SkinnedAnimated>(0);
+
+	GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
+	pipeline->Finalize();
 }

@@ -110,6 +110,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkGetDeviceQueue);
 	LOAD_DEVICE_PROC(vkQueueSubmit);
 	LOAD_DEVICE_PROC(vkDeviceWaitIdle);
+	LOAD_DEVICE_PROC(vkQueueWaitIdle);
 
 	/* Swapchain related functions. */
 	if (parent->IsExtensionSupported(u8"VK_KHR_swapchain"))

@@ -38,7 +38,7 @@ Pu::Asset & Pu::Asset::operator=(Asset && other)
 {
 	if (this != &other)
 	{
-		if (refCnt > 0) Log::Warning("Overriding referenced asset '%zu'!", hash);
+		if (allowDuplication && loadedViaLoader && refCnt > 0) Log::Warning("Overriding referenced asset '%zu'!", hash);
 
 		refCnt = other.refCnt;
 		hash = other.hash;

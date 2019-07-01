@@ -27,8 +27,10 @@ protected:
 	virtual void Render(float dt, Pu::CommandBuffer &cmdBuffer);
 
 private: 
+	bool remarkDepthBuffer;
 	Pu::FreeCamera *cam;
 	Pu::DebugRenderer *debugRenderer;
+	Pu::WindowMode newMode;
 
 	Pu::Renderpass *renderpass;
 	Pu::GraphicsPipeline *pipeline;
@@ -44,4 +46,7 @@ private:
 	TransformBlock *transform;
 	MonsterMaterial *material;
 	Pu::PumMaterial rawMaterial;
+
+	void RenderpassPreCreate(Pu::Renderpass&);
+	void RenderpassPostCreate(Pu::Renderpass&);
 };

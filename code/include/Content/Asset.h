@@ -100,7 +100,7 @@ namespace Pu
 		{
 			if (allowDuplication) return static_cast<asset_t&>(Duplicate(cache));
 
-			Log::Error("Asset '%zu' denied being copied!", hash);
+			Log::Error("Asset '%zu' (%s) denied being copied!", hash, typeid(asset_t).name());
 			return static_cast<asset_t&>(*this);
 		}
 	};

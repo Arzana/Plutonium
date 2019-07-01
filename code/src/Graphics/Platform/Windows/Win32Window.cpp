@@ -5,12 +5,12 @@
 #include <imgui/include/imgui.h>
 #include <imgui/include/imgui_impl_win32.h>
 
+#define WS_WINDOWED		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU
+#define WS_BORDERLESS	WS_OVERLAPPED | WS_MAXIMIZE
+
 static Pu::vector<Pu::Win32Window*> activeWindows;
 
 IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-constexpr DWORD STYLE_WINDOWED = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
-constexpr DWORD STYLE_BORDERLESS_WINDOWED = WS_POPUP | WS_MAXIMIZE;
 
 static constexpr int GetLowWord(LPARAM lParam)
 {
@@ -58,7 +58,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 	/*
 	Create new window, we can only start with a windowed window as all other windows call messages that we can't handle set i.e. resize, move.
 	*/
-	hndl = CreateWindow(title.c_str(), title.c_str(), STYLE_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
+	hndl = CreateWindow(title.c_str(), title.c_str(), WS_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
 	if (!hndl) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
 	if constexpr (ImGuiAvailable)
@@ -160,26 +160,14 @@ void Pu::Win32Window::SetMode(WindowMode newMode)
 	/* Only reset the mode if it's actually different. */
 	if (newMode != mode)
 	{
-		/* Set the last error to NO_ERROR because if the previous window size was 0 (which is not possible) it would return an error code. */
-		SetLastError(NO_ERROR);
-		LONG result = 0;
-
-		/* Set new mode. */
-		switch (mode = newMode)
+		/* Set the new mode. */
+		if ((mode = newMode) == WindowMode::Windowed) SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
+		else
 		{
-		case Pu::WindowMode::Windowed:
-			result = SetWindowLong(hndl, GWL_STYLE, STYLE_WINDOWED);
-			break;
-		case Pu::WindowMode::Fullscreen:
-			Log::Verbose("Fullscreen is handled as Borderless on Windows platforms.");
-		case Pu::WindowMode::Borderless:
-			result = SetWindowLong(hndl, GWL_STYLE, STYLE_BORDERLESS_WINDOWED);
+			/* Fullscreen mode and borderless are basically the same on Windows. */
+			SetWindowLong(hndl, GWL_STYLE, WS_BORDERLESS);
 			ShowWindow(hndl, SW_SHOWMAXIMIZED);
-			break;
 		}
-
-		/* Log error if failed. */
-		if (!result) Log::Error("Unable to set new window mode, reason: '%ls'!", _CrtGetErrorString().c_str());
 	}
 }
 
@@ -187,9 +175,6 @@ bool Pu::Win32Window::Update(void)
 {
 	/* Reset the suppress render. */
 	shouldSuppressRender = false;
-
-	/* Call WM_PAINT for window. */
-	if (!UpdateWindow(hndl)) Log::Warning("Win32 window update has failed!");
 
 	/* Query all messages. */
 	MSG message;
@@ -253,9 +238,9 @@ void Pu::Win32Window::Resize(int w, int h)
 
 void Pu::Win32Window::UpdateClientArea(void)
 {
-	if (SetWindowPos(hndl, HWND_TOP, ipart(pos.X), ipart(pos.Y), ipart(vp.Width), ipart(vp.Height), 0))
+	if (!SetWindowPos(hndl, HWND_TOPMOST, ipart(pos.X), ipart(pos.Y), ipart(vp.Width), ipart(vp.Height), 0))
 	{
-		Log::Warning("Win32 window client area update failed!");
+		Log::Warning("Win32 window client area update failed, reason: '%ls'!", _CrtGetErrorString().c_str());
 	}
 }
 

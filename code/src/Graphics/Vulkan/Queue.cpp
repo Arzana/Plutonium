@@ -27,6 +27,11 @@ Queue & Pu::Queue::operator=(Queue && other)
 	return *this;
 }
 
+void Pu::Queue::WaitIdle(void) const
+{
+	VK_VALIDATE(parent->vkQueueWaitIdle(hndl), PFN_vkQueueWaitIdle);
+}
+
 void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 {
 	const PipelineStageFlag mask = PipelineStageFlag::Transfer;
@@ -58,7 +63,7 @@ void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandB
 	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
-void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapchain, uint32 image)
+bool Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapchain, uint32 image)
 {
 	/* Create present information. */
 	PresentInfo info(1, &swapchain.hndl, &image);
@@ -66,7 +71,9 @@ void Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	info.WaitSemaphores = &waitSemaphore.hndl;
 
 	/* Present image. */
-	VK_VALIDATE(parent->vkQueuePresentKHR(hndl, &info), PFN_vkQueuePresentKHR);
+	const VkApiResult result = parent->vkQueuePresentKHR(hndl, &info);
+	VK_VALIDATE(result, PFN_vkQueuePresentKHR);
+	return result == VkApiResult::Success;
 }
 
 void Pu::Queue::BeginLabel(const string & name, Color color)

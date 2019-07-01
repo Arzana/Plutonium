@@ -14,7 +14,7 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 	renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
-	window.SwapchainRecreated.Add(*this, &DebugRenderer::CreateFramebuffers);
+	window.SwapchainRecreated.Add(*this, &DebugRenderer::SwapchainRecreated);
 
 	/* We might need to manually initialize the pipeline because the renderpass might already be loaded. */
 	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
@@ -104,37 +104,43 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 
 void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view)
 {
-	/* Only render if the pipeline is loaded. */
-	if (pipeline->IsUsable() && size)
+	/* Make sure we cannot access garbage memory. */
+	if (pipeline)
 	{
-		cmdBuffer.AddLabel("Debug Renderer", Color::CodGray());
+		/* Only render if the pipeline is loaded. */
+		if (pipeline->IsUsable() && size)
+		{
+			cmdBuffer.AddLabel("Debug Renderer", Color::CodGray());
 
-		/* Update the dynamic buffer. */
-		buffer->BeginMemoryTransfer();
-		memcpy(buffer->GetHostMemory(), queue, sizeof(ColoredVertex3D) * size);
-		buffer->EndMemoryTransfer();
-		buffer->Update(cmdBuffer);
+			/* Update the dynamic buffer. */
+			buffer->BeginMemoryTransfer();
+			memcpy(buffer->GetHostMemory(), queue, sizeof(ColoredVertex3D) * size);
+			buffer->EndMemoryTransfer();
+			buffer->Update(cmdBuffer);
 
-		/* Update the descriptor. */
-		uniforms->SetProjection(projection);
-		uniforms->SetView(view);
-		uniforms->Update(cmdBuffer);
+			/* Update the descriptor. */
+			uniforms->SetProjection(projection);
+			uniforms->SetView(view);
+			uniforms->Update(cmdBuffer);
 
-		/* Begin the renderpass. */
-		cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-		cmdBuffer.BindGraphicsPipeline(*pipeline);
-		if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
+			/* Begin the renderpass. */
+			cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
+			cmdBuffer.BindGraphicsPipeline(*pipeline);
+			if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
 
-		/* Render the debug lines. */
-		cmdBuffer.BindGraphicsDescriptor(*uniforms);
-		cmdBuffer.BindVertexBuffer(0, *bufferView);
-		cmdBuffer.Draw(size, 1, 0, 0);
+			/* Render the debug lines. */
+			cmdBuffer.BindGraphicsDescriptor(*uniforms);
+			cmdBuffer.BindVertexBuffer(0, *bufferView);
+			cmdBuffer.Draw(size, 1, 0, 0);
 
-		/* End the renderpass. */
-		cmdBuffer.EndRenderPass();
-		cmdBuffer.EndLabel();
-		size = 0;
+			/* End the renderpass. */
+			cmdBuffer.EndRenderPass();
+			cmdBuffer.EndLabel();
+		}
 	}
+
+	/* Always clear the buffer to make sure that we don't get shapes from previous calls in one draw batch. */
+	size = 0;
 }
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)
@@ -189,14 +195,33 @@ void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 		pipeline->AddDynamicState(DynamicState::LineWidth);
 	}
 
-	/* Create the first framebuffers and finalize the pipeline. */
-	CreateFramebuffers(wnd);
+	/*
+	Create the first framebuffers and finalize the pipeline.
+	Only add the depth buffer to the frame buffers if needed.
+	*/
+	if (depthBuffer) wnd.CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
+	else wnd.CreateFrameBuffers(*renderpass);
 	pipeline->Finalize();
 }
 
-void Pu::DebugRenderer::CreateFramebuffers(const GameWindow &)
+void Pu::DebugRenderer::SwapchainRecreated(const GameWindow &)
 {
-	/* Only add the depth buffer to the frame buffers if needed. */
-	if (depthBuffer) wnd.CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
-	else wnd.CreateFrameBuffers(*renderpass);
+	if (renderpass->IsLoaded())
+	{
+		/* Release all the resources that work with the renderpass. */
+		delete pipeline;
+		delete uniforms;
+		delete descriptorPool;
+		loader.Release(*renderpass);
+
+		pipeline = nullptr;
+		uniforms = nullptr;
+		descriptorPool = nullptr;
+
+		/* Reload the renderpass. */
+		renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
+		renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
+		renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
+		if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
+	}
 }

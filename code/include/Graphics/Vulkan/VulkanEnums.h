@@ -1606,6 +1606,10 @@ namespace Pu
 			raise = false;
 			code = "Suboptimal swapchain";
 			break;
+		case Pu::VkApiResult::OutOfDateKhr:
+			raise = false;
+			code = "Out of date";
+			break;
 		case Pu::VkApiResult::HostOutOfMemory:
 			code = "Host out of memory";
 			break;
@@ -1653,9 +1657,6 @@ namespace Pu
 			break;
 		case Pu::VkApiResult::NativeWindowInUseKhr:
 			code = "Native window in use";
-			break;
-		case Pu::VkApiResult::OutOfDateKhr:
-			code = "Out of date";
 			break;
 		case Pu::VkApiResult::IncompatibleDisplayKhr:
 			code = "Incompatible display";
