@@ -22,11 +22,10 @@ layout (location = 0) in vec2 Uv;
 layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec3 Position;
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec4 L0;
 
 vec3 FresnelSchlick(in vec3 f0, in vec3 v, in vec3 h)
 {
-	// First 1.0f is the enviroment color (we have no map so it's just white for now).
 	return f0 + (1.0f - f0) * pow(1.0f - dot(v, h), 5);
 }
 
@@ -44,29 +43,34 @@ float TrowbridgeReitz(in vec3 n, in vec3 h, in float a)
 {
 	const float a2 = a * a;
 	const float ndh = dot(n, h);
+	const float f = (ndh * a2 - ndh) * ndh + 1.0f;
+	return a2 / (PI * f * f);
+}
 
-	return a2 / (PI * pow((ndh * a2 - ndh) * ndh + 1.0f, 2.0f));
+vec3 diffuse()
+{
+	const vec3 base = texture(Diffuse, Uv).rgb * DiffuseFactor;
+	const float iSpec = 1.0f - max(max(F0.r, F0.b), F0.g);
+	return base * iSpec / PI;
 }
 
 void main()
 {
 	// Constants. 
-	const vec3 diffuse = (texture(Diffuse, Uv).rgb * DiffuseFactor) / PI;
-	const float a = pow(1.0f - Glossiness, 2);		// Glossiness
-	const vec3 v = normalize(CamPos - Position);	// View direction
-	const vec3 l = -vec3(0.7f, 0.7f, 0.0f);			// Light direction
-	const vec3 h = normalize(l + v);				// Halfway vector
+	const float a = pow(1.0f - Glossiness, 2);			// Glossiness
+	const vec3 v = normalize(CamPos - Position);		// View direction
+	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));	// Light direction
+	const vec3 h = normalize(l + v);					// Halfway vector
 
-	// BRDF.
-	const float d = TrowbridgeReitz(Normal, h, a);	// Microfacet
-	const float g = GGX(Normal, l, v, a);			// Geomerty occlusion
-	const vec3 f = FresnelSchlick(F0, v, h);		// Fresnel
+	// BRDF (Cook-Torrance).
+	const float d = TrowbridgeReitz(Normal, h, a);		// Microfacet
+	const float g = GGX(Normal, l, v, a);				// Geomerty occlusion
+	const vec3 f = FresnelSchlick(F0, v, h);			// Fresnel
 	
-	// Diffuse and specular factors (with a fake ambient).
+	// Diffuse and specular factors.
 	const vec3 fs = f * g * d;
-	const vec3 fd = (1.0f - f) * diffuse;
-	const vec3 fa = 0.3f * diffuse;
+	const vec3 fd = (1.0f - f) * diffuse();
 
 	// Output color.
-	FragColor = vec4(dot(Normal, l) * (fa + fd + fs), 1.0f);
+	L0 = vec4(max(0.0f, dot(Normal, l)) * (fd + fs), 1.0f);
 }

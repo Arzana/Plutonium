@@ -54,7 +54,7 @@ namespace Pu
 		}
 
 		/* Gets the aspect ratio of the window. */
-		_Check_return_ inline bool GetAspectRatio(void) const
+		_Check_return_ inline float GetAspectRatio(void) const
 		{
 			const Viewport &vp = GetClientBounds();
 			return vp.Width / vp.Height;

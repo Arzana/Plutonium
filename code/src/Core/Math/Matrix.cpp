@@ -129,9 +129,8 @@ Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float fa
 		If the frustum is symetric (like with a perspective camera) we can use the formula.
 		Then we can solve a bit further so we don't have to multiply and divide with near for a and b.
 	*/
-	const float t = tanf(fovY * 0.5f);
-	const float a = 1.0f / (aspr * t);
-	const float f = 1.0f / t;
+	const float f = 1.0f / tanf(fovY * 0.5f);
+	const float a = f / aspr;
 	const float k = (far + near) / (far - near);
 	const float l = -(2.0f * far * near) / (far - near);
 

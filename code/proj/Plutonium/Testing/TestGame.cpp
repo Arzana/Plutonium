@@ -241,7 +241,7 @@ void TestGame::RenderpassPreCreate(Pu::Renderpass &)
 {
 	Subpass &subpass = renderpass->GetSubpass(0);
 
-	subpass.GetOutput("FragColor").SetDescription(GetWindow().GetSwapchain());
+	subpass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	subpass.AddDepthStencil().SetDescription(*depthBuffer);
 
 	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
