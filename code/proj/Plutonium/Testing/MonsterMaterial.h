@@ -12,14 +12,19 @@ public:
 		albedoDescriptor(subpass.GetDescriptor("Diffuse"))
 	{}
 
-	inline void SetParameters(const Pu::PumMaterial &material, const Pu::Texture2D &albedo)
+	inline void SetParameters(float glossiness, Pu::Vector3 specular, Pu::Vector3 diffuse, const Pu::Texture2D &diffuseMap)
 	{
-		glossiness = material.Glossiness;
-		specular = material.SpecularFactor.ToVector4().XYZ;
-		diffuse = material.DiffuseFactor.ToVector4().XYZ;
+		this->glossiness = glossiness;
+		this->specular = specular;
+		this->diffuse = diffuse;
 		IsDirty = true;
 
-		Write(albedoDescriptor, albedo);
+		Write(albedoDescriptor, diffuseMap);
+	}
+
+	inline void SetParameters(const Pu::PumMaterial &material, const Pu::Texture2D &albedo)
+	{
+		SetParameters(material.Glossiness, material.SpecularFactor.ToVector3(), material.DiffuseFactor.ToVector3(), albedo);
 	}
 
 protected:

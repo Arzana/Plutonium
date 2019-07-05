@@ -71,11 +71,12 @@ void TestGame::Initialize(void)
 
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
-	queryPool = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
+	timestamps = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
+	occlusion = new QueryPool(GetDevice(), QueryType::Occlusion, 1);
 	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
 	/* Setup and load the renderpass. */
-	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" } });
+	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 	renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 
@@ -97,7 +98,7 @@ void TestGame::Initialize(void)
 			transform = nullptr;
 			descriptorPool = nullptr;
 
-			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}SkinnedAnimated.frag.spv" } });
+			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 			renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 			renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 			if (renderpass->IsLoaded()) RenderpassPostCreate(*renderpass);
@@ -139,7 +140,8 @@ void TestGame::Finalize(void)
 	delete pipeline;
 	delete debugRenderer;
 	delete depthBuffer;
-	delete queryPool;
+	delete timestamps;
+	delete occlusion;
 
 	GetContent().Release(*renderpass);
 }
@@ -199,8 +201,9 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 				ImGui::EndMenu();
 			}
 
-			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), queryPool->GetTimeDelta(0, false) * 0.000001f);
+			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, false) * 0.000001f);
 			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
+			ImGui::Text("Fragments passed: %u", occlusion->GetOcclusion(0, true));
 			ImGui::EndMainMenuBar();
 		}
 	}
@@ -217,18 +220,20 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	material->Update(cmdBuffer);
 
 	/* Timestamps. */
-	cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queryPool, 0);
-	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queryPool, 1);
+	cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *timestamps, 0);
+	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *timestamps, 1);
 
 	/* Render scene. */
 	cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
+	cmdBuffer.BeginOcclusionQuery(*occlusion, 0);
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
 	mesh.Bind(cmdBuffer, 0);
 	mesh.Draw(cmdBuffer);
+	cmdBuffer.EndQuery(*occlusion, 0);
 	cmdBuffer.EndLabel();
 
 	cmdBuffer.EndRenderPass();

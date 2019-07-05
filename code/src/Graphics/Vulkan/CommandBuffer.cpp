@@ -281,6 +281,16 @@ void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool
 	if (CheckIfRecording("write timestamp")) device->vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
 }
 
+void Pu::CommandBuffer::BeginOcclusionQuery(QueryPool & pool, uint32 queryIndex, QueryControlFlag flags)
+{
+	if (CheckIfRecording("begin occlusion query")) device->vkCmdBeginQuery(hndl, pool.hndl, queryIndex, flags);
+}
+
+void Pu::CommandBuffer::EndQuery(QueryPool & pool, uint32 queryIndex)
+{
+	if (CheckIfRecording("end query")) device->vkCmdEndQuery(hndl, pool.hndl, queryIndex);
+}
+
 void Pu::CommandBuffer::SetViewport(const Viewport& viewport)
 {
 	if (CheckIfRecording("set viewport")) device->vkCmdSetViewport(hndl, 0, 1, &viewport);

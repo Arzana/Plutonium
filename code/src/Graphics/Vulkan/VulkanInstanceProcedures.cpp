@@ -110,6 +110,8 @@ namespace Pu
 	PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
 	PFN_vkCmdNextSubpass vkCmdNextSubpass;
 	PFN_vkQueueWaitIdle vkQueueWaitIdle;
+	PFN_vkCmdBeginQuery vkCmdBeginQuery;
+	PFN_vkCmdEndQuery vkCmdEndQuery;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -228,6 +230,8 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkCmdSetLineWidth);
 	LOAD_INSTANCE_PROC(vkCmdNextSubpass);
 	LOAD_INSTANCE_PROC(vkQueueWaitIdle);
+	LOAD_INSTANCE_PROC(vkCmdBeginQuery);
+	LOAD_INSTANCE_PROC(vkCmdEndQuery);
 
 #ifdef _WIN32
 	LOAD_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

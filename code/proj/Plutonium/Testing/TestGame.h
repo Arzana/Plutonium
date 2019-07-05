@@ -39,13 +39,14 @@ private:
 	Pu::StagingBuffer *vrtxStagingBuffer;
 	Pu::Texture2D *image;
 	Pu::Mesh mesh;
-	Pu::AABB bb;
-	Pu::QueryPool *queryPool;
+	Pu::QueryPool *timestamps;
+	Pu::QueryPool *occlusion;
 
+	Pu::PumMaterial rawMaterial;
+	Pu::AABB bb;
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
 	MonsterMaterial *material;
-	Pu::PumMaterial rawMaterial;
 
 	void RenderpassPreCreate(Pu::Renderpass&);
 	void RenderpassPostCreate(Pu::Renderpass&);

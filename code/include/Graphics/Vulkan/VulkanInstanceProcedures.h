@@ -116,6 +116,8 @@ namespace Pu
 	extern PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
 	extern PFN_vkCmdNextSubpass vkCmdNextSubpass;
 	extern PFN_vkQueueWaitIdle vkQueueWaitIdle;
+	extern PFN_vkCmdBeginQuery vkCmdBeginQuery;
+	extern PFN_vkCmdEndQuery vkCmdEndQuery;
 
 #ifdef _WIN32
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;

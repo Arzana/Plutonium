@@ -246,7 +246,9 @@ namespace Pu
 		/* Returns a random color. */
 		_Check_return_ static Color Random(_In_opt_ byte gain = 0, _In_opt_ bool unique = true);
 
-		/* Gets the color as a four dimensional vector. */
+		/* Gets the RGB color as a three dimensional vector. */
+		_Check_return_ Vector3 ToVector3(void) const;
+		/* Gets the RGBA color as a four dimensional vector. */
 		_Check_return_ Vector4 ToVector4(void) const;
 		/* Gets the color as a four length byte array. */
 		_Check_return_ byte* ToArray(void) const;

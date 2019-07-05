@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.frag">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
       <Filter>Shaders</Filter>
     </SPIRVShader>
@@ -19,6 +16,12 @@
       <Filter>Shaders</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.frag">
       <Filter>Shaders</Filter>
     </SPIRVShader>
   </ItemGroup>

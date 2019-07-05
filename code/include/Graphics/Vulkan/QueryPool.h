@@ -25,9 +25,11 @@ namespace Pu
 		_Check_return_ QueryPool& operator =(_In_ QueryPool &&other);
 
 		/* Attempts to get the result from specific queries. */
-		vector<uint32> GetResults(_In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ bool wait, _In_ bool partial) const;
+		_Check_return_ vector<uint32> GetResults(_In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ bool wait, _In_ bool partial) const;
 		/* Gets the difference between two timesteps (in nanoseconds) from specific queries. */
-		float GetTimeDelta(_In_ uint32 firstQuery, bool wait);
+		_Check_return_ float GetTimeDelta(_In_ uint32 firstQuery, _In_ bool wait);
+		/* Gets the result of a single occlusion query. */
+		_Check_return_ uint32 GetOcclusion(_In_ uint32 queryIndex, _In_ bool wait);
 
 	private:
 		friend class CommandBuffer;

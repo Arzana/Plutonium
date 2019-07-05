@@ -63,7 +63,18 @@ float Pu::QueryPool::GetTimeDelta(uint32 firstQuery, bool wait)
 
 	/* Only return if we could get the timestamps, otherwise just return zero. */
 	if (result == VkApiResult::NotReady) return 0.0f;
-	else return (timestamps[1] - timestamps[0]) * period;
+	return (timestamps[1] - timestamps[0]) * period;
+}
+
+Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait)
+{
+	/* Gets the total amount of fragments passed. */
+	uint32 fragments;
+	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, queryIndex, 1, sizeof(uint32), &fragments, sizeof(uint32), wait ? QueryResultFlag::Wait : QueryResultFlag::None);
+
+	/* if the query was not done yet; just return zero. */
+	if (result == VkApiResult::NotReady) return 0;
+	return fragments;
 }
 
 void Pu::QueryPool::Destroy(void)

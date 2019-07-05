@@ -618,6 +618,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -898,6 +904,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp">
+      <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

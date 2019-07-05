@@ -152,6 +152,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
@@ -280,6 +282,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />

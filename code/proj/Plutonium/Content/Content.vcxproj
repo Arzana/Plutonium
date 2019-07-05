@@ -7,8 +7,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
   </ItemGroup>

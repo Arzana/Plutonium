@@ -82,6 +82,11 @@ Color Pu::Color::operator*(Color other) const
 	return Color(result.X, result.Y, result.Z, result.W);
 }
 
+Vector3 Pu::Color::ToVector3(void) const
+{
+	return Vector3(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD);
+}
+
 Vector4 Pu::Color::ToVector4(void) const
 {
 	return Vector4(R * CONV_MOD, G * CONV_MOD, B * CONV_MOD, A * CONV_MOD);

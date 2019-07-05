@@ -97,6 +97,10 @@ namespace Pu
 		void EndLabel(void);
 		/* Writes a timestamp at a specific point in the pipeline to the specific query. */
 		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
+		/* Starts an occlusion query. */
+		void BeginOcclusionQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex, _In_opt_ QueryControlFlag flags = QueryControlFlag::None);
+		/* Ends a query. */
+		void EndQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex);
 		/* Sets the viewport information for a graphics pipeline with dynamic state viewports. */
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */
