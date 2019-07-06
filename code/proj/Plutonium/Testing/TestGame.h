@@ -42,8 +42,9 @@ private:
 	Pu::QueryPool *timestamps;
 	Pu::QueryPool *occlusion;
 
-	Pu::PumMaterial rawMaterial;
 	Pu::AABB bb;
+	Pu::PumMaterial rawMaterial;
+	Pu::Matrix mdl;
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
 	MonsterMaterial *material;

@@ -9,7 +9,7 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 1280.0f, 720.0f, 2), remarkDepthBuffer(false)
+	: Application(L"TestGame", 1280.0f, 720.0f, 2), remarkDepthBuffer(true)
 {
 	GetInput().AnyKeyDown += [this](const InputDevice &sender, const ButtonEventArgs args)
 	{
@@ -146,12 +146,17 @@ void TestGame::Finalize(void)
 	GetContent().Release(*renderpass);
 }
 
-void TestGame::Update(float)
+void TestGame::Update(float dt)
 {
 	if (transform)
 	{
+		static float theta = 0.0f;
+		theta = modrads(theta + dt);
+		mdl = Matrix::CreateYaw(theta);
+
 		transform->SetProjection(cam->GetProjection());
 		transform->SetView(cam->GetView());
+		transform->SetModel(mdl);
 		transform->SetCamPos(cam->GetPosition());
 	}
 
@@ -172,7 +177,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	if (firstRender)
 	{
 		firstRender = false;
-		remarkDepthBuffer = true;
 
 		/* Copy model to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
@@ -238,7 +242,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 
 	cmdBuffer.EndRenderPass();
 
-	debugRenderer->AddBox(bb, Color::Red());
+	debugRenderer->AddBox(bb, mdl, Color::Red());
 	debugRenderer->Render(cmdBuffer, cam->GetProjection(), cam->GetView());
 }
 

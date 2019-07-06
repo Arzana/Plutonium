@@ -26,7 +26,7 @@ namespace Pu
 		/* Transforms the specified vector by the matrix (threats it as a point). */
 		_Check_return_ inline Vector3 operator *(_In_ Vector3 v) const
 		{
-			return v.X * GetRight() + v.Y * GetUp() + v.Z * GetBackward() + GetTranslation();
+			return v.X * c1.XYZ + v.Y * c2.XYZ + v.Z * c3.XYZ + c4.XYZ;
 		}
 
 		/* Transforms the specified vector by the matrix. */
