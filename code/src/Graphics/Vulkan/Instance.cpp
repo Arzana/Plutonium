@@ -314,13 +314,8 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 		This issue has been noted to the makers of the validation layer in this issue and is fixed in release 1.1.106.0 (it isn't), 
 		this is however not yet available in the latest Vulkan SDK, we when it comes out check can be removed.
 		https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/825
-
-		There is another bug in the Vulkan validation layer that doesn't allow me to set the line width at all.
-		It doesn't set the physical device features properly which makes a check think that a feature is never enabled.
-
 		*/
-		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated") &&
-			strcmp(data->MessageIdName, "VUID-VkGraphicsPipelineCreateInfo-pDynamicStates-00749"))
+		if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-DescriptorSetNotUpdated"))
 		{
 			if constexpr (VulkanRaiseOnError) Log::Fatal(data->Message);
 			else Log::Error(data->Message);
@@ -335,9 +330,7 @@ void Pu::VulkanInstance::SetUpDebugLayer(void)
 {
 	/* Only add the verbose and info messages if needed. */
 	DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
-#ifdef _DEBUG
 	if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Verbose);
-#endif
 	if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Info);
 
 	VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);

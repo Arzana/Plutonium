@@ -149,8 +149,16 @@ void Pu::Application::InitializeVulkan(void)
 		DeviceQueueCreateInfo(transferQueueFamily, 1, PRIORITIES)
 	};
 
+	/* 
+	Logical operations are often used in the pipelines.
+	Wide lines are used in the debug renderer for optimal debug rendering.
+	*/
+	PhysicalDeviceFeatures features;
+	features.LogicOp = true;
+	features.WideLines = true;
+
 	/* Create logical device. */
-	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS);
+	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
 	device = physicalDevice.CreateLogicalDevice(&deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 }
