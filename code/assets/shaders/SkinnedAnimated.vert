@@ -24,8 +24,11 @@ layout (location = 2) out vec3 WorldPos;
 
 void main()
 {
-	gl_Position = Projection * View * Model * vec4(Position, 1.0f);
+	const vec4 localPos = Model * vec4(Position, 1.0f);
+	WorldPos = localPos.xyz;
+
 	Uv = TexCoord;
 	VertexNormal = Normal;
-	WorldPos = Position;
+	
+	gl_Position = Projection * View * localPos;
 }

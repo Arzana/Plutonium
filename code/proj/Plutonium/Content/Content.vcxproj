@@ -20,11 +20,7 @@
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Monster\Monster.gltf" />
     <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2" />
-  </ItemGroup>
-  <ItemGroup>
-    <PuModel Include="..\..\..\assets\models\Sponza\sponza.obj">
-      <FileType>Document</FileType>
-    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Sponza\sponza.obj"/>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -33,19 +29,22 @@
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\assets\</OutDir>
+    <ExtensionsToDeleteOnClean>*.spv;*.pum;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
+    <BuildLog>
+      <Path>$(IntDir)$(MSBuildProjectName).log</Path>
+    </BuildLog>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\..\..\targets\spv.targets" />
   <Import Project="..\..\..\targets\pum.targets" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>$(SolutionDir)..\..\tmp\$(ProjectName)_$(PlatformTarget)_$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\assets\</OutDir>
-    <ExtensionsToDeleteOnClean>*.spv;*.pum;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
-  </PropertyGroup>
 </Project>
