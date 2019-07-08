@@ -31,8 +31,8 @@ protected:
 	virtual inline void Stage(Pu::byte *dest) override
 	{
 		Copy(dest, &specular);
-		Copy(dest + sizeof(Pu::Vector3), &diffuse);
-		Copy(dest + sizeof(Pu::Vector3) + sizeof(Pu::Vector3), &glossiness);
+		Copy(dest + sizeof(Pu::Vector4), &diffuse);
+		Copy(dest + (sizeof(Pu::Vector4) << 1), &glossiness);
 	}
 
 private:

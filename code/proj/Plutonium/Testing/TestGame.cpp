@@ -1,10 +1,10 @@
 #include "TestGame.h"
 #include <Input/Keys.h>
-#include <Graphics/VertexLayouts/SkinnedAnimated.h>
+#include <Graphics/VertexLayouts/Basic3D.h>
 #include <Graphics/Textures/DepthBuffer.h>
+#include <Graphics/Models/ShapeCreator.h>
 #include <Core/Diagnostics/CPU.h>
 #include <imgui.h>
-#include <Streams/FileReader.h>
 
 using namespace Pu;
 
@@ -75,7 +75,7 @@ void TestGame::Initialize(void)
 	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
 	/* Setup and load the renderpass. */
-	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 	renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 
@@ -97,7 +97,7 @@ void TestGame::Initialize(void)
 			transform = nullptr;
 			descriptorPool = nullptr;
 
-			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}SkinnedAnimated.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 			renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 			renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 			if (renderpass->IsLoaded()) RenderpassPostCreate(*renderpass);
@@ -107,20 +107,12 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	FileReader file(L"assets/Models/Monster.pum");
-	const string raw = file.ReadToEnd();
-	BinaryReader reader(raw.data(), raw.length(), Endian::Little);
+	vrtxBuffer = new Buffer(GetDevice(), ShapeCreator::GetPlaneBufferSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
 
-	PuMData pum(GetDevice(), reader);
-	PumMesh &geometry = pum.Geometry.front();
-	rawMaterial = pum.Materials[geometry.Material];
-
-	vrtxBuffer = new Buffer(GetDevice(), pum.Buffer->GetSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
-	vrtxStagingBuffer = pum.Buffer;
-
-	mesh = Mesh(*vrtxBuffer, geometry);
-	bb = geometry.Bounds;
-	image = &GetContent().FetchTexture2D(pum.Textures[rawMaterial.DiffuseTexture].Path.toWide(), pum.Textures[rawMaterial.DiffuseTexture].GetSamplerCreateInfo(), false);
+	mesh = ShapeCreator::Plane(*vrtxStagingBuffer, *vrtxBuffer);
+	bb = AABB(-1.0f, -1.0f, 0.0f, 2.0f, 2.0f, 0.0f);
+	image = &GetContent().FetchTexture2D(L"{Textures}uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToBorder), false);
 }
 
 void TestGame::UnLoadContent(void)
@@ -210,7 +202,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	{
 		remarkDepthBuffer = false;
 		depthBuffer->MakeWritable(cmdBuffer);
-		material->SetParameters(rawMaterial, *image);
+		material->SetParameters(0.0f, Vector3(0.0f), Vector3(1.0f), *image);
 	}
 
 	/* Update the descriptor if needed. */
@@ -225,7 +217,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
-	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
+	cmdBuffer.AddLabel(u8"Plane", Color::Lime());
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
 	mesh.Bind(cmdBuffer, 0);
@@ -245,10 +237,8 @@ void TestGame::RenderpassPreCreate(Pu::Renderpass &)
 	subpass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	subpass.AddDepthStencil().SetDescription(*depthBuffer);
 
-	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
-	subpass.GetAttribute("Joints").SetOffset(vkoffsetof(SkinnedAnimated, Joints));
-	subpass.GetAttribute("Weights").SetOffset(vkoffsetof(SkinnedAnimated, Weights));
+	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
 }
 
 void TestGame::RenderpassPostCreate(Pu::Renderpass &)
@@ -262,7 +252,7 @@ void TestGame::RenderpassPostCreate(Pu::Renderpass &)
 	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	pipeline->SetTopology(PrimitiveTopology::TriangleList);
 	pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	pipeline->AddVertexBinding<SkinnedAnimated>(0);
+	pipeline->AddVertexBinding<Basic3D>(0);
 
 	GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
 	pipeline->Finalize();

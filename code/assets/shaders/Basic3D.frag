@@ -11,6 +11,7 @@ layout (binding = 1, set = 0) uniform Globals
 
 layout (binding = 0, set = 1) uniform sampler2D Diffuse;
 
+// We could store the glossiness in the diffuse factor to save 4 bytes due to allignment.
 layout (binding = 1, set = 1) uniform Material
 {
 	vec3 F0;

@@ -42,7 +42,6 @@ private:
 	Pu::QueryPool *timestamps;
 
 	Pu::AABB bb;
-	Pu::PumMaterial rawMaterial;
 	Pu::Matrix mdl;
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
