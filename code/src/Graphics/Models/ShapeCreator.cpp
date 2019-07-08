@@ -10,38 +10,35 @@ size_t Pu::ShapeCreator::GetPlaneBufferSize(void)
 	return 4 * sizeof(Basic3D) + 6 * sizeof(uint16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, Buffer & dst, float width, float height)
+Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, Buffer & dst)
 {
 	/* Begin the memory transfer operation. */
 	if (CheckSrcBuffer(src, GetPlaneBufferSize())) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
-	width *= 0.5f;
-	height *= 0.5f;
-
 	/* Top Left. */
-	vertices->Position = Vector3(-width, height, 0.0f);
+	vertices->Position = Vector3(-1.0f, 1.0f, 0.0f);
+	vertices->Normal = Vector3::Forward();
+	vertices->TexCoord = Vector2(0.0f);
+	++vertices;
+
+	/* Bottom left. */
+	vertices->Position = Vector3(-1.0f, -1.0f, 0.0f);
+	vertices->Normal = Vector3::Forward();
+	vertices->TexCoord = Vector2(0.0f, 1.0f);
+	++vertices;
+
+	/* Bottom Right. */
+	vertices->Position = Vector3(1.0f, -1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
 	vertices->TexCoord = Vector2(1.0f);
 	++vertices;
 
-	/* Bottom left. */
-	vertices->Position = Vector3(-width, -height, 0.0f);
+	/* Top Right. */
+	vertices->Position = Vector3(1.0f, 1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
 	vertices->TexCoord = Vector2(1.0f, 0.0f);
-	++vertices;
-
-	/* Bottom Right. */
-	vertices->Position = Vector3(width, -height, 0.0f);
-	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2();
-	++vertices;
-
-	/* Top Right. */
-	vertices->Position = Vector3(width, height, 0.0f);
-	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2(0.0f, 1.0f);
 	++vertices;
 
 	/* Indices. */

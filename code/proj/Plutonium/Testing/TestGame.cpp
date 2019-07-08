@@ -72,7 +72,6 @@ void TestGame::Initialize(void)
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 	timestamps = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
-	occlusion = new QueryPool(GetDevice(), QueryType::Occlusion, 1);
 	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
 	/* Setup and load the renderpass. */
@@ -141,7 +140,6 @@ void TestGame::Finalize(void)
 	delete debugRenderer;
 	delete depthBuffer;
 	delete timestamps;
-	delete occlusion;
 
 	GetContent().Release(*renderpass);
 }
@@ -184,9 +182,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 
 		/* Make sure the image layout is suitable for shader reads. */
 		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
-
-		/* Update the descriptor. */
-		material->SetParameters(rawMaterial, *image);
 	}
 	else	// Render ImGui
 	{
@@ -207,7 +202,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 
 			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, false) * 0.000001f);
 			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
-			ImGui::Text("Fragments passed: %u", occlusion->GetOcclusion(0, true));
 			ImGui::EndMainMenuBar();
 		}
 	}
@@ -232,12 +226,10 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
 	cmdBuffer.AddLabel(u8"Monster", Color::Lime());
-	cmdBuffer.BeginOcclusionQuery(*occlusion, 0);
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
 	mesh.Bind(cmdBuffer, 0);
 	mesh.Draw(cmdBuffer);
-	cmdBuffer.EndQuery(*occlusion, 0);
 	cmdBuffer.EndLabel();
 
 	cmdBuffer.EndRenderPass();

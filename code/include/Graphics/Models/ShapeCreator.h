@@ -17,7 +17,7 @@ namespace Pu
 		/* Gets the required buffer size (in bytes) for a plane. */
 		_Check_return_ static size_t GetPlaneBufferSize(void);
 		/* Populates the source buffer with a basic plane and returns a mesh that can view that plane in the destination buffer. */
-		_Check_return_ static Mesh Plane(_In_ Buffer &src, _In_ Buffer &dst, _In_ float width, _In_ float height);
+		_Check_return_ static Mesh Plane(_In_ Buffer &src, _In_ Buffer &dst);
 
 	private:
 		static bool CheckSrcBuffer(Buffer &buffer, size_t requiredSize);

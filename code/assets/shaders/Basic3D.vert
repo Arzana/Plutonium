@@ -26,7 +26,7 @@ void main()
 	WorldPos = localPos.xyz;
 
 	Uv = TexCoord;
-	VertexNormal = Normal;
+	VertexNormal = (Model * vec4(Normal, 0.0f)).xyz;
 	
 	gl_Position = Projection * View * localPos;
 }

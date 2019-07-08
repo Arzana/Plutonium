@@ -40,7 +40,6 @@ private:
 	Pu::Texture2D *image;
 	Pu::Mesh mesh;
 	Pu::QueryPool *timestamps;
-	Pu::QueryPool *occlusion;
 
 	Pu::AABB bb;
 	Pu::PumMaterial rawMaterial;
