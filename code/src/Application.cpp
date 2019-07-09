@@ -156,6 +156,7 @@ void Pu::Application::InitializeVulkan(void)
 	PhysicalDeviceFeatures features;
 	features.LogicOp = true;
 	features.WideLines = true;
+	features.FillModeNonSolid = true;
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);

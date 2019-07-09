@@ -13,7 +13,19 @@ namespace Pu
 	}
 
 	/* Raises the input value to the power of two. */
+	_Check_return_ constexpr inline uint32 sqr(_In_ uint32 v)
+	{
+		return v * v;
+	}
+
+	/* Raises the input value to the power of two. */
 	_Check_return_ constexpr inline int64 sqr(_In_ int64 v)
+	{
+		return v * v;
+	}
+
+	/* Raises the input value to the power of two. */
+	_Check_return_ constexpr inline uint64 sqr(_In_ uint64 v)
 	{
 		return v * v;
 	}
@@ -38,7 +50,19 @@ namespace Pu
 	}
 
 	/* Raises the input value to the power of three. */
+	_Check_return_ constexpr inline uint32 cube(_In_ uint32 v)
+	{
+		return v * v * v;
+	}
+
+	/* Raises the input value to the power of three. */
 	_Check_return_ constexpr inline int64 cube(_In_ int64 v)
+	{
+		return v * v * v;
+	}
+
+	/* Raises the input value to the power of three. */
+	_Check_return_ constexpr inline uint64 cube(_In_ uint64 v)
 	{
 		return v * v * v;
 	}

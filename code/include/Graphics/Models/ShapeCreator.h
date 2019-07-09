@@ -27,10 +27,14 @@ namespace Pu
 		_Check_return_ ShapeCreator& operator =(_In_ const ShapeCreator&) = delete;
 		_Check_return_ ShapeCreator& operator =(_In_ ShapeCreator&&) = delete;
 
+		/* Gets the required buffer size (in bytes) for a sphere. */
+		_Check_return_ static size_t GetSphereBufferSize(_In_ size_t divisions);
 		/* Populates the source buffer with a basic plane and returns a mesh that can view that plane in the destination buffer. */
 		_Check_return_ static Mesh Plane(_In_ Buffer &src, _In_ const Buffer &dst);
 		/* Populates the source buffer with a basic box and returns a mesh that can view that box in the destination buffer. */
 		_Check_return_ static Mesh Box(_In_ Buffer &src, _In_ const Buffer &dst);
+		/* Populates the source buffer with a spherified cube and returns a mesh that can view that sphere in the destination buffer. */
+		_Check_return_ static Mesh Sphere(_In_ Buffer &src, _In_ const Buffer &dst, _In_ uint16 divisions);
 
 	private:
 		static bool CheckSrcBuffer(Buffer &buffer, size_t requiredSize);

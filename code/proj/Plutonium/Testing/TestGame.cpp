@@ -106,11 +106,11 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	vrtxBuffer = new Buffer(GetDevice(), ShapeCreator::BoxBufferSize, BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+	vrtxBuffer = new Buffer(GetDevice(), ShapeCreator::GetSphereBufferSize(16) , BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
 	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
 
-	mesh = ShapeCreator::Box(*vrtxStagingBuffer, *vrtxBuffer);
-	bb = AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f);
+	mesh = ShapeCreator::Sphere(*vrtxStagingBuffer, *vrtxBuffer, 16);
+	bb = AABB(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
 	image = &GetContent().FetchTexture2D(L"{Textures}uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToBorder), false);
 }
 
@@ -141,7 +141,7 @@ void TestGame::Update(float dt)
 	{
 		static float theta = 0.0f;
 		theta = modrads(theta + dt);
-		mdl = Matrix::CreateYaw(theta);
+		//mdl = Matrix::CreateYaw(theta);
 
 		transform->SetProjection(cam->GetProjection());
 		transform->SetView(cam->GetView());

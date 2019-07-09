@@ -338,6 +338,12 @@ namespace Pu
 		return Vector3(sign(v.X), sign(v.Y), sign(v.Z));
 	}
 
+	/* Raises each component of the vector to a power of 2. */
+	_Check_return_ inline Vector3 sqr(_In_ Vector3 v)
+	{
+		return v * v;
+	}
+
 	/* Get the input vector restricted to the specified range in positive and negative direction. */
 	_Check_return_ inline Vector3 mclamp(_In_ Vector3 v, _In_ Vector3 a, _In_ Vector3 b)
 	{
