@@ -252,6 +252,7 @@ void TestGame::RenderpassPostCreate(Pu::Renderpass &)
 	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	pipeline->SetTopology(PrimitiveTopology::TriangleList);
 	pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
+	pipeline->SetCullMode(CullModeFlag::Back);
 	pipeline->AddVertexBinding<Basic3D>(0);
 
 	GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });

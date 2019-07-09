@@ -20,35 +20,35 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, Buffer & dst)
 	/* Top Left. */
 	vertices->Position = Vector3(-1.0f, 1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2(0.0f);
+	vertices->TexCoord = Vector2(0.0f, 1.0f);
 	++vertices;
 
 	/* Bottom left. */
 	vertices->Position = Vector3(-1.0f, -1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2(0.0f, 1.0f);
+	vertices->TexCoord = Vector2(0.0f);
 	++vertices;
 
 	/* Bottom Right. */
 	vertices->Position = Vector3(1.0f, -1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2(1.0f);
+	vertices->TexCoord = Vector2(1.0f, 0.0f);
 	++vertices;
 
 	/* Top Right. */
 	vertices->Position = Vector3(1.0f, 1.0f, 0.0f);
 	vertices->Normal = Vector3::Forward();
-	vertices->TexCoord = Vector2(1.0f, 0.0f);
+	vertices->TexCoord = Vector2(1.0f);
 	++vertices;
 
 	/* Indices. */
 	uint16 *indices = reinterpret_cast<uint16*>(vertices);
 	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
+	indices[1] = 2;
+	indices[2] = 1;
 	indices[3] = 2;
-	indices[4] = 3;
-	indices[5] = 0;
+	indices[4] = 0;
+	indices[5] = 3;
 
 	src.EndMemoryTransfer();
 	return Mesh(dst, 0, 4 * sizeof(Basic3D), 4 * sizeof(Basic3D), 6 * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
