@@ -11,9 +11,11 @@ namespace Pu
 		/* Default initializes the mesh. */
 		Mesh(void);
 		/* Initializes a new instance of a mesh with a specific vertex and index buffer. */
-		Mesh(_In_ Buffer &buffer, _In_ size_t vertexOffset, _In_ size_t vertexSize, _In_ size_t indexOffset, _In_ size_t indexSize, _In_ size_t vertexStride, _In_ size_t indexStride, _In_ IndexType indexType);
+		Mesh(_In_ const Buffer &buffer, _In_ size_t vertexOffset, _In_ size_t vertexSize, _In_ size_t indexOffset, _In_ size_t indexSize, _In_ size_t vertexStride, _In_ size_t indexStride, _In_ IndexType indexType);
+		/* Initializes a new instance of a mesh with a specific vertex and index buffer (vertex offset is zero and index offset is vertex size). */
+		Mesh(_In_ const Buffer &buffer, _In_ size_t vertexSize, _In_ size_t indexSize, _In_ size_t vertexStride, _In_ size_t indexStride, _In_ IndexType indexType);
 		/* Initializes a new instance of a mesh from a PuM mesh. */
-		Mesh(_In_ Buffer &buffer, _In_ const PumMesh &mesh);
+		Mesh(_In_ const Buffer &buffer, _In_ const PumMesh &mesh);
 		/* Copy constructor. */
 		Mesh(_In_ const Mesh &value);
 		/* Move constructor. */

@@ -8,9 +8,9 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a buffer view spanning the entire buffer. */
-		BufferView(_In_ Buffer &buffer, _In_ size_t stride);
+		BufferView(_In_ const Buffer &buffer, _In_ size_t stride);
 		/* Initializes a new instance of a buffer view from the specified offset (in bytes) spanning the specified amount of bytes. */
-		BufferView(_In_ Buffer &buffer, _In_ size_t offset, _In_ size_t size, _In_ size_t stride);
+		BufferView(_In_ const Buffer &buffer, _In_ size_t offset, _In_ size_t size, _In_ size_t stride);
 		/* Copy constructor. */
 		BufferView(_In_ const BufferView &value);
 		/* Move constructor. */
@@ -19,12 +19,6 @@ namespace Pu
 		_Check_return_ BufferView& operator =(_In_ const BufferView&) = delete;
 		/* Move assignment. */
 		_Check_return_ BufferView& operator =(_In_ BufferView &&other);
-
-		/* Gets the underlying buffer of this view. */
-		_Check_return_ inline Buffer& GetBuffer(void)
-		{
-			return *buffer;
-		}
 		
 		/* Gets the underlying buffer of this view. */
 		_Check_return_ inline const Buffer& GetBuffer(void) const
@@ -42,9 +36,7 @@ namespace Pu
 		friend class BufferAccessor;
 		friend class CommandBuffer;
 
-		Buffer *buffer;
+		const Buffer *buffer;
 		size_t offset, size, stride;
-
-		void SetData(const void *data, size_t internalOffset, size_t elementSize, size_t elementCount);
 	};
 }

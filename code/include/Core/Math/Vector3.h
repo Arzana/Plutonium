@@ -199,13 +199,13 @@ namespace Pu
 		/* Gets the upwards direction. */
 		_Check_return_ static inline Vector3 Up(void)
 		{
-			return Vector3(0.0f, 1.0f, 0.0f);
+			return Vector3(0.0f, -1.0f, 0.0f);
 		}
 
 		/* Gets the downwards direction. */
 		_Check_return_ static inline Vector3 Down(void)
 		{
-			return Vector3(0.0f, -1.0f, 0.0f);
+			return Vector3(0.0f, 1.0f, 0.0f);
 		}
 
 		/* Gets the forwards direction. */

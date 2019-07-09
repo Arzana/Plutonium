@@ -125,9 +125,9 @@ Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float to
 Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float far)
 {
 	/*
-		This simpification can be made over the frustum function because the frustum is generic.
-		If the frustum is symetric (like with a perspective camera) we can use the formula.
-		Then we can solve a bit further so we don't have to multiply and divide with near for a and b.
+	This simpification can be made over the frustum function because the frustum is generic.
+	If the frustum is symetric (like with a perspective camera) we can use the formula.
+	Then we can solve a bit further so we don't have to multiply and divide with near for a and b.
 	*/
 	const float f = 1.0f / tanf(fovY * 0.5f);
 	const float a = f / aspr;

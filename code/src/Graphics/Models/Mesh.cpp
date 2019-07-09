@@ -4,14 +4,18 @@ Pu::Mesh::Mesh(void)
 	: vertex(nullptr), index(nullptr)
 {}
 
-Pu::Mesh::Mesh(Buffer & buffer, size_t vertexOffset, size_t vertexSize, size_t indexOffset, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
+Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexOffset, size_t vertexSize, size_t indexOffset, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
 	: type(indexType)
 {
 	vertex = new BufferView(buffer, vertexOffset, vertexSize, vertexStride);
 	index = new BufferView(buffer, indexOffset, indexSize, indexStride);
 }
 
-Pu::Mesh::Mesh(Buffer & buffer, const PumMesh & mesh)
+Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexSize, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
+	: Mesh(buffer, 0, vertexSize, vertexSize, indexSize, vertexStride, indexStride, indexType)
+{}
+
+Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 	: type(static_cast<IndexType>(mesh.IndexType))
 {
 	/* Calculate the stride of the vertices. */
