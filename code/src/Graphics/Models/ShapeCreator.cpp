@@ -4,12 +4,32 @@ size_t Pu::ShapeCreator::GetSphereBufferSize(size_t divisions)
 {
 	/*
 	for 6 faces
-		for i divisions
-			for j divisions
+		for i divisions + 1
+			for j divisions + 1
 				1 vertex
-				6 indices
+				if (i != divisions && j != divisions) 6 indices
 	*/
-	return 6 * sqr(divisions + 1) * (sizeof(Basic3D) + 6 * sizeof(uint16));
+	return 6 * sqr(divisions + 1) * sizeof(Basic3D) + 36 * sqr(divisions) * sizeof(uint16);
+}
+
+size_t Pu::ShapeCreator::GetDomeBufferSize(size_t divisions)
+{
+	/*
+	north pole = 1 vertex
+
+	for i divisions
+		for j in divisions
+			1 vertex
+
+	for i in divisions
+		3 indices (north pole)
+
+	for i in divisions
+		3 indices (north pole)
+		for j in divisions
+			6 indices (face)
+	*/
+	return (1 + sqr(divisions)) * sizeof(Basic3D) + (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16);
 }
 
 Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, const Buffer & dst)
@@ -266,7 +286,7 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, const Buffer & dst, uint16 divis
 	};
 
 	/* Begin the memory transfer operation. */
-	if (CheckSrcBuffer(src, BoxBufferSize)) return Mesh();
+	if (CheckSrcBuffer(src, GetSphereBufferSize(divisions))) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
@@ -313,14 +333,14 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, const Buffer & dst, uint16 divis
 			for (uint16 y = 0; y < divisions; y++, indices += 6)
 			{
 				const bool left = y < (divisions >> 1);
-				
+
 				const uint16 a = (i * k + x) * k + y;
 				const uint16 b = (i * k + x) * k + y + 1;
 				const uint16 c = (i * k + x + 1) * k + y;
 				const uint16 d = (i * k + x + 1) * k + y + 1;
 
-				/* 
-				The subdivision of the cubes looks better if we orient 
+				/*
+				The subdivision of the cubes looks better if we orient
 				the faces to the center of the cube.
 				*/
 				if (bottom ^ left)
@@ -345,7 +365,79 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, const Buffer & dst, uint16 divis
 		}
 	}
 
+	src.EndMemoryTransfer();
 	return Mesh(dst, 6 * sqr(divisions + 1) * sizeof(Basic3D), 36 * sqr(divisions) * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
+}
+
+Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, const Buffer & dst, uint16 divisions)
+{
+	/* Begin the memory transfer operation. */
+	if (CheckSrcBuffer(src, GetDomeBufferSize(divisions))) return Mesh();
+	src.BeginMemoryTransfer();
+	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+
+	const float divs = static_cast<float>(divisions);
+	const float step = recip(divs - 1.0f);
+
+	/* Create the vertices for the hemisphere. */
+	for (float parallel = 0; parallel < divs; parallel++)
+	{
+		const float uvx = parallel * step;
+		const float theta = uvx * TAU;
+		const float ct = cosf(theta);
+		const float st = sinf(theta);
+
+		for (float meridian = 0; meridian < divs; meridian++)
+		{
+			const float uvy = (meridian + 1.0f) * step;
+			const float phi = ((1.0f - uvy) * 0.5f) * -PI;
+			const float cp = cosf(phi);
+
+			vertices->Position = Vector3(cp * ct, sinf(phi), cp * st);
+			vertices->Normal = normalize(vertices->Position);
+			vertices->TexCoord = Vector2(uvx, uvy);
+			++vertices;
+		}
+	}
+
+	/* Add the noth pole. */
+	vertices->Position = Vector3::Up();
+	vertices->Normal = Vector3::Up();
+	vertices->TexCoord = Vector2(0.5f, 1.0f);
+
+	/* Indices. */
+	uint16 *indices = reinterpret_cast<uint16*>(++vertices);
+	uint16 *start = indices;
+	for (uint16 parallel = 0; parallel < divisions - 1; parallel++)
+	{
+		const uint16 aStart = parallel * divisions;
+		const uint16 bStart = (parallel + 1) * divisions;
+		for (uint16 meridian = 0; meridian < divisions - 1; meridian++, indices += 6)
+		{
+			const uint16 a = aStart + meridian;
+			const uint16 b = aStart + meridian + 1;
+			const uint16 c = bStart + meridian;
+			const uint16 d = bStart + meridian + 1;
+
+			indices[0] = a;
+			indices[1] = b;
+			indices[2] = d;
+			indices[3] = a;
+			indices[4] = d;
+			indices[5] = c;
+		}
+	}
+
+	/* North pole indices. */
+	for (uint16 meridian = 0; meridian < divisions; meridian++, indices += 3)
+	{
+		indices[0] = sqr(divisions);
+		indices[1] = meridian * divisions;
+		indices[2] = (meridian + 1) * divisions;
+	}
+
+	src.EndMemoryTransfer();
+	return Mesh(dst, (1 + sqr(divisions)) * sizeof(Basic3D), (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
 }
 
 bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)
