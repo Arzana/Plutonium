@@ -272,10 +272,9 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 			decltype(layoutBindings)::iterator it = layoutBindings.find(descriptor.set);
 			if (it != layoutBindings.end())
 			{
-				/* Either add the descriptor count to the binding or add a new binding to the set. */
+				/* Descriptors might have the same binding (multiple in a uniform buffer) we should theat this as one descriptor. */
 				vector<DescriptorSetLayoutBinding>::iterator it2 = it->second.iteratorOf([&descriptor](const DescriptorSetLayoutBinding &cur) { return cur.Binding == descriptor.GetBinding(); });
-				if (it2 != it->second.end()) it2->DescriptorCount += descriptor.layoutBinding.DescriptorCount;
-				else it->second.emplace_back(descriptor.layoutBinding);
+				if (it2 == it->second.end()) it->second.emplace_back(descriptor.layoutBinding);
 			}
 			else
 			{
