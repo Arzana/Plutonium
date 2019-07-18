@@ -4,7 +4,6 @@
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Config.h"
 
-bool Pu::CPU::firstRun = true;
 float Pu::CPU::lastUsage = 0.0f;
 Pu::uint64 Pu::CPU::prevTotalTicks = 0;
 Pu::uint64 Pu::CPU::prevIdleTicks = 0;

@@ -1,8 +1,9 @@
 #include "TestGame.h"
-#include <Input/Keys.h>
+#include <Graphics/Textures/DefaultTexture.h>
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Graphics/Models/ShapeCreator.h>
 #include <Core/Diagnostics/CPU.h>
+#include <Input/Keys.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -117,7 +118,6 @@ void TestGame::LoadContent(void)
 void TestGame::UnLoadContent(void)
 {
 	GetContent().Release(*image);
-
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -191,7 +191,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 				ImGui::EndMenu();
 			}
 
-			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, false) * 0.000001f);
+			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, true) * 0.000001f);
 			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
 			ImGui::EndMainMenuBar();
 		}

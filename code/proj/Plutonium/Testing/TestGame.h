@@ -37,7 +37,7 @@ private:
 	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
-	Pu::Texture2D *image;
+	Pu::Texture *image;
 	Pu::Mesh mesh;
 	Pu::QueryPool *timestamps;
 

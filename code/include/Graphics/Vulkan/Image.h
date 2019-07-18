@@ -42,9 +42,11 @@ namespace Pu
 			return format;
 		}
 
-	protected:
-		/* References the asset and returns itself. */
-		virtual Asset& Duplicate(_In_ AssetCache&) override;
+		/* Gets the current memory layout of the image. */
+		_Check_return_ inline ImageLayout GetLayout(void) const
+		{
+			return layout;
+		}
 
 		/* Gets the logical device on which this image is stored. */
 		_Check_return_ inline LogicalDevice& GetDevice(void)
@@ -52,11 +54,15 @@ namespace Pu
 			return *parent;
 		}
 
+	protected:
+		/* References the asset and returns itself. */
+		virtual Asset& Duplicate(_In_ AssetCache&) override;
+
 	private:
 		friend class Swapchain;
 		friend class ImageView;
 		friend class CommandBuffer;
-		friend class Texture;
+		friend class DefaultTexture;
 
 		LogicalDevice *parent;
 		ImageHndl imageHndl;

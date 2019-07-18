@@ -20,7 +20,6 @@ namespace Pu
 		_Check_return_ static float GetCurrentProcessUsage(void);
 
 	private:
-		static bool firstRun;
 		static float lastUsage;
 		static uint64 prevTotalTicks;
 		static uint64 prevIdleTicks;

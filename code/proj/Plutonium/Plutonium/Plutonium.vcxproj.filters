@@ -624,6 +624,9 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h">
       <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Textures\DefaultTexture.h">
+      <Filter>Header Files\Graphics\Textures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -907,6 +910,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Textures\DefaultTexture.cpp">
+      <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

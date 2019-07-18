@@ -407,7 +407,6 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, const Buffer & dst, uint16 divisio
 
 	/* Indices. */
 	uint16 *indices = reinterpret_cast<uint16*>(++vertices);
-	uint16 *start = indices;
 	for (uint16 parallel = 0; parallel < divisions - 1; parallel++)
 	{
 		const uint16 aStart = parallel * divisions;
@@ -431,7 +430,7 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, const Buffer & dst, uint16 divisio
 	/* North pole indices. */
 	for (uint16 meridian = 0; meridian < divisions; meridian++, indices += 3)
 	{
-		indices[0] = sqr(divisions);
+		indices[0] = static_cast<int16>(sqr(divisions));
 		indices[1] = meridian * divisions;
 		indices[2] = (meridian + 1) * divisions;
 	}
