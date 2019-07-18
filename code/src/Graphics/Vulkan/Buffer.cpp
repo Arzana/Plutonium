@@ -44,6 +44,7 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 
 void Pu::Buffer::BeginMemoryTransfer(void)
 {
+#ifdef _DEBUG
 	/* Make sure we don't map twice. */
 	if (buffer)
 	{
@@ -56,6 +57,7 @@ void Pu::Buffer::BeginMemoryTransfer(void)
 
 	/* We cannot map data on non-host accessible buffers. */
 	if (!IsHostAccessible()) Log::Fatal("Attempting to begin memory transfer on host-invisible buffer!");
+#endif
 
 	/* Map the entire buffer into memory. */
 	Map(size, 0);
@@ -63,24 +65,30 @@ void Pu::Buffer::BeginMemoryTransfer(void)
 
 const void * Pu::Buffer::GetHostMemory(void) const
 {
+#ifdef _DEBUG
 	if (!buffer) Log::Fatal("Attempting to get host memory on buffer that has no mapped memory!");
+#endif
 	return buffer;
 }
 
 void * Pu::Buffer::GetHostMemory(void)
 {
+#ifdef _DEBUG
 	if (!buffer) Log::Fatal("Attempting to get host memory on buffer that has no mapped memory!");
+#endif
 	return buffer;
 }
 
 void Pu::Buffer::EndMemoryTransfer(void)
 {
+#ifdef _DEBUG
 	/* Make sure the buffer was actually started. */
 	if (!buffer)
 	{
 		Log::Error("Attempting to end memory transfer on non-started buffer!");
 		return;
 	}
+#endif
 
 	/* Flush the entire buffer and unmap the memory. */
 	Flush(WholeSize, 0);
@@ -89,8 +97,10 @@ void Pu::Buffer::EndMemoryTransfer(void)
 
 void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t dataStride, size_t offset, size_t stride)
 {
+#ifdef _DEBUG
 	/* Make sure the transfer was started. */
 	if (!buffer) Log::Fatal("Attempting to set data on non-started or non-host accessible buffer!");
+#endif
 
 	/*
 	Start at the offset in the destination buffer (i).
@@ -164,7 +174,16 @@ void Pu::Buffer::Allocate(void)
 	/* Get the best type of memory available to us. */
 	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, false, memoryType))
 	{
+		/* Only log wasted memory if desired, the buffer probably doesn't have a name at this point. */
 		gpuSize = static_cast<size_t>(requirements.Size);
+		if constexpr (LogWastedMemory)
+		{
+			if (gpuSize > size)
+			{
+				if (HasName()) Log::Warning("Buffer '%s'is wasting %zu bytes!", GetName().c_str(), gpuSize - size);
+				else Log::Warning("Buffer 0x%x is wasting %zu bytes!", bufferHndl, gpuSize - size);
+			}
+		}
 
 		/* Allocate the memory. */
 		const MemoryAllocateInfo info{ requirements.Size, memoryType };

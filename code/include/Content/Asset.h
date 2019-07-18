@@ -46,8 +46,14 @@ namespace Pu
 			return loaded.load();
 		}
 
+		/* Gets whether this asset has a name. */
+		_Check_return_ inline bool HasName(void) const
+		{
+			return !identifier.empty();
+		}
+
 		/* Gets the human readable indentifier of the asset. */
-		_Check_return_ const wstring& GetName(void) const
+		_Check_return_ inline const wstring& GetName(void) const
 		{
 			return identifier;
 		}
