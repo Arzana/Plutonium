@@ -201,7 +201,8 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	{
 		remarkDepthBuffer = false;
 		depthBuffer->MakeWritable(cmdBuffer);
-		material->SetParameters(0.0f, Vector3(0.0f), Vector3(1.0f), *image);
+		material->SetParameters(0.0f, Color::Black(), Color::White());
+		material->SetDiffuse(*image);
 	}
 
 	/* Update the descriptor if needed. */
@@ -244,7 +245,7 @@ void TestGame::RenderpassPostCreate(Pu::Renderpass &)
 {
 	/* Create the descirptor pool and uniforms. */
 	descriptorPool = new DescriptorPool(*renderpass, 2);
-	material = new MonsterMaterial(renderpass->GetSubpass(0), *descriptorPool);
+	material = new Material(renderpass->GetSubpass(0), *descriptorPool);
 	transform = new TransformBlock(renderpass->GetSubpass(0), *descriptorPool);
 
 	pipeline = new GraphicsPipeline(*renderpass, 0);

@@ -1,11 +1,11 @@
 #pragma once
 #include <Application.h>
-#include <Components/FreeCamera.h>
 #include <Content/PumLoader.h>
 #include <Graphics/Models/Mesh.h>
+#include <Components/FreeCamera.h>
+#include <Graphics/Models/Material.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include "TransformBlock.h"
-#include "MonsterMaterial.h"
 
 class TestGame
 	: public Pu::Application
@@ -45,7 +45,7 @@ private:
 	Pu::Matrix mdl;
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
-	MonsterMaterial *material;
+	Pu::Material *material;
 
 	void RenderpassPreCreate(Pu::Renderpass&);
 	void RenderpassPostCreate(Pu::Renderpass&);
