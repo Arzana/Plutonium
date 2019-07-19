@@ -964,6 +964,9 @@
     <Natvis Include="..\..\..\visualizers\InputDevice.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
+    <Natvis Include="..\..\..\visualizers\Subpass.natvis">
+      <Filter>Resource Files\Visualizers</Filter>
+    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\targets\spv.targets">

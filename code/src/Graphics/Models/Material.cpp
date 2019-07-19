@@ -1,7 +1,7 @@
 #include "Graphics/Models/Material.h"
 
 Pu::Material::Material(const Subpass & subpass, DescriptorPool & pool)
-	: UniformBlock(subpass, pool, { "F0", "DiffuseFactor", "Glossiness" }), 
+	: UniformBlock(subpass, pool, { "F0", "DiffuseFactor", "Roughness" }), 
 	diffuseMap(&subpass.GetDescriptor("Diffuse")), roughness(1.0f)
 {}
 

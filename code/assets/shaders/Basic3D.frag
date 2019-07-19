@@ -16,7 +16,7 @@ layout (binding = 1, set = 1) uniform Material
 {
 	vec3 F0;
 	vec3 DiffuseFactor;
-	float Glossiness;
+	float Roughness;
 };
 
 layout (location = 0) in vec2 Uv;
@@ -27,8 +27,7 @@ layout (location = 0) out vec4 L0;
 
 float AlphaRoughness2()
 {
-	const float roughness = 1.0f - Glossiness;
-	return roughness * roughness * roughness * roughness;
+	return Roughness * Roughness * Roughness * Roughness;
 }
 
 // Schlick

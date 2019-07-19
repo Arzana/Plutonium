@@ -14,7 +14,11 @@ Pu::UniformBlock::UniformBlock(const Subpass & subpass, DescriptorPool & pool, s
 		this->descriptors.emplace_back(&descriptor);
 
 		/* If the binding already exists we just append, but if it doesn't exist we need to take the GPU allignment into account. */
-		if (knownBindings.contains(descriptor.GetBinding())) size += descriptor.GetSize();
+		if (knownBindings.contains(descriptor.GetBinding()))
+		{
+			size = max(size, descriptor.GetInfo().Decorations.MemberOffset);
+			size += descriptor.GetSize();
+		}
 		else
 		{
 			knownBindings.emplace_back(descriptor.GetBinding());

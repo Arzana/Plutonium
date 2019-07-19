@@ -40,54 +40,47 @@ size_t Pu::FieldType::GetSize(void) const
 
 	switch (ComponentType)
 	{
-	case Pu::ComponentType::Byte:
-	case Pu::ComponentType::SByte:
-		result = 1;
-		break;
-	case Pu::ComponentType::Short:
-	case Pu::ComponentType::UShort:
-	case Pu::ComponentType::HalfFloat:
-		result = 2;
-		break;
-	case Pu::ComponentType::Int:
-	case Pu::ComponentType::UInt:
-	case Pu::ComponentType::Float:
+	case ComponentType::Byte:
+	case ComponentType::SByte:
+	case ComponentType::Short:
+	case ComponentType::UShort:
+	case ComponentType::HalfFloat:
+	case ComponentType::Int:
+	case ComponentType::UInt:
+	case ComponentType::Float:
 		result = 4;
 		break;
-	case Pu::ComponentType::Long:
-	case Pu::ComponentType::ULong:
-	case Pu::ComponentType::Double:
+	case ComponentType::Long:
+	case ComponentType::ULong:
+	case ComponentType::Double:
 		result = 8;
 		break;
-	case Pu::ComponentType::Image:
+	case ComponentType::Image:
 		Log::Fatal("Cannot request size of image field!");
 		break;
-	case Pu::ComponentType::Invalid:
+	case ComponentType::Invalid:
 	default:
 		Log::Fatal("Cannot get size of invalid or unknown field type!");
 	}
 
+	/* std140 can't allign 3D vectors or matrices so they're alligned the same as 4D. */
 	switch (ContainerType)
 	{
-	case Pu::SizeType::Scalar:
+	case SizeType::Scalar:
 		break;
-	case Pu::SizeType::Vector2:
+	case SizeType::Vector2:
 		result <<= 1;
 		break;
-	case Pu::SizeType::Vector3:
-		result *= 3;
-		break;
-	case Pu::SizeType::Vector4:
-	case Pu::SizeType::Matrix2:
+	case SizeType::Vector3:
+	case SizeType::Vector4:
+	case SizeType::Matrix2:
 		result <<= 2;
 		break;
-	case Pu::SizeType::Matrix3:
-		result *= 9;
-		break;
-	case Pu::SizeType::Matrix4:
+	case SizeType::Matrix3:
+	case SizeType::Matrix4:
 		result <<= 4;
 		break;
-	case Pu::SizeType::Cube:
+	case SizeType::Cube:
 	default:
 		Log::Fatal("Cannot request size of cube image field!");
 		break;

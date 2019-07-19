@@ -39,7 +39,7 @@ namespace Pu
 			return static_cast<DeviceSize>(GetInfo().Decorations.MemberOffset);
 		}
 
-		/* Gets the size (in bytes) of the uniform (if not aplicable; 0). */
+		/* Gets the size (in bytes) of the uniform with allignment (if not aplicable; 0). */
 		_Check_return_ inline DeviceSize GetSize(void) const 
 		{
 			return size;

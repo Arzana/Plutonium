@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Pu::Attribute">
+    <DisplayString>{info, na} ({description.Format, en})</DisplayString>
+  </Type>
+
+  <Type Name="Pu::Output">
+    <DisplayString>{info, na}</DisplayString>
+  </Type>
+
+  <Type Name="Pu::Descriptor">
+    <DisplayString>{info, na}</DisplayString>
+  </Type>
+</AutoVisualizer>
