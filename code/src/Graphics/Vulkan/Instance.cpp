@@ -2,6 +2,13 @@
 #include "Graphics/Vulkan/Loader.h"
 #include "Graphics/Vulkan/VulkanInstanceProcedures.h"
 
+/* Used for logging implicit layers. */
+#ifdef _WIN32
+#include "Core/Platform/Windows/RegistryFetcher.h"
+#include "Streams/FileReader.h"
+#include <nlohmann/json.hpp>
+#endif
+
 using namespace Pu;
 
 PFN_vkEnumerateInstanceVersion Pu::VulkanInstance::vkEnumerateInstanceVersion = nullptr;
@@ -339,8 +346,7 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 		/* Log everything in one message so other threads can't interfere. */
 		string msg = '\n' + barStr;
 
-		const vector<ExtensionProperties> extensions = GetSupportedExtensions(nullptr);
-		for (const ExtensionProperties &extension : extensions)
+		for (const ExtensionProperties &extension : GetSupportedExtensions(nullptr))
 		{
 			msg += "Extension ";
 			msg += extension.ExtensionName;
@@ -352,19 +358,38 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 
 		msg += barStr;
 
-		/* Log the layers too bewteen lines. */
-		const vector<LayerProperties> layers = GetSupportedLayers();
-		for (const LayerProperties &layer : layers)
+		/* Log the available layers too bewteen lines. */
+		for (const LayerProperties &layer : GetSupportedLayers())
 		{
 			msg += "Layer ";
 			msg += layer.LayerName;
 			msg += " (";
-			msg += std::to_string(getMajor(layer.ImplementationVersion)) += '.';
-			msg += std::to_string(getMinor(layer.ImplementationVersion)) += '.';
-			msg += std::to_string(getPatch(layer.ImplementationVersion)) += ") available.\n";
+			msg += string::from(getMajor(layer.ImplementationVersion)) += '.';
+			msg += string::from(getMinor(layer.ImplementationVersion)) += '.';
+			msg += string::from(getPatch(layer.ImplementationVersion)) += ") available.\n";
 		}
 
 		msg += barStr;
+
+#ifdef _WIN32
+		/* Log the implicit layers. */
+		for (const wstring &key : RegistryFetcher::ReadValues(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Khronos\\Vulkan\\ImplicitLayers"))
+		{
+			FileReader reader(key);
+			const nlohmann::json file = nlohmann::json::parse(reader.ReadToEnd());
+			const uint32 version = stoul(static_cast<string>(file["layer"]["implementation_version"]));
+
+			msg += "Layer ";
+			msg += static_cast<string>(file["layer"]["name"]);
+			msg += " (";
+			msg += string::from(getMajor(version)) += '.';
+			msg += string::from(getMinor(version)) += '.';
+			msg += string::from(getPatch(version)) += ") is implicitly enabled by the host.\n";
+		}
+
+		msg += barStr;
+#endif
+
 		Log::Verbose(msg.c_str());
 	}
 }

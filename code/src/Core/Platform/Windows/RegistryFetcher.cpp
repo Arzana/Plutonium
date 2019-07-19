@@ -1,62 +1,227 @@
 #ifdef _WIN32
-#include "Core/Platform/Windows/Windows.h"
 #include "Core/Platform/Windows/RegistryFetcher.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 
-bool Pu::RegistryFetcher::TryReadInt32(const wstring & key, const wstring & subKey, int32 & result)
+/* https://docs.microsoft.com/en-us/windows/win32/sysinfo/registry-element-size-limits */
+constexpr DWORD MAX_KEY_NAME_SIZE = 255;
+constexpr DWORD MAX_VALUE_NAME_SIZE = 16383;
+
+Pu::int32 Pu::RegistryFetcher::ReadInt32(HKEY root, const wstring & subKey, const wstring & value)
 {
-	size_t size = sizeof(int32);
-	return TryReadRaw(key, subKey, &result, &size);
-}
+	int32 result = 0;
 
-bool Pu::RegistryFetcher::TryReadInt64(const wstring & key, const wstring & subKey, int64 & result)
-{
-	size_t size = sizeof(int64);
-	return TryReadRaw(key, subKey, &result, &size);
-}
-
-bool Pu::RegistryFetcher::TryReadString(const wstring & key, const wstring & subKey, string & result)
-{
-	/* Get the required size of the output buffer and early out if this failes. */
-	size_t size = 0;
-	const bool found = TryReadRaw(key, subKey, nullptr, &size);
-	if (!found) return false;
-
-	/* Allocate enought size in buffer and get value. */
-	result.reserve(size);
-	return TryReadRaw(key, subKey, const_cast<char*>(result.c_str()), &size);
-}
-
-bool Pu::RegistryFetcher::TryReadRaw(const wstring & key, const wstring & subKey, void * data, size_t * dataSize)
-{
-	HKEY readKey;
-	LSTATUS result;
-	const char *errorMsg;
-
-	/* Try to open a query key to the specified sub key registry. */
-	if ((result = RegOpenKeyEx(HKEY_CURRENT_USER, subKey.c_str(), 0, KEY_QUERY_VALUE, &readKey)) == ERROR_SUCCESS)
+	/* Attempt to open a query to the key, return default zero if it failed. */
+	const HKEY key = OpenKey(root, subKey, KEY_QUERY_VALUE);
+	if (key)
 	{
-		/* try to read the desired value from the registry sub key. */
-		result = RegQueryValueEx(readKey, key.c_str(), nullptr, nullptr, reinterpret_cast<LPBYTE>(data), (LPDWORD)dataSize);
+		/* Query the value in the registry. */
+		size_t byteSize;
+		const DWORD type = QueryValue(key, value, &result, byteSize);
 
-		if (result == ERROR_SUCCESS)
+#ifdef _DEBUG
+		/* Perform some checks. */
+		if (byteSize != 4 && (type != REG_DWORD_LITTLE_ENDIAN && type != REG_DWORD_BIG_ENDIAN))
 		{
-			/* Retruns and closes the sub key. */
-			RegCloseKey(readKey);
-			return true;
+			Log::Warning("'%ls' is not a DWORD in '%ls'!", value.c_str(), subKey.c_str());
 		}
-		else
-		{
-			/* Sets error message and closes the sub key. */
-			RegCloseKey(readKey);
-			errorMsg = "Unable to query value '%ls' (%ls)!";
-		}
+#endif
+
+		RegCloseKey(key);
 	}
-	else errorMsg = "Unable to open registry key '%ls' for query (%ls)!";
 
-	/* Log error. */
-	Log::Warning(errorMsg, subKey.c_str(), _CrtFormatError(result).c_str());
-	return false;
+	return result;
 }
+
+Pu::int64 Pu::RegistryFetcher::ReadInt64(HKEY root, const wstring & subKey, const wstring & value)
+{
+	int64 result = 0;
+
+	/* Attempt to open a query to the key, return default zero if it failed. */
+	const HKEY key = OpenKey(root, subKey, KEY_QUERY_VALUE);
+	if (key)
+	{
+		/* Query the value in the registry. */
+		size_t byteSize;
+		const DWORD type = QueryValue(key, value, &result, byteSize);
+
+#ifdef _DEBUG
+		/* Perform some checks on debug mode. */
+		if (byteSize != 8 || type != REG_QWORD)
+		{
+			Log::Warning("'%ls' is not a QWORD in '%ls'!", value.c_str(), subKey.c_str());
+		}
+#endif
+
+		RegCloseKey(key);
+	}
+
+	return result;
+}
+
+Pu::wstring Pu::RegistryFetcher::ReadString(HKEY root, const wstring & subKey, const wstring & value)
+{
+	wstring result;
+
+	/* Attempt to open a query to the key, return default empty if it failed. */
+	const HKEY key = OpenKey(root, subKey, KEY_QUERY_VALUE);
+	if (key)
+	{
+		/* Query the size of the string in the registry. */
+		size_t byteSize;
+		const DWORD type = QueryValue(key, value, nullptr, byteSize);
+
+#ifdef _DEBUG
+		/* Perform some checks on debug mode. */
+		if (type == REG_SZ || type == REG_EXPAND_SZ)
+		{
+#endif
+			/* Query the value. */
+			result.resize(byteSize, L' ');
+			QueryValue(key, value, result.data(), byteSize);
+
+#ifdef _DEBUG
+		}
+		else Log::Warning("'%ls' is not a SZ in '%ls'!", value.c_str(), subKey.c_str());
+#endif
+
+		RegCloseKey(key);
+	}
+
+	return result;
+}
+
+Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root)
+{
+	vector<wstring> result;
+
+	/* Attempt to open a query to the key. */
+	const HKEY key = OpenKey(root, KEY_ENUMERATE_SUB_KEYS);
+	if (key)
+	{
+		WCHAR name[MAX_KEY_NAME_SIZE];
+		LSTATUS state;
+
+		/* Enumerate through the available keys. */
+		for (DWORD i = 0;; i++)
+		{
+			state = RegEnumKey(key, i, name, MAX_KEY_NAME_SIZE);
+			if (state == ERROR_SUCCESS) result.emplace_back(name);
+			else if (state != ERROR_NO_MORE_ITEMS)
+			{
+				/* No more items means the end of the keys, only success and this are valid responses. */
+				Log::Warning("Sub-key at index %u could not be queried (%ls)!", i, _CrtFormatError(state).c_str());
+			}
+			else break;
+		}
+
+		RegCloseKey(key);
+	}
+
+	return result;
+}
+
+Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root, const wstring & subKey)
+{
+	vector<wstring> result;
+
+	/* Attempt to open a query to the key. */
+	const HKEY key = OpenKey(root, subKey, KEY_ENUMERATE_SUB_KEYS);
+	if (key)
+	{
+		WCHAR name[MAX_KEY_NAME_SIZE];
+		LSTATUS state;
+
+		/* Enumerate through the available keys. */
+		for (DWORD i = 0;; i++)
+		{
+			state = RegEnumKey(key, i, name, MAX_KEY_NAME_SIZE);
+			if (state == ERROR_SUCCESS) result.emplace_back(name);
+			else if (state != ERROR_NO_MORE_ITEMS)
+			{
+				/* No more items means the end of the keys, only success and this are valid responses. */
+				Log::Warning("Sub-key at index %u in directory '%ls' could not be queried (%ls)!", i, subKey.c_str(), _CrtFormatError(state).c_str());
+			}
+			else break;
+		}
+
+		RegCloseKey(key);
+	}
+
+	return result;
+}
+
+Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadValues(HKEY root, const wstring & subKey)
+{
+	vector<wstring> result;
+
+	/* Attempt to open a query to the value. */
+	const HKEY key = OpenKey(root, subKey, KEY_QUERY_VALUE);
+	if (key)
+	{
+		DWORD dummy = MAX_VALUE_NAME_SIZE;
+		WCHAR name[MAX_VALUE_NAME_SIZE];
+		LSTATUS state;
+
+		/* Enumerate through the available values. */
+		for (DWORD i = 0;; i++, dummy = MAX_VALUE_NAME_SIZE)
+		{
+			state = RegEnumValue(key, i, name, &dummy, nullptr, nullptr, nullptr, nullptr);
+			if (state == ERROR_SUCCESS) result.emplace_back(name);
+			else if (state != ERROR_NO_MORE_ITEMS)
+			{
+				/* No more items means the end of the values, only success and this are valid responses. */
+				Log::Warning("Value at index %u in directory '%ls' could not be queried (%ls)!", i, subKey.c_str(), _CrtFormatError(state).c_str());
+			}
+			else break;
+		}
+
+		RegCloseKey(key);
+	}
+
+	return result;
+}
+
+HKEY Pu::RegistryFetcher::OpenKey(HKEY root, REGSAM permission)
+{
+	/* Attempt to open a query to the desired root. */
+	HKEY result;
+	const LSTATUS state = RegOpenKeyEx(root, nullptr, 0, permission, &result);
+	if (state == ERROR_SUCCESS) return result;
+
+	/* Handle errors. */
+	Log::Error("Unable to open registry key (%ls)!", _CrtFormatError(state).c_str());
+	return nullptr;
+}
+
+HKEY Pu::RegistryFetcher::OpenKey(HKEY root, const wstring & subKey, REGSAM permission)
+{
+	/* Attempt to open a query to the desired root. */
+	HKEY result;
+	const LSTATUS state = RegOpenKeyEx(root, subKey.c_str(), 0, permission, &result);
+	if (state == ERROR_SUCCESS) return result;
+
+	/* Handle errors. */
+	Log::Error("Unable to open registry key '%ls' (%ls)!", subKey.c_str(), _CrtFormatError(state).c_str());
+	return nullptr;
+}
+
+DWORD Pu::RegistryFetcher::QueryValue(HKEY key, const wstring & name, void * data, size_t & size)
+{
+	DWORD type;
+	DWORD winSize;
+
+	/* Attempt to query the value. */
+	const LSTATUS state = RegQueryValueEx(key, name.c_str(), nullptr, &type, reinterpret_cast<byte*>(data), &winSize);
+	if (state == ERROR_SUCCESS)
+	{
+		size = winSize;
+		return type;
+	}
+
+	/* Handle errors. */
+	Log::Error("Unable to query value for '%ls' (%ls)!", name.c_str(), _CrtFormatError(state).c_str());
+	return REG_NONE;
+}
+
 #endif
