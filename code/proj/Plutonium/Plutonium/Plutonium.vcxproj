@@ -132,6 +132,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Line.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Noise.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Plane.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h" />
@@ -270,6 +271,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Noise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Triangulation.cpp" />
