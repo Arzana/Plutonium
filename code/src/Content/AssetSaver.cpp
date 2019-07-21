@@ -106,10 +106,16 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	scheduler.Spawn(*task);
 }
 
+void Pu::AssetSaver::SaveImage(const void * data, uint32 width, uint32 height, Format format, const wstring & path, ImageSaveFormats saveFormat)
+{
+	SaveImageInternal(data, static_cast<int>(width), static_cast<int>(height), static_cast<int>(format_channels(format)), path, saveFormat);
+}
+
 void Pu::AssetSaver::SaveImageInternal(const void * data, int w, int h, int c, const wstring & path, ImageSaveFormats format)
 {
-	/* Make sure the directory exists. */
-	FileWriter::CreateDirectory(path.fileDirectory());
+	/* Make sure the directory exists (only if there is a directory in the path of course). */
+	const wstring dir = path.fileDirectory();
+	if (!dir.empty()) FileWriter::CreateDirectory(dir);
 
 	/* Save the image to disk. */
 	int32 result = 0;

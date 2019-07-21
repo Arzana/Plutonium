@@ -24,6 +24,8 @@ namespace Pu
 
 		/* Saves the specified image to the specified location with the specified format. */
 		void SaveImage(_In_ const Image &image, _In_ const wstring &path, _In_ ImageSaveFormats format);
+		/* Saves the specified image data to the specified location with the specified format. */
+		void SaveImage(_In_ const void *data, _In_ uint32 width, _In_ uint32 height, _In_ Format format, _In_ const wstring &path, _In_ ImageSaveFormats saveFormat);
 
 	private:
 #ifdef _DEBUG

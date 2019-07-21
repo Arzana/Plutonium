@@ -16,8 +16,8 @@ Pu::Noise::Noise(const string & seed)
 
 Pu::Noise::Noise(const Noise & value)
 {
-	permutations = reinterpret_cast<byte*>(malloc(256));
-	memcpy(permutations, value.permutations, 256);
+	permutations = reinterpret_cast<byte*>(malloc(512));
+	memcpy(permutations, value.permutations, 512);
 }
 
 Pu::Noise::Noise(Noise && value)
@@ -33,7 +33,7 @@ Pu::Noise::~Noise(void)
 
 Pu::Noise & Pu::Noise::operator=(const Noise & other)
 {
-	if (this != &other) memcpy(permutations, other.permutations, 256);
+	if (this != &other) memcpy(permutations, other.permutations, 512);
 	return *this;
 }
 
@@ -52,24 +52,33 @@ Pu::Noise & Pu::Noise::operator=(Noise && other)
 
 Pu::Noise::Noise(std::default_random_engine engine)
 {
-	permutations = reinterpret_cast<byte*>(malloc(256));
+	permutations = reinterpret_cast<byte*>(malloc(512));
 
-	/* Initialize the vector to have values from 0 to 256. */
-	for (byte i = 0; i < 256; i++) permutations[i] = i;
+	/* Initialize the list to have values from 0 to 256. */
+	for (uint16 i = 0; i < 256; i++) permutations[i] = static_cast<byte>(i);
 
+	/* Shuffle the list and copy it once afterwards to avoid invalid memory access. */
 	std::shuffle(permutations, permutations + 256, engine);
+	memcpy(permutations + 256, permutations, 256);
 }
 
 float Pu::Noise::Octave(float x) const
 {
+	/* Find the unit that contains the point. */
 	const float fx = floorf(x);
 	const size_t ifx = static_cast<size_t>(fx) & 0xFF;
 
+	/* Hash the coodinates of the line. */
 	const size_t a = permutations[ifx];
 	const size_t b = permutations[ifx + 1];
 
+	/*
+	Find the relative x of the point in the cube.
+	x will become that fractional part (fpart) of its origional value, we're nor using fpart to speed up the calculation.
+	*/
 	const float u = Fade(x -= fx);
 
+	/* Add blended results from the end segments. */
 	const float n0 = Gradient(a, x);
 	const float n1 = Gradient(b, x - 1.0f);
 	return lerp(n0, n1, u);
@@ -136,6 +145,21 @@ float Pu::Noise::Octave(float x, float y, float z) const
 	return lerp(v0, lerp(u0, u1, v), w);
 }
 
+float Pu::Noise::NormalizedOctave(float x) const
+{
+	return (Octave(x) + 1.0f) * 0.5f;
+}
+
+float Pu::Noise::NormalizedOctave(float x, float y) const
+{
+	return (Octave(x, y) + 1.0f) * 0.5f;
+}
+
+float Pu::Noise::NormalizedOctave(float x, float y, float z) const
+{
+	return (Octave(x, y, z) + 1.0f) * 0.5f;
+}
+
 float Pu::Noise::Scale(float x, size_t octaves, float persistance, float lacunatity) const
 {
 	float amplitude = 1.0f;
@@ -178,26 +202,74 @@ float Pu::Noise::Scale(float x, float y, float z, size_t octaves, float persista
 	return result;
 }
 
+float Pu::Noise::NormalizedScale(float x, size_t octaves, float persistance, float lacunatity) const
+{
+	float amplitude = 1.0f;
+	float frequency = 1.0f;
+	float result = 0.0f;
+
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	{
+		result += NormalizedOctave(x * frequency) * amplitude;
+	}
+
+	return result;
+}
+
+float Pu::Noise::NormalizedScale(float x, float y, size_t octaves, float persistance, float lacunatity) const
+{
+	float amplitude = 1.0f;
+	float frequency = 1.0f;
+	float result = 0.0f;
+
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	{
+		result += NormalizedOctave(x * frequency, y * frequency) * amplitude;
+	}
+
+	return result;
+}
+
+float Pu::Noise::NormalizedScale(float x, float y, float z, size_t octaves, float persistance, float lacunatity) const
+{
+	float amplitude = 1.0f;
+	float frequency = 1.0f;
+	float result = 0.0f;
+
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	{
+		result += NormalizedOctave(x * frequency, y * frequency, z * frequency) * amplitude;
+	}
+
+	return result;
+}
+
 float Pu::Noise::Fade(float t)
 {
+	/* Simple cubic fade function. */
 	return cube(t) * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
 float Pu::Noise::Gradient(size_t i, float x) const
 {
-	const byte h = permutations[i] & 0x2;
-	return (h & 1) ? -x : x;
+	/* Gets the ends of the unit line represented by x. */
+	return (permutations[i] & 1) ? -x : x;
 }
 
 float Pu::Noise::Gradient(size_t i, float x, float y) const
 {
-	const byte h = permutations[i] & 0x7;
+	/* Get the corners of the unit rectangle represented by [x, y] */
+	const byte h = permutations[i];
 	return ((h & 1) ? -x : x) + ((h & 2) ? -y : y);
 }
 
 float Pu::Noise::Gradient(size_t i, float x, float y, float z) const
 {
-	const byte h = permutations[i] & 0xE;
+	/*
+	This basically gets the corners of the unit cube represented by [x, y, z]. 
+	It's optimized to use minimal branching.
+	*/
+	const byte h = permutations[i] & 0xF;
 	
 	const float u = h < 8 ? x : y;
 	const float v = h < 4 ? y : h == 12 || h == 14 ? x : z;

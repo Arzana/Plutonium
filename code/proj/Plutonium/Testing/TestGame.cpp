@@ -1,5 +1,4 @@
 #include "TestGame.h"
-#include <Graphics/Textures/DefaultTexture.h>
 #include <Graphics/Textures/DepthBuffer.h>
 #include <Graphics/Models/ShapeCreator.h>
 #include <Core/Diagnostics/CPU.h>

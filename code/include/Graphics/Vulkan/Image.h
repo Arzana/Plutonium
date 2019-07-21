@@ -27,8 +27,12 @@ namespace Pu
 
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlag aspect) const;
+
 		/* Gets the amount of channels in this image. */
-		_Check_return_ size_t GetChannels(void) const;
+		_Check_return_ inline size_t GetChannels(void) const
+		{
+			return format_channels(format);
+		}
 
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent3D GetExtent(void) const

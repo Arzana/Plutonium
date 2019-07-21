@@ -26,29 +26,54 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Noise& operator =(_In_ Noise &&other);
 
-		/* Gets a noise value for the specified point. */
+		/* Gets a noise value (range [-1, 1]) for the specified point. */
 		_Check_return_ float Octave(_In_ float x) const;
-		/* Gets a noise value for the specified 2D coordinate. */
+		/* Gets a noise value (range [-1, 1]) for the specified 2D coordinate. */
 		_Check_return_ float Octave(_In_ float x, _In_ float y) const;
-		/* Gets a noise value for the specified 3D coordinate. */
+		/* Gets a noise value (range [-1, 1]) for the specified 3D coordinate. */
 		_Check_return_ float Octave(_In_ float x, _In_ float y, _In_ float z) const;
+		/* Gets a noise value (range [0, 1]) for the specified point. */
+		_Check_return_ float NormalizedOctave(_In_ float x) const;
+		/* Gets a noise value (range [0, 1]) for the specified 2D coordinate. */
+		_Check_return_ float NormalizedOctave(_In_ float x, _In_ float y) const;
+		/* Gets a noise value (range [0, 1]) for the specified 3D coordinate. */
+		_Check_return_ float NormalizedOctave(_In_ float x, _In_ float y, _In_ float z) const;
+
 		/* Gets a noise value for multiple octaves of noise for the specified point. */
 		_Check_return_ float Scale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
 		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
 		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		/* Gets a noise value for multiple octaves of noise for the specified point. */
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
 
-		/* Gets a noise value for the specified 2D coordinate. */
+		/* Gets a noise value (range [-1, 1]) for the specified 2D coordinate. */
 		_Check_return_ inline float Octave(_In_ Vector2 p) const
 		{
 			return Octave(p.X, p.Y);
 		}
 
-		/* Gets a noise value for the specified 3D coordinate. */
+		/* Gets a noise value (range [-1, 1]) for the specified 3D coordinate. */
 		_Check_return_ inline float Octave(_In_ Vector3 p) const
 		{
 			return Octave(p.X, p.Y, p.Z);
+		}
+
+		/* Gets a noise value (range [0, 1]) for the specified 2D coordinate. */
+		_Check_return_ inline float NormalizedOctave(_In_ Vector2 p) const
+		{
+			return NormalizedOctave(p.X, p.Y);
+		}
+
+		/* Gets a noise value (range [0, 1]) for the specified 3D coordinate. */
+		_Check_return_ inline float NormalizedOctave(_In_ Vector3 p) const
+		{
+			return NormalizedOctave(p.X, p.Y, p.Z);
 		}
 
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
@@ -61,6 +86,18 @@ namespace Pu
 		_Check_return_ inline float Scale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
 		{
 			return Scale(p.X, p.Y, p.Z, octaves, persistance, lacunatity);
+		}
+
+		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
+		_Check_return_ inline float NormalizedScale(_In_ Vector2 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		{
+			return NormalizedScale(p.X, p.Y, octaves, persistance, lacunatity);
+		}
+
+		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
+		_Check_return_ inline float NormalizedScale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		{
+			return NormalizedScale(p.X, p.Y, p.Z, octaves, persistance, lacunatity);
 		}
 
 	private:
