@@ -29,7 +29,6 @@ protected:
 private: 
 	bool remarkDepthBuffer;
 	Pu::FreeCamera *cam;
-	Pu::DebugRenderer *debugRenderer;
 	Pu::WindowMode newMode;
 
 	Pu::Renderpass *renderpass;
@@ -37,12 +36,9 @@ private:
 	Pu::DepthBuffer *depthBuffer;
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *vrtxStagingBuffer;
-	Pu::Texture *image;
 	Pu::Mesh mesh;
 	Pu::QueryPool *timestamps;
 
-	Pu::AABB bb;
-	Pu::Matrix mdl;
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
 	Pu::Material *material;

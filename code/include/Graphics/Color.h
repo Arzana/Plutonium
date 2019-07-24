@@ -146,6 +146,13 @@ namespace Pu
 			return result;
 		}
 
+		/* Defines a gray opaque color. */
+		_Check_return_ static inline Color Gray(void)
+		{
+			static Color result((byte)0x80, 0x80, 0x80);
+			return result;
+		}
+
 		/* Defines a lime opaque color. */
 		_Check_return_ static inline Color Lime(void)
 		{

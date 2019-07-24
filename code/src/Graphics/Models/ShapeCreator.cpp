@@ -445,7 +445,7 @@ bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)
 #ifdef _DEBUG
 	if (buffer.GetSize() < requiredSize)
 	{
-		Log::Error("Buffer is not large enough to accommodate a plane!");
+		Log::Error("Buffer is not large enough to accommodate the primitive!");
 		return true;
 	}
 

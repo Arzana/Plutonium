@@ -24,6 +24,12 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.frag">
       <Filter>Shaders</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.vert">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.frag">
+      <Filter>Shaders</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">

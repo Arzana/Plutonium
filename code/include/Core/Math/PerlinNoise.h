@@ -5,26 +5,26 @@
 namespace Pu
 {
 	/* Defines a pseudo random Perlin noise generator. */
-	class Noise
+	class PerlinNoise
 	{
 	public:
 		/* Initializes a new instance of a noise generator with the current time as its seed. */
-		Noise(void);
+		PerlinNoise(void);
 		/* Initializes a new instance of a noise generator with a specific integer seed. */
-		Noise(_In_ uint64 seed);
+		PerlinNoise(_In_ uint64 seed);
 		/* Initializes a new instance of a noise generator with a specific string seed. */
-		Noise(_In_ const string &seed);
+		PerlinNoise(_In_ const string &seed);
 		/* Copy constructor. */
-		Noise(_In_ const Noise &value);
+		PerlinNoise(_In_ const PerlinNoise &value);
 		/* Move constructor. */
-		Noise(_In_ Noise &&value);
+		PerlinNoise(_In_ PerlinNoise &&value);
 		/* Releases the resources allocated by the noise generator. */
-		~Noise(void);
+		~PerlinNoise(void);
 
 		/* Copy assignment. */
-		_Check_return_ Noise& operator =(_In_ const Noise &other);
+		_Check_return_ PerlinNoise& operator =(_In_ const PerlinNoise &other);
 		/* Move assignment. */
-		_Check_return_ Noise& operator =(_In_ Noise &&other);
+		_Check_return_ PerlinNoise& operator =(_In_ PerlinNoise &&other);
 
 		/* Gets a noise value (range [-1, 1]) for the specified point. */
 		_Check_return_ float Octave(_In_ float x) const;
@@ -40,17 +40,17 @@ namespace Pu
 		_Check_return_ float NormalizedOctave(_In_ float x, _In_ float y, _In_ float z) const;
 
 		/* Gets a noise value for multiple octaves of noise for the specified point. */
-		_Check_return_ float Scale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float Scale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
-		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
-		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float Scale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the specified point. */
-		_Check_return_ float NormalizedScale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
-		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
-		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const;
+		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 
 		/* Gets a noise value (range [-1, 1]) for the specified 2D coordinate. */
 		_Check_return_ inline float Octave(_In_ Vector2 p) const
@@ -77,33 +77,33 @@ namespace Pu
 		}
 
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
-		_Check_return_ inline float Scale(_In_ Vector2 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		_Check_return_ inline float Scale(_In_ Vector2 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const
 		{
-			return Scale(p.X, p.Y, octaves, persistance, lacunatity);
+			return Scale(p.X, p.Y, octaves, persistance, lacunarity);
 		}
 
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
-		_Check_return_ inline float Scale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		_Check_return_ inline float Scale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const
 		{
-			return Scale(p.X, p.Y, p.Z, octaves, persistance, lacunatity);
+			return Scale(p.X, p.Y, p.Z, octaves, persistance, lacunarity);
 		}
 
 		/* Gets a noise value for multiple octaves of noise for the 2D coordinate. */
-		_Check_return_ inline float NormalizedScale(_In_ Vector2 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		_Check_return_ inline float NormalizedScale(_In_ Vector2 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const
 		{
-			return NormalizedScale(p.X, p.Y, octaves, persistance, lacunatity);
+			return NormalizedScale(p.X, p.Y, octaves, persistance, lacunarity);
 		}
 
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
-		_Check_return_ inline float NormalizedScale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunatity) const
+		_Check_return_ inline float NormalizedScale(_In_ Vector3 p, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const
 		{
-			return NormalizedScale(p.X, p.Y, p.Z, octaves, persistance, lacunatity);
+			return NormalizedScale(p.X, p.Y, p.Z, octaves, persistance, lacunarity);
 		}
 
 	private:
 		byte *permutations;
 
-		Noise(std::default_random_engine engine);
+		PerlinNoise(std::default_random_engine engine);
 
 		static float Fade(float t);
 

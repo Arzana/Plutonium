@@ -132,10 +132,11 @@
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Line.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix.h" />
-    <ClInclude Include="..\..\..\include\Core\Math\Noise.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\PerlinNoise.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Plane.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\SquareDiamondNoise.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Triangulation.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector3.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Task.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
+    <ClInclude Include="..\..\..\include\Environment\Terrain\TerrainCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h" />
@@ -183,6 +185,7 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\SkinnedAnimated.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Terrain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
@@ -271,9 +274,10 @@
     <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp" />
-    <ClCompile Include="..\..\..\src\Core\Math\Noise.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\PerlinNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\SquareDiamondNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Triangulation.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\DynamicLibLoader.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
@@ -282,6 +286,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Task.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
+    <ClCompile Include="..\..\..\src\Environment\Terrain\TerrainCreator.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp" />

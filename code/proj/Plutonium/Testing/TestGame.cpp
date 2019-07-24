@@ -1,6 +1,7 @@
 #include "TestGame.h"
+#include <Environment/Terrain/TerrainCreator.h>
+#include <Graphics/VertexLayouts/Terrain.h>
 #include <Graphics/Textures/DepthBuffer.h>
-#include <Graphics/Models/ShapeCreator.h>
 #include <Core/Diagnostics/CPU.h>
 #include <Input/Keys.h>
 #include <imgui.h>
@@ -71,10 +72,9 @@ void TestGame::Initialize(void)
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
 	timestamps = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
-	debugRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 
 	/* Setup and load the renderpass. */
-	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 	renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 
@@ -96,7 +96,7 @@ void TestGame::Initialize(void)
 			transform = nullptr;
 			descriptorPool = nullptr;
 
-			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.frag.spv" } });
 			renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
 			renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
 			if (renderpass->IsLoaded()) RenderpassPostCreate(*renderpass);
@@ -106,17 +106,16 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	vrtxBuffer = new Buffer(GetDevice(), ShapeCreator::GetDomeBufferSize(32), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+	TerrainCreator creator{ PerlinNoise() };
+
+	vrtxBuffer = new Buffer(GetDevice(), creator.GetBufferSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
 	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
 
-	mesh = ShapeCreator::Dome(*vrtxStagingBuffer, *vrtxBuffer, 32);
-	bb = AABB(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f);
-	image = &GetContent().FetchTexture2D(L"{Textures}uv.png", SamplerCreateInfo(Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToBorder), false);
+	mesh = creator.Generate(*vrtxStagingBuffer, *vrtxBuffer, Vector2());
 }
 
 void TestGame::UnLoadContent(void)
 {
-	GetContent().Release(*image);
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
 }
@@ -127,24 +126,18 @@ void TestGame::Finalize(void)
 	delete transform;
 	delete descriptorPool;
 	delete pipeline;
-	delete debugRenderer;
 	delete depthBuffer;
 	delete timestamps;
 
 	GetContent().Release(*renderpass);
 }
 
-void TestGame::Update(float dt)
+void TestGame::Update(float)
 {
 	if (transform)
 	{
-		static float theta = 0.0f;
-		theta = modrads(theta + dt);
-		mdl = Matrix::CreateYaw(theta);
-
 		transform->SetProjection(cam->GetProjection());
 		transform->SetView(cam->GetView());
-		transform->SetModel(mdl);
 		transform->SetCamPos(cam->GetPosition());
 	}
 
@@ -159,7 +152,7 @@ void TestGame::Update(float dt)
 void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 {
 	/* Wait for the graphics pipeline and image to be usable. */
-	if (!image->IsUsable() || !pipeline || !pipeline->IsUsable()) return;
+	if (!pipeline || !pipeline->IsUsable()) return;
 
 	static bool firstRender = true;
 	if (firstRender)
@@ -169,9 +162,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		/* Copy model to final vertex buffer. */
 		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
 		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-
-		/* Make sure the image layout is suitable for shader reads. */
-		cmdBuffer.MemoryBarrier(*image, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, image->GetFullRange());
 	}
 	else	// Render ImGui
 	{
@@ -201,7 +191,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		remarkDepthBuffer = false;
 		depthBuffer->MakeWritable(cmdBuffer);
 		material->SetParameters(0.0f, Color::Black(), Color::White());
-		material->SetDiffuse(*image);
 	}
 
 	/* Update the descriptor if needed. */
@@ -216,7 +205,7 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*pipeline);
 
-	cmdBuffer.AddLabel(u8"Plane", Color::Lime());
+	cmdBuffer.AddLabel(u8"Terrain", Color::Lime());
 	cmdBuffer.BindGraphicsDescriptor(*transform);
 	cmdBuffer.BindGraphicsDescriptor(*material);
 	mesh.Bind(cmdBuffer, 0);
@@ -224,9 +213,6 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	cmdBuffer.EndLabel();
 
 	cmdBuffer.EndRenderPass();
-
-	debugRenderer->AddBox(bb, mdl, Color::Red());
-	debugRenderer->Render(cmdBuffer, cam->GetProjection(), cam->GetView());
 }
 
 void TestGame::RenderpassPreCreate(Pu::Renderpass &)
@@ -236,8 +222,7 @@ void TestGame::RenderpassPreCreate(Pu::Renderpass &)
 	subpass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	subpass.AddDepthStencil().SetDescription(*depthBuffer);
 
-	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(Terrain, Normal));
 }
 
 void TestGame::RenderpassPostCreate(Pu::Renderpass &)
@@ -252,7 +237,7 @@ void TestGame::RenderpassPostCreate(Pu::Renderpass &)
 	pipeline->SetTopology(PrimitiveTopology::TriangleList);
 	pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
 	pipeline->SetCullMode(CullModeFlag::Back);
-	pipeline->AddVertexBinding<Basic3D>(0);
+	pipeline->AddVertexBinding<Terrain>(0);
 
 	GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
 	pipeline->Finalize();

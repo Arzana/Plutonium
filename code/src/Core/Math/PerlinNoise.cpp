@@ -1,43 +1,55 @@
-#include "Core/Math/Noise.h"
+#include "Core/Math/PerlinNoise.h"
 #include "Core/Math/Interpolation.h"
 #include <ctime>
 
-Pu::Noise::Noise(void)
-	: Noise(std::default_random_engine(static_cast<uint32>(time(nullptr))))
+Pu::PerlinNoise::PerlinNoise(void)
+	: PerlinNoise(std::default_random_engine(static_cast<uint32>(time(nullptr) & maxv<uint32>())))
 {}
 
-Pu::Noise::Noise(uint64 seed)
-	: Noise(std::default_random_engine(static_cast<uint32>(seed)))
+Pu::PerlinNoise::PerlinNoise(uint64 seed)
+	: PerlinNoise(std::default_random_engine(static_cast<uint32>(seed)))
 {}
 
-Pu::Noise::Noise(const string & seed)
-	: Noise(std::hash<string>{}(seed))
+Pu::PerlinNoise::PerlinNoise(const string & seed)
+	: PerlinNoise(std::hash<string>{}(seed))
 {}
 
-Pu::Noise::Noise(const Noise & value)
+Pu::PerlinNoise::PerlinNoise(const PerlinNoise & value)
 {
 	permutations = reinterpret_cast<byte*>(malloc(512));
 	memcpy(permutations, value.permutations, 512);
 }
 
-Pu::Noise::Noise(Noise && value)
+Pu::PerlinNoise::PerlinNoise(PerlinNoise && value)
 	: permutations(value.permutations)
 {
 	value.permutations = nullptr;
 }
 
-Pu::Noise::~Noise(void)
+Pu::PerlinNoise::PerlinNoise(std::default_random_engine engine)
+{
+	permutations = reinterpret_cast<byte*>(malloc(512));
+
+	/* Initialize the list to have values from 0 to 256. */
+	for (uint16 i = 0; i < 256; i++) permutations[i] = static_cast<byte>(i);
+
+	/* Shuffle the list and copy it once afterwards to avoid invalid memory access. */
+	std::shuffle(permutations, permutations + 256, engine);
+	memcpy(permutations + 256, permutations, 256);
+}
+
+Pu::PerlinNoise::~PerlinNoise(void)
 {
 	if (permutations) free(permutations);
 }
 
-Pu::Noise & Pu::Noise::operator=(const Noise & other)
+Pu::PerlinNoise & Pu::PerlinNoise::operator=(const PerlinNoise & other)
 {
 	if (this != &other) memcpy(permutations, other.permutations, 512);
 	return *this;
 }
 
-Pu::Noise & Pu::Noise::operator=(Noise && other)
+Pu::PerlinNoise & Pu::PerlinNoise::operator=(PerlinNoise && other)
 {
 	if (this != &other)
 	{
@@ -50,19 +62,7 @@ Pu::Noise & Pu::Noise::operator=(Noise && other)
 	return *this;
 }
 
-Pu::Noise::Noise(std::default_random_engine engine)
-{
-	permutations = reinterpret_cast<byte*>(malloc(512));
-
-	/* Initialize the list to have values from 0 to 256. */
-	for (uint16 i = 0; i < 256; i++) permutations[i] = static_cast<byte>(i);
-
-	/* Shuffle the list and copy it once afterwards to avoid invalid memory access. */
-	std::shuffle(permutations, permutations + 256, engine);
-	memcpy(permutations + 256, permutations, 256);
-}
-
-float Pu::Noise::Octave(float x) const
+float Pu::PerlinNoise::Octave(float x) const
 {
 	/* Find the unit that contains the point. */
 	const float fx = floorf(x);
@@ -84,7 +84,7 @@ float Pu::Noise::Octave(float x) const
 	return lerp(n0, n1, u);
 }
 
-float Pu::Noise::Octave(float x, float y) const
+float Pu::PerlinNoise::Octave(float x, float y) const
 {
 	const float fx = floorf(x);
 	const float fy = floorf(y);
@@ -108,7 +108,7 @@ float Pu::Noise::Octave(float x, float y) const
 	return lerp(u0, lerp(n0, n1, u), v);
 }
 
-float Pu::Noise::Octave(float x, float y, float z) const
+float Pu::PerlinNoise::Octave(float x, float y, float z) const
 {
 	const float fx = floorf(x);
 	const float fy = floorf(y);
@@ -145,28 +145,28 @@ float Pu::Noise::Octave(float x, float y, float z) const
 	return lerp(v0, lerp(u0, u1, v), w);
 }
 
-float Pu::Noise::NormalizedOctave(float x) const
+float Pu::PerlinNoise::NormalizedOctave(float x) const
 {
 	return (Octave(x) + 1.0f) * 0.5f;
 }
 
-float Pu::Noise::NormalizedOctave(float x, float y) const
+float Pu::PerlinNoise::NormalizedOctave(float x, float y) const
 {
 	return (Octave(x, y) + 1.0f) * 0.5f;
 }
 
-float Pu::Noise::NormalizedOctave(float x, float y, float z) const
+float Pu::PerlinNoise::NormalizedOctave(float x, float y, float z) const
 {
 	return (Octave(x, y, z) + 1.0f) * 0.5f;
 }
 
-float Pu::Noise::Scale(float x, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::Scale(float x, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += Octave(x * frequency) * amplitude;
 	}
@@ -174,13 +174,13 @@ float Pu::Noise::Scale(float x, size_t octaves, float persistance, float lacunat
 	return result;
 }
 
-float Pu::Noise::Scale(float x, float y, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::Scale(float x, float y, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += Octave(x * frequency, y * frequency) * amplitude;
 	}
@@ -188,13 +188,13 @@ float Pu::Noise::Scale(float x, float y, size_t octaves, float persistance, floa
 	return result;
 }
 
-float Pu::Noise::Scale(float x, float y, float z, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::Scale(float x, float y, float z, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += Octave(x * frequency, y * frequency, z * frequency) * amplitude;
 	}
@@ -202,13 +202,13 @@ float Pu::Noise::Scale(float x, float y, float z, size_t octaves, float persista
 	return result;
 }
 
-float Pu::Noise::NormalizedScale(float x, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::NormalizedScale(float x, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += NormalizedOctave(x * frequency) * amplitude;
 	}
@@ -216,13 +216,13 @@ float Pu::Noise::NormalizedScale(float x, size_t octaves, float persistance, flo
 	return result;
 }
 
-float Pu::Noise::NormalizedScale(float x, float y, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::NormalizedScale(float x, float y, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += NormalizedOctave(x * frequency, y * frequency) * amplitude;
 	}
@@ -230,13 +230,13 @@ float Pu::Noise::NormalizedScale(float x, float y, size_t octaves, float persist
 	return result;
 }
 
-float Pu::Noise::NormalizedScale(float x, float y, float z, size_t octaves, float persistance, float lacunatity) const
+float Pu::PerlinNoise::NormalizedScale(float x, float y, float z, size_t octaves, float persistance, float lacunarity) const
 {
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	float result = 0.0f;
 
-	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunatity)
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance, frequency *= lacunarity)
 	{
 		result += NormalizedOctave(x * frequency, y * frequency, z * frequency) * amplitude;
 	}
@@ -244,26 +244,26 @@ float Pu::Noise::NormalizedScale(float x, float y, float z, size_t octaves, floa
 	return result;
 }
 
-float Pu::Noise::Fade(float t)
+float Pu::PerlinNoise::Fade(float t)
 {
 	/* Simple cubic fade function. */
 	return cube(t) * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
-float Pu::Noise::Gradient(size_t i, float x) const
+float Pu::PerlinNoise::Gradient(size_t i, float x) const
 {
 	/* Gets the ends of the unit line represented by x. */
 	return (permutations[i] & 1) ? -x : x;
 }
 
-float Pu::Noise::Gradient(size_t i, float x, float y) const
+float Pu::PerlinNoise::Gradient(size_t i, float x, float y) const
 {
 	/* Get the corners of the unit rectangle represented by [x, y] */
 	const byte h = permutations[i];
 	return ((h & 1) ? -x : x) + ((h & 2) ? -y : y);
 }
 
-float Pu::Noise::Gradient(size_t i, float x, float y, float z) const
+float Pu::PerlinNoise::Gradient(size_t i, float x, float y, float z) const
 {
 	/*
 	This basically gets the corners of the unit cube represented by [x, y, z]. 
