@@ -53,7 +53,7 @@ void Pu::SquareDiamondNoise::SetSize(byte size)
 {
 	/*
 	Check for faulty inputs.
-	Only allowed inputs are: 5, 9, 17, 33, 65, 129, 257
+	Only allowed inputs are: 5, 9, 17, 33, 65 and 129
 	*/
 	if ((size - 1) & (size - 2) || (size - 1) & 0x3) Log::Fatal("Size is must be 2^x + 1!");
 

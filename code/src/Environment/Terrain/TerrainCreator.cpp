@@ -94,16 +94,14 @@ void Pu::TerrainCreator::EmplaceData(Terrain * vertices, uint16 * indices, Vecto
 		}
 	}
 
-	/* Scale the height back to [0, 1] range. */
-	vertices -= w * d + 1;
-
-	/* Calculate the vertex normals. */
+	/* Calculate the surface normals. */
+	vertices -= w * d;
 	indices -= (w - 1) * (d - 1) * 6;
-	for (i = 0; i < w * d * 2; i++)
+	for (size_t j = 0; j < (w - 1) * (d - 1) * 6; j += 3)
 	{
-		const uint16 a = indices[i * 3];
-		const uint16 b = indices[i * 3 + 1];
-		const uint16 c = indices[i * 3 + 2];
+		const uint16 a = indices[j];
+		const uint16 b = indices[j + 1];
+		const uint16 c = indices[j + 2];
 
 		const Vector3 normal = SurfaceNormal(vertices, a, b, c);
 		vertices[a].Normal += normal;
