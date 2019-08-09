@@ -1,6 +1,6 @@
 #version 460 core
 
-const float HeightScalar = 10.0f;
+const float HeightScalar = 5.0f;
 
 layout (binding = 0) uniform Transforms
 {
@@ -11,6 +11,7 @@ layout (binding = 0) uniform Transforms
 
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec3 Normal;
+layout (location = 2) in uint PlateId;
 
 out gl_PerVertex
 {
@@ -19,7 +20,7 @@ out gl_PerVertex
 
 layout (location = 0) out vec3 WorldPos;
 layout (location = 1) out vec3 VertexNormal;
-layout (location = 2) out float Height;
+layout (location = 2) out uint Id;
 
 void main()
 {
@@ -27,7 +28,8 @@ void main()
 
 	WorldPos = localPos.xyz;
 	VertexNormal = normalize((Model * vec4(Normal, 0.0f)).xyz);
-	Height = 1.0f - Position.y;	// The projection matrix inverts the height
+	//Height = 1.0f - Position.y;	// The projection matrix inverts the height
+	Id = PlateId;
 	
 	gl_Position = Projection * View * localPos;
 }

@@ -25,7 +25,7 @@ namespace Pu
 		_Check_return_ SquareDiamondNoise& operator =(_In_ SquareDiamondNoise &&other);
 
 		/* Sets the size of the heightmap (must be 2^x + 1). */
-		void SetSize(_In_ byte size);
+		void SetSize(_In_ uint16 size);
 		/* Generates a new height map and returns it. */
 		_Check_return_ const float* Generate(void);
 		/* Generates a new height map within the range [0, 1]. */
@@ -38,7 +38,7 @@ namespace Pu
 		}
 
 		/* Gets the width (and depth) of the heightmap. */
-		_Check_return_ inline byte GetSize(void) const
+		_Check_return_ inline uint16 GetSize(void) const
 		{
 			return s;
 		}
@@ -65,16 +65,16 @@ namespace Pu
 		std::default_random_engine rng;
 		float *map;
 		float minH, maxH, rgh;
-		byte s;
+		uint16 s;
 
 		SquareDiamondNoise(std::default_random_engine rng);
 
 		float RndFloat(void);
-		float RndRangeFloat(byte range);
+		float RndRangeFloat(uint16 range);
 		void SetValue(int16 x, int16 z, float v);
 		float GetValue(int16 x, int16 z) const;
-		void GenerateInternal(byte size);
-		void Square(int16 x, int16 z, byte reach);
-		void Diamond(int16 x, int16 z, byte reach);
+		void GenerateInternal(uint16 size);
+		void Square(int16 x, int16 z, uint16 reach);
+		void Diamond(int16 x, int16 z, uint16 reach);
 	};
 }

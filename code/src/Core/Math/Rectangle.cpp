@@ -12,6 +12,11 @@ Pu::Rectangle Pu::Rectangle::Merge(const Rectangle & second) const
 	return Rectangle(min(LowerBound, second.LowerBound), max(UpperBound, second.UpperBound));
 }
 
+Pu::Rectangle Pu::Rectangle::Merge(Vector2 point) const
+{
+	return Rectangle(min(LowerBound, point), max(UpperBound, point));
+}
+
 Pu::Vector2 Pu::Rectangle::Separate(const Rectangle & second) const
 {
 	return Merge(second).GetSize() - GetOverlap(second).GetSize();

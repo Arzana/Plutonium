@@ -4,7 +4,7 @@
 #include <Graphics/Models/Mesh.h>
 #include <Components/FreeCamera.h>
 #include <Graphics/Models/Material.h>
-#include <Graphics/Diagnostics/DebugRenderer.h>
+#include <Environment/Terrain/Lithosphere.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -42,6 +42,8 @@ private:
 	Pu::DescriptorPool *descriptorPool;
 	TransformBlock *transform;
 	Pu::Material *material;
+
+	Pu::Lithosphere *lithosphere;
 
 	void RenderpassPreCreate(Pu::Renderpass&);
 	void RenderpassPostCreate(Pu::Renderpass&);

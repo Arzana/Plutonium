@@ -106,18 +106,17 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	TerrainCreator creator{ PerlinNoise() };
+	Log::Warning("Generating Lithosphere, this may take a while.");
+	TectonicSettings settings;
 
-	vrtxBuffer = new Buffer(GetDevice(), creator.GetBufferSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
-	vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
-
-	mesh = creator.Generate(*vrtxStagingBuffer, *vrtxBuffer, Vector2());
+	lithosphere = new Lithosphere(65, settings);
 }
 
 void TestGame::UnLoadContent(void)
 {
 	delete vrtxStagingBuffer;
 	delete vrtxBuffer;
+	delete lithosphere;
 }
 
 void TestGame::Finalize(void)
@@ -154,36 +153,47 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 	/* Wait for the graphics pipeline and image to be usable. */
 	if (!pipeline || !pipeline->IsUsable()) return;
 
-	static bool firstRender = true;
-	if (firstRender)
+	// Render ImGui
+	if (ImGui::BeginMainMenuBar())
 	{
-		firstRender = false;
-
-		/* Copy model to final vertex buffer. */
-		cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
-		cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-	}
-	else	// Render ImGui
-	{
-		if (ImGui::BeginMainMenuBar())
+		if (ImGui::BeginMenu("Settings"))
 		{
-			if (ImGui::BeginMenu("Settings"))
+			if (ImGui::BeginCombo("##Mode", "Window mode"))
 			{
-				if (ImGui::BeginCombo("##Mode", "Window mode"))
-				{
-					if (ImGui::Selectable("Windowed")) newMode = WindowMode::Windowed;
-					if (ImGui::Selectable("Borderless")) newMode = WindowMode::Borderless;
-					if (ImGui::Selectable("Fullscreen")) newMode = WindowMode::Fullscreen;
-					ImGui::EndCombo();
-				}
-
-				ImGui::EndMenu();
+				if (ImGui::Selectable("Windowed")) newMode = WindowMode::Windowed;
+				if (ImGui::Selectable("Borderless")) newMode = WindowMode::Borderless;
+				if (ImGui::Selectable("Fullscreen")) newMode = WindowMode::Fullscreen;
+				ImGui::EndCombo();
 			}
 
-			ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, true) * 0.000001f);
-			ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
-			ImGui::EndMainMenuBar();
+			ImGui::EndMenu();
 		}
+
+		if (ImGui::Button("Update"))
+		{
+			/* Wait for all resources to become available again. */
+			GetDevice().WaitIdle();
+			if (vrtxBuffer)
+			{
+				delete vrtxBuffer;
+				delete vrtxStagingBuffer;
+				lithosphere->Update();
+			}
+
+			/* Create the buffers and the mesh. */
+			TerrainCreator creator{ *lithosphere };
+			vrtxBuffer = new Buffer(GetDevice(), creator.GetBufferSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
+			vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
+			mesh = creator.Generate(*vrtxStagingBuffer, *vrtxBuffer);
+
+			/* Copy model to final vertex buffer. */
+			cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
+			cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+		}
+
+		ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, true) * 0.000001f);
+		ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
+		ImGui::EndMainMenuBar();
 	}
 
 	if (remarkDepthBuffer)
@@ -193,26 +203,29 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 		material->SetParameters(0.0f, Color::Black(), Color::White());
 	}
 
-	/* Update the descriptor if needed. */
-	transform->Update(cmdBuffer);
-	material->Update(cmdBuffer);
+	if (vrtxBuffer)
+	{
+		/* Update the descriptor if needed. */
+		transform->Update(cmdBuffer);
+		material->Update(cmdBuffer);
 
-	/* Timestamps. */
-	cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *timestamps, 0);
-	cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *timestamps, 1);
+		/* Timestamps. */
+		cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *timestamps, 0);
+		cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *timestamps, 1);
 
-	/* Render scene. */
-	cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-	cmdBuffer.BindGraphicsPipeline(*pipeline);
+		/* Render scene. */
+		cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
+		cmdBuffer.BindGraphicsPipeline(*pipeline);
 
-	cmdBuffer.AddLabel(u8"Terrain", Color::Lime());
-	cmdBuffer.BindGraphicsDescriptor(*transform);
-	cmdBuffer.BindGraphicsDescriptor(*material);
-	mesh.Bind(cmdBuffer, 0);
-	mesh.Draw(cmdBuffer);
-	cmdBuffer.EndLabel();
+		cmdBuffer.AddLabel(u8"Terrain", Color::Lime());
+		cmdBuffer.BindGraphicsDescriptor(*transform);
+		cmdBuffer.BindGraphicsDescriptor(*material);
+		mesh.Bind(cmdBuffer, 0);
+		mesh.Draw(cmdBuffer);
+		cmdBuffer.EndLabel();
 
-	cmdBuffer.EndRenderPass();
+		cmdBuffer.EndRenderPass();
+	}
 }
 
 void TestGame::RenderpassPreCreate(Pu::Renderpass &)
@@ -223,6 +236,7 @@ void TestGame::RenderpassPreCreate(Pu::Renderpass &)
 	subpass.AddDepthStencil().SetDescription(*depthBuffer);
 
 	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(Terrain, Normal));
+	subpass.GetAttribute("PlateId").SetOffset(vkoffsetof(Terrain, PlateId));
 }
 
 void TestGame::RenderpassPostCreate(Pu::Renderpass &)

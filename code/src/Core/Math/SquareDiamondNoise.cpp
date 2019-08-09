@@ -49,11 +49,12 @@ Pu::SquareDiamondNoise & Pu::SquareDiamondNoise::operator=(SquareDiamondNoise &&
 	return *this;
 }
 
-void Pu::SquareDiamondNoise::SetSize(byte size)
+void Pu::SquareDiamondNoise::SetSize(uint16 size)
 {
 	/*
-	Check for faulty inputs.
-	Only allowed inputs are: 5, 9, 17, 33, 65 and 129
+	Check for faulty inputs. 26 754
+	Only valid inputs are:	5, 9, 17, 33, 65, 129, 257, 513, 1025, 2049, 4097, 8193 and 16385.
+	After these we go above the uint32 limit of 26754^2 * 6
 	*/
 	if ((size - 1) & (size - 2) || (size - 1) & 0x3) Log::Fatal("Size is must be 2^x + 1!");
 
@@ -91,7 +92,7 @@ const float * Pu::SquareDiamondNoise::GenerateNormalized(void)
 	Generate();
 
 	/* Scale the heightmap to uniform size. */
-	for (uint16 i = 0; i < s * s; i++)
+	for (uint32 i = 0; i < s * s; i++)
 	{
 		map[i] = ilerp(minH, maxH, map[i]);
 	}
@@ -101,12 +102,15 @@ const float * Pu::SquareDiamondNoise::GenerateNormalized(void)
 
 float Pu::SquareDiamondNoise::RndFloat(void)
 {
-	return static_cast<float>(rng() % s);
+	std::uniform_real_distribution<float> dist(0.0f, static_cast<float>(s));
+	return dist(rng);
 }
 
-float Pu::SquareDiamondNoise::RndRangeFloat(byte range)
+float Pu::SquareDiamondNoise::RndRangeFloat(uint16 range)
 {
-	return rgh * static_cast<float>((rng() % (range + 1)));
+	const float frange = static_cast<float>(range);
+	std::uniform_real_distribution<float> dist(-frange, frange);
+	return rgh * dist(rng);
 }
 
 void Pu::SquareDiamondNoise::SetValue(int16 x, int16 z, float v)
@@ -121,35 +125,35 @@ float Pu::SquareDiamondNoise::GetValue(int16 x, int16 z) const
 	return map[z * s + x];
 }
 
-void Pu::SquareDiamondNoise::GenerateInternal(byte size)
+void Pu::SquareDiamondNoise::GenerateInternal(uint16 size)
 {
 	/* Check if we've reached the furthest depth. */
-	const byte hs = size / 2;
+	const uint16 hs = size / 2;
 	if (hs < 1) return;
 
 	/* Perform square steps. */
-	for (byte z = hs; z < s; z += size)
+	for (uint16 z = hs; z < s; z += size)
 	{
-		for (byte x = hs; x < s; x += size)
+		for (uint16 x = hs; x < s; x += size)
 		{
 			Square(x % s, z % s, hs);
 		}
 	}
 
 	/* Perform diamond steps. */
-	for (byte x = 0, c = 1; x < s; x += hs, c++)
+	for (uint16 x = 0, c = 1; x < s; x += hs, c++)
 	{
 		/* Check if column is odd. */
 		if (c & 1)
 		{
-			for (byte z = hs; z < s; z += size)
+			for (uint16 z = hs; z < s; z += size)
 			{
 				Diamond(x % s, z % s, hs);
 			}
 		}
 		else
 		{
-			for (byte z = 0; z < s; z += size)
+			for (uint16 z = 0; z < s; z += size)
 			{
 				Diamond(x % s, z % s, hs);
 			}
@@ -160,7 +164,7 @@ void Pu::SquareDiamondNoise::GenerateInternal(byte size)
 	GenerateInternal(hs);
 }
 
-void Pu::SquareDiamondNoise::Square(int16 x, int16 z, byte reach)
+void Pu::SquareDiamondNoise::Square(int16 x, int16 z, uint16 reach)
 {
 	uint32 count = 0;
 	float sum = 0.0f;
@@ -198,7 +202,7 @@ void Pu::SquareDiamondNoise::Square(int16 x, int16 z, byte reach)
 	SetValue(x, z, (sum + RndRangeFloat(reach)) / count);
 }
 
-void Pu::SquareDiamondNoise::Diamond(int16 x, int16 z, byte reach)
+void Pu::SquareDiamondNoise::Diamond(int16 x, int16 z, uint16 reach)
 {
 	int32 count = 0;
 	float sum = 0.0f;

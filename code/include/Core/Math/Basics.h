@@ -178,6 +178,31 @@ namespace Pu
 		return max(a, min(b, v));
 	}
 #pragma endregion
+#pragma region round clamp
+	/* Restricts the input value to the specified range by modulating the value. */
+	_Check_return_ constexpr inline int32 rclamp(_In_ int32 v, _In_ int32 a, _In_ int32 b)
+	{
+		return v + (v > a ? 0 : b) - (v < b ? 0 : b);
+	}
+
+	/* Restricts the input value to the specified range by modulating the value. */
+	_Check_return_ constexpr inline int64 rclamp(_In_ int64 v, _In_ int64 a, _In_ int64 b)
+	{
+		return v + (v > a ? 0 : b) - (v < b ? 0 : b);
+	}
+
+	/* Restricts the input value to the specified range by modulating the value. */
+	_Check_return_ constexpr inline float rclamp(_In_ float v, _In_ float a, _In_ float b)
+	{
+		return v + (v > a ? 0 : b) - (v < b ? 0 : b);
+	}
+
+	/* Restricts the input value to the specified range by modulating the value. */
+	_Check_return_ constexpr inline double rclamp(_In_ double v, _In_ double a, _In_ double b)
+	{
+		return v + (v > a ? 0 : b) - (v < b ? 0 : b);
+	}
+#pragma endregion
 #pragma region safe clamp
 	/* Gets the input value restricted to the specified range. */
 	_Check_return_ constexpr inline int32 sclamp(_In_ int32 v, _In_ int32 a, _In_ int32 b)
@@ -360,10 +385,17 @@ namespace Pu
 	{
 		return min + (rand() % (max + 1 - min));
 	}
+
 	/* Returns a random float between the specified minimum and maximum values. */
 	_Check_return_ inline float random(_In_ float min, _In_ float max)
 	{
 		return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
+	}
+
+	/* Returns a random float between zero and one. */
+	_Check_return_ inline float random(void)
+	{
+		return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	}
 #pragma endregion
 }

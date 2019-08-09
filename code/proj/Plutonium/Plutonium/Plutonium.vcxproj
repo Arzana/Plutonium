@@ -134,6 +134,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Matrix.h" />
     <ClInclude Include="..\..\..\include\Core\Math\PerlinNoise.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Plane.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Point.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h" />
     <ClInclude Include="..\..\..\include\Core\Math\SquareDiamondNoise.h" />
@@ -150,6 +151,10 @@
     <ClInclude Include="..\..\..\include\Core\Threading\Tasks\Task.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
+    <ClInclude Include="..\..\..\include\Environment\Terrain\Lithosphere.h" />
+    <ClInclude Include="..\..\..\include\Environment\Terrain\Plate.h" />
+    <ClInclude Include="..\..\..\include\Environment\Terrain\PlateCollisionInfo.h" />
+    <ClInclude Include="..\..\..\include\Environment\Terrain\TectonicSettings.h" />
     <ClInclude Include="..\..\..\include\Environment\Terrain\TerrainCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
@@ -286,6 +291,8 @@
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Task.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
+    <ClCompile Include="..\..\..\src\Environment\Terrain\Lithosphere.cpp" />
+    <ClCompile Include="..\..\..\src\Environment\Terrain\Plate.cpp" />
     <ClCompile Include="..\..\..\src\Environment\Terrain\TerrainCreator.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />

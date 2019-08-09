@@ -654,6 +654,21 @@
     <ClInclude Include="..\..\..\include\Core\Math\SquareDiamondNoise.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Environment\Terrain\Plate.h">
+      <Filter>Header Files\Environment\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Point.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Environment\Terrain\PlateCollisionInfo.h">
+      <Filter>Header Files\Environment\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Environment\Terrain\TectonicSettings.h">
+      <Filter>Header Files\Environment\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Environment\Terrain\Lithosphere.h">
+      <Filter>Header Files\Environment\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -952,6 +967,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\SquareDiamondNoise.cpp">
       <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Environment\Terrain\Plate.cpp">
+      <Filter>Source Files\Environment\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Environment\Terrain\Lithosphere.cpp">
+      <Filter>Source Files\Environment\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -111,6 +111,8 @@ namespace Pu
 		void Inflate(_In_ float horizontal, _In_ float vertical);
 		/* Creates a rectangle that contains the two input rectangles. */
 		_Check_return_ Rectangle Merge(_In_ const Rectangle &second) const;
+		/* Creates a rectangle that contains the input rectangle and the point. */
+		_Check_return_ Rectangle Merge(_In_ Vector2 point) const;
 		/* Gets the non overlapping space of the two input rectangles. */
 		_Check_return_ Vector2 Separate(_In_ const Rectangle &second) const;
 		/* Checks whether a point is within the rectangle. */

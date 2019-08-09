@@ -11,5 +11,6 @@ namespace Pu
 		Vector3 Position;
 		/* The surface normal of the vertex. */
 		Vector3 Normal;
+		uint32 PlateId;
 	};
 }

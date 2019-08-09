@@ -19,7 +19,7 @@ layout (binding = 1, set = 1) uniform Material
 
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec3 Normal;
-layout (location = 2) in float Height;
+layout (location = 2) in flat uint Id;
 
 layout (location = 0) out vec4 L0;
 
@@ -66,15 +66,29 @@ vec3 interp(vec3 a, vec3 b, float c, float d, float v)
 
 vec3 diffuse()
 {
-	vec3 snow = vec3(1.0f);
-	vec3 rock = vec3(0.35f, 0.27f, 0.23f);
-	vec3 grass = vec3(0.33f, 0.59f, 0.09f);
-	vec3 water = vec3(0.26f, 0.45f, 0.81f);
+//	vec3 snow = vec3(1.0f);
+//	vec3 rock = vec3(0.35f, 0.27f, 0.23f);
+//	vec3 grass = vec3(0.33f, 0.59f, 0.09f);
+//	vec3 water = vec3(0.26f, 0.45f, 0.81f);
+//
+//	if (Height > 0.9f) return snow;
+//	else if (Height > 0.7f) return interp(rock, snow, 0.7f, 0.9f, Height);
+//	else if (Height > 0.4f) return interp(grass, rock, 0.4f, 0.7f, Height);
+//	return interp(water, grass, 0.0f, 0.7f, Height);	// Water needs to be more defined so we put the interpolation point higher to have less grass.
 
-	if (Height > 0.9f) return snow;
-	else if (Height > 0.7f) return interp(rock, snow, 0.7f, 0.9f, Height);
-	else if (Height > 0.4f) return interp(grass, rock, 0.4f, 0.7f, Height);
-	return interp(water, grass, 0.0f, 0.7f, Height);	// Water needs to be more defined so we put the interpolation point higher to have less grass.
+	const vec3 colors[] = vec3[](
+		vec3(1.0f, 0.0f, 0.0f),		// Red
+		vec3(0.0f, 1.0f, 0.0f),		// Green
+		vec3(0.0f, 0.0f, 1.0f),		// Blue
+		vec3(1.0f, 0.0f, 1.0f),		// Magenta
+		vec3(1.0f, 1.0f, 0.0f),		// Yellow
+		vec3(0.0f, 1.0f, 1.0f),		// Cyan
+		vec3(1.0f, 0.5f, 0.0f),		// Oragne
+		vec3(0.5f, 0.0f, 1.0f),		// Purple
+		vec3(0.5f, 1.0f, 0.0f),		// Chartreuse
+		vec3(0.0f, 0.5f, 1.0f));	// Azure
+
+	return Id < 10 ? colors[Id] : vec3(1.0f);
 }
 
 void main()

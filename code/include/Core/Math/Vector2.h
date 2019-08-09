@@ -1,4 +1,5 @@
 #pragma once
+#include "Point.h"
 #include "Basics.h"
 #include "Core/String.h"
 
@@ -39,6 +40,12 @@ namespace Pu
 		/* Initializes a new instance of a two dimensional vector with both components specified. */
 		Vector2(_In_ float x, _In_ float y)
 			: X(x), Y(y)
+		{}
+
+		/* Initializes a new instance of a two dimensional vector from a point. */
+		template <typename component_t>
+		Vector2(_In_ GenPoint<component_t> p)
+			: X(static_cast<float>(p.X)), Y(static_cast<float>(p.Y))
 		{}
 
 		/* Negates the vector. */
@@ -153,7 +160,10 @@ namespace Pu
 			return result += ']';
 		}
 
-		/* Initializes a new instance of a two dimentional vector from a specified angle. */
+		/* 
+		Initializes a new instance of a two dimentional vector from a specified angle.
+		Rotates the unit X vector ([1, 0]) the specified amount of radians in the anti-clockwise direction.
+		*/
 		_Check_return_ static inline Vector2 FromAngle(_In_ float theta)
 		{
 			return Vector2(cosf(theta), sinf(theta));
@@ -181,6 +191,20 @@ namespace Pu
 		_Check_return_ inline Vector2 Normalize(void)
 		{
 			return operator/=(Length());
+		}
+
+		/* Rotates the vector (anti-clockwise) by a specified amount. */
+		_Check_return_ inline Vector2 Rotate(_In_ float theta)
+		{
+			const float c = cosf(theta);
+			const float s = sinf(theta);
+			return *this = Vector2(X * c - Y * s, Y * c + X * s);
+		}
+
+		/* Truncates the vector to an integer point. */
+		_Check_return_ inline Point Truncate(void) const
+		{
+			return Point(static_cast<int>(X), static_cast<int>(Y));
 		}
 	};
 
