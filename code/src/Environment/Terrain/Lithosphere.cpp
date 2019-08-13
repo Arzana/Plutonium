@@ -5,7 +5,7 @@
 #define pucalloc(count, type)	reinterpret_cast<type*>(calloc(count, sizeof(type)))
 
 Pu::Lithosphere::Lithosphere(uint16 size, TectonicSettings settings)
-	: settings(settings), cycleCount(0), iterCount(settings.PlateCount + settings.MaxBuoyancyAge), 
+	: settings(settings), cycleCount(0), iterCount(settings.PlateCount + settings.MaxBuoyancyAge),
 	stride(size), rng(static_cast<uint32>(settings.Seed)), peakEk(0.0f), lastColl(0), noise(settings.Seed)
 {
 	size_t area = sqr(stride);
@@ -90,13 +90,282 @@ Pu::Lithosphere & Pu::Lithosphere::operator=(Lithosphere && other)
 
 void Pu::Lithosphere::Update(void)
 {
-	Restart();
+	/* Restart the system if needed. */
+	if (ShouldRestart())
+	{
+		Restart();
+		return;
+	}
+
+	/* Update the plates, moving them. */
+	UpdatePlates();
+
+	/* Allocate a temporary buffer for checks. */
+	const size_t area = sqr(stride);
+	size_t *oldMap = idxMap;
+	idxMap = pumalloc(area, size_t);
+	size_t *tmp = pumalloc(area, size_t);
+
+	/* Check and handle plate collisions and regenerate crust for divergent boundries. */
+	UpdateLithosphere(tmp);
+	//HandleCollisions();
+	//RegenCrust(oldMap, tmp);
+
+	/* Deallocate temporary data and increate the iterator count. */
+	free(tmp);
+	free(oldMap);
+	iterCount++;
+}
+
+void Pu::Lithosphere::RegenCrust(size_t * oldIdxMap, size_t * tmpMap)
+{
+	/* Fill the divergent boundries with new crustial material, if desired. */
+	for (size_t y = 0, i = 0; y < settings.RegenerateCrust * stride; y++)
+	{
+		for (size_t x = 0; x < stride; x++, i++)
+		{
+			/* Only add new crust at new sections. */
+			if (idxMap[i] >= settings.PlateCount)
+			{
+				/* The owner of this new material is the plate that previously controlled the point. */
+				idxMap[i] = oldIdxMap[i];
+				tmpMap[i] = iterCount;
+				heightMap[i] = settings.OceanicBase * settings.BuoyancyBoost;
+			}
+		}
+	}
+
+	/* Boost bouyance for a visual boost. */
+	BoostBouyancy(tmpMap);
+}
+
+void Pu::Lithosphere::HandleCollisions(void)
+{
+	/* Handle all the subductions that were detected. */
+	for (size_t i = 0; i < settings.PlateCount; i++)
+	{
+		Plate &plate = *plates[i];
+		for (const PlateCollisionInfo &info : subductions[i])
+		{
+			/* Don't apply friction to oceanic plates, just perform a subduction. */
+			plate.AddCrustSubduction(info, iterCount);
+		}
+
+		subductions[i].clear();
+	}
+
+	/* Handle all the collisions that were detected. */
+	for (size_t i = 0; i < settings.PlateCount; i++)
+	{
+		Plate &plate = *plates[i];
+		for (const PlateCollisionInfo &info : collisions[i])
+		{
+			/* Apply friction to both plates. */
+			plate.ApplyFriction(info.GetCrush());
+			info.GetSecond().ApplyFriction(info.GetCrush());
+
+			/* Get the stats for both plates. */
+			size_t collCntFirst, collCntSecond;
+			float collRatioFirst, collRatioSecond;
+			plate.GetCollisionStats(info, collCntFirst, collRatioFirst);
+			info.GetSecond().GetCollisionStats(info, collCntSecond, collRatioSecond);
+
+			/*
+			Calculate the minimum collision count between the two continents on different plates.
+			And the maximum amount of collided surface area between the two continents.
+			*/
+			const size_t collCnt = collCntFirst - (collCntFirst - collCntSecond) & -(collCntFirst > collCntSecond);
+			const float collRatio = collRatioFirst + (collRatioSecond - collRatioFirst) * (collCntSecond > collRatioFirst);
+
+			/* Calculate a new direction and speed for the merged plate system. */
+			if (collCnt > settings.AggregationAmount || collRatio > settings.AggregationRatio)
+			{
+				info.GetFirst().Collide(info);
+			}
+		}
+
+		collisions[i].clear();
+	}
+}
+
+void Pu::Lithosphere::UpdateLithosphere(size_t * tmpMap)
+{
+	const size_t area = sqr(stride);
+	const size_t mask = stride - 1;
+	size_t collCnt = 0;
+
+	/* Reset the height and plate index map. */
+	memset(heightMap, 0, area * sizeof(float));
+	memset(idxMap, 255, area * sizeof(size_t));
+
+	/* Update the height and plate index and check for collisions. */
+	for (size_t i = 0; i < settings.PlateCount; i++)
+	{
+		Plate &cur = *plates[i];
+		const LSize lower = static_cast<LSize>(cur.GetLocation());
+		const LSize upper = lower + cur.GetSize();
+
+		/* Copy the first part of the plate onto the world map. */
+		for (size_t y = lower.Y, j = 0; y < upper.Y; y++)
+		{
+			for (size_t x = lower.X; x < upper.X; x++, j++)
+			{
+				const size_t modX = x & mask;
+				const size_t modY = y & mask;
+				const size_t k = modY * stride + modX;
+
+				/* Skip if there is (basically no crust here). */
+				if (cur.GetHeight(j) < 2.0f * EPSILON) continue;
+
+				/* Add the point to the world map if it isn't occupied by another plate yet. */
+				if (idxMap[k] >= plates.size())
+				{
+					heightMap[k] = cur.GetHeight(j);
+					idxMap[k] = i;
+					tmpMap[k] = cur.GetAge(j);
+				}
+				else
+				{
+					/* Get the location of collision and the other plate. */
+					const LSize collPos(modX, modY);
+					Plate &other = *plates[idxMap[k]];
+
+					/* Handle the collision between the plates. */
+					CheckForCollisions(tmpMap, cur, other, collPos, collCnt, i, j, k);
+				}
+			}
+		}
+	}
+}
+
+void Pu::Lithosphere::CheckForCollisions(size_t * tmpMap, Plate & cur, Plate & other, LSize pos, size_t & collisionCount, size_t curPlateIdx, size_t curPlatePosIdx, size_t worldIdx)
+{
+	/* Equality would lead to subductions of shores that's barely above sea level. */
+	const bool prevIsOceanic = heightMap[worldIdx] < settings.ContinentBase;
+	const bool thisIsOceanic = cur.GetHeight(curPlatePosIdx) < settings.ContinentBase;
+
+	/* Check whether the previous crust was bouyant crust. */
+	const size_t prevTime = other.GetCrustAge(pos);
+	const size_t thisTime = cur.GetAge(curPlatePosIdx);
+	const size_t prevIsBouyant = (heightMap[worldIdx] > cur.GetHeight(curPlatePosIdx)) |
+		((heightMap[worldIdx] + 2.0f * EPSILON > cur.GetHeight(curPlatePosIdx)) &
+		(heightMap[worldIdx] < 2.0f * EPSILON + cur.GetHeight(curPlatePosIdx)) &
+		(prevTime >= thisTime));
+
+	/* Handle subduction of oceanic crust. */
+	if (thisIsOceanic && prevIsBouyant)
+	{
+		/* The amount of sediment if directly related to the amount of water on top of the subducting plate. */
+		const float sediment = settings.OceanicBase * (settings.ContinentBase - cur.GetHeight(curPlatePosIdx)) / settings.ContinentBase;
+
+		/* Save the collision to the receiving plate's list. */
+		subductions[idxMap[worldIdx]].emplace_back(cur, other, pos, sediment);
+
+		/* Remove subducted oceanic lithosphere from the plate. */
+		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) - settings.OceanicBase, thisTime);
+
+		/* Skip if there is nothing more to collide. */
+		if (cur.GetHeight(curPlatePosIdx) <= 0.0f) return;
+	}
+	else if (prevIsOceanic)
+	{
+		const float sediment = settings.OceanicBase * (settings.ContinentBase - heightMap[worldIdx]) / settings.ContinentBase;
+
+		subductions[curPlateIdx].emplace_back(other, cur, pos, sediment);
+
+		other.SetCrust(pos, heightMap[worldIdx] - settings.OceanicBase, prevTime);
+
+		if (heightMap[worldIdx] <= 0.0f)
+		{
+			idxMap[worldIdx] = curPlateIdx;
+			heightMap[worldIdx] = cur.GetHeight(curPlatePosIdx);
+			tmpMap[worldIdx] = cur.GetAge(curPlatePosIdx);
+
+			return;
+		}
+	}
+
+	/* Record the collision to both plates. */
+	const size_t thisArea = cur.AddCollision(pos);
+	const size_t prevArea = other.AddCollision(pos);
+
+	/* Move some crust from the smaller plate onto the larger plate. */
+	++collisionCount;
+	if (thisArea < prevArea)
+	{
+		/* Add the collision to the list. */
+		const PlateCollisionInfo info(other, cur, pos, heightMap[worldIdx] * settings.FoldingRatio);
+		collisions[curPlateIdx].emplace_back(info);
+
+		/* Add some crust. */
+		heightMap[worldIdx] += info.GetCrush();
+		other.SetCrust(pos, heightMap[worldIdx], cur.GetAge(curPlatePosIdx));
+
+		/* Remove some crust. */
+		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) * (1.0f - settings.FoldingRatio), cur.GetAge(curPlatePosIdx));
+	}
+	else
+	{
+		/* Add the collision to the list. */
+		const PlateCollisionInfo info(cur, other, pos, heightMap[worldIdx] * settings.FoldingRatio);
+		collisions[idxMap[worldIdx]].emplace_back(info);
+
+		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) + info.GetCrush(), tmpMap[worldIdx]);
+		other.SetCrust(pos, heightMap[worldIdx] * (1.0f - settings.FoldingRatio), tmpMap[worldIdx]);
+
+		/* Give the location to the larger plate. */
+		heightMap[worldIdx] = cur.GetHeight(curPlatePosIdx);
+		idxMap[worldIdx] = curPlateIdx;
+		tmpMap[worldIdx] = cur.GetAge(curPlatePosIdx);
+	}
+
+	/* Update the counter of iterations since the last continental collision. */
+	lastColl = (lastColl + 1) & -(collisionCount == 0);
+}
+
+void Pu::Lithosphere::UpdatePlates(void)
+{
+	/* Realize the accumulated external forces for each plate. */
+	for (Plate *cur : plates)
+	{
+		/* Reset the plate. */
+		cur->ResetSegments();
+
+		/* Erode the plate every couple of iterations. */
+		if (settings.ErosionPeriod > 0 && !(iterCount & settings.ErosionPeriod)) cur->Erode();
+
+		/* Update the plate's movement. */
+		cur->Move();
+	}
+}
+
+bool Pu::Lithosphere::ShouldRestart(void)
+{
+	/* Calculate the total velocity and kinetic energy of the lithosphere. */
+	float totalVloc = 0.0f;
+	float totalEk = 0.0f;
+	for (const Plate *cur : plates)
+	{
+		totalVloc += cur->vloc;
+		totalEk += cur->GetMomentum();
+	}
+
+	/* Update the peak kinetic energy. */
+	peakEk = max(peakEk, totalEk);
+
+	return false; //TODO remove
+
+	/* Return whether the system should be restarted. */
+	return totalVloc < settings.RestartMinimumSpeed ||
+		totalEk / peakEk < settings.RestartEnergyRatio ||
+		lastColl > settings.NoCollisionTimeLimit ||
+		iterCount > settings.MaxIterations;
 }
 
 void Pu::Lithosphere::CreatePlates(void)
 {
-	/* 
-	Initialize a lookup table for free plate center positions. 
+	/*
+	Initialize a lookup table for free plate center positions.
 	This is to make sure that two plates will never have the same center.
 	*/
 	const size_t area = sqr(stride);
@@ -282,8 +551,8 @@ void Pu::Lithosphere::Restart(void)
 	const size_t mask = stride - 1;
 	size_t *ageMap = pumalloc(area, size_t);
 
-	/* 
-	Update the heightmap to include all recent changes. 
+	/*
+	Update the heightmap to include all recent changes.
 	The plates cover the entire map so we can just set the height and age without first clearing them.
 	*/
 	for (const Plate *cur : plates)
@@ -298,8 +567,8 @@ void Pu::Lithosphere::Restart(void)
 			{
 				const size_t j = (y & mask) * stride + (x & mask);
 
-				heightMap[j] += cur->heightMap[i];
-				ageMap[j] = cur->ageMap[i];
+				heightMap[j] += cur->GetHeight(i);
+				ageMap[j] = cur->GetAge(i);
 			}
 		}
 
@@ -326,15 +595,7 @@ void Pu::Lithosphere::Finalize(const size_t * ageMap)
 	const size_t area = sqr(stride);
 
 	/* Add some buoyance to all pixels for a visual boost. */
-	for (size_t i = 0; i < (settings.BuoyancyBoost > 0.0f) * area; i++)
-	{
-		size_t age = iterCount - ageMap[i];
-		age = settings.MaxBuoyancyAge - age;
-		age &= -(age <= settings.MaxBuoyancyAge);
-
-		heightMap[i] += (heightMap[i] < settings.ContinentBase) * settings.BuoyancyBoost *
-			settings.OceanicBase * age * (1.0f / settings.MaxBuoyancyAge);
-	}
+	BoostBouyancy(ageMap);
 
 	/* Add some random noise to the map. */
 	const float *tmp = noise.GenerateNormalized();
@@ -348,6 +609,20 @@ void Pu::Lithosphere::Finalize(const size_t * ageMap)
 		*/
 		if (heightMap[i] > settings.ContinentBase) heightMap[i] += cur * 2.0f;
 		else heightMap[i] = 0.8f * heightMap[i] + 0.2f * cur * settings.ContinentBase;
+	}
+}
+
+void Pu::Lithosphere::BoostBouyancy(const size_t * map)
+{
+	const size_t area = sqr(stride);
+	for (size_t i = 0; i < (settings.BuoyancyBoost > 0.0f) * area; i++)
+	{
+		size_t age = iterCount - map[i];
+		age = settings.MaxBuoyancyAge - age;
+		age &= -(age <= settings.MaxBuoyancyAge);
+
+		heightMap[i] += (heightMap[i] < settings.ContinentBase) * settings.BuoyancyBoost *
+			settings.OceanicBase * age * (1.0f / settings.MaxBuoyancyAge);
 	}
 }
 

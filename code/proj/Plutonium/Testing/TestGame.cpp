@@ -108,6 +108,7 @@ void TestGame::LoadContent(void)
 {
 	Log::Warning("Generating Lithosphere, this may take a while.");
 	TectonicSettings settings;
+	settings.PlateCount = 5;
 
 	lithosphere = new Lithosphere(65, settings);
 }
@@ -190,6 +191,8 @@ void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
 			cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
 			cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 		}
+
+		ImGui::Text("Cycle: %zu/%zu, Iteration: %zu", lithosphere->GetCycleCount(), lithosphere->GetSettings().Cycles, lithosphere->GetIterationCount());
 
 		ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, true) * 0.000001f);
 		ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);

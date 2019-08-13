@@ -29,13 +29,13 @@ namespace Pu
 		/* Increments the collision counter of the continent at a given location, returns the surface area of the collided continent. */
 		_Check_return_ size_t AddCollision(_In_ LSize pos);
 		/* Adds a specified amount of crust to the plate as a result of a subducting oceanic plate under this plate at a specific time. */
-		void AddCrustSubduction(_In_ PlateCollisionInfo &info, _In_ size_t time);
+		void AddCrustSubduction(_In_ const PlateCollisionInfo &info, _In_ size_t time);
 		/* Decreases the speed of the plate. */
 		void ApplyFriction(_In_ float deformingMass);
 		/* Handles the collision between tro plates at the specified world position. */
-		void Collide(_In_ PlateCollisionInfo &info);
+		void Collide(_In_ const PlateCollisionInfo &info);
 		/* Applies plate wide erosion */
-		void Erode(_In_ float lowerBound);
+		void Erode(void);
 		/* Gets the collision statistics of the continent at the collision location. */
 		void GetCollisionStats(_In_ const PlateCollisionInfo &info, _Out_ size_t &count, _Out_ float &ratio) const;
 		/* Gets the timestamp of the plate's crustal material at the specified location. */
@@ -82,9 +82,9 @@ namespace Pu
 		}
 
 		/* Gets the velocity of this plate. */
-		_Check_return_ inline Vector2 GetVelocity(void) const
+		_Check_return_ inline float GetVelocity(void) const
 		{
-			return dir;
+			return vloc;
 		}
 
 	private:

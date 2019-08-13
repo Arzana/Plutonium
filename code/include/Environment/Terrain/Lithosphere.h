@@ -72,6 +72,12 @@ namespace Pu
 			return idxMap;
 		}
 
+		/* Gets the settings used for this lithosphere. */
+		_Check_return_ inline const TectonicSettings& GetSettings(void) const
+		{
+			return settings;
+		}
+
 	private:
 		float *heightMap;
 		size_t *idxMap;
@@ -90,10 +96,17 @@ namespace Pu
 		vector<vector<PlateCollisionInfo>> collisions;
 		vector<vector<PlateCollisionInfo>> subductions;
 
+		void RegenCrust(size_t *oldIdxMap, size_t *tmpMap);
+		void HandleCollisions(void);
+		void UpdateLithosphere(size_t *tmpMap);
+		void CheckForCollisions(size_t *tmpMap, Plate &cur, Plate &other, LSize pos, size_t &collisionCount, size_t curPlateIdx, size_t curPlatePosIdx, size_t worldIdx);
+		void UpdatePlates(void);
+		bool ShouldRestart(void);
 		void CreatePlates(void);
 		void ReserveVectors(void);
 		void Restart(void);
 		void Finalize(const size_t *ageMap);
+		void BoostBouyancy(const size_t *map);
 		void Destroy(void);
 	};
 }

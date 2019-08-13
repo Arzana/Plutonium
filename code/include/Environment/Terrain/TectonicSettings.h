@@ -9,7 +9,7 @@ namespace Pu
 	public:
 		/* Defines the seed to be used for all random numbers. */
 		uint64 Seed;
-		/* Defines the initial speed of the plates (default is 1). */
+		/* Defines the initial speed of the plates (default is 10). */
 		float InitialSpeed;
 		/* Defines the weight of deformations on the velocity of a plate on impact (default is 5). */
 		float DeformationWeight;
@@ -73,7 +73,7 @@ namespace Pu
 
 		/* Initializes a default instance of the tectonic settings object. */
 		TectonicSettings(void)
-			: InitialSpeed(1.0f), DeformationWeight(5.0f), 
+			: InitialSpeed(10.0f), DeformationWeight(5.0f), 
 			ContinentBase(1.0f), OceanicBase(0.1f), SeaLevel(0.65f),
 			AggregationRatio(0.1f), InitialRoughness(0.5f), 
 			AggregationAmount(5000), FoldingRatio(0.001f), 

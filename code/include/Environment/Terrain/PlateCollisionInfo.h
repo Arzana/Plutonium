@@ -15,13 +15,13 @@ namespace Pu
 		{}
 
 		/* Gets the first plate in this collision. */
-		_Check_return_ Plate& GetFirst(void)
+		_Check_return_ Plate& GetFirst(void) const
 		{
 			return *first;
 		}
 
 		/* Gets the second plate in this collision. */
-		_Check_return_ Plate& GetSecond(void) 
+		_Check_return_ Plate& GetSecond(void) const
 		{
 			return *second;
 		}

@@ -5,7 +5,7 @@
 #define pucalloc(count, type)	reinterpret_cast<type*>(calloc(count, sizeof(type)))
 
 Pu::Plate::Plate(const float * map, size_t w, size_t h, size_t _x, size_t _y, size_t age, size_t stride, std::default_random_engine & rng, const TectonicSettings & settings)
-	: size(w, h), stride(stride), mass(0.0f), vloc(0.0f), position(_x, _y), rng(&rng), dist01f(0.0f, 1.0f), dist01i(0, 1), settings(&settings)
+	: size(w, h), stride(stride), mass(0.0f), vloc(settings.InitialSpeed), position(_x, _y), rng(&rng), dist01f(0.0f, 1.0f), dist01i(0, 1), settings(&settings)
 {
 	/* Calculate the (rectangular) area of the plate and allocate the required buffers. */
 	const size_t area = w * h;
@@ -87,7 +87,7 @@ size_t Pu::Plate::AddCollision(LSize pos)
 	return segment.area;
 }
 
-void Pu::Plate::AddCrustSubduction(PlateCollisionInfo & info, size_t time)
+void Pu::Plate::AddCrustSubduction(const PlateCollisionInfo & info, size_t time)
 {
 	/* Make sure that the acceleration is changed based on the direction of both plates. */
 	const float d = dot(dir, info.GetSecond().GetVelocity());
@@ -128,7 +128,7 @@ void Pu::Plate::ApplyFriction(float deformingMass)
 	}
 }
 
-void Pu::Plate::Collide(PlateCollisionInfo & info)
+void Pu::Plate::Collide(const PlateCollisionInfo & info)
 {
 	/* Calculate the colliding mass from the second plate. */
 	const float amount = info.GetSecond().AggregateCrust(*this, info.GetPosition());
@@ -156,7 +156,7 @@ void Pu::Plate::Collide(PlateCollisionInfo & info)
 	info.GetSecond().accel -= n * impulse / (amount + mass);
 }
 
-void Pu::Plate::Erode(float lowerBound)
+void Pu::Plate::Erode(void)
 {
 	/* Reset the mass and center of mass. */
 	mass = 0.0f;
@@ -177,7 +177,7 @@ void Pu::Plate::Erode(float lowerBound)
 			com += Vector2(x * oldHeight, y * oldHeight);
 
 			/* Skip the actual erosion if the height at this point is already at the lowest point. */
-			if (oldHeight < lowerBound) continue;
+			if (oldHeight < settings->ContinentBase) continue;
 
 			/* Calculate the indices in the map for the cardinal directions from this point. */
 			const size_t maskW = -((x > 0) | (size.X == stride));
@@ -258,12 +258,12 @@ void Pu::Plate::Erode(float lowerBound)
 				tmp[s] += unit * (diffS - diffMin) * (crustS > 0.0f);
 			}
 		}
-
-		/* Swap the heightmaps and normalize the center of mass. */
-		free(heightMap);
-		heightMap = tmp;
-		com /= mass;
 	}
+
+	/* Swap the heightmaps and normalize the center of mass. */
+	free(heightMap);
+	heightMap = tmp;
+	com /= mass;
 }
 
 void Pu::Plate::GetCollisionStats(const PlateCollisionInfo & info, size_t & count, float & ratio) const
@@ -285,7 +285,7 @@ void Pu::Plate::Move(void)
 	/* Split the velocity vector into a unit direction and a velocity scalar. */
 	const float len = dir.Length();
 	dir /= len;
-	vloc = min(0.0f, vloc + (len - 1.0f));
+	vloc = max(0.0f, vloc + (len - 1.0f));
 
 	/* Apply rotational impulses to the plate. */
 	dir.Rotate(rads * sqr(vloc));
@@ -298,20 +298,20 @@ void Pu::Plate::Move(void)
 
 void Pu::Plate::SetCrust(LSize pos, float amnt, size_t time)
 {
+	const size_t w = size.X;
+	const size_t h = size.Y;
+	size_t area = w * h;
+
 	/* Crust should only be possitive. */
-	amnt = min(0.0f, amnt);
+	amnt = max(0.0f, amnt);
 
 	/* Check if new crust has to be made. */
 	size_t i = GetMapIndex(pos);
-	if (i >= size.X * size.Y)
+	if (i >= area)
 	{
 		/* Make sure that the position cannot be outside of the map bounds. */
 		position.X &= stride;
 		position.Y &= stride;
-
-		const size_t w = size.X;
-		const size_t h = size.Y;
-		const size_t area = size.X * size.Y;
 
 		/* Calculate the distance of the new point from the plates edges. */
 		const size_t left = position.X - pos.X;
@@ -357,6 +357,7 @@ void Pu::Plate::SetCrust(LSize pos, float amnt, size_t time)
 		Create the new buffers for the plate.
 		Not allocating memory here would speed up performance a lot!
 		*/
+		area = size.X * size.Y;
 		float *tmpH = pucalloc(area, float);
 		size_t *tmpA = pucalloc(area, size_t);
 		size_t *tmpI = pumalloc(area, size_t);
@@ -517,7 +518,7 @@ Pu::Plate::Segment & Pu::Plate::CreateSegment(LSize pos)
 	vector<vector<size_t>> spansDone;
 
 	spansToDo.resize(size.Y);
-	spansDone.reserve(size.Y);
+	spansDone.resize(size.Y);
 
 	ids[i] = maxID;
 	spansToDo[pos.Y].emplace_back(pos.X);
@@ -528,7 +529,7 @@ Pu::Plate::Segment & Pu::Plate::CreateSegment(LSize pos)
 	{
 		lines = 0;
 
-		for (size_t y = 0, start, end; y < size.Y; y++, lines++)
+		for (size_t y = 0, start, end; y < size.Y; y++)
 		{
 			vector<size_t> &lineToDo = spansToDo[y];
 			vector<size_t> &lineDone = spansDone[y];
@@ -640,6 +641,7 @@ Pu::Plate::Segment & Pu::Plate::CreateSegment(LSize pos)
 			/* Mark the current line as done. */
 			spansDone[y].emplace_back(start);
 			spansDone[y].emplace_back(end);
+			lines++;
 		}
 	} while (lines > 0);
 
@@ -649,7 +651,8 @@ Pu::Plate::Segment & Pu::Plate::CreateSegment(LSize pos)
 
 size_t Pu::Plate::GetMapIndex(LSize pos) const
 {
-	return pos.Y * size.X + pos.X;
+	const size_t mask = stride - 1;
+	return (pos.Y & mask) * size.X + (pos.X & mask);
 }
 
 void Pu::Plate::Destroy(void)
