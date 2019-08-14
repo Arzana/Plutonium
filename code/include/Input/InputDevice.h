@@ -83,6 +83,7 @@ namespace Pu
 		PHIDP_PREPARSED_DATA data;
 		vector<USAGE> tmpUsageList;
 		
+		void SetDefaultName(const wstring &deviceInstancePath);
 		void HandleWin32Event(const RAWHID &info);
 #endif
 

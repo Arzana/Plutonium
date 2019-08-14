@@ -418,6 +418,36 @@ namespace Pu
 			return result;
 		}
 
+		/* Splits the string into substrings using the specified seperators. */
+		_Check_return_ inline vector<basic_string<char_t>> split(_In_ std::initializer_list<char_t> seperators) const noexcept
+		{
+			vector<basic_string<char_t>> result;
+
+			bool first = true;
+			for (char_t c : seperators)
+			{
+				if (first)
+				{
+					result = split(c);
+					first = false;
+				}
+				else
+				{
+					vector<basic_string<char_t>> buffer;
+
+					for (const basic_string<char_t> str : result)
+					{
+						const vector<basic_string<char_t>> tmp = str.split(c);
+						buffer.insert(buffer.end(), tmp.begin(), tmp.end());
+					}
+
+					result = std::move(buffer);
+				}
+			}
+
+			return result;
+		}
+
 		/* Splits the string into substrings using the specified seperator. */
 		_Check_return_ inline vector<basic_string<char_t>> split(_In_ char_t seperator) const noexcept
 		{

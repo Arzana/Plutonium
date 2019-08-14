@@ -92,7 +92,8 @@ const float * Pu::SquareDiamondNoise::GenerateNormalized(void)
 	Generate();
 
 	/* Scale the heightmap to uniform size. */
-	for (uint32 i = 0; i < s * s; i++)
+	const uint32 area = s * s;
+	for (uint32 i = 0; i < area; i++)
 	{
 		map[i] = ilerp(minH, maxH, map[i]);
 	}

@@ -18,7 +18,7 @@ Pu::InputDevice::InputDevice(HANDLE hndl, const wstring &deviceInstancePath, Inp
 #endif
 {
 	/* We need to open the file that defines the driver for the HID to get information from it. */
-	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
 	if (hHID && hHID != INVALID_HANDLE_VALUE)
 	{
 		/* Attempt to set a human readable name for the input device. */
@@ -26,11 +26,11 @@ Pu::InputDevice::InputDevice(HANDLE hndl, const wstring &deviceInstancePath, Inp
 		{
 			Log::Message("Added HID '%ls'.", Name.c_str());
 		}
-		else Name.clear();
+		else SetDefaultName(deviceInstancePath);
 
 		CloseHandle(hHID);
 	}
-	else Name.clear();
+	else SetDefaultName(deviceInstancePath);
 
 	/* Attempt to get as many capacities as possible from the HID. */
 	GetCapacities();
@@ -96,6 +96,19 @@ Pu::InputDevice & Pu::InputDevice::operator=(InputDevice && other)
 }
 
 #ifdef _WIN32
+void Pu::InputDevice::SetDefaultName(const wstring & deviceInstancePath)
+{
+	/* The device instance path will have the following format 
+	\\\\?\\type#bus#id#guid for example:
+	\\\\?\\HID#SYNHIDMINI&Col02#1&b12c6d1&5&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}
+	So we call the HID an unknown device of the device type.
+	If this is not the same format than just empty the name.
+	*/
+	const vector<wstring> parts = deviceInstancePath.split({ L'\\', L'#' });
+	if (parts.size() > 1) Name = L"Unknown " + parts[1] + L" device";
+	else Name.clear();
+}
+
 void Pu::InputDevice::HandleWin32Event(const RAWHID & info)
 {
 	PCHAR rawData = reinterpret_cast<PCHAR>(const_cast<PBYTE>(info.bRawData));
