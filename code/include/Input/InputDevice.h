@@ -87,7 +87,8 @@ namespace Pu
 		void HandleWin32Event(const RAWHID &info);
 #endif
 
-		void GetCapacities();
-		void Destroy();
+		void GetCapacities(void);
+		void FailedCapacities(const char *reason) const;
+		void Destroy(void);
 	};
 }

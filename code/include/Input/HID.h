@@ -122,7 +122,95 @@ namespace Pu
 		SystemDisplayDual = 0xB4,
 		SystemDisplayToggleIntExt = 0xB5,
 		SystemDisplaySwap = 0xB6,
-		SystemDisplayLCDAutoscale = 0xB7
+		SystemDisplayLCDAutoscale = 0xB7,
 #pragma endregion
+		VendorDefined = 0xFF00	// This is 0xFF00 to 0xFFFF
+	};
+
+	/* Defines the usage for simulation Human-Interface-Devices. */
+	enum class HIDUsageSimulation
+		: uint16
+	{
+		Undefined = 0x00,
+#pragma region Simulation Devices
+		FlightSimulationDevice = 0x01,
+		AutomobileSimulationDevice = 0x02,
+		TankSimulationDevice = 0x03,
+		SpaceshipSimulationDevice = 0x04,
+		SubmarineSimulationDevice = 0x05,
+		SailingSimulationDevice = 0x06,
+		MotorcycleSimulationDevice = 0x07,
+		SportsSimulationDevice = 0x08,
+		AirplaneSimulationDevice = 0x09,
+		HelicopterSimulationDevice = 0x0A,
+		MagicCarpetSimulationDevice = 0x0B,
+		BicycleSimulationDevice = 0x0C,
+#pragma endregion
+#pragma region General Aviation
+		FlightControlStick = 0x20,
+		FlightStick = 0x21,
+		CyclicControl = 0x22,
+		CyclicTrim = 0x23,
+		FlightYoke = 0x24,
+		Aileron = 0xB0,
+		AileronTrim = 0xB1,
+		AntiTorqueControl = 0xB2,
+		AutopilotEnable = 0xB3,
+		ChaffRelease = 0xB4,
+		CollectiveControl = 0xB5,
+		DiveBrake = 0xB6,
+		ElectronicCountermeasures = 0xB7,
+		Elevator = 0xB8,
+		ElevatorTrim = 0xB9,
+		Rudder = 0xBA,
+		Throttle = 0xBB,
+		FlightCommunications = 0xBC,
+		FlareRelease = 0xBD,
+		LandingGear = 0xBE,
+		ToeBrake = 0xBF,
+		Trigger = 0xC0,
+		WeaponsArm = 0xC1,
+		WeaponsSelect = 0xC2,
+		WingFlaps = 0xC3,
+#pragma endregion
+#pragma region Automobile and Tanks
+		Accelerator = 0xC4,
+		Brake = 0xC5,
+		Clutch = 0xC6,
+		Shifter = 0xC7,
+		Steering = 0xC8,
+		TrackControl = 0x25,
+		TurretDirection = 0xC9,
+		BarrelElevation = 0xCA,
+#pragma endregion
+#pragma region Maritime
+		DivePlane = 0xCB,
+		Ballast = 0xCC,
+#pragma endregion
+#pragma region Bicycle
+		BicycleCrank = 0xCD,
+		HandleBars = 0xCE,
+		FrontBrake = 0xCF,
+		RearBrake = 0xD0
+#pragma endregion
+	};
+
+	/* Defines the usage for VR controls Human-Interface-Devices. */
+	enum class HIDUsageVR
+		: uint16
+	{
+		Undefined = 0x00,
+		Belt = 0x01,
+		BodySuit = 0x02,
+		Flexor = 0x03,
+		Glove = 0x04,
+		HeadTracker = 0x05,
+		HeadMountedDisplay = 0x06,
+		HandTracker = 0x07,
+		Oculometer = 0x08,
+		Vest = 0x09,
+		AnimatronicDevice = 0x0A,
+		StereoEnable = 0x20,
+		DisplayEnable = 0x21
 	};
 }

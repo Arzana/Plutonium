@@ -82,8 +82,11 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		Log::Error("Unable to register raw input devices to window '%ls', '%ls'", wnd.GetTitle().c_str(), _CrtGetErrorString().c_str());
 	}
 }
+
 void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RAWINPUT & input)
 {
+	const char *type;
+
 	switch (input.header.dwType)
 	{
 	case RIM_TYPEMOUSE:
@@ -92,9 +95,11 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.mouse);
-				break;
+				return;
 			}
 		}
+
+		type = "mouse";
 		break;
 	case RIM_TYPEKEYBOARD:
 		for (Keyboard &cur : keyboards)
@@ -102,9 +107,11 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.keyboard);
-				break;
+				return;
 			}
 		}
+
+		type = "keyboard";
 		break;
 	case RIM_TYPEHID:
 		for (GamePad &cur : gamepads)
@@ -112,7 +119,7 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.hid);
-				break;
+				return;
 			}
 		}
 
@@ -121,14 +128,19 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 			if (cur.Hndl == input.header.hDevice)
 			{
 				cur.HandleWin32Event(input.data.hid);
-				break;
+				return;
 			}
 		}
+
+		type = "HID";
 		break;
 	default:
 		Log::Warning("Unknown type of input event received!");
-		break;
+		return;
 	}
+
+	/* This should only occur if we could not find the input device in the lists. */
+	Log::Warning("Input event received from unknown %s (0x%x)!", type, input.header.hDevice);
 }
 
 void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, HANDLE hndl)

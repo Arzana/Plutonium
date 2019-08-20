@@ -27,10 +27,13 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed),
 	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent", true),
 	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved"),
-	OnCharInput("Win32WindowOnCharInput", true)
+	OnCharInput("Win32WindowOnCharInput", true), rawInputSize(sizeof(RAWINPUT))
 {
 	/* Push this window as an active window. */
 	activeWindows.push_back(this);
+
+	/* Allocate the first input buffer. */
+	input = reinterpret_cast<PRAWINPUT>(malloc(sizeof(RAWINPUT)));
 
 	/* Create new module handle for this module. */
 	instance = GetModuleHandle(nullptr);
@@ -78,6 +81,8 @@ Pu::Win32Window::~Win32Window(void)
 		/* Finalize ImGui for this Win32 window. */
 		ImGui_ImplWin32_Shutdown();
 	}
+
+	free(input);
 
 	/* Destroy handles. */
 	delete surface;
@@ -318,31 +323,37 @@ LRESULT Pu::Win32Window::HandleSysCmd(WPARAM wParam, LPARAM lParam)
 
 LRESULT Pu::Win32Window::HandleInput(WPARAM wParam, LPARAM lParam)
 {
+	constexpr UINT ERROR_CODE = static_cast<UINT>(-1);
+	const HRAWINPUT handle = reinterpret_cast<HRAWINPUT>(lParam);
+
 	/* Only handle foreground events. */
 	if (!GET_RAWINPUT_CODE_WPARAM(wParam))
 	{
-		/* Get the header information from the raw input data packet, data size is not valid yet but needs to be passed anyway. */
-		RAWINPUT input;
-		uint32 structSize = sizeof(RAWINPUT);
-		if (!GetRawInputData((HRAWINPUT)lParam, RID_HEADER, &input, &structSize, sizeof(RAWINPUTHEADER)))
-		{
-			/* Goto for error as all paths need to return DefWinowProc for cleanup. */
-			Log::Error("Unable to get the raw input header '%ls'!", _CrtGetErrorString().c_str());
-			goto End;
-		}
+		/* Get the size of this data package (should never fail). */
+		uint32 size = 0;
+		GetRawInputData(handle, RID_INPUT, nullptr, &size, sizeof(RAWINPUTHEADER));
 
-		/* Get the actual data from the event. */
-		if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, &input, &structSize, sizeof(RAWINPUTHEADER)) == static_cast<uint32>(-1))
+		/* Early out for empty messages. */
+		if (size)
 		{
-			Log::Error("Unable to get raw input data '%ls'!", _CrtGetErrorString().c_str());
-			goto End;
-		}
+			if (size > rawInputSize)
+			{
+				/* Increase the buffer size if needed, to avoid allocating on every WM_INPUT. */
+				size = rawInputSize;
+				input = reinterpret_cast<PRAWINPUT>(realloc(input, size));
+			}
 
-		/* Post the event to any listeners. */
-		OnInputEvent.Post(*this, input);
+			/* Get the header information, size should be passed but never changes (should never fail). */
+			GetRawInputData(handle, RID_HEADER, input, &size, sizeof(RAWINPUTHEADER));
+
+			/* Get the actual data from the event. */
+			GetRawInputData(handle, RID_INPUT, input, &size, sizeof(RAWINPUTHEADER));
+
+			/* Post the event to any listeners. */
+			OnInputEvent.Post(*this, *input);
+		}
 	}
 
-End:
 	return DefWindowProc(hndl, WM_INPUT, wParam, lParam);
 }
 #endif

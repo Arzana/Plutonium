@@ -105,7 +105,11 @@ void Pu::InputDevice::SetDefaultName(const wstring & deviceInstancePath)
 	If this is not the same format than just empty the name.
 	*/
 	const vector<wstring> parts = deviceInstancePath.split({ L'\\', L'#' });
-	if (parts.size() > 1) Name = L"Unknown " + parts[1] + L" device";
+	if (parts.size() > 1)
+	{
+		Name = L"Unknown " + parts[1] + L" device";
+		Log::Message("Added %ls", Name.c_str());
+	}
 	else Name.clear();
 }
 
@@ -166,60 +170,82 @@ void Pu::InputDevice::HandleWin32Event(const RAWHID & info)
 }
 #endif
 
-void Pu::InputDevice::GetCapacities()
+void Pu::InputDevice::GetCapacities(void)
 {
 #ifdef _WIN32
 	/* We'll get all of our capacities through pre-parsed data so make sure there is any. */
 	uint32 preParsedDataSize;
 	if (GetRawInputDeviceInfo(Hndl, RIDI_PREPARSEDDATA, nullptr, &preParsedDataSize) != 0) return;
 
+	/* Early out if there is no preparsed data (i.e. no buttons or value sliders). */
+	if (!preParsedDataSize) return;
+
 	/* Actually get the pre-parsed data. */
 	data = malloc_s(_HIDP_PREPARSED_DATA, preParsedDataSize);
 	GetRawInputDeviceInfo(Hndl, RIDI_PREPARSEDDATA, data, &preParsedDataSize);
 
-	/* Attempt to get the global capacities of the device. */
+	/* 
+	Attempt to get the global capacities of the device. 
+	The only status codes that these functions return are SUCCESS
+	and INVALID_PREPARSED_DATA so we just have to check for SUCCESS.
+	*/
 	HIDP_CAPS caps;
 	if (HidP_GetCaps(data, &caps) == HIDP_STATUS_SUCCESS)
 	{
-		PHIDP_BUTTON_CAPS rawBtnCaps = malloc_t(HIDP_BUTTON_CAPS, caps.NumberInputButtonCaps);
-		PHIDP_VALUE_CAPS rawValueCaps = malloc_t(HIDP_VALUE_CAPS, caps.NumberInputValueCaps);
-
 		/* Get the button capacities. */
-		if (HidP_GetButtonCaps(HidP_Input, rawBtnCaps, &caps.NumberInputButtonCaps, data) == HIDP_STATUS_SUCCESS)
+		if (caps.NumberInputButtonCaps > 0)
 		{
-			/* Preallocate the value buffer and set the button count. */
-			for (USHORT i = 0; i < caps.NumberInputButtonCaps; i++)
+			/* Make sure to only allocate the buffer if we actually have any buttons. */
+			PHIDP_BUTTON_CAPS rawBtnCaps = malloc_t(HIDP_BUTTON_CAPS, caps.NumberInputButtonCaps);
+			if (HidP_GetButtonCaps(HidP_Input, rawBtnCaps, &caps.NumberInputButtonCaps, data) == HIDP_STATUS_SUCCESS)
 			{
-				const USHORT cnt = rawBtnCaps[i].Range.UsageMax - rawBtnCaps[i].Range.UsageMin + 1;
-				btnCaps.emplace_back(ButtonInformation(rawBtnCaps[i]));
-				btnStates.emplace_back(cnt);
+				/* Preallocate the value buffer and set the button count. */
+				for (USHORT i = 0; i < caps.NumberInputButtonCaps; i++)
+				{
+					const USHORT cnt = rawBtnCaps[i].Range.UsageMax - rawBtnCaps[i].Range.UsageMin + 1;
+					btnCaps.emplace_back(ButtonInformation(rawBtnCaps[i]));
+					btnStates.emplace_back(cnt);
 
-				btnCnt += cnt;
+					btnCnt += cnt;
+				}
 			}
+			else FailedCapacities("invalid preparsed data for button capacities");
+
+			free(rawBtnCaps);
 		}
 
 		/* Get the value capacities. */
-		valueStates.resize(caps.NumberInputValueCaps);
-		if (HidP_GetValueCaps(HidP_Input, rawValueCaps, &caps.NumberInputValueCaps, data) == HIDP_STATUS_SUCCESS)
+		if (caps.NumberInputValueCaps > 0)
 		{
-			for (USHORT i = 0; i < caps.NumberInputValueCaps; i++)
+			/* Make sure to only allocate the buffer if we have values. */
+			PHIDP_VALUE_CAPS rawValueCaps = malloc_t(HIDP_VALUE_CAPS, caps.NumberInputValueCaps);
+			valueStates.resize(caps.NumberInputValueCaps);
+
+			if (HidP_GetValueCaps(HidP_Input, rawValueCaps, &caps.NumberInputValueCaps, data) == HIDP_STATUS_SUCCESS)
 			{
-				valueCaps.emplace_back(ValueInformation(rawValueCaps[i]));
+				for (USHORT i = 0; i < caps.NumberInputValueCaps; i++)
+				{
+					valueCaps.emplace_back(ValueInformation(rawValueCaps[i]));
+				}
 			}
+			else FailedCapacities("invalid preparsed data for value capacities");
+
+			free(rawValueCaps);
 		}
 
-		/* 
-		Preallocate a temporary buffer used to compare states. 
-		And release the temporary buffers.
-		*/
+		/* Preallocate a temporary buffer used to compare states. */
 		tmpUsageList.resize(btnCnt);
-		free(rawBtnCaps);
-		free(rawValueCaps);
 	}
+	else FailedCapacities("preparsed data is invalid");
 #endif
 }
 
-void Pu::InputDevice::Destroy()
+void Pu::InputDevice::FailedCapacities(const char * reason) const
+{
+	Log::Warning("Could not get device capacities for '%ls' (%s)!", Name.c_str(), reason);
+}
+
+void Pu::InputDevice::Destroy(void)
 {
 #ifdef _WIN32
 	if (Hndl && !Name.empty()) Log::Message("Removed HID '%ls'.", Name.c_str());

@@ -100,13 +100,6 @@ void Pu::Mouse::FreeCursor(void)
 	}
 }
 
-#ifdef _WIN32
-Pu::Mouse::Mouse(HANDLE hndl, const wstring & name, const RID_DEVICE_INFO & info)
-	: InputDevice(hndl, name, InputDeviceType::Cursor, info),
-	ID(Info.mouse.dwId), ButtonCount(Info.mouse.dwNumberOfButtons), SampleRate(Info.mouse.dwSampleRate),
-	Moved("CursorMoved", true), Scrolled("CursorScrolled")
-{}
-
 void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vector2>)
 {
 	/* Make sure this event comes from the correct window. */
@@ -135,6 +128,13 @@ void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vec
 	Log::Warning("Unable to lock the OS cursor on this platform!");
 #endif
 }
+
+#ifdef _WIN32
+Pu::Mouse::Mouse(HANDLE hndl, const wstring & name, const RID_DEVICE_INFO & info)
+	: InputDevice(hndl, name, InputDeviceType::Cursor, info),
+	ID(Info.mouse.dwId), ButtonCount(Info.mouse.dwNumberOfButtons), SampleRate(Info.mouse.dwSampleRate),
+	Moved("CursorMoved", true), Scrolled("CursorScrolled")
+{}
 
 void Pu::Mouse::HandleWin32Event(const RAWMOUSE & info)
 {

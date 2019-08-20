@@ -106,6 +106,8 @@ namespace Pu
 		Vector2 pos;
 		WindowMode mode;
 		bool shouldClose, focused;
+		RAWINPUT *input;
+		uint32 rawInputSize;
 
 		static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
