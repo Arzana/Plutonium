@@ -29,11 +29,21 @@ namespace Pu
 #endif
 		}
 
-		/* Gets the HID usage code of this button. */
+		/* Gets the HID usage code of the first button in the range. */
 		_Check_return_ inline uint16 GetUsageStart(void) const
 		{
 #ifdef _WIN32
 			return min;
+#else
+			return 0;
+#endif
+		}
+
+		/* Gets the HID usage code of this final button in the range. */
+		_Check_return_ inline uint16 GetUsageEnd(void) const
+		{
+#ifdef _WIN32
+			return max;
 #else
 			return 0;
 #endif
@@ -54,10 +64,10 @@ namespace Pu
 
 #ifdef _WIN32
 		USAGE page;
-		USAGE min;
+		USAGE min, max;
 
 		ButtonInformation(const HIDP_BUTTON_CAPS &caps)
-			: page(caps.UsagePage), min(caps.Range.UsageMin)
+			: page(caps.UsagePage), min(caps.Range.UsageMin), max(caps.Range.UsageMax)
 		{}
 #endif
 	};

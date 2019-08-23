@@ -135,9 +135,14 @@ void Pu::InputDevice::HandleWin32Event(const RAWHID & info)
 			/* Check for pressed buttons. */
 			for (ULONG j = 0; j < size; j++)
 			{
-				const ButtonEventArgs args(caps, tmpUsageList[j] - caps.min);
-				states[args.KeyCode] = true;
-				KeyDown.Post(*this, args);
+				/* Make sure that we send the mesage for the correct button range. */
+				USAGE cur = tmpUsageList[j];
+				if (caps.min <= cur && caps.max >= cur)
+				{
+					const ButtonEventArgs args(caps, cur - caps.min);
+					states[args.KeyCode] = true;
+					KeyDown.Post(*this, args);
+				}
 			}
 
 			/* Check for released buttons. */

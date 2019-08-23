@@ -72,9 +72,19 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		wnd.hndl
 	};
 
+	/* Enable precision touchpad add and remove events. */
+	RAWINPUTDEVICE touchpadDevices =
+	{
+		_CrtEnum2Int(HIDUsagePage::Digitizer),
+		_CrtEnum2Int(HIDUsageDigitizer::TouchPad),
+		RIDEV_DEVNOTIFY,
+		wnd.hndl
+	};
+
 	devices.emplace_back(cursorDevices);
 	devices.emplace_back(keyboardDevices);
 	devices.emplace_back(gamepadDevices);
+	devices.emplace_back(touchpadDevices);
 
 	/* Register the listeners to the window. */
 	if (!RegisterRawInputDevices(devices.data(), static_cast<uint32>(devices.size()), sizeof(RAWINPUTDEVICE)))

@@ -33,7 +33,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 	activeWindows.push_back(this);
 
 	/* Allocate the first input buffer. */
-	input = reinterpret_cast<PRAWINPUT>(malloc(sizeof(RAWINPUT)));
+	input = reinterpret_cast<PRAWINPUT>(calloc(1, sizeof(RAWINPUT)));
 
 	/* Create new module handle for this module. */
 	instance = GetModuleHandle(nullptr);
@@ -339,18 +339,22 @@ LRESULT Pu::Win32Window::HandleInput(WPARAM wParam, LPARAM lParam)
 			if (size > rawInputSize)
 			{
 				/* Increase the buffer size if needed, to avoid allocating on every WM_INPUT. */
-				size = rawInputSize;
+				rawInputSize = size;
 				input = reinterpret_cast<PRAWINPUT>(realloc(input, size));
 			}
 
 			/* Get the header information, size should be passed but never changes (should never fail). */
 			GetRawInputData(handle, RID_HEADER, input, &size, sizeof(RAWINPUTHEADER));
 
-			/* Get the actual data from the event. */
-			GetRawInputData(handle, RID_INPUT, input, &size, sizeof(RAWINPUTHEADER));
+			/* Ignore the input is the device is not a valid HID. */
+			if (input->header.hDevice)
+			{
+				/* Get the actual data from the event. */
+				GetRawInputData(handle, RID_INPUT, input, &size, sizeof(RAWINPUTHEADER));
 
-			/* Post the event to any listeners. */
-			OnInputEvent.Post(*this, *input);
+				/* Post the event to any listeners. */
+				OnInputEvent.Post(*this, *input);
+			}
 		}
 	}
 
