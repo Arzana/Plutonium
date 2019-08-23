@@ -32,7 +32,7 @@ namespace Pu
 		Arcade = 0x91
 	};
 
-	/* Defines the usage for generic desktop Human-Interface-Devices. */
+	/* Defines the usages for generic desktop Human-Interface-Devices. */
 	enum class HIDUsageGenericDesktop
 		: uint16
 	{
@@ -127,7 +127,7 @@ namespace Pu
 		VendorDefined = 0xFF00	// This is 0xFF00 to 0xFFFF
 	};
 
-	/* Defines the usage for simulation Human-Interface-Devices. */
+	/* Defines the usages for simulation Human-Interface-Devices. */
 	enum class HIDUsageSimulation
 		: uint16
 	{
@@ -195,7 +195,7 @@ namespace Pu
 #pragma endregion
 	};
 
-	/* Defines the usage for VR controls Human-Interface-Devices. */
+	/* Defines the usages for VR controls Human-Interface-Devices. */
 	enum class HIDUsageVR
 		: uint16
 	{
@@ -212,5 +212,100 @@ namespace Pu
 		AnimatronicDevice = 0x0A,
 		StereoEnable = 0x20,
 		DisplayEnable = 0x21
+	};
+
+	/* Defines the usages for game controls Human-Interface-Devices. */
+	enum class HIDUsageGame
+		: uint16
+	{
+		Undefined = 0x00,
+#pragma region 3D Game Controller
+		Controller3D = 0x01,
+		PoV = 0x20,
+		TurnRightLeft = 0x21,
+		PitchForwardBackward = 0x22,
+		RollRightLeft = 0x23,
+		MoveRightLeft = 0x24,
+		MoveForwardBackward = 0x25,
+		MoveUpDown = 0x26,
+		LeanRightLeft = 0x27,
+		LeanForwardBackward = 0x28,
+		HeightPoV = 0x29,
+#pragma endregion
+#pragma region Pinball Device
+		PinballDevice = 0x02,
+		Flipper = 0x2A,
+		SecondaryFlipper = 0x2B,
+		Bump = 0x2C,
+		NewGame = 0x2D,
+		ShootBall = 0x2E,
+		Player = 0x2F,
+#pragma endregion
+#pragma region Gun Device
+		GunDevice = 0x03,
+		GunBolt = 0x30,
+		GunClip = 0x31,
+		GunSelector = 0x32,
+		GunSingleShot = 0x33,
+		GunBurst = 0x34,
+		GunAutomatic = 0x35,
+		GunSafety = 0x36,
+#pragma endregion
+		GamepadFireJump = 0x37,
+		GamepadTrigger = 0x39
+	};
+
+	/* Defines the usages for digitizer Human-Interface-Devices. */
+	enum class HIDUsageDigitizer
+		: uint16
+	{
+		Undefined = 0x00,
+#pragma region Digitizer Devices
+		Digitizer = 0x01,
+		Pen = 0x02,
+		LightPen = 0x03,
+		TouchScreen = 0x04,
+		TouchPad = 0x05,
+		WhiteBoard = 0x06,
+		CoordinateMeasuringMachine = 0x07,
+		Digitizer3D = 0x08,
+		StereoPlotter = 0x09,
+		ArticulatedArm = 0x0A,
+		Armature = 0xB,
+		MultiplePointDigitizer = 0x0C,
+		FreeSpaceWand = 0x0D,
+#pragma endregion
+#pragma region Transducer Collection Usages
+		Stylus = 0x20,
+		Puck = 0x21,
+		Finger = 0x22,
+#pragma endregion
+#pragma region Report Field Usages
+		TipPressure = 0x30,
+		BarrelPressure = 0x31,
+		InRange = 0x32,
+		Touch = 0x33,
+		Untouch = 0x34,
+		Tap = 0x35,
+		Quality = 0x36,
+		DataValid = 0x37,
+		TransducerIndex = 0x38,
+		TabletFunctionKeys = 0x39,
+		ProgramChangeKeys = 0x3A,
+		BatteryStrength = 0x3B,
+		Invert = 0x3C,
+		XTilt = 0x3D,
+		YTilt = 0x3E,
+		Azimuth = 0x3F,
+		Altitude = 0x40,
+		Twist = 0x41,
+#pragma endregion
+#pragma region Switch Usages
+		TipSwitch = 0x42,
+		SecondaryTipSwitch = 0x43,
+		BarrelSwitch = 0x44,
+		Eraser = 0x45,
+		TabletPick = 0x46
+#pragma endregion
 	};
 }

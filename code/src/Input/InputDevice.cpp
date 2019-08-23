@@ -17,8 +17,13 @@ Pu::InputDevice::InputDevice(HANDLE hndl, const wstring &deviceInstancePath, Inp
 	, data(nullptr)
 #endif
 {
-	/* We need to open the file that defines the driver for the HID to get information from it. */
-	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+	/* 
+	We need to open the file that defines the information for the HID to get information from it.
+	We only need to read from this so just enable GENERIC_READ only.
+	We also don't care if any other process reads or writes to the file whilst were reading so defined share access of read/write.
+	Some devices even seem to need FILE_SHARE_WRITE in the share mode to get the name at all (I don't know why).
+	*/
+	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
 	if (hHID && hHID != INVALID_HANDLE_VALUE)
 	{
 		/* Attempt to set a human readable name for the input device. */
@@ -248,7 +253,7 @@ void Pu::InputDevice::FailedCapacities(const char * reason) const
 void Pu::InputDevice::Destroy(void)
 {
 #ifdef _WIN32
-	if (Hndl && !Name.empty()) Log::Message("Removed HID '%ls'.", Name.c_str());
+	if (Hndl) Log::Message("Removed HID '%ls'.", Name.c_str());
 	if (data) free(data);
 #endif
 }
