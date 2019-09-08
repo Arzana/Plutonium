@@ -67,10 +67,12 @@ Pu::vector<Pu::wstring> Pu::_CrtGetLoadedModules(uint64 processID)
 #ifdef _WIN32
 Pu::wstring Pu::_CrtFormatError(uint64 error)
 {
+	constexpr DWORD FLAGS = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+	constexpr DWORD LANGID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+
 	/* Get human readable error from system. */
 	LPWSTR msgBuffer = nullptr;
-	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, static_cast<DWORD>(error), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&msgBuffer, 0, nullptr);
+	FormatMessage(FLAGS, nullptr, static_cast<DWORD>(error), LANGID, reinterpret_cast<LPWSTR>(&msgBuffer), 0, nullptr);
 
 	/* Remove newline characters from error. */
 	wstring result = msgBuffer;

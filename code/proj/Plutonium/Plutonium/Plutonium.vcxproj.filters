@@ -190,6 +190,24 @@
     <Filter Include="Source Files\Environment\Terrain">
       <UniqueIdentifier>{6f711f28-de41-4682-8ae2-a404019b9910}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Networking">
+      <UniqueIdentifier>{368fcfb2-8ec8-43f1-999a-a98c283d9be9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Networking\Core">
+      <UniqueIdentifier>{1643b598-c691-4daf-8583-f58836afbccc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Networking">
+      <UniqueIdentifier>{d93ef2c9-34f6-422f-aedf-7dad2c177947}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Networking\Core">
+      <UniqueIdentifier>{4dbcd594-9339-43d7-8b4d-aa9c685e7758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Networking\UPnP">
+      <UniqueIdentifier>{6372eb5a-33b0-4be9-aafe-6bb8599f758c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Networking\UPnP">
+      <UniqueIdentifier>{a261dbc7-fa63-4330-9f6c-95506dcdf8c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -669,6 +687,30 @@
     <ClInclude Include="..\..\..\include\Environment\Terrain\Lithosphere.h">
       <Filter>Header Files\Environment\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\Socket.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\AddressFamily.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\SocketType.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\Protocol.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\IPAddress.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\SocketOption.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SSDP.h">
+      <Filter>Header Files\Networking\UPnP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h">
+      <Filter>Header Files\Networking\UPnP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -973,6 +1015,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Environment\Terrain\Lithosphere.cpp">
       <Filter>Source Files\Environment\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\Core\IPAddress.cpp">
+      <Filter>Source Files\Networking\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\Core\Socket.cpp">
+      <Filter>Source Files\Networking\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp">
+      <Filter>Source Files\Networking\UPnP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

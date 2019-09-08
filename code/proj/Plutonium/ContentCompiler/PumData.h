@@ -57,7 +57,7 @@ struct pum_node
 
 	inline Pu::byte GetFlags(void) const
 	{
-		byte result = 0;
+		Pu::byte result = 0;
 
 		if (WriteMeshIndex) result |= 0x01;
 		if (WriteSkinIndex) result |= 0x02;

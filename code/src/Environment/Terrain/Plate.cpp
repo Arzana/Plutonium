@@ -309,10 +309,6 @@ void Pu::Plate::SetCrust(LSize pos, float amnt, size_t time)
 	size_t i = GetMapIndex(pos);
 	if (i >= area)
 	{
-		/* Make sure that the position cannot be outside of the map bounds. */
-		position.X &= stride;
-		position.Y &= stride;
-
 		/* Calculate the distance of the new point from the plates edges. */
 		const size_t left = position.X - pos.X;
 		const size_t right = (stride & -(static_cast<int64>(pos.X) < position.X)) + pos.X - (position.X + w - 1);

@@ -54,10 +54,10 @@ Pu::vector<float> getDefaultImageHDR(void)
 	return result;
 }
 
-Pu::vector<byte> getDefaultImageLDR(void)
+Pu::vector<Pu::byte> getDefaultImageLDR(void)
 {
 	/* Create LDR copy of default image. */
-	Pu::vector<byte> result;
+	Pu::vector<Pu::byte> result;
 	result.reserve(DEFAULT_IMAGE_COMPONENTS * 4);
 
 	for (Pu::Color cur : DEFAULT_IMAGE)
@@ -65,7 +65,7 @@ Pu::vector<byte> getDefaultImageLDR(void)
 		result.emplace_back(cur.R);
 		result.emplace_back(cur.G);
 		result.emplace_back(cur.B);
-		result.emplace_back(static_cast<byte>(255));
+		result.emplace_back(static_cast<Pu::byte>(255));
 	}
 
 	return result;
@@ -102,7 +102,7 @@ Pu::vector<float> Pu::_CrtLoadImageHDR(const wstring & path)
 	}
 }
 
-Pu::vector<byte> Pu::_CrtLoadImageLDR(const wstring & path)
+Pu::vector<Pu::byte> Pu::_CrtLoadImageLDR(const wstring & path)
 {
 	int x, y, c;
 	byte *data = stbi_load(path.toUTF8().c_str(), &x, &y, &c, PreferredImageComponentCount);

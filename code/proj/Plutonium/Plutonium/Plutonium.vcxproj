@@ -62,7 +62,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>dbghelp.lib;hid.lib</AdditionalDependencies>
+      <AdditionalDependencies>dbghelp.lib;hid.lib;Ws2_32.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -243,6 +243,14 @@
     <ClInclude Include="..\..\..\include\Input\Sliders.h" />
     <ClInclude Include="..\..\..\include\Input\ValueEventArgs.h" />
     <ClInclude Include="..\..\..\include\Input\ValueInformation.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\AddressFamily.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\IPAddress.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\Protocol.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\Socket.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\SocketOption.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\SocketType.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SSDP.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
@@ -350,6 +358,9 @@
     <ClCompile Include="..\..\..\src\Input\InputDevice.cpp" />
     <ClCompile Include="..\..\..\src\Input\InputDeviceHandler.cpp" />
     <ClCompile Include="..\..\..\src\Input\Keyboard.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\Core\IPAddress.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\Core\Socket.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />

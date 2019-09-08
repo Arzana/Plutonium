@@ -452,15 +452,16 @@ namespace Pu
 		_Check_return_ inline vector<basic_string<char_t>> split(_In_ char_t seperator) const noexcept
 		{
 			vector<basic_string<char_t>> result;
-			size_type prev = 0, pos = 0;
+			size_type prev = 0, pos = 0, len;
 
 			while ((pos = string_t::find(seperator, pos)) != string_t::npos)
 			{
-				result.emplace_back(string_t::substr(prev, pos - prev));
+				len = pos - prev;
+				if (len) result.emplace_back(string_t::substr(prev, len));
 				prev = ++pos;
 			}
 
-			const size_type len = string_t::length();
+			len = string_t::length();
 			if (len != prev) result.emplace_back(string_t::substr(prev, len - prev));
 			return result;
 		}

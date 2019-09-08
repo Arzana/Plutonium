@@ -240,45 +240,50 @@ void Pu::Lithosphere::UpdateLithosphere(size_t * tmpMap)
 
 void Pu::Lithosphere::CheckForCollisions(size_t * tmpMap, Plate & cur, Plate & other, LSize pos, size_t & collisionCount, size_t curPlateIdx, size_t curPlatePosIdx, size_t worldIdx)
 {
+	/* Save these so we don't query them constantly. */
+	float prevHeight = heightMap[worldIdx];
+	float newHeight = cur.GetHeight(curPlatePosIdx);
+
 	/* Equality would lead to subductions of shores that's barely above sea level. */
-	const bool prevIsOceanic = heightMap[worldIdx] < settings.ContinentBase;
-	const bool thisIsOceanic = cur.GetHeight(curPlatePosIdx) < settings.ContinentBase;
+	const bool prevIsOceanic = prevHeight< settings.ContinentBase;
+	const bool thisIsOceanic = newHeight < settings.ContinentBase;
 
 	/* Check whether the previous crust was bouyant crust. */
 	const size_t prevTime = other.GetCrustAge(pos);
 	const size_t thisTime = cur.GetAge(curPlatePosIdx);
-	const size_t prevIsBouyant = (heightMap[worldIdx] > cur.GetHeight(curPlatePosIdx)) |
-		((heightMap[worldIdx] + 2.0f * EPSILON > cur.GetHeight(curPlatePosIdx)) &
-		(heightMap[worldIdx] < 2.0f * EPSILON + cur.GetHeight(curPlatePosIdx)) &
+	const bool prevIsBouyant = (prevHeight > newHeight) ||
+		((prevHeight + 2.0f * EPSILON > newHeight) &&
+		(prevHeight < 2.0f * EPSILON + newHeight) &&
 		(prevTime >= thisTime));
 
 	/* Handle subduction of oceanic crust. */
 	if (thisIsOceanic && prevIsBouyant)
 	{
 		/* The amount of sediment if directly related to the amount of water on top of the subducting plate. */
-		const float sediment = settings.OceanicBase * (settings.ContinentBase - cur.GetHeight(curPlatePosIdx)) / settings.ContinentBase;
+		const float sediment = settings.OceanicBase * (settings.ContinentBase - newHeight) / settings.ContinentBase;
 
 		/* Save the collision to the receiving plate's list. */
 		subductions[idxMap[worldIdx]].emplace_back(cur, other, pos, sediment);
 
 		/* Remove subducted oceanic lithosphere from the plate. */
-		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) - settings.OceanicBase, thisTime);
+		cur.SetCrust(pos, newHeight - settings.OceanicBase, thisTime);
+		newHeight = cur.GetHeight(curPlatePosIdx);
 
 		/* Skip if there is nothing more to collide. */
-		if (cur.GetHeight(curPlatePosIdx) <= 0.0f) return;
+		if (newHeight <= 0.0f) return;
 	}
 	else if (prevIsOceanic)
 	{
-		const float sediment = settings.OceanicBase * (settings.ContinentBase - heightMap[worldIdx]) / settings.ContinentBase;
+		const float sediment = settings.OceanicBase * (settings.ContinentBase - prevHeight) / settings.ContinentBase;
 
 		subductions[curPlateIdx].emplace_back(other, cur, pos, sediment);
 
-		other.SetCrust(pos, heightMap[worldIdx] - settings.OceanicBase, prevTime);
+		other.SetCrust(pos, prevHeight - settings.OceanicBase, prevTime);
 
-		if (heightMap[worldIdx] <= 0.0f)
+		if (prevHeight <= 0.0f)
 		{
 			idxMap[worldIdx] = curPlateIdx;
-			heightMap[worldIdx] = cur.GetHeight(curPlatePosIdx);
+			heightMap[worldIdx] = prevHeight = cur.GetHeight(curPlatePosIdx);
 			tmpMap[worldIdx] = cur.GetAge(curPlatePosIdx);
 
 			return;
@@ -294,24 +299,24 @@ void Pu::Lithosphere::CheckForCollisions(size_t * tmpMap, Plate & cur, Plate & o
 	if (thisArea < prevArea)
 	{
 		/* Add the collision to the list. */
-		const PlateCollisionInfo info(other, cur, pos, heightMap[worldIdx] * settings.FoldingRatio);
+		const PlateCollisionInfo info(other, cur, pos, prevHeight * settings.FoldingRatio);
 		collisions[curPlateIdx].emplace_back(info);
 
 		/* Add some crust. */
 		heightMap[worldIdx] += info.GetCrush();
-		other.SetCrust(pos, heightMap[worldIdx], cur.GetAge(curPlatePosIdx));
+		other.SetCrust(pos, prevHeight, cur.GetAge(curPlatePosIdx));
 
 		/* Remove some crust. */
-		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) * (1.0f - settings.FoldingRatio), cur.GetAge(curPlatePosIdx));
+		cur.SetCrust(pos, newHeight * (1.0f - settings.FoldingRatio), cur.GetAge(curPlatePosIdx));
 	}
 	else
 	{
 		/* Add the collision to the list. */
-		const PlateCollisionInfo info(cur, other, pos, heightMap[worldIdx] * settings.FoldingRatio);
+		const PlateCollisionInfo info(cur, other, pos, prevHeight * settings.FoldingRatio);
 		collisions[idxMap[worldIdx]].emplace_back(info);
 
-		cur.SetCrust(pos, cur.GetHeight(curPlatePosIdx) + info.GetCrush(), tmpMap[worldIdx]);
-		other.SetCrust(pos, heightMap[worldIdx] * (1.0f - settings.FoldingRatio), tmpMap[worldIdx]);
+		cur.SetCrust(pos, newHeight + info.GetCrush(), tmpMap[worldIdx]);
+		other.SetCrust(pos, prevHeight * (1.0f - settings.FoldingRatio), tmpMap[worldIdx]);
 
 		/* Give the location to the larger plate. */
 		heightMap[worldIdx] = cur.GetHeight(curPlatePosIdx);

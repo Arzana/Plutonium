@@ -3,6 +3,11 @@
 /* Safe guard so we only try to include on windows platform. */
 #ifdef _WIN32
 
+/* Required otherwise the Winsock API 1.1 is included (we need 2). */
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 /* 
 Make sure windows doesn't define a min and max macro for us.
 This breaks code as we define a type safe one ourselves.

@@ -1,6 +1,5 @@
 #pragma once
 #include "Core/String.h"
-#include "Core/Math/Constants.h"
 
 #ifdef _DEBUG
 #include "Graphics/Platform/NativeWindow.h"
