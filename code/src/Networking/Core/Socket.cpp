@@ -119,6 +119,29 @@ bool Pu::Socket::GetOption(SocketOption option, void * result) const
 	return false;
 }
 
+Pu::IPAddress Pu::Socket::GetAddress(const string & uri, uint16 port) const
+{
+#ifdef _WIN32
+	/* Attempt to get the address from the uri. */
+	LPADDRINFO info = GetSockAddr(uri, port);
+	if (info)
+	{
+		/* The sockadd_in gives us an easy of use way to get the address. */
+		sockaddr_in *in = reinterpret_cast<sockaddr_in*>(info);
+		IPAddress result(in->sin_addr.s_addr);
+		
+		/* Make sure to delete the structure before returning. */
+		freeaddrinfo(info);
+		return result;
+	}
+#else
+	Log::Warning("Unable to get address from uri on this platform!");
+#endif
+
+	/* Return the any address if anything failed. */
+	return IPAddress::GetAny();
+}
+
 bool Pu::Socket::Poll(void) const
 {
 #ifdef _WIN32
@@ -149,7 +172,7 @@ void Pu::Socket::Bind(IPAddress address, uint16 port)
 	}
 
 	/* Get the address info from the supplied data. */
-	LPADDRINFO info = GetSockAddr(address, port);
+	LPADDRINFO info = GetSockAddr(address.GetAddressStr(), port);
 	if (info)
 	{
 		/* Actually bind the socket. */
@@ -187,7 +210,7 @@ void Pu::Socket::Connect(IPAddress address, uint16 port)
 		return;
 	}
 
-	LPADDRINFO info = GetSockAddr(address, port);
+	LPADDRINFO info = GetSockAddr(address.GetAddressStr(), port);
 	if (info)
 	{
 		/* Connect to the remote host. */
@@ -336,7 +359,7 @@ void Pu::Socket::SetVersion(int major, int minor, int patch)
 }
 
 #ifdef _WIN32
-LPADDRINFO Pu::Socket::GetSockAddr(IPAddress address, uint16 port) const
+LPADDRINFO Pu::Socket::GetSockAddr(const string & uri, uint16 port) const
 {
 	addrinfo hints, *result;
 	ZeroMemory(&hints, sizeof(addrinfo));
@@ -345,7 +368,7 @@ LPADDRINFO Pu::Socket::GetSockAddr(IPAddress address, uint16 port) const
 	hints.ai_protocol = static_cast<int>(protocol);
 
 	/* Get the address and port to bind to. */
-	int code = getaddrinfo(address.GetAddressStr().c_str(), string::from(port).c_str(), &hints, &result);
+	int code = getaddrinfo(uri.c_str(), string::from(port).c_str(), &hints, &result);
 	if (code)
 	{
 		Log::Error("Unable to get address information (%ls)!", _CrtFormatError(code).c_str());

@@ -1,4 +1,5 @@
 #include "Networking/UPnP/SSDP.h"
+#include "Networking/UPnP/HTTPU.h"
 #include "Core/Diagnostics/Logging.h"
 
 Pu::SSDP::SSDP(Socket & socket)
@@ -17,25 +18,18 @@ Pu::SSDP::SSDP(Socket & socket)
 
 void Pu::SSDP::Discover(const string & serviceType)
 {
-	/* 
-	Construct the requist message
-	See RFC 2616 4.5 and 5.3 for header info 
-	*/
-	string msg = "M-SEARCH * HTTP/1.1\r\n"	// Search for any device via HTTP 1.1 (* is required by SSDP)
-		"HOST: 239.255.255.250:1900\r\n"	// IPv4 multicast address and SSDP port (HTTP header)
-		"ST:";
+	/*
+Construct the request message
+See RFC 2616 4.5 and 5.3 for header info
+*/
+	HttpuRequest request("239.255.255.250");		// IPv4 multicast address.
+	request.SetMethod("M-SEARCH *");
+	request.SetPort(1900);							// SSDP port.
+	request.AddHeader("ST", serviceType);			// Add the service type that we want to discover on the network (example for UPnP "ST: upnp:rootdevice").
+	request.AddHeader("MAN", "\"ssdp:discover\"");	// Add manditory extension for SSDP discover.
+	request.AddHeader("MX", string::from(timeout));	// Define the maximum age (in seconds) before the message expires.
 
-	msg += serviceType;						// Add the service type that we want to discover on the network (example for UPnP "ST: upnp:rootdevice").
-	msg += "\r\n";
-	
-	msg += "MAN:\"ssdp:discover\"\r\n";		// Add manditory extension for SSDP discover
-	msg += "MX: ";
-
-	msg += string::from(timeout);			// Define the maximum age (in seconds) before the message expires
-	msg += "\r\n\r\n";
-
-	/* SSDP always uses port 1900. */
-	socket->Send(msg, broadcastAddress, 1900);
+	request.Send(*socket, broadcastAddress);
 	lastServiceType = serviceType;
 }
 

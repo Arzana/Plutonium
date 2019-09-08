@@ -249,6 +249,8 @@
     <ClInclude Include="..\..\..\include\Networking\Core\Socket.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\SocketOption.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\SocketType.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\HttpMethod.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\HTTPU.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDP.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
@@ -360,6 +362,7 @@
     <ClCompile Include="..\..\..\src\Input\Keyboard.cpp" />
     <ClCompile Include="..\..\..\src\Networking\Core\IPAddress.cpp" />
     <ClCompile Include="..\..\..\src\Networking\Core\Socket.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\UPnP\HTTPU.cpp" />
     <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp" />

@@ -711,6 +711,12 @@
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h">
       <Filter>Header Files\Networking\UPnP</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\HTTPU.h">
+      <Filter>Header Files\Networking\UPnP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\HttpMethod.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1023,6 +1029,9 @@
       <Filter>Source Files\Networking\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp">
+      <Filter>Source Files\Networking\UPnP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\UPnP\HTTPU.cpp">
       <Filter>Source Files\Networking\UPnP</Filter>
     </ClCompile>
   </ItemGroup>
