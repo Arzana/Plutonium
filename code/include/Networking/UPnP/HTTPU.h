@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include "Networking/Core/Socket.h"
 #include "HttpMethod.h"
 
@@ -47,5 +48,69 @@ namespace Pu
 		string path;
 		uint16 port;
 		vector<std::pair<string, string>> headers;
+	};
+
+	/* Defines a helper object for receiving and decoding HTTPU web responses. */
+	class HttpuResponse
+	{
+	public:
+		/* Copy constructor. */
+		HttpuResponse(_In_ const HttpuResponse &value) = default;
+		/* Move constructor. */
+		HttpuResponse(_In_ HttpuResponse &&value) = default;
+
+		/* Copy assignment. */
+		_Check_return_ HttpuResponse& operator =(_In_ const HttpuResponse &other) = default;
+		/* Move assignment. */
+		_Check_return_ HttpuResponse& operator =(_In_ HttpuResponse &&other) = default;
+
+		/* Gets the status code of the response. */
+		_Check_return_ inline uint16 GetStatusCode(void) const
+		{
+			return status;
+		}
+
+		/* Gets whether the status code was informational (1xx). */
+		_Check_return_ inline bool IsInformational(void) const
+		{
+			return status >= 100 && status < 200;
+		}
+
+		/* Gets whether the status code was success (2xx). */
+		_Check_return_ inline bool IsSuccess(void) const
+		{
+			return status >= 200 && status < 300;
+		}
+
+		/* Gets whether the status code was a redirecion (3xx). */
+		_Check_return_ inline bool IsRedirection(void) const
+		{
+			return status >= 300 && status < 400;
+		}
+
+		/* Gets whether the status code was a client error (4xx). */
+		_Check_return_ inline bool IsClientError(void) const
+		{
+			return status >= 400 && status < 500;
+		}
+
+		/* Gets whether the status code was a server error (5xx). */
+		_Check_return_ inline bool IsServerError(void) const
+		{
+			return status >= 500 && status < 600;
+		}
+
+		/* Attempts to get the value from a specific header (returns whether the header was present). */
+		_Check_return_ bool TryGetHeader(_In_ const string &name, _Out_ string &value) const;
+		/* Converts the pending packet to a http response (throws if no packet was available!) */
+		_Check_return_ static HttpuResponse Receive(_In_ Socket &socket, _In_ void *buffer, _In_ size_t bufferSize);
+		/* Converts the pending packet to a http response (throws if no packet was available!) */
+		_Check_return_ static HttpuResponse Receive(_In_ Socket &socket, _In_ void *buffer, _In_ size_t bufferSize, _In_ IPAddress address, _In_ uint16 port);
+
+	private:
+		HttpuResponse(const void *buffer, size_t size);
+
+		uint16 status;
+		std::map<string, string> headers;
 	};
 }

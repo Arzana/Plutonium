@@ -87,3 +87,83 @@ void Pu::HttpuRequest::Send(Socket & socket, IPAddress address) const
 
 	socket.Send(msg, address, port);
 }
+
+bool Pu::HttpuResponse::TryGetHeader(const string & name, string & value) const
+{
+	/* Check if the key is present in the map, if so return it; otherwise return false. */
+	decltype(headers)::const_iterator it = headers.find(name);
+	if (it != headers.end())
+	{
+		value = it->second;
+		return true;
+	}
+
+	return false;
+}
+
+Pu::HttpuResponse Pu::HttpuResponse::Receive(Socket & socket, void * buffer, size_t bufferSize)
+{
+	const size_t packetSize = socket.Receive(buffer, bufferSize);
+	if (!packetSize) Log::Fatal("Cannot create HTTP response from empty DGRAM!");
+		
+	return HttpuResponse(buffer, packetSize);
+}
+
+Pu::HttpuResponse Pu::HttpuResponse::Receive(Socket & socket, void * buffer, size_t bufferSize, IPAddress address, uint16 port)
+{
+	const size_t packetSize = socket.Receive(buffer, bufferSize, address, port);
+	if (!packetSize) Log::Fatal("Cannot create HTTP response from empty DGRAM!");
+
+	return HttpuResponse(buffer, packetSize);
+}
+
+Pu::HttpuResponse::HttpuResponse(const void * buffer, size_t size)
+	: status(0)
+{
+	const char *dgram = reinterpret_cast<const char*>(buffer);
+	string str1, str2;
+
+	/* Loop through the entire packet to get the headers and status code. */
+	for (size_t i = 0, j = 1; i < size; i++)
+	{
+		char c = dgram[i];
+
+		if (c == '\r') continue;
+		if (c == '\n')
+		{
+			/* If it's the first line check for the status code. */
+			if (j)
+			{
+				j = 0;
+				/* Attempt to get the status code. */
+				if (string(dgram, dgram + i).contains("HTTP/1.1"))
+				{
+					status = static_cast<uint16>(strtol(dgram + 9, nullptr, 10));
+				}
+				else
+				{
+					Log::Error("First line of a HTTP response must be the status code!");
+					return;
+				}
+			}
+			else if (!str2.empty())
+			{
+				/* Add the header to the list, make sure to remove leading and trailing spaces. */
+				headers.emplace(str2, str1.trim(" "));
+				str2.clear();
+			}
+
+			str1.clear();
+		}
+		else if (c == ':' && str2.empty())
+		{
+			/* 
+			We've reached the seperator for the key and value.
+			So set the second string to the key and clear the first to receive the value.
+			*/
+			str2 = str1;
+			str1.clear();
+		}
+		else str1 += c;
+	}
+}

@@ -19,9 +19,9 @@ Pu::SSDP::SSDP(Socket & socket)
 void Pu::SSDP::Discover(const string & serviceType)
 {
 	/*
-Construct the request message
-See RFC 2616 4.5 and 5.3 for header info
-*/
+	Construct the request message
+	See RFC 2616 4.5 and 5.3 for header info
+	*/
 	HttpuRequest request("239.255.255.250");		// IPv4 multicast address.
 	request.SetMethod("M-SEARCH *");
 	request.SetPort(1900);							// SSDP port.
@@ -35,54 +35,43 @@ See RFC 2616 4.5 and 5.3 for header info
 
 bool Pu::SSDP::PollResponse(void)
 {
-	/* Receive polls internally so we only have to check if the size is greater than zero. */
-	const size_t size = socket->Receive(buffer.data(), buffer.size(), broadcastAddress, 1900);
-	if (size)
+	/* Make sure we poll to see if we have any messages. */
+	if (socket->Poll())
 	{
-		/* Divide the HTTP like response into it's parts. */
-		const vector<string> headers = buffer.split({ '\r', '\n' });
-		for (const string &header : headers)
+		/* The response should come on port 1900. */
+		const HttpuResponse response = HttpuResponse::Receive(*socket, buffer.data(), buffer.size(), broadcastAddress, 1900);
+		if (response.GetStatusCode() != 200) return false;
+
+		/* The service type should be equal to the one send by our caller. */
+		string value;
+		if (response.TryGetHeader("ST", value))
 		{
-			/* Split the header into it's key and value. */
-			const size_t valueStart = header.find_first_of(':');
+			if (value != lastServiceType) return false;
+		}
 
-			/* Check for the HTTP status code. */
-			if (valueStart == string::npos && header.contains("HTTP/1.1"))
-			{
-				/* "HTTP/1.1 " is 9 characters long and a HTTP status code is always 3 characters long. */
-				lastResponse.StatusCode = static_cast<uint16>(atoi(header.substr(9, 3).c_str()));
-				continue;
-			}
+		/* Gets the UUID and the server location. */
+		if (response.TryGetHeader("USN", value)) lastResponse.UUID = value;
+		if (response.TryGetHeader("LOCATION", value)) lastResponse.Location = value;
 
-			/* Get the key and the value of the header (+1 to remove the ':' and remove leading spaces). */
-			const string key = header.substr(0, valueStart);
-			const string value = header.substr(valueStart + 1).trim_front(" ");
+		if (response.TryGetHeader("CACHE-CONTROL", value))
+		{
+			/* TTL is stored as "CACHE-CONTROL: max-age=120". */
+			lastResponse.TTL = atoi(value.substr(value.find_first_of('=') + 1).c_str());
+		}
 
-			if (key == "ST" && value != lastServiceType)
+		/* Get the properties of the server. */
+		if (response.TryGetHeader("SERVER", value))
+		{
+			const vector<string> parts = value.split('/');
+			if (parts.size() == 5)
 			{
-				/*  The response service type must be equal to the request service type. */
-				false;
+				lastResponse.ServerName = parts[0];
+				lastResponse.OS = parts[1];
+				lastResponse.ServiceVersion = parts[2];
+				lastResponse.Product = parts[3];
+				lastResponse.ProductVersion = parts[4];
 			}
-			else if (key == "USN") lastResponse.UUID = std::move(value);
-			else if (key == "SERVER")
-			{
-				const vector<string> parts = value.split('/');
-				if (parts.size() == 5)
-				{
-					lastResponse.ServerName = parts[0];
-					lastResponse.OS = parts[1];
-					lastResponse.ServiceVersion = parts[2];
-					lastResponse.Product = parts[3];
-					lastResponse.ProductVersion = parts[4];
-				}
-				else Log::Warning("SERVER header in SSDP response is invalid!");
-			}
-			else if (key == "LOCATION") lastResponse.Location = value;
-			else if (key == "CACHE-CONTROL")
-			{
-				/* TTL is stored as "CACHE-CONTROL: max-age=120". */
-				lastResponse.TTL = atoi(value.substr(value.find_first_of('=') + 1).c_str());
-			}
+			else Log::Warning("SERVER header in SSDP response is invalid!");
 		}
 
 		return true;

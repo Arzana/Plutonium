@@ -6,8 +6,6 @@ namespace Pu
 	/* Defines the components of a SSDP response. */
 	struct SSDPResponse
 	{
-		/* The HTTP status code of the response. */
-		uint16 StatusCode;
 		/* The Time to Live of the message. */
 		uint32 TTL;
 		/* 
