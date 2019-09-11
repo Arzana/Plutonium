@@ -9,8 +9,8 @@ namespace Pu
 	class HttpuRequest
 	{
 	public:
-		/* Creates a new instance of a HTTPU web request from the specified URL. */
-		HttpuRequest(_In_ const string &url);
+		/* Creates a new instance of a HTTPU web request from the specified URI. */
+		HttpuRequest(_In_ const string &uri);
 		/* Copy constructor. */
 		HttpuRequest(_In_ const HttpuRequest &value) = default;
 		/* Move constructor. */
@@ -100,6 +100,18 @@ namespace Pu
 			return status >= 500 && status < 600;
 		}
 
+		/* Gets the body of the response. */
+		_Check_return_ inline const string& GetBody(void) const
+		{
+			return body;
+		}
+
+		/* Gets whether this response has a body. */
+		_Check_return_ inline bool HasBody(void) const
+		{
+			return !body.empty();
+		}
+
 		/* Attempts to get the value from a specific header (returns whether the header was present). */
 		_Check_return_ bool TryGetHeader(_In_ const string &name, _Out_ string &value) const;
 		/* Converts the pending packet to a http response (throws if no packet was available!) */
@@ -112,5 +124,6 @@ namespace Pu
 
 		uint16 status;
 		std::map<string, string> headers;
+		string body;
 	};
 }

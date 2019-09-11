@@ -1,21 +1,29 @@
 #include "Networking/UPnP/HTTPU.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::HttpuRequest::HttpuRequest(const string & url)
+Pu::HttpuRequest::HttpuRequest(const string & uri)
 	: method("GET"), port(80)
 {
-	/* Get defining points in the URL. */
-	const size_t protocolEnd = url.find_first_of(':');
-	const size_t pathStart = url.find_first_of('/');
-	const size_t queryStart = url.find_first_of('?');
+	/* Get the end of the protocol (http). */
+	size_t protocolEnd = uri.find_first_of(':');
+	protocolEnd = protocolEnd == string::npos ? 0 : protocolEnd + 3;
 
-	/* Get the start and end of the host. */
-	const size_t hostStart = protocolEnd == string::npos ? 0 : protocolEnd;
-	const size_t hostEnd = pathStart == string::npos ? (queryStart == string::npos ? url.size() : queryStart) : pathStart;
+	/* Get the end of the host and the start of the path. */
+	const size_t portStart = uri.find_first_of(':', protocolEnd);
+	const size_t pathStart = uri.find_first_of('/', protocolEnd);
+	const size_t hostEnd = portStart != string::npos ? portStart : (pathStart != string::npos ? pathStart : uri.size());
 
-	/* Set the host and the path. */
-	host = url.substr(hostStart, hostEnd);
-	path = url.substr(hostEnd);
+	/* Set the port by default if it's in the URI. */
+	if (portStart != string::npos)
+	{
+		/* The end of the port is either the start of the path or the end of the URI. */
+		const size_t portEnd = pathStart != string::npos ? pathStart : uri.size() - 1;
+		port = static_cast<uint16>(atoi(uri.substr(portStart + 1, portEnd - portStart - 1).c_str()));
+	}
+
+	/* Get the host and the path. */
+	host = uri.substr(protocolEnd, hostEnd - protocolEnd);
+	if (pathStart != string::npos) path = uri.substr(pathStart);
 }
 
 void Pu::HttpuRequest::SetMethod(HttpMethod newMethod)
@@ -73,7 +81,7 @@ void Pu::HttpuRequest::AddHeader(const string & header, const string & value)
 void Pu::HttpuRequest::Send(Socket & socket) const
 {
 	/* Get the receivers IP address and send the message. */
-	const IPAddress receiver = socket.GetAddress(host, port);
+	const IPAddress receiver{ host };
 	Send(socket, receiver);
 }
 
@@ -85,7 +93,13 @@ void Pu::HttpuRequest::Send(Socket & socket, IPAddress address) const
 	for (const auto &[key, value] : headers) msg += key + ": " + value + "\r\n";
 	msg += "\r\n";
 
-	socket.Send(msg, address, port);
+	if(socket.GetProtocol() == Protocol::UDP) socket.Send(msg, address, port);
+	else if (socket.GetProtocol() == Protocol::TCP)
+	{
+		socket.Connect(address, port);
+		socket.Send(msg);
+	}
+	else Log::Fatal("Can only send HTTP(U) requests over UDP or TCP!");
 }
 
 bool Pu::HttpuResponse::TryGetHeader(const string & name, string & value) const
@@ -105,7 +119,8 @@ Pu::HttpuResponse Pu::HttpuResponse::Receive(Socket & socket, void * buffer, siz
 {
 	const size_t packetSize = socket.Receive(buffer, bufferSize);
 	if (!packetSize) Log::Fatal("Cannot create HTTP response from empty DGRAM!");
-		
+
+	socket.Disconnect();
 	return HttpuResponse(buffer, packetSize);
 }
 
@@ -123,8 +138,17 @@ Pu::HttpuResponse::HttpuResponse(const void * buffer, size_t size)
 	const char *dgram = reinterpret_cast<const char*>(buffer);
 	string str1, str2;
 
-	/* Loop through the entire packet to get the headers and status code. */
-	for (size_t i = 0, j = 1; i < size; i++)
+	/*
+	Loop through the entire packet to get the headers and status code.
+	Format for responses is:
+	HTTP/[version] [code] [code name]
+	[header name]: [header value]
+	...
+	[empty line]
+	[body]
+	*/
+	size_t i, j;
+	for (i = 0, j = 1; i < size; i++)
 	{
 		char c = dgram[i];
 
@@ -152,12 +176,18 @@ Pu::HttpuResponse::HttpuResponse(const void * buffer, size_t size)
 				headers.emplace(str2, str1.trim(" "));
 				str2.clear();
 			}
+			else
+			{
+				/* We've reached the body so just exit this loop and continue to body copy. */
+				++i;
+				break;
+			}
 
 			str1.clear();
 		}
 		else if (c == ':' && str2.empty())
 		{
-			/* 
+			/*
 			We've reached the seperator for the key and value.
 			So set the second string to the key and clear the first to receive the value.
 			*/
@@ -166,4 +196,8 @@ Pu::HttpuResponse::HttpuResponse(const void * buffer, size_t size)
 		}
 		else str1 += c;
 	}
+
+	/* Copy over the body is we have one. */
+	j = size - 1;
+	if (i < j) body = string(dgram + i, dgram + j);
 }

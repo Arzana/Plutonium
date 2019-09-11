@@ -293,8 +293,11 @@ size_t Pu::Socket::Receive(void * data, size_t bufferSize)
 #ifdef _WIN32
 		if (hndl != INVALID_SOCKET)
 		{
-			/* Receive the pending package and check for errors. */
-			const int result = recv(hndl, reinterpret_cast<char*>(data), static_cast<int>(bufferSize), 0);
+			/* 
+			Receive the pending package and check for errors. 
+			Also make sure to wait for the entire message to be received, not just a part of it.
+			*/
+			const int result = recv(hndl, reinterpret_cast<char*>(data), static_cast<int>(bufferSize), MSG_WAITALL);
 			if (result == SOCKET_ERROR)
 			{
 				Log::Error("Receiving packet failed (%ls)!", GetLastWSAError().c_str());
