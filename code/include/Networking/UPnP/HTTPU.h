@@ -5,11 +5,11 @@
 
 namespace Pu
 {
-	/* Defines a helper object for creating and sending HTTPU web requests. */
+	/* Defines a helper object for creating and sending HTTP(U) web requests. */
 	class HttpuRequest
 	{
 	public:
-		/* Creates a new instance of a HTTPU web request from the specified URI. */
+		/* Creates a new instance of a HTTP(U) web request from the specified URI. */
 		HttpuRequest(_In_ const string &uri);
 		/* Copy constructor. */
 		HttpuRequest(_In_ const HttpuRequest &value) = default;
@@ -21,18 +21,38 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ HttpuRequest& operator =(_In_ HttpuRequest &&other) = default;
 
-		/* Sets the port to use for the HTTPU request. */
+		/* Sets the port to use for the HTTP(U) request. */
 		inline void SetPort(_In_ uint16 value)
 		{
 			port = value;
 		}
 
-		/* Sets a custom method for the HTTPU request. */
+		/* Gets the port used for the HTTP(U) request. */
+		_Check_return_ inline uint16 GetPort(void) const
+		{
+			return port;
+		}
+
+		/* Sets a custom method for the HTTP(U) request. */
 		inline void SetMethod(_In_ const string &newMethod)
 		{
 			method = newMethod;
 		}
 
+		/* Sets the body for the HTTP(U) request. */
+		virtual inline void SetBody(_In_ const string &value)
+		{
+			body = value;
+		}
+
+		/* Gets the remote host of this request. */
+		_Check_return_ inline const string& GetHost(void) const
+		{
+			return host;
+		}
+
+		/* Gets the full web host for the request, complete with protocol and port. */
+		_Check_return_ string GetWebHost(void) const;
 		/* Sets the method to use in the request. */
 		void SetMethod(_In_ HttpMethod newMethod);
 		/* Adds a header to the request. */
@@ -46,11 +66,12 @@ namespace Pu
 		string method;
 		string host;
 		string path;
+		string body;
 		uint16 port;
 		vector<std::pair<string, string>> headers;
 	};
 
-	/* Defines a helper object for receiving and decoding HTTPU web responses. */
+	/* Defines a helper object for receiving and decoding HTTP(U) web responses. */
 	class HttpuResponse
 	{
 	public:
@@ -120,10 +141,10 @@ namespace Pu
 		_Check_return_ static HttpuResponse Receive(_In_ Socket &socket, _In_ void *buffer, _In_ size_t bufferSize, _In_ IPAddress address, _In_ uint16 port);
 
 	private:
-		HttpuResponse(const void *buffer, size_t size);
-
 		uint16 status;
 		std::map<string, string> headers;
 		string body;
+
+		HttpuResponse(const void *buffer, size_t size);
 	};
 }

@@ -26,6 +26,11 @@ Pu::HttpuRequest::HttpuRequest(const string & uri)
 	if (pathStart != string::npos) path = uri.substr(pathStart);
 }
 
+Pu::string Pu::HttpuRequest::GetWebHost(void) const
+{
+	return "http://" + host + ':' + string::from(port);
+}
+
 void Pu::HttpuRequest::SetMethod(HttpMethod newMethod)
 {
 	switch (newMethod)
@@ -92,6 +97,7 @@ void Pu::HttpuRequest::Send(Socket & socket, IPAddress address) const
 	msg += "HOST: " + host + ':' + string::from(port) + "\r\n";
 	for (const auto &[key, value] : headers) msg += key + ": " + value + "\r\n";
 	msg += "\r\n";
+	if (!body.empty()) msg += body + "\r\n";
 
 	if(socket.GetProtocol() == Protocol::UDP) socket.Send(msg, address, port);
 	else if (socket.GetProtocol() == Protocol::TCP)
@@ -118,7 +124,7 @@ bool Pu::HttpuResponse::TryGetHeader(const string & name, string & value) const
 Pu::HttpuResponse Pu::HttpuResponse::Receive(Socket & socket, void * buffer, size_t bufferSize)
 {
 	const size_t packetSize = socket.Receive(buffer, bufferSize);
-	if (!packetSize) Log::Fatal("Cannot create HTTP response from empty DGRAM!");
+	if (!packetSize) Log::Fatal("Cannot create HTTP response from empty STREAM!");
 
 	socket.Disconnect();
 	return HttpuResponse(buffer, packetSize);
@@ -198,6 +204,5 @@ Pu::HttpuResponse::HttpuResponse(const void * buffer, size_t size)
 	}
 
 	/* Copy over the body is we have one. */
-	j = size - 1;
-	if (i < j) body = string(dgram + i, dgram + j);
+	if (i < size) body = string(dgram + i, dgram + size);
 }

@@ -717,6 +717,15 @@
     <ClInclude Include="..\..\..\include\Networking\UPnP\HttpMethod.h">
       <Filter>Header Files\Networking\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h">
+      <Filter>Third Party</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\UPnP.h">
+      <Filter>Header Files\Networking\UPnP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SOAP.h">
+      <Filter>Header Files\Networking\UPnP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1032,6 +1041,15 @@
       <Filter>Source Files\Networking\UPnP</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Networking\UPnP\HTTPU.cpp">
+      <Filter>Source Files\Networking\UPnP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\deps\tinyxml\tinyxml2.cpp">
+      <Filter>Third Party\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\UPnP\UPnP.cpp">
+      <Filter>Source Files\Networking\UPnP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Networking\UPnP\SOAP.cpp">
       <Filter>Source Files\Networking\UPnP</Filter>
     </ClCompile>
   </ItemGroup>

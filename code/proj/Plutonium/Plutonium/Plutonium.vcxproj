@@ -94,6 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\deps\imgui\include\imconfig.h" />
+    <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Components\Camera.h" />
     <ClInclude Include="..\..\..\include\Components\Component.h" />
@@ -251,8 +252,10 @@
     <ClInclude Include="..\..\..\include\Networking\Core\SocketType.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\HttpMethod.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\HTTPU.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\SOAP.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDP.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h" />
+    <ClInclude Include="..\..\..\include\Networking\UPnP\UPnP.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
@@ -269,6 +272,7 @@
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_vulkan.cpp" />
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_impl_win32.cpp" />
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\..\deps\tinyxml\tinyxml2.cpp" />
     <ClCompile Include="..\..\..\src\Application.cpp" />
     <ClCompile Include="..\..\..\src\Components\Camera.cpp" />
     <ClCompile Include="..\..\..\src\Components\Component.cpp" />
@@ -363,7 +367,9 @@
     <ClCompile Include="..\..\..\src\Networking\Core\IPAddress.cpp" />
     <ClCompile Include="..\..\..\src\Networking\Core\Socket.cpp" />
     <ClCompile Include="..\..\..\src\Networking\UPnP\HTTPU.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\UPnP\SOAP.cpp" />
     <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp" />
+    <ClCompile Include="..\..\..\src\Networking\UPnP\UPnP.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />

@@ -119,6 +119,19 @@ bool Pu::Socket::GetOption(SocketOption option, void * result) const
 	return false;
 }
 
+Pu::IPAddress Pu::Socket::GetHost(void) const
+{
+	char name[1024];
+
+#ifdef _WIN32
+	gethostname(name, sizeof(name));
+#else
+	Log::Warning("Getting the host address is not supported on this platform!");
+#endif
+
+	return GetAddress(name, 0);
+}
+
 Pu::IPAddress Pu::Socket::GetAddress(const string & uri, uint16 port) const
 {
 #ifdef _WIN32
@@ -126,13 +139,20 @@ Pu::IPAddress Pu::Socket::GetAddress(const string & uri, uint16 port) const
 	LPADDRINFO info = GetSockAddr(uri, port);
 	if (info)
 	{
-		/* The sockadd_in gives us an easy of use way to get the address. */
-		sockaddr_in *in = reinterpret_cast<sockaddr_in*>(info);
-		IPAddress result(in->sin_addr.s_addr);
+		/* Loop through the possible addresses to make sure we get at least one correct one. */
+		char addr[16];
+		for (LPADDRINFO p = info; p; p = p->ai_next)
+		{
+			/* Function returns zero on success. */
+			if (!getnameinfo(p->ai_addr, p->ai_addrlen, addr, sizeof(addr), nullptr, 0, NI_NUMERICHOST))
+			{
+				freeaddrinfo(info);
+				return IPAddress(addr);
+			}
+		}
 		
 		/* Make sure to delete the structure before returning. */
 		freeaddrinfo(info);
-		return result;
 	}
 #else
 	Log::Warning("Unable to get address from uri on this platform!");
@@ -203,8 +223,10 @@ void Pu::Socket::Close(void)
 
 void Pu::Socket::Connect(IPAddress address, uint16 port)
 {
+	if (connected) return;
+
 #ifdef _WIN32
-	if (hndl == INVALID_SOCKET || connected)
+	if (hndl == INVALID_SOCKET)
 	{
 		Log::Warning("Unable to connect with invalid socket!");
 		return;
@@ -214,8 +236,14 @@ void Pu::Socket::Connect(IPAddress address, uint16 port)
 	if (info)
 	{
 		/* Connect to the remote host. */
-		const int code = connect(hndl, info->ai_addr, static_cast<int>(info->ai_addrlen));
-		if (code == SOCKET_ERROR) Log::Error("Unable to connect to remote host (%ls)!", GetLastWSAError().c_str());
+		int code = connect(hndl, info->ai_addr, static_cast<int>(info->ai_addrlen));
+		if (code == SOCKET_ERROR)
+		{
+			/* The error might be that we're already connected, in that case just set it to connected. */
+			code = WSAGetLastError();
+			if (code == WSAEISCONN) connected = true;
+			else Log::Error("Unable to connect to remote host (%ls)!", _CrtFormatError(code).c_str());
+		}
 		else connected = true;
 
 		freeaddrinfo(info);

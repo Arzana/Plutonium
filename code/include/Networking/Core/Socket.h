@@ -61,6 +61,8 @@ namespace Pu
 		void SetOption(_In_ SocketOption option, _In_ const void *value);
 		/* Gets the value of a specific socket level option (returns whether the opteration was successful). */
 		_Check_return_ bool GetOption(_In_ SocketOption option, _In_ void *result) const;
+		/* Gets the local IP address of the host. */
+		_Check_return_ IPAddress GetHost(void) const;
 		/* Gets the IP address of the specified URI. */
 		_Check_return_ IPAddress GetAddress(_In_ const string &uri, _In_ uint16 port) const;
 		/* Checks whether there is data available for the socket to read. */

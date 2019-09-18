@@ -7,16 +7,17 @@ Pu::IPAddress::IPAddress(uint64 address)
 {}
 
 Pu::IPAddress::IPAddress(octet nw1, octet nw2, octet nw3, octet host)
-	: address(nw1)
+	: address(host)
 {
-	address |= (nw2 << 0x8);
-	address |= (nw3 << 0x10);
-	address |= (host << 0x18);
+	address |= (nw3 << 0x8);
+	address |= (nw2 << 0x10);
+	address |= (nw1 << 0x18);
 }
 
 Pu::IPAddress::IPAddress(const string & address)
 {
 	inet_pton(AF_INET, address.c_str(), &this->address);
+	this->address = htonl(static_cast<u_long>(this->address));
 }
 
 Pu::IPAddress Pu::IPAddress::GetAny(void)
@@ -36,10 +37,10 @@ Pu::IPAddress Pu::IPAddress::GetLoopback(void)
 
 Pu::string Pu::IPAddress::GetAddressStr(void) const
 {
-	const octet host = static_cast<octet>((address & 0xFF000000) >> 0x18);
-	const octet nw3 = static_cast<octet>((address & 0x00FF0000) >> 0x10);
-	const octet nw2 = static_cast<octet>((address & 0x0000FF00) >> 0x8);
-	const octet nw1 = static_cast<octet>(address & 0x000000FF);
+	const octet nw1 = static_cast<octet>((address & 0xFF000000) >> 0x18);
+	const octet nw2 = static_cast<octet>((address & 0x00FF0000) >> 0x10);
+	const octet nw3 = static_cast<octet>((address & 0x0000FF00) >> 0x8);
+	const octet host = static_cast<octet>(address & 0x000000FF);
 
 	/* Preallocating the buffer saves performance. */
 	string buffer(16ull);

@@ -31,4 +31,32 @@ namespace Pu
 		RAW = IPPROTO_RAW
 #endif
 	};
+
+	/* Converts the specific internet protocol type to a string. */
+	_Check_return_ inline const char* to_string(_In_ Protocol protocol)
+	{
+		switch (protocol)
+		{
+		case Protocol::ICMP:
+			return "ICMP";
+		case Protocol::IGMP:
+			return "IGMP";
+		case Protocol::GGP:
+			return "GGP";
+		case Protocol::TCP:
+			return "TCP";
+		case Protocol::PUP:
+			return "PUP";
+		case Protocol::UDP:
+			return "UDP";
+		case Protocol::IDP:
+			return "IDP";
+		case Protocol::ND:
+			return "ND";
+		case Protocol::RAW:
+			return "RAW";
+		default:
+			return "UNKNOWN";
+		}
+	}
 }

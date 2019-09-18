@@ -380,10 +380,16 @@ namespace Pu
 	}
 #pragma endregion
 #pragma region random
-	/* Returns a random interger between the specified minimum and maximum values. */
+	/* Returns a random interger between the specified minimum and maximum value. */
 	_Check_return_ inline int32 random(_In_ int32 min, _In_ int32 max)
 	{
 		return min + (rand() % (max + 1 - min));
+	}
+
+	/* Returns a random unsigned integer between the specified minimum and maximum value. */
+	_Check_return_ inline uint32 random(_In_ uint32 min, _In_ uint32 max)
+	{
+		return min + (static_cast<uint32>(rand()) % (max + 1 - min));
 	}
 
 	/* Returns a random float between the specified minimum and maximum values. */
