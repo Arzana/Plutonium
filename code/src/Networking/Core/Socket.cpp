@@ -9,7 +9,7 @@ Pu::uint16 Pu::Socket::versionWSA = WINSOCK_VERSION;
 
 #ifdef _WIN32
 Pu::Socket::Socket(AddressFamily family, SocketType type, Protocol protocol)
-	: family(family), type(type), protocol(protocol), bound(false), connected(false)
+	: family(family), type(type), protocol(protocol), bound(false), connected(false), suppressLogging(false)
 {
 	/* Make sure the API is initialized. */
 	InitializeWSA();
@@ -21,7 +21,8 @@ Pu::Socket::Socket(AddressFamily family, SocketType type, Protocol protocol)
 #endif
 
 Pu::Socket::Socket(Socket && value)
-	: family(value.family), type(value.type), protocol(value.protocol), bound(value.bound), connected(value.connected)
+	: family(value.family), type(value.type), protocol(value.protocol),
+	bound(value.bound), connected(value.connected), suppressLogging(value.suppressLogging)
 #ifdef _WIN32
 	, hndl(value.hndl)
 #endif
@@ -44,6 +45,7 @@ Pu::Socket & Pu::Socket::operator=(Socket && other)
 		protocol = other.protocol;
 		bound = other.bound;
 		connected = other.connected;
+		suppressLogging = other.suppressLogging;
 
 #ifdef _WIN32
 		hndl = other.hndl;
@@ -67,18 +69,10 @@ void Pu::Socket::SetOption(SocketOption option, const void * value)
 		return;
 	}
 
-	/* Single out the TCP socket option. */
-	if (option == SocketOption::NoDelay)
-	{
-		if (protocol == Protocol::TCP) setsockopt(hndl, IPPROTO_TCP, static_cast<int>(option), reinterpret_cast<const char*>(value), sizeof(bool));
-		else Log::Error("Cannot set NoDelay option on non-TCP socket!");
-	}
-	else
-	{
-		/* Get the byte length for the specified option and apply it. */
-		const int optlen = static_cast<int>(win32GetSockOptionBufferSize(option));
-		setsockopt(hndl, SOL_SOCKET, static_cast<int>(option), reinterpret_cast<const char*>(value), optlen);
-	}
+	/* Get the required length of the option and the level through code. */
+	const int optLen = static_cast<int>(win32GetSockOptionBufferSize(option));
+	const int level = win32GetSockOptionLevel(option);
+	setsockopt(hndl, level, static_cast<int>(option), reinterpret_cast<const char*>(value), optLen);
 #else
 	Log::Warning("Cannot set socket option on this platform!");
 #endif
@@ -94,20 +88,9 @@ bool Pu::Socket::GetOption(SocketOption option, void * result) const
 		return false;
 	}
 
-	int code;
 	int optLen = static_cast<int>(win32GetSockOptionBufferSize(option));
-
-	/* Single out the TCP socket option. */
-	if (option == SocketOption::NoDelay)
-	{
-		if (protocol == Protocol::TCP) code = getsockopt(hndl, IPPROTO_TCP, static_cast<int>(option), reinterpret_cast<char*>(result), &optLen);
-		else
-		{
-			Log::Error("Cannot check NoDelay option on non-TCP socket!");
-			return false;
-		}
-	}
-	else code = getsockopt(hndl, SOL_SOCKET, static_cast<int>(option), reinterpret_cast<char*>(result), &optLen);
+	const int level = win32GetSockOptionLevel(option);
+	const int code = getsockopt(hndl, level, static_cast<int>(option), reinterpret_cast<char*>(result), &optLen);
 
 	/* Return the result and do a final error check. */
 	if (code != SOCKET_ERROR) return true;
@@ -117,6 +100,71 @@ bool Pu::Socket::GetOption(SocketOption option, void * result) const
 #endif
 
 	return false;
+}
+
+size_t Pu::Socket::GetMTU(IPAddress target, size_t maxAttempts)
+{
+	/* The IP header stores the packet size in a 16 bit field. */
+	constexpr size_t PROTO_MAX_MTU = maxv<uint16>() / 8 - 1;
+
+#ifdef _WIN32
+	if (hndl == INVALID_SOCKET)
+	{
+		Log::Error("Unable to get MTU for invalid socket!");
+		return 0;
+	}
+#endif
+
+	if (protocol != Protocol::UDP)
+	{
+		Log::Error("Cannot get MTU for non-UDP socket!");
+		return 0;
+	}
+
+	SetOption(SocketOption::DontFragment, "1");
+
+	/*
+	68 is the smallest possible packet size because
+	the IP header should handle at least 60 bytes and the minimum fragment size is 8.
+	https://tools.ietf.org/html/rfc791
+	*/
+	int largestSuccess = 68;
+	int smallestFailed = -1;
+	size_t attempts = 0;
+
+	/* Sending too large packets will trigger logging so just disable it for our test calls. */
+	void *data = malloc(PROTO_MAX_MTU);
+	suppressLogging = true;
+
+	do
+	{
+		/* If nothing has failed yet then add 25% to the size, otherwise; try the average value. */
+		int size = ipart(smallestFailed == -1 ? largestSuccess * 1.25f : (smallestFailed + largestSuccess) * 0.5f);
+
+		if (size > PROTO_MAX_MTU) size = PROTO_MAX_MTU;
+		if (size == largestSuccess) break;
+
+		const int code = Send(data, size, target, 0);
+#ifdef _WIN32
+		if (code == WSAEMSGSIZE)
+#else
+		if (true)
+#endif
+		{
+			if (smallestFailed == -1 || size < smallestFailed)
+			{
+				smallestFailed = size;
+				attempts++;
+			}
+		}
+		else largestSuccess = size;
+	} while (attempts <= maxAttempts);
+
+	free(data);
+	suppressLogging = false;
+	SetOption(SocketOption::DontFragment, "\0");
+
+	return static_cast<size_t>(largestSuccess);
 }
 
 Pu::IPAddress Pu::Socket::GetHost(void) const
@@ -144,23 +192,23 @@ Pu::IPAddress Pu::Socket::GetAddress(const string & uri, uint16 port) const
 		for (LPADDRINFO p = info; p; p = p->ai_next)
 		{
 			/* Function returns zero on success. */
-			if (!getnameinfo(p->ai_addr, p->ai_addrlen, addr, sizeof(addr), nullptr, 0, NI_NUMERICHOST))
+			if (!getnameinfo(p->ai_addr, static_cast<socklen_t>(p->ai_addrlen), addr, sizeof(addr), nullptr, 0, NI_NUMERICHOST))
 			{
 				freeaddrinfo(info);
 				return IPAddress(addr);
 			}
 		}
-		
+
 		/* Make sure to delete the structure before returning. */
 		freeaddrinfo(info);
-	}
+		}
 #else
 	Log::Warning("Unable to get address from uri on this platform!");
 #endif
 
 	/* Return the any address if anything failed. */
 	return IPAddress::GetAny();
-}
+	}
 
 bool Pu::Socket::Poll(void) const
 {
@@ -215,7 +263,7 @@ void Pu::Socket::Close(void)
 	{
 		closesocket(hndl);
 		hndl = INVALID_SOCKET;
-	}
+}
 #else
 	Log::Warning("COuld not close socket on this platform!");
 #endif
@@ -261,37 +309,52 @@ void Pu::Socket::Disconnect(void)
 	{
 		connected = false;
 		shutdown(hndl, SD_BOTH);
-	}
+}
 #else
 	Log::Warning("Unable to disconnect socket on this platform!");
 #endif
 }
 
-void Pu::Socket::Send(const string & packet)
+int Pu::Socket::Send(const string & packet)
+{
+	return Send(packet.c_str(), packet.size());
+}
+
+int Pu::Socket::Send(const string & packet, IPAddress address, uint16 port)
+{
+	return Send(packet.c_str(), packet.size(), address, port);
+}
+
+int Pu::Socket::Send(const void * packet, size_t len)
 {
 	/* Check if we can even call this function. */
 	if (!connected)
 	{
 		Log::Error("Cannot send packet on a non-connected socket!");
-		return;
+		return -1;
 	}
 
 	/* Send the packet to the connection. */
 #ifdef _WIN32
 	if (hndl != INVALID_SOCKET)
 	{
-		if (send(hndl, packet.c_str(), static_cast<int>(packet.size()), 0) == SOCKET_ERROR)
+		if (send(hndl, reinterpret_cast<const char*>(packet), static_cast<int>(len), 0) == SOCKET_ERROR)
 		{
-			Log::Error("Sending packet to connected endpoint failed (%ls)!", GetLastWSAError().c_str());
+			const int code = WSAGetLastError();
+			if (!suppressLogging) Log::Error("Sending packet to connected endpoint failed (%ls)!", _CrtFormatError(code).c_str());
+			return code;
 		}
-	}
+		else return 0;
+		}
 	else Log::Error("Could not send packed on invalid socket!");
 #else
 	Log::Warning("Sending to a connection is not supported on this platform!");
 #endif
-}
 
-void Pu::Socket::Send(const string & packet, IPAddress address, uint16 port)
+	return -1;
+	}
+
+int Pu::Socket::Send(const void * packet, size_t len, IPAddress address, uint16 port)
 {
 #ifdef _WIN32
 	if (hndl != INVALID_SOCKET)
@@ -302,16 +365,21 @@ void Pu::Socket::Send(const string & packet, IPAddress address, uint16 port)
 		endp.sin_port = htons(port);
 		endp.sin_addr.s_addr = static_cast<ULONG>(address.GetAddress());
 
-		if (sendto(hndl, packet.c_str(), static_cast<int>(packet.size()), 0, reinterpret_cast<sockaddr*>(&endp), sizeof(sockaddr_in)) == SOCKET_ERROR)
+		if (sendto(hndl, reinterpret_cast<const char*>(packet), static_cast<int>(len), 0, reinterpret_cast<sockaddr*>(&endp), sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
-			Log::Error("Sending packet to specific endpoint failed (%ls)!", GetLastWSAError().c_str());
+			const int code = WSAGetLastError();
+			if (!suppressLogging) Log::Error("Sending packet to specific endpoint failed (%ls)!", _CrtFormatError(code).c_str());
+			return code;
 		}
-	}
+		else return 0;
+		}
 	else Log::Error("Could not send packet on invalid socket!");
 #else
 	Log::Warning("Sending packets is not supported on this platform!");
 #endif
-}
+
+	return -1;
+	}
 
 size_t Pu::Socket::Receive(void * data, size_t bufferSize)
 {
@@ -321,8 +389,8 @@ size_t Pu::Socket::Receive(void * data, size_t bufferSize)
 #ifdef _WIN32
 		if (hndl != INVALID_SOCKET)
 		{
-			/* 
-			Receive the pending package and check for errors. 
+			/*
+			Receive the pending package and check for errors.
 			Also make sure to wait for the entire message to be received, not just a part of it.
 			*/
 			const int result = recv(hndl, reinterpret_cast<char*>(data), static_cast<int>(bufferSize), MSG_WAITALL);
@@ -370,15 +438,15 @@ size_t Pu::Socket::Receive(void * data, size_t bufferSize, IPAddress address, ui
 			}
 
 			return static_cast<size_t>(result);
-		}
+			}
 		else Log::Error("Could not receive packet from specific endpoint on invalid socket!");
 #else
 		Log::Warning("Unable to receive packet from specific endpoint on this platform!");
 #endif
-	}
+		}
 
 	return 0;
-}
+	}
 
 void Pu::Socket::SetVersion(int major, int minor, int patch)
 {

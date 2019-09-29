@@ -1,35 +1,32 @@
 #pragma once
-#include "Core/Platform/Windows/Windows.h"
-
-#ifdef _WIN32
-#include <WinSock2.h>
-#endif
+#include "Core/Math/Constants.h"
 
 namespace Pu
 {
 	/* Defines the network protcols for a socket. */
 	enum class Protocol
+		: octet
 	{
-#ifdef _WIN32
+		/* IPv6 Hop-by-Hop Option/ */
+		HopByHop = 0,
 		/* Internet Control Message Protocol/ */
-		ICMP =  IPPROTO_ICMP,
+		ICMP =  1,
 		/* Internet Group Menagement Protocol. */
-		IGMP = IPPROTO_IGMP,
+		IGMP = 2,
 		/* Gateway to Gateway Protocol. */
-		GGP = IPPROTO_GGP,
+		GGP = 3,
 		/* Transmission Control Protocol. */
-		TCP = IPPROTO_TCP,
+		TCP = 6,
 		/* PARC Universal Packet Protocol. */
-		PUP = IPPROTO_PUP,
+		PUP = 12,
 		/* User Datagram Protocol. */
-		UDP = IPPROTO_UDP,
+		UDP = 17,
 		/* Inernet Datagram Protocol. */
-		IDP = IPPROTO_IDP,
+		IDP = 22,
 		/* Net Disk Protocol. */
-		ND = IPPROTO_ND,
+		ND = 77,
 		/* Raw IP packet protocol. */
-		RAW = IPPROTO_RAW
-#endif
+		RAW = 255
 	};
 
 	/* Converts the specific internet protocol type to a string. */

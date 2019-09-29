@@ -3,6 +3,7 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+#include <ws2ipdef.h>
 #endif
 
 namespace Pu
@@ -40,7 +41,13 @@ namespace Pu
 		/* Specified the total per-socket buffer space reserved for sends (socket level, int). */
 		SendBuffer = SO_SNDBUF,
 		/* Specifies the timeout (in milliseconds) for blocking send calls (socket level, DWORD). */
-		SendTimeout = SO_SNDTIMEO
+		SendTimeout = SO_SNDTIMEO,
+		/* Specified that packets through this socket are not allowed to be fragmented (IP level, boolean). */
+		DontFragment = IP_DONTFRAGMENT,
+		/* Gets the system's estimate of the path MTU (IP level, DWORD). */
+		MTU = IP_MTU,
+		/* Specify that packets through this socket will only be used for Path MTU Discovery (IP level, PMTUD_STATE). */
+		PMTUD = IP_MTU_DISCOVER
 #endif
 	};
 
@@ -59,6 +66,7 @@ namespace Pu
 		case SocketOption::KeepAlive:
 		case SocketOption::OutOfBandInline:
 		case SocketOption::ReuseAddress:
+		case SocketOption::DontFragment:
 			return sizeof(bool);
 		case SocketOption::Linger:
 			return sizeof(LINGER);
@@ -67,10 +75,42 @@ namespace Pu
 			return sizeof(int);
 		case SocketOption::ReceiveTimeout:
 		case SocketOption::SendTimeout:
+		case SocketOption::MTU:
+		case SocketOption::PMTUD:
 			return sizeof(DWORD);
 		}
 
 		return 0;
+	}
+
+	/* Gets the socket level associated with the specific option. */
+	_Check_return_ inline int win32GetSockOptionLevel(_In_ SocketOption option)
+	{
+		switch (option)
+		{
+		case SocketOption::Broadcast:
+		case SocketOption::ConditionalAccept:
+		case SocketOption::DontLinger:
+		case SocketOption::DontRoute:
+		case SocketOption::ExclusiveAddressUse:
+		case SocketOption::KeepAlive:
+		case SocketOption::Linger:
+		case SocketOption::OutOfBandInline:
+		case SocketOption::ReceiveBuffer:
+		case SocketOption::ReceiveTimeout:
+		case SocketOption::ReuseAddress:
+		case SocketOption::SendBuffer:
+		case SocketOption::SendTimeout:
+			return SOL_SOCKET;
+		case SocketOption::NoDelay:
+			return IPPROTO_TCP;
+		case SocketOption::DontFragment:
+		case SocketOption::MTU:
+		case SocketOption::PMTUD:
+			return IPPROTO_IP;
+		}
+
+		return -1;
 	}
 #endif
 }

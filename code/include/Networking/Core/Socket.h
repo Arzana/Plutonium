@@ -61,6 +61,8 @@ namespace Pu
 		void SetOption(_In_ SocketOption option, _In_ const void *value);
 		/* Gets the value of a specific socket level option (returns whether the opteration was successful). */
 		_Check_return_ bool GetOption(_In_ SocketOption option, _In_ void *result) const;
+		/* Gets the Maximum Transmission Unit for a specific socket. */
+		_Check_return_ size_t GetMTU(_In_ IPAddress target, _In_ size_t maxAttempts);
 		/* Gets the local IP address of the host. */
 		_Check_return_ IPAddress GetHost(void) const;
 		/* Gets the IP address of the specified URI. */
@@ -76,9 +78,13 @@ namespace Pu
 		/* Closes the connection to the remote endpoint. */
 		void Disconnect(void);
 		/* Sends the specified packet to the connected socket. */
-		void Send(_In_ const string &packet);
+		_Check_return_ int Send(_In_ const string &packet);
 		/* Sends the specified packet to the specified endpoint. */
-		void Send(_In_ const string &packet, _In_ IPAddress address, _In_ uint16 port);
+		_Check_return_ int Send(_In_ const string &packet, _In_ IPAddress address, _In_ uint16 port);
+		/* Sends the specified packet to the connected socket. */
+		_Check_return_ int Send(_In_ const void *packet, _In_ size_t len);
+		/* Send the specified packet to the specified endpoint. */
+		_Check_return_ int Send(_In_ const void *packet, _In_ size_t len, _In_ IPAddress address, _In_ uint16 port);
 		/* Reveives a datagram from the connected endpoint (returns the amount of bytes read). */
 		_Check_return_ size_t Receive(_In_ void *data, _In_ size_t bufferSize);
 		/* Receives a datagram from the specified endpoint (returns the amount of bytes read). */
@@ -92,6 +98,7 @@ namespace Pu
 		Protocol protocol;
 		bool bound;
 		bool connected;
+		bool suppressLogging;
 
 #ifdef _WIN32
 		static bool initWSA;

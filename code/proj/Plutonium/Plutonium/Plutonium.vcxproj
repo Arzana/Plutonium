@@ -245,7 +245,9 @@
     <ClInclude Include="..\..\..\include\Input\ValueEventArgs.h" />
     <ClInclude Include="..\..\..\include\Input\ValueInformation.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\AddressFamily.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\ICMP.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\IPAddress.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\IpHeader.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\Protocol.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\Socket.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\SocketOption.h" />

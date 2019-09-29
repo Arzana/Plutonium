@@ -726,6 +726,12 @@
     <ClInclude Include="..\..\..\include\Networking\UPnP\SOAP.h">
       <Filter>Header Files\Networking\UPnP</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\IpHeader.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\ICMP.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
