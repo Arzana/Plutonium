@@ -142,11 +142,12 @@ void Pu::Application::InitializeVulkan(void)
 	const PhysicalDevice &physicalDevice = ChoosePhysicalDevice();
 	const uint32 graphicsQueueFamily = physicalDevice.GetBestGraphicsQueueFamily(wnd->GetSurface());
 	const uint32 transferQueueFamily = physicalDevice.GetBestTransferQueueFamily();
+	const uint32 same = graphicsQueueFamily == transferQueueFamily;
 
 	const DeviceQueueCreateInfo queueCreateInfos[] =
 	{
-		DeviceQueueCreateInfo(graphicsQueueFamily, 1, PRIORITIES),
-		DeviceQueueCreateInfo(transferQueueFamily, 1, PRIORITIES)
+		DeviceQueueCreateInfo(graphicsQueueFamily, 1 + same, PRIORITIES),
+		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
 	};
 
 	/* 
@@ -159,7 +160,7 @@ void Pu::Application::InitializeVulkan(void)
 	features.FillModeNonSolid = true;
 
 	/* Create logical device. */
-	DeviceCreateInfo deviceCreateInfo(2, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
+	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
 	device = physicalDevice.CreateLogicalDevice(&deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 }
@@ -182,12 +183,12 @@ const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
 			{
 				/* For more information about scoring see document 'Scoring'. */
 				if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu) score += 6;
-				if (physicalDevice.GetType() == PhysicalDeviceType::IntegratedGpu) score += 3;
+				else if (physicalDevice.GetType() == PhysicalDeviceType::IntegratedGpu) score += 3;
 
 				for (const QueueFamilyProperties &family : physicalDevice.GetQueueFamilies())
 				{
-					if (family.Flags == QueueFlag::Transfer) ++score;
-					if (family.Flags == QueueFlag::Compute) ++score;
+					if ((family.Flags & QueueFlag::TypeMask) == QueueFlag::Transfer) ++score;
+					else if ((family.Flags & QueueFlag::TypeMask) == QueueFlag::Compute) ++score;
 				}
 
 				/* Set new highscore and update choosen physical device if needed. */

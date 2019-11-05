@@ -1537,6 +1537,7 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 	{
 		pum_material material;
 		material.Identifier = cur.Name.toUTF32();
+		material.SpecularPower = 2.0f; // GLTF uses GGX Trowbridge-Reitz for microfacets, so the specular power should be 2 to match that curve.
 
 		/* Check for the double sided flag. */
 		GLTFParameter value;

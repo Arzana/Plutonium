@@ -169,7 +169,7 @@ uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) c
 		const QueueFamilyProperties &cur = families[i];
 		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Graphics) && surface.QueueFamilySupportsPresenting(i, *this))
 		{
-			if (cur.Flags == QueueFlag::Graphics) score += 1;
+			if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Graphics) score += 1;
 		}
 
 		/* Update choosen graphics queue if needed. */
@@ -200,7 +200,7 @@ uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
 		const QueueFamilyProperties &cur = families[i];
 		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Transfer))
 		{
-			if (cur.Flags == QueueFlag::Transfer) score += 1;
+			if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Transfer) score += 1;
 		}
 
 		/* Update choosen graphics queue if needed. */

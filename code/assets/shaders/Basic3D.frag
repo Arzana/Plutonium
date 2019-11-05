@@ -3,13 +3,12 @@
 layout (early_fragment_tests) in;
 
 const float PI = 3.141592653589793;
+const float EPSLION = 0.00001f;
 
 layout (binding = 1, set = 0) uniform Globals
 {
 	vec3 CamPos;
 };
-
-layout (binding = 0, set = 1) uniform sampler2D Diffuse;
 
 // We could store the glossiness in the diffuse factor to save 4 bytes due to allignment.
 layout (binding = 1, set = 1) uniform Material
@@ -17,6 +16,7 @@ layout (binding = 1, set = 1) uniform Material
 	vec3 F0;
 	vec3 DiffuseFactor;
 	float Roughness;
+	float SpecularPower;
 };
 
 layout (location = 0) in vec2 Uv;
@@ -25,65 +25,70 @@ layout (location = 2) in vec3 Position;
 
 layout (location = 0) out vec4 L0;
 
-float AlphaRoughness2()
+// Oren-Nayar
+vec3 diffuse(float ndl, float ndv, float a2)
 {
-	return Roughness * Roughness * Roughness * Roughness;
+	const vec3 cdiff = DiffuseFactor / PI;
+	const vec3 lambert = cdiff * ndl;
+
+	const float theta = acos(ndl);
+	const float phi = acos(ndv);
+
+	const float A = 1.0f - 0.5f * (a2 / (a2 + 0.33f));
+	const float B = 0.45f * (a2 / (a2 + 0.09f));
+
+	const float alpha = max(theta, phi);
+	const float beta = min(theta, phi);
+
+	return lambert * (A + (B * max(0.0f, cos(ndv - ndl)) * sin(alpha) * tan(beta)));
 }
 
 // Schlick
-vec3 Fresnel(in vec3 v, in vec3 h)
+vec3 fresnel(float ndl)
 {
-	return F0 + (1.0f - F0) * pow(1.0f - dot(v, h), 5);
+	return F0 + (1.0f - F0) * pow(1.0f - max(0.0f, ndl), 5);
 }
 
-// Smith Joint GGX
-float GeometricOcclusion(in vec3 l, in vec3 v)
+// Cook-Torrance
+float occlusion(float ndl, float ndv, float ndh, float vdh)
 {
-	const float a2 = AlphaRoughness2();
-	const float ia2 = 1.0f - a2;
-
-	const float ndl = dot(Normal, l);
-	const float ndv = dot(Normal, v);
-
-	const float shadow = ndl * sqrt(ndv * ndv * ia2 + a2);
-	const float mask = ndv * sqrt(ndl * ndl * ia2 + a2);
-
-	return 0.5f / (shadow + mask);
+	const float a = (2 * ndh * ndv) / vdh;
+	const float b = (2 * ndh * ndl) / vdh;
+	return min(1, min(a, b));
 }
 
-// Throwbridge-Reitz GGX
-float Microfacet(in vec3 h)
+// GTR
+float microfacet(float ndh, float a2)
 {
-	const float a2 = AlphaRoughness2();
-	const float ndh = dot(Normal, h);
-	const float f = ndh * ndh * (a2 - 1.0f) + 1.0f;
-	return a2 / (PI * f * f);
-}
+	const float c2 = ndh * ndh;
+	const float s = sqrt(1.0f - c2);
+	const float s2 = s * s;
 
-vec3 diffuse()
-{
-	const vec3 base = texture(Diffuse, Uv).rgb * DiffuseFactor;
-	const vec3 cdiff = base * (1.0f - max(max(F0.r, F0.g), F0.b));
-	return base / PI;
+	return (a2 / PI) / pow(a2 * c2 + s2, SpecularPower);
 }
 
 void main()
 {
 	// Constants. 
-	const vec3 v = normalize(CamPos - Position);		// View direction
-	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));	// Light direction
-	const vec3 h = normalize(l + v);					// Halfway vector
+	const vec3 v = normalize(CamPos - Position);
+	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));
+	const vec3 h = normalize(v + l);
 
-	// BRDF (Cook-Torrance).
-	const float d = Microfacet(h);
-	const float g = GeometricOcclusion(l, v);
-	const vec3 f = Fresnel(v, h);
-	const float vis = g / (4.0f * dot(Normal, l) * dot(Normal, v));
-	
-	// Diffuse and specular factors.
-	const vec3 fs = f * vis * d;
-	const vec3 fd = (1.0f - f) * diffuse();
+	// Intermediates
+	const float a2 = Roughness * Roughness + EPSLION;
+	const float ndl = dot(Normal, l);
+	const float ndv = dot(Normal, v);
+	const float ndh = dot(Normal, h);
+	const float vdh = dot(v, h);
 
-	// Output color.
-	L0 = vec4(max(0.0f, dot(Normal, l)) * (fd + fs), 1.0f);
+	// Specular
+	const vec3 f = fresnel(ndl);
+	const float g = occlusion(ndl, ndv, ndh, vdh);
+	const float d = microfacet(ndh, a2);
+
+	// Composition
+	const vec3 fd = (1.0f - f) * diffuse(ndl, ndv, a2);
+	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
+
+	L0 = vec4(fd + fs, 1.0f);
 }

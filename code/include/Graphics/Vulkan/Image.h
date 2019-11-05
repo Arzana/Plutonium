@@ -25,6 +25,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Image& operator =(_In_ Image &&other);
 
+		/* Gets the amount of lazily-allocated bytes that are committed for the image. */
+		_Check_return_ DeviceSize GetLazyMemory(void) const;
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlag aspect) const;
 

@@ -942,7 +942,9 @@ namespace Pu
 		/* Specifies that the queues in this queue family support sparse memory management operations. */
 		SparseBinding = 0x00000008,
 		/* Specifies that the queues in this queue family support protected memory. */
-		Protected = 0x00000010
+		Protected = 0x00000010,
+		/* Specifies a mask that can be used to only check for queue types. */
+		TypeMask = Graphics | Compute | Transfer
 	};
 
 	/* Defines the properties of a memory heap. */
@@ -1540,7 +1542,7 @@ namespace Pu
 	};
 
 	/* Appends the flag bits of an image usage flag. */
-	_Check_return_ inline ImageUsageFlag operator |(_In_ ImageUsageFlag a, _In_ ImageUsageFlag b)
+	_Check_return_ inline constexpr ImageUsageFlag operator |(_In_ ImageUsageFlag a, _In_ ImageUsageFlag b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
@@ -1552,13 +1554,13 @@ namespace Pu
 	}
 
 	/* Appends the flag bits of an buffer usage flag. */
-	_Check_return_ inline BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
+	_Check_return_ inline constexpr BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an image aspect flag. */
-	_Check_return_ inline ImageAspectFlag operator |(_In_ ImageAspectFlag a, _In_ ImageAspectFlag b)
+	_Check_return_ inline constexpr ImageAspectFlag operator |(_In_ ImageAspectFlag a, _In_ ImageAspectFlag b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
@@ -1567,6 +1569,18 @@ namespace Pu
 	_Check_return_ inline QueryResultFlag operator |=(_In_ QueryResultFlag &a, _In_ QueryResultFlag b)
 	{
 		return a = _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an queue flag. */
+	_Check_return_ inline constexpr QueueFlag operator |(_In_ QueueFlag a, _In_ QueueFlag b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
+	/* Masks the flag bits of an queue flag. */
+	_Check_return_ inline constexpr QueueFlag operator &(_In_ QueueFlag a, _In_ QueueFlag b)
+	{
+		return _CrtEnumBitAnd(a, b);
 	}
 
 	/* Gets the number of channels per format. */

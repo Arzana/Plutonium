@@ -110,6 +110,7 @@ namespace Pu
 	using PFN_vkQueueWaitIdle = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ QueueHndl queue);
 	using PFN_vkCmdBeginQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query, _In_ QueryControlFlag flags);
 	using PFN_vkCmdEndQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
+	using PFN_vkGetDeviceMemoryCommitment = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory, _Out_ DeviceSize *size);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

@@ -48,6 +48,8 @@ namespace Pu
 			return size;
 		}
 
+		/* Gets the amount of lazily-allocated bytes that are committed for the buffer. */
+		_Check_return_ DeviceSize GetLazyMemory(void) const;
 		/* Starts the process of transfering data from the CPU to this buffer. */
 		virtual void BeginMemoryTransfer(void);
 		/* Gets the host mapped memory pointer. */

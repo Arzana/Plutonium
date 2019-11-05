@@ -41,6 +41,17 @@ Pu::Image & Pu::Image::operator=(Image && other)
 	return *this;
 }
 
+Pu::DeviceSize Pu::Image::GetLazyMemory(void) const
+{
+	if (memoryHndl)
+	{
+		DeviceSize result;
+		parent->vkGetDeviceMemoryCommitment(parent->hndl, memoryHndl, &result);
+		return result;
+	}
+	else return 0;
+}
+
 Pu::ImageSubresourceRange Pu::Image::GetFullRange(ImageAspectFlag aspect) const
 {
 	ImageSubresourceRange result(aspect);

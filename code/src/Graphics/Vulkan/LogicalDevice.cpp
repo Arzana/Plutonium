@@ -195,6 +195,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateBuffer);
 	LOAD_DEVICE_PROC(vkDestroyBuffer);
 	LOAD_DEVICE_PROC(vkGetBufferMemoryRequirements);
+	LOAD_DEVICE_PROC(vkGetDeviceMemoryCommitment);
 	LOAD_DEVICE_PROC(vkAllocateMemory);
 	LOAD_DEVICE_PROC(vkFreeMemory);
 	LOAD_DEVICE_PROC(vkBindBufferMemory);

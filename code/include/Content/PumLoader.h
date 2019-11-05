@@ -269,6 +269,8 @@ namespace Pu
 		Color EmissiveFactor;
 		/* Defines the glossiness factor of the material. */
 		float Glossiness;
+		/* Defines the power used for the specular highlightes. */
+		float SpecularPower;
 		/* Defines the internsity of the emissive color. */
 		float EmissiveIntensity;
 

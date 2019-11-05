@@ -82,6 +82,12 @@ namespace Pu
 			return native;
 		}
 
+		/* Gets the size of the native window. */
+		_Check_return_ inline Extent2D GetSize(void) const
+		{
+			return native.GetSize();
+		}
+
 		/* Gets the logical device associated with the game window. */
 		_Check_return_ inline LogicalDevice& GetDevice(void) const
 		{

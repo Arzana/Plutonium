@@ -1,10 +1,8 @@
 #pragma once
 #include <Application.h>
-#include <Content/PumLoader.h>
-#include <Graphics/Models/Mesh.h>
 #include <Components/FreeCamera.h>
+#include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
-#include <Environment/Terrain/Lithosphere.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -26,25 +24,25 @@ protected:
 	virtual void Update(float);
 	virtual void Render(float dt, Pu::CommandBuffer &cmdBuffer);
 
-private: 
-	bool remarkDepthBuffer;
+private:
 	Pu::FreeCamera *cam;
-	Pu::WindowMode newMode;
+	bool firstRun, markDepthBuffer;
 
-	Pu::Renderpass *renderpass;
-	Pu::GraphicsPipeline *pipeline;
+	Pu::Renderpass *renderPass;
+	Pu::GraphicsPipeline *gfxPipeline;
 	Pu::DepthBuffer *depthBuffer;
+	Pu::DescriptorPool *descPool;
+
 	Pu::Buffer *vrtxBuffer;
-	Pu::StagingBuffer *vrtxStagingBuffer;
+	Pu::StagingBuffer *stagingBuffer;
 	Pu::Mesh mesh;
-	Pu::QueryPool *timestamps;
-
-	Pu::DescriptorPool *descriptorPool;
-	TransformBlock *transform;
 	Pu::Material *material;
+	TransformBlock *transform;
 
-	Pu::Lithosphere *lithosphere;
-
-	void RenderpassPreCreate(Pu::Renderpass&);
-	void RenderpassPostCreate(Pu::Renderpass&);
+	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
+	void OnSwapchainRecreated(const Pu::GameWindow&);
+	void CreateDepthBuffer(void);
+	void InitializeRenderpass(Pu::Renderpass&);
+	void FinalizeRenderpass(Pu::Renderpass&);
+	void CreateGraphicsPipeline(void);
 };

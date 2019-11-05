@@ -145,7 +145,7 @@ Font * Plutonium::Font::FromFile(const char * path, float size, WindowHandler wn
 #if defined(DEBUG)
 	size_t loaded = result->SetCharacterInfo(wnd);
 #else
-	result->SetCharacterInfo(&info, wnd, scale);
+	result->SetCharacterInfo(wnd);
 #endif
 	result->PopulateTextureMap();
 

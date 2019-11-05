@@ -21,14 +21,14 @@ namespace Pu
 		_Check_return_ Material& operator =(_In_ Material &&other);
 
 		/* Sets all of the values for this material. */
-		void SetParameters(_In_ float glossiness, _In_ Vector3 specular, _In_ Vector3 diffuse);
+		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Vector3 specular, _In_ Vector3 diffuse);
 		/* Sets all of the values for this material. */
-		void SetParameters(_In_ float glossiness, _In_ Color specular, _In_ Color diffuse);
+		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Color specular, _In_ Color diffuse);
 
 		/* Sets all of the values for this material from a Plutonium model material. */
 		inline void SetParameters(_In_ const PumMaterial &value)
 		{
-			SetParameters(value.Glossiness, value.SpecularFactor, value.DiffuseFactor);
+			SetParameters(value.Glossiness, value.SpecularPower, value.SpecularFactor, value.DiffuseFactor);
 		}
 
 		/* Sets the glossiness value for this material. */
@@ -38,10 +38,24 @@ namespace Pu
 			IsDirty = true;
 		}
 
+		inline void SetSpecularPower(_In_ float value)
+		{
+			power = value;
+			IsDirty = true;
+		}
+
 		/* Sets the specular factor for this material. */
 		inline void SetSpecular(_In_ Vector3 value)
 		{
 			f0 = value;
+			IsDirty = true;
+		}
+
+		/* Sets both the specular and diffuse color for this material. */
+		inline void SetSpecDiffuse(_In_ Vector3 value)
+		{
+			f0 = value;
+			diffuse = value;
 			IsDirty = true;
 		}
 
@@ -70,6 +84,24 @@ namespace Pu
 			Write(*diffuseMap, map);
 		}
 
+		/* Gets the glossiness component of this material. */
+		_Check_return_ inline float GetGlossiness(void) const
+		{
+			return 1.0f - roughness;
+		}
+
+		/* Gets the specular power component of this material. */
+		_Check_return_ inline float GetSpecularPower(void) const
+		{
+			return power;
+		}
+
+		/* Gets the specular tint component of this material. */
+		_Check_return_ inline Vector3 GetSpecularColor(void) const
+		{
+			return f0;
+		}
+
 	protected:
 		/* Stages the buffer data for the uniform buffer. */
 		virtual void Stage(_In_ byte *dest) override;
@@ -77,7 +109,7 @@ namespace Pu
 	private:
 		Vector3 f0;
 		Vector3 diffuse;
-		float roughness;
+		float roughness, power;
 
 		const Descriptor *diffuseMap;
 	};

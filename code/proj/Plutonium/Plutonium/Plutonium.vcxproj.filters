@@ -178,18 +178,6 @@
     <Filter Include="Source Files\Graphics\Diagnostics">
       <UniqueIdentifier>{de2c4484-e4a9-4ac2-a072-7f1c87a60565}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Environment">
-      <UniqueIdentifier>{49302ee3-fad8-4aa9-8141-e2c2406b41b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Environment\Terrain">
-      <UniqueIdentifier>{aece3516-b131-4571-a8ef-7873a84059ec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Environment">
-      <UniqueIdentifier>{a8c08f59-e473-490b-a719-0caa652ba033}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Environment\Terrain">
-      <UniqueIdentifier>{6f711f28-de41-4682-8ae2-a404019b9910}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Networking">
       <UniqueIdentifier>{368fcfb2-8ec8-43f1-999a-a98c283d9be9}</UniqueIdentifier>
     </Filter>
@@ -660,32 +648,14 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Environment\Terrain\TerrainCreator.h">
-      <Filter>Header Files\Environment\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Terrain.h">
-      <Filter>Header Files\Graphics\VertexLayouts</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\PerlinNoise.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\SquareDiamondNoise.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Environment\Terrain\Plate.h">
-      <Filter>Header Files\Environment\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Point.h">
       <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Environment\Terrain\PlateCollisionInfo.h">
-      <Filter>Header Files\Environment\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Environment\Terrain\TectonicSettings.h">
-      <Filter>Header Files\Environment\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Environment\Terrain\Lithosphere.h">
-      <Filter>Header Files\Environment\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Networking\Core\Socket.h">
       <Filter>Header Files\Networking\Core</Filter>
@@ -1022,20 +992,11 @@
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Environment\Terrain\TerrainCreator.cpp">
-      <Filter>Source Files\Environment\Terrain</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\PerlinNoise.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\SquareDiamondNoise.cpp">
       <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Environment\Terrain\Plate.cpp">
-      <Filter>Source Files\Environment\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Environment\Terrain\Lithosphere.cpp">
-      <Filter>Source Files\Environment\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Networking\Core\IPAddress.cpp">
       <Filter>Source Files\Networking\Core</Filter>

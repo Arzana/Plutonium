@@ -184,6 +184,7 @@ struct pum_material
 	Pu::Color SpecularFactor;
 	Pu::Color EmissiveFactor;
 	float Glossiness;
+	float SpecularPower;
 	float EmissiveInternsity;
 
 	bool DoubleSided;
@@ -202,7 +203,7 @@ struct pum_material
 	Pu::uint32 EmissiveTexture;
 
 	pum_material(void)
-		: Glossiness(0.0f), EmissiveInternsity(0.0f), DoubleSided(false), 
+		: Glossiness(0.0f), SpecularPower(0.0f), EmissiveInternsity(0.0f), DoubleSided(false), 
 		AlphaMode(0), HasDiffuseTexture(false), HasSpecularGlossTexture(false),
 		HasNormalTexture(false), HasOcclusionTexture(false), HasEmissiveTexture(false)
 	{}

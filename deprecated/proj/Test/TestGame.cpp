@@ -3,8 +3,8 @@
 #include <Graphics\Materials\MaterialBP.h>
 #include <Graphics\Diagnostics\DebugSpriteRenderer.h>
 
-#define QUICK_MAP
-//#define BIG_MAP
+//#define QUICK_MAP
+#define BIG_MAP
 
 TestGame::TestGame(void)
 	: Game(_CRT_NAMEOF_RAW(TestGame)), sunAngle(TAU - PI4), 

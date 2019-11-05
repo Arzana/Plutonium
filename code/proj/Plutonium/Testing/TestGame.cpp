@@ -1,135 +1,51 @@
 #include "TestGame.h"
-#include <Environment/Terrain/TerrainCreator.h>
-#include <Graphics/VertexLayouts/Terrain.h>
-#include <Graphics/Textures/DepthBuffer.h>
-#include <Core/Diagnostics/CPU.h>
 #include <Input/Keys.h>
+#include <Graphics/Models/ShapeCreator.h>
 #include <imgui.h>
 
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 1280.0f, 720.0f, 2), remarkDepthBuffer(true)
+	: Application(L"TestGame", 1280.0f, 720.0f, 2), cam(nullptr),
+	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
+	descPool(nullptr), vrtxBuffer(nullptr), stagingBuffer(nullptr),
+	material(nullptr), transform(nullptr), firstRun(true), markDepthBuffer(true)
 {
-	GetInput().AnyKeyDown += [this](const InputDevice &sender, const ButtonEventArgs args)
-	{
-		if (sender.Type == InputDeviceType::Keyboard)
-		{
-			switch (args.KeyCode)
-			{
-			case (_CrtEnum2Int(Keys::Escape)):
-				Exit();
-				break;
-			case (_CrtEnum2Int(Keys::Up)):
-				cam->MoveSpeed++;
-				break;
-			case (_CrtEnum2Int(Keys::Down)):
-				cam->MoveSpeed--;
-				break;
-			case (_CrtEnum2Int(Keys::M)):
-				if (Mouse::IsCursorVisible())
-				{
-					Mouse::HideCursor();
-					cam->Enable();
-				}
-				else
-				{
-					Mouse::ShowCursor();
-					cam->Disable();
-				}
-				break;
-			}
-		}
-		else if (sender.Type == InputDeviceType::GamePad)
-		{
-			switch (args.KeyCode)
-			{
-			case (_CrtEnum2Int(Keys::XBoxB)):
-				Exit();
-				break;
-			}
-		}
-	};
+	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
 void TestGame::Initialize(void)
 {
-	newMode = GetWindow().GetNative().GetWindowMode();
-
-	/* Make sure that the cursor is hiden and locked if the window is focused. */
-	GetWindow().GetNative().OnGainedFocus += [](const NativeWindow &sender)
-	{
-		Mouse::HideCursor();
-		Mouse::LockCursor(sender);
-	};
-
-	GetWindow().GetNative().OnLostFocus += [](const NativeWindow&)
-	{
-		Mouse::ShowCursor();
-		Mouse::FreeCursor();
-	};
-
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
-	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
-	timestamps = new QueryPool(GetDevice(), QueryType::Timestamp, 2);
-
-	/* Setup and load the renderpass. */
-	renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.frag.spv" } });
-	renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
-	renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
-
-	/* Make sure the framebuffers are re-created of the window resizes. */
-	GetWindow().SwapchainRecreated += [this](const GameWindow&)
-	{
-		*depthBuffer = DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetNative().GetSize());
-
-		if (renderpass->IsLoaded())
-		{
-			delete pipeline;
-			delete material;
-			delete transform;
-			delete descriptorPool;
-			GetContent().Release(*renderpass);
-
-			pipeline = nullptr;
-			material = nullptr;
-			transform = nullptr;
-			descriptorPool = nullptr;
-
-			renderpass = &GetContent().FetchRenderpass({ { L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.frag.spv" } });
-			renderpass->PreCreate.Add(*this, &TestGame::RenderpassPreCreate);
-			renderpass->PostCreate.Add(*this, &TestGame::RenderpassPostCreate);
-			if (renderpass->IsLoaded()) RenderpassPostCreate(*renderpass);
-		}
-	};
+	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 }
 
 void TestGame::LoadContent(void)
 {
-	Log::Warning("Generating Lithosphere, this may take a while.");
-	TectonicSettings settings;
-	settings.PlateCount = 5;
+	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
+	renderPass->PostCreate.Add(*this, &TestGame::FinalizeRenderpass);
 
-	lithosphere = new Lithosphere(65, settings);
+	vrtxBuffer = new Buffer(GetDevice(), ShapeCreator::GetSphereBufferSize(32), BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer, false);
+	stagingBuffer = new StagingBuffer(*vrtxBuffer);
+	mesh = ShapeCreator::Sphere(*stagingBuffer, *vrtxBuffer, 32);
 }
 
 void TestGame::UnLoadContent(void)
 {
-	delete vrtxStagingBuffer;
+	if (material) delete material;
+	if (transform) delete transform;
+	if (descPool) delete descPool;
+	if (gfxPipeline) delete gfxPipeline;
+
 	delete vrtxBuffer;
-	delete lithosphere;
+	delete stagingBuffer;
+	GetContent().Release(*renderPass);
 }
 
 void TestGame::Finalize(void)
 {
-	delete material;
-	delete transform;
-	delete descriptorPool;
-	delete pipeline;
-	delete depthBuffer;
-	delete timestamps;
-
-	GetContent().Release(*renderpass);
+	if (depthBuffer) delete depthBuffer;
 }
 
 void TestGame::Update(float)
@@ -140,122 +56,139 @@ void TestGame::Update(float)
 		transform->SetView(cam->GetView());
 		transform->SetCamPos(cam->GetPosition());
 	}
-
-	/* This cannot happen in the render method because it would require resources to change. */
-	if (newMode != GetWindow().GetNative().GetWindowMode())
-	{
-		remarkDepthBuffer = true;
-		GetWindow().GetNative().SetMode(newMode);
-	}
 }
 
-void TestGame::Render(float dt, CommandBuffer & cmdBuffer)
+void TestGame::Render(float, CommandBuffer &cmd)
 {
-	/* Wait for the graphics pipeline and image to be usable. */
-	if (!pipeline || !pipeline->IsUsable()) return;
+	if (!gfxPipeline) return;
+	if (!gfxPipeline->IsUsable()) return;
 
-	// Render ImGui
-	if (ImGui::BeginMainMenuBar())
+	if (markDepthBuffer)
 	{
-		if (ImGui::BeginMenu("Settings"))
-		{
-			if (ImGui::BeginCombo("##Mode", "Window mode"))
-			{
-				if (ImGui::Selectable("Windowed")) newMode = WindowMode::Windowed;
-				if (ImGui::Selectable("Borderless")) newMode = WindowMode::Borderless;
-				if (ImGui::Selectable("Fullscreen")) newMode = WindowMode::Fullscreen;
-				ImGui::EndCombo();
-			}
+		markDepthBuffer = false;
+		depthBuffer->MakeWritable(cmd);
+	}
 
-			ImGui::EndMenu();
+	if (firstRun)
+	{
+		firstRun = false;
+		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
+		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+	}
+
+	if (ImGui::Begin("Material Editor"))
+	{
+		float v = material->GetGlossiness();
+		if (ImGui::SliderFloat("Glossiness", &v, 0.0f, 1.0f))
+		{
+			material->SetGlossiness(v);
 		}
 
-		if (ImGui::Button("Update"))
+		v = material->GetSpecularPower();
+		if (ImGui::SliderFloat("Specular Power", &v, 0.0f, 10.0f))
 		{
-			/* Wait for all resources to become available again. */
-			GetDevice().WaitIdle();
-			if (vrtxBuffer)
-			{
-				delete vrtxBuffer;
-				delete vrtxStagingBuffer;
-				lithosphere->Update();
-			}
-
-			/* Create the buffers and the mesh. */
-			TerrainCreator creator{ *lithosphere };
-			vrtxBuffer = new Buffer(GetDevice(), creator.GetBufferSize(), BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer | BufferUsageFlag::TransferDst, false);
-			vrtxStagingBuffer = new StagingBuffer(*vrtxBuffer);
-			mesh = creator.Generate(*vrtxStagingBuffer, *vrtxBuffer);
-
-			/* Copy model to final vertex buffer. */
-			cmdBuffer.CopyEntireBuffer(*vrtxStagingBuffer, *vrtxBuffer);
-			cmdBuffer.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			material->SetSpecularPower(v);
 		}
 
-		ImGui::Text("Cycle: %zu/%zu, Iteration: %zu", lithosphere->GetCycleCount(), lithosphere->GetSettings().Cycles, lithosphere->GetIterationCount());
+		Vector3 tint = material->GetSpecularColor();
+		if (ImGui::ColorPicker3("F0", tint.f))
+		{
+			material->SetSpecDiffuse(tint);
+		}
 
-		ImGui::Text("FPS: %d (%f ms)", iround(1.0f / dt), timestamps->GetTimeDelta(0, true) * 0.000001f);
-		ImGui::Text("CPU: %.0f%%", CPU::GetCurrentProcessUsage() * 100.0f);
-		ImGui::EndMainMenuBar();
+		if (ImGui::BeginCombo("##Preset", "Preset"))
+		{
+			if (ImGui::Selectable("Iron")) material->SetSpecDiffuse(Vector3(0.56f, 0.57f, 0.58f));
+			if (ImGui::Selectable("Gold")) material->SetSpecDiffuse(Vector3(1.0f, 0.71f, 0.29f));
+			if (ImGui::Selectable("Copper")) material->SetSpecDiffuse(Vector3(0.95f, 0.64f, 0.54f));
+			ImGui::EndCombo();
+		}
+
+		ImGui::End();
 	}
 
-	if (remarkDepthBuffer)
+	transform->Update(cmd);
+	material->Update(cmd);
+
+	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
+	cmd.BindGraphicsPipeline(*gfxPipeline);
+
+	cmd.BindGraphicsDescriptor(*transform);
+	cmd.BindGraphicsDescriptor(*material);
+	mesh.Bind(cmd, 0);
+	mesh.Draw(cmd);
+
+	cmd.EndRenderPass();
+}
+
+void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
+{
+	if (sender.Type == InputDeviceType::Keyboard)
 	{
-		remarkDepthBuffer = false;
-		depthBuffer->MakeWritable(cmdBuffer);
-		material->SetParameters(0.0f, Color::Black(), Color::White());
+		if (args.KeyCode == _CrtEnum2Int(Keys::Escape)) Exit();
+		if (args.KeyCode == _CrtEnum2Int(Keys::C))
+		{
+			if (cam->IsEnabled()) cam->Disable();
+			else cam->Enable();
+		}
 	}
-
-	if (vrtxBuffer)
+	else if (sender.Type == InputDeviceType::GamePad)
 	{
-		/* Update the descriptor if needed. */
-		transform->Update(cmdBuffer);
-		material->Update(cmdBuffer);
-
-		/* Timestamps. */
-		cmdBuffer.WriteTimestamp(PipelineStageFlag::TopOfPipe, *timestamps, 0);
-		cmdBuffer.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *timestamps, 1);
-
-		/* Render scene. */
-		cmdBuffer.BeginRenderPass(*renderpass, GetWindow().GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-		cmdBuffer.BindGraphicsPipeline(*pipeline);
-
-		cmdBuffer.AddLabel(u8"Terrain", Color::Lime());
-		cmdBuffer.BindGraphicsDescriptor(*transform);
-		cmdBuffer.BindGraphicsDescriptor(*material);
-		mesh.Bind(cmdBuffer, 0);
-		mesh.Draw(cmdBuffer);
-		cmdBuffer.EndLabel();
-
-		cmdBuffer.EndRenderPass();
+		if (args.KeyCode == _CrtEnum2Int(Keys::XBoxB)) Exit();
 	}
 }
 
-void TestGame::RenderpassPreCreate(Pu::Renderpass &)
+void TestGame::OnSwapchainRecreated(const Pu::GameWindow &)
 {
-	Subpass &subpass = renderpass->GetSubpass(0);
-
-	subpass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
-	subpass.AddDepthStencil().SetDescription(*depthBuffer);
-
-	subpass.GetAttribute("Normal").SetOffset(vkoffsetof(Terrain, Normal));
-	subpass.GetAttribute("PlateId").SetOffset(vkoffsetof(Terrain, PlateId));
+	if (depthBuffer) CreateDepthBuffer();
+	if (renderPass->IsLoaded()) CreateGraphicsPipeline();
 }
 
-void TestGame::RenderpassPostCreate(Pu::Renderpass &)
+void TestGame::CreateDepthBuffer(void)
 {
-	/* Create the descirptor pool and uniforms. */
-	descriptorPool = new DescriptorPool(*renderpass, 2);
-	material = new Material(renderpass->GetSubpass(0), *descriptorPool);
-	transform = new TransformBlock(renderpass->GetSubpass(0), *descriptorPool);
+	if (depthBuffer) delete depthBuffer;
+	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
+}
 
-	pipeline = new GraphicsPipeline(*renderpass, 0);
-	pipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
-	pipeline->SetTopology(PrimitiveTopology::TriangleList);
-	pipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	pipeline->SetCullMode(CullModeFlag::Back);
-	pipeline->AddVertexBinding<Terrain>(0);
+void TestGame::InitializeRenderpass(Pu::Renderpass&)
+{
+	if (!depthBuffer) CreateDepthBuffer();
+	Subpass &pass = renderPass->GetSubpass(0);
 
-	GetWindow().CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
-	pipeline->Finalize();
+	pass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
+	pass.AddDepthStencil().SetDescription(*depthBuffer);
+
+	pass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+}
+
+void TestGame::FinalizeRenderpass(Pu::Renderpass&)
+{
+	const Subpass &pass = renderPass->GetSubpass(0);
+
+	descPool = new DescriptorPool(*renderPass, 2);
+	material = new Material(pass, *descPool);
+	transform = new TransformBlock(pass, *descPool);
+
+	const Color fe{ 0.77f, 0.78f, 0.78f };
+	material->SetParameters(0.5f, 2.0f, fe, fe);
+
+	transform->SetModel(Matrix::CreateTranslation(-1.0f, 1.0f, 5.0f));
+
+	CreateGraphicsPipeline();
+}
+
+void TestGame::CreateGraphicsPipeline(void)
+{
+	if (gfxPipeline) delete gfxPipeline;
+
+	gfxPipeline = new GraphicsPipeline(*renderPass, 0);
+	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
+	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
+	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
+	gfxPipeline->SetCullMode(CullModeFlag::Back);
+	gfxPipeline->AddVertexBinding<Basic3D>(0);
+
+	GetWindow().CreateFrameBuffers(*renderPass, { &depthBuffer->GetView() });
+	gfxPipeline->Finalize();
 }

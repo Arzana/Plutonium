@@ -160,6 +160,7 @@ int SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 			writer.Write(material.SpecularFactor.Packed);
 			writer.Write(material.EmissiveFactor.Packed);
 			writer.Write(material.Glossiness);
+			writer.Write(material.SpecularPower);
 			writer.Write(material.EmissiveInternsity);
 
 			if (material.AlphaMode == 1) writer.Write(material.AlphaThreshold);

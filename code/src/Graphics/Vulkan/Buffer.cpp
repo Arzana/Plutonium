@@ -42,6 +42,17 @@ Pu::Buffer & Pu::Buffer::operator=(Buffer && other)
 	return *this;
 }
 
+Pu::DeviceSize Pu::Buffer::GetLazyMemory(void) const
+{
+	if (memoryHndl)
+	{
+		DeviceSize result = 0;
+		parent->vkGetDeviceMemoryCommitment(parent->hndl, memoryHndl, &result);
+		return result;
+	}
+	else return 0;
+}
+
 void Pu::Buffer::BeginMemoryTransfer(void)
 {
 #ifdef _DEBUG

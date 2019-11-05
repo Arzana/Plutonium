@@ -158,7 +158,7 @@ Pu::PumSkeleton::PumSkeleton(BinaryReader & reader)
 Pu::PumMaterial::PumMaterial(void)
 	: DoubleSided(false), AlphaMode(PumAlphaMode::Opaque), HasDiffuseTexture(false),
 	HasSpecGlossTexture(false), HasNormalTexture(false), HasOcclusionTexture(false),
-	HasEmissiveTexture(false), Glossiness(0.0f), EmissiveIntensity(0.0f)
+	HasEmissiveTexture(false), Glossiness(0.0f), SpecularPower(0.0f), EmissiveIntensity(0.0f)
 {}
 
 Pu::PumMaterial::PumMaterial(BinaryReader & reader)
@@ -180,6 +180,7 @@ Pu::PumMaterial::PumMaterial(BinaryReader & reader)
 	SpecularFactor.Packed = reader.ReadUInt32();
 	EmissiveFactor.Packed = reader.ReadUInt32();
 	Glossiness = reader.ReadSingle();
+	SpecularPower = reader.ReadSingle();
 	EmissiveIntensity = reader.ReadSingle();
 
 	if (AlphaMode == PumAlphaMode::Mask) AlphaTheshold = reader.ReadSingle();
