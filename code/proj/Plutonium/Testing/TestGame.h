@@ -37,6 +37,7 @@ private:
 	Pu::StagingBuffer *stagingBuffer;
 	Pu::Mesh mesh;
 	Pu::Material *material;
+	Pu::Matrix mdlMtrx;
 	TransformBlock *transform;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

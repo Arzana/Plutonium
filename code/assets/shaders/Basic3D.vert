@@ -1,9 +1,13 @@
 #version 460 core
 
-layout (binding = 0) uniform Transforms
+layout (binding = 0) uniform Camera
 {
 	mat4 Projection;
 	mat4 View;
+};
+
+layout (push_constant) uniform PushConstants
+{
 	mat4 Model;
 };
 

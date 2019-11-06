@@ -7,6 +7,7 @@ FieldInfo Subpass::defInfo = FieldInfo(0, "", FieldType(ComponentType::Invalid, 
 Output Subpass::defOutput = Output(Subpass::defInfo, 0, OutputUsage::Unknown);
 Attribute Subpass::defAttrib = Attribute(defInfo);
 Descriptor Subpass::defDescr = Descriptor(defInfo);
+PushConstant Subpass::defConst = PushConstant(defInfo);
 
 Pu::Subpass::Subpass()
 	: linkSuccessfull(false), ds(nullptr), dependencyUsed(false)
@@ -113,6 +114,28 @@ const Descriptor & Pu::Subpass::GetDescriptor(const string & name) const
 	return defDescr;
 }
 
+PushConstant & Pu::Subpass::GetPushConstant(const string & name)
+{
+	for (PushConstant &cur : pushConstants)
+	{
+		if (name == cur.GetInfo().Name) return cur;
+	}
+
+	Log::Error("Unable to find push constant field '%s'!", name.c_str());
+	return defConst;
+}
+
+const PushConstant & Pu::Subpass::GetPushConstant(const string & name) const
+{
+	for (const PushConstant &cur : pushConstants)
+	{
+		if (name == cur.GetInfo().Name) return cur;
+	}
+
+	Log::Error("Unable to find push constant field '%s'!", name.c_str());
+	return defConst;
+}
+
 void Pu::Subpass::Link(const PhysicalDevice & physicalDevice)
 {
 #ifdef _DEBUG
@@ -192,6 +215,10 @@ void Pu::Subpass::LoadFields(const PhysicalDevice & physicalDevice)
 			if (info.Storage == spv::StorageClass::UniformConstant || info.Storage == spv::StorageClass::Uniform)
 			{
 				descriptors.emplace_back(Descriptor(physicalDevice, info, shader->GetType()));
+			}
+			else if (info.Storage == spv::StorageClass::PushConstant)
+			{
+				pushConstants.emplace_back(PushConstant(physicalDevice, info, shader->GetType()));
 			}
 		}
 	}

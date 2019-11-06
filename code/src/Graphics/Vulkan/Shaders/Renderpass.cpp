@@ -263,9 +263,11 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 	For each of these sets we need to create a layout handle.
 	*/
 	std::map<uint32, vector<DescriptorSetLayoutBinding>> layoutBindings;
+	vector<PushConstantRange> constRanges;
 
 	for (const Subpass &subpass : subpasses)
 	{
+		/* Get all the descriptor sets from the subpass. */
 		for (const Descriptor &descriptor : subpass.descriptors)
 		{
 			/* Check if the set is already in the list. */
@@ -283,6 +285,12 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 				layoutBindings.emplace(descriptor.set, std::move(value));
 			}
 		}
+
+		/* Just add the push constant ranges to the list. */
+		for (const PushConstant &pushConstants : subpass.pushConstants)
+		{
+			constRanges.emplace_back(pushConstants.range);
+		}
 	}
 
 	/* Create the descriptor sets. */
@@ -295,7 +303,7 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 	}
 
 	/* Create the pipeline layout. */
-	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSetLayouts);
+	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSetLayouts, constRanges);
 	VK_VALIDATE(device->vkCreatePipelineLayout(device->hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
 }
 

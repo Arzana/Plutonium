@@ -702,6 +702,9 @@
     <ClInclude Include="..\..\..\include\Networking\Core\ICMP.h">
       <Filter>Header Files\Networking\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\PushConstant.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1018,6 +1021,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Networking\UPnP\SOAP.cpp">
       <Filter>Source Files\Networking\UPnP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\PushConstant.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
 #include "Output.h"
 #include "Attribute.h"
 #include "Descriptor.h"
+#include "PushConstant.h"
 
 namespace Pu
 {
@@ -42,6 +43,10 @@ namespace Pu
 		_Check_return_ Descriptor& GetDescriptor(_In_ const string &name);
 		/* Gets the specified shader input descriptor. */
 		_Check_return_ const Descriptor& GetDescriptor(_In_ const string &name) const;
+		/* Gets the specified push constant. */
+		_Check_return_ PushConstant& GetPushConstant(_In_ const string &name);
+		/* Gets the specified push constant. */
+		_Check_return_ const PushConstant& GetPushConstant(_In_ const string &name) const;
 
 		/* Gets whether this subpass was created with valid arguments. */
 		_Check_return_ inline bool IsUsable(void) const
@@ -66,6 +71,7 @@ namespace Pu
 		static Output defOutput;
 		static Attribute defAttrib;
 		static Descriptor defDescr;
+		static PushConstant defConst;
 
 		bool linkSuccessfull;
 		Output *ds;
@@ -73,6 +79,7 @@ namespace Pu
 		
 		vector<Attribute> attributes;
 		vector<Descriptor> descriptors;
+		vector<PushConstant> pushConstants;
 		vector<Output> outputs;
 
 		/* src and dest subpasses are set by the renderpass. */

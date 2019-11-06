@@ -26,21 +26,6 @@ Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo
 	{
 		/* Assume uniform buffer for other types as it's most used. */
 		layoutBinding.DescriptorType = DescriptorType::UniformBuffer;
-
-		/*
-		https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_uniform_buffer_object.txt
-		The size of a value in a uniform buffer is determined as follows:
-		Scalars (int, float, bool, etc)			4 bytes										Called N for further computations
-		Vector									2 or 4 * N bytes							8 bytes for vec2 and 16 bytes for vec3 and vec4
-		Arrays									Element Count * 16 bytes					Stored as multiple vec4's
-		Matrices								Column Count * 16 bytes						Stored as array of column vec4's
-		Struct									Sum(Components), Alligned to 16 bytes		Stored as the sum of it's components but padded to be 16 byte alligned. 
-		*/
-
-		if (GetInfo().ArrayElements == 1) size = GetInfo().Type.GetSize();
-		else
-		{
-			size = max(sizeof(Vector4), GetInfo().Type.GetSize()) * GetInfo().ArrayElements;
-		}
+		size = Field::GetSize();
 	}
 }

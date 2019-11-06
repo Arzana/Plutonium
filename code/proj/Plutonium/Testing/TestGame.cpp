@@ -9,7 +9,8 @@ TestGame::TestGame(void)
 	: Application(L"TestGame", 1280.0f, 720.0f, 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPool(nullptr), vrtxBuffer(nullptr), stagingBuffer(nullptr),
-	material(nullptr), transform(nullptr), firstRun(true), markDepthBuffer(true)
+	material(nullptr), transform(nullptr), firstRun(true), markDepthBuffer(true),
+	mdlMtrx(Matrix::CreateTranslation(-1.0f, 1.0f, 5.0f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -93,14 +94,14 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		Vector3 tint = material->GetSpecularColor();
 		if (ImGui::ColorPicker3("F0", tint.f))
 		{
-			material->SetSpecDiffuse(tint);
+			material->SetSpecular(tint);
 		}
 
 		if (ImGui::BeginCombo("##Preset", "Preset"))
 		{
-			if (ImGui::Selectable("Iron")) material->SetSpecDiffuse(Vector3(0.56f, 0.57f, 0.58f));
-			if (ImGui::Selectable("Gold")) material->SetSpecDiffuse(Vector3(1.0f, 0.71f, 0.29f));
-			if (ImGui::Selectable("Copper")) material->SetSpecDiffuse(Vector3(0.95f, 0.64f, 0.54f));
+			if (ImGui::Selectable("Iron")) material->SetSpecular(Vector3(0.56f, 0.57f, 0.58f));
+			if (ImGui::Selectable("Gold")) material->SetSpecular(Vector3(1.0f, 0.71f, 0.29f));
+			if (ImGui::Selectable("Copper")) material->SetSpecular(Vector3(0.95f, 0.64f, 0.54f));
 			ImGui::EndCombo();
 		}
 
@@ -115,6 +116,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	cmd.BindGraphicsDescriptor(*transform);
 	cmd.BindGraphicsDescriptor(*material);
+	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 	mesh.Bind(cmd, 0);
 	mesh.Draw(cmd);
 
@@ -171,9 +173,7 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	transform = new TransformBlock(pass, *descPool);
 
 	const Color fe{ 0.77f, 0.78f, 0.78f };
-	material->SetParameters(0.5f, 2.0f, fe, fe);
-
-	transform->SetModel(Matrix::CreateTranslation(-1.0f, 1.0f, 5.0f));
+	material->SetParameters(0.5f, 2.0f, fe, Color::Black());
 
 	CreateGraphicsPipeline();
 }

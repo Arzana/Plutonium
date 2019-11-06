@@ -81,6 +81,8 @@ namespace Pu
 		void BindVertexBuffer(_In_ uint32 binding, _In_ const BufferView &view);
 		/* Appends a index buffer bind command to the command buffer. */
 		void BindIndexBuffer(_In_ const BufferView &view, _In_ IndexType type);
+		/* Appends a update for the push constants to the command buffer. */
+		void PushConstants(_In_ const Renderpass &renderpass, _In_ ShaderStageFlag stage, _In_ size_t size, _In_ const void *constants);
 		/* Appends a graphics descriptor bind command to the command buffer. */
 		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */

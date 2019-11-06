@@ -7,9 +7,9 @@ class TransformBlock
 {
 public:
 	TransformBlock(_In_ const Pu::Subpass &subpass, Pu::DescriptorPool &pool)
-		: UniformBlock(subpass, pool, { "Projection", "View", "Model", "CamPos" })
+		: UniformBlock(subpass, pool, { "Projection", "View", "CamPos" })
 	{
-		offset = subpass.GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 3);
+		offset = subpass.GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
 	}
 
 	inline void SetProjection(_In_ const Pu::Matrix &mtrx)
@@ -24,12 +24,6 @@ public:
 		IsDirty = true;
 	}
 
-	inline void SetModel(_In_ const Pu::Matrix &mtrx)
-	{
-		mdl = mtrx;
-		IsDirty = true;
-	}
-
 	inline void SetCamPos(_In_ Pu::Vector3 v)
 	{
 		camPos = v;
@@ -41,12 +35,11 @@ protected:
 	{
 		Copy(dest, &proj);
 		Copy(dest + sizeof(Pu::Matrix), &view);
-		Copy(dest + sizeof(Pu::Matrix) * 2, &mdl);
 		Copy(dest + offset, &camPos);
 	}
 
 private:
 	size_t offset;
-	Pu::Matrix proj, view, mdl;
+	Pu::Matrix proj, view;
 	Pu::Vector3 camPos;
 };

@@ -207,6 +207,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\PushConstant.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Shader.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Descriptor.h" />
@@ -343,6 +344,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Attribute.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\PushConstant.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Shader.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Descriptor.cpp" />

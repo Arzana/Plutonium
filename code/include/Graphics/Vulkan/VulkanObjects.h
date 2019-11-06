@@ -2295,10 +2295,10 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of the pipeline layout create info object. */
-		PipelineLayoutCreateInfo(_In_ const vector<DescriptorSetLayoutHndl>& descriptorSets)
+		PipelineLayoutCreateInfo(_In_ const vector<DescriptorSetLayoutHndl>& descriptorSets, _In_ const vector<PushConstantRange> &pushConstants)
 			: Type(StructureType::PipelineLayourCreateInfo), Next(nullptr), Flags(0),
 			SetLayoutCount(static_cast<uint32>(descriptorSets.size())), SetLayouts(descriptorSets.data()), 
-			PushConstantRangeCount(0), PushConstantRanges(nullptr)
+			PushConstantRangeCount(static_cast<uint32>(pushConstants.size())), PushConstantRanges(pushConstants.data())
 		{}
 	};
 

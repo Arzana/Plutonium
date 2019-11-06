@@ -222,6 +222,14 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 	}
 }
 
+void Pu::CommandBuffer::PushConstants(const Renderpass & renderpass, ShaderStageFlag stage, size_t size, const void * constants)
+{
+	if (CheckIfRecording("push constants"))
+	{
+		device->vkCmdPushConstants(hndl, renderpass.layoutHndl, stage, 0, static_cast<uint32>(size), constants);
+	}
+}
+
 void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
 {
 	if (CheckIfRecording("bind descriptor to graphics bind point"))

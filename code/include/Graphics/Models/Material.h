@@ -51,14 +51,6 @@ namespace Pu
 			IsDirty = true;
 		}
 
-		/* Sets both the specular and diffuse color for this material. */
-		inline void SetSpecDiffuse(_In_ Vector3 value)
-		{
-			f0 = value;
-			diffuse = value;
-			IsDirty = true;
-		}
-
 		/* Sets the specular factor for this material (alpha is ignored). */
 		inline void SetSpecular(_In_ Color value)
 		{
