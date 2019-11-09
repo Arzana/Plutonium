@@ -1,6 +1,6 @@
 #version 460 core
 
-layout (binding = 0) uniform Transforms
+layout (push_constant) uniform Transforms
 {
 	mat4 Projection;
 	mat4 View;

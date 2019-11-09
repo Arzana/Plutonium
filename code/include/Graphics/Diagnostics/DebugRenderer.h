@@ -8,7 +8,6 @@
 
 namespace Pu
 {
-	class DebugRendererUniformBlock;
 	class DynamicBuffer;
 
 	/* Defines an obect used to render debug shapes. */
@@ -42,8 +41,6 @@ namespace Pu
 
 		Renderpass *renderpass;
 		GraphicsPipeline *pipeline;
-		DescriptorPool *descriptorPool;
-		DebugRendererUniformBlock *uniforms;
 
 		DynamicBuffer *buffer;
 		BufferView *bufferView;

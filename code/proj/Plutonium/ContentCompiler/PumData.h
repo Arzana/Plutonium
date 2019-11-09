@@ -110,9 +110,9 @@ struct pum_mesh
 		if (HasTangents) result |= 0x04;
 		if (HasTextureUvs) result |= 0x08;
 		if (HasVertexColors)result |= 0x10;
-		result |= (HasJoints & 0x03) >> 0x05;
-		result |= (IndexMode & 0x03) >> 0x07;
-		result |= (Topology & 0x07) >> 0x09;
+		result |= (HasJoints & 0x03) << 0x05;
+		result |= (IndexMode & 0x03) << 0x07;
+		result |= (Topology & 0x07) << 0x09;
 
 		return result;
 	}
@@ -243,7 +243,7 @@ struct pum_material
 		Pu::byte result = 0;
 
 		if (DoubleSided) result |= 1;
-		result |= (AlphaMode & 0x03) >> 1;
+		result |= (AlphaMode & 0x03) << 1;
 		if (HasDiffuseTexture) result |= 0x08;
 		if (HasSpecularGlossTexture) result |= 0x10;
 		if (HasNormalTexture) result |= 0x20;
@@ -276,8 +276,8 @@ struct pum_texture
 		if (UsesLinearMagnification) result |= 0x01;
 		if (UsesLinaerMinification) result |= 0x02;
 		if (UsesLinearMipmapMode) result |= 0x04;
-		result |= (AddressModeU & 0x03) >> 0x03;
-		result |= (AddressModeV & 0x03) >> 0x05;
+		result |= (AddressModeU & 0x03) << 0x03;
+		result |= (AddressModeV & 0x03) << 0x05;
 
 		return result;
 	}

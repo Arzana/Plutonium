@@ -603,9 +603,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h">
-      <Filter>Header Files\Graphics\Diagnostics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Line.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
@@ -964,9 +961,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp">
-      <Filter>Source Files\Graphics\Diagnostics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>

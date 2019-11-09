@@ -1,10 +1,9 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
-#include "Graphics/Diagnostics/DebugRendererUniformBlock.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: loader(loader), wnd(window), uniforms(nullptr), pipeline(nullptr), descriptorPool(nullptr), size(0), lineWidth(lineWidth), depthBuffer(depthBuffer)
+	: loader(loader), wnd(window), pipeline(nullptr), size(0), lineWidth(lineWidth), depthBuffer(depthBuffer)
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -23,8 +22,6 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 Pu::DebugRenderer::~DebugRenderer(void)
 {
 	if (pipeline) delete pipeline;
-	if (uniforms) delete uniforms;
-	if (descriptorPool) delete descriptorPool;
 
 	loader.Release(*renderpass);
 
@@ -118,18 +115,16 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 			buffer->EndMemoryTransfer();
 			buffer->Update(cmdBuffer);
 
-			/* Update the descriptor. */
-			uniforms->SetProjection(projection);
-			uniforms->SetView(view);
-			uniforms->Update(cmdBuffer);
-
 			/* Begin the renderpass. */
 			cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 			cmdBuffer.BindGraphicsPipeline(*pipeline);
 			if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
 
+			/* Update the descriptors. */
+			const Matrix constants[2] = { projection, view };
+			cmdBuffer.PushConstants(*renderpass, ShaderStageFlag::Vertex, sizeof(Matrix) << 1, constants);
+
 			/* Render the debug lines. */
-			cmdBuffer.BindGraphicsDescriptor(*uniforms);
 			cmdBuffer.BindVertexBuffer(0, *bufferView);
 			cmdBuffer.Draw(size, 1, 0, 0);
 
@@ -176,10 +171,6 @@ void Pu::DebugRenderer::InitializeRenderpass(Renderpass &)
 
 void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 {
-	/* Allocate a descriptor pool and descriptors. */
-	descriptorPool = new DescriptorPool(*renderpass, 1);
-	uniforms = new DebugRendererUniformBlock(renderpass->GetSubpass(0), *descriptorPool);
-
 	/* Initialize the pipeline. */
 	pipeline = new GraphicsPipeline(*renderpass, 0);
 	pipeline->SetViewport(wnd.GetNative().GetClientBounds());
@@ -210,13 +201,8 @@ void Pu::DebugRenderer::SwapchainRecreated(const GameWindow &)
 	{
 		/* Release all the resources that work with the renderpass. */
 		delete pipeline;
-		delete uniforms;
-		delete descriptorPool;
-		loader.Release(*renderpass);
-
 		pipeline = nullptr;
-		uniforms = nullptr;
-		descriptorPool = nullptr;
+		loader.Release(*renderpass);
 
 		/* Reload the renderpass. */
 		renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });

@@ -5,7 +5,7 @@ Pu::Mesh::Mesh(void)
 {}
 
 Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexOffset, size_t vertexSize, size_t indexOffset, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
-	: type(indexType)
+	: type(indexType), useIndexBuffer(true)
 {
 	vertex = new BufferView(buffer, vertexOffset, vertexSize, vertexStride);
 	index = new BufferView(buffer, indexOffset, indexSize, indexStride);
@@ -16,7 +16,7 @@ Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexSize, size_t indexSize, size_
 {}
 
 Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
-	: type(static_cast<IndexType>(mesh.IndexType))
+	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None)
 {
 	/* Calculate the stride of the vertices. */
 	size_t vertexStride = sizeof(Vector3);
@@ -25,23 +25,26 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 	if (mesh.HasTextureCoordinates) vertexStride += sizeof(Vector2);
 	if (mesh.HasColors) vertexStride += sizeof(uint32);
 
-	/* Calculate the size of the indices. */
-	const size_t indexStride = type == IndexType::UInt16 ? sizeof(uint16) : sizeof(uint32);
-
 	/* Create the buffer views. */
 	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, vertexStride);
-	index = new BufferView(buffer, mesh.IndexViewStart, mesh.IndexViewSize, indexStride);
+	if (useIndexBuffer)
+	{
+		const size_t indexStride = type == IndexType::UInt16 ? sizeof(uint16) : sizeof(uint32);
+		index = new BufferView(buffer, mesh.IndexViewStart, mesh.IndexViewSize, indexStride);
+	}
+	else index = nullptr;
 }
 
 Pu::Mesh::Mesh(const Mesh & value)
-	: type(value.type)
+	: type(value.type), useIndexBuffer(value.useIndexBuffer)
 {
 	vertex = new BufferView(*value.vertex);
-	index = new BufferView(*value.index);
+	index = useIndexBuffer ? new BufferView(*value.index) : nullptr;
 }
 
 Pu::Mesh::Mesh(Mesh && value)
-	: type(value.type), vertex(value.vertex), index(value.index)
+	: type(value.type), vertex(value.vertex),
+	index(value.index), useIndexBuffer(value.useIndexBuffer)
 {
 	value.vertex = nullptr;
 	value.index = nullptr;
@@ -54,8 +57,9 @@ Pu::Mesh & Pu::Mesh::operator=(const Mesh & other)
 		Destroy();
 
 		type = other.type;
+		useIndexBuffer = other.useIndexBuffer;
 		vertex = new BufferView(*other.vertex);
-		index = new BufferView(*other.index);
+		index = useIndexBuffer ? new BufferView(*other.index) : nullptr;
 	}
 
 	return *this;
@@ -68,6 +72,7 @@ Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
 		Destroy();
 
 		type = other.type;
+		useIndexBuffer = other.useIndexBuffer;
 		vertex = other.vertex;
 		index = other.index;
 
@@ -85,7 +90,7 @@ void Pu::Mesh::Bind(CommandBuffer & cmdBuffer, uint32 binding) const
 	Check();
 #endif
 
-	cmdBuffer.BindIndexBuffer(*index, type);
+	if (useIndexBuffer) cmdBuffer.BindIndexBuffer(*index, type);
 	cmdBuffer.BindVertexBuffer(binding, *vertex);
 }
 
@@ -96,12 +101,13 @@ void Pu::Mesh::DrawInstanced(CommandBuffer & cmdBuffer, uint32 instanceCount) co
 	Check();
 #endif
 
-	cmdBuffer.Draw(static_cast<uint32>(index->GetElementCount()), instanceCount, 0, 0, 0);
+	if (useIndexBuffer) cmdBuffer.Draw(static_cast<uint32>(index->GetElementCount()), instanceCount, 0, 0, 0);
+	else cmdBuffer.Draw(static_cast<uint32>(vertex->GetElementCount()), instanceCount, 0, 0);
 }
 
 void Pu::Mesh::Check(void) const
 {
-	if (!vertex || !index) Log::Fatal("Cannot bind invalid mesh!");
+	if (!vertex || (useIndexBuffer && !index)) Log::Fatal("Cannot bind invalid mesh!");
 }
 
 void Pu::Mesh::Destroy(void)

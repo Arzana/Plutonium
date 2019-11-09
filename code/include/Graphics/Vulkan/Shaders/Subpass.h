@@ -64,6 +64,7 @@ namespace Pu
 		friend class Renderpass;
 		friend class GraphicsPipeline;
 		friend class DescriptorPool;
+		friend class UniformBlock;
 		friend class AssetLoader;
 
 		static FieldInfo dsInfo;

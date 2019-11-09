@@ -46,7 +46,7 @@ Pu::PumMesh::PumMesh(BinaryReader & reader)
 	HasColors = flags & 0x10;
 	JointType = _CrtInt2Enum<PumJointType>((flags & 0x60) >> 0x5);
 	IndexType = _CrtInt2Enum<PumIndexType>((flags & 0x180) >> 0x7);
-	Topology = _CrtInt2Enum<PrimitiveTopology>((flags & 1400) >> 0x9);
+	Topology = _CrtInt2Enum<PrimitiveTopology>((flags & 0xE00) >> 0x9);
 
 	Bounds.LowerBound = reader.ReadVector3();
 	Bounds.UpperBound = reader.ReadVector3();

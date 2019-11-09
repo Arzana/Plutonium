@@ -154,7 +154,6 @@
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRendererUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h" />
@@ -304,7 +303,6 @@
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRendererUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp" />

@@ -31,12 +31,16 @@ private:
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;
 	Pu::DepthBuffer *depthBuffer;
-	Pu::DescriptorPool *descPool;
+	Pu::DescriptorPool *descPoolCam;
+	Pu::DescriptorPool *descPoolMats;
 
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *stagingBuffer;
-	Pu::Mesh mesh;
-	Pu::Material *material;
+	Pu::vector<std::tuple<Pu::uint32, Pu::Mesh*>> meshes;
+	Pu::vector<Pu::Material*> materials;
+	Pu::vector<Pu::Texture2D*> textures;
+	Pu::vector<Pu::PumMaterial> stageMaterials;
+
 	Pu::Matrix mdlMtrx;
 	TransformBlock *transform;
 

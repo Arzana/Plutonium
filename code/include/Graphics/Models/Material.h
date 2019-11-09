@@ -11,7 +11,9 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a PBR material from the specified descriptor pool for the specified subpass. */
-		Material(_In_ const Subpass &subpass, DescriptorPool &pool);
+		Material(DescriptorPool &pool);
+		/* Initializes a new instance of a PBR material from the specified descriptor pool for the specified subpass with the specified parameters. */
+		Material(DescriptorPool &pool, _In_ const PumMaterial &parameters);
 		Material(_In_ const Material&) = delete;
 		/* Move constructor. */
 		Material(_In_ Material &&value);

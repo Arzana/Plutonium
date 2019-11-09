@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/Math/Matrix.h"
 #include "Graphics/Models/UniformBlock.h"
-#include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 
 namespace Pu
 {
@@ -11,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a text uniform block. */
-		TextUniformBlock(_In_ const Subpass &subpass, _In_ DescriptorPool &pool);
+		TextUniformBlock(_In_ DescriptorPool &pool);
 		TextUniformBlock(_In_ const TextUniformBlock&) = delete;
 		/* Move constructor. */
 		TextUniformBlock(_In_ TextUniformBlock &&value);

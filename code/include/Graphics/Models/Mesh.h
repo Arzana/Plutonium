@@ -45,6 +45,7 @@ namespace Pu
 		const BufferView *vertex;
 		const BufferView *index;
 		IndexType type;
+		bool useIndexBuffer;
 
 		void Check(void) const;
 		void Destroy(void);

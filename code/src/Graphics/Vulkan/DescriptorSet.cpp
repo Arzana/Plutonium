@@ -91,7 +91,7 @@ Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, DescriptorSetHndl hndl, 
 
 void Pu::DescriptorSet::WriteDescriptor(const vector<WriteDescriptorSet> & writes)
 {
-	parent->renderpass->device->vkUpdateDescriptorSets(parent->renderpass->device->hndl, static_cast<uint32>(writes.size()), writes.data(), 0, nullptr);
+	parent->device->vkUpdateDescriptorSets(parent->device->hndl, static_cast<uint32>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void Pu::DescriptorSet::Free(void)

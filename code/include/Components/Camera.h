@@ -54,10 +54,16 @@ namespace Pu
 			pos = position;
 		}
 
-		/* Adds the specific offset to the position. */
+		/* Adds the specified offset to the position. */
 		inline void Move(_In_ Vector3 offset)
 		{
 			SetPosition(pos + offset);
+		}
+
+		/* Adds the specified offset to the position. */
+		inline void Move(_In_ float x, _In_ float y, _In_ float z)
+		{
+			SetPosition(pos + Vector3(x, y, z));
 		}
 
 	protected:

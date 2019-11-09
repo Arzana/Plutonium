@@ -1,32 +1,34 @@
 #include "Graphics/Models/UniformBlock.h"
 
-Pu::UniformBlock::UniformBlock(const Subpass & subpass, DescriptorPool & pool, std::initializer_list<string> uniforms)
-	: DescriptorSet(std::move(pool.Allocate(CheckAndGetSet(subpass, uniforms)))),
-	IsDirty(false), firstUpdate(true)
+Pu::UniformBlock::UniformBlock(DescriptorPool & pool)
+	: DescriptorSet(std::move(pool.Allocate())), IsDirty(false), firstUpdate(true)
 {
-	/* Calculate the size based on the uniforms. */
-	vector<uint32> knownBindings;
+	vector<uint32> bindings;
 	size_t size = 0;
-	for (const string &name : uniforms)
-	{
-		/* We can only add them here; not in the CheckAndGetSet because that has to be called in the initializer list. */
-		const Descriptor &descriptor = subpass.GetDescriptor(name);
-		this->descriptors.emplace_back(&descriptor);
 
-		/* If the binding already exists we just append, but if it doesn't exist we need to take the GPU allignment into account. */
-		if (knownBindings.contains(descriptor.GetBinding()))
+	/* Calculate the size of the uniform buffer based on the descriptors. */
+	for (const Descriptor &descriptor : pool.GetSubpass().descriptors)
+	{
+		/* Only gets the descriptors within the set. */
+		if (descriptor.GetSet() != pool.GetSet()) continue;
+		descriptors.emplace_back(&descriptor);
+
+		if (bindings.contains(descriptor.GetBinding()))
 		{
+			/* The member offset has the precalculated alligned offset, so we only have to make sure it's not violated and then just add the size. */
 			size = max(size, descriptor.GetInfo().Decorations.MemberOffset);
 			size += descriptor.GetSize();
 		}
 		else
 		{
-			knownBindings.emplace_back(descriptor.GetBinding());
+			/* This is a new binding so take the alligned offset into account, and then just add the size. */
+			bindings.emplace_back(descriptor.GetBinding());
 			size = descriptor.GetAllignedOffset(size) + descriptor.GetSize();
 		}
 	}
 
-	target = new DynamicBuffer(subpass.GetShaders().front()->GetDevice(), size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
+	/* Create a dynamic buffer because the contents of this will most likely change a lot, I should update this to allow for a single stage uniform block. */
+	target = new DynamicBuffer(pool.GetSubpass().shaders.front()->GetDevice(), size, BufferUsageFlag::UniformBuffer | BufferUsageFlag::TransferDst);
 }
 
 Pu::UniformBlock::UniformBlock(UniformBlock && value)
@@ -83,29 +85,6 @@ void Pu::UniformBlock::Update(CommandBuffer & cmdBuffer)
 		IsDirty = false;
 	}
 }
-
-/* uniforms hides class member. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-Pu::uint32 Pu::UniformBlock::CheckAndGetSet(const Subpass & subpass, std::initializer_list<string> uniforms)
-{
-	uint32 result = 0;
-
-	for (std::initializer_list<string>::const_iterator it = uniforms.begin(); it != uniforms.end(); it++)
-	{
-		const Descriptor &uniform = subpass.GetDescriptor(*it);
-
-		/* Make sure all the descriptors are from the same set. */
-		if (it != uniforms.begin())
-		{
-			if (uniform.GetSet() != result) Log::Fatal("Cannot pass uniforms from different sets to a uniform block!");
-		}
-		else result = uniform.GetSet();
-	}
-
-	return result;
-}
-#pragma warning(pop)
 
 void Pu::UniformBlock::Destroy(void)
 {

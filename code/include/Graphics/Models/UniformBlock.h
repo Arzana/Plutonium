@@ -36,7 +36,7 @@ namespace Pu
 		bool IsDirty;
 
 		/* Initializes a new instance of a uniform block. */
-		UniformBlock(_In_ const Subpass &subpass, _In_ DescriptorPool &pool, _In_ std::initializer_list<string> uniforms);
+		UniformBlock(_In_ DescriptorPool &pool);
 
 		/* Loads the specified staging buffer with the new GPU data. */
 		virtual void Stage(_In_ byte *destination) = 0;
@@ -53,7 +53,6 @@ namespace Pu
 		vector<const Descriptor*> descriptors;
 		bool firstUpdate;
 
-		uint32 CheckAndGetSet(const Subpass &subpass, std::initializer_list<string> uniforms);
 		void Destroy(void);
 	};
 }

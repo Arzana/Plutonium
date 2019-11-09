@@ -1,15 +1,14 @@
 #pragma once
 #include <Graphics/Models/UniformBlock.h>
-#include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 
 class TransformBlock
 	: public Pu::UniformBlock
 {
 public:
-	TransformBlock(_In_ const Pu::Subpass &subpass, Pu::DescriptorPool &pool)
-		: UniformBlock(subpass, pool, { "Projection", "View", "CamPos" })
+	TransformBlock(_In_ Pu::DescriptorPool &pool)
+		: UniformBlock(pool)
 	{
-		offset = subpass.GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
+		offset = pool.GetSubpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
 	}
 
 	inline void SetProjection(_In_ const Pu::Matrix &mtrx)
