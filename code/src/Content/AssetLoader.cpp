@@ -98,6 +98,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			else
 			{
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+				parent.poolLock.lock();
 				cmdBuffer.Begin();
 				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
 
@@ -106,6 +107,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 				cmdBuffer.End();
 
 				parent.transferQueue.Submit(cmdBuffer);
+				parent.poolLock.unlock();
 
 				staged = true;
 				return Result::CustomWait();
@@ -157,6 +159,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 			stagingBuffer->Load(data);
 
 			/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+			parent.poolLock.lock();
 			cmdBuffer.Begin();
 			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
 
@@ -166,6 +169,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 			/* Submit and wait for completion. */
 			parent.transferQueue.Submit(cmdBuffer);
+			parent.poolLock.unlock();
 			return Result::CustomWait();
 		}
 
@@ -224,6 +228,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			result.atlasImg = new Image(parent.device, info);
 
 			/* Make sure the atlas has the correct layout. */
+			parent.poolLock.lock();
 			cmdBuffer.Begin();
 			cmdBuffer.MemoryBarrier(*result.atlasImg, 
 				PipelineStageFlag::TopOfPipe, 
@@ -235,6 +240,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			/* Copy actual data and end the buffer. */
 			cmdBuffer.CopyEntireBuffer(*buffer, *result.atlasImg);
 			cmdBuffer.End();
+			parent.poolLock.unlock();
 
 			parent.transferQueue.Submit(cmdBuffer);
 			return Result::CustomWait();
@@ -278,6 +284,23 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 void Pu::AssetLoader::AllocateCmdBuffer(void)
 {
+	/* We need to wait for all command buffers to be done before allocating another buffer. */
+	bool wait;
+	do
+	{
+		wait = false;
+
+		for (const auto &[available, buffer] : buffers.data())
+		{
+			if (!available)
+			{
+				wait = true;
+				PuThread::Sleep(10);
+				break;
+			}
+		}
+	} while (wait);
+
 	buffers.emplace(std::move(cmdPool->Allocate()));
 }
 

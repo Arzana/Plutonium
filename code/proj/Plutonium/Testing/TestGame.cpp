@@ -8,6 +8,8 @@
 
 using namespace Pu;
 
+Stopwatch sw;
+
 TestGame::TestGame(void)
 	: Application(L"TestGame", 1280.0f, 720.0f, 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
@@ -30,6 +32,7 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
+	sw.Start();
 	const string file = FileReader(L"assets/Models/sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
@@ -43,11 +46,11 @@ void TestGame::LoadContent(void)
 		meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
 	}
 
-	//AssetFetcher &fetcher = GetContent();
-	//for (const PumTexture &texture : mdl.Textures)
-	//{
-	//	textures.emplace_back(&fetcher.FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), true));
-	//}
+	AssetFetcher &fetcher = GetContent();
+	for (const PumTexture &texture : mdl.Textures)
+	{
+		textures.emplace_back(&fetcher.FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), true));
+	}
 
 	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
@@ -92,6 +95,11 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
 
+	for (Texture2D *texture : textures)
+	{
+		if (!texture->IsUsable()) return;
+	}
+
 	if (markDepthBuffer)
 	{
 		markDepthBuffer = false;
@@ -100,10 +108,21 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	if (firstRun)
 	{
+		sw.End();
+		Log::Message("Done loading assets, took %f seconds.", sw.SecondsAccurate());
+
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-		for (const auto[matIdx, mesh] : meshes) materials[matIdx]->Update(cmd);
+
+		for (const auto[matIdx, mesh] : meshes)
+		{
+			PumMaterial &mat = stageMaterials[matIdx];
+			Material &mat2 = *materials[matIdx];
+
+			//mat2.SetDiffuse(*textures[mat.DiffuseTexture]);
+			mat2.Update(cmd);
+		}
 	}
 
 	transform->Update(cmd);
@@ -176,7 +195,6 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	{
 		materials.emplace_back(new Material(*descPoolMats, material));
 	}
-	stageMaterials.clear();
 
 	CreateGraphicsPipeline();
 }

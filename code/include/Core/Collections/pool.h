@@ -135,6 +135,12 @@ namespace Pu
 			return result;
 		}
 
+		/* Gets the underlying collection for the pool. */
+		_Check_return_ inline const vector<std::tuple<bool, element_t>>& data(void) const
+		{
+			return buffer;
+		}
+
 	private:
 		vector<std::tuple<bool, element_t>> buffer;
 		mutable std::shared_mutex lock;

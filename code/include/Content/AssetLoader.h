@@ -43,6 +43,7 @@ namespace Pu
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
 		CommandPool *cmdPool;
+		std::mutex poolLock;
 
 		Queue &transferQueue;
 		pool<CommandBuffer> buffers;

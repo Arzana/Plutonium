@@ -34,7 +34,7 @@ namespace Pu
 	/* Defines the default number of level of detail available for minified image sampling. */
 	constexpr uint32 DefaultMipLevels = 4;
 	/* Defines the initial amount of command buffer allocated for asset loading and saving. */
-	constexpr size_t InitialLoadCommandBufferCount = 2;
+	constexpr size_t InitialLoadCommandBufferCount = 5;
 	/* Defines the minimum loadable GLTF version. */
 	constexpr float MinimumVersionGLTF = 2.0f;
 	/* Defines the preferred amount of components when loading images (0 mean use native components). */

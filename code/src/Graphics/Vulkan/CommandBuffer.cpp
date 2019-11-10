@@ -52,7 +52,7 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 	return *this;
 }
 
-bool Pu::CommandBuffer::CanBegin(bool wait)
+bool Pu::CommandBuffer::CanBegin(bool wait) const
 {
 	/* Early out for non-pending states. */
 	switch (state)
@@ -352,7 +352,7 @@ void Pu::CommandBuffer::End(void)
 	else Log::Error("Attempted to call end on %s command buffer!", ::to_string(state));
 }
 
-void Pu::CommandBuffer::Reset(void)
+void Pu::CommandBuffer::Reset(void) const
 {
 	submitFence->Reset();
 	state = State::Initial;

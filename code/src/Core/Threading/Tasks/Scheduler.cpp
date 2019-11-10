@@ -4,6 +4,12 @@
 
 Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 {
+	/* Log a warning if the thread count isn't helping anymore. */
+	if (threadCnt > std::thread::hardware_concurrency())
+	{
+		Log::Warning("Attempting to create %zu worker threads, hardware only supports %u!", threadCnt, std::thread::hardware_concurrency());
+	}
+ 
 	/* Create the amount of threads specified. */
 	for (size_t i = 0; i < threadCnt; i++)
 	{

@@ -52,7 +52,7 @@ namespace Pu
 		}
 
 		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
-		_Check_return_ bool CanBegin(_In_opt_ bool wait = false);
+		_Check_return_ bool CanBegin(_In_opt_ bool wait = false) const;
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
 		/* Appends a copy command for the entire source buffer into the destination image to the command buffer. */
@@ -121,14 +121,14 @@ namespace Pu
 		LogicalDevice *device;
 		Fence *submitFence;
 		CommandBufferHndl hndl;
-		State state;
+		mutable State state;
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 
 		void BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue> &clearValues, const Framebuffer &framebuffer, Rect2D renderArea, SubpassContents contents);
 		void Begin(void);
 		void End(void);
-		void Reset(void);
+		void Reset(void) const;
 		void Free(void);
 		bool CheckIfRecording(_In_ const char *operation) const;
 	};
