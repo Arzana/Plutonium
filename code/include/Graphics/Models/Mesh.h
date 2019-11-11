@@ -41,11 +41,24 @@ namespace Pu
 			DrawInstanced(cmdBuffer, 1);
 		}
 
+		/* Sets the bounding box of this mesh (automatically set when using PuM). */
+		inline void SetBoundingBox(_In_ AABB bb)
+		{
+			boundingBox = bb;
+		}
+
+		/* Gets the bounding box of this mesh. */
+		_Check_return_ inline AABB GetBoundingBox(void) const
+		{
+			return boundingBox;
+		}
+
 	private:
 		const BufferView *vertex;
 		const BufferView *index;
 		IndexType type;
 		bool useIndexBuffer;
+		AABB boundingBox;
 
 		void Check(void) const;
 		void Destroy(void);

@@ -43,7 +43,10 @@ void TestGame::LoadContent(void)
 
 	for (const PumMesh &mesh : mdl.Geometry)
 	{
-		meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
+		if (mesh.HasMaterial)
+		{
+			meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
+		}
 	}
 
 	AssetFetcher &fetcher = GetContent();
@@ -66,6 +69,7 @@ void TestGame::UnLoadContent(void)
 	if (descPoolCam) delete descPoolCam;
 	if (descPoolMats) delete descPoolMats;
 	if (gfxPipeline) delete gfxPipeline;
+	if (debug) delete debug;
 
 	delete vrtxBuffer;
 	delete stagingBuffer;
@@ -108,9 +112,6 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	if (firstRun)
 	{
-		sw.End();
-		Log::Message("Done loading assets, took %f seconds.", sw.SecondsAccurate());
-
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
@@ -119,10 +120,23 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		{
 			PumMaterial &mat = stageMaterials[matIdx];
 			Material &mat2 = *materials[matIdx];
+			Texture2D &tex = *textures[mat.DiffuseTexture];
 
-			//mat2.SetDiffuse(*textures[mat.DiffuseTexture]);
+			const Image &img = (const Image&)tex;
+			if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
+			{
+				cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
+			}
+
+			mat2.SetSpecular(Color::Black());
+			mat2.SetSpecularPower(2.0f);
+
+			mat2.SetDiffuse(tex);
 			mat2.Update(cmd);
 		}
+
+		sw.End();
+		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());
 	}
 
 	transform->Update(cmd);
@@ -134,12 +148,16 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
+		debug->AddBox(mesh->GetBoundingBox(), mdlMtrx, Color::Red());
+
 		cmd.BindGraphicsDescriptor(*materials[matIdx]);
 		mesh->Bind(cmd, 0);
 		mesh->Draw(cmd);
 	}
 
 	cmd.EndRenderPass();
+
+	debug->Render(cmd, cam->GetProjection(), cam->GetView());
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
@@ -147,11 +165,13 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 	if (sender.Type == InputDeviceType::Keyboard)
 	{
 		if (args.KeyCode == _CrtEnum2Int(Keys::Escape)) Exit();
-		if (args.KeyCode == _CrtEnum2Int(Keys::C))
+		else if (args.KeyCode == _CrtEnum2Int(Keys::C))
 		{
 			if (cam->IsEnabled()) cam->Disable();
 			else cam->Enable();
 		}
+		else if (args.KeyCode == _CrtEnum2Int(Keys::NumAdd)) cam->MoveSpeed++;
+		else if (args.KeyCode == _CrtEnum2Int(Keys::NumSubtract)) cam->MoveSpeed--;
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
@@ -167,8 +187,14 @@ void TestGame::OnSwapchainRecreated(const Pu::GameWindow &)
 
 void TestGame::CreateDepthBuffer(void)
 {
-	if (depthBuffer) delete depthBuffer;
+	if (depthBuffer)
+	{
+		delete depthBuffer;
+		delete debug;
+	}
+
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
+	debug = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 1.0f);
 }
 
 void TestGame::InitializeRenderpass(Pu::Renderpass&)

@@ -287,9 +287,11 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 		}
 
 		/* Just add the push constant ranges to the list. */
-		for (const PushConstant &pushConstants : subpass.pushConstants)
+		for (const PushConstant &pushConstant : subpass.pushConstants)
 		{
-			constRanges.emplace_back(pushConstants.range);
+			vector<PushConstantRange>::iterator it = constRanges.iteratorOf([&pushConstant](const PushConstantRange &cur) { return cur.StageFlags == pushConstant.range.StageFlags; });
+			if (it != constRanges.end()) it->Size += pushConstant.GetSize();
+			else constRanges.emplace_back(pushConstant.range);
 		}
 	}
 

@@ -16,7 +16,8 @@ Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexSize, size_t indexSize, size_
 {}
 
 Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
-	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None)
+	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None),
+	boundingBox(mesh.Bounds)
 {
 	/* Calculate the stride of the vertices. */
 	size_t vertexStride = sizeof(Vector3);
@@ -36,7 +37,7 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 }
 
 Pu::Mesh::Mesh(const Mesh & value)
-	: type(value.type), useIndexBuffer(value.useIndexBuffer)
+	: type(value.type), useIndexBuffer(value.useIndexBuffer), boundingBox(value.boundingBox)
 {
 	vertex = new BufferView(*value.vertex);
 	index = useIndexBuffer ? new BufferView(*value.index) : nullptr;
@@ -44,7 +45,8 @@ Pu::Mesh::Mesh(const Mesh & value)
 
 Pu::Mesh::Mesh(Mesh && value)
 	: type(value.type), vertex(value.vertex),
-	index(value.index), useIndexBuffer(value.useIndexBuffer)
+	index(value.index), useIndexBuffer(value.useIndexBuffer),
+	boundingBox(value.boundingBox)
 {
 	value.vertex = nullptr;
 	value.index = nullptr;
@@ -60,6 +62,7 @@ Pu::Mesh & Pu::Mesh::operator=(const Mesh & other)
 		useIndexBuffer = other.useIndexBuffer;
 		vertex = new BufferView(*other.vertex);
 		index = useIndexBuffer ? new BufferView(*other.index) : nullptr;
+		boundingBox = other.boundingBox;
 	}
 
 	return *this;
@@ -75,6 +78,7 @@ Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
 		useIndexBuffer = other.useIndexBuffer;
 		vertex = other.vertex;
 		index = other.index;
+		boundingBox = other.boundingBox;
 
 		other.vertex = nullptr;
 		other.index = nullptr;

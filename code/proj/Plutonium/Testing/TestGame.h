@@ -3,6 +3,7 @@
 #include <Components/FreeCamera.h>
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
+#include <Graphics/Diagnostics/DebugRenderer.h>
 #include "TransformBlock.h"
 
 class TestGame
@@ -27,6 +28,7 @@ protected:
 private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer;
+	Pu::DebugRenderer *debug;
 
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;

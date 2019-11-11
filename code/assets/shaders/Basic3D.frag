@@ -10,7 +10,7 @@ layout (binding = 1, set = 0) uniform Globals
 	vec3 CamPos;
 };
 
-//layout (binding = 0, set = 1) uniform sampler2D Diffuse;
+layout (binding = 0, set = 1) uniform sampler2D Diffuse;
 
 // We could store the glossiness in the diffuse factor to save 4 bytes due to allignment.
 layout (binding = 1, set = 1) uniform Material
@@ -30,7 +30,7 @@ layout (location = 0) out vec4 L0;
 // Oren-Nayar
 vec3 diffuse(float ndl, float ndv, float a2)
 {
-	const vec3 cdiff = DiffuseFactor / PI;
+	const vec3 cdiff = (texture(Diffuse, Uv).rgb * DiffuseFactor) / PI;
 	const vec3 lambert = cdiff * ndl;
 
 	const float theta = acos(ndl);

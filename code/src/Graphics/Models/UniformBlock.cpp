@@ -9,8 +9,10 @@ Pu::UniformBlock::UniformBlock(DescriptorPool & pool)
 	/* Calculate the size of the uniform buffer based on the descriptors. */
 	for (const Descriptor &descriptor : pool.GetSubpass().descriptors)
 	{
-		/* Only gets the descriptors within the set. */
+		/* Only gets the uniform buffer descriptors within the set. */
 		if (descriptor.GetSet() != pool.GetSet()) continue;
+		if (descriptor.GetType() != DescriptorType::UniformBuffer) continue;
+
 		descriptors.emplace_back(&descriptor);
 
 		if (bindings.contains(descriptor.GetBinding()))
