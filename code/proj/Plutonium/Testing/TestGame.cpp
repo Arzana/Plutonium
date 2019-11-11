@@ -1,10 +1,9 @@
 #include "TestGame.h"
 #include <Input/Keys.h>
-#include <Graphics/Models/ShapeCreator.h>
 #include <Streams/FileReader.h>
-#include <imgui.h>
-
 #include <Core/Diagnostics/Stopwatch.h>
+#include <Graphics/VertexLayouts/Basic3D.h>
+#include <imgui.h>
 
 using namespace Pu;
 
@@ -69,13 +68,12 @@ void TestGame::UnLoadContent(void)
 	if (descPoolCam) delete descPoolCam;
 	if (descPoolMats) delete descPoolMats;
 	if (gfxPipeline) delete gfxPipeline;
-	if (debug) delete debug;
 
 	delete vrtxBuffer;
 	delete stagingBuffer;
 	fetcher.Release(*renderPass);
 
-	for (auto [mat, mesh] : meshes) delete mesh;
+	for (auto[mat, mesh] : meshes) delete mesh;
 	for (Texture2D *texture : textures) fetcher.Release(*texture);
 }
 
@@ -128,9 +126,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 				cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
 			}
 
-			mat2.SetSpecular(Color::Black());
-			mat2.SetSpecularPower(2.0f);
-
+			mat2.SetSpecularPower(2.0f); // Needed for this model.
 			mat2.SetDiffuse(tex);
 			mat2.Update(cmd);
 		}
@@ -148,16 +144,12 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		debug->AddBox(mesh->GetBoundingBox(), mdlMtrx, Color::Red());
-
 		cmd.BindGraphicsDescriptor(*materials[matIdx]);
 		mesh->Bind(cmd, 0);
 		mesh->Draw(cmd);
 	}
 
 	cmd.EndRenderPass();
-
-	debug->Render(cmd, cam->GetProjection(), cam->GetView());
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
@@ -187,14 +179,8 @@ void TestGame::OnSwapchainRecreated(const Pu::GameWindow &)
 
 void TestGame::CreateDepthBuffer(void)
 {
-	if (depthBuffer)
-	{
-		delete depthBuffer;
-		delete debug;
-	}
-
+	if (depthBuffer) delete depthBuffer;
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
-	debug = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 1.0f);
 }
 
 void TestGame::InitializeRenderpass(Pu::Renderpass&)

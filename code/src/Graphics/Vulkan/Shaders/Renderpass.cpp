@@ -290,7 +290,7 @@ void Pu::Renderpass::CreateDescriptorSetLayouts(void)
 		for (const PushConstant &pushConstant : subpass.pushConstants)
 		{
 			vector<PushConstantRange>::iterator it = constRanges.iteratorOf([&pushConstant](const PushConstantRange &cur) { return cur.StageFlags == pushConstant.range.StageFlags; });
-			if (it != constRanges.end()) it->Size += pushConstant.GetSize();
+			if (it != constRanges.end()) it->Size += static_cast<uint32>(pushConstant.GetSize());
 			else constRanges.emplace_back(pushConstant.range);
 		}
 	}

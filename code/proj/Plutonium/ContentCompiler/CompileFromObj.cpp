@@ -334,7 +334,8 @@ inline void HandleNormalLine(const char *line, ObjLoaderResult &result)
 /* Handles the texture coordinate line. */
 inline void HandleTexCoordLine(const char *line, ObjLoaderResult &result)
 {
-	result.TexCoords.emplace_back(ParseFloat2(line));
+	const Vector2 uv = ParseFloat2(line); // The coordinates in OBJ are made to work with OpenGL so we need to invert them on the Y axis.
+	result.TexCoords.emplace_back(Vector2(uv.X, 1.0f - uv.Y));
 }
 
 /* Handles the face line. */
