@@ -190,8 +190,8 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte *
 
 		/* Create the final texture and start the load/stage process. */
 		Texture2D *result = new Texture2D(*image, sampler);
-		textures.push_back(result);
-		loader->InitializeTexture(*result, data, width * height * 4);
+		textures.emplace_back(result);
+		loader->InitializeTexture(*result, data, width * height * 4, std::move(id.toWide()));
 		return *result;
 	}
 }

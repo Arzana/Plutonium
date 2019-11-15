@@ -1028,7 +1028,6 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 	vector<string> loadedMaterialLibraries;
 
 	/* Read untill the end of the file. */
-	float fileLength = recip(static_cast<float>(reader.GetSize()));
 	while (reader.Peek() != EOF)
 	{
 		const string line = reader.ReadLine();
@@ -1088,7 +1087,7 @@ void CopyGeometry(const ObjLoaderResult &input, PumIntermediate &result)
 		pum_mesh mesh;
 		mesh.Identifier = shape.Name.toUTF32();
 		mesh.Topology = 3;	// Triangles
-		if (shape.Material) mesh.SetMaterial(static_cast<uint32>(shape.Material));
+		if (shape.Material != -1) mesh.SetMaterial(static_cast<uint32>(shape.Material));
 
 		/* Copy the vertex data. */
 		mesh.VertexViewStart = result.Data.GetSize();
@@ -1168,9 +1167,19 @@ void ParseMaterialsAndTextures(const ObjLoaderResult &input, PumIntermediate &re
 	}
 }
 
-void ObjToPum(const ObjLoaderResult & input, PumIntermediate & result)
+void ObjToPum(ObjLoaderResult & input, PumIntermediate & result)
 {
+	/* We need to generate nodes for OBJ files as they don't have a concept of them, so we just create a node per mesh. */
 	GenerateNodes(input, result);
 	CopyGeometry(input, result);
+
+	/* All the geometry has been copied at this point so we can clear the vectors to save on memory for larger models. */
+	input.Vertices.clear();
+	input.Normals.clear();
+	input.TexCoords.clear();
+	input.Shapes.clear();
+
+	/* Simply copy over the materials and texture and then clear this vector as well. */
 	ParseMaterialsAndTextures(input, result);
+	input.Materials.clear();
 }

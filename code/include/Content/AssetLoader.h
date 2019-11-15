@@ -34,7 +34,7 @@ namespace Pu
 		/* Loads and stages a texture from a specific path. */
 		void InitializeTexture(_In_ Texture &texture, _In_ const wstring &path, _In_ const ImageInformation &info);
 		/* Stages a texture from the specified source. */
-		void InitializeTexture(_In_ Texture &texture, _In_ const byte *data, _In_ size_t size);
+		void InitializeTexture(_In_ Texture &texture, _In_ const byte *data, _In_ size_t size, _In_ wstring &&id);
 		/* Loads and stages a font from a specific path. */
 		void InitializeFont(_In_ Font &font, _In_ const wstring &path, _In_ Task &continuation);
 

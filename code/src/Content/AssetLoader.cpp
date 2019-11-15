@@ -136,21 +136,24 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	scheduler.Spawn(*task);
 }
 
-void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, size_t size)
+void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, size_t size, wstring && id)
 {
 	class StageTask
 		: public Task
 	{
 	public:
-		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size)
-			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), data(data)
+		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size, wstring &&id)
+			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer())
 		{
+			this->data = (byte*)malloc(size);
+			memcpy(this->data, data, size);
 			stagingBuffer = new StagingBuffer(parent.GetDevice(), size);
 		}
 
 		~StageTask()
 		{
 			delete stagingBuffer;
+			free(data);
 		}
 
 		virtual Result Execute(void) override
@@ -175,6 +178,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 		virtual Result Continue(void) override
 		{
+			parent.buffers.recycle(cmdBuffer);
+			result.Image->MarkAsLoaded(true, std::move(id));
 			return Result::AutoDelete();
 		}
 
@@ -190,11 +195,12 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 		AssetLoader &parent;
 		CommandBuffer &cmdBuffer;
 		StagingBuffer *stagingBuffer;
-		const byte *data;
+		byte *data;
+		wstring id;
 	};
 
 	/* Simply create the task and spawn it. */
-	StageTask *task = new StageTask(*this, texture, data, size);
+	StageTask *task = new StageTask(*this, texture, data, size, std::move(id));
 	scheduler.Spawn(*task);
 }
 

@@ -1,6 +1,5 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
-layout (early_fragment_tests) in;
 
 const float PI = 3.141592653589793;
 const float EPSLION = 0.00001f;
@@ -28,9 +27,9 @@ layout (location = 2) in vec3 Position;
 layout (location = 0) out vec4 L0;
 
 // Oren-Nayar
-vec3 diffuse(float ndl, float ndv, float a2)
+vec3 diffuse(vec4 diff, float ndl, float ndv, float a2)
 {
-	const vec3 cdiff = (texture(Diffuse, Uv).rgb * DiffuseFactor) / PI;
+	const vec3 cdiff = diff.rgb / PI;
 	const vec3 lambert = cdiff * ndl;
 
 	const float theta = acos(ndl);
@@ -71,6 +70,10 @@ float microfacet(float ndh, float a2)
 
 void main()
 {
+	// Discard transparent pixels.
+	const vec4 diff = texture(Diffuse, Uv) * vec4(DiffuseFactor, 1.0f);
+	if (diff.a < 0.1f) discard;
+
 	// Constants. 
 	const vec3 v = normalize(CamPos - Position);
 	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));
@@ -89,7 +92,7 @@ void main()
 	const float d = microfacet(ndh, a2);
 
 	// Composition
-	const vec3 fd = (1.0f - f) * diffuse(ndl, ndv, a2);
+	const vec3 fd = (1.0f - f) * diffuse(diff, ndl, ndv, a2);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
 
 	L0 = vec4(fd + fs, 1.0f);

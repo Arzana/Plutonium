@@ -41,7 +41,7 @@ Pu::TaskScheduler::~TaskScheduler(void)
 	for (TickThread *cur : threads)
 	{
 		cur->Stop();
-		waitList.push_back(cur);
+		waitList.emplace_back(cur);
 	}
 
 	/* Wait for all threads to stop excecution. */

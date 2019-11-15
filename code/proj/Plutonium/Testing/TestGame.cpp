@@ -3,7 +3,6 @@
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Graphics/VertexLayouts/Basic3D.h>
-#include <imgui.h>
 
 using namespace Pu;
 
@@ -14,10 +13,10 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), firstRun(true),
-	markDepthBuffer(true)
+	markDepthBuffer(true), defaultDiffuse(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
-	mdlMtrx = Matrix::CreateRoll(PI) * Matrix::CreateScalar(0.03f);
+	mdlMtrx = Matrix::CreateRoll(PI);// *Matrix::CreateScalar(0.03f);
 }
 
 void TestGame::Initialize(void)
@@ -32,7 +31,7 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	sw.Start();
-	const string file = FileReader(L"assets/Models/sponza.pum").ReadToEnd();
+	const string file = FileReader(L"assets/Models/san-miguel-low-poly.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -46,6 +45,7 @@ void TestGame::LoadContent(void)
 		{
 			meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
 		}
+		else meshes.emplace_back(std::make_tuple(-1, new Mesh(*vrtxBuffer, mesh)));
 	}
 
 	AssetFetcher &fetcher = GetContent();
@@ -53,6 +53,8 @@ void TestGame::LoadContent(void)
 	{
 		textures.emplace_back(&fetcher.FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), true));
 	}
+
+	defaultDiffuse = &fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo(Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::Repeat));
 
 	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
@@ -72,6 +74,7 @@ void TestGame::UnLoadContent(void)
 	delete vrtxBuffer;
 	delete stagingBuffer;
 	fetcher.Release(*renderPass);
+	fetcher.Release(*defaultDiffuse);
 
 	for (auto[mat, mesh] : meshes) delete mesh;
 	for (Texture2D *texture : textures) fetcher.Release(*texture);
@@ -92,10 +95,11 @@ void TestGame::Update(float)
 	}
 }
 
-void TestGame::Render(float, CommandBuffer &cmd)
+void TestGame::Render(float dt, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
+	if (!defaultDiffuse->IsUsable()) return;
 
 	for (Texture2D *texture : textures)
 	{
@@ -113,23 +117,33 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+		cmd.MemoryBarrier(*defaultDiffuse, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, defaultDiffuse->GetFullRange());
 
-		for (const auto[matIdx, mesh] : meshes)
+		for (size_t i = 0; i < materials.size() - 1; i++)
 		{
-			PumMaterial &mat = stageMaterials[matIdx];
-			Material &mat2 = *materials[matIdx];
-			Texture2D &tex = *textures[mat.DiffuseTexture];
+			PumMaterial &mat = stageMaterials[i];
+			Material &mat2 = *materials[i];
 
-			const Image &img = (const Image&)tex;
-			if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
+			if (mat.HasDiffuseTexture)
 			{
-				cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
+				Texture2D &tex = *textures[mat.DiffuseTexture];
+
+				const Image &img = (const Image&)tex;
+				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
+				{
+					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
+				}
+
+				mat2.SetDiffuse(tex);
 			}
+			else mat2.SetDiffuse(*defaultDiffuse);
 
 			mat2.SetSpecularPower(2.0f); // Needed for this model.
-			mat2.SetDiffuse(tex);
 			mat2.Update(cmd);
 		}
+
+		materials.back()->SetDiffuse(*defaultDiffuse);
+		materials.back()->Update(cmd);
 
 		sw.End();
 		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());
@@ -144,7 +158,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		cmd.BindGraphicsDescriptor(*materials[matIdx]);
+		cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
 		mesh->Bind(cmd, 0);
 		mesh->Draw(cmd);
 	}
@@ -202,12 +216,14 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	descPoolCam = new DescriptorPool(*renderPass, pass, 0, 1);
 	transform = new TransformBlock(*descPoolCam);
 
-	descPoolMats = new DescriptorPool(*renderPass, pass, 1, stageMaterials.size() << 1);
+	descPoolMats = new DescriptorPool(*renderPass, pass, 1, (stageMaterials.size() << 1) + 1);
 	for (const PumMaterial &material : stageMaterials)
 	{
 		materials.emplace_back(new Material(*descPoolMats, material));
 	}
 
+	materials.emplace_back(new Material(*descPoolMats));
+	materials.back()->SetDiffuse(Color::Red());
 	CreateGraphicsPipeline();
 }
 

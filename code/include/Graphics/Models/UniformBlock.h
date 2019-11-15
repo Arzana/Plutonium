@@ -31,6 +31,12 @@ namespace Pu
 			return target->GetSize();
 		}
 
+		/* Forces the material to be updated on the GPU on the next Update call. */
+		inline void ForceUpdate(void)
+		{
+			IsDirty = true;
+		}
+
 	protected:
 		/* Specifies whether the uniforms need to be updated on the GPU. */
 		bool IsDirty;

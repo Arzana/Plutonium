@@ -41,5 +41,8 @@
     <PuModel Include="..\..\..\assets\models\Sponza\sponza.obj">
       <Filter>Models</Filter>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>
