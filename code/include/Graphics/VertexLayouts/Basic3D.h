@@ -11,6 +11,8 @@ namespace Pu
 		Vector3 Position;
 		/* The surface normal of the vertex. */
 		Vector3 Normal;
+		/* The tangent of the surface normal, W component defines the sign of the bitangent. */
+		Vector4 Tangent;
 		/* The texture coordinate of the vertex. */
 		Vector2 TexCoord;
 	};

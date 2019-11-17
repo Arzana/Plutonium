@@ -26,28 +26,22 @@ layout (location = 2) in vec3 Position;
 
 layout (location = 0) out vec4 L0;
 
-// Oren-Nayar
-vec3 diffuse(vec4 diff, float ndl, float ndv, float a2)
+// Lambert
+vec3 diffuse(vec4 diff, float ndl)
 {
 	const vec3 cdiff = diff.rgb / PI;
-	const vec3 lambert = cdiff * ndl;
+	return cdiff * ndl;
+}
 
-	const float theta = acos(ndl);
-	const float phi = acos(ndv);
-
-	const float A = 1.0f - 0.5f * (a2 / (a2 + 0.33f));
-	const float B = 0.45f * (a2 / (a2 + 0.09f));
-
-	const float alpha = max(theta, phi);
-	const float beta = min(theta, phi);
-
-	return lambert * (A + (B * max(0.0f, cos(ndv - ndl)) * sin(alpha) * tan(beta)));
+float ilerp(vec3 a, vec3 b, vec3 x)
+{
+	return dot(x - a, b - a) / dot(b - a, b - a);
 }
 
 // Schlick
-vec3 fresnel(float ndl)
+vec3 fresnel(float vdh)
 {
-	return F0 + (1.0f - F0) * pow(1.0f - max(0.0f, ndl), 5);
+	return F0 + (1.0f - F0) * pow(1.0f - vdh, 5);
 }
 
 // Cook-Torrance
@@ -72,28 +66,29 @@ void main()
 {
 	// Discard transparent pixels.
 	const vec4 diff = texture(Diffuse, Uv) * vec4(DiffuseFactor, 1.0f);
-	if (diff.a < 0.1f) discard;
+	if (diff.a < 0.5f) discard;
 
 	// Constants. 
 	const vec3 v = normalize(CamPos - Position);
 	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));
 	const vec3 h = normalize(v + l);
+	const vec3 radiance = vec3(1.0f, 1.0f, 0.86f);
 
 	// Intermediates
 	const float a2 = Roughness * Roughness + EPSLION;
-	const float ndl = dot(Normal, l);
-	const float ndv = dot(Normal, v);
-	const float ndh = dot(Normal, h);
-	const float vdh = dot(v, h);
+	const float ndl = max(0.0f, dot(Normal, l));
+	const float ndv = max(0.0f, dot(Normal, v));
+	const float ndh = max(0.0f, dot(Normal, h));
+	const float vdh = max(0.0f, dot(v, h));
 
 	// Specular
-	const vec3 f = fresnel(ndl);
+	const vec3 f = fresnel(vdh);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, a2);
 
 	// Composition
-	const vec3 fd = (1.0f - f) * diffuse(diff, ndl, ndv, a2);
+	const vec3 fd = (1.0f - f) * diffuse(diff, ndl);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
 
-	L0 = vec4(fd + fs, 1.0f);
+	L0 = vec4((fd + fs) * radiance, 1.0f);
 }

@@ -473,6 +473,12 @@ struct GLTFImageSampler
 	GLTFWrap WrapS;
 	/* The vertical wrap. */
 	GLTFWrap WrapT;
+
+	/* Initializes the default GLTF images sampler. */
+	GLTFImageSampler(void)
+		: MinFilter(GLTFFilter::LinearMipmapLinear), MagFilter(GLTFFilter::LinearMipmapLinear),
+		WrapS(GLTFWrap::Repeat), WrapT(GLTFWrap::Repeat)
+	{}
 };
 
 /* Defines a scene in the GLTF format. */

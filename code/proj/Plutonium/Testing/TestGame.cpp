@@ -16,7 +16,7 @@ TestGame::TestGame(void)
 	markDepthBuffer(true), defaultDiffuse(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
-	mdlMtrx = Matrix::CreateRoll(PI);// *Matrix::CreateScalar(0.03f);
+	mdlMtrx = Matrix::CreateRoll(PI) * Matrix::CreateScalar(0.03f);
 }
 
 void TestGame::Initialize(void)
@@ -31,7 +31,7 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	sw.Start();
-	const string file = FileReader(L"assets/Models/san-miguel-low-poly.pum").ReadToEnd();
+	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -41,11 +41,14 @@ void TestGame::LoadContent(void)
 
 	for (const PumMesh &mesh : mdl.Geometry)
 	{
-		if (mesh.HasMaterial)
+		if (mesh.HasNormals && mesh.HasTangents && mesh.HasTextureCoordinates)
 		{
-			meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
+			if (mesh.HasMaterial)
+			{
+				meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
+			}
+			else meshes.emplace_back(std::make_tuple(-1, new Mesh(*vrtxBuffer, mesh)));
 		}
-		else meshes.emplace_back(std::make_tuple(-1, new Mesh(*vrtxBuffer, mesh)));
 	}
 
 	AssetFetcher &fetcher = GetContent();
@@ -138,7 +141,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			}
 			else mat2.SetDiffuse(*defaultDiffuse);
 
-			mat2.SetSpecularPower(2.0f); // Needed for this model.
 			mat2.Update(cmd);
 		}
 
@@ -206,6 +208,7 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 	pass.AddDepthStencil().SetDescription(*depthBuffer);
 
 	pass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
 	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
 }
 

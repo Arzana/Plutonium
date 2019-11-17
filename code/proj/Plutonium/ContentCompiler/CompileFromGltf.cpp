@@ -1603,6 +1603,8 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 
 void CopyTexturesToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 {
+	GLTFImageSampler defaultSampler;
+
 	result.Textures.reserve(input.Textures.size());
 	for (const GLTFTexture &cur : input.Textures)
 	{
@@ -1610,8 +1612,8 @@ void CopyTexturesToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		pum_texture texture;
 		texture.Identifier = input.Images[cur.Image].toUTF32();
 
-		/* Set the sampler information. */
-		GLTFImageSampler sampler = input.Samplers[cur.Sampler];
+		/* Set the sampler information, sometimes a sampler isn't set, just use a default one if this is the case. */
+		const GLTFImageSampler &sampler = cur.Sampler < input.Samplers.size() ? input.Samplers[cur.Sampler] : defaultSampler;
 		switch (sampler.MagFilter)
 		{
 		case GLTFFilter::Linear:
