@@ -186,7 +186,9 @@ struct pum_material
 	float Glossiness;
 	float SpecularPower;
 	float EmissiveInternsity;
+	float Metalness;
 
+	bool IsFinalized;
 	bool DoubleSided;
 	char AlphaMode;
 	bool HasDiffuseTexture;
@@ -204,8 +206,8 @@ struct pum_material
 
 	pum_material(void)
 		: Glossiness(0.0f), SpecularPower(0.0f), EmissiveInternsity(0.0f), DoubleSided(false), 
-		AlphaMode(0), HasDiffuseTexture(false), HasSpecularGlossTexture(false),
-		HasNormalTexture(false), HasOcclusionTexture(false), HasEmissiveTexture(false)
+		AlphaMode(0), HasDiffuseTexture(false), HasSpecularGlossTexture(false), Metalness(0.0f),
+		HasNormalTexture(false), HasOcclusionTexture(false), HasEmissiveTexture(false), IsFinalized(true)
 	{}
 
 	inline void SetDiffuseTexture(Pu::uint32 diffuseTexture)
@@ -263,10 +265,11 @@ struct pum_texture
 	bool UsesLinearMipmapMode;
 	char AddressModeU;
 	char AddressModeV;
+	int ConversionCount;
 
 	pum_texture(void)
 		: UsesLinearMagnification(false), UsesLinaerMinification(false),
-		UsesLinearMipmapMode(false), AddressModeU(0), AddressModeV(0)
+		UsesLinearMipmapMode(false), AddressModeU(0), AddressModeV(0), ConversionCount(-1)
 	{}
 
 	inline Pu::byte GetFlags(void) const

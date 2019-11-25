@@ -22,16 +22,19 @@ out gl_PerVertex
 };
 
 layout (location = 0) out vec2 Uv;
-layout (location = 1) out vec3 VertexNormal;
-layout (location = 2) out vec3 WorldPos;
+layout (location = 1) out vec3 WorldPos;
+layout (location = 2) out mat3 TBN;
 
 void main()
 {
-	const vec4 localPos = Model * vec4(Position, 1.0f);
-	WorldPos = localPos.xyz;
+	const vec3 t = normalize((Model * vec4(Tangent.xyz, 0.0f)).xyz);
+	const vec3 n = normalize((Model * vec4(Normal, 0.0f)).xyz);
+	const vec3 b = cross(n, t) * Tangent.w;
+	TBN = mat3(t, b, n);
 
 	Uv = TexCoord;
-	VertexNormal = normalize((Model * vec4(Normal, 0.0f)).xyz);
-	
+
+	const vec4 localPos = Model * vec4(Position, 1.0f);
+	WorldPos = localPos.xyz;
 	gl_Position = Projection * View * localPos;
 }

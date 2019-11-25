@@ -10,9 +10,11 @@ layout (binding = 1, set = 0) uniform Globals
 };
 
 layout (binding = 0, set = 1) uniform sampler2D Diffuse;
+layout (binding = 1, set = 1) uniform sampler2D SpecularGlossiness;
+layout (binding = 2, set = 1) uniform sampler2D Normal;
 
 // We could store the glossiness in the diffuse factor to save 4 bytes due to allignment.
-layout (binding = 1, set = 1) uniform Material
+layout (binding = 3, set = 1) uniform Material
 {
 	vec3 F0;
 	vec3 DiffuseFactor;
@@ -21,8 +23,8 @@ layout (binding = 1, set = 1) uniform Material
 };
 
 layout (location = 0) in vec2 Uv;
-layout (location = 1) in vec3 Normal;
-layout (location = 2) in vec3 Position;
+layout (location = 1) in vec3 Position;
+layout (location = 2) in mat3 TBN;
 
 layout (location = 0) out vec4 L0;
 
@@ -41,7 +43,8 @@ float ilerp(vec3 a, vec3 b, vec3 x)
 // Schlick
 vec3 fresnel(float vdh)
 {
-	return F0 + (1.0f - F0) * pow(1.0f - vdh, 5);
+	const vec3 f0 = texture(SpecularGlossiness, Uv).rgb * F0;
+	return f0 + (1.0f - f0) * pow(1.0f - vdh, 5);
 }
 
 // Cook-Torrance
@@ -75,10 +78,12 @@ void main()
 	const vec3 radiance = vec3(1.0f, 1.0f, 0.86f);
 
 	// Intermediates
-	const float a2 = Roughness * Roughness + EPSLION;
-	const float ndl = max(0.0f, dot(Normal, l));
-	const float ndv = max(0.0f, dot(Normal, v));
-	const float ndh = max(0.0f, dot(Normal, h));
+	const float roughness = (1.0f - texture(SpecularGlossiness, Uv).a) * Roughness;
+	const float a2 = roughness * roughness + EPSLION;
+	const vec3 normal = normalize(TBN * normalize(texture(Normal, Uv).xyz * 2.0f - 1.0f));
+	const float ndl = max(0.0f, dot(normal, l));
+	const float ndv = max(0.0f, dot(normal, v));
+	const float ndh = max(0.0f, dot(normal, h));
 	const float vdh = max(0.0f, dot(v, h));
 
 	// Specular

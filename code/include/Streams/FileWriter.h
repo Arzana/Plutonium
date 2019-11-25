@@ -30,6 +30,8 @@ namespace Pu
 		_Check_return_ static bool DirectoryExists(_In_ const wstring &directory);
 		/* Creates a directory if it doesn't exist yet. */
 		static void CreateDirectory(_In_ const wstring &directory);
+		/* Copies a specific file to another location. */
+		static void CopyFile(_In_ const wstring &src, const wstring &dst);
 
 		/* Gets whether the stream can be used. */
 		_Check_return_ inline bool IsCreated(void) const

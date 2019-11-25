@@ -78,6 +78,18 @@ namespace Pu
 			Write(*diffuseMap, map);
 		}
 
+		/* Sets the specular glossiness texture for this material. */
+		inline void SetSpecular(_In_ const Texture &map)
+		{
+			Write(*specularMap, map);
+		}
+
+		/* Sets the normal texture for this material. */
+		inline void SetNormal(_In_ const Texture &map)
+		{
+			Write(*normalMap, map);
+		}
+
 		/* Gets the glossiness component of this material. */
 		_Check_return_ inline float GetGlossiness(void) const
 		{
@@ -105,6 +117,6 @@ namespace Pu
 		Vector3 diffuse;
 		float roughness, power;
 
-		const Descriptor *diffuseMap;
+		const Descriptor *diffuseMap, *specularMap, *normalMap;
 	};
 }

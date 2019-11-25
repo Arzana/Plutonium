@@ -99,6 +99,18 @@ void Pu::FileWriter::CreateDirectory(const wstring & directory)
 	}
 }
 
+void Pu::FileWriter::CopyFile(const wstring & src, const wstring & dst)
+{
+	CreateDirectory(dst.fileDirectory());
+
+#ifdef _WIN32
+	/* We use the underlying Windows function because it's way faster than loading the file into memmory and doing a manual copy. */
+	if (!WinCopyFile(src.c_str(), dst.c_str(), false)) Log::Error("Unable to copy file '%ls' to '%ls' (%ls)!", src.fileName().c_str(), dst.fileName().c_str(), _CrtGetErrorString().c_str());
+#else
+	Log::Warning("Unable to copy files on this platform!");
+#endif
+}
+
 void Pu::FileWriter::Close(void)
 {
 	const wstring fname = fpath.fileName();

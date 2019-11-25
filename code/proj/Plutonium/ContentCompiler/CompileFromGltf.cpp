@@ -1,6 +1,6 @@
 #include "CompileFromGltf.h"
-#include "Streams/FileReader.h"
-#include "Streams/BinaryReader.h"
+#include <Streams/FileReader.h>
+#include <Streams/BinaryReader.h>
 #include <nlohmann/fifo_map.hpp>
 #include <nlohmann/json.hpp>
 #include "Config.h"
@@ -941,12 +941,14 @@ void HandleJsonImages(const json &images, GLTFLoaderResult &file)
 		*/
 		for (const auto&[key, val] : cur.items())
 		{
-			if (string(key).toUpper() == "URI")
+			const string KEY = string(key).toUpper();
+
+			if (KEY == "URI")
 			{
 				if (val.is_string()) file.Images.emplace_back(string(val).toWide());
 				else LogCorruptJsonHeader("Image URI isn't a valid path");
 			}
-			else Log::Warning("GLTF loader doesn't currently handle embedded images!");
+			else if (KEY != "MIMETYPE") Log::Warning("GLTF loader doesn't currently handle embedded images!");
 		}
 	}
 }
@@ -1566,26 +1568,46 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 
 		/* Check for diffuse or albedo texture. */
 		if (cur.TryGetValue("DIFFUSETEXTURE", value)) material.SetDiffuseTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
-		else if(cur.TryGetValue("BASECOLORTEXTURE", value)) material.SetDiffuseTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
+		else if (cur.TryGetValue("BASECOLORTEXTURE", value))
+		{
+			material.IsFinalized = false;	// We need to convert the albedo texture.
+			material.SetDiffuseTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
+			result.Textures[material.DiffuseTexture].ConversionCount = 0; // Make sure that the texture gets converted.
+		}
 
 		/* Check for specular glossiness texture. */
 		if (cur.TryGetValue("SPECULARGLOSSINESSTEXTURE", value)) material.SetSpecGlossTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
-		else if (cur.ContainsValue("METALLICROUGHNESSTEXTURE")) Log::Warning("Plutonium models can only handle specular glossiness workflow textures!");
+		else if (cur.TryGetValue("METALLICROUGHNESSTEXTURE", value))
+		{
+			material.IsFinalized = false;	// We need to convert the metal roughness texture.
+			material.SetSpecGlossTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
+			result.Textures[material.SpecGlossTexture].ConversionCount = 0;	// Make sure that the texture gets converted.
+		}
 
-		/* 
+		/*
 		Check for the diffuse factor or the albedo factor.
 		This is used as a scalar if a map is defined so de default changed if a map is defined.
 		*/
+		Color albedo = Color::Black();
 		if (cur.TryGetValue("DIFFUSEFACTOR", value)) material.DiffuseFactor = value.GetColor();
-		else if (cur.TryGetValue("BASECOLORFACTOR", value)) material.DiffuseFactor = value.GetColor();
+		else if (cur.TryGetValue("BASECOLORFACTOR", value)) albedo = value.GetColor();
 		else if (material.HasDiffuseTexture) material.DiffuseFactor = Color::White();
+		else material.DiffuseFactor = Color::Black();
 
 		/* Check for the specular factor. */
 		if (cur.TryGetValue("SPECULARFACTOR", value)) material.SpecularFactor = value.GetColor();
 		else if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
 		{
 			double number;
-			if (value.TryGetNamedNumber("METALLICFACTOR", number)) material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, static_cast<float>(number));
+			if (value.TryGetNamedNumber("METALLICFACTOR", number))
+			{
+				material.Metalness = static_cast<float>(number);	// We save the metalness for during the conversion stage.
+				material.DiffuseFactor = Color::Lerp(albedo, Color::Black(), material.Metalness);
+				material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, material.Metalness);
+
+				/* Materials fully made of metal have no diffuse color. */
+				if (material.Metalness == 1.0f) material.DiffuseFactor = Color::Black();
+			}
 		}
 
 		/* Check for normal texture. */
@@ -1689,8 +1711,8 @@ void GltfToPum(const CLArgs & args, const GLTFLoaderResult & input, PumIntermedi
 	CopyMeshesToPum(input, bufferData, result);
 	CopyAnimationsToPum(input, bufferData, result);
 	CopySkeletonToPum(input, bufferData, result);
-	CopyMaterialsToPum(input, result);
 	CopyTexturesToPum(input, result);
+	CopyMaterialsToPum(input, result);
 }
 
 size_t GLTFAccessor::GetElementSize(void) const

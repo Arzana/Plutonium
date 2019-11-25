@@ -98,7 +98,7 @@ void TestGame::Update(float)
 	}
 }
 
-void TestGame::Render(float dt, CommandBuffer &cmd)
+void TestGame::Render(float, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
@@ -140,6 +140,32 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 				mat2.SetDiffuse(tex);
 			}
 			else mat2.SetDiffuse(*defaultDiffuse);
+
+			if (mat.HasSpecGlossTexture)
+			{
+				Texture &tex = *textures[mat.SpecGlossTexture];
+
+				const Image &img = (const Image&)tex;
+				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
+				{
+					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
+				}
+
+				mat2.SetSpecular(tex);
+			}
+
+			if (mat.HasNormalTexture)
+			{
+				Texture &tex = *textures[mat.NormalTexture];
+
+				const Image &img = (const Image&)tex;
+				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
+				{
+					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
+				}
+
+				mat2.SetNormal(tex);
+			}
 
 			mat2.Update(cmd);
 		}
