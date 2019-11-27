@@ -414,9 +414,6 @@
     <ClInclude Include="..\..\..\include\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
-      <Filter>Header Files\Graphics\Platform</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -701,6 +698,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\PushConstant.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
+      <Filter>Header Files\Graphics\Platform\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

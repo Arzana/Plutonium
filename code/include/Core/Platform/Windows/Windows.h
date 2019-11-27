@@ -21,7 +21,11 @@ This breaks code as we define a type safe one ourselves.
 #define UNICODE
 #endif
 
+/* __NULL_IMPORT_DESCRIPTOR is defined multiple times in the Windows API. */
+#pragma warning(push)
+#pragma warning (disable:4006)
 #include <Windows.h>
+#pragma warning(pop)
 
 /* The name memory barrier is used in Vulkan so we need to undefine it if windows defines it. */
 #ifdef MemoryBarrier

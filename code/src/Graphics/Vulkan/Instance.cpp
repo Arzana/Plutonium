@@ -6,7 +6,12 @@
 #ifdef _WIN32
 #include "Core/Platform/Windows/RegistryFetcher.h"
 #include "Streams/FileReader.h"
+
+/* The JSON library defines a global variable 'E'. This conflicts with Pu::E. */
+#pragma warning(push)
+#pragma warning(disable:4459)
 #include <nlohmann/json.hpp>
+#pragma warning(pop)
 #endif
 
 using namespace Pu;

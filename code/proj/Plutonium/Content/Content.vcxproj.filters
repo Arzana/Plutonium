@@ -35,9 +35,6 @@
     <PuModel Include="..\..\..\assets\models\Fire\fire.md2">
       <Filter>Models</Filter>
     </PuModel>
-    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj">
-      <Filter>Models</Filter>
-    </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf">
       <Filter>Models</Filter>
     </PuModel>

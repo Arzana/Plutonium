@@ -183,6 +183,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 	/* Create new swapchain or replace the old one. */
 	if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);
 	else swapchain = new Swapchain(device, native.GetSurface(), info);
+	Log::Message("Created %s swapchain for %ux%u.", to_string(format.ColorSpace), size.Width, size.Height);
 
 	/* Update the window size and minimum images for ImGui if needed. */
 	if constexpr (ImGuiAvailable)
