@@ -33,7 +33,6 @@ private:
 	Pu::DepthBuffer *depthBuffer;
 	Pu::DescriptorPool *descPoolCam;
 	Pu::DescriptorPool *descPoolMats;
-	Pu::Texture2D *defaultDiffuse;
 
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *stagingBuffer;

@@ -454,6 +454,9 @@ bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)
 		Log::Error("Source buffer for plane is not has accessible!");
 		return true;
 	}
+#else
+	(void)buffer;
+	(void)requiredSize;
 #endif
 
 	return false;

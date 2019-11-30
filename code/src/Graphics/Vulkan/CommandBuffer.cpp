@@ -179,6 +179,36 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 	}
 }
 
+void Pu::CommandBuffer::MemoryBarrier(const vector<std::tuple<const Image*, ImageSubresourceRange>>& images, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, DependencyFlag dependencyFlags, uint32 queueFamiltyIndex)
+{
+	if (CheckIfRecording("setup image pipeline barriers"))
+	{
+		/* Pre-allocate a buffer for the barriers. */
+		vector<ImageMemoryBarrier> barriers;
+		barriers.reserve(images.size());
+
+		for (const auto &[img, range] : images)
+		{
+			/* Create the memory barriers. */
+			barriers.emplace_back(img->imageHndl, queueFamiltyIndex);
+			ImageMemoryBarrier &cur = barriers.back();
+
+			cur.SrcAccessMask = img->access;
+			cur.DstAccessMask = dstAccess;
+			cur.OldLayout = img->layout;
+			cur.NewLayout = newLayout;
+			cur.SubresourceRange = range;
+
+			/* Set the new image access and layout mask. */
+			img->access = dstAccess;
+			img->layout = newLayout;
+		}
+
+		/* Append the command. */
+		device->vkCmdPipelineBarrier(hndl, srcStageMask, dstStageMask, dependencyFlags, 0, nullptr, 0, nullptr, static_cast<uint32>(barriers.size()), barriers.data());
+	}
+}
+
 void Pu::CommandBuffer::ClearImage(Image & image, Color color)
 {
 	static const ImageSubresourceRange range(ImageAspectFlag::Color);

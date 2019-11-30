@@ -36,6 +36,12 @@ namespace Pu
 			return Image->IsLoaded();
 		}
 
+		/* Gets the underlying image. */
+		_Check_return_ inline const Image& GetImage(void) const
+		{
+			return *Image;
+		}
+
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
 		{

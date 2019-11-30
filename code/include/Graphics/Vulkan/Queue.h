@@ -48,6 +48,7 @@ namespace Pu
 		QueueHndl hndl;
 		uint32 index;
 		LogicalDevice *parent;
+		std::mutex lock;
 
 		Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex);
 	};

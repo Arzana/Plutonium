@@ -9,11 +9,11 @@ using namespace Pu;
 Stopwatch sw;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 1280.0f, 720.0f, 2), cam(nullptr),
+	: Application(L"TestGame", 1280.0f, 720.0f, std::thread::hardware_concurrency() - 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), firstRun(true),
-	markDepthBuffer(true), defaultDiffuse(nullptr)
+	markDepthBuffer(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	mdlMtrx = Matrix::CreateRoll(PI) * Matrix::CreateScalar(0.03f);
@@ -57,7 +57,10 @@ void TestGame::LoadContent(void)
 		textures.emplace_back(&fetcher.FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), true));
 	}
 
-	defaultDiffuse = &fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo(Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::Repeat));
+	textures.emplace_back(&fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("DefaultSpecularGlossiness", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("DefaultNormal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
+	stageMaterials.emplace_back(PumMaterial());
 
 	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
 	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
@@ -77,7 +80,6 @@ void TestGame::UnLoadContent(void)
 	delete vrtxBuffer;
 	delete stagingBuffer;
 	fetcher.Release(*renderPass);
-	fetcher.Release(*defaultDiffuse);
 
 	for (auto[mat, mesh] : meshes) delete mesh;
 	for (Texture2D *texture : textures) fetcher.Release(*texture);
@@ -102,7 +104,6 @@ void TestGame::Render(float, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
-	if (!defaultDiffuse->IsUsable()) return;
 
 	for (Texture2D *texture : textures)
 	{
@@ -120,58 +121,28 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-		cmd.MemoryBarrier(*defaultDiffuse, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, defaultDiffuse->GetFullRange());
+
+		vector<std::tuple<const Image*, ImageSubresourceRange>> tmp;
+		tmp.reserve(textures.size());
+		for (const Texture2D *texture : textures) tmp.emplace_back(std::make_tuple(&texture->GetImage(), texture->GetFullRange()));
+		cmd.MemoryBarrier(tmp, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead);
 
 		for (size_t i = 0; i < materials.size() - 1; i++)
 		{
 			PumMaterial &mat = stageMaterials[i];
 			Material &mat2 = *materials[i];
 
-			if (mat.HasDiffuseTexture)
-			{
-				Texture2D &tex = *textures[mat.DiffuseTexture];
+			if (mat.HasDiffuseTexture) mat2.SetDiffuse(*textures[mat.DiffuseTexture]);
+			else mat2.SetDiffuse(*textures[textures.size() - 3]);
 
-				const Image &img = (const Image&)tex;
-				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
-				{
-					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
-				}
+			if (mat.HasSpecGlossTexture) mat2.SetSpecular(*textures[mat.SpecGlossTexture]);
+			else mat2.SetSpecular(*textures[textures.size() - 2]);
 
-				mat2.SetDiffuse(tex);
-			}
-			else mat2.SetDiffuse(*defaultDiffuse);
-
-			if (mat.HasSpecGlossTexture)
-			{
-				Texture &tex = *textures[mat.SpecGlossTexture];
-
-				const Image &img = (const Image&)tex;
-				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
-				{
-					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
-				}
-
-				mat2.SetSpecular(tex);
-			}
-
-			if (mat.HasNormalTexture)
-			{
-				Texture &tex = *textures[mat.NormalTexture];
-
-				const Image &img = (const Image&)tex;
-				if (img.GetLayout() != ImageLayout::ShaderReadOnlyOptimal)
-				{
-					cmd.MemoryBarrier(img, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, tex.GetFullRange());
-				}
-
-				mat2.SetNormal(tex);
-			}
+			if (mat.HasNormalTexture) mat2.SetNormal(*textures[mat.NormalTexture]);
+			else mat2.SetNormal(*textures[textures.size() - 1]);
 
 			mat2.Update(cmd);
 		}
-
-		materials.back()->SetDiffuse(*defaultDiffuse);
-		materials.back()->Update(cmd);
 
 		sw.End();
 		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());

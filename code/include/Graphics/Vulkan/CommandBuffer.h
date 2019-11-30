@@ -76,6 +76,8 @@ namespace Pu
 		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None);
 		/* Appends a pipeline image memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
+		/* Appends a pipeline image memory barrier command to the command buffer for multiple images. */
+		void MemoryBarrier(_In_ const vector<std::tuple<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
 		/* Appends an image clear command to the command buffer. */
 		void ClearImage(_In_ Image &image, _In_ Color color);
 		/* Appends a render pass begin command for the entire framebuffer to the command buffer. */

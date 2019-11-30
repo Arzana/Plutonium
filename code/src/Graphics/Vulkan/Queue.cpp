@@ -41,7 +41,10 @@ void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 	info.CommandBuffers = &commandBuffer.hndl;
 
 	/* Submit command buffer. */
+	lock.lock();
 	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	lock.unlock();
+
 	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
@@ -59,7 +62,10 @@ void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandB
 	info.SignalSemaphores = &signalSemaphore.hndl;
 
 	/* Submit command buffer. */
+	lock.lock();
 	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	lock.unlock();
+
 	commandBuffer.state = CommandBuffer::State::Pending;
 }
 
@@ -71,7 +77,10 @@ bool Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapc
 	info.WaitSemaphores = &waitSemaphore.hndl;
 
 	/* Present image. */
+	lock.lock();
 	const VkApiResult result = parent->vkQueuePresentKHR(hndl, &info);
+	lock.unlock();
+
 	VK_VALIDATE(result, PFN_vkQueuePresentKHR);
 	return result == VkApiResult::Success;
 }
