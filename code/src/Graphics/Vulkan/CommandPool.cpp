@@ -1,10 +1,10 @@
 #include "Graphics/Vulkan/CommandPool.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex)
+Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex, CommandPoolCreateFlag flags)
 	: parent(&device)
 {
-	const CommandPoolCreateInfo createInfo(queueFamilyIndex);
+	const CommandPoolCreateInfo createInfo(queueFamilyIndex, flags);
 	VK_VALIDATE(parent->vkCreateCommandPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateCommandPool);
 }
 

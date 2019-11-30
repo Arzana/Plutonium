@@ -33,7 +33,7 @@ namespace Pu
 		/* Adds a box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ const Matrix &transform, _In_ Color color);
 		/* Renders all shapes stored in the debug renderer. */
-		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view);
+		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view, _In_opt_ bool clearBuffer = true);
 
 	private: 
 		AssetFetcher &loader;

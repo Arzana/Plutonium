@@ -17,20 +17,7 @@
 
 Pu::AssetSaver::AssetSaver(TaskScheduler & scheduler, LogicalDevice & device)
 	: scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
-{
-	cmdPool = new CommandPool(device, transferQueue.GetFamilyIndex());
-
-	for (size_t i = 0; i < InitialLoadCommandBufferCount; i++)
-	{
-		AllocateCmdBuffer();
-	}
-}
-
-Pu::AssetSaver::~AssetSaver(void)
-{
-	buffers.clear();
-	delete cmdPool;
-}
+{}
 
 void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageSaveFormats format)
 {
@@ -39,11 +26,25 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	{
 	public:
 		SaveTask(AssetSaver &parent, const Image &image, const wstring &path, ImageSaveFormats format)
-			: parent(parent), image(image), path(path), format(format), cmdBuffer(parent.GetCmdBuffer())
+			: parent(parent), image(image), path(path), format(format), cmdPool(nullptr)
 		{}
+
+		~SaveTask(void)
+		{
+			/* The command buffer needs to be deallocated before the command pool. */
+			if (cmdPool)
+			{
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+			}
+		}
 
 		virtual Result Execute(void) override
 		{
+			/* Create the command pool and the buffer, it's better for the caller to do it here than the ctor. */
+			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
+			cmdBuffer = std::move(cmdPool->Allocate());
+
 			/* Creat the buffer needed as a result for the image data. */
 			const Extent3D extent = image.GetExtent();
 			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetChannels();
@@ -51,7 +52,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 
 			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, true);
 
-			/* 
+			/*
 			Begin the command buffer and ensure a usable layouts.
 			We can only start this the first memory barrier at transfer because the image source access is probably transfer destination.
 			The buffer on the other hand has no access flag set so we can do it at the top of pipe already.
@@ -95,7 +96,8 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	private:
 		AssetSaver &parent;
 		const Image &image;
-		CommandBuffer &cmdBuffer;
+		CommandPool *cmdPool;
+		CommandBuffer cmdBuffer;
 		wstring path;
 		ImageSaveFormats format;
 		Buffer *destination;
@@ -142,16 +144,4 @@ void Pu::AssetSaver::SaveImageInternal(const void * data, int w, int h, int c, c
 
 	/* Check the result and end the map. */
 	if (!result) Log::Error("Unable to save image to '%ls', reason: '%ls'!", path.c_str(), _CrtGetErrorString().c_str());
-}
-
-void Pu::AssetSaver::AllocateCmdBuffer(void)
-{
-	buffers.emplace(std::move(cmdPool->Allocate()));
-}
-
-Pu::CommandBuffer & Pu::AssetSaver::GetCmdBuffer(void)
-{
-	/* Allocate a new command buffer if the queue is empty. */
-	if (!buffers.available()) AllocateCmdBuffer();
-	return buffers.get();
 }

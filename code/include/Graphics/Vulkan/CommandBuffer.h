@@ -29,11 +29,16 @@ namespace Pu
 			Invalid
 		};
 
+		/* Initializes an invalid instance of a command buffer. */
+		CommandBuffer(void);
 		CommandBuffer(_In_ const CommandBuffer&) = delete;
 		/* Move constructor. */
 		CommandBuffer(_In_ CommandBuffer &&value);
-		/* Frees the command buffer. */
-		~CommandBuffer(void);
+		/* Deallocates the command buffer. */
+		~CommandBuffer(void)
+		{
+			Free();
+		}
 
 		_Check_return_ CommandBuffer& operator =(_In_ const CommandBuffer&) = delete;
 		/* Move assignment. */
@@ -51,6 +56,8 @@ namespace Pu
 			return other.hndl != hndl;
 		}
 
+		/* Deallocates the command buffer from its parent pool. */
+		void Deallocate(void);
 		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
 		_Check_return_ bool CanBegin(_In_opt_ bool wait = false) const;
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */

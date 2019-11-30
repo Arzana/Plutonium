@@ -99,7 +99,7 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	AddLine(fbl, bbl, color);
 }
 
-void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view)
+void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view, bool clearBuffer)
 {
 	/* Make sure we cannot access garbage memory. */
 	if (pipeline)
@@ -134,8 +134,8 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 		}
 	}
 
-	/* Always clear the buffer to make sure that we don't get shapes from previous calls in one draw batch. */
-	size = 0;
+	/* Clear the buffer to make sure that we don't get shapes from previous calls in one draw batch. */
+	if (clearBuffer) size = 0;
 }
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)

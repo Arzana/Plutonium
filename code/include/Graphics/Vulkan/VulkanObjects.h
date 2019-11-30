@@ -861,13 +861,13 @@ namespace Pu
 
 		/* Initializes an empty instance of the command pool create info object. */
 		CommandPoolCreateInfo(void)
-			: CommandPoolCreateInfo(0)
+			: CommandPoolCreateInfo(0, CommandPoolCreateFlag::None)
 		{}
 
 		/* Initializes a new instance of the command pool create info object. */
-		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex)
+		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex, _In_ CommandPoolCreateFlag flags)
 			: Type(StructureType::CommandPoolCreateInfo), Next(nullptr),
-			Flags(CommandPoolCreateFlag::ResetCommandBuffer), QueueFamilyIndex(queueFamilyIndex)
+			Flags(flags), QueueFamilyIndex(queueFamilyIndex)
 		{}
 	};
 

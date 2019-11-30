@@ -1,6 +1,5 @@
 #pragma once
 #include "AssetCache.h"
-#include "Core/Collections/pool.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
 #include "Graphics/Text/Font.h"
@@ -17,8 +16,6 @@ namespace Pu
 		AssetLoader(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device, _In_ AssetCache &cache);
 		AssetLoader(_In_ const AssetLoader&) = delete;
 		AssetLoader(_In_ AssetLoader&&) = delete;
-		/* Releases the resources allocated by the asset loader. */
-		~AssetLoader(void);
 
 		_Check_return_ AssetLoader& operator =(_In_ const AssetLoader&) = delete;
 		_Check_return_ AssetLoader& operator =(_In_ AssetLoader&&) = delete;
@@ -42,13 +39,6 @@ namespace Pu
 		AssetCache &cache;
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
-		CommandPool *cmdPool;
-		std::mutex poolLock;
-
 		Queue &transferQueue;
-		pool<CommandBuffer> buffers;
-
-		void AllocateCmdBuffer(void);
-		CommandBuffer& GetCmdBuffer(void);
 	};
 }

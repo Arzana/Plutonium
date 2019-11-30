@@ -19,17 +19,15 @@ const char* to_string(Pu::CommandBuffer::State state)
 	}
 }
 
+Pu::CommandBuffer::CommandBuffer(void)
+	: parent(nullptr), device(nullptr), hndl(nullptr), state(State::Invalid), submitFence(nullptr)
+{}
+
 Pu::CommandBuffer::CommandBuffer(CommandBuffer && value)
 	: parent(value.parent), device(value.device), hndl(value.hndl), state(value.state), submitFence(value.submitFence)
 {
 	value.hndl = nullptr;
 	value.submitFence = nullptr;
-}
-
-Pu::CommandBuffer::~CommandBuffer(void)
-{
-	Free();
-	if (submitFence) delete submitFence;
 }
 
 Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
@@ -361,6 +359,19 @@ void Pu::CommandBuffer::Reset(void) const
 void Pu::CommandBuffer::Free(void)
 {
 	if (hndl) parent->FreeBuffer(hndl);
+	if (submitFence) delete submitFence;
+}
+
+void Pu::CommandBuffer::Deallocate(void)
+{
+	Free();
+
+	/* The method should be safe to call before the dtor, so set everything to null. */
+	parent = nullptr;
+	device = nullptr;
+	submitFence = nullptr;
+	hndl = nullptr;
+	state = State::Invalid;
 }
 
 bool Pu::CommandBuffer::CheckIfRecording(const char * operation) const

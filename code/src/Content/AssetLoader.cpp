@@ -4,20 +4,7 @@
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
 	: cache(cache), scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
-{
-	cmdPool = new CommandPool(device, transferQueue.GetFamilyIndex());
-
-	for (size_t i = 0; i < InitialLoadCommandBufferCount; i++)
-	{
-		AllocateCmdBuffer();
-	}
-}
-
-Pu::AssetLoader::~AssetLoader(void)
-{
-	buffers.clear();
-	delete cmdPool;
-}
+{}
 
 void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<vector<wstring>> & shaders)
 {
@@ -68,10 +55,19 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const wstring &path)
-			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer()), staged(false), name(path.fileNameWithoutExtension())
+			: result(texture), parent(parent), staged(false), name(path.fileNameWithoutExtension()), cmdPool(nullptr)
 		{
 			child = new Texture::LoadTask(texture, info, path);
 			child->SetParent(*this);
+		}
+
+		~StageTask(void)
+		{
+			if (cmdPool)
+			{
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+			}
 		}
 
 		virtual Result Execute(void) override
@@ -90,15 +86,17 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			*/
 			if (staged)
 			{
-				parent.buffers.recycle(cmdBuffer);
 				result.Image->MarkAsLoaded(true, std::move(name));
 				delete child;
 				return Result::AutoDelete();
 			}
 			else
 			{
+				/* We allocate a new command pool and buffer here to put less stress on the caller. */
+				cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
+				cmdBuffer = std::move(cmdPool->Allocate());
+
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
-				parent.poolLock.lock();
 				cmdBuffer.Begin();
 				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
 
@@ -106,10 +104,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), *result.Image);
 				cmdBuffer.End();
 
-				parent.transferQueue.Submit(cmdBuffer);
-				parent.poolLock.unlock();
-
 				staged = true;
+				parent.transferQueue.Submit(cmdBuffer);
 				return Result::CustomWait();
 			}
 		}
@@ -125,7 +121,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	private:
 		Texture &result;
 		AssetLoader &parent;
-		CommandBuffer &cmdBuffer;
+		CommandPool *cmdPool;
+		CommandBuffer cmdBuffer;
 		Texture::LoadTask *child;
 		wstring name;
 		bool staged;
@@ -143,7 +140,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size, wstring &&id)
-			: result(texture), parent(parent), cmdBuffer(parent.GetCmdBuffer())
+			: result(texture), parent(parent), id(std::move(id)), cmdPool(nullptr)
 		{
 			this->data = (byte*)malloc(size);
 			memcpy(this->data, data, size);
@@ -154,15 +151,24 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 		{
 			delete stagingBuffer;
 			free(data);
+
+			if (cmdPool)
+			{
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+			}
 		}
 
 		virtual Result Execute(void) override
 		{
+			/* We allocate a new command pool and buffer here to put less stress on the caller. */
+			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
+			cmdBuffer = std::move(cmdPool->Allocate());
+
 			/* Load the image data into the staging buffer. */
 			stagingBuffer->Load(data);
 
 			/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
-			parent.poolLock.lock();
 			cmdBuffer.Begin();
 			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
 
@@ -172,13 +178,11 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 			/* Submit and wait for completion. */
 			parent.transferQueue.Submit(cmdBuffer);
-			parent.poolLock.unlock();
 			return Result::CustomWait();
 		}
 
 		virtual Result Continue(void) override
 		{
-			parent.buffers.recycle(cmdBuffer);
 			result.Image->MarkAsLoaded(true, std::move(id));
 			return Result::AutoDelete();
 		}
@@ -193,7 +197,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 	private:
 		Texture &result;
 		AssetLoader &parent;
-		CommandBuffer &cmdBuffer;
+		CommandPool *cmdPool;
+		CommandBuffer cmdBuffer;
 		StagingBuffer *stagingBuffer;
 		byte *data;
 		wstring id;
@@ -211,12 +216,24 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 	{
 	public:
 		LoadTask(AssetLoader &parent, Font &font, const wstring &path, Task &continuation)
-			: result(font), parent(parent), cmdBuffer(parent.GetCmdBuffer()), 
-			path(path), continuation(continuation)
+			: result(font), parent(parent), path(path), continuation(continuation), cmdPool(nullptr)
 		{}
+
+		~LoadTask()
+		{
+			if (cmdPool)
+			{
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+			}
+		}
 
 		virtual Result Execute(void) override
 		{
+			/* We allocate a new command pool and buffer here to put less stress on the caller. */
+			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
+			cmdBuffer = std::move(cmdPool->Allocate());
+
 			/* Load the glyph information. */
 			result.Load(path);
 			const Vector2 imgSize = result.LoadGlyphInfo();
@@ -234,7 +251,6 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			result.atlasImg = new Image(parent.device, info);
 
 			/* Make sure the atlas has the correct layout. */
-			parent.poolLock.lock();
 			cmdBuffer.Begin();
 			cmdBuffer.MemoryBarrier(*result.atlasImg, 
 				PipelineStageFlag::TopOfPipe, 
@@ -246,7 +262,6 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			/* Copy actual data and end the buffer. */
 			cmdBuffer.CopyEntireBuffer(*buffer, *result.atlasImg);
 			cmdBuffer.End();
-			parent.poolLock.unlock();
 
 			parent.transferQueue.Submit(cmdBuffer);
 			return Result::CustomWait();
@@ -254,9 +269,6 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 		virtual Result Continue(void) override
 		{
-			/* Recycle the buffer as soon as possible. */
-			parent.buffers.recycle(cmdBuffer);
-
 			/* Mark both the image and the font as loaded, font will delete the atlas so just mark it as not loaded via the loader. */
 			wstring name = L"Atlas ";
 			name += path.fileNameWithoutExtension();
@@ -278,7 +290,8 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 		Font &result;
 		AssetLoader &parent;
 		Task &continuation;
-		CommandBuffer &cmdBuffer;
+		CommandPool *cmdPool;
+		CommandBuffer cmdBuffer;
 		const wstring path;
 		StagingBuffer *buffer;
 	};
@@ -286,33 +299,4 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 	/* Simply create the task and spawn it. */
 	LoadTask *task = new LoadTask(*this, font, path, continuation);
 	scheduler.Spawn(*task);
-}
-
-void Pu::AssetLoader::AllocateCmdBuffer(void)
-{
-	/* We need to wait for all command buffers to be done before allocating another buffer. */
-	bool wait;
-	do
-	{
-		wait = false;
-
-		for (const auto &[available, buffer] : buffers.data())
-		{
-			if (!available)
-			{
-				wait = true;
-				PuThread::Sleep(10);
-				break;
-			}
-		}
-	} while (wait);
-
-	buffers.emplace(std::move(cmdPool->Allocate()));
-}
-
-Pu::CommandBuffer& Pu::AssetLoader::GetCmdBuffer(void)
-{
-	/* Allocate a new command buffer if the queue is empty. */
-	if (!buffers.available()) AllocateCmdBuffer();
-	return buffers.get();
 }

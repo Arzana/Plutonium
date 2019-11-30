@@ -5,11 +5,7 @@
 #include "HID.h"
 
 #ifdef _WIN32
-/* __NULL_IMPORT_DESCRIPTOR is defined multiple times in the Windows API. */
-#pragma warning(push)
-#pragma warning (disable:4006)
 #include <hidsdi.h>
-#pragma warning(pop)
 #endif
 
 namespace Pu

@@ -1,6 +1,5 @@
 #pragma once
 #include "Graphics/Vulkan/Image.h"
-#include "Core/Collections/pool.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Textures/ImageSaveFormats.h"
 
@@ -16,8 +15,6 @@ namespace Pu
 		AssetSaver(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device);
 		AssetSaver(_In_ const AssetSaver&) = delete;
 		AssetSaver(_In_ AssetSaver&&) = delete;
-		/* Releases the resources allocated by the asset saver. */
-		~AssetSaver(void);
 
 		_Check_return_ AssetSaver& operator =(_In_ const AssetSaver&) = delete;
 		_Check_return_ AssetSaver& operator =(_In_ AssetSaver&&) = delete;
@@ -34,13 +31,8 @@ namespace Pu
 
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
-		CommandPool *cmdPool;
-
 		Queue &transferQueue;
-		pool<CommandBuffer> buffers;
 
 		static void SaveImageInternal(const void *data, int w, int h, int c, const wstring &path, ImageSaveFormats format);
-		void AllocateCmdBuffer(void);
-		CommandBuffer& GetCmdBuffer(void);
 	};
 }

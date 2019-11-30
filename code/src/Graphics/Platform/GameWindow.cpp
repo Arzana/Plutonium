@@ -32,8 +32,8 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 		}
 	}
 
-	/* Create new command pool. */
-	pool = new CommandPool(device, device.graphicsQueueFamily);
+	/* Create new command pool, we're reusing command buffers so we need to enable that via a pool flag. */
+	pool = new CommandPool(device, device.graphicsQueueFamily, CommandPoolCreateFlag::ResetCommandBuffer);
 
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
