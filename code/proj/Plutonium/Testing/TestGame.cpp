@@ -13,17 +13,16 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), firstRun(true),
-	markDepthBuffer(true)
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
-	mdlMtrx = Matrix::CreateRoll(PI) * Matrix::CreateScalar(0.03f);
 }
 
 void TestGame::Initialize(void)
 {
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
-	cam->Move(0.0f, -5.0f, -3.0f);
+	cam->Move(0.0f, 5.0f, -3.0f);
 	cam->Yaw = PI2;
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 }
@@ -169,14 +168,14 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 {
 	if (sender.Type == InputDeviceType::Keyboard)
 	{
-		if (args.KeyCode == _CrtEnum2Int(Keys::Escape)) Exit();
-		else if (args.KeyCode == _CrtEnum2Int(Keys::C))
+		if (args.Key == Keys::Escape) Exit();
+		else if (args.Key == Keys::C)
 		{
 			if (cam->IsEnabled()) cam->Disable();
 			else cam->Enable();
 		}
-		else if (args.KeyCode == _CrtEnum2Int(Keys::NumAdd)) cam->MoveSpeed++;
-		else if (args.KeyCode == _CrtEnum2Int(Keys::NumSubtract)) cam->MoveSpeed--;
+		else if (args.Key == Keys::NumAdd) cam->MoveSpeed++;
+		else if (args.Key == Keys::NumSubtract) cam->MoveSpeed--;
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
@@ -235,7 +234,7 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->SetCullMode(CullModeFlag::Back);
+	gfxPipeline->SetCullMode(CullModeFlag::Front);
 	gfxPipeline->AddVertexBinding<Basic3D>(0);
 
 	GetWindow().CreateFrameBuffers(*renderPass, { &depthBuffer->GetView() });

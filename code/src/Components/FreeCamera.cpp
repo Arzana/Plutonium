@@ -33,7 +33,7 @@ void Pu::FreeCamera::Update(float dt)
 
 		/* Update the orientaion. */
 		Yaw -= lookDelta.X * DEG2RAD * LookSpeed * dt;
-		Pitch -= lookDelta.Y * DEG2RAD * LookSpeed * dt;
+		Pitch += lookDelta.Y * DEG2RAD * LookSpeed * dt;
 	}
 
 	lookDelta = Vector2();

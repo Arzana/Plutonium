@@ -73,7 +73,7 @@ void main()
 
 	// Constants. 
 	const vec3 v = normalize(CamPos - Position);
-	const vec3 l = normalize(-vec3(0.7f, 0.7f, 0.0f));
+	const vec3 l = normalize(vec3(0.7f, 0.7f, 0.0f));
 	const vec3 h = normalize(v + l);
 	const vec3 radiance = vec3(1.0f, 1.0f, 0.86f);
 
