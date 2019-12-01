@@ -169,6 +169,16 @@ void Pu::BinaryWriter::Write(const ustring & value)
 	for (char32 c : value) Write(*reinterpret_cast<uint32*>(&c));
 }
 
+void Pu::BinaryWriter::Pad(size_t bytes, byte value)
+{
+	/* Ignore the call if zero bytes are requested. */
+	if (bytes == 0) return;
+
+	EnsureCapacity(bytes);
+	memset(data + size, value, bytes);
+	size += bytes;
+}
+
 void Pu::BinaryWriter::EnsureCapacity(size_t requiredAddition)
 {
 	if (capacity - size < requiredAddition)

@@ -1313,6 +1313,11 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 			byte *tmp = reinterpret_cast<byte*>(malloc(mesh.VertexViewSize));
 			size_t offset = 0;
 
+			/* Make sure that the mesh starts at a alligned offset. */
+			const size_t zeroBytes = mesh.VertexViewStart % vrtxStrideBytes;
+			result.Data.Pad(zeroBytes);
+			mesh.VertexViewStart += zeroBytes;
+
 			offset += CopyMeshAttribute(bufferData, tmp, offset, vrtxStrideBytes, input, cur, GLTFPrimitiveAttribute::Position);
 			offset += CopyMeshAttribute(bufferData, tmp, offset, vrtxStrideBytes, input, cur, GLTFPrimitiveAttribute::Normal);
 			offset += CopyMeshAttribute(bufferData, tmp, offset, vrtxStrideBytes, input, cur, GLTFPrimitiveAttribute::Tangent);

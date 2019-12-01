@@ -22,7 +22,7 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 	/* Calculate the stride of the vertices. */
 	size_t vertexStride = sizeof(Vector3);
 	if (mesh.HasNormals) vertexStride += sizeof(Vector3);
-	if (mesh.HasTangents) vertexStride += sizeof(Vector3);
+	if (mesh.HasTangents) vertexStride += sizeof(Vector4);
 	if (mesh.HasTextureCoordinates) vertexStride += sizeof(Vector2);
 	if (mesh.HasColors) vertexStride += sizeof(uint32);
 

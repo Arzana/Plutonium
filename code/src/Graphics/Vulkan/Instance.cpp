@@ -320,14 +320,7 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 		Log::Warning(data->Message);
 		break;
 	case DebugUtilsMessageSeverityFlag::Error:
-		if constexpr (VulkanRaiseOnError)
-		{
-			/* For some reason the attribute allignment is considered invalid, I have no clue why? */
-			if (strcmp(data->MessageIdName, "UNASSIGNED-CoreValidation-DrawState-InvalidVtxAttributeAlignment"))
-			{
-				Log::Fatal(data->Message);
-			}
-		}
+		if constexpr (VulkanRaiseOnError) Log::Fatal(data->Message);
 		else Log::Error(data->Message);
 		break;
 	}
