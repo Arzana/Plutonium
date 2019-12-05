@@ -3,6 +3,7 @@
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Graphics/VertexLayouts/Basic3D.h>
+#include <imgui.h>
 
 using namespace Pu;
 
@@ -12,7 +13,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame", 1280.0f, 720.0f, std::thread::hardware_concurrency() - 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
-	stagingBuffer(nullptr), transform(nullptr), firstRun(true),
+	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
 	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
@@ -68,9 +69,12 @@ void TestGame::UnLoadContent(void)
 	AssetFetcher &fetcher = GetContent();
 
 	if (transform) delete transform;
+	if (light) delete light;
+
 	for (Material *material : materials) delete material;
 	if (descPoolCam) delete descPoolCam;
 	if (descPoolMats) delete descPoolMats;
+	if (descPoolLight) delete descPoolLight;
 	if (gfxPipeline) delete gfxPipeline;
 
 	delete vrtxBuffer;
@@ -144,11 +148,28 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());
 	}
 
+	if (ImGui::Begin("Light Editor"))
+	{
+		float intensity = light->GetIntensity();
+		if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 5.0f)) light->SetIntensity(intensity);
+
+		Vector3 clr = light->GetRadiance();
+		if (ImGui::ColorPicker3("Radiance", clr.f)) light->SetRadiance(clr);
+
+		Vector3 dir = light->GetDirection();
+		if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir);
+
+		ImGui::End();
+	}
+
 	transform->Update(cmd);
+	light->Update(cmd);
+
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
 	cmd.BindGraphicsPipeline(*gfxPipeline);
 
 	cmd.BindGraphicsDescriptor(*transform);
+	cmd.BindGraphicsDescriptor(*light);
 	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 
 	for (const auto[matIdx, mesh] : meshes)
@@ -211,6 +232,9 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 
 	descPoolCam = new DescriptorPool(*renderPass, pass, 0, 1);
 	transform = new TransformBlock(*descPoolCam);
+
+	descPoolLight = new DescriptorPool(*renderPass, pass, 2, 1);
+	light = new DirLight(*descPoolLight);
 
 	descPoolMats = new DescriptorPool(*renderPass, pass, 1, (stageMaterials.size() << 1) + 1);
 	for (const PumMaterial &material : stageMaterials)

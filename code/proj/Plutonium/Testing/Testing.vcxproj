@@ -90,6 +90,7 @@
     <ClCompile Include="TestGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirLight.h" />
     <ClInclude Include="TestGame.h" />
     <ClInclude Include="TransformBlock.h" />
   </ItemGroup>

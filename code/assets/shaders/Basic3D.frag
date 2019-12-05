@@ -22,6 +22,13 @@ layout (binding = 3, set = 1) uniform Material
 	float SpecularPower;
 };
 
+layout (binding = 0, set = 2) uniform Light
+{
+	vec3 Direction;
+	vec3 Radiance;
+	float Intensity;
+};
+
 layout (location = 0) in vec2 Uv;
 layout (location = 1) in vec3 Position;
 layout (location = 2) in mat3 TBN;
@@ -33,11 +40,6 @@ vec3 diffuse(vec4 diff, float ndl)
 {
 	const vec3 cdiff = diff.rgb / PI;
 	return cdiff * ndl;
-}
-
-float ilerp(vec3 a, vec3 b, vec3 x)
-{
-	return dot(x - a, b - a) / dot(b - a, b - a);
 }
 
 // Schlick
@@ -73,15 +75,13 @@ void main()
 
 	// Constants. 
 	const vec3 v = normalize(CamPos - Position);
-	const vec3 l = normalize(vec3(0.7f, 0.7f, 0.0f));
-	const vec3 h = normalize(v + l);
-	const vec3 radiance = vec3(1.0f, 1.0f, 0.86f);
+	const vec3 h = normalize(v + Direction);
 
 	// Intermediates
 	const float roughness = (1.0f - texture(SpecularGlossiness, Uv).a) * Roughness;
 	const float a2 = roughness * roughness + EPSLION;
 	const vec3 normal = normalize(TBN * normalize(texture(Normal, Uv).xyz * 2.0f - 1.0f));
-	const float ndl = max(0.0f, dot(normal, l));
+	const float ndl = max(0.0f, dot(normal, Direction));
 	const float ndv = max(0.0f, dot(normal, v));
 	const float ndh = max(0.0f, dot(normal, h));
 	const float vdh = max(0.0f, dot(v, h));
@@ -95,5 +95,5 @@ void main()
 	const vec3 fd = (1.0f - f) * diffuse(diff, ndl);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
 
-	L0 = vec4((fd + fs) * radiance, 1.0f);
+	L0 = vec4((fd + fs) * Radiance * Intensity, 1.0f);
 }

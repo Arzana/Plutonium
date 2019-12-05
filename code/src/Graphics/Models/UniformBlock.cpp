@@ -1,7 +1,7 @@
 #include "Graphics/Models/UniformBlock.h"
 
-Pu::UniformBlock::UniformBlock(DescriptorPool & pool)
-	: DescriptorSet(std::move(pool.Allocate())), IsDirty(false), firstUpdate(true)
+Pu::UniformBlock::UniformBlock(DescriptorPool & pool, bool startDirty)
+	: DescriptorSet(std::move(pool.Allocate())), IsDirty(startDirty), firstUpdate(true)
 {
 	vector<uint32> bindings;
 	size_t size = 0;

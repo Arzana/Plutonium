@@ -25,5 +25,8 @@
     <ClInclude Include="TransformBlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DirLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

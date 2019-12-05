@@ -42,7 +42,7 @@ namespace Pu
 		bool IsDirty;
 
 		/* Initializes a new instance of a uniform block. */
-		UniformBlock(_In_ DescriptorPool &pool);
+		UniformBlock(_In_ DescriptorPool &pool, _In_ bool startDirty);
 
 		/* Loads the specified staging buffer with the new GPU data. */
 		virtual void Stage(_In_ byte *destination) = 0;

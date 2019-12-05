@@ -1,7 +1,7 @@
 #include "Graphics/Models/Material.h"
 
 Pu::Material::Material(DescriptorPool & pool)
-	: UniformBlock(pool), diffuseMap(&pool.GetSubpass().GetDescriptor("Diffuse")),
+	: UniformBlock(pool, false), diffuseMap(&pool.GetSubpass().GetDescriptor("Diffuse")),
 	specularMap(&pool.GetSubpass().GetDescriptor("SpecularGlossiness")),
 	normalMap(&pool.GetSubpass().GetDescriptor("Normal")),
 	roughness(1.0f), power(2.0f)

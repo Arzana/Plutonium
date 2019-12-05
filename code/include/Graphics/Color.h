@@ -49,7 +49,7 @@ namespace Pu
 			: R(r), G(g), B(b), A(a)
 		{}
 
-		/* Initializes a new instance of a specified color. */
+		/* Initializes a new instance of a specified opaque color. */
 		Color(_In_ float r, _In_ float g, _In_ float b)
 			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(255)
 		{}
@@ -57,6 +57,11 @@ namespace Pu
 		/* Initializes a new instance of a specified color. */
 		Color(_In_ float r, _In_ float g, _In_ float b, _In_ float a)
 			: R(static_cast<byte>(r * 255.0f)), G(static_cast<byte>(g * 255.0f)), B(static_cast<byte>(b * 255.0f)), A(static_cast<byte>(a * 255.0f))
+		{}
+
+		/* Initializes a new instance of a specific opaque color. */
+		Color(_In_ Vector3 clr)
+			: Color(clr.X, clr.Y, clr.Z)
 		{}
 
 		/* Initializes a new instance of a specified color. */

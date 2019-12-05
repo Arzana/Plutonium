@@ -4,6 +4,7 @@
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
 #include "TransformBlock.h"
+#include "DirLight.h"
 
 class TestGame
 	: public Pu::Application
@@ -32,6 +33,7 @@ private:
 	Pu::GraphicsPipeline *gfxPipeline;
 	Pu::DepthBuffer *depthBuffer;
 	Pu::DescriptorPool *descPoolCam;
+	Pu::DescriptorPool *descPoolLight;
 	Pu::DescriptorPool *descPoolMats;
 
 	Pu::Buffer *vrtxBuffer;
@@ -43,6 +45,7 @@ private:
 
 	Pu::Matrix mdlMtrx;
 	TransformBlock *transform;
+	DirLight *light;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&);

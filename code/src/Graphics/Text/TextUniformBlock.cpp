@@ -6,7 +6,7 @@ The first one (0) is for constants across the shader (i.e. the atlas and project
 The second one (1) is for the string specific data (i.e. the transform and color).
 */
 Pu::TextUniformBlock::TextUniformBlock(_In_ DescriptorPool & pool)
-	: UniformBlock(pool)
+	: UniformBlock(pool, false)
 {
 	allignedOffset = pool.GetSubpass().GetDescriptor("Color").GetAllignedOffset(sizeof(Matrix));
 }

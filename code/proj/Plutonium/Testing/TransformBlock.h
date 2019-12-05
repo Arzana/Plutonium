@@ -5,25 +5,25 @@ class TransformBlock
 	: public Pu::UniformBlock
 {
 public:
-	TransformBlock(_In_ Pu::DescriptorPool &pool)
-		: UniformBlock(pool)
+	TransformBlock(Pu::DescriptorPool &pool)
+		: UniformBlock(pool, false)
 	{
 		offset = pool.GetSubpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
 	}
 
-	inline void SetProjection(_In_ const Pu::Matrix &mtrx)
+	inline void SetProjection(const Pu::Matrix &mtrx)
 	{
 		proj = mtrx;
 		IsDirty = true;
 	}
 
-	inline void SetView(_In_ const Pu::Matrix &mtrx)
+	inline void SetView(const Pu::Matrix &mtrx)
 	{
 		view = mtrx;
 		IsDirty = true;
 	}
 
-	inline void SetCamPos(_In_ Pu::Vector3 v)
+	inline void SetCamPos(Pu::Vector3 v)
 	{
 		camPos = v;
 		IsDirty = true;
