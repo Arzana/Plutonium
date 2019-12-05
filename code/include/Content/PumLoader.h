@@ -308,6 +308,8 @@ namespace Pu
 		SamplerAddressMode AddressModeU;
 		/* The address mode for the vertical coordinates. */
 		SamplerAddressMode AddressModeV;
+		/* Defines whether this texture should be loaded as an sRGB texture. */
+		bool IsSRGB;
 
 		/* Default initializes a new instance of a PuM texture. */
 		PumTexture(void);

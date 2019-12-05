@@ -263,13 +263,14 @@ struct pum_texture
 	bool UsesLinearMagnification;
 	bool UsesLinaerMinification;
 	bool UsesLinearMipmapMode;
+	bool IsSRGB;
 	char AddressModeU;
 	char AddressModeV;
 	int ConversionCount;
 
 	pum_texture(void)
 		: UsesLinearMagnification(false), UsesLinaerMinification(false),
-		UsesLinearMipmapMode(false), AddressModeU(0), AddressModeV(0), ConversionCount(-1)
+		UsesLinearMipmapMode(false), IsSRGB(false), AddressModeU(0), AddressModeV(0), ConversionCount(-1)
 	{}
 
 	inline Pu::byte GetFlags(void) const
@@ -279,8 +280,9 @@ struct pum_texture
 		if (UsesLinearMagnification) result |= 0x01;
 		if (UsesLinaerMinification) result |= 0x02;
 		if (UsesLinearMipmapMode) result |= 0x04;
-		result |= (AddressModeU & 0x03) << 0x03;
-		result |= (AddressModeV & 0x03) << 0x05;
+		if (IsSRGB) result |= 0x08;
+		result |= (AddressModeU & 0x03) << 0x04;
+		result |= (AddressModeV & 0x03) << 0x06;
 
 		return result;
 	}

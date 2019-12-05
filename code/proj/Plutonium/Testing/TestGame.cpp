@@ -51,10 +51,7 @@ void TestGame::LoadContent(void)
 	}
 
 	AssetFetcher &fetcher = GetContent();
-	for (const PumTexture &texture : mdl.Textures)
-	{
-		textures.emplace_back(&fetcher.FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), true));
-	}
+	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
 	textures.emplace_back(&fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
 	textures.emplace_back(&fetcher.CreateTexture2D("DefaultSpecularGlossiness", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));

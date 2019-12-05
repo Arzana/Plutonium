@@ -54,6 +54,11 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::in
 	return *renderpass;
 }
 
+Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const PumTexture & texture)
+{
+	return FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), texture.IsSRGB);
+}
+
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const SamplerCreateInfo & samplerInfo, bool sRGB, uint32 mipMapLevels)
 {
 	/* Solve for the texture path. */

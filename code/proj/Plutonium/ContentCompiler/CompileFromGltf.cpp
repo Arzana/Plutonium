@@ -1624,6 +1624,8 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		/* Check for ambient occlusion texture. */
 		if (cur.TryGetValue("EMISSIVETEXTURE", value)) material.SetEmissiveTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
 
+		/* Make sure to mark the diffuse texture as an sRGB texture by default. */
+		if (material.HasDiffuseTexture) result.Textures[material.DiffuseTexture].IsSRGB = true;
 		result.Materials.emplace_back(material);
 	}
 }

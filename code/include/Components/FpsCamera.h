@@ -3,6 +3,14 @@
 #include "Core/Math/Frustum.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 
+#ifdef far
+#undef far
+#endif
+
+#ifdef near
+#undef near
+#endif
+
 namespace Pu
 {
 	class NativeWindow;

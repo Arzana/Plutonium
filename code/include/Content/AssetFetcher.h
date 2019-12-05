@@ -1,5 +1,6 @@
 #pragma once
 #include "Patern.h"
+#include "PumLoader.h"
 #include "AssetLoader.h"
 #include "Graphics/Textures/Texture2D.h"
 
@@ -22,6 +23,8 @@ namespace Pu
 
 		/* Fetches the desired renderpass. */
 		_Check_return_ Renderpass& FetchRenderpass(_In_ std::initializer_list<std::initializer_list<wstring>> shaders);
+		/* Fetches the desired 2D texture with the correct sampler and color space. */
+		_Check_return_ Texture2D& FetchTexture2D(_In_ const PumTexture &texture);
 		/* Fetches the desired 2D texture. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_opt_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */

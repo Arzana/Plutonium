@@ -236,12 +236,13 @@ Current flags include:
 	- 0x01: magnification filter (0 for near, 1 for linear)
 	- 0x02: minification filter (0 for near, 1 for linear)
 	- 0x04: mipmap mode (0 for near, 1 for linear)
-	- 0x08 & 0x10: address mode U:
+	- 0x08: color space (0 for unorm, 1 for sRGB)
+	- 0x10 & 0x20: address mode U:
 		0x0: repeat
 		0x1: mirrored repeat
 		0x2: clamp to edge
 		0x3: clamp to border
-	- 0x20 & 0x40: address mode V:
+	- 0x40 & 0x80: address mode V:
 		0x0: repeat
 		0x1: mirrored repeat
 		0x2: clamp to edge
