@@ -38,6 +38,8 @@ namespace Pu
 	_Check_return_ vector<float> _CrtLoadImageHDR(_In_ const wstring &path);
 	/* Loads an image from the specified file as a LDR image with the desired amount of channels. */
 	_Check_return_ vector<byte> _CrtLoadImageLDR(_In_ const wstring &path);
+	/* Load an image from the specified file as a LDR image and gets the information about the image. */
+	_Check_return_ vector<byte> _CrtLoadImageLDR(_In_ const wstring &path, _Out_ ImageInformation &info);
 
 	/* Defines a way to load a image from file. */
 	template <typename component_t>

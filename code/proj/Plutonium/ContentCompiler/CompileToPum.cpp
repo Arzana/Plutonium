@@ -238,8 +238,7 @@ void ConvertMaterials(PumIntermediate &data, const CLArgs &args)
 		if (useAlbedoUV)
 		{
 			const wstring path = data.Textures[material.DiffuseTexture].Identifier.toWide();
-			albedoInfo = _CrtGetImageInfo(path);
-			albedoData = _CrtLoadImageLDR(path);
+			albedoData = std::move(_CrtLoadImageLDR(path, albedoInfo));
 			useAlpha = albedoInfo.Components > 3;
 			setDiffuse = !data.Textures[material.DiffuseTexture].ConversionCount;
 		}
@@ -250,8 +249,7 @@ void ConvertMaterials(PumIntermediate &data, const CLArgs &args)
 		if (useMetalUV)
 		{
 			const wstring path = data.Textures[material.SpecGlossTexture].Identifier.toWide();
-			metalInfo = _CrtGetImageInfo(path);
-			metalData = _CrtLoadImageLDR(path);
+			metalData = std::move(_CrtLoadImageLDR(path, metalInfo));
 			setSpecGloss = !data.Textures[material.SpecGlossTexture].ConversionCount;
 		}
 
@@ -280,7 +278,7 @@ void ConvertMaterials(PumIntermediate &data, const CLArgs &args)
 		{
 			/* Get the values for the calculation. */
 			const Color albedo = useAlbedoUV ? Color(albedoData[j], albedoData[j + 1], albedoData[j + 2]) : white;
-			const float metal = useMetalUV ? static_cast<float>(metalData[k]) / 255.0f : 0.0f;
+			const float metal = useMetalUV ? static_cast<float>(metalData[k + 2]) / 255.0f : 0.0f;
 			const float roughness = useMetalUV ? static_cast<float>(metalData[k + 1]) / 225.0f : 0.0f;
 
 			/* Get the diffuse and specular color, copy over the alpha. */

@@ -158,6 +158,7 @@ void Pu::Application::InitializeVulkan(void)
 	features.LogicOp = true;
 	features.WideLines = true;
 	features.FillModeNonSolid = true;
+	features.SamplerAnisotropy = true;
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);

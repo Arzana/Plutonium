@@ -35,18 +35,11 @@ layout (location = 2) in mat3 TBN;
 
 layout (location = 0) out vec4 L0;
 
-// Lambert
-vec3 diffuse(vec4 diff, float ndl)
-{
-	const vec3 cdiff = diff.rgb / PI;
-	return cdiff * ndl;
-}
-
 // Schlick
-vec3 fresnel(float vdh)
+vec3 fresnel(float ndh)
 {
-	const vec3 f0 = texture(SpecularGlossiness, Uv).rgb * F0;
-	return f0 + (1.0f - f0) * pow(1.0f - vdh, 5);
+	const vec3 f0 = texture(SpecularGlossiness, Uv).rgb + F0;
+	return f0 + (1.0f - f0) * pow(1.0f - ndh, 5);
 }
 
 // Cook-Torrance
@@ -79,7 +72,7 @@ void main()
 
 	// Intermediates
 	const float roughness = (1.0f - texture(SpecularGlossiness, Uv).a) * Roughness;
-	const float a2 = roughness * roughness + EPSLION;
+	const float a2 = roughness * roughness;
 	const vec3 normal = normalize(TBN * normalize(texture(Normal, Uv).xyz * 2.0f - 1.0f));
 	const float ndl = max(0.0f, dot(normal, Direction));
 	const float ndv = max(0.0f, dot(normal, v));
@@ -87,12 +80,12 @@ void main()
 	const float vdh = max(0.0f, dot(v, h));
 
 	// Specular
-	const vec3 f = fresnel(vdh);
+	const vec3 f = fresnel(ndh);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, a2);
 
 	// Composition
-	const vec3 fd = (1.0f - f) * diffuse(diff, ndl);
+	const vec3 fd = (1.0f - f) * (diff.rgb / PI);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
 
 	L0 = vec4((fd + fs) * Radiance * Intensity, 1.0f);

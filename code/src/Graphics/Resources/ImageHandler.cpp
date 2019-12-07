@@ -123,6 +123,33 @@ Pu::vector<Pu::byte> Pu::_CrtLoadImageLDR(const wstring & path)
 	}
 }
 
+Pu::vector<Pu::byte> Pu::_CrtLoadImageLDR(const wstring & path, ImageInformation & info)
+{
+	int w, h, c;
+	byte *data = stbi_load(path.toUTF8().c_str(), &w, &h, &c, PreferredImageComponentCount);
+	const wstring name = path.fileName();
+
+	if (data)
+	{
+		info.Width = static_cast<uint32>(w);
+		info.Height = static_cast<uint32>(h);
+		info.Components = static_cast<uint32>(PreferredImageComponentCount ? PreferredImageComponentCount : c);
+		info.IsHDR = false;
+
+		Log::Verbose("Successfully loaded image '%ls'.", name.c_str());
+		vector<byte> result{ data, data + w * h * PreferredImageComponentCount };
+
+		stbi_image_free(data);
+		return result;
+	}
+	else
+	{
+		info = ImageInformation();
+		Log::Error("Unable to load image '%ls', reason: '%s'!", name.c_str(), stbi_failure_reason());
+		return getDefaultImageLDR();
+	}
+}
+
 Pu::Format Pu::ImageInformation::GetImageFormat(bool sRGB) const
 {
 	if (IsHDR)
