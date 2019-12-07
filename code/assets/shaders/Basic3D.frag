@@ -38,7 +38,7 @@ layout (location = 0) out vec4 L0;
 // Schlick
 vec3 fresnel(float ndh)
 {
-	const vec3 f0 = texture(SpecularGlossiness, Uv).rgb + F0;
+	const vec3 f0 = texture(SpecularGlossiness, Uv).rgb * F0;
 	return f0 + (1.0f - f0) * pow(1.0f - ndh, 5);
 }
 

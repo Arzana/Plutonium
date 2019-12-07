@@ -6,8 +6,10 @@ class DirLight
 {
 public:
 	DirLight(Pu::DescriptorPool &pool)
-		: UniformBlock(pool, true), dir(1.0f, 0.0f, 0.0f), radiance(1.0f), intensity(1.0f)
-	{}
+		: UniformBlock(pool, true), dir(0.7f, 0.7f, 0.7f), radiance(1.0f, 1.0f, 0.85f), intensity(1.0f)
+	{
+		dir.Normalize();
+	}
 
 	inline void SetDirection(Pu::Vector3 direction)
 	{

@@ -33,9 +33,13 @@ namespace Pu
 		/* Show the OS cursor. */
 		static void ShowCursor(void);
 		/* Restricts the OS cursor to a specific window. */
-		static void LockCursor(const NativeWindow &window);
+		static void LockCursor(_In_ const NativeWindow &window);
 		/* Disables the movement restriction of the OS cursor. */
 		static void FreeCursor(void);
+		/* Hides and restricsts the OS cursor to a specific window. */
+		static void HideAndLockCursor(_In_ const NativeWindow &window);
+		/* Shows and disables the movement restriction of the OS cursor. */
+		static void ShowAndFreeCursor(void);
 
 	private:
 		friend class InputDeviceHandler;

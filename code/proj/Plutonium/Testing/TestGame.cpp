@@ -26,6 +26,7 @@ void TestGame::Initialize(void)
 	cam->Move(0.0f, 5.0f, -3.0f);
 	cam->Yaw = PI2;
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
+	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
 void TestGame::LoadContent(void)
@@ -189,8 +190,16 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		if (args.Key == Keys::Escape) Exit();
 		else if (args.Key == Keys::C)
 		{
-			if (cam->IsEnabled()) cam->Disable();
-			else cam->Enable();
+			if (cam->IsEnabled())
+			{
+				Mouse::ShowAndFreeCursor();
+				cam->Disable();
+			}
+			else
+			{
+				Mouse::HideAndLockCursor(GetWindow().GetNative());
+				cam->Enable();
+			}
 		}
 		else if (args.Key == Keys::NumAdd) cam->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) cam->MoveSpeed--;

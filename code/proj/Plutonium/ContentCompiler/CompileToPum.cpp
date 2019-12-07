@@ -277,7 +277,7 @@ void ConvertMaterials(PumIntermediate &data, const CLArgs &args)
 		for (size_t i = 0, j = 0, k = 0; i < pixelCnt; i++, j += sizeof(Color), k += sizeof(Color))
 		{
 			/* Get the values for the calculation. */
-			const Color albedo = useAlbedoUV ? Color(albedoData[j], albedoData[j + 1], albedoData[j + 2]) : white;
+			const Color albedo = useAlbedoUV ? Color(albedoData[j], albedoData[j + 1], albedoData[j + 2]) : material.DiffuseFactor;
 			const float metal = useMetalUV ? static_cast<float>(metalData[k + 2]) / 255.0f : 0.0f;
 			const float roughness = useMetalUV ? static_cast<float>(metalData[k + 1]) / 225.0f : 0.0f;
 

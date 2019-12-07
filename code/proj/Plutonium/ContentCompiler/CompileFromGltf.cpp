@@ -1597,22 +1597,25 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		if (cur.TryGetValue("DIFFUSEFACTOR", value)) material.DiffuseFactor = value.GetColor();
 		else if (cur.TryGetValue("BASECOLORFACTOR", value)) albedo = value.GetColor();
 		else if (material.HasDiffuseTexture) material.DiffuseFactor = Color::White();
-		else material.DiffuseFactor = Color::Black();
 
 		/* Check for the specular factor. */
 		if (cur.TryGetValue("SPECULARFACTOR", value)) material.SpecularFactor = value.GetColor();
-		else if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
+		else if (material.HasSpecularGlossTexture) material.SpecularFactor = Color::White();
+
+		/* This is a way for the material to set global scalars, it tends to only be used for objects with no textures. */
+		if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
 		{
 			double number;
 			if (value.TryGetNamedNumber("METALLICFACTOR", number))
 			{
 				material.Metalness = static_cast<float>(number);	// We save the metalness for during the conversion stage.
+
+				/* The diffuse and specular color are only set when metalness is defined for the entire object. */
 				material.DiffuseFactor = Color::Lerp(albedo, Color::Black(), material.Metalness);
 				material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, material.Metalness);
-
-				/* Materials fully made of metal have no diffuse color. */
-				if (material.Metalness == 1.0f) material.DiffuseFactor = Color::Black();
 			}
+
+			if (value.TryGetNamedNumber("ROUGHNESSFACTOR", number)) material.Glossiness = 1.0f - static_cast<float>(number);
 		}
 
 		/* Check for normal texture. */

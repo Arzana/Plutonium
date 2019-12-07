@@ -100,6 +100,18 @@ void Pu::Mouse::FreeCursor(void)
 	}
 }
 
+void Pu::Mouse::HideAndLockCursor(const NativeWindow & window)
+{
+	HideCursor();
+	LockCursor(window);
+}
+
+void Pu::Mouse::ShowAndFreeCursor(void)
+{
+	ShowCursor();
+	FreeCursor();
+}
+
 void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vector2>)
 {
 	/* Make sure this event comes from the correct window. */

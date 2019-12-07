@@ -143,5 +143,6 @@ void Pu::AssetSaver::SaveImageInternal(const void * data, int w, int h, int c, c
 	}
 
 	/* Check the result and end the map. */
-	if (!result) Log::Error("Unable to save image to '%ls', reason: '%ls'!", path.c_str(), _CrtGetErrorString().c_str());
+	if (result) Log::Verbose("Successfully saved image '%ls'.", path.fileName().c_str());
+	else Log::Error("Unable to save image to '%ls', reason: '%ls'!", path.c_str(), _CrtGetErrorString().c_str());
 }
