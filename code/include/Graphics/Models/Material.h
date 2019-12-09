@@ -90,6 +90,12 @@ namespace Pu
 			Write(*normalMap, map);
 		}
 
+		/* Sets the emissive texture for this material. */
+		inline void SetEmissive(_In_ const Texture &map)
+		{
+			Write(*emissiveMap, map);
+		}
+
 		/* Gets the glossiness component of this material. */
 		_Check_return_ inline float GetGlossiness(void) const
 		{
@@ -117,6 +123,6 @@ namespace Pu
 		Vector3 diffuse;
 		float roughness, power;
 
-		const Descriptor *diffuseMap, *specularMap, *normalMap;
+		const Descriptor *diffuseMap, *specularMap, *normalMap, *emissiveMap;
 	};
 }

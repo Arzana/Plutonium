@@ -41,5 +41,8 @@
     <PuModel Include="..\..\..\assets\models\Sponza\Sponza.gltf">
       <Filter>Models</Filter>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\BoomBox\BoomBox.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>

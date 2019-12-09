@@ -14,7 +14,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.05f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -56,7 +56,7 @@ void TestGame::LoadContent(void)
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
 	textures.emplace_back(&fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
-	textures.emplace_back(&fetcher.CreateTexture2D("DefaultSpecularGlossiness", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("DefaultSpecularGlossinessAndEmisive", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
 	textures.emplace_back(&fetcher.CreateTexture2D("DefaultNormal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
 	stageMaterials.emplace_back(PumMaterial());
 
@@ -141,6 +141,9 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 			if (mat.HasNormalTexture) mat2.SetNormal(*textures[mat.NormalTexture]);
 			else mat2.SetNormal(*textures[textures.size() - 1]);
+
+			if (mat.HasEmissiveTexture) mat2.SetEmissive(*textures[mat.EmissiveTexture]);
+			else mat2.SetEmissive(*textures[textures.size() - 2]);
 
 			mat2.Update(cmd);
 		}

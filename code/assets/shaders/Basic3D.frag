@@ -12,9 +12,10 @@ layout (binding = 1, set = 0) uniform Globals
 layout (binding = 0, set = 1) uniform sampler2D Diffuse;
 layout (binding = 1, set = 1) uniform sampler2D SpecularGlossiness;
 layout (binding = 2, set = 1) uniform sampler2D Normal;
+layout (binding = 3, set = 1) uniform sampler2D Emissive;
 
 // We could store the glossiness in the diffuse factor to save 4 bytes due to allignment.
-layout (binding = 3, set = 1) uniform Material
+layout (binding = 4, set = 1) uniform Material
 {
 	vec3 F0;
 	vec3 DiffuseFactor;
@@ -87,6 +88,9 @@ void main()
 	// Composition
 	const vec3 fd = (1.0f - f) * (diff.rgb / PI);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
+	const vec3 color = (fd + fs) * Radiance * Intensity;
 
-	L0 = vec4((fd + fs) * Radiance * Intensity, 1.0f);
+	// Add light emitted by the object
+	const vec3 emissive = texture(Emissive, Uv).rgb;
+	L0 = vec4(color + emissive, 1.0f);
 }

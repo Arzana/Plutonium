@@ -1567,10 +1567,6 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		/* Check for the emissive factor and intensity. */
 		if (cur.TryGetValue("EMISSIVEFACTOR", value)) material.EmissiveFactor = value.GetHDRColor(material.EmissiveInternsity);
 
-		/* Check for glossiness or roughness. */
-		if (cur.TryGetValue("GLOSSINESSFACTOR", value)) material.Glossiness = static_cast<float>(value.NumberValue);
-		else if (cur.TryGetValue("ROUGHNESSFACTOR", value)) material.Glossiness = 1.0f - static_cast<float>(value.NumberValue);
-
 		/* Check for diffuse or albedo texture. */
 		if (cur.TryGetValue("DIFFUSETEXTURE", value)) material.SetDiffuseTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
 		else if (cur.TryGetValue("BASECOLORTEXTURE", value))
@@ -1596,11 +1592,11 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		Color albedo = Color::Black();
 		if (cur.TryGetValue("DIFFUSEFACTOR", value)) material.DiffuseFactor = value.GetColor();
 		else if (cur.TryGetValue("BASECOLORFACTOR", value)) albedo = value.GetColor();
-		else if (material.HasDiffuseTexture) material.DiffuseFactor = Color::White();
+		else material.DiffuseFactor = Color::White(); // GLTF states that the default should be 1.
 
 		/* Check for the specular factor. */
 		if (cur.TryGetValue("SPECULARFACTOR", value)) material.SpecularFactor = value.GetColor();
-		else if (material.HasSpecularGlossTexture) material.SpecularFactor = Color::White();
+		else material.SpecularFactor = Color::White(); // GLTF states that the default should be 1.
 
 		/* This is a way for the material to set global scalars, it tends to only be used for objects with no textures. */
 		if (cur.TryGetValue("PBRMETALLICROUGHNESS", value))
@@ -1617,6 +1613,10 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 
 			if (value.TryGetNamedNumber("ROUGHNESSFACTOR", number)) material.Glossiness = 1.0f - static_cast<float>(number);
 		}
+
+		/* Check for glossiness or roughness. */
+		if (cur.TryGetValue("GLOSSINESSFACTOR", value)) material.Glossiness = static_cast<float>(value.NumberValue);
+		else if (material.IsFinalized) material.Glossiness = 1.0f;	// GLTF states that glossiness should have a default value of 1 (if specular gloss is used!), Plutonium defaults to 0.
 
 		/* Check for normal texture. */
 		if (cur.TryGetValue("NORMALTEXTURE", value)) material.SetNormalTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));

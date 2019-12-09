@@ -18,6 +18,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
   </ItemGroup>
   <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\BoomBox\BoomBox.gltf" />
     <PuModel Include="..\..\..\assets\models\Fire\fire.md2" />
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
       <AdditionalTexturesPum>knight.bmp;%(AdditionalTexturesPum)</AdditionalTexturesPum>
