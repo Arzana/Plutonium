@@ -5,42 +5,27 @@
 
 #ifdef _WIN32
 /* https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/hidsdi/nf-hidsdi-hidd_getproductstring */
-#define MAX_PRODUCT_NAME_LEN  126
+#define HID_MAX_STRING_LENGTH  126
+#endif
 
 #define malloc_s(t, s)		reinterpret_cast<t*>(malloc(s))
 #define malloc_t(t, a)		malloc_s(t, sizeof(t) * a)
 
 Pu::InputDevice::InputDevice(HANDLE hndl, const wstring &deviceInstancePath, InputDeviceType type, const RID_DEVICE_INFO &info)
-	: Name(MAX_PRODUCT_NAME_LEN, L' '), Type(type), Info(info), Hndl(hndl), btnCnt(0),
+	: Type(type), Info(info), Hndl(hndl), btnCnt(0),
 	KeyDown("HIDKeyDown"), KeyUp("HIDKeyUp"), ValueChanged("HIDValueChanged")
 #ifdef _WIN32
-	, data(nullptr)
+	, Name(HID_MAX_STRING_LENGTH, L' '), Manufacturer(HID_MAX_STRING_LENGTH, L' '),
+	data(nullptr)
 #endif
 {
-	/* 
-	We need to open the file that defines the information for the HID to get information from it.
-	We only need to read from this so just enable GENERIC_READ only.
-	We also don't care if any other process reads or writes to the file whilst were reading so defined share access of read/write.
-	Some devices even seem to need FILE_SHARE_WRITE in the share mode to get the name at all (I don't know why).
-	*/
-	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
-	if (hHID && hHID != INVALID_HANDLE_VALUE)
-	{
-		/* Attempt to set a human readable name for the input device. */
-		if (HidD_GetProductString(hHID, Name.data(), MAX_PRODUCT_NAME_LEN))
-		{
-			Log::Message("Added HID '%ls'.", Name.c_str());
-		}
-		else SetDefaultName(deviceInstancePath);
+	/* We can currently only set the identifiers on Windows. */
+#ifdef _WIN32
+	GetIdentifiers(deviceInstancePath);
+#endif
 
-		CloseHandle(hHID);
-	}
-	else SetDefaultName(deviceInstancePath);
-
-	/* Attempt to get as many capacities as possible from the HID. */
 	GetCapacities();
 }
-#endif
 
 float Pu::InputDevice::GetUsageValue(uint16 usageID) const
 {
@@ -55,7 +40,7 @@ float Pu::InputDevice::GetUsageValue(uint16 usageID) const
 }
 
 Pu::InputDevice::InputDevice(InputDevice && value)
-	: Name(std::move(value.Name)), Type(value.Type), btnCnt(value.btnCnt),
+	: Name(std::move(value.Name)), Manufacturer(std::move(value.Manufacturer)), Type(value.Type), btnCnt(value.btnCnt),
 	KeyDown(std::move(value.KeyDown)), KeyUp(std::move(value.KeyUp)), ValueChanged(std::move(value.ValueChanged))
 #ifdef _WIN32
 	, Info(std::move(value.Info)), Hndl(value.Hndl), data(value.data),
@@ -76,6 +61,7 @@ Pu::InputDevice & Pu::InputDevice::operator=(InputDevice && other)
 		Destroy();
 
 		Name = std::move(other.Name);
+		Manufacturer = std::move(other.Manufacturer);
 		Type = other.Type;
 		btnCnt = other.btnCnt;
 		KeyDown = std::move(other.KeyDown);
@@ -176,6 +162,33 @@ void Pu::InputDevice::HandleWin32Event(const RAWHID & info)
 		}
 
 		i++;
+	}
+}
+
+void Pu::InputDevice::GetIdentifiers(const wstring & deviceInstancePath)
+{
+	/*
+	We need to open the file that defines the information for the HID to get information from it.
+	We only need to read from this so just enable GENERIC_READ only.
+	We also don't care if any other process reads or writes to the file whilst were reading so defined share access of read/write.
+	Some devices even seem to need FILE_SHARE_WRITE in the share mode to get the name at all (I don't know why).
+	*/
+	const HANDLE hHID = CreateFile(deviceInstancePath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+	if (hHID && hHID != INVALID_HANDLE_VALUE)
+	{
+		/* Attempt to set a human readable name for the input device. */
+		if (HidD_GetProductString(hHID, Name.data(), HID_MAX_STRING_LENGTH)) Log::Message("Added HID '%ls'.", Name.c_str());
+		else SetDefaultName(deviceInstancePath);
+
+		/* Attempt to set the manufacturer name (almost always set for external devices), otherwise just set it to an empty string. */
+		if (!HidD_GetManufacturerString(hHID, Manufacturer.data(), HID_MAX_STRING_LENGTH)) Manufacturer = L"";
+
+		CloseHandle(hHID);
+	}
+	else
+	{
+		SetDefaultName(deviceInstancePath);
+		Manufacturer = L"";
 	}
 }
 #endif

@@ -26,6 +26,8 @@ namespace Pu
 	public:
 		/* The name of the input device. */
 		wstring Name;
+		/* The name of the manufacturer. */
+		wstring Manufacturer;
 		/* The type of input device. */
 		InputDeviceType Type;
 
@@ -85,6 +87,7 @@ namespace Pu
 		
 		void SetDefaultName(const wstring &deviceInstancePath);
 		void HandleWin32Event(const RAWHID &info);
+		void GetIdentifiers(const wstring &deviceInstancePath);
 #endif
 
 		void GetCapacities(void);
