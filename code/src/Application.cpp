@@ -111,7 +111,7 @@ void Pu::Application::InitializePlutonium(void)
 void Pu::Application::InitializeVulkan(void)
 {
 	constexpr const char *DEVICE_EXTENSIONS[2] = { u8"VK_KHR_swapchain" };
-	constexpr float PRIORITIES[1] = { 1.0f };
+	constexpr float PRIORITIES[2] = { 1.0f, 1.0f };
 
 	/* 
 	Create the Vulkan instance, we need the surface extensions for the native window. 
@@ -150,15 +150,9 @@ void Pu::Application::InitializeVulkan(void)
 		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
 	};
 
-	/* 
-	Logical operations are often used in the pipelines.
-	Wide lines are used in the debug renderer for optimal debug rendering.
-	*/
+	/* Allow the user to enable specific physical device features. */
 	PhysicalDeviceFeatures features;
-	features.LogicOp = true;
-	features.WideLines = true;
-	features.FillModeNonSolid = true;
-	features.SamplerAnisotropy = true;
+	EnableFeatures(features);
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);

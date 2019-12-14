@@ -19,6 +19,14 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
+void TestGame::EnableFeatures(Pu::PhysicalDeviceFeatures & features)
+{
+	features.LogicOp = true;			// Needed for blending
+	features.WideLines = true;			// Debug renderer
+	features.FillModeNonSolid = true;	// Easy wireframe mode
+	features.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
+}
+
 void TestGame::Initialize(void)
 {
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);

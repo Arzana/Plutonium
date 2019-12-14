@@ -18,6 +18,7 @@ public:
 	TestGame& operator =(TestGame&&) = delete;
 
 protected:
+	virtual void EnableFeatures(Pu::PhysicalDeviceFeatures &features) override;
 	virtual void Initialize(void);
 	virtual void LoadContent(void);
 	virtual void UnLoadContent(void);
