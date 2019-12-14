@@ -6,7 +6,7 @@ Pu::DepthBuffer::DepthBuffer(LogicalDevice & device, Format format, Extent2D siz
 {
 	/* Set the image aspect and check if the format is valid. */
 	SetAspect(format);
-	view = new ImageView(*this, aspect);
+	view = new ImageView(*this, ImageViewType::Image2D, aspect);
 }
 
 Pu::DepthBuffer::DepthBuffer(DepthBuffer && value)

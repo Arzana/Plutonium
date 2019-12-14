@@ -65,7 +65,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	wstring mutablePath(path);
 	Solve(mutablePath);
 
-	/* 
+	/*
 	The texture itself is not an asset but the sampler and image it stores are.
 	So first get the sampler and then get the image.
 	*/
@@ -99,6 +99,57 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 		Texture2D *result = new Texture2D(*image, sampler);
 		textures.emplace_back(result);
 		loader->InitializeTexture(*result, mutablePath, info);
+		return *result;
+	}
+}
+
+Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const vector<wstring>& paths, const wstring & name, const SamplerCreateInfo & samplerInfo, bool sRGB, uint32 mipMapLevels)
+{
+	/* Make sure the wildcards are solved. */
+	vector<wstring> mutableImages;
+	wstring hashParameter;
+	for (const wstring &path : paths)
+	{
+		mutableImages.emplace_back(path);
+		Solve(mutableImages.back());
+		hashParameter += mutableImages.back();
+	}
+
+	/*
+	The texture itself is not an asset but the sampler and image it stores are.
+	So first get the sampler and then get the image.
+	*/
+	Sampler &sampler = FetchSampler(samplerInfo);
+
+	/* Create the hash and check if the cache contains the requested asset. */
+	const size_t hash = std::hash<wstring>{}(hashParameter);
+	if (cache->Contains(hash))
+	{
+		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
+
+		/* Create the final texture and return it. */
+		TextureCube *result = new TextureCube(image, sampler);
+		textures.emplace_back(result);
+		return *result;
+	}
+	else
+	{
+		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
+		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
+		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
+		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		if (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+
+		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 6, SampleCountFlag::Pixel1Bit, usage);
+		createInfo.Flags = ImageCreateFlag::CubeCompatible;
+		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetHash(hash);
+		cache->Store(image);
+
+		/* Create the final texture and start the load/stage process. */
+		TextureCube *result = new TextureCube(*image, sampler);
+		textures.emplace_back(result);
+		loader->InitializeTexture(*result, mutableImages, info, name);
 		return *result;
 	}
 }
@@ -206,7 +257,7 @@ void Pu::AssetFetcher::Release(Renderpass & renderpass)
 	/* Make sure to release the subpasses as well. */
 	for (const Subpass &subpass : renderpass.subpasses)
 	{
-		for (Shader *shader : subpass.GetShaders()) 
+		for (Shader *shader : subpass.GetShaders())
 		{
 			cache->Release(*shader);
 		}

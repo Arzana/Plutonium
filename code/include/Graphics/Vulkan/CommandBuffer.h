@@ -67,9 +67,13 @@ namespace Pu
 		/* Appends a copy command for the entire source image into the destination buffer to the command buffer. */
 		void CopyEntireImage(_In_ const Image &source, _In_ Buffer &destination);
 		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
-		void CopyBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer, _In_ const vector<BufferCopy> &regions);
+		void CopyBuffer(_In_ const Buffer &source, _In_ Buffer &destination, _In_ const vector<BufferCopy> &regions);
 		/* Appends a copy command from the source buffer to the destination image to the command buffer. */
 		void CopyBuffer(_In_ const Buffer &source, _In_ Image &destination, _In_ const vector<BufferImageCopy> &regions);
+		/* Appends a copy command from the source buffer to the destination buffer to the command buffer. */
+		void CopyBuffer(_In_ const Buffer &source, _In_ Buffer &destination, _In_ const BufferCopy &region);
+		/* Appends a copy command from the source buffer to the destination image to the command buffer. */
+		void CopyBuffer(_In_ const Buffer &source, _In_ Image &destination, _In_ const BufferImageCopy &region);
 		/* Appends a copy command from the source image to the destination buffer to the command buffer. */
 		void CopyImage(_In_ const Image &source, _In_ Buffer &destination, _In_ const vector<BufferImageCopy> &regions);
 		/* Appends a pipeline buffer memory barrier command to the command buffer. */

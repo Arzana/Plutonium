@@ -68,7 +68,6 @@ namespace Pu
 		friend class Swapchain;
 		friend class ImageView;
 		friend class CommandBuffer;
-		friend class DefaultTexture;
 
 		LogicalDevice *parent;
 		ImageHndl imageHndl;
@@ -77,7 +76,7 @@ namespace Pu
 		ImageType type;
 		Format format;
 		Extent3D dimensions;
-		uint32 mipmaps;
+		uint32 mipmaps, layers;
 		ImageUsageFlag usage;
 		mutable ImageLayout layout;
 		mutable AccessFlag access;

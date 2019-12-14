@@ -8,7 +8,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of an image view. */
-		ImageView(_In_ const Image &image, _In_ ImageAspectFlag aspect);
+		ImageView(_In_ const Image &image, _In_ ImageViewType type, _In_ ImageAspectFlag aspect);
 		ImageView(_In_ const ImageView&) = delete;
 		/* Move constructor. */
 		ImageView(_In_ ImageView &&value);

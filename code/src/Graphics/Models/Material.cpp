@@ -5,6 +5,7 @@ Pu::Material::Material(DescriptorPool & pool)
 	specularMap(&pool.GetSubpass().GetDescriptor("SpecularGlossiness")),
 	normalMap(&pool.GetSubpass().GetDescriptor("Normal")),
 	emissiveMap(&pool.GetSubpass().GetDescriptor("Emissive")),
+	occlusionMap(&pool.GetSubpass().GetDescriptor("Occlusion")),
 	roughness(1.0f), power(2.0f)
 {}
 
@@ -17,12 +18,13 @@ Pu::Material::Material(DescriptorPool & pool, const PumMaterial & parameters)
 Pu::Material::Material(Material && value)
 	: UniformBlock(std::move(value)), diffuseMap(value.diffuseMap), roughness(value.roughness), 
 	specularMap(value.specularMap), power(value.power), f0(value.f0), diffuse(value.diffuse),
-	normalMap(value.normalMap), emissiveMap(value.emissiveMap)
+	normalMap(value.normalMap), emissiveMap(value.emissiveMap), occlusionMap(value.occlusionMap)
 {
 	value.diffuseMap = nullptr;
 	value.specularMap = nullptr;
 	value.normalMap = nullptr;
 	value.emissiveMap = nullptr;
+	value.occlusionMap = nullptr;
 }
 
 Pu::Material & Pu::Material::operator=(Material && other)
@@ -34,6 +36,7 @@ Pu::Material & Pu::Material::operator=(Material && other)
 		specularMap = other.specularMap;
 		normalMap = other.normalMap;
 		emissiveMap = other.emissiveMap;
+		occlusionMap = other.occlusionMap;
 		roughness = other.roughness;
 		power = other.power;
 		f0 = other.f0;
@@ -43,6 +46,7 @@ Pu::Material & Pu::Material::operator=(Material && other)
 		other.specularMap = nullptr;
 		other.normalMap = nullptr;
 		other.emissiveMap = nullptr;
+		other.occlusionMap = nullptr;
 	}
 
 	return *this;

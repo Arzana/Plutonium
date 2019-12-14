@@ -1,7 +1,7 @@
 #include "Graphics/Textures/Texture2D.h"
 
 Pu::Texture2D::Texture2D(Pu::Image & image, Pu::Sampler & sampler)
-	: Texture(sampler, image)
+	: Texture(sampler, image, ImageViewType::Image2D)
 {}
 
 Pu::Texture2D::Texture2D(Texture2D && value)

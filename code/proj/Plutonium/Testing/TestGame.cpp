@@ -63,9 +63,9 @@ void TestGame::LoadContent(void)
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
-	textures.emplace_back(&fetcher.CreateTexture2D("DefaultDiffuse", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
-	textures.emplace_back(&fetcher.CreateTexture2D("DefaultSpecularGlossinessAndEmisive", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
-	textures.emplace_back(&fetcher.CreateTexture2D("DefaultNormal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
 	stageMaterials.emplace_back(PumMaterial());
 
 	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
@@ -152,6 +152,9 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 			if (mat.HasEmissiveTexture) mat2.SetEmissive(*textures[mat.EmissiveTexture]);
 			else mat2.SetEmissive(*textures[textures.size() - 2]);
+
+			if (mat.HasOcclusionTexture) mat2.SetOcclusion(*textures[mat.OcclusionTexture]);
+			else mat2.SetOcclusion(*textures[textures.size() - 3]);
 
 			mat2.Update(cmd);
 		}

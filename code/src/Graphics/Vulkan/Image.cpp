@@ -3,14 +3,16 @@
 
 Pu::Image::Image(LogicalDevice & device, const ImageCreateInfo & createInfo)
 	: Asset(true), parent(&device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
-	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlag::None)
+	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlag::None),
+	layers(createInfo.ArrayLayers)
 {
 	Create(createInfo);
 }
 
 Pu::Image::Image(Image && value)
 	: Asset(std::move(value)), parent(value.parent), imageHndl(value.imageHndl), memoryHndl(value.memoryHndl), type(value.type), 
-	format(value.format), mipmaps(value.mipmaps), usage(value.usage), layout(value.layout), access(value.access), dimensions(value.dimensions)
+	format(value.format), mipmaps(value.mipmaps), usage(value.usage), layout(value.layout), access(value.access), 
+	dimensions(value.dimensions), layers(value.layers)
 {
 	value.imageHndl = nullptr;
 	value.memoryHndl = nullptr;
@@ -33,6 +35,7 @@ Pu::Image & Pu::Image::operator=(Image && other)
 		layout = other.layout;
 		access = other.access;
 		dimensions = other.dimensions;
+		layers = other.layers;
 
 		other.imageHndl = nullptr;
 		other.memoryHndl = nullptr;
@@ -56,6 +59,7 @@ Pu::ImageSubresourceRange Pu::Image::GetFullRange(ImageAspectFlag aspect) const
 {
 	ImageSubresourceRange result(aspect);
 	result.LevelCount = mipmaps;
+	result.LayerCount = layers;
 	return result;
 }
 
@@ -67,7 +71,7 @@ Pu::Asset & Pu::Image::Duplicate(AssetCache &)
 
 /* We don't allow this image to be copied as it's memory is handled by another system (like the OS). */
 Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access)
-	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(&device), imageHndl(hndl),
+	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(&device), imageHndl(hndl), layers(1),
 	memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
 {
 #ifdef _DEBUG

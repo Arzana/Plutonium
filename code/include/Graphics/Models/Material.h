@@ -96,6 +96,12 @@ namespace Pu
 			Write(*emissiveMap, map);
 		}
 
+		/* Sets the ambient occlusion texture for this material. */
+		inline void SetOcclusion(_In_ const Texture &map)
+		{
+			Write(*occlusionMap, map);
+		}
+
 		/* Gets the glossiness component of this material. */
 		_Check_return_ inline float GetGlossiness(void) const
 		{
@@ -123,6 +129,6 @@ namespace Pu
 		Vector3 diffuse;
 		float roughness, power;
 
-		const Descriptor *diffuseMap, *specularMap, *normalMap, *emissiveMap;
+		const Descriptor *diffuseMap, *specularMap, *normalMap, *emissiveMap, *occlusionMap;
 	};
 }

@@ -147,7 +147,7 @@ void Pu::Swapchain::AquireImages(const SwapchainCreateInfo & createInfo)
 	for (size_t i = 0; i < imageCount; i++)
 	{
 		images.emplace_back(Image(*parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlag::MemoryRead));
-		views.emplace_back(images[i], ImageAspectFlag::Color);
+		views.emplace_back(images[i], ImageViewType::Image2D, ImageAspectFlag::Color);
 	}
 }
 

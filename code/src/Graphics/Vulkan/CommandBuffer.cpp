@@ -87,24 +87,14 @@ bool Pu::CommandBuffer::CanBegin(bool wait) const
 	return false;
 }
 
-void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & srcBuffer, Buffer & dstBuffer)
+void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Buffer & destination)
 {
-	if (CheckIfRecording("copy buffer"))
-	{
-		const BufferCopy region(0, 0, srcBuffer.GetSize());
-
-		/* Append command to the command buffer and set the new element count for the buffer. */
-		device->vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, 1, &region);
-	}
+	CopyBuffer(source, destination, BufferCopy{ 0, 0, source.GetSize() });
 }
 
 void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destination)
 {
-	if (CheckIfRecording("copy buffer to image"))
-	{
-		const BufferImageCopy region(destination.GetExtent());
-		device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
-	}
+	CopyBuffer(source, destination, BufferImageCopy{ destination.GetExtent() });
 }
 
 void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destination)
@@ -116,12 +106,12 @@ void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destinati
 	}
 }
 
-void Pu::CommandBuffer::CopyBuffer(const Buffer & srcBuffer, Buffer & dstBuffer, const vector<BufferCopy>& regions)
+void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Buffer & destination, const vector<BufferCopy>& regions)
 {
 	if (CheckIfRecording("copy buffer"))
 	{
 		/* Append command to the command buffer and set the new element count for the buffer. */
-		device->vkCmdCopyBuffer(hndl, srcBuffer.bufferHndl, dstBuffer.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
+		device->vkCmdCopyBuffer(hndl, source.bufferHndl, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 	}
 }
 
@@ -130,6 +120,22 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, c
 	if (CheckIfRecording("copy buffer to image"))
 	{
 		device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
+	}
+}
+
+void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Buffer & destination, const BufferCopy & region)
+{
+	if (CheckIfRecording("copy buffer"))
+	{
+		device->vkCmdCopyBuffer(hndl, source.bufferHndl, destination.bufferHndl, 1, &region);
+	}
+}
+
+void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, const BufferImageCopy & region)
+{
+	if (CheckIfRecording("copy buffer to image"))
+	{
+		device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
 	}
 }
 

@@ -3,6 +3,7 @@
 #include "PumLoader.h"
 #include "AssetLoader.h"
 #include "Graphics/Textures/Texture2D.h"
+#include "Graphics/Textures/TextureCube.h"
 
 namespace Pu
 {
@@ -26,7 +27,9 @@ namespace Pu
 		/* Fetches the desired 2D texture with the correct sampler and color space. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const PumTexture &texture);
 		/* Fetches the desired 2D texture. */
-		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_opt_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		/* Fetches the desired cube texture. */
+		_Check_return_ TextureCube& FetchTextureCube(_In_ const vector<wstring> &paths, _In_ const wstring &name, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */
 		_Check_return_ Sampler& FetchSampler(_In_ const SamplerCreateInfo &samplerInfo);
 		/* Fetches the desired font. */

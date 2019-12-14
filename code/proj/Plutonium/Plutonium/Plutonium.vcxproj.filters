@@ -636,9 +636,6 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h">
       <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Textures\DefaultTexture.h">
-      <Filter>Header Files\Graphics\Textures</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
@@ -701,6 +698,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
       <Filter>Header Files\Graphics\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureCube.h">
+      <Filter>Header Files\Graphics\Textures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -983,9 +983,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Textures\DefaultTexture.cpp">
-      <Filter>Source Files\Graphics\Textures</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
@@ -1018,6 +1015,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\PushConstant.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureCube.cpp">
+      <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

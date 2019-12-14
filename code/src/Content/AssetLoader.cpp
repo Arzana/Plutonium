@@ -61,15 +61,6 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			child->SetParent(*this);
 		}
 
-		~StageTask(void)
-		{
-			if (cmdPool)
-			{
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-			}
-		}
-
 		virtual Result Execute(void) override
 		{
 			/* Just execute the texture load task. */
@@ -82,12 +73,16 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			/*
 			There are two stages after the texels are loaded.
 			First we stage the image data by applying a copy all command to the transfer queue.
-			Seoncdly we recycle the buffer and mark the texture as loaded.
+			Secondly we delete the staging buffer and mark the texture as loaded.
 			*/
 			if (staged)
 			{
 				result.Image->MarkAsLoaded(true, std::move(name));
 				delete child;
+
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+
 				return Result::AutoDelete();
 			}
 			else
@@ -130,6 +125,101 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, info, path);
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>& paths, const ImageInformation & info, const wstring &name)
+{
+	class StageTask
+		: public Task
+	{
+	public:
+		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const vector<wstring> &paths, const wstring &name)
+			: result(texture), parent(parent), staged(false), name(name), cmdPool(nullptr)
+		{
+			children.reserve(paths.size());
+			for (const wstring &path : paths)
+			{
+				children.emplace_back(new Texture::LoadTask(texture, info, path));
+				children.back()->SetParent(*this);
+			}
+		}
+
+		virtual Result Execute(void) override
+		{
+			/* Load all the 6 underlying textures. */
+			for (Texture::LoadTask *child : children)
+			{
+				scheduler->Spawn(*child);
+			}
+
+			return Result::Default();
+		}
+
+		virtual Result Continue(void) override
+		{
+			/*
+			There are two stages after the texels are loaded.
+			First we stage the image data by applying a copy all command to the transfer queue.
+			Secondly we delete the staging buffers and mark the texture as loaded.
+			*/
+			if (staged)
+			{
+				result.Image->MarkAsLoaded(true, std::move(name));
+				for (const Texture::LoadTask *child : children) delete child;
+
+				cmdBuffer.Deallocate();
+				delete cmdPool;
+
+				return Result::AutoDelete();
+			}
+			else
+			{
+				/* We allocate a new command pool and buffer here to put less stress on the caller. */
+				cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
+				cmdBuffer = std::move(cmdPool->Allocate());
+
+				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+				cmdBuffer.Begin();
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
+
+				/* Copy actual data and end the buffer. */
+				uint32 face = 0;
+				for (Texture::LoadTask *child : children)
+				{
+					/* Each staging buffer hold one face from the cube map. */
+					BufferImageCopy region{ result.Image->GetExtent() };
+					region.ImageSubresource.BaseArrayLayer = face++;
+					cmdBuffer.CopyBuffer(child->GetStagingBuffer(), *result.Image, region);
+				}
+				cmdBuffer.End();
+
+				staged = true;
+				parent.transferQueue.Submit(cmdBuffer);
+				return Result::CustomWait();
+			}
+		}
+
+	protected:
+		virtual bool ShouldContinue(void) const override
+		{
+			/* The texture is done staging if the buffer can begin again. */
+			if (staged) return cmdBuffer.CanBegin();
+			return Task::ShouldContinue();
+		}
+
+	private:
+		Texture &result;
+		AssetLoader &parent;
+		CommandPool *cmdPool;
+		CommandBuffer cmdBuffer;
+		vector<Texture::LoadTask*> children;
+		wstring name;
+		bool staged;
+	};
+
+	/* Simply create the task and spawn it. */
+	StageTask *task = new StageTask(*this, texture, info, paths, name);
 	scheduler.Spawn(*task);
 }
 
