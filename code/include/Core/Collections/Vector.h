@@ -132,6 +132,12 @@ namespace Pu
 			return std::distance(vector_t::begin(), it);
 		}
 
+		/* Adds the contents of another vector to the end of this vector. */
+		inline void concat(_In_ const vector<element_t> &other)
+		{
+			vector_t::insert(vector_t::end(), other.begin(), other.end());
+		}
+
 		/* Checks whether a specified element is within the vector. */
 		_Check_return_ inline bool contains(_In_ const element_t &element) const
 		{
@@ -205,6 +211,13 @@ namespace Pu
 			}
 
 			return result;
+		}
+
+		/* Randomizes the index of every element in the vector. */
+		template <typename algorithm_t>
+		inline void shuffle(_In_ algorithm_t &&algorithm)
+		{
+			std::shuffle(vector_t::begin(), vector_t::end(), std::move(algorithm));
 		}
 
 	private:

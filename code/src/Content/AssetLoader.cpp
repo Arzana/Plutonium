@@ -1,6 +1,6 @@
 #include "Content/AssetLoader.h"
-#include "Graphics/Vulkan/CommandPool.h"
 #include "Graphics/Vulkan/Shaders/Shader.h"
+#include "Graphics/Resources/SingleUseCommandBuffer.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
 	: cache(cache), scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
@@ -55,7 +55,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const wstring &path)
-			: result(texture), parent(parent), staged(false), name(path.fileNameWithoutExtension()), cmdPool(nullptr)
+			: result(texture), parent(parent), staged(false), name(path.fileNameWithoutExtension())
 		{
 			child = new Texture::LoadTask(texture, info, path);
 			child->SetParent(*this);
@@ -79,17 +79,12 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			{
 				result.Image->MarkAsLoaded(true, std::move(name));
 				delete child;
-
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-
 				return Result::AutoDelete();
 			}
 			else
 			{
-				/* We allocate a new command pool and buffer here to put less stress on the caller. */
-				cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
-				cmdBuffer = std::move(cmdPool->Allocate());
+				/* We allocate a new command buffer here to put less stress on the caller. */
+				cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 				cmdBuffer.Begin();
@@ -116,8 +111,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	private:
 		Texture &result;
 		AssetLoader &parent;
-		CommandPool *cmdPool;
-		CommandBuffer cmdBuffer;
+		SingleUseCommandBuffer cmdBuffer;
 		Texture::LoadTask *child;
 		wstring name;
 		bool staged;
@@ -135,7 +129,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const vector<wstring> &paths, const wstring &name)
-			: result(texture), parent(parent), staged(false), name(name), cmdPool(nullptr)
+			: result(texture), parent(parent), staged(false), name(name)
 		{
 			children.reserve(paths.size());
 			for (const wstring &path : paths)
@@ -148,11 +142,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 		virtual Result Execute(void) override
 		{
 			/* Load all the 6 underlying textures. */
-			for (Texture::LoadTask *child : children)
-			{
-				scheduler->Spawn(*child);
-			}
-
+			for (Texture::LoadTask *child : children) scheduler->Spawn(*child);
 			return Result::Default();
 		}
 
@@ -167,17 +157,12 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 			{
 				result.Image->MarkAsLoaded(true, std::move(name));
 				for (const Texture::LoadTask *child : children) delete child;
-
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-
 				return Result::AutoDelete();
 			}
 			else
 			{
-				/* We allocate a new command pool and buffer here to put less stress on the caller. */
-				cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
-				cmdBuffer = std::move(cmdPool->Allocate());
+				/* We allocate a new command buffer here to put less stress on the caller. */
+				cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 				cmdBuffer.Begin();
@@ -211,8 +196,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 	private:
 		Texture &result;
 		AssetLoader &parent;
-		CommandPool *cmdPool;
-		CommandBuffer cmdBuffer;
+		SingleUseCommandBuffer cmdBuffer;
 		vector<Texture::LoadTask*> children;
 		wstring name;
 		bool staged;
@@ -230,7 +214,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size, wstring &&id)
-			: result(texture), parent(parent), id(std::move(id)), cmdPool(nullptr)
+			: result(texture), parent(parent), id(std::move(id))
 		{
 			this->data = (byte*)malloc(size);
 			memcpy(this->data, data, size);
@@ -241,19 +225,12 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 		{
 			delete stagingBuffer;
 			free(data);
-
-			if (cmdPool)
-			{
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-			}
 		}
 
 		virtual Result Execute(void) override
 		{
-			/* We allocate a new command pool and buffer here to put less stress on the caller. */
-			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
-			cmdBuffer = std::move(cmdPool->Allocate());
+			/* We allocate a new command buffer here to put less stress on the caller. */
+			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
 			/* Load the image data into the staging buffer. */
 			stagingBuffer->Load(data);
@@ -287,8 +264,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 	private:
 		Texture &result;
 		AssetLoader &parent;
-		CommandPool *cmdPool;
-		CommandBuffer cmdBuffer;
+		SingleUseCommandBuffer cmdBuffer;
 		StagingBuffer *stagingBuffer;
 		byte *data;
 		wstring id;
@@ -306,23 +282,13 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 	{
 	public:
 		LoadTask(AssetLoader &parent, Font &font, const wstring &path, Task &continuation)
-			: result(font), parent(parent), path(path), continuation(continuation), cmdPool(nullptr)
+			: result(font), parent(parent), path(path), continuation(continuation)
 		{}
-
-		~LoadTask()
-		{
-			if (cmdPool)
-			{
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-			}
-		}
 
 		virtual Result Execute(void) override
 		{
-			/* We allocate a new command pool and buffer here to put less stress on the caller. */
-			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
-			cmdBuffer = std::move(cmdPool->Allocate());
+			/* We allocate a new command buffer here to put less stress on the caller. */
+			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
 			/* Load the glyph information. */
 			result.Load(path);
@@ -380,8 +346,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 		Font &result;
 		AssetLoader &parent;
 		Task &continuation;
-		CommandPool *cmdPool;
-		CommandBuffer cmdBuffer;
+		SingleUseCommandBuffer cmdBuffer;
 		const wstring path;
 		StagingBuffer *buffer;
 	};
