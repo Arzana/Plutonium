@@ -29,6 +29,7 @@ protected:
 private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer;
+	Pu::TextureCube *environment;
 
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;

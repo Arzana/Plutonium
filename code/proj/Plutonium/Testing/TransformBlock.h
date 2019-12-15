@@ -9,6 +9,7 @@ public:
 		: UniformBlock(pool, false)
 	{
 		offset = pool.GetSubpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
+		envMap = &pool.GetSubpass().GetDescriptor("Environment");
 	}
 
 	inline void SetProjection(const Pu::Matrix &mtrx)
@@ -29,6 +30,11 @@ public:
 		IsDirty = true;
 	}
 
+	inline void SetEnvironment(const Pu::TextureCube &map)
+	{
+		Write(*envMap, map);
+	}
+
 protected:
 	virtual inline void Stage(Pu::byte *dest) override
 	{
@@ -41,4 +47,5 @@ private:
 	size_t offset;
 	Pu::Matrix proj, view;
 	Pu::Vector3 camPos;
+	const Pu::Descriptor *envMap;
 };

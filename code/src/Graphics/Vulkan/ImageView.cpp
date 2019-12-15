@@ -5,7 +5,9 @@ using namespace Pu;
 Pu::ImageView::ImageView(const Image & image, ImageViewType type, ImageAspectFlag aspect)
 	: parent(image.parent)
 {
-	const ImageViewCreateInfo createInfo(image.imageHndl, type, image.format, aspect);
+	ImageViewCreateInfo createInfo(image.imageHndl, type, image.format, aspect);
+	createInfo.SubresourceRange.LayerCount = image.layers;
+
 	VK_VALIDATE(parent->vkCreateImageView(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
 }
 

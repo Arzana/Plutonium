@@ -14,7 +14,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.05f))
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -63,6 +63,16 @@ void TestGame::LoadContent(void)
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
+	environment = &fetcher.FetchTextureCube(L"Environment", SamplerCreateInfo(), true,
+		{
+			L"{Textures}Skybox/right.jpg",
+			L"{Textures}Skybox/left.jpg",
+			L"{Textures}Skybox/top.jpg",
+			L"{Textures}Skybox/bottom.jpg",
+			L"{Textures}Skybox/front.jpg",
+			L"{Textures}Skybox/back.jpg"
+		});
+
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
@@ -79,6 +89,7 @@ void TestGame::UnLoadContent(void)
 
 	if (transform) delete transform;
 	if (light) delete light;
+	fetcher.Release(*environment);
 
 	for (Material *material : materials) delete material;
 	if (descPoolCam) delete descPoolCam;
@@ -113,6 +124,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
+	if (!environment->IsUsable()) return;
 
 	for (Texture2D *texture : textures)
 	{
@@ -130,6 +142,9 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+
+		cmd.MemoryBarrier(*environment, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, environment->GetFullRange());
+		transform->SetEnvironment(*environment);
 
 		vector<std::tuple<const Image*, ImageSubresourceRange>> tmp;
 		tmp.reserve(textures.size());

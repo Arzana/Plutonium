@@ -103,7 +103,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	}
 }
 
-Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const vector<wstring>& paths, const wstring & name, const SamplerCreateInfo & samplerInfo, bool sRGB, uint32 mipMapLevels)
+Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels)
 {
 	/* Make sure the wildcards are solved. */
 	vector<wstring> mutableImages;

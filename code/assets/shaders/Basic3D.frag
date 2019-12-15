@@ -9,6 +9,7 @@ layout (binding = 1) uniform Globals
 	vec3 CamPos;
 };
 
+layout (binding = 2) uniform samplerCube Environment;
 layout (binding = 0, set = 1) uniform sampler2D Diffuse;
 layout (binding = 1, set = 1) uniform sampler2D SpecularGlossiness;
 layout (binding = 2, set = 1) uniform sampler2D Normal;
@@ -69,13 +70,14 @@ void main()
 	if (diff.a < 0.5f) discard;
 
 	// Constants. 
+	const float roughness = (1.0f - texture(SpecularGlossiness, Uv).a) * Roughness;
+	const vec3 normal = normalize(TBN * normalize(texture(Normal, Uv).xyz * 2.0f - 1.0f));
 	const vec3 v = normalize(CamPos - Position);
 	const vec3 h = normalize(v + Direction);
+	const vec3 r = reflect(v, normal);
 
 	// Intermediates
-	const float roughness = (1.0f - texture(SpecularGlossiness, Uv).a) * Roughness;
 	const float a2 = roughness * roughness;
-	const vec3 normal = normalize(TBN * normalize(texture(Normal, Uv).xyz * 2.0f - 1.0f));
 	const float ndl = max(0.0f, dot(normal, Direction));
 	const float ndv = max(0.0f, dot(normal, v));
 	const float ndh = max(0.0f, dot(normal, h));
@@ -85,10 +87,11 @@ void main()
 	const vec3 f = fresnel(ndh);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, a2);
+	const vec3 env = texture(Environment, r).rgb;
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diff.rgb / PI);
-	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
+	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * env;
 	const float ao = texture(Occlusion, Uv).r;
 	const vec3 color = (fd + fs) * ao * Radiance * Intensity;
 
