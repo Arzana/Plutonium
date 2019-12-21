@@ -13,6 +13,8 @@ namespace Pu
 		float MoveSpeed;
 		/* The viewing speed modifier of the camera. */
 		float LookSpeed;
+		/* Defines the dead zone of the slider input. */
+		float DeadZone;
 		/* Whether the cursor pitch control should be inverted. */
 		bool Inverted;
 
@@ -60,12 +62,14 @@ namespace Pu
 
 	private:
 		uint16 keyFrwd, keyBkwd, keyLeft, keyRight;
-		byte keyStates;
+		byte state;
+		Vector3 moveDelta;
 		Vector2 lookDelta;
 		const InputDeviceHandler &inputHandler;
 
 		void KeyDownEventHandler(const InputDevice&, const ButtonEventArgs &args);
 		void KeyUpEventHandler(const InputDevice&, const ButtonEventArgs &args);
 		void MouseMovedEventHandler(const Mouse&, Vector2 delta);
+		void ValueEventHandler(const InputDevice&, const ValueEventArgs &args);
 	};
 }

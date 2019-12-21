@@ -156,7 +156,7 @@ void Pu::InputDevice::HandleWin32Event(const RAWHID & info)
 			/* Check if the value differs and post if a change was made. */
 			if (newValue != valueStates[i])
 			{
-				ValueChanged.Post(*this, ValueEventArgs(caps, newValue));
+				ValueChanged.Post(*this, ValueEventArgs(caps, value, newValue));
 				valueStates[i] = newValue;
 			}
 		}

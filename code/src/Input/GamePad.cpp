@@ -49,6 +49,9 @@ void Pu::GamePad::HandleSliderInput(const InputDevice&, const ValueEventArgs & a
 	/*
 	These events occur per dimension for the axis inputs (thumbsticks) so we need to get the last know value for the associated dimension.
 
+	The thumbsticks have a value of 0.5 in the center 0.0 at the left side and 1.0 at the right side.
+	So we convert them to the range [-1, 1] to indicate their direction better.
+
 	The triggers are stored on the Z axis where the right trigger is range [0, 0.5] and the left trigger is range [0.5, 1].
 	We normalize these as well so they're both in [0, 1] range.
 
@@ -58,16 +61,16 @@ void Pu::GamePad::HandleSliderInput(const InputDevice&, const ValueEventArgs & a
 	switch (_CrtInt2Enum<HIDUsageGenericDesktop>(args.Information.GetUsageStart()))
 	{
 	case (HIDUsageGenericDesktop::X):
-		LeftThumbMoved.Post(*this, Vector2(args.Value, GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Y))));
+		LeftThumbMoved.Post(*this, Vector2(args.Value * 2.0f - 1.0f, GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Y))));
 		break;
 	case (HIDUsageGenericDesktop::Y):
-		LeftThumbMoved.Post(*this, Vector2(GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::X)), args.Value));
+		LeftThumbMoved.Post(*this, Vector2(GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::X)), args.Value * 2.0f - 1.0f));
 		break;
 	case (HIDUsageGenericDesktop::Rx):
-		RightThumbMoved.Post(*this, Vector2(args.Value, GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Ry))));
+		RightThumbMoved.Post(*this, Vector2(args.Value* 2.0f - 1.0f, GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Ry))));
 		break;
 	case (HIDUsageGenericDesktop::Ry):
-		LeftThumbMoved.Post(*this, Vector2(GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Rx)), args.Value));
+		LeftThumbMoved.Post(*this, Vector2(GetUsageValue(_CrtEnum2Int(HIDUsageGenericDesktop::Rx)), args.Value* 2.0f - 1.0f));
 		break;
 	case (HIDUsageGenericDesktop::Z):
 		if (args.Value <= 0.5f) RightTriggerMoved.Post(*this, args.Value * 2.0f);

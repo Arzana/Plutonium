@@ -13,12 +13,12 @@ namespace Pu
 	{
 	public:
 		/* Gets the HID usage page that this value belongs to. */
-		_Check_return_ inline uint16 GetUsagePage(void) const
+		_Check_return_ inline HIDUsagePage GetUsagePage(void) const
 		{
 #ifdef _WIN32
-			return page;
+			return _CrtInt2Enum<HIDUsagePage>(page);
 #else 
-			return 0;
+			return HIDUsagePage::Undefined;;
 #endif
 		}
 

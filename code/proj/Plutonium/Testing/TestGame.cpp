@@ -30,10 +30,12 @@ void TestGame::EnableFeatures(Pu::PhysicalDeviceFeatures & features)
 void TestGame::Initialize(void)
 {
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);
+	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
+
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
 	cam->Move(0.0f, 5.0f, -3.0f);
 	cam->Yaw = PI2;
-	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
+
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
@@ -235,7 +237,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
-		if (args.KeyCode == _CrtEnum2Int(Keys::XBoxB)) Exit();
+		if (args.Key == Keys::XBoxB) Exit();
 	}
 }
 
