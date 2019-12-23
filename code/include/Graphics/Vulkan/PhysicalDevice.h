@@ -25,7 +25,7 @@ namespace Pu
 		/* Gets the queue families available on this physical device. */
 		_Check_return_ vector<QueueFamilyProperties> GetQueueFamilies(void) const;
 		/* Creates a new logical device from this physical device (requires delete!). */
-		_Check_return_ LogicalDevice* CreateLogicalDevice(_In_ const DeviceCreateInfo *createInfo) const;
+		_Check_return_ LogicalDevice* CreateLogicalDevice(_In_ const DeviceCreateInfo &createInfo) const;
 		/* Gets all extensions supported by a specific layer (UTF-8) or all enabled extensions if the layer is nullptr or this physical device. */
 		_Check_return_ vector<ExtensionProperties> GetSupportedExtensions(_In_ const char *layer) const;
 		/* Checks whether a specific extension is supported. */
@@ -36,6 +36,12 @@ namespace Pu
 		_Check_return_ FormatProperties GetFormatProperties(_In_ Format format) const;
 		/* Gets the alligned size for a specific object in a uniform buffer. */
 		_Check_return_ DeviceSize GetUniformBufferOffsetAllignment(_In_ DeviceSize size) const;
+		/* Gets the best graphics queue family index for a specific surface. */
+		_Check_return_ uint32 GetBestGraphicsQueueFamily(_In_ const Surface &surface) const;
+		/* Gets the best graphics queue family index, with no presentation taken into account. */
+		_Check_return_ uint32 GetBestGraphicsQueueFamily(void) const;
+		/* Gets the best transfer queue family index. */
+		_Check_return_ uint32 GetBestTransferQueueFamily(void) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const
@@ -140,8 +146,7 @@ namespace Pu
 
 		ImageFormatProperties GetImageFormatProperties(const ImageCreateInfo &createInfo);
 		bool SupportsPlutonium(const Surface &surface) const;
-		uint32 GetBestGraphicsQueueFamily(const Surface &surface) const;
-		uint32 GetBestTransferQueueFamily(void) const;
+		uint32 GetBestGraphicsQueueFamilyInternal(const Surface *surface) const;
 		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, bool preferCaching, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};

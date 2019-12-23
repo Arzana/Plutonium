@@ -25,10 +25,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Subpass& operator =(_In_ Subpass&&) = default;
 
-		/* Sets the dependency information for this subpass. */
-		void SetInformation(_In_ PipelineStageFlag stage, _In_ AccessFlag access);
-		/* Sets the dependency information for the previous subpass. */
-		void SetDependency(_In_ PipelineStageFlag stage, _In_ AccessFlag access);
+		/* Sets the dependency information for the this subpass. */
+		void SetDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None);
 		/* Adds a depth/stencil buffer to the subpass. */
 		_Check_return_ Output& AddDepthStencil(void);
 		/* Gets the specified shader output. */

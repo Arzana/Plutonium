@@ -156,7 +156,7 @@ void Pu::Application::InitializeVulkan(void)
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
-	device = physicalDevice.CreateLogicalDevice(&deviceCreateInfo);
+	device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 }
 

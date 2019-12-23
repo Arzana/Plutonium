@@ -43,6 +43,18 @@ namespace Pu
 			return queues.at(familyIndex).at(queueIndex);
 		}
 
+		/* Gets the family index of the default graphics queues. */
+		_Check_return_ inline uint32 GetGraphicsQueueFamily(void) const
+		{
+			return graphicsQueueFamily;
+		}
+
+		/* Gets the family index of the default transfer queues. */
+		_Check_return_ inline uint32 GetTransferQueueFamily(void) const
+		{
+			return transferQueueFamily;
+		}
+
 		/* Gets the physical device the logical device was created on. */
 		_Check_return_ inline const PhysicalDevice& GetPhysicalDevice(void) const
 		{
@@ -54,6 +66,15 @@ namespace Pu
 		{
 			VK_VALIDATE(vkDeviceWaitIdle(hndl), PFN_vkDeviceWaitIdle);
 		}
+
+		/* Gets whether a specific device extension is enabled. */
+		_Check_return_ inline bool IsExtensionEnabled(_In_ const char *extension)
+		{
+			return enabledExtensions.contains(extension);
+		}
+
+		/* Sets the family index of the graphics and transfer queues. */
+		void SetQueues(_In_ uint32 graphics, _In_ uint32 transfer);
 
 	private:
 		friend class Application;
@@ -81,6 +102,7 @@ namespace Pu
 		DeviceHndl hndl;
 		std::map<uint32, vector<Queue>> queues;
 		uint32 graphicsQueueFamily, transferQueueFamily;
+		vector<const char*> enabledExtensions;
 
 		PFN_vkDestroyDevice vkDestroyDevice;
 		PFN_vkGetDeviceQueue vkGetDeviceQueue;
@@ -165,7 +187,7 @@ namespace Pu
 		PFN_vkQueueWaitIdle vkQueueWaitIdle;
 		PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
 
-		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo *queueCreateInfos);
+		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo);
 
 #ifdef _DEBUG
 		void SetDebugName(ObjectType type, const void *handle, const string &name);
@@ -175,7 +197,6 @@ namespace Pu
 		void EndCommandBufferLabel(CommandBufferHndl commandBuffer);
 #endif
 
-		void SetQueues(uint32 graphics, uint32 transfer);
 		void LoadDeviceProcs(void);
 		void Destory(void);
 	};

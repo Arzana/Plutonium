@@ -1,7 +1,7 @@
 #include "Content/AssetSaver.h"
-#include "Graphics/Vulkan/CommandPool.h"
 #include "Streams/FileWriter.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include "Graphics/Resources/SingleUseCommandBuffer.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBIW_WINDOWS_UTF8
@@ -26,30 +26,17 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	{
 	public:
 		SaveTask(AssetSaver &parent, const Image &image, const wstring &path, ImageSaveFormats format)
-			: parent(parent), image(image), path(path), format(format), cmdPool(nullptr)
+			: parent(parent), image(image), path(path), format(format)
 		{}
-
-		~SaveTask(void)
-		{
-			/* The command buffer needs to be deallocated before the command pool. */
-			if (cmdPool)
-			{
-				cmdBuffer.Deallocate();
-				delete cmdPool;
-			}
-		}
 
 		virtual Result Execute(void) override
 		{
-			/* Create the command pool and the buffer, it's better for the caller to do it here than the ctor. */
-			cmdPool = new CommandPool(parent.device, parent.transferQueue.GetFamilyIndex(), CommandPoolCreateFlag::None);
-			cmdBuffer = std::move(cmdPool->Allocate());
+			/* Create the command buffer, it's better for the caller to do it here than the ctor. */
+			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
 			/* Creat the buffer needed as a result for the image data. */
 			const Extent3D extent = image.GetExtent();
 			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetChannels();
-			const ImageSubresourceRange range(ImageAspectFlag::Color);
-
 			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, true);
 
 			/*
@@ -58,7 +45,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			The buffer on the other hand has no access flag set so we can do it at the top of pipe already.
 			*/
 			cmdBuffer.Begin();
-			cmdBuffer.MemoryBarrier(image, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, range);
+			cmdBuffer.MemoryBarrier(image, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, image.GetFullRange(ImageAspectFlag::Color));
 			cmdBuffer.MemoryBarrier(*destination, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
 
 			/* Copy the actual data and end the buffer. */
@@ -96,8 +83,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	private:
 		AssetSaver &parent;
 		const Image &image;
-		CommandPool *cmdPool;
-		CommandBuffer cmdBuffer;
+		SingleUseCommandBuffer cmdBuffer;
 		wstring path;
 		ImageSaveFormats format;
 		Buffer *destination;

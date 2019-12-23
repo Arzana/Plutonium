@@ -14,6 +14,8 @@ namespace Pu
 		/* Defines a handler for reading a module. */
 		using ModuleHandler = DelegateBase<SPIRVReader, spv::Op, size_t>;
 
+		/* Creates a new reader from a raw source. */
+		SPIRVReader(_In_ const void *src, _In_ size_t size);
 		/* Creates a new reader from the specific file path. */
 		SPIRVReader(_In_ const wstring &path);
 		SPIRVReader(_In_ SPIRVReader&) = delete;

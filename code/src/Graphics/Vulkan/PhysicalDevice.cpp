@@ -47,17 +47,17 @@ vector<QueueFamilyProperties> Pu::PhysicalDevice::GetQueueFamilies(void) const
 	return result;
 }
 
-LogicalDevice * Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo * createInfo) const
+LogicalDevice * Pu::PhysicalDevice::CreateLogicalDevice(const DeviceCreateInfo & createInfo) const
 {
 	/* Create new logical device. */
 	DeviceHndl device;
-	VK_VALIDATE(parent->vkCreateDevice(hndl, createInfo, nullptr, &device), PFN_vkCreateDevice);
+	VK_VALIDATE(parent->vkCreateDevice(hndl, &createInfo, nullptr, &device), PFN_vkCreateDevice);
 
 	/* Log creation. */
 	const auto[major, minor, patch] = GetVulkanVersion();
 	Log::Message("Created new Vulkan v%u.%u.%u logical device on %s", major, minor, patch, GetName());
 
-	return new LogicalDevice(const_cast<PhysicalDevice&>(*this), device, createInfo->QueueCreateInfoCount, createInfo->QueueCreateInfos);
+	return new LogicalDevice(const_cast<PhysicalDevice&>(*this), device, createInfo);
 }
 
 vector<ExtensionProperties> Pu::PhysicalDevice::GetSupportedExtensions(const char * layer) const
@@ -156,7 +156,7 @@ bool Pu::PhysicalDevice::SupportsPlutonium(const Surface & surface) const
 	return true;
 }
 
-uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) const
+uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamilyInternal(const Surface * surface) const
 {
 	const vector<QueueFamilyProperties> families = GetQueueFamilies();
 	uint32 choosen = maxv<uint32>();
@@ -165,11 +165,15 @@ uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) c
 	/* Loop through all families to find best one. */
 	for (uint32 i = 0; i < families.size(); i++, score = 0)
 	{
-		/* Check if queue supported graphics operations and presenting to our surface. */
+		/* Check if queue supported graphics operations. */
 		const QueueFamilyProperties &cur = families[i];
-		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Graphics) && surface.QueueFamilySupportsPresenting(i, *this))
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Graphics))
 		{
-			if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Graphics) score += 1;
+			/* Check if the queue family supports presenting if a surface is specified. */
+			if ((surface && surface->QueueFamilySupportsPresenting(i, *this)) || !surface)
+			{
+				if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Graphics) score += 1;
+			}
 		}
 
 		/* Update choosen graphics queue if needed. */
@@ -185,6 +189,16 @@ uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) c
 
 	/* Return the choosen graphics queue or the first queue if no queue's were acceptable. */
 	return choosen;
+}
+
+uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(const Surface & surface) const
+{
+	return GetBestGraphicsQueueFamilyInternal(&surface);
+}
+
+uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(void) const
+{
+	return GetBestGraphicsQueueFamilyInternal(nullptr);
 }
 
 uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const

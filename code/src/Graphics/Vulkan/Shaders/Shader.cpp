@@ -14,6 +14,24 @@ Pu::Shader::Shader(LogicalDevice & device, const wstring & path)
 	Load(path, false);
 }
 
+Pu::Shader::Shader(LogicalDevice & device, const void *src, size_t size, ShaderStageFlag stage)
+	: Asset(true), parent(&device)
+{
+	/* Create a new reader and immediately load the shader. */
+	SPIRVReader spvr{ src, size };
+	Create(spvr);
+
+	/* Set the shader information. */
+	info.Stage = stage;
+	SetFieldInfo();
+
+	/* Mark the asset as loaded and set a default name. */
+	wstring name = L"Raw SPIR-V ";
+	name += string(to_string(stage)).toWide();
+	name += L" shader";
+	MarkAsLoaded(false, std::move(name));
+}
+
 Pu::Shader::Shader(Shader && value)
 	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields))
 {
@@ -49,8 +67,12 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 
 	if (ext == L"SPV")
 	{
+		/* Crash early if the shader cannot be loaded. */
+		if (!FileReader::FileExists(path)) Log::Fatal("Unable to load shader module '%ls'!", path.fileName().c_str());
+
 		/* If the input shader is already defined as binary just load it. */
-		Create(path);
+		SPIRVReader spvr{ path };
+		Create(spvr);
 		SetInfo(path.substr(0, path.length() - 4).fileExtension().toUpper());
 	}
 	else Log::Fatal("'%ls' cannot be loaded as a shader (only SPIR-V shaders are valid)!", ext.c_str());
@@ -60,23 +82,15 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 	MarkAsLoaded(viaLoader, path.fileName());
 }
 
-void Pu::Shader::Create(const wstring & path)
+void Pu::Shader::Create(SPIRVReader & reader)
 {
-	/* Make sure the file exists before trying to load it. */
-	if (FileReader::FileExists(path))
-	{
-		/* Load the SPIR-V file with a specialized reader. */
-		SPIRVReader spvr(path);
+	/* Compile the SPIR-V shader module. */
+	ShaderModuleCreateInfo createInfo(reader.GetStream().GetSize(), reader.GetStream().GetData());
+	VK_VALIDATE(parent->vkCreateShaderModule(parent->hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
 
-		/* Compile the SPIR-V shader module. */
-		ShaderModuleCreateInfo createInfo(spvr.GetStream().GetSize(), spvr.GetStream().GetData());
-		VK_VALIDATE(parent->vkCreateShaderModule(parent->hndl, &createInfo, nullptr, &info.Module), PFN_vkCreateShaderModule);
-
-		/* Perform reflection to get the inputs and outputs. */
-		auto handler = DelegateMethod<SPIRVReader, Shader, spv::Op, size_t>(*this, &Shader::HandleModule);
-		spvr.HandleAllModules(handler);
-	}
-	else Log::Fatal("Unable to load shader module!");
+	/* Perform reflection to get the inputs and outputs. */
+	auto handler = DelegateMethod<SPIRVReader, Shader, spv::Op, size_t>(*this, &Shader::HandleModule);
+	reader.HandleAllModules(handler);
 }
 
 void Pu::Shader::SetFieldInfo(void)
@@ -130,9 +144,20 @@ void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass st
 
 				fields.emplace_back(memberTypeId, std::move(memberName), std::move(fieldType), storage, memberDecoration);
 			}
-
-			/* Increase the offset. */
-			offset += fieldType.GetSize();
+			else if (fieldType.ComponentType == ComponentType::Invalid)
+			{
+				/* This occurs if the user didn't create a gl_PerVertex block, so we hardset gl_ variables to their defaults. */
+				if (memberName == "gl_Position") offset += sizeof(Vector4);
+				else if (memberName == "gl_PointSize") offset += sizeof(float);
+				else if (memberName == "gl_ClipDistance") offset += sizeof(float);
+				else if (memberName == "gl_CullDistance") offset += sizeof(float);
+				else Log::Fatal("Cannot extract byte size of '%s', was gl_PerVertex not used?", memberName.c_str());
+			}
+			else
+			{
+				/* Increase the offset. */
+				offset += fieldType.GetSize();
+			}
 		}
 	}
 }

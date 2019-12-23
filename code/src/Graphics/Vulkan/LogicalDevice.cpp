@@ -37,29 +37,33 @@ LogicalDevice & Pu::LogicalDevice::operator=(LogicalDevice && other)
 	return *this;
 }
 
-Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint32 queueCreateInfoCount, const DeviceQueueCreateInfo * queueCreateInfos)
+Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo)
 	: parent(&parent), hndl(hndl), graphicsQueueFamily(0), transferQueueFamily(0)
 {
+	/* Copy all the enabled extensions, so we check them later. */
+	enabledExtensions.reserve(createInfo.EnabledExtensionCount);
+	for (uint32 i = 0; i < createInfo.EnabledExtensionCount; i++) enabledExtensions.emplace_back(createInfo.EnabledExtensionNames[i]);
+
 	LoadDeviceProcs();
 
 	/* Preload all queues that where created with the logical device. */
-	for (uint32 i = 0; i < queueCreateInfoCount; i++)
+	for (uint32 i = 0; i < createInfo.QueueCreateInfoCount; i++)
 	{
-		const DeviceQueueCreateInfo *cur = queueCreateInfos + i;
+		const DeviceQueueCreateInfo &cur = createInfo.QueueCreateInfos[i];
 
-		for (uint32 j = 0; j < cur->Count; j++)
+		for (uint32 j = 0; j < cur.Count; j++)
 		{
 			QueueHndl queue;
-			vkGetDeviceQueue(hndl, cur->QueueFamilyIndex, j, &queue);
+			vkGetDeviceQueue(hndl, cur.QueueFamilyIndex, j, &queue);
 
-			std::map<uint32, vector<Queue>>::iterator it = queues.find(cur->QueueFamilyIndex);
+			std::map<uint32, vector<Queue>>::iterator it = queues.find(cur.QueueFamilyIndex);
 			if (it == queues.end())
 			{
 				vector<Queue> storage;
-				storage.push_back(Queue(*this, queue, cur->QueueFamilyIndex));
-				queues.emplace(cur->QueueFamilyIndex, std::move(storage));
+				storage.push_back(Queue(*this, queue, cur.QueueFamilyIndex));
+				queues.emplace(cur.QueueFamilyIndex, std::move(storage));
 			}
-			else it->second.push_back(Queue(*this, queue, cur->QueueFamilyIndex));
+			else it->second.emplace_back(Queue(*this, queue, cur.QueueFamilyIndex));
 		}
 	}
 }
@@ -67,28 +71,43 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, uint3
 #ifdef _DEBUG
 void Pu::LogicalDevice::SetDebugName(ObjectType type, const void * handle, const string & name)
 {
-	const DebugUtilsObjectNameInfo info(type, reinterpret_cast<uint64>(handle), name.c_str());
-	VK_VALIDATE(parent->parent->vkSetDebugUtilsObjectNameEXT(hndl, &info), PFN_vkSetDebugUtilsObjectNameEXT);
+	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		const DebugUtilsObjectNameInfo info(type, reinterpret_cast<uint64>(handle), name.c_str());
+		VK_VALIDATE(parent->parent->vkSetDebugUtilsObjectNameEXT(hndl, &info), PFN_vkSetDebugUtilsObjectNameEXT);
+	}
 }
 
 void Pu::LogicalDevice::BeginQueueLabel(QueueHndl queue, const DebugUtilsLabel & label)
 {
-	parent->parent->vkQueueBeginDebugUtilsLabelEXT(queue, &label);
+	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		parent->parent->vkQueueBeginDebugUtilsLabelEXT(queue, &label);
+	}
 }
 
 void Pu::LogicalDevice::EndQueueLabel(QueueHndl queue)
 {
-	parent->parent->vkQueueEndDebugUtilsLabelEXT(queue);
+	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		parent->parent->vkQueueEndDebugUtilsLabelEXT(queue);
+	}
 }
 
 void Pu::LogicalDevice::BeginCommandBufferLabel(CommandBufferHndl commandBuffer, const DebugUtilsLabel & label)
 {
-	parent->parent->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &label);
+	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		parent->parent->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, &label);
+	}
 }
 
 void Pu::LogicalDevice::EndCommandBufferLabel(CommandBufferHndl commandBuffer)
 {
-	parent->parent->vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		parent->parent->vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+	}
 }
 #endif
 
@@ -113,7 +132,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkQueueWaitIdle);
 
 	/* Swapchain related functions. */
-	if (parent->IsExtensionSupported(u8"VK_KHR_swapchain"))
+	if (IsExtensionEnabled(u8"VK_KHR_swapchain"))
 	{
 		LOAD_DEVICE_PROC(vkCreateSwapchainKHR);
 		LOAD_DEVICE_PROC(vkDestroySwapchainKHR);
@@ -121,7 +140,6 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 		LOAD_DEVICE_PROC(vkAcquireNextImageKHR);
 		LOAD_DEVICE_PROC(vkQueuePresentKHR);
 	}
-	else Log::Warning("%s doesn't support required swapchain extension!", parent->GetName());
 
 	/* Semaphore related functions. */
 	LOAD_DEVICE_PROC(vkCreateSemaphore);

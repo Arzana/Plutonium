@@ -88,7 +88,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 		const ImageInformation info = _CrtGetImageInfo(mutablePath);
 		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
 		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
@@ -138,7 +138,7 @@ Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const
 		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
 		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
 		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
 
 		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 6, SampleCountFlag::Pixel1Bit, usage);
 		createInfo.Flags = ImageCreateFlag::CubeCompatible;
@@ -212,6 +212,11 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	return *result;
 }
 
+Pu::Texture2D & Pu::AssetFetcher::CreateTexture2D(const string & id, Color color)
+{
+	return CreateTexture2D(id, color.ToArray(), 1, 1, SamplerCreateInfo());
+}
+
 Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte * data, uint32 width, uint32 height, const SamplerCreateInfo & samplerInfo)
 {
 	/*
@@ -237,7 +242,7 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte *
 		const ImageInformation info(static_cast<int32>(width), static_cast<int32>(height), 4, false);
 		const uint32 mipMapLevels = static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1);
 		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(false), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);

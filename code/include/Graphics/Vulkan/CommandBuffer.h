@@ -56,10 +56,15 @@ namespace Pu
 			return other.hndl != hndl;
 		}
 
+		/* Starts the recording on the command buffer. */
+		void Begin(void);
+		/* End the recording on the command buffer. */
+		void End(void);
 		/* Deallocates the command buffer from its parent pool. */
 		void Deallocate(void);
 		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
 		_Check_return_ bool CanBegin(_In_opt_ bool wait = false) const;
+
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
 		/* Appends a copy command for the entire source buffer into the destination image to the command buffer. */
@@ -81,7 +86,7 @@ namespace Pu
 		/* Appends a pipeline image memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
 		/* Appends a pipeline image memory barrier command to the command buffer for multiple images. */
-		void MemoryBarrier(_In_ const vector<std::tuple<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
+		void MemoryBarrier(_In_ const vector<std::pair<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
 		/* Appends an image clear command to the command buffer. */
 		void ClearImage(_In_ Image &image, _In_ Color color);
 		/* Appends a render pass begin command for the entire framebuffer to the command buffer. */
@@ -120,6 +125,8 @@ namespace Pu
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */
 		void SetScissor(_In_ Rect2D scissor);
+		/* Sets the viewport and scissor information for a graphics pipeline with dynmaic viewport and scissor states. */
+		void SetViewportAndScissor(_In_ const Viewport &viewport);
 		/* Sets the dynamic line width state. */
 		void SetLineWidth(_In_ float width);
 
@@ -127,8 +134,6 @@ namespace Pu
 		friend class CommandPool;
 		friend class Queue;
 		friend class GameWindow;
-		friend class AssetLoader;
-		friend class AssetSaver;
 
 		CommandPool *parent;
 		LogicalDevice *device;
@@ -139,8 +144,6 @@ namespace Pu
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 
 		void BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue> &clearValues, const Framebuffer &framebuffer, Rect2D renderArea, SubpassContents contents);
-		void Begin(void);
-		void End(void);
 		void Reset(void) const;
 		void Free(void);
 		bool CheckIfRecording(_In_ const char *operation) const;

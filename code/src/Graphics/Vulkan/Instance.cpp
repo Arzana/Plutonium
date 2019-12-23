@@ -29,7 +29,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	LoadStaticProcs();
 
 	/* Make sure the optional extensions are only enabled when they're available. */
-	vector<const char*> enabledExtensions = extensions;
+	enabledExtensions = extensions;
 	for (const char *cur : optionalExtensions)
 	{
 		if (IsExtensionSupported(cur)) enabledExtensions.emplace_back(cur);
@@ -59,7 +59,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	VulkanLoader::GetInstance().AddDeviceProcAddr(hndl);
 
 	/* Load the procedures needed for the instance and get all physical devices. */
-	vkInit(hndl);
+	vkInit(hndl, enabledExtensions);
 	LoadInstanceProcs();
 	GetPhysicalDevices();
 
@@ -71,7 +71,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 
 Pu::VulkanInstance::VulkanInstance(VulkanInstance && value)
 	: hndl(value.hndl), vkDestroyInstance(value.vkDestroyInstance), vkEnumeratePhysicalDevices(vkEnumeratePhysicalDevices),
-	OnDestroy(std::move(value.OnDestroy))
+	OnDestroy(std::move(value.OnDestroy)), enabledExtensions(std::move(value.enabledExtensions))
 {
 	value.hndl = nullptr;
 	value.vkDestroyInstance = nullptr;
@@ -86,6 +86,7 @@ VulkanInstance & Pu::VulkanInstance::operator=(VulkanInstance && other)
 		hndl = other.hndl;
 		vkDestroyInstance = other.vkDestroyInstance;
 		vkEnumeratePhysicalDevices = other.vkEnumeratePhysicalDevices;
+		enabledExtensions = std::move(other.enabledExtensions);
 		OnDestroy = std::move(other.OnDestroy);
 
 		other.hndl = nullptr;
@@ -271,7 +272,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	VK_LOAD_INSTANCE_PROC(hndl, vkEnumerateDeviceExtensionProperties);
 
 	/* Surface extension functions. */
-	if (IsExtensionSupported(u8"VK_KHR_surface"))
+	if (IsExtensionEnabled(u8"VK_KHR_surface"))
 	{
 		VK_LOAD_INSTANCE_PROC(hndl, vkDestroySurfaceKHR);
 		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceSupportKHR);
@@ -279,19 +280,17 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceFormatsKHR);
 		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfacePresentModesKHR);
 	}
-	else Log::Warning("Surface extension is not supported on this platform!");
 
 #ifdef _WIN32
-	if (IsExtensionSupported(u8"VK_KHR_win32_surface"))
+	if (IsExtensionEnabled(u8"VK_KHR_win32_surface"))
 	{
 		VK_LOAD_INSTANCE_PROC(hndl, vkCreateWin32SurfaceKHR);
 	}
-	else Log::Warning("Win32 Create surface extension is not supported by the graphics driver!");
 #endif
 
 	/* Debug utilities functions. */
 #ifdef _DEBUG
-	if (IsExtensionSupported(u8"VK_EXT_debug_utils"))
+	if (IsExtensionEnabled(u8"VK_EXT_debug_utils"))
 	{
 		VK_LOAD_INSTANCE_PROC(hndl, vkCreateDebugUtilsMessengerEXT);
 		VK_LOAD_INSTANCE_PROC(hndl, vkDestroyDebugUtilsMessengerEXT);
@@ -301,7 +300,6 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 		VK_LOAD_INSTANCE_PROC(hndl, vkCmdBeginDebugUtilsLabelEXT);
 		VK_LOAD_INSTANCE_PROC(hndl, vkCmdEndDebugUtilsLabelEXT);
 	}
-	else Log::Warning("Debug utilities is not supported on this platform!");
 #endif
 }
 
@@ -330,12 +328,15 @@ VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessage
 
 void Pu::VulkanInstance::SetUpDebugLayer(void)
 {
-	/* Only add the verbose and info messages if needed. */
-	DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
-	if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Verbose);
-	if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Info);
+	if (IsExtensionEnabled(u8"VK_EXT_debug_utils"))
+	{
+		/* Only add the verbose and info messages if needed. */
+		DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
+		if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Verbose);
+		if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Info);
 
-	VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);
+		VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);
+	}
 }
 
 void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const

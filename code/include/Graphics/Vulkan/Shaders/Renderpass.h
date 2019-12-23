@@ -18,9 +18,11 @@ namespace Pu
 
 		/* Initializes an empty instance of a renderpass. */
 		Renderpass(_In_ LogicalDevice &device);
-		/* Initializes a new instance of a renderpass with specified shader modules for specified subpasses. */
+		/* Creates a new instance of a renderpass with specified shader modules for specified subpasses (needs to be initialized). */
 		Renderpass(_In_ LogicalDevice &device, _In_ std::initializer_list<std::initializer_list<wstring>> shaderModules);
-		/* Initializes a new instance of a renderpass with specified subpasses. */
+		/* Creates a new instance of a renderpass with one specific subpass (needs to be initialized). */
+		Renderpass(_In_ LogicalDevice &device, _In_ Subpass &subpass);
+		/* Creates a new instance of a renderpass with specified subpasses (needs to be initialized). */
 		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;
 		/* Move constructor. */
@@ -35,6 +37,10 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Renderpass& operator =(_In_ Renderpass &&other);
 
+		/* Initializes the renderpass, this method is only available for renderpass that aren't initialized yet via either the loader or directly. */
+		void Initialize(void);
+		/* Adds an external dependency to the end of the renderpass. */
+		void AddDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flag = DependencyFlag::None);
 		/* Preserves the specified output field for the specified subpass. */
 		void Preserve(_In_ const Output &field, _In_ uint32 subpass);
 		/* Sets the specified output as an input attachment (or depth/stencil) for the specified subpass. */
@@ -86,7 +92,8 @@ namespace Pu
 		LogicalDevice *device;
 		RenderPassHndl hndl;
 		PipelineLayoutHndl layoutHndl;
-		bool ownsShaders;
+		SubpassDependency outputDependency;
+		bool ownsShaders, usesDependency;
 
 		vector<DescriptorSetLayoutHndl> descriptorSetLayouts;
 		vector<Subpass> subpasses;

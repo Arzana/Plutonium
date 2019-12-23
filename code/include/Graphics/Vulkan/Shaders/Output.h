@@ -17,6 +17,12 @@ namespace Pu
 			reference.Layout = layout;
 		}
 
+		/* Sets the format of the output image. */
+		inline void SetFormat(_In_ Format format)
+		{
+			description.Format = format;
+		}
+
 		/* Sets the layout of the output before this output is used in the render pass. */
 		inline void SetInitialLayout(_In_ ImageLayout layout)
 		{

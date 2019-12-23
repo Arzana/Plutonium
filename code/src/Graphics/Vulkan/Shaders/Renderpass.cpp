@@ -2,7 +2,7 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
-	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false),
+	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false), usesDependency(false),
 	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate")
 {}
 
@@ -24,20 +24,24 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, std::initializer_list<std::in
 
 		subpasses.emplace_back(device.GetPhysicalDevice(), shaders);
 	}
+}
 
-	Create(false);
+Pu::Renderpass::Renderpass(LogicalDevice & device, Subpass & subpass)
+	: Renderpass(device)
+{
+	subpasses.emplace_back(subpass);
 }
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
 	: Renderpass(device)
 {
 	this->subpasses = std::move(subpasses);
-	Create(false);
 }
 
 Pu::Renderpass::Renderpass(Renderpass && value)
 	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
-	subpasses(std::move(value.subpasses)), clearValues(std::move(value.clearValues)),
+	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)), 
+	clearValues(std::move(value.clearValues)), usesDependency(value.usesDependency),
 	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), layoutHndl(value.layoutHndl),
 	inputAttachments(std::move(value.inputAttachments)), depthStencilAttachments(std::move(value.depthStencilAttachments)),
 	preserveAttachments(std::move(value.preserveAttachments)), descriptorSetLayouts(std::move(value.descriptorSetLayouts))
@@ -57,6 +61,8 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		hndl = other.hndl;
 		layoutHndl = other.layoutHndl;
 		ownsShaders = other.ownsShaders;
+		usesDependency = other.usesDependency;
+		outputDependency = other.outputDependency;
 		subpasses = std::move(other.subpasses);
 		clearValues = std::move(other.clearValues);
 		PreCreate = std::move(other.PreCreate);
@@ -71,6 +77,24 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 	}
 
 	return *this;
+}
+
+void Pu::Renderpass::Initialize(void)
+{
+	/* Just call create, but only if we've not loaded the renderpass! */
+	if (!(IsLoaded() || ownsShaders)) Create(false);
+}
+
+void Pu::Renderpass::AddDependency(PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flag)
+{
+	usesDependency = true;
+	outputDependency.SrcSubpass = static_cast<uint32>(subpasses.size() - 1);
+	outputDependency.DstSubpass = SubpassExternal;
+	outputDependency.SrcStageMask = srcStage;
+	outputDependency.DstStageMask = dstStage;
+	outputDependency.SrcAccessMask = srcAccess;
+	outputDependency.DstAccessMask = dstAccess;
+	outputDependency.DependencyFlags = flag;
 }
 
 void Pu::Renderpass::Preserve(const Output & field, uint32 subpass)
@@ -169,12 +193,12 @@ void Pu::Renderpass::Create(bool viaLoader)
 	After this we call post-create for optional ownder code and then mark it as loaded.
 	Marking as loaded should always be the last thing to do for thread safety.
 	*/
-	if (viaLoader) PreCreate.Post(*this);
+	PreCreate.Post(*this);
 
 	CreateRenderpass();
 	CreateDescriptorSetLayouts();
 
-	if (viaLoader) PostCreate.Post(*this);
+	PostCreate.Post(*this);
 	MarkAsLoaded(viaLoader, L"Renderpass");
 }
 
@@ -246,10 +270,22 @@ void Pu::Renderpass::CreateRenderpass(void)
 
 	/* Copy the dependencies from the subpasses. */
 	vector<SubpassDependency> dependencies;
-	for (const Subpass &subpass : subpasses)
+	for (i = 0; i < subpasses.size(); i++)
 	{
-		if (subpass.dependencyUsed) dependencies.emplace_back(subpass.dependency);
+		const Subpass &subpass = subpasses[i];
+		if (subpass.dependencyUsed)
+		{
+			dependencies.emplace_back(subpass.dependency);
+			dependencies.back().DstSubpass = i;
+
+			/* We must set the source (previous) and destination (current) subpass ourselves. */
+			if (i == 0) dependencies.back().SrcSubpass = SubpassExternal;
+			else dependencies.back().SrcSubpass = i - 1;
+		}
 	}
+
+	/* Only add the external output dependency if the user created one. */
+	if (usesDependency) dependencies.emplace_back(outputDependency);
 
 	/* Create the renderpass. */
 	const RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions, dependencies);

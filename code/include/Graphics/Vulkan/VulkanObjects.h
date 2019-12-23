@@ -1806,6 +1806,13 @@ namespace Pu
 			: X(0.0f), Y(0.0f), Width(w), Height(h), MinDepth(0.0f), MaxDepth(1.0f)
 		{}
 
+		/* Initializes a new instance of a viewport object. */
+		Viewport(_In_ Rect2D size)
+			: X(static_cast<float>(size.Offset.X)), Y(static_cast<float>(size.Offset.Y)), 
+			Width(static_cast<float>(size.Extent.Width)), Height(static_cast<float>(size.Extent.Height)),
+			MinDepth(0.0f), MaxDepth(1.0f)
+		{}
+
 		/* Gets the position of the viewport. */
 		_Check_return_ inline Offset2D GetPosition(void) const
 		{

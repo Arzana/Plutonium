@@ -1605,10 +1605,6 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 			if (value.TryGetNamedNumber("METALLICFACTOR", number))
 			{
 				material.Metalness = static_cast<float>(number);	// We save the metalness for during the conversion stage.
-
-				/* The diffuse and specular color are only set when metalness is defined for the entire object. */
-				material.DiffuseFactor = Color::Lerp(albedo, Color::Black(), material.Metalness);
-				material.SpecularFactor = Color::Lerp(Color::CodGray(), material.DiffuseFactor, material.Metalness);
 			}
 
 			if (value.TryGetNamedNumber("ROUGHNESSFACTOR", number)) material.Glossiness = 1.0f - static_cast<float>(number);

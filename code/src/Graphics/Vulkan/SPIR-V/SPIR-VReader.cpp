@@ -2,13 +2,21 @@
 #include "Streams/FileReader.h"
 #include "Core/Diagnostics/Logging.h"
 
+Pu::SPIRVReader::SPIRVReader(const void *src, size_t size)
+{
+	/* Create the reader from the raw data, the user is responsible for keeping the data alive. */
+	reader = new BinaryReader(src, size);
+
+	/* Validate the header. */
+	ValidateHeader();
+}
+
 Pu::SPIRVReader::SPIRVReader(const wstring & path)
 {
-	/* Load raw binary data from file and initialize the binary reader. */
+	/* Read the contents from file. */
 	raw = FileReader(path).ReadToEnd();
 	reader = new BinaryReader(raw.data(), raw.size());
 
-	/* Validate the header. */
 	ValidateHeader();
 }
 

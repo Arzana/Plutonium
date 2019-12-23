@@ -18,6 +18,8 @@ namespace Pu
 		Shader(_In_ LogicalDevice &device);
 		/* Creates a new shader module from a specified file. */
 		Shader(_In_ LogicalDevice &device, _In_ const wstring &path);
+		/* Creates a new shader module from a specified source. */
+		Shader(_In_ LogicalDevice &device, _In_ const void *src, _In_ size_t size, _In_ ShaderStageFlag stage);
 		Shader(_In_ const Shader&) = delete;
 		/* Move constructor. */
 		Shader(_In_ Shader &&value);
@@ -83,7 +85,7 @@ namespace Pu
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
 		void Load(const wstring &path, bool viaLoader);
-		void Create(const wstring &path);
+		void Create(SPIRVReader &reader);
 		void SetFieldInfo(void);
 		void HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage);
 		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t wordCnt);

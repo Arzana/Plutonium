@@ -75,9 +75,9 @@ void TestGame::LoadContent(void)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White().ToArray(), 1, 1, SamplerCreateInfo()));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black().ToArray(), 1, 1, SamplerCreateInfo()));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu().ToArray(), 1, 1, SamplerCreateInfo()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
 	stageMaterials.emplace_back(PumMaterial());
 
 	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
@@ -148,9 +148,9 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		cmd.MemoryBarrier(*environment, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, environment->GetFullRange());
 		transform->SetEnvironment(*environment);
 
-		vector<std::tuple<const Image*, ImageSubresourceRange>> tmp;
+		vector<std::pair<const Image*, ImageSubresourceRange>> tmp;
 		tmp.reserve(textures.size());
-		for (const Texture2D *texture : textures) tmp.emplace_back(std::make_tuple(&texture->GetImage(), texture->GetFullRange()));
+		for (const Texture2D *texture : textures) tmp.emplace_back(std::make_pair(&texture->GetImage(), texture->GetFullRange()));
 		cmd.MemoryBarrier(tmp, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead);
 
 		for (size_t i = 0; i < materials.size() - 1; i++)

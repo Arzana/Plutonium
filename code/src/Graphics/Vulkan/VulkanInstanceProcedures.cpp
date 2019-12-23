@@ -119,7 +119,7 @@ namespace Pu
 #endif
 }
 
-void Pu::vkInit(InstanceHndl instance)
+void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensions)
 {
 	/* Only has to be called once. */
 	static bool initialized = false;
@@ -139,11 +139,6 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkEnumerateDeviceExtensionProperties);
 	LOAD_INSTANCE_PROC(vkDestroyDevice);
 	LOAD_INSTANCE_PROC(vkGetDeviceQueue);
-	LOAD_INSTANCE_PROC(vkDestroySurfaceKHR);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceSupportKHR);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR);
 	LOAD_INSTANCE_PROC(vkCreateSwapchainKHR);
 	LOAD_INSTANCE_PROC(vkDestroySwapchainKHR);
 	LOAD_INSTANCE_PROC(vkGetSwapchainImagesKHR);
@@ -177,8 +172,6 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkCmdBindPipeline);
 	LOAD_INSTANCE_PROC(vkCmdDraw);
 	LOAD_INSTANCE_PROC(vkCmdEndRenderPass);
-	LOAD_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT);
-	LOAD_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT);
 	LOAD_INSTANCE_PROC(vkCreateFence);
 	LOAD_INSTANCE_PROC(vkDestroyFence);
 	LOAD_INSTANCE_PROC(vkGetFenceStatus);
@@ -216,11 +209,6 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceFormatProperties);
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceImageFormatProperties);
 	LOAD_INSTANCE_PROC(vkCmdCopyImageToBuffer);
-	LOAD_INSTANCE_PROC(vkSetDebugUtilsObjectNameEXT);
-	LOAD_INSTANCE_PROC(vkQueueBeginDebugUtilsLabelEXT);
-	LOAD_INSTANCE_PROC(vkQueueEndDebugUtilsLabelEXT);
-	LOAD_INSTANCE_PROC(vkCmdBeginDebugUtilsLabelEXT);
-	LOAD_INSTANCE_PROC(vkCmdEndDebugUtilsLabelEXT);
 	LOAD_INSTANCE_PROC(vkCreateQueryPool);
 	LOAD_INSTANCE_PROC(vkDestroyQueryPool);
 	LOAD_INSTANCE_PROC(vkGetQueryPoolResults);
@@ -235,7 +223,30 @@ void Pu::vkInit(InstanceHndl instance)
 	LOAD_INSTANCE_PROC(vkCmdEndQuery);
 	LOAD_INSTANCE_PROC(vkGetDeviceMemoryCommitment);
 
+	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
+	{
+		LOAD_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT);
+		LOAD_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT);
+		LOAD_INSTANCE_PROC(vkSetDebugUtilsObjectNameEXT);
+		LOAD_INSTANCE_PROC(vkQueueBeginDebugUtilsLabelEXT);
+		LOAD_INSTANCE_PROC(vkQueueEndDebugUtilsLabelEXT);
+		LOAD_INSTANCE_PROC(vkCmdBeginDebugUtilsLabelEXT);
+		LOAD_INSTANCE_PROC(vkCmdEndDebugUtilsLabelEXT);
+	}
+
+	if (enabledExtensions.contains(u8"VK_KHR_surface"))
+	{
+		LOAD_INSTANCE_PROC(vkDestroySurfaceKHR);
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceSupportKHR);
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR);
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR);
+	}
+
 #ifdef _WIN32
-	LOAD_INSTANCE_PROC(vkCreateWin32SurfaceKHR);
+	if (enabledExtensions.contains(u8"VK_KHR_win32_surface"))
+	{
+		LOAD_INSTANCE_PROC(vkCreateWin32SurfaceKHR);
+	}
 #endif
 }

@@ -60,6 +60,17 @@ namespace Pu
 			return *parent;
 		}
 
+		/* 
+		Overrides the current layout and access of the image, 
+		this can be used when external calls changed the image layout.
+		For instance, a subpass final layout.
+		*/
+		inline void OverrideState(_In_ ImageLayout newLayout, _In_ AccessFlag newAccess)
+		{
+			layout = newLayout;
+			access = newAccess;
+		}
+
 	protected:
 		/* References the asset and returns itself. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;

@@ -92,7 +92,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 
 	/* Add the vertex input binding descriptions to the final create information. */
 	vector<VertexInputAttributeDescription> attributeDescriptions;
-		for (const Attribute &attrib : renderpass->subpasses[subpass].attributes) attributeDescriptions.emplace_back(attrib.description);
+	for (const Attribute &attrib : renderpass->subpasses[subpass].attributes) attributeDescriptions.emplace_back(attrib.description);
 
 	/* Add the shader stages to the final create information. */
 	vector<PipelineShaderStageCreateInfo> shaderStages;

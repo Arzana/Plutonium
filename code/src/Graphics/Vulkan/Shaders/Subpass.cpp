@@ -19,18 +19,14 @@ Subpass::Subpass(const PhysicalDevice & physicalDevice, const vector<Shader*>& s
 	Link(physicalDevice);
 }
 
-void Subpass::SetInformation(PipelineStageFlag stage, AccessFlag access)
+void Pu::Subpass::SetDependency(PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flags)
 {
 	dependencyUsed = true;
-	dependency.DstStageMask = stage;
-	dependency.DstAccessMask = access;
-}
-
-void Subpass::SetDependency(PipelineStageFlag stage, AccessFlag access)
-{
-	dependencyUsed = true;
-	dependency.SrcStageMask = stage;
-	dependency.SrcAccessMask = access;
+	dependency.SrcStageMask = srcStage;
+	dependency.SrcAccessMask = srcAccess;
+	dependency.DstStageMask = dstStage;
+	dependency.DstAccessMask = dstAccess;
+	dependency.DependencyFlags = flags;
 }
 
 Output & Subpass::AddDepthStencil(void)

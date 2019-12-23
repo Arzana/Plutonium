@@ -166,6 +166,9 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 
 void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, ImageSubresourceRange range, DependencyFlag dependencyFlags, uint32 queueFamilyIndex)
 {
+	/* We can skip memory barriers that change no resources. */
+	if (image.layout == newLayout && image.access == dstAccess) return;
+
 	if (CheckIfRecording("setup image pipeline barrier"))
 	{
 		/* Create the memory barrier. */
@@ -185,7 +188,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 	}
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const vector<std::tuple<const Image*, ImageSubresourceRange>>& images, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, DependencyFlag dependencyFlags, uint32 queueFamiltyIndex)
+void Pu::CommandBuffer::MemoryBarrier(const vector<std::pair<const Image*, ImageSubresourceRange>>& images, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, DependencyFlag dependencyFlags, uint32 queueFamiltyIndex)
 {
 	if (CheckIfRecording("setup image pipeline barriers"))
 	{
@@ -341,6 +344,16 @@ void Pu::CommandBuffer::SetViewport(const Viewport& viewport)
 void Pu::CommandBuffer::SetScissor(Rect2D scissor)
 {
 	if (CheckIfRecording("set scissor")) device->vkCmdSetScissor(hndl, 0, 1, &scissor);
+}
+
+void Pu::CommandBuffer::SetViewportAndScissor(const Viewport & viewport)
+{
+	if (CheckIfRecording("set viewport and scissor"))
+	{
+		const Rect2D scissor = viewport.GetScissor();
+		device->vkCmdSetViewport(hndl, 0, 1, &viewport);
+		device->vkCmdSetScissor(hndl, 0, 1, &scissor);
+	}
 }
 
 void Pu::CommandBuffer::SetLineWidth(float width)

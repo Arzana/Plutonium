@@ -8,6 +8,7 @@ For normal use of Vulkan use the Plutonium structures, but if instance level acc
 
 #pragma once
 #include "VulkanProcedres.h"
+#include "Core/Collections/vector.h"
 
 namespace Pu
 {
@@ -124,5 +125,5 @@ namespace Pu
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
 #endif
 	
-	void vkInit(InstanceHndl instance);
+	void vkInit(_In_ InstanceHndl instance, _In_ const vector<const char*> enalbedExtensions);
 }

@@ -32,8 +32,7 @@ void Pu::Output::SetDescription(const Swapchain & swapchain)
 	description.Format = swapchain.GetImageFormat();
 	description.InitialLayout = ImageLayout::PresentSrcKhr;
 	description.FinalLayout = ImageLayout::PresentSrcKhr;
-
-	SetLayout(ImageLayout::ColorAttachmentOptimal);
+	reference.Layout = ImageLayout::ColorAttachmentOptimal;
 }
 
 void Pu::Output::SetDescription(const DepthBuffer & depthBuffer)
