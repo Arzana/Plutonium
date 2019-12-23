@@ -97,6 +97,7 @@ namespace Pu
 		friend class DescriptorSet;
 		friend class Sampler;
 		friend class QueryPool;
+		friend class RenderDoc;
 
 		PhysicalDevice *parent;
 		DeviceHndl hndl;
