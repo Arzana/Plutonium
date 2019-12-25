@@ -261,7 +261,7 @@ struct pum_texture
 	Pu::ustring Identifier;
 
 	bool UsesLinearMagnification;
-	bool UsesLinaerMinification;
+	bool UsesLinearMinification;
 	bool UsesLinearMipmapMode;
 	bool IsSRGB;
 	char AddressModeU;
@@ -269,7 +269,7 @@ struct pum_texture
 	int ConversionCount;
 
 	pum_texture(void)
-		: UsesLinearMagnification(false), UsesLinaerMinification(false),
+		: UsesLinearMagnification(false), UsesLinearMinification(false),
 		UsesLinearMipmapMode(false), IsSRGB(false), AddressModeU(0), AddressModeV(0), ConversionCount(-1)
 	{}
 
@@ -278,7 +278,7 @@ struct pum_texture
 		Pu::byte result = 0;
 
 		if (UsesLinearMagnification) result |= 0x01;
-		if (UsesLinaerMinification) result |= 0x02;
+		if (UsesLinearMinification) result |= 0x02;
 		if (UsesLinearMipmapMode) result |= 0x04;
 		if (IsSRGB) result |= 0x08;
 		result |= (AddressModeU & 0x03) << 0x04;

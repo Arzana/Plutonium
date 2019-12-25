@@ -15,7 +15,7 @@ TestGame::TestGame(void)
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
 	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
-{
+{	
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 

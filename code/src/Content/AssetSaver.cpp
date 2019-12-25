@@ -16,7 +16,8 @@
 #include <stb/stb/stb_image_write.h>
 
 Pu::AssetSaver::AssetSaver(TaskScheduler & scheduler, LogicalDevice & device)
-	: scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
+	: scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0)),
+	OnAssetSaved("OnAssetSaved")
 {}
 
 void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageSaveFormats format)
@@ -70,6 +71,9 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			/* Finalize the result. */
 			destination->EndMemoryTransfer();
 			delete destination;
+
+			/* Make sure to post the event just before deleting the task. */
+			parent.OnAssetSaved.Post(parent, image);
 			return Result::AutoDelete();
 		}
 

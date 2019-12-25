@@ -1133,7 +1133,7 @@ uint32 ParseTexture(const ObjLoaderTextureMap &input, PumIntermediate &result)
 	pum_texture texture;
 	texture.Identifier = input.Path.toUTF32();
 	texture.UsesLinearMagnification = true;
-	texture.UsesLinaerMinification = true;
+	texture.UsesLinearMinification = true;
 	texture.UsesLinearMipmapMode = true;
 	result.Textures.emplace_back(texture);
 

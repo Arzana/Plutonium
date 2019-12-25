@@ -1,5 +1,8 @@
+#ifdef _DEBUG
+
 #include "Graphics/Diagnostics/RenderDoc.h"
 #include "Core/Diagnostics/Logging.h"
+#include "Core/Platform/DynamicLibLoader.h"
 #include <renderdoc/renderdoc_app.h>
 
 void Pu::RenderDoc::StartFrameCapture(const LogicalDevice & device)
@@ -15,8 +18,11 @@ void Pu::RenderDoc::EndFrameCapture(const LogicalDevice & device)
 }
 
 Pu::RenderDoc::RenderDoc(void)
-	: loader(L"renderdoc.dll"), api(nullptr)
+	: api(nullptr)
 {
+	/* The loader only need to stay in memory during the constructor, because RENDERDOC_GetAPI gets all the procedures. */
+	DynamicLibLoader loader{ L"renderdoc.dll" };
+
 	/* Only attempt to load the API if the dll could be loaded. */
 	if (loader.IsUsable())
 	{
@@ -31,3 +37,5 @@ Pu::RenderDoc & Pu::RenderDoc::GetInstance(void)
 	static RenderDoc api;
 	return api;
 }
+
+#endif

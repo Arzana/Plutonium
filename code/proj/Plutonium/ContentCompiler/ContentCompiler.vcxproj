@@ -63,6 +63,7 @@
     <Link>
       <AdditionalDependencies>Plutonium.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -89,6 +90,7 @@
     <ClCompile Include="CompileFromObj.cpp" />
     <ClCompile Include="CompileToPum.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TextureConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineArguments.h" />
@@ -97,6 +99,7 @@
     <ClInclude Include="CompileFromObj.h" />
     <ClInclude Include="CompileToPum.h" />
     <ClInclude Include="PumData.h" />
+    <ClInclude Include="TextureConverter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

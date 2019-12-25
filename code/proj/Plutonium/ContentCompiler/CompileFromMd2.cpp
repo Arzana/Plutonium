@@ -378,7 +378,7 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 		pum_texture texture;
 		texture.Identifier = path.toUTF32();
 		texture.UsesLinearMagnification = true;
-		texture.UsesLinaerMinification = true;
+		texture.UsesLinearMinification = true;
 		texture.UsesLinearMipmapMode = true;
 		result.Textures.emplace_back(texture);
 

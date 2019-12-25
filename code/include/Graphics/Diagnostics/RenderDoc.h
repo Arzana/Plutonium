@@ -1,12 +1,13 @@
+#ifdef _DEBUG
+
 #pragma once
-#include "Core/Platform/DynamicLibLoader.h"
 #include "Graphics/Vulkan/LogicalDevice.h"
 
 struct RENDERDOC_API_1_4_0;
 
 namespace Pu
 {
-	/* Defines a static helper class for accessing the RenderDoc API. */
+	/* Defines a static helper class for accessing the RenderDoc API (only available on debug mode!). */
 	class RenderDoc
 	{
 	public:
@@ -16,7 +17,6 @@ namespace Pu
 		static void EndFrameCapture(_In_ const LogicalDevice &device);
 
 	private:
-		DynamicLibLoader loader;
 		RENDERDOC_API_1_4_0 *api;
 
 		RenderDoc(void);
@@ -24,3 +24,5 @@ namespace Pu
 		static RenderDoc& GetInstance(void);
 	};
 }
+
+#endif

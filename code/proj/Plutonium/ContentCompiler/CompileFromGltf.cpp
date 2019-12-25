@@ -1581,6 +1581,7 @@ void CopyMaterialsToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		else if (cur.TryGetValue("METALLICROUGHNESSTEXTURE", value))
 		{
 			material.IsFinalized = false;	// We need to convert the metal roughness texture.
+			material.Metalness = 1.0f;		// The metalness factor should be 1, otherwise the conversion doesn't work when a texture is specified.
 			material.SetSpecGlossTexture(static_cast<uint32>(value.NamedNumbers["INDEX"]));
 			result.Textures[material.SpecGlossTexture].ConversionCount = 0;	// Make sure that the texture gets converted.
 		}
@@ -1661,13 +1662,13 @@ void CopyTexturesToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		{
 		case GLTFFilter::Linear:
 		case GLTFFilter::LinearMipmapNearest:
-			texture.UsesLinaerMinification = true;
+			texture.UsesLinearMinification = true;
 			break;
 		case GLTFFilter::NearestMipmapLinear:
 			texture.UsesLinearMipmapMode = true;
 			break;
 		case GLTFFilter::LinearMipmapLinear:
-			texture.UsesLinaerMinification = true;
+			texture.UsesLinearMinification = true;
 			texture.UsesLinearMipmapMode = true;
 			break;
 		}

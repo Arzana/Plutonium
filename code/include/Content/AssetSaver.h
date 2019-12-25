@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Events/EventBus.h"
 #include "Graphics/Vulkan/Image.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Textures/ImageSaveFormats.h"
@@ -11,6 +12,9 @@ namespace Pu
 	class AssetSaver
 	{
 	public:
+		/* Occurs when an image finishes it's loading procedures. */
+		EventBus<const AssetSaver, const Image&> OnAssetSaved;
+
 		/* Initializes a new instance of an asset saver. */
 		AssetSaver(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device);
 		AssetSaver(_In_ const AssetSaver&) = delete;
