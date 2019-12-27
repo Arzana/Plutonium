@@ -32,7 +32,7 @@ namespace Pu
 	/* Defines whether Vulkan info messages should be logged. */
 	constexpr bool LogVulkanInfoMessages = false;
 	/* Defines the default number of level of detail available for minified image sampling. */
-	constexpr uint32 DefaultMipLevels = 4;
+	constexpr uint32 DefaultMipLevels = 8;
 	/* Defines the initial amount of command buffer allocated for asset loading and saving. */
 	constexpr size_t InitialLoadCommandBufferCount = 5;
 	/* Defines the minimum loadable GLTF version. */
@@ -41,8 +41,6 @@ namespace Pu
 	constexpr int PreferredImageComponentCount = 4;
 	/* Defines the time (in milliseconds) before the CPU usage is allowed to be queried again. */
 	constexpr int64 CPUUsageQueryMinimumElapsedTime = 1000;
-	/* Defines whether images loaded from disk should be allowed to be saved to disk. */
-	constexpr bool AllowSaveOnLoadedImages = false;
 	/* Defines the horizontal offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */
 	constexpr uint32 FontAtlasHOffset = 2;
 	/* Defines the vertical offset used within font atlases between glyphs (lower values mean less memory but more chance of corruption). */

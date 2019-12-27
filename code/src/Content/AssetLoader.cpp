@@ -3,7 +3,8 @@
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
-	: cache(cache), scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0))
+	: cache(cache), scheduler(scheduler), device(device), 
+	transferQueue(device.GetTransferQueue(0)), graphicsQueue(device.GetGraphicsQueue(0))
 {}
 
 void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<vector<wstring>> & shaders)
@@ -77,7 +78,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			*/
 			if (staged)
 			{
-				result.Image->MarkAsLoaded(true, std::move(name));
+				parent.FinalizeTexture(result, std::move(name));
 				delete child;
 				return Result::AutoDelete();
 			}
@@ -86,11 +87,9 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 				/* We allocate a new command buffer here to put less stress on the caller. */
 				cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
 
-				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
+				/*  We start by staging the image from disk to the firt mip level (0). */
 				cmdBuffer.Begin();
-				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
-
-				/* Copy actual data and end the buffer. */
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, ImageSubresourceRange{ ImageAspectFlag::Color });
 				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), *result.Image);
 				cmdBuffer.End();
 
@@ -113,8 +112,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 		AssetLoader &parent;
 		SingleUseCommandBuffer cmdBuffer;
 		Texture::LoadTask *child;
-		wstring name;
 		bool staged;
+		wstring name;
 	};
 
 	/* Simply create the task and spawn it. */
@@ -155,7 +154,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 			*/
 			if (staged)
 			{
-				result.Image->MarkAsLoaded(true, std::move(name));
+				parent.FinalizeTexture(result, std::move(name));
 				for (const Texture::LoadTask *child : children) delete child;
 				return Result::AutoDelete();
 			}
@@ -166,7 +165,9 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 				cmdBuffer.Begin();
-				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
+				ImageSubresourceRange range{ ImageAspectFlag::Color };
+				range.LayerCount = 6;
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, range);
 
 				/* Copy actual data and end the buffer. */
 				uint32 face = 0;
@@ -250,7 +251,8 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 		virtual Result Continue(void) override
 		{
-			result.Image->MarkAsLoaded(true, std::move(id));
+			/* We still need to create mipmaps for the texture so finalize it in another task. */
+			parent.FinalizeTexture(result, std::move(id));
 			return Result::AutoDelete();
 		}
 
@@ -272,6 +274,86 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, data, size, std::move(id));
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
+{
+	class FinalizeTask
+		: public Task
+	{
+	public:
+		FinalizeTask(AssetLoader &parent, Texture &texture, wstring && id)
+			: result(texture.GetImage()), parent(parent), name(std::move(id))
+		{}
+
+		virtual Result Execute(void) override
+		{
+			/* We first generate all of the mip levels and then we move the entire image to it's final layout. */
+			cmdBuffer.Initialize(parent.device, parent.graphicsQueue.GetFamilyIndex());
+			cmdBuffer.Begin();
+
+			for (uint32 arrayLayer = 0; arrayLayer < result.GetArrayLayers(); arrayLayer++)
+			{
+				/* We need to override out default state after every layer except for the last, sow e just override at the start instead, because it doesn't matter for the first one. */
+				result.OverrideState(ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite);
+
+				/* Make sure that the origional mip (level 0) is transitioned to a transfer source. */
+				ImageSubresourceRange srcRange{ ImageAspectFlag::Color };
+				srcRange.BaseArraylayer = arrayLayer;
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, srcRange);
+
+				for (uint32 srcLevel = 0, dstLevel = 1; dstLevel < result.GetMipLevels(); srcLevel++, dstLevel++)
+				{
+					/* We have yet to access this mip level in the image so its layout is undefined. */
+					result.OverrideState(ImageLayout::Undefined, AccessFlag::None);
+
+					/* Transition the destination mip level to a transfer destination. */
+					ImageSubresourceRange dstRange{ ImageAspectFlag::Color };
+					dstRange.BaseArraylayer = arrayLayer;
+					dstRange.BaseMipLevel = dstLevel;
+					cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, dstRange);
+
+					/* Blit the source mip level to the destination mip level, resizing the image by 50%. */
+					const ImageBlit blit{ arrayLayer, srcLevel, dstLevel, result.GetExtent().To2D() };
+					cmdBuffer.BlitImage(result, ImageLayout::TransferSrcOptimal, result, ImageLayout::TransferDstOptimal, blit, Filter::Linear);
+
+					/* Transition the current mip level to a transfer source so we can use it in our next rotation. */
+					cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, dstRange);
+				}
+			}
+
+			/* Transition the entire image from a transfer source to shader read only optimal so it can be used by the user. */
+			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, result.GetFullRange(ImageAspectFlag::Color));
+
+			/* We need to wait for the queue to process our command before we can mark the image as done, image blitting also needs to be done on a graphics queue. */
+			cmdBuffer.End();
+			parent.graphicsQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+		virtual Result Continue(void) override
+		{
+			result.MarkAsLoaded(true, std::move(name));
+			return Result::AutoDelete();
+		}
+
+	protected:
+		virtual bool ShouldContinue(void) const override
+		{
+			/* The mipmaps are generated and the final layout is present when the command buffer can begin again. */
+			return cmdBuffer.CanBegin();
+		}
+
+	private:
+		Image &result;
+		AssetLoader &parent;
+		SingleUseCommandBuffer cmdBuffer;
+		wstring name;
+	};
+
+	/* Simply create the task and spawn it. */
+	FinalizeTask *task = new FinalizeTask(*this, texture, std::move(id));
 	scheduler.Spawn(*task);
 }
 

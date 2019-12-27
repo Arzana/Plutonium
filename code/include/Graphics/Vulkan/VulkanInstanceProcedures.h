@@ -120,6 +120,7 @@ namespace Pu
 	extern PFN_vkCmdBeginQuery vkCmdBeginQuery;
 	extern PFN_vkCmdEndQuery vkCmdEndQuery;
 	extern PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
+	extern PFN_vkCmdBlitImage vkCmdBlitImage;
 
 #ifdef _WIN32
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;

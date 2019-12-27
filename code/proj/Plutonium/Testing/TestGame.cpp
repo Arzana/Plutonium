@@ -15,7 +15,7 @@ TestGame::TestGame(void)
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
 	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
-{	
+{
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
@@ -145,14 +145,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 
-		cmd.MemoryBarrier(*environment, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, environment->GetFullRange());
 		transform->SetEnvironment(*environment);
-
-		vector<std::pair<const Image*, ImageSubresourceRange>> tmp;
-		tmp.reserve(textures.size());
-		for (const Texture2D *texture : textures) tmp.emplace_back(std::make_pair(&texture->GetImage(), texture->GetFullRange()));
-		cmd.MemoryBarrier(tmp, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead);
-
 		for (size_t i = 0; i < materials.size() - 1; i++)
 		{
 			PumMaterial &mat = stageMaterials[i];

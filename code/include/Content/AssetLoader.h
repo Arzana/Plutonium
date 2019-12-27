@@ -34,6 +34,8 @@ namespace Pu
 		void InitializeTexture(_In_ Texture &texture, _In_ const vector<wstring> &paths, _In_ const ImageInformation &info, _In_ const wstring &name);
 		/* Stages a texture from the specified source. */
 		void InitializeTexture(_In_ Texture &texture, _In_ const byte *data, _In_ size_t size, _In_ wstring &&id);
+		/* Generates mipmaps for the texture and makes it shader read only. */
+		void FinalizeTexture(_In_ Texture &texture, _In_ wstring &&id);
 		/* Loads and stages a font from a specific path. */
 		void InitializeFont(_In_ Font &font, _In_ const wstring &path, _In_ Task &continuation);
 
@@ -41,6 +43,6 @@ namespace Pu
 		AssetCache &cache;
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
-		Queue &transferQueue;
+		Queue &transferQueue, &graphicsQueue;
 	};
 }

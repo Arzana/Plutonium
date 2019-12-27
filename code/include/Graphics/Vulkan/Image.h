@@ -25,6 +25,10 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Image& operator =(_In_ Image &&other);
 
+		/* Gets the maximum amount of mipmap layers available for a specific image size. */
+		_Check_return_ static uint32 GetMaxMipLayers(_In_ Extent3D extent);
+		/* Gets the maximum amount of mipmap layers available for a specific image size. */
+		_Check_return_ static uint32 GetMaxMipLayers(_In_ uint32 width, _In_ uint32 height, _In_ uint32 depth);
 		/* Gets the amount of lazily-allocated bytes that are committed for the image. */
 		_Check_return_ DeviceSize GetLazyMemory(void) const;
 		/* Gets a sub-resource range spaning all sub-resources. */
@@ -42,6 +46,24 @@ namespace Pu
 			return dimensions;
 		}
 
+		/* Gets the width of the image. */
+		_Check_return_ inline uint32 GetWidth(void) const
+		{
+			return dimensions.Width;
+		}
+
+		/* Gets the height of the image. */
+		_Check_return_ inline uint32 GetHeight(void) const
+		{
+			return dimensions.Height;
+		}
+
+		/* Gets the depth of the image. */
+		_Check_return_ inline uint32 GetDepth(void) const
+		{
+			return dimensions.Depth;
+		}
+
 		/* Gets the format of the image. */
 		_Check_return_ inline Format GetFormat(void) const
 		{
@@ -52,6 +74,18 @@ namespace Pu
 		_Check_return_ inline ImageLayout GetLayout(void) const
 		{
 			return layout;
+		}
+
+		/* Gets the amount of mipmap levels in this image. */
+		_Check_return_ inline uint32 GetMipLevels(void) const
+		{
+			return mipmaps;
+		}
+
+		/* Gets the amount of array layers in this image. */
+		_Check_return_ inline uint32 GetArrayLayers(void) const
+		{
+			return layers;
 		}
 
 		/* Gets the logical device on which this image is stored. */

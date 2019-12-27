@@ -81,13 +81,17 @@ namespace Pu
 		void CopyBuffer(_In_ const Buffer &source, _In_ Image &destination, _In_ const BufferImageCopy &region);
 		/* Appends a copy command from the source image to the destination buffer to the command buffer. */
 		void CopyImage(_In_ const Image &source, _In_ Buffer &destination, _In_ const vector<BufferImageCopy> &regions);
+		/* Appends a single image region copy to the command buffer, this copy command potentially performs a format conversion. */
+		void BlitImage(_In_ const Image &source, _In_ Image &destination, _In_ const ImageBlit &region, _In_ Filter filter);
+		/* Appends a single image region copy to the command buffer, this copy command potentially performs a format conversion. */
+		void BlitImage(_In_ const Image &source, _In_ ImageLayout srcLayout, _In_ Image &destination, _In_ ImageLayout dstLayout, _In_ const ImageBlit &region, _In_ Filter filter);
 		/* Appends a pipeline buffer memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None);
 		/* Appends a pipeline image memory barrier command to the command buffer. */
 		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
 		/* Appends a pipeline image memory barrier command to the command buffer for multiple images. */
 		void MemoryBarrier(_In_ const vector<std::pair<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
-		/* Appends an image clear command to the command buffer. */
+		/* Appends an image color clear command to the command buffer. */
 		void ClearImage(_In_ Image &image, _In_ Color color);
 		/* Appends a render pass begin command for the entire framebuffer to the command buffer. */
 		void BeginRenderPass(_In_ const Renderpass &renderPass, _In_ const Framebuffer &framebuffer, _In_ SubpassContents contents);

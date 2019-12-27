@@ -94,7 +94,9 @@ void Pu::Queue::BeginLabel(const string & name, Color color)
 	label.LabelName = name.c_str();
 	memcpy(label.Color, &clr, sizeof(Vector4));
 
+	lock.lock();
 	parent->BeginQueueLabel(hndl, label);
+	lock.unlock();
 #else
 	(void)name;
 	(void)color;
@@ -104,7 +106,9 @@ void Pu::Queue::BeginLabel(const string & name, Color color)
 void Pu::Queue::EndLabel(void)
 {
 #ifdef _DEBUG
+	lock.lock();
 	parent->EndQueueLabel(hndl);
+	lock.unlock();
 #endif
 }
 

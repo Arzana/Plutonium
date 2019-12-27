@@ -1731,6 +1731,20 @@ namespace Pu
 		Offset3D(_In_ int32 x, _In_ int32 y, _In_ int32 z)
 			: X(x), Y(y), Z(z)
 		{}
+
+		/* Initializes a new instance of an offset from an extent. */
+		Offset3D(_In_ Extent3D extent)
+			: X(static_cast<int32>(extent.Width)), Y(static_cast<int32>(extent.Height)), Z(static_cast<int32>(extent.Depth))
+		{}
+
+		/* Divides the offset by a specific amount. */
+		_Check_return_ inline Offset3D operator /=(_In_ int scalar)
+		{
+			X /= scalar;
+			Y /= scalar;
+			Z /= scalar;
+			return *this;
+		}
 	};
 
 	/* Defines a two-dimensional subregion. */
@@ -3211,6 +3225,43 @@ namespace Pu
 			: Type(StructureType::QueryPoolCreatInfo), Next(nullptr), Flags(0),
 			QueryType(type), QueryCount(count), PipelineStatistics(stats)
 		{}
+	};
+
+	/* Defines the region of an image blit operation. */
+	struct ImageBlit
+	{
+	public:
+		/* The subresource to blit from. */
+		ImageSubresourceLayers SrcSubresource;
+		/* Specifies a box region of the source region within the subresource. */
+		Offset3D SrcOffsets[2];
+		/* The subresource to blit into. */
+		ImageSubresourceLayers DstSubresource;
+		/* Specifies a box region of the destination region within the subresource. */
+		Offset3D DstOffsets[2];
+
+		/* Initializes an empty instance of an image blit object. */
+		ImageBlit(void)
+			: SrcOffsets{ { 0, 0, 0 }, { 0, 0, 0 } }, DstOffsets{ { 0, 0, 0 }, { 0, 0, 0 } }
+		{}
+
+		/* Initializes a new instance of an image blit object for a blit between the full resources of two images. */
+		ImageBlit(_In_ uint32 layer, _In_ uint32 srcMip, _In_ uint32 dstMip, _In_ Extent2D size)
+		{
+			SrcSubresource.BaseArrayLayer = layer;
+			DstSubresource.BaseArrayLayer = layer;
+
+			SrcSubresource.MipLevel = srcMip;
+			DstSubresource.MipLevel = dstMip;
+
+			SrcOffsets[1].X = static_cast<int32>(size.Width >> srcMip);
+			SrcOffsets[1].Y = static_cast<int32>(size.Height >> srcMip);
+			SrcOffsets[1].Z = 1;
+
+			DstOffsets[1].X = static_cast<int32>(size.Width >> dstMip);
+			DstOffsets[1].Y = static_cast<int32>(size.Height >> dstMip);
+			DstOffsets[1].Z = 1;
+		}
 	};
 
 #ifdef _WIN32

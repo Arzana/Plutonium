@@ -37,6 +37,12 @@ namespace Pu
 		}
 
 		/* Gets the underlying image. */
+		_Check_return_ inline Image& GetImage(void)
+		{
+			return *Image;
+		}
+
+		/* Gets the underlying image. */
 		_Check_return_ inline const Image& GetImage(void) const
 		{
 			return *Image;
@@ -46,6 +52,12 @@ namespace Pu
 		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
 		{
 			return Image->GetFullRange(ImageAspectFlag::Color);
+		}
+
+		/* Gets the extent of the image. */
+		_Check_return_ inline Extent3D GetExtent(void) const
+		{
+			return Image->GetExtent();
 		}
 
 	protected:

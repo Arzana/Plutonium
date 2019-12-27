@@ -113,6 +113,7 @@ namespace Pu
 	PFN_vkCmdBeginQuery vkCmdBeginQuery;
 	PFN_vkCmdEndQuery vkCmdEndQuery;
 	PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
+	PFN_vkCmdBlitImage vkCmdBlitImage;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -222,6 +223,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCmdBeginQuery);
 	LOAD_INSTANCE_PROC(vkCmdEndQuery);
 	LOAD_INSTANCE_PROC(vkGetDeviceMemoryCommitment);
+	LOAD_INSTANCE_PROC(vkCmdBlitImage);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{

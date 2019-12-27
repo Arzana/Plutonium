@@ -115,6 +115,42 @@ namespace Pu
 	{
 		return __max(a, b);
 	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline int32 max(_In_ int32 a, _In_ int32 b, _In_ int32 c)
+	{
+		return __max(__max(a, b), c);
+	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline uint32 max(_In_ uint32 a, _In_ uint32 b, _In_ uint32 c)
+	{
+		return __max(__max(a, b), c);
+	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline int64 max(_In_ int64 a, _In_ int64 b, _In_ int64 c)
+	{
+		return __max(__max(a, b), c);
+	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline uint64 max(_In_ uint64 a, _In_ uint64 b, _In_ uint64 c)
+	{
+		return __max(__max(a, b), c);
+	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline float max(_In_ float a, _In_ float b, _In_ float c)
+	{
+		return __max(__max(a, b), c);
+	}
+
+	/* Gets the highest of the three input values. */
+	_Check_return_ constexpr inline double max(_In_ double a, _In_ double b, _In_ double c)
+	{
+		return __max(__max(a, b), c);
+	}
 #pragma endregion
 #pragma region min
 	/* Gets the lowest of the two input values. */

@@ -7,6 +7,7 @@ Pu::ImageView::ImageView(const Image & image, ImageViewType type, ImageAspectFla
 {
 	ImageViewCreateInfo createInfo(image.imageHndl, type, image.format, aspect);
 	createInfo.SubresourceRange.LayerCount = image.layers;
+	createInfo.SubresourceRange.LevelCount = RemainingMipLevels;
 
 	VK_VALIDATE(parent->vkCreateImageView(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateImageView);
 }

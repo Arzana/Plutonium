@@ -175,6 +175,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdNextSubpass);
 	LOAD_DEVICE_PROC(vkCmdBeginQuery);
 	LOAD_DEVICE_PROC(vkCmdEndQuery);
+	LOAD_DEVICE_PROC(vkCmdBlitImage);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

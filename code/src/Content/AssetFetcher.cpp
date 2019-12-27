@@ -86,9 +86,8 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info = _CrtGetImageInfo(mutablePath);
-		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
-		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
+		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
@@ -136,9 +135,8 @@ Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
-		mipMapLevels = min(mipMapLevels, static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1));
-		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
+		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
 		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 6, SampleCountFlag::Pixel1Bit, usage);
 		createInfo.Flags = ImageCreateFlag::CubeCompatible;
@@ -240,9 +238,8 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte *
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info(static_cast<int32>(width), static_cast<int32>(height), 4, false);
-		const uint32 mipMapLevels = static_cast<uint32>(floor(log2(max(info.Width, info.Height))) + 1);
-		ImageUsageFlag usage = ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-		if constexpr (AllowSaveOnLoadedImages) usage |= ImageUsageFlag::TransferSrc;
+		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height, 1);
+		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(false), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
