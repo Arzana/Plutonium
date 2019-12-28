@@ -11,8 +11,7 @@ namespace Pu
 		Plane Planes[6];
 
 		/* Creates an empty instance of a frustum. */
-		Frustum(void)
-		{}
+		Frustum(void) = default;
 
 		/* Creates a frustum from a specified matrix. */
 		Frustum(_In_ const Matrix &matrix)
@@ -22,12 +21,12 @@ namespace Pu
 			const Vector4 row3 = _CrtGetRow<2>(matrix);
 			const Vector4 row4 = _CrtGetRow<3>(matrix);
 
-			Left() = Plane(row4 + row1);
-			Right() = Plane(row4 - row1);
-			Bottom() = Plane(row4 + row2);
-			Top() = Plane(row4 - row2);
-			Near() = Plane(row4 + row3);
-			Far() = Plane(row4 - row3);
+			Planes[2] = Plane(row4 + row1);
+			Planes[3] = Plane(row4 - row1);
+			Planes[5] = Plane(row4 + row2);
+			Planes[4] = Plane(row4 - row2);
+			Planes[0] = Plane(row4 + row3);
+			Planes[1] = Plane(row4 - row3);
 		}
 
 		/* Gets the amount of planes specified in the frustum. */
@@ -37,37 +36,37 @@ namespace Pu
 		}
 
 		/* Gets the near side of the frustum. */
-		_Check_return_ inline Plane& Near(void)
+		_Check_return_ inline const Plane& Near(void) const
 		{
 			return Planes[0];
 		}
 
 		/* Gets the far side of the frustum. */
-		_Check_return_ inline Plane& Far(void)
+		_Check_return_ inline const Plane& Far(void) const
 		{
 			return Planes[1];
 		}
 
 		/* Gets the left side of the frustum. */
-		_Check_return_ inline Plane& Left(void)
+		_Check_return_ inline const Plane& Left(void) const
 		{
 			return Planes[2];
 		}
 
 		/* Gets the right side of the frustum. */
-		_Check_return_ inline Plane& Right(void)
+		_Check_return_ inline const Plane& Right(void) const
 		{
 			return Planes[3];
 		}
 
 		/* Gets the top side of the frustum. */
-		_Check_return_ inline Plane& Top(void)
+		_Check_return_ inline const Plane& Top(void) const
 		{
 			return Planes[4];
 		}
 
 		/* Gets the bottom side of the frustum. */
-		_Check_return_ inline Plane& Bottom(void)
+		_Check_return_ inline const Plane& Bottom(void) const
 		{
 			return Planes[5];
 		}
@@ -76,8 +75,7 @@ namespace Pu
 		_Check_return_ inline bool IntersectionSphere(_In_ Vector3 center, _In_ float radius) const
 		{
 			/* Loop through all of the planes. */
-			constexpr size_t CNT = GetPlaneCount();
-			for (size_t i = 0; i < CNT; i++)
+			for (size_t i = 0; i < GetPlaneCount(); i++)
 			{
 				/* If it's outside the plane it's outside of the frustum so we can early out. */
 				if (!Planes[i].IntersectionSphere(center, radius)) return false;
@@ -88,11 +86,10 @@ namespace Pu
 		}
 
 		/* Checks whether the specified box is fully or partially inside of the frustum. */
-		_Check_return_ inline bool IntersectionBox(_In_ AABB &aabb) const
+		_Check_return_ inline bool IntersectionBox(_In_ const AABB &aabb) const
 		{
 			/* Loop through all of the planes. */
-			constexpr size_t CNT = GetPlaneCount();
-			for (size_t i = 0; i < CNT; i++)
+			for (size_t i = 0; i < GetPlaneCount(); i++)
 			{
 				/* If it's outside the plane it's outside of the frustum so we can early out. */
 				if (!Planes[i].IntersectionBox(aabb)) return false;

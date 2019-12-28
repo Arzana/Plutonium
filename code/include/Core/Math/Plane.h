@@ -29,8 +29,18 @@ namespace Pu
 		{
 			const float len = N.Length();
 
-			N.Normalize();
+			N /= len;
 			D = numbers.W / len;
+		}
+
+		/* Gets the intersection point between the 3 infinite planes. */
+		_Check_return_ static inline Vector3 IntersectionPoint(_In_ const Plane &a, _In_ const Plane &b, _In_ const Plane &c)
+		{
+			const Vector3 v1 = a.D * cross(b.N, c.N);
+			const Vector3 v2 = b.D * cross(c.N, a.N);
+			const Vector3 v3 = c.D * cross(a.N, b.N);
+			const float denom = -dot(a.N, cross(b.N, c.N));
+			return (v1 + v2 + v3) / denom;
 		}
 
 		/* Gets the relative location of the point to the plane, positve numbers mean the point is in front of the plane, negative means it's behind and zero means it's on the plane.  */
@@ -40,7 +50,7 @@ namespace Pu
 		}
 
 		/* Checks whether the ray is intersection the plane. */
-		_Check_return_ inline bool IntersectionRay(_In_ Vector3 origin, _In_ Vector3 direction)
+		_Check_return_ inline bool IntersectionRay(_In_ Vector3 origin, _In_ Vector3 direction) const
 		{
 			return (-(HalfSpace(origin) / dot(N, direction))) >= 0;
 		}

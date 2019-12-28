@@ -3,6 +3,7 @@
 #include <Components/FreeCamera.h>
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
+#include <Graphics/Diagnostics/DebugRenderer.h>
 #include "TransformBlock.h"
 #include "DirLight.h"
 

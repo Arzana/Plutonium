@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Math/Line.h"
-#include "Core/Math/AABB.h"
+#include "Core/Math/Frustum.h"
 #include "Content/AssetFetcher.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Textures/DepthBuffer.h"
@@ -32,6 +32,10 @@ namespace Pu
 		void AddBox(_In_ const AABB &box, _In_ Color color);
 		/* Adds a box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ const Matrix &transform, _In_ Color color);
+		/* Adds a rectangle to the debug renderer queue. */
+		void AddRectangle(_In_ Vector3 lower, _In_ Vector3 upper, _In_ Color color);
+		/* Adds a frustum to the debug renderer queue. */
+		void AddFrustum(_In_ const Frustum &frustum, _In_ Color color);
 		/* Renders all shapes stored in the debug renderer. */
 		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view, _In_opt_ bool clearBuffer = true);
 
@@ -46,10 +50,10 @@ namespace Pu
 		BufferView *bufferView;
 		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
-		uint32 size;
+		uint32 size, culled;
 
 		float lineWidth;
-		bool dynamicLineWidth;
+		bool dynamicLineWidth, thrown;
 
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);

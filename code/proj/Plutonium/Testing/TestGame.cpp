@@ -197,13 +197,17 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	cmd.BindGraphicsDescriptor(*light);
 	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 
+	cmd.AddLabel("Sponza", Color::Blue());
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
-		mesh->Bind(cmd, 0);
-		mesh->Draw(cmd);
+		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
+		{
+			cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
+			mesh->Bind(cmd, 0);
+			mesh->Draw(cmd);
+		}
 	}
-
+	cmd.EndLabel();
 	cmd.EndRenderPass();
 }
 

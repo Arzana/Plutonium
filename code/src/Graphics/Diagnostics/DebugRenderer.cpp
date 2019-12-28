@@ -3,7 +3,7 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: loader(loader), wnd(window), pipeline(nullptr), size(0), lineWidth(lineWidth), depthBuffer(depthBuffer)
+	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0), lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false)
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -43,6 +43,7 @@ void Pu::DebugRenderer::AddLine(Vector3 start, Vector3 end, Color color)
 		AddVertex(start, color);
 		AddVertex(end, color);
 	}
+	else culled += 2;
 }
 
 void Pu::DebugRenderer::AddBox(const AABB & box, Color color)
@@ -99,6 +100,44 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	AddLine(fbl, bbl, color);
 }
 
+void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
+{
+	const Vector3 v{ upper.X, lower.Y, upper.Z };
+	const Vector3 w{ lower.X, upper.Y, lower.Z };
+
+	AddLine(lower, v, color);
+	AddLine(lower, w, color);
+	AddLine(upper, v, color);
+	AddLine(upper, w, color);
+}
+
+void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
+{
+	const Vector3 nbl = Plane::IntersectionPoint(frustum.Near(), frustum.Left(), frustum.Bottom());
+	const Vector3 ntr = Plane::IntersectionPoint(frustum.Near(), frustum.Right(), frustum.Top());
+	const Vector3 fbl = Plane::IntersectionPoint(frustum.Far(), frustum.Left(), frustum.Bottom());
+	const Vector3 ftr = Plane::IntersectionPoint(frustum.Far(), frustum.Right(), frustum.Top());
+	const Vector3 nbr{ ntr.X, nbl.Y, ntr.Z };
+	const Vector3 ntl{ nbl.X, ntr.Y, nbl.Z };
+	const Vector3 fbr{ ftr.X, fbl.Y, ftr.Z };
+	const Vector3 ftl{ fbl.X, ftr.Y, fbl.Z };
+
+	AddLine(nbl, nbr, color);
+	AddLine(nbl, ntl, color);
+	AddLine(ntr, nbr, color);
+	AddLine(ntr, ntl, color);
+
+	AddLine(fbl, fbr, color);
+	AddLine(fbl, ftl, color);
+	AddLine(ftr, fbr, color);
+	AddLine(ftr, ftl, color);
+
+	AddLine(nbl, fbl, color);
+	AddLine(nbr, fbr, color);
+	AddLine(ntl, ftl, color);
+	AddLine(ntr, ftr, color);
+}
+
 void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view, bool clearBuffer)
 {
 	/* Make sure we cannot access garbage memory. */
@@ -136,6 +175,17 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 
 	/* Clear the buffer to make sure that we don't get shapes from previous calls in one draw batch. */
 	if (clearBuffer) size = 0;
+
+	/* Log and warning if the user exceeds their limit once. */
+	if (culled)
+	{
+		if (!thrown)
+		{
+			thrown = true;
+			Log::Warning("Unable to render %u debug lines, consider upgrading the MaxDebugRendererVertices.", culled);
+		}
+		culled = 0;
+	}
 }
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)
