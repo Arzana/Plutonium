@@ -57,16 +57,19 @@ void Pu::DebugRenderer::AddBox(const AABB & box, Color color)
 	const Vector3 bbr = box[6];
 	const Vector3 bbl = box[7];
 
+	/* Front face */
 	AddLine(ftl, ftr, color);
 	AddLine(ftr, fbr, color);
 	AddLine(fbr, fbl, color);
 	AddLine(fbl, ftl, color);
 
+	/* Back face */
 	AddLine(btl, btr, color);
 	AddLine(btr, bbr, color);
 	AddLine(bbr, bbl, color);
 	AddLine(bbl, btl, color);
 
+	/* Inbetween lines */
 	AddLine(ftl, btl, color);
 	AddLine(ftr, btr, color);
 	AddLine(fbr, bbr, color);
@@ -84,20 +87,53 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	const Vector3 bbr = transform * box[6];
 	const Vector3 bbl = transform * box[7];
 
+	/* Front face */
 	AddLine(ftl, ftr, color);
 	AddLine(ftr, fbr, color);
 	AddLine(fbr, fbl, color);
 	AddLine(fbl, ftl, color);
 
+	/* Back face */
 	AddLine(btl, btr, color);
 	AddLine(btr, bbr, color);
 	AddLine(bbr, bbl, color);
 	AddLine(bbl, btl, color);
 
+	/* Inbetween lines */
 	AddLine(ftl, btl, color);
 	AddLine(ftr, btr, color);
 	AddLine(fbr, bbr, color);
 	AddLine(fbl, bbl, color);
+}
+
+void Pu::DebugRenderer::AddSphere(Vector3 center, float radius, Color xzColor, Color xyColor, Color yzColor)
+{
+	constexpr float delta = PI / SphereDivs;
+	constexpr float phi = TAU + delta;
+
+	/* Start positions of the lines at theta = 0 */
+	Vector3 v0x = center + Vector3(radius, 0.0f, 0.0f);
+	Vector3 v0y = center + Vector3(radius, 0.0f, 0.0f);
+	Vector3 v0z = center + Vector3(0.0f, 0.0f, radius);
+
+	for (float theta = delta; theta < phi; theta += delta)
+	{
+		const float c = cosf(theta) * radius;
+		const float s = sinf(theta) * radius;
+
+		/* End points of the lines. */
+		const Vector3 v1x = center + Vector3(c, 0.0f, s);
+		const Vector3 v1y = center + Vector3(c, s, 0.0f);
+		const Vector3 v1z = center + Vector3(0.0f, s, c);
+
+		AddLine(v0x, v1x, xzColor);
+		AddLine(v0y, v1y, xyColor);
+		AddLine(v0z, v1z, yzColor);
+
+		v0x = v1x;
+		v0y = v1y;
+		v0z = v1z;
+	}
 }
 
 void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
@@ -113,6 +149,7 @@ void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
 
 void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 {
+	/* We calculate 4 corner points by intersecting the frustum bounds. */
 	const Vector3 nbl = Plane::IntersectionPoint(frustum.Near(), frustum.Left(), frustum.Bottom());
 	const Vector3 ntr = Plane::IntersectionPoint(frustum.Near(), frustum.Right(), frustum.Top());
 	const Vector3 fbl = Plane::IntersectionPoint(frustum.Far(), frustum.Left(), frustum.Bottom());
@@ -122,16 +159,19 @@ void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 	const Vector3 fbr{ ftr.X, fbl.Y, ftr.Z };
 	const Vector3 ftl{ fbl.X, ftr.Y, fbl.Z };
 
+	/* Near plane */
 	AddLine(nbl, nbr, color);
 	AddLine(nbl, ntl, color);
 	AddLine(ntr, nbr, color);
 	AddLine(ntr, ntl, color);
 
+	/* Far plane */
 	AddLine(fbl, fbr, color);
 	AddLine(fbl, ftl, color);
 	AddLine(ftr, fbr, color);
 	AddLine(ftr, ftl, color);
 
+	/* Inbetween lines */
 	AddLine(nbl, fbl, color);
 	AddLine(nbr, fbr, color);
 	AddLine(ntl, ftl, color);

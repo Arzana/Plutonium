@@ -1152,7 +1152,7 @@ void ParseMaterialsAndTextures(const ObjLoaderResult &input, PumIntermediate &re
 		material.SpecularFactor = cur.Specular;
 		material.EmissiveFactor = cur.Emissive;
 		material.Glossiness = cur.Glossiness;
-		material.SpecularPower = cur.HighlightExponent;
+		material.SpecularPower = log(cur.HighlightExponent);	// The value is presumably premultiplied as is normally scales from 0 to 1000
 		if (material.EmissiveFactor != Color::Black()) material.EmissiveInternsity = 1.0f;
 		material.AlphaMode = 1;
 		material.AlphaThreshold = 0.1f;

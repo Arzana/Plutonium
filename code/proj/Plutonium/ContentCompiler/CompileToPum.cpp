@@ -3,13 +3,13 @@
 #include "CompileFromGltf.h"
 #include "CompileFromObj.h"
 #include "TextureConverter.h"
+#include "TangentGenerator.h"
 #include <Streams/FileWriter.h>
-#include <Streams/BinaryWriter.h>
 #include <Core/Diagnostics/Stopwatch.h>
 
 using namespace Pu;
 
-int SavePumToFile(const CLArgs &args, const PumIntermediate &data)
+void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 {
 	FileWriter file(args.Output.toWide());
 	const size_t dataSize = data.Data.GetSize();
@@ -194,8 +194,6 @@ int SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 	file.Write(reinterpret_cast<const byte*>(&dataSize), 0, sizeof(size_t));
 	file.Write(writer.GetData(), 0, writer.GetSize());
 	file.Write(data.Data.GetData(), 0, data.Data.GetSize());
-
-	return EXIT_SUCCESS;
 }
 
 int CompileToPum(const CLArgs & args)
@@ -231,9 +229,11 @@ int CompileToPum(const CLArgs & args)
 		return EXIT_FAILURE;
 	}
 
-	CopyAndConvertMaterials(data, args);
-	const int result = SavePumToFile(args, data);
+	if (args.RecalcTangents) GenerateTangents(data);
 
-	if (!result) Log::Message("Finishes converting '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());
-	return result;
+	CopyAndConvertMaterials(data, args);
+	SavePumToFile(args, data);
+
+	Log::Message("Finishes converting '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());
+	return EXIT_SUCCESS;
 }

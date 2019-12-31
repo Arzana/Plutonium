@@ -31,6 +31,7 @@ private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer;
 	Pu::TextureCube *environment;
+	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;

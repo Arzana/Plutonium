@@ -14,7 +14,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f))
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f)), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -109,7 +109,11 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
-	if (depthBuffer) delete depthBuffer;
+	if (depthBuffer)
+	{
+		delete depthBuffer;
+		delete dbgRenderer;
+	}
 }
 
 void TestGame::Update(float)
@@ -197,10 +201,10 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	cmd.BindGraphicsDescriptor(*light);
 	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 
-	cmd.AddLabel("Sponza", Color::Blue());
+	cmd.AddLabel("Barry", Color::Blue());
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
+		//if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
 		{
 			cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
 			mesh->Bind(cmd, 0);
@@ -209,6 +213,8 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	}
 	cmd.EndLabel();
 	cmd.EndRenderPass();
+
+	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
@@ -246,8 +252,14 @@ void TestGame::OnSwapchainRecreated(const Pu::GameWindow &)
 
 void TestGame::CreateDepthBuffer(void)
 {
-	if (depthBuffer) delete depthBuffer;
+	if (depthBuffer)
+	{
+		delete depthBuffer;
+		delete dbgRenderer;
+	}
+
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
+	dbgRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 }
 
 void TestGame::InitializeRenderpass(Pu::Renderpass&)
@@ -273,8 +285,8 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	descPoolLight = new DescriptorPool(*renderPass, pass, 2, 1);
 	light = new DirLight(*descPoolLight);
 
-	descPoolMats = new DescriptorPool(*renderPass, pass, 1, (stageMaterials.size() << 1) + 1);
-	for (const PumMaterial &material : stageMaterials)
+	descPoolMats = new DescriptorPool(*renderPass, pass, 1, stageMaterials.size() + 1);
+	for (PumMaterial &material : stageMaterials)
 	{
 		materials.emplace_back(new Material(*descPoolMats, material));
 	}
@@ -292,7 +304,6 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->SetCullMode(CullModeFlag::Front);
 	gfxPipeline->AddVertexBinding<Basic3D>(0);
 
 	GetWindow().CreateFrameBuffers(*renderPass, { &depthBuffer->GetView() });

@@ -21,10 +21,12 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 {
 	/* Calculate the stride of the vertices. */
 	size_t vertexStride = sizeof(Vector3);
-	if (mesh.HasNormals) vertexStride += sizeof(Vector3);
-	if (mesh.HasTangents) vertexStride += sizeof(Vector4);
-	if (mesh.HasTextureCoordinates) vertexStride += sizeof(Vector2);
-	if (mesh.HasColors) vertexStride += sizeof(uint32);
+	vertexStride += mesh.HasNormals * sizeof(Vector3);
+	vertexStride += mesh.HasTangents * sizeof(Vector4);
+	vertexStride += mesh.HasTextureCoordinates * sizeof(Vector2);
+	vertexStride += mesh.HasColors * sizeof(uint32);
+	if (mesh.JointType == PumJointType::Byte) vertexStride += sizeof(uint8) + sizeof(Vector4);
+	else if (mesh.JointType == PumJointType::UShort) vertexStride += sizeof(uint16) + sizeof(Vector4);
 
 	/* Create the buffer views. */
 	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, vertexStride);

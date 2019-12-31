@@ -32,6 +32,13 @@ namespace Pu
 		void AddBox(_In_ const AABB &box, _In_ Color color);
 		/* Adds a box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ const Matrix &transform, _In_ Color color);
+		/* Adds a sphere to the debug renderer queue. */
+		inline void AddSphere(_In_ Vector3 center, _In_ float radius, _In_ Color color)
+		{
+			AddSphere(center, radius, color, color, color);
+		}
+		/* Adds a sphere to the debug renderer queue. */
+		void AddSphere(_In_ Vector3 center, _In_ float radius, _In_ Color xzColor, _In_ Color xyColor, _In_ Color yzColor);
 		/* Adds a rectangle to the debug renderer queue. */
 		void AddRectangle(_In_ Vector3 lower, _In_ Vector3 upper, _In_ Color color);
 		/* Adds a frustum to the debug renderer queue. */

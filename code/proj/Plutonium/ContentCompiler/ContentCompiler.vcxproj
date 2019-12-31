@@ -85,11 +85,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\deps\mikktspace\mikktspace.c" />
     <ClCompile Include="CompileFromGltf.cpp" />
     <ClCompile Include="CompileFromMd2.cpp" />
     <ClCompile Include="CompileFromObj.cpp" />
     <ClCompile Include="CompileToPum.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TangentGenerator.cpp" />
     <ClCompile Include="TextureConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +101,7 @@
     <ClInclude Include="CompileFromObj.h" />
     <ClInclude Include="CompileToPum.h" />
     <ClInclude Include="PumData.h" />
+    <ClInclude Include="TangentGenerator.h" />
     <ClInclude Include="TextureConverter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
