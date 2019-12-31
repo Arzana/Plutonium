@@ -46,12 +46,12 @@ Pu::Image & Pu::Image::operator=(Image && other)
 
 Pu::uint32 Pu::Image::GetMaxMipLayers(Extent3D extent)
 {
-	return static_cast<uint32>(floor(log2(max(extent.Width, extent.Height, extent.Depth))) + 1);
+	return static_cast<uint32>(floor(log2(min(extent.Width, extent.Height, extent.Depth))) + 1);
 }
 
 Pu::uint32 Pu::Image::GetMaxMipLayers(uint32 width, uint32 height, uint32 depth)
 {
-	return static_cast<uint32>(floor(log2(max(width, height, depth))) + 1);
+	return static_cast<uint32>(floor(log2(min(width, height, depth))) + 1);
 }
 
 Pu::DeviceSize Pu::Image::GetLazyMemory(void) const

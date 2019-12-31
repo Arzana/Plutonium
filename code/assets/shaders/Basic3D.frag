@@ -87,7 +87,7 @@ void main()
 	const vec3 f = fresnel(ndh);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, a2);
-	const vec3 env = texture(Environment, r).rgb;
+	const vec3 env = texture(Environment, -r).rgb;
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diff.rgb / PI);

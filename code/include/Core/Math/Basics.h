@@ -183,10 +183,46 @@ namespace Pu
 		return __min(a, b);
 	}
 
-	/* Gets the lowest of the two input values. */
+	/* Gets the lowest of the three input values. */
 	_Check_return_ constexpr inline double min(_In_ double a, _In_ double b)
 	{
 		return __min(a, b);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline int32 min(_In_ int32 a, _In_ int32 b, _In_ int32 c)
+	{
+		return __min(__min(a, b), c);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline uint32 min(_In_ uint32 a, _In_ uint32 b, _In_ uint32 c)
+	{
+		return __min(__min(a, b), c);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline int64 min(_In_ int64 a, _In_ int64 b, _In_ int64 c)
+	{
+		return __min(__min(a, b), c);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline uint64 min(_In_ uint64 a, _In_ uint64 b, _In_ uint64 c)
+	{
+		return __min(__min(a, b), c);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline float min(_In_ float a, _In_ float b, _In_ float c)
+	{
+		return __min(__min(a, b), c);
+	}
+
+	/* Gets the lowest of the three input values. */
+	_Check_return_ constexpr inline double min(_In_ double a, _In_ double b, _In_ double c)
+	{
+		return __min(__min(a, b), c);
 	}
 #pragma endregion
 #pragma region clamp

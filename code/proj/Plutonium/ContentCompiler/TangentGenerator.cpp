@@ -18,6 +18,11 @@ struct MikkTSpaceUserData
 		Tangents = reinterpret_cast<Vector4*>(malloc(sizeof(Vector4) * (Mesh.VertexViewSize / GetStride())));
 	}
 
+	~MikkTSpaceUserData(void)
+	{
+		free(Tangents);
+	}
+
 	inline size_t GetStride(void) const
 	{
 		/* A convertable mesh always has a position, normal and texture coordinate. */
@@ -103,8 +108,6 @@ void PumSetTangent(const SMikkTSpaceContext *context, const float tangent[3], co
 
 void GenerateTangents(PumIntermediate & data)
 {
-	vector<MikkTSpaceUserData> userData;
-
 	/* Set all of the delegates. */
 	SMikkTSpaceInterface interfaces{};
 	interfaces.m_getNumFaces = &PumGetNumFaces;
@@ -115,8 +118,24 @@ void GenerateTangents(PumIntermediate & data)
 	interfaces.m_setTSpaceBasic = &PumSetTangent;
 	interfaces.m_setTSpace = nullptr;
 
+	/* We need to precalculate the result buffer size, otherwise the reallocating of the output buffer will take forever. */
+	size_t meshCnt = 0, outputSize = 0;
+	for (const pum_mesh &mesh : data.Geometry)
+	{
+		if (mesh.HasNormals && mesh.HasTextureUvs && mesh.Topology == 3 && !mesh.HasTangents)
+		{
+			meshCnt++;
+			const size_t oldStride = (sizeof(Vector3) << 1) + sizeof(Vector2) + (sizeof(uint32) * mesh.HasVertexColors);
+			const size_t newStride = oldStride + sizeof(Vector4);
+			const size_t elementCnt = mesh.VertexViewSize / oldStride;
+			outputSize += elementCnt * newStride;
+		}
+	}
+
 	/* Indicate to the user that this action will take place and just convert for all meshes. */
-	Log::Message("Generating tangents for %zu meshes using MikkTSpace.", data.Geometry.size());
+	Log::Message("Generating tangents for %zu meshes using MikkTSpace.", meshCnt);
+	BinaryWriter newData{ outputSize, Endian::Little };
+
 	for (pum_mesh &mesh : data.Geometry)
 	{
 		/* Normals and texture coordinates are needed for tangent space calculation. */
@@ -126,57 +145,52 @@ void GenerateTangents(PumIntermediate & data)
 			if (!mesh.HasTangents)
 			{
 				/* We use this struct to give all the static functions access to the models data. */
-				userData.emplace_back(data, mesh);
+				MikkTSpaceUserData userData{ data, mesh };
 
 				/* Actually calculate the tangents. */
 				SMikkTSpaceContext context{};
-				context.m_pUserData = &userData.back();
+				context.m_pUserData = &userData;
 				context.m_pInterface = &interfaces;
 				genTangSpaceDefault(&context);
+
+				/* Set the tangents and copy over the indices if needed. */
+				if (mesh.IndexMode != 2)
+				{
+					mesh.IndexViewStart = newData.GetSize();
+					newData.Write(data.Data.GetData(), mesh.IndexViewStart, mesh.IndexViewSize);
+				}
+
+				/* Make sure that the mesh starts at an alligned offset. */
+				const size_t zeroBytes = newData.GetSize() % (userData.GetStride() + sizeof(Vector4));
+				newData.Pad(zeroBytes);
+
+				const size_t start = newData.GetSize();
+				const size_t endStride = sizeof(Vector2) + (mesh.HasVertexColors) * sizeof(uint32);
+				const byte *raw = data.Data.GetData();
+
+				for (size_t i = mesh.VertexViewStart, j = 0; i < mesh.VertexViewStart + mesh.VertexViewSize; j++)
+				{
+					/* Copy the position and the normal. */
+					newData.Write(raw, i, sizeof(Vector3) << 1);
+					i += sizeof(Vector3) << 1;
+
+					/* Copy the generated tangent. */
+					newData.Write(userData.Tangents[j]);
+
+					/* Write the last part of the vertex to the output buffer. */
+					newData.Write(raw, i, endStride);
+					i += endStride;
+				}
+
+				/* Override the old parameters. */
+				mesh.HasTangents = true;
+				mesh.VertexViewStart = start;
+				mesh.VertexViewSize = newData.GetSize() - start;
 			}
 		}
 		else Log::Warning("Unable to generate tangents for model '%s' (mesh doesn't have normals or texture coordinates)!", mesh.Identifier.toUTF8().c_str());
 	}
 
-	/* Create a new buffer for the output. */
-	BinaryWriter newData{ data.Data.GetSize(), Endian::Little };
-	for (const MikkTSpaceUserData &tmp : userData)
-	{
-		/* Set the tangents and copy over the indices if needed. */
-		if (tmp.Mesh.IndexMode != 2)
-		{
-			tmp.Mesh.IndexViewStart = newData.GetSize();
-			newData.Write(data.Data.GetData(), tmp.Mesh.IndexViewStart, tmp.Mesh.IndexViewSize);
-		}
-
-		/* Make sure that the mesh starts at an alligned offset. */
-		const size_t zeroBytes = newData.GetSize() % (tmp.GetStride() + sizeof(Vector4));
-		newData.Pad(zeroBytes);
-
-		const size_t start = newData.GetSize();
-		const size_t endStride = sizeof(Vector2) + (tmp.Mesh.HasVertexColors) * sizeof(uint32);
-		const byte *raw = tmp.Data.Data.GetData();
-
-		for (size_t i = tmp.Mesh.VertexViewStart, j = 0; i < tmp.Mesh.VertexViewStart + tmp.Mesh.VertexViewSize; j++)
-		{
-			/* Copy the position and the normal. */
-			newData.Write(raw, i, sizeof(Vector3) << 1);
-			i += sizeof(Vector3) << 1;
-
-			/* Copy the generated tangent. */
-			newData.Write(tmp.Tangents[j]);
-
-			/* Write the last part of the vertex to the output buffer. */
-			newData.Write(raw, i, endStride);
-			i += endStride;
-		}
-
-		/* Override the old parameters. */
-		tmp.Mesh.HasTangents = true;
-		tmp.Mesh.VertexViewStart = start;
-		tmp.Mesh.VertexViewSize = newData.GetSize() - start;
-		free(tmp.Tangents);
-	}
-
+	/* Replace the old buffer with out new buffer. */
 	data.Data = std::move(newData);
 }

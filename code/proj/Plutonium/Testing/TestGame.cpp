@@ -173,6 +173,15 @@ void TestGame::Render(float, CommandBuffer &cmd)
 			mat2.Update(cmd);
 		}
 
+		Material &defMat = *materials.back();
+		defMat.ForceUpdate();
+		defMat.SetDiffuse(*textures[textures.size() - 3]);
+		defMat.SetSpecular(*textures[textures.size() - 2]);
+		defMat.SetNormal(*textures[textures.size() - 1]);
+		defMat.SetEmissive(*textures[textures.size() - 2]);
+		defMat.SetOcclusion(*textures[textures.size() - 3]);
+		defMat.Update(cmd);
+
 		sw.End();
 		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());
 	}
@@ -201,10 +210,10 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	cmd.BindGraphicsDescriptor(*light);
 	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 
-	cmd.AddLabel("Barry", Color::Blue());
+	cmd.AddLabel("Model", Color::Blue());
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		//if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
+		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
 		{
 			cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
 			mesh->Bind(cmd, 0);
@@ -292,7 +301,6 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	}
 
 	materials.emplace_back(new Material(*descPoolMats));
-	materials.back()->SetDiffuse(Color::Red());
 	CreateGraphicsPipeline();
 }
 
