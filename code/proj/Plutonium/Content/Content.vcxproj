@@ -22,8 +22,12 @@
     <PuModel Include="..\..\..\assets\models\Fire\fire.md2" />
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
       <AdditionalTexturesPum>knight.bmp;%(AdditionalTexturesPum)</AdditionalTexturesPum>
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
     </PuModel>
-    <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2" />
+    <PuModel Include="..\..\..\assets\models\Ratamahatta\Ratamahatta.md2">
+      <AdditionalTexturesPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Ratamahatta.png;</AdditionalTexturesPum>
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
+    </PuModel>
     <PuModel Include="..\..\..\assets\models\Sponza\Sponza.gltf" />
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
   </ItemGroup>

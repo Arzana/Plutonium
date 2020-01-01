@@ -355,7 +355,13 @@ int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
 	// We don't handle OpenGL command so just ignore them.
 
 	/* Add the additional textures here so they get handled properly. */
-	for (const string &cur : args.AdditionalTextures) result.textures.emplace_back(cur);
+	const string dir = args.Input.fileDirectory();
+	for (const string &cur : args.AdditionalTextures)
+	{
+		/* The user probably hasn't defined the full path, we assume that this will be relative to the model. */
+		if (cur.fileName() == cur) result.textures.emplace_back(dir + cur);
+		else result.textures.emplace_back(cur);
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -384,7 +390,8 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 
 		/* Just add a new material for every defined texture (they're often not defined). */
 		pum_material material;
-		material.DiffuseTexture = static_cast<uint32>(result.Textures.size() - 1);
+		material.DiffuseFactor = Color::White();
+		material.SetDiffuseTexture(static_cast<uint32>(result.Textures.size() - 1));
 		result.Materials.emplace_back(material);
 	}
 
