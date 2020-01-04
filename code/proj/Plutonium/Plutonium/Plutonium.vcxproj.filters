@@ -196,6 +196,12 @@
     <Filter Include="Source Files\Networking\UPnP">
       <UniqueIdentifier>{a261dbc7-fa63-4330-9f6c-95506dcdf8c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Lighting">
+      <UniqueIdentifier>{66e3cedb-cd0c-4b4e-816e-c1baecd76d96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Lighting">
+      <UniqueIdentifier>{522244a0-8633-4708-9a4b-9a33ede5baae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -708,6 +714,21 @@
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\RenderDoc.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\Category.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbe.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Networking\Core\WinSock.h">
+      <Filter>Header Files\Networking\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeRenderer.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeUniformBlock.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1030,6 +1051,15 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\RenderDoc.cpp">
       <Filter>Source Files\Graphics\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbe.cpp">
+      <Filter>Source Files\Graphics\Lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeUniformBlock.cpp">
+      <Filter>Source Files\Graphics\Lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeRenderer.cpp">
+      <Filter>Source Files\Graphics\Lighting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

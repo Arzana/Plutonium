@@ -10,7 +10,9 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a framebuffer. */
-		Framebuffer(_In_ LogicalDevice &device, _In_ const Renderpass &renderPass, _In_ Extent2D dimensions, _In_ const vector<const ImageView*> &attachments);
+		Framebuffer(_In_ const Renderpass &renderpass, _In_ Extent2D dimensions, _In_ const vector<const ImageView*> &attachments);
+		/* Initializes a new instance of a framebuffer for layered rendering. */
+		Framebuffer(const Renderpass &renderpass, _In_ Extent2D dimensions, _In_ uint32 layers, _In_ const vector<const ImageView*> &attachments);
 		Framebuffer(_In_ const Framebuffer&) = delete;
 		/* Move constructor. */
 		Framebuffer(_In_ Framebuffer &&value);

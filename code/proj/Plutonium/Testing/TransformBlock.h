@@ -1,5 +1,6 @@
 #pragma once
 #include <Graphics/Models/UniformBlock.h>
+#include <Graphics/Lighting/LightProbe.h>
 
 class TransformBlock
 	: public Pu::UniformBlock
@@ -30,9 +31,9 @@ public:
 		IsDirty = true;
 	}
 
-	inline void SetEnvironment(const Pu::TextureCube &map)
+	inline void SetEnvironment(const Pu::LightProbe &probe)
 	{
-		Write(*envMap, map);
+		Write(*envMap, probe.GetTexture());
 	}
 
 protected:

@@ -109,6 +109,7 @@ void Pu::Shader::SetFieldInfo(void)
 	types.clear();
 	structs.clear();
 	variables.clear();
+	constants.clear();
 }
 
 void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage)
@@ -194,7 +195,9 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 	case (spv::Op::OpTypeStruct):
 		HandleStruct(reader, wordCnt - 1);
 		break;
-		//TODO: handle array types.
+	case (spv::Op::OpTypeArray):
+		HandleArray(reader);
+		break;
 	case (spv::Op::OpTypeImage):
 		HandleImage(reader);
 		break;
@@ -203,6 +206,9 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 		break;
 	case (spv::Op::OpVariable):
 		HandleVariable(reader);
+		break;
+	case (spv::Op::OpConstant):
+		HandleConstant(reader);
 		break;
 	}
 }
@@ -246,6 +252,7 @@ void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 	case (spv::Decoration::Block):			// Used for uniform blocks we don't have to define what is in which block.
 	case (spv::Decoration::Flat):			// Used for internal shader inputs (should not be interpolated), we cannot access this variable anyway.
 	case (spv::Decoration::BuiltIn):		// Used to indicate build in variables, they'll not be used.
+	case (spv::Decoration::ArrayStride):	// Used to specify the stride of arrays, this is currently only used in geometry shading.
 		return;
 	case (spv::Decoration::Location):		// Location decoration stores a single literal number.
 		result.Numbers.emplace(decoration, reader.ReadWord());
@@ -284,6 +291,7 @@ void Pu::Shader::HandleInt(SPIRVReader & reader)
 	else if (width == 16) intType.ComponentType = isSigned ? ComponentType::Short : ComponentType::UShort;
 	else if (width == 32) intType.ComponentType = isSigned ? ComponentType::Int : ComponentType::UInt;
 	else if (width == 64) intType.ComponentType = isSigned ? ComponentType::Long : ComponentType::ULong;
+	else Log::Warning("Invalid integer type length found in SPIR-V!");
 
 	types.emplace(id, intType);
 }
@@ -297,6 +305,7 @@ void Pu::Shader::HandleFloat(SPIRVReader & reader)
 	if (width == 16) floatType.ComponentType = ComponentType::HalfFloat;
 	else if (width == 32) floatType.ComponentType = ComponentType::Float;
 	else if (width == 64) floatType.ComponentType = ComponentType::Double;
+	else Log::Warning("Invalid float type length found in SPIR-V!");
 
 	types.emplace(id, floatType);
 }
@@ -356,6 +365,15 @@ void Pu::Shader::HandleStruct(SPIRVReader & reader, size_t memberCnt)
 	structs.emplace(id, std::move(members));
 }
 
+void Pu::Shader::HandleArray(SPIRVReader & reader)
+{
+	const spv::Id id = reader.ReadWord();
+	FieldType elementType = types[reader.ReadWord()];
+	elementType.Length = static_cast<spv::Word>(constants[reader.ReadWord()]);
+
+	types.emplace(id, elementType);
+}
+
 void Pu::Shader::HandleImage(SPIRVReader & reader)
 {
 	/* We need the type id but we can skip the underlying image type as it doesn't concern us. */
@@ -403,6 +421,43 @@ void Pu::Shader::HandleVariable(SPIRVReader & reader)
 	const spv::StorageClass storageClass = _CrtInt2Enum<spv::StorageClass>(reader.ReadWord());
 
 	variables.emplace_back(std::make_tuple(resultId, resultType, storageClass));
+}
+
+void Pu::Shader::HandleConstant(SPIRVReader & reader)
+{
+	const FieldType &type = types[reader.ReadWord()];
+	const spv::Id resultId = reader.ReadWord();
+
+	if (type.ContainerType == SizeType::Scalar)
+	{
+		double value;
+
+		switch (type.ComponentType)
+		{
+		case Pu::ComponentType::Byte:
+		case Pu::ComponentType::SByte:
+		case Pu::ComponentType::Short:
+		case Pu::ComponentType::UShort:
+		case Pu::ComponentType::Int:
+		case Pu::ComponentType::UInt:
+			value = static_cast<double>(reader.ReadWord());
+			break;
+		case Pu::ComponentType::HalfFloat:
+		case Pu::ComponentType::Float:
+			value = reader.GetStream().ReadSingle();
+			break;
+		case Pu::ComponentType::Long:
+		case Pu::ComponentType::ULong:
+			value = static_cast<double>(reader.GetStream().ReadInt64());
+			break;
+		case Pu::ComponentType::Double:
+			value = reader.GetStream().ReadDouble();
+			break;
+		}
+
+		constants.emplace(resultId, value);
+	}
+	else Log::Error("Non-scalar constrant defined in SPIR-V, ignoring constant!");
 }
 
 void Pu::Shader::SetInfo(const wstring & ext)

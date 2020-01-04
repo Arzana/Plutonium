@@ -1,12 +1,12 @@
 #include "Graphics/Textures/DepthBuffer.h"
 #include "Graphics/Vulkan/CommandBuffer.h"
 
-Pu::DepthBuffer::DepthBuffer(LogicalDevice & device, Format format, Extent2D size)
-	: Image(device, CreateImageInfo(format, size))
+Pu::DepthBuffer::DepthBuffer(LogicalDevice & device, Format format, Extent2D size, uint32 layers)
+	: Image(device, CreateImageInfo(format, size, layers))
 {
 	/* Set the image aspect and check if the format is valid. */
 	SetAspect(format);
-	view = new ImageView(*this, ImageViewType::Image2D, aspect);
+	view = new ImageView(*this, layers > 1 ? ImageViewType::Image2DArray : ImageViewType::Image2D, aspect);
 }
 
 Pu::DepthBuffer::DepthBuffer(DepthBuffer && value)
@@ -34,11 +34,13 @@ void Pu::DepthBuffer::MakeWritable(CommandBuffer & cmdBuffer)
 	The access mask needs to read write as we want to use it for writing and depth testing.
 	The earliest stage where read/writes to this depth buffer can occur is the early fragment tests.
 	*/
-	const ImageSubresourceRange range(aspect);
-	cmdBuffer.MemoryBarrier(*this, PipelineStageFlag::TopOfPipe, PipelineStageFlag::EarlyFragmentTests, ImageLayout::DepthStencilAttachmentOptimal, AccessFlag::DepthStencilAttachmentReadWrite, range);
+	cmdBuffer.MemoryBarrier(*this, PipelineStageFlag::TopOfPipe, PipelineStageFlag::EarlyFragmentTests, ImageLayout::DepthStencilAttachmentOptimal, AccessFlag::DepthStencilAttachmentReadWrite, GetFullRange(aspect));
 }
 
-Pu::ImageCreateInfo Pu::DepthBuffer::CreateImageInfo(Format depthFormat, Extent2D size)
+/* layers, hide decleration in image, but this is not accessible anyways. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+Pu::ImageCreateInfo Pu::DepthBuffer::CreateImageInfo(Format depthFormat, Extent2D size, uint32 layers)
 {
 	return ImageCreateInfo
 	{
@@ -46,11 +48,12 @@ Pu::ImageCreateInfo Pu::DepthBuffer::CreateImageInfo(Format depthFormat, Extent2
 		depthFormat,
 		Extent3D(size, 1),
 		1,
-		1,
+		layers,
 		SampleCountFlag::Pixel1Bit,
 		ImageUsageFlag::DepthStencilAttachment
 	};
 }
+#pragma warning(pop)
 
 void Pu::DepthBuffer::SetAspect(Format depthFormat)
 {

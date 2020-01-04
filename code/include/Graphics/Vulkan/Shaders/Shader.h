@@ -82,6 +82,7 @@ namespace Pu
 		std::map<spv::Id, FieldType> types;
 		std::map<spv::Id, vector<spv::Id>> structs;
 		std::map<spv::Id, Decoration> decorations;
+		std::map<spv::Id, double> constants;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
 		void Load(const wstring &path, bool viaLoader);
@@ -98,9 +99,11 @@ namespace Pu
 		void HandleVector(SPIRVReader &reader);
 		void HandleMatrix(SPIRVReader &reader);
 		void HandleStruct(SPIRVReader &reader, size_t memberCnt);
+		void HandleArray(SPIRVReader &reader);
 		void HandleImage(SPIRVReader &reader);
 		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);
+		void HandleConstant(SPIRVReader &reader);
 		void SetInfo(const wstring &ext);
 		void Destroy(void);
 	};

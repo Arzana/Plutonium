@@ -38,8 +38,8 @@ namespace Pu
 		*/
 		_Check_return_ inline DeviceSize GetSize(void) const
 		{
-			if (info->ArrayElements == 1) return info->Type.GetSize();
-			else return max(16ull, info->Type.GetSize() * info->ArrayElements);
+			if (info->Type.Length == 1) return info->Type.GetSize();
+			else return max(16ull, info->Type.GetSize());
 		}
 
 	protected:

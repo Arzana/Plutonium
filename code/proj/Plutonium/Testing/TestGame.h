@@ -4,6 +4,7 @@
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
+#include <Graphics/Lighting/LightProbeRenderer.h>
 #include "TransformBlock.h"
 #include "DirLight.h"
 
@@ -30,8 +31,12 @@ protected:
 private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer;
-	Pu::TextureCube *environment;
 	Pu::DebugRenderer *dbgRenderer;
+
+	Pu::LightProbeRenderer *probeRenderer;
+	Pu::LightProbe *environment;
+	Pu::DescriptorPool *probePool;
+	Pu::vector<Pu::DescriptorSet> probeSets;
 
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;

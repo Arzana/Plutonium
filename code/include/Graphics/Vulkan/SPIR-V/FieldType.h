@@ -64,6 +64,8 @@ namespace Pu
 		ComponentType ComponentType;
 		/* Specified the size of the field. */
 		SizeType ContainerType;
+		/* Specified the amount of element in the field type. */
+		uint32 Length;
 
 		/* Initializes an empty instance of a field type. */
 		FieldType(void);

@@ -35,10 +35,10 @@ void Pu::Output::SetDescription(const Swapchain & swapchain)
 	reference.Layout = ImageLayout::ColorAttachmentOptimal;
 }
 
-void Pu::Output::SetDescription(const DepthBuffer & depthBuffer)
+void Pu::Output::SetDepthDescription(Format format)
 {
 	/* Set the format and default the clear value to the far plane and no stencil. */
-	description.Format = depthBuffer.GetFormat();
+	description.Format = format;
 	SetClearValue({ 1.0f, 0 });
 
 	/* Set the default layout to either read-only or read-write. */

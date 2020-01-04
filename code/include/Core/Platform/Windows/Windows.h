@@ -28,6 +28,15 @@ This breaks code as we define a type safe one ourselves.
 #undef MemoryBarrier
 #endif
 
+/* Near and far are used with x16 C++, we don't run on this and it causes compiler issues. */
+#ifdef near
+#undef near
+#endif
+
+#ifdef far
+#undef far
+#endif
+
 /* Used to switch between unicode and ASCII functions. */
 #ifdef UNICODE
 #define ASCII_UNICODE(ascii, unicode)	unicode	

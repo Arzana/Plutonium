@@ -115,6 +115,8 @@ namespace Pu
 		_Check_return_ bool Overlaps(_In_ const AABB &r) const;
 		/* Gets the overlap of a box over the box. */
 		_Check_return_ AABB GetOverlap(_In_ const AABB &r) const;
+		/* Gets the distance from a single point to the box. */
+		_Check_return_ float GetDistance(_In_ Vector3 point) const;
 	};
 
 	/* Transforms the box with the specified matrix. */

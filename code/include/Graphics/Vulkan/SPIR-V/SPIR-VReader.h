@@ -51,6 +51,12 @@ namespace Pu
 		}
 
 		/* Gets the pointer to the data SPIR-V data stream. */
+		inline BinaryReader& GetStream(void)
+		{
+			return *reader;
+		}
+
+		/* Gets the pointer to the data SPIR-V data stream. */
 		inline const BinaryReader& GetStream(void) const
 		{
 			return *reader;

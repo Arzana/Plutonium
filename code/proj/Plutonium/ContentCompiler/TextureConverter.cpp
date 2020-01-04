@@ -479,7 +479,7 @@ void InitializeFramebuffers(const vector<std::pair<uint32, uint32>> &sources)
 		attachments.emplace_back(new ImageView(*outputs.back(), ImageViewType::Image2D, ImageAspectFlag::Color));
 
 		/* The framebuffer just uses the last 2 images. */
-		framebuffers.emplace_back(new Framebuffer(*device, *renderpass, size.To2D(), { attachments[attachments.size() - 2], attachments.back() }));
+		framebuffers.emplace_back(new Framebuffer(*renderpass, size.To2D(), { attachments[attachments.size() - 2], attachments.back() }));
 	}
 }
 

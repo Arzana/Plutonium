@@ -155,6 +155,10 @@
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\RenderDoc.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbe.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeUniformBlock.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\Category.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h" />
@@ -248,6 +252,7 @@
     <ClInclude Include="..\..\..\include\Networking\Core\Socket.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\SocketOption.h" />
     <ClInclude Include="..\..\..\include\Networking\Core\SocketType.h" />
+    <ClInclude Include="..\..\..\include\Networking\Core\WinSock.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\HttpMethod.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\HTTPU.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SOAP.h" />
@@ -306,6 +311,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\RenderDoc.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbe.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeRenderer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp" />

@@ -4,7 +4,6 @@
 #include "Protocol.h"
 #include "SocketType.h"
 #include "SocketOption.h"
-#include <WS2tcpip.h>
 
 namespace Pu
 {

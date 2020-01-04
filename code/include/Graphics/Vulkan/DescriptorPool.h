@@ -27,6 +27,8 @@ namespace Pu
 
 		/* Allocates a new descriptor set from this pool. */
 		_Check_return_ DescriptorSet Allocate(void) const;
+		/* Deallocates the specified descriptor set from this pool. */
+		void DeAllocate(_In_ DescriptorSet &set);
 
 		/* Gets the set that this descriptor pool allocates. */
 		_Check_return_ inline uint32 GetSet(void) const

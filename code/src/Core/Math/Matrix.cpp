@@ -122,7 +122,7 @@ Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float to
 		0.0f, 0.0f, 1.0f, 0.0f);
 }
 
-Matrix Pu::Matrix::CreatPerspective(float fovY, float aspr, float near, float far)
+Matrix Pu::Matrix::CreatePerspective(float fovY, float aspr, float near, float far)
 {
 	/*
 	This simpification can be made over the frustum function because the frustum is generic.

@@ -47,6 +47,12 @@ namespace Pu
 			description.LoadOp = op;
 		}
 
+		/* Sets the output to the specified depth buffer format. */
+		inline void SetDescription(_In_ const DepthBuffer &depthBuffer)
+		{
+			SetDepthDescription(depthBuffer.GetFormat());
+		}
+
 		/* Sets how the output field should be handled. */
 		void SetUsage(_In_ OutputUsage usage);
 		/* Enables and sets the blend operations on color. */
@@ -56,7 +62,7 @@ namespace Pu
 		/* Sets the output to the specified swapchain format. */
 		void SetDescription(_In_ const Swapchain &swapchain);
 		/* Sets the output to the specified depth buffer format. */
-		void SetDescription(_In_ const DepthBuffer &depthBuffer);
+		void SetDepthDescription(_In_ Format format);
 
 	private:
 		friend class Subpass;

@@ -13,7 +13,13 @@ Pu::Subpass::Subpass()
 	: linkSuccessfull(false), ds(nullptr), dependencyUsed(false)
 {}
 
-Subpass::Subpass(const PhysicalDevice & physicalDevice, const vector<Shader*>& shaderModules)
+Subpass::Subpass(const PhysicalDevice & physicalDevice, std::initializer_list<Shader*> shaderModules)
+	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
+{
+	Link(physicalDevice);
+}
+
+Pu::Subpass::Subpass(const PhysicalDevice & physicalDevice, const vector<Shader*>& shaderModules)
 	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
 {
 	Link(physicalDevice);
@@ -241,7 +247,7 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 				/* Check if the types differ. */
 				if (aInfo.Type != bInfo.Type)
 				{
-					Log::Error("The type of '%s' (%s) does't match '%s' (%s)!", aInfo.Name.c_str(), a.GetName().c_str(), bInfo.Name.c_str(), b.GetName().c_str());
+					Log::Error("The type of '%s' (%ls) does't match '%s' (%ls)!", aInfo.Name.c_str(), a.GetName().c_str(), bInfo.Name.c_str(), b.GetName().c_str());
 					result = false;
 					continue;
 				}
@@ -249,7 +255,7 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 				/* Check if the input is linked to multiple outputs. */
 				if (linkedLocations.contains(bInfo.GetLocation()))
 				{
-					Log::Error("Multiple output fields are using '%s' (%s) as an input field!", bInfo.Name.c_str(), b.GetName().c_str());
+					Log::Error("Multiple output fields are using '%s' (%ls) as an input field!", bInfo.Name.c_str(), b.GetName().c_str());
 					result = false;
 					continue;
 				}
@@ -263,7 +269,7 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 		/* Log an error if a link could not be made. */
 		if (!found)
 		{
-			Log::Error("Unable top find matching field in %s shader (%s) for %s in %s shader (%s)!", to_string(b.GetType()), b.GetName().c_str(), aInfo.Name.c_str(), to_string(a.GetType()), b.GetName().c_str());
+			Log::Error("Unable top find matching field in %s shader (%ls) for %s in %s shader (%ls)!", to_string(b.GetType()), b.GetName().c_str(), aInfo.Name.c_str(), to_string(a.GetType()), b.GetName().c_str());
 			result = false;
 		}
 	}
@@ -275,7 +281,7 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 
 		if (!linkedLocations.contains(info.GetLocation()))
 		{
-			Log::Error("%s in %s shader (%s) was not set by previous %s shader (%s)!", info.Name.c_str(), to_string(b.GetType()), b.GetName().c_str(), to_string(a.GetType()), b.GetName().c_str());
+			Log::Error("%s in %s shader (%ls) was not set by previous %s shader (%ls)!", info.Name.c_str(), to_string(b.GetType()), b.GetName().c_str(), to_string(a.GetType()), b.GetName().c_str());
 			result = false;
 		}
 	}

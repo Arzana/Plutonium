@@ -64,6 +64,12 @@ namespace Pu
 			++refCnt;
 		}
 
+		/* Marks the current asset as ready for use. */
+		inline void MarkAsLoaded(_In_ wstring &&name)
+		{
+			MarkAsLoaded(false, std::move(name));
+		}
+
 	protected:
 		/* Initiaizes a new instance of an asset. */
 		Asset(_In_ bool allowDuplication);

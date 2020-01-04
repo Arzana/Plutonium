@@ -149,15 +149,15 @@ void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
 
 void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 {
-	/* We calculate 4 corner points by intersecting the frustum bounds. */
+	/* We calculate 8 corner points by intersecting the frustum bounds. */
 	const Vector3 nbl = Plane::IntersectionPoint(frustum.Near(), frustum.Left(), frustum.Bottom());
 	const Vector3 ntr = Plane::IntersectionPoint(frustum.Near(), frustum.Right(), frustum.Top());
 	const Vector3 fbl = Plane::IntersectionPoint(frustum.Far(), frustum.Left(), frustum.Bottom());
 	const Vector3 ftr = Plane::IntersectionPoint(frustum.Far(), frustum.Right(), frustum.Top());
-	const Vector3 nbr{ ntr.X, nbl.Y, ntr.Z };
-	const Vector3 ntl{ nbl.X, ntr.Y, nbl.Z };
-	const Vector3 fbr{ ftr.X, fbl.Y, ftr.Z };
-	const Vector3 ftl{ fbl.X, ftr.Y, fbl.Z };
+	const Vector3 nbr = Plane::IntersectionPoint(frustum.Near(), frustum.Right(), frustum.Bottom());
+	const Vector3 ntl = Plane::IntersectionPoint(frustum.Near(), frustum.Left(), frustum.Top());
+	const Vector3 fbr = Plane::IntersectionPoint(frustum.Far(), frustum.Right(), frustum.Bottom());
+	const Vector3 ftl = Plane::IntersectionPoint(frustum.Far(), frustum.Left(), frustum.Top());
 
 	/* Near plane */
 	AddLine(nbl, nbr, color);

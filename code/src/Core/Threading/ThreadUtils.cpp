@@ -1,7 +1,15 @@
 #ifdef _WIN32
 #include "Core/Platform/Windows/Windows.h"	// GetCurrentProcessId, OpenProcess, CloseHandle, GetThreadDescription.
+
+/* far and near are needed for the COM API, but we dont want them. */
+#define far
+#define near
+
 #include <Psapi.h>							// GetModuleBaseName
 #include <comdef.h>							// wchar_t to char
+
+#undef far
+#undef near
 #endif
 
 #include "Core/Threading/ThreadUtils.h"

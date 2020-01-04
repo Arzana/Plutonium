@@ -296,6 +296,12 @@ namespace Pu
 		return Vector3(max(v.X, w.X), max(v.Y, w.Y), max(v.Z, w.Z));
 	}
 
+	/* Gets the highest value from each component from the specified vectors. */
+	_Check_return_ inline Vector3 max(_In_ Vector3 u, _In_ Vector3 v, _In_ Vector3 w)
+	{
+		return Vector3(max(u.X, v.X, w.X), max(u.Y, v.Y, w.Y), max(u.Z, v.Z, w.Z));
+	}
+
 	/* Gets the lowest value from each component from the specified vectors. */
 	_Check_return_ inline Vector3 min(_In_ Vector3 v, _In_ Vector3 w)
 	{

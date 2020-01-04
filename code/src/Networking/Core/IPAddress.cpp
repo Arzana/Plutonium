@@ -1,6 +1,5 @@
 #include "Networking/Core/IPAddress.h"
-#include "Core/Platform/Windows/Windows.h"
-#include <WS2tcpip.h>
+#include "Networking/Core/WinSock.h"
 
 Pu::IPAddress::IPAddress(uint64 address)
 	: address(address)

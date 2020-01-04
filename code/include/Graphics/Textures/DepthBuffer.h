@@ -11,7 +11,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a 2D depth buffer image. */
-		DepthBuffer(_In_ LogicalDevice &device, _In_ Format format, _In_ Extent2D size);
+		DepthBuffer(_In_ LogicalDevice &device, _In_ Format format, _In_ Extent2D size, _In_opt_ uint32 layers = 1);
 		DepthBuffer(_In_ const DepthBuffer&) = delete;
 		/* Move constructor. */
 		DepthBuffer(_In_ DepthBuffer &&value);
@@ -38,7 +38,7 @@ namespace Pu
 		ImageView *view;
 		ImageAspectFlag aspect;
 
-		ImageCreateInfo CreateImageInfo(Format depthFormat, Extent2D size);
+		ImageCreateInfo CreateImageInfo(Format depthFormat, Extent2D size, uint32 layers);
 		void SetAspect(Format depthFormat);
 
 		void Destroy(void);

@@ -12,6 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.geom" />
+    <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag" />

@@ -19,12 +19,13 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
-void TestGame::EnableFeatures(Pu::PhysicalDeviceFeatures & features)
+void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 {
 	features.LogicOp = true;			// Needed for blending
 	features.WideLines = true;			// Debug renderer
 	features.FillModeNonSolid = true;	// Easy wireframe mode
 	features.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
+	features.GeometryShader = true;		// Needed for the light probe renderer.
 }
 
 void TestGame::Initialize(void)
@@ -65,15 +66,9 @@ void TestGame::LoadContent(void)
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
-	environment = &fetcher.FetchTextureCube(L"Environment", SamplerCreateInfo(), true,
-		{
-			L"{Textures}Skybox/right.jpg",
-			L"{Textures}Skybox/left.jpg",
-			L"{Textures}Skybox/top.jpg",
-			L"{Textures}Skybox/bottom.jpg",
-			L"{Textures}Skybox/front.jpg",
-			L"{Textures}Skybox/back.jpg"
-		});
+	probeRenderer = new LightProbeRenderer(fetcher, 1);
+	environment = new LightProbe(*probeRenderer, Extent2D(256, 256));
+	environment->SetPosition(Vector3(15.0f, 4.0f, 4.5f));
 
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
@@ -89,9 +84,13 @@ void TestGame::UnLoadContent(void)
 {
 	AssetFetcher &fetcher = GetContent();
 
+	for (DescriptorSet &cur : probeSets) probePool->DeAllocate(cur);
+	delete probePool;
+
 	if (transform) delete transform;
 	if (light) delete light;
-	fetcher.Release(*environment);
+	if (environment) delete environment;
+	if (probeRenderer) delete probeRenderer;
 
 	for (Material *material : materials) delete material;
 	if (descPoolCam) delete descPoolCam;
@@ -130,7 +129,6 @@ void TestGame::Render(float, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
-	if (!environment->IsUsable()) return;
 
 	for (Texture2D *texture : textures)
 	{
@@ -145,6 +143,20 @@ void TestGame::Render(float, CommandBuffer &cmd)
 
 	if (firstRun)
 	{
+		if (probeRenderer->IsUsable())
+		{
+			probePool = probeRenderer->CreateDescriptorPool(static_cast<uint32>(materials.size()));
+			const Descriptor &diffuseDescriptor = probeRenderer->GetDiffuseDescriptor();
+
+			for (const PumMaterial &mat : stageMaterials)
+			{
+				probeSets.emplace_back(std::move(probePool->Allocate()));
+				if (mat.HasDiffuseTexture) probeSets.back().Write(diffuseDescriptor, *textures[mat.DiffuseTexture]);
+				else probeSets.back().Write(diffuseDescriptor, *textures[textures.size() - 3]);
+			}
+		}
+		else return;
+
 		firstRun = false;
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
@@ -197,8 +209,19 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		Vector3 dir = light->GetDirection();
 		if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir);
 
+		Vector3 pos = environment->GetPosition();
+		if (ImGui::SliderFloat3("Light Probe Position", pos.f, -25.0f, 25.0f)) environment->SetPosition(pos);
+
 		ImGui::End();
 	}
+
+	probeRenderer->Start(*environment, cmd);
+	for (const auto[matIdx, mesh] : meshes)
+	{
+		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
+		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), mdlMtrx, cmd);
+	}
+	probeRenderer->End(*environment, cmd);
 
 	transform->Update(cmd);
 	light->Update(cmd);

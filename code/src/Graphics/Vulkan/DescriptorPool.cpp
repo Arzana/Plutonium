@@ -73,6 +73,12 @@ Pu::DescriptorSet Pu::DescriptorPool::Allocate(void) const
 	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
 }
 
+void Pu::DescriptorPool::DeAllocate(DescriptorSet & set)
+{
+	FreeSet(set.hndl);
+	set.hndl = nullptr;
+}
+
 void Pu::DescriptorPool::Destroy(void)
 {
 	if (hndl) device->vkDestroyDescriptorPool(device->hndl, hndl, nullptr);

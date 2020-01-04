@@ -1,9 +1,5 @@
 #pragma once
-#include "Core/Platform/Windows/Windows.h"
-
-#ifdef _WIN32
-#include <WinSock2.h>
-#endif
+#include "WinSock.h"
 
 namespace Pu
 {

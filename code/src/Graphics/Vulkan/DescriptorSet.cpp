@@ -23,13 +23,13 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 	return *this;
 }
 
-void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & texture)
+void Pu::DescriptorSet::Write(const Descriptor & descriptor, const ImageView & view, const Sampler & sampler)
 {
 	/* Check if the descriptor type is correct. */
 	if (descriptor.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image descriptor!");
 
 	/* Write the descriptor. */
-	DescriptorImageInfo info(texture.Sampler->hndl, texture.view->hndl);
+	DescriptorImageInfo info(sampler.hndl, view.hndl);
 	WriteDescriptorSet write(hndl, descriptor.layoutBinding.Binding, info);
 	WriteDescriptor({ write });
 }

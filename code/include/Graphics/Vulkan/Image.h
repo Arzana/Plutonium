@@ -1,7 +1,6 @@
 #pragma once
 #include "LogicalDevice.h"
 #include "Content/Asset.h"
-#include "Graphics/Textures/ImageSaveFormats.h"
 
 namespace Pu
 {

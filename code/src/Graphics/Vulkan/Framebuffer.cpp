@@ -1,14 +1,27 @@
 #include "Graphics/Vulkan/Framebuffer.h"
 #include "Graphics/Vulkan/ImageView.h"
 
-Pu::Framebuffer::Framebuffer(LogicalDevice & device, const Renderpass & renderPass, Extent2D dimensions, const vector<const ImageView*>& attachments)
-	: parent(&device), area(dimensions.Width, dimensions.Height)
+Pu::Framebuffer::Framebuffer(const Renderpass & renderpass, Extent2D dimensions, const vector<const ImageView*>& attachments)
+	: parent(renderpass.device), area(dimensions.Width, dimensions.Height)
 {
 	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
 
-	FramebufferCreateInfo createInfo(renderPass.hndl, dimensions.Width, dimensions.Height);
+	FramebufferCreateInfo createInfo(renderpass.hndl, dimensions.Width, dimensions.Height);
 	createInfo.AttachmentCount = static_cast<uint32>(attachments.size());
 	createInfo.Attachments = handles.data();
+
+	VK_VALIDATE(parent->vkCreateFramebuffer(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
+}
+
+Pu::Framebuffer::Framebuffer(const Renderpass & renderpass, Extent2D dimensions, uint32 layers, const vector<const ImageView*>& attachments)
+	: parent(renderpass.device), area(dimensions.Width, dimensions.Height)
+{
+	const vector<ImageViewHndl> handles(attachments.select<ImageViewHndl>([](const ImageView *cur) { return cur->hndl; }));
+
+	FramebufferCreateInfo createInfo{ renderpass.hndl, dimensions.Width, dimensions.Height };
+	createInfo.AttachmentCount = static_cast<uint32>(attachments.size());
+	createInfo.Attachments = handles.data();
+	createInfo.Layers = layers;
 
 	VK_VALIDATE(parent->vkCreateFramebuffer(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFramebuffer);
 }

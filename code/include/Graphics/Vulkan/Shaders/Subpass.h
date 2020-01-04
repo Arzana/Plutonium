@@ -14,6 +14,8 @@ namespace Pu
 		/* Initializes an empty instance of a subpass. */
 		Subpass(void);
 		/* Initializes a new instance of a subpass from specific shader modules. */
+		Subpass(_In_ const PhysicalDevice &physicalDevice, _In_ std::initializer_list<Shader*> shaderModules);
+		/* Initializes a new instance of a subpass from specific shader modules. */
 		Subpass(_In_ const PhysicalDevice &physicalDevice, _In_ const vector<Shader*> &shaderModules);
 		/* Copy constructor. */
 		Subpass(_In_ const Subpass&) = default;

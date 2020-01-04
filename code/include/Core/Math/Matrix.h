@@ -165,7 +165,7 @@ namespace Pu
 		/* Creates a frustum projection matrix. */
 		_Check_return_ static Matrix CreateFrustum(_In_ float left, _In_ float right, _In_ float bottom, _In_ float top, _In_ float near, _In_ float far);
 		/* Creates a perspective projection matrix. */
-		_Check_return_ static Matrix CreatPerspective(_In_ float fovY, _In_ float aspr, _In_ float near, _In_ float far);
+		_Check_return_ static Matrix CreatePerspective(_In_ float fovY, _In_ float aspr, _In_ float near, _In_ float far);
 		/* Creates a look in view matrix. */
 		_Check_return_ static Matrix CreateLookIn(_In_ Vector3 pos, _In_ Vector3 direction, _In_ Vector3 up);
 

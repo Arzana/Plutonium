@@ -87,3 +87,8 @@ AABB Pu::AABB::GetOverlap(const AABB & r) const
 	const Vector3 upp = min(UpperBound, r.UpperBound);
 	return upp.X < low.X || upp.Y < low.Y || upp.Z < low.Z ? AABB() : AABB(low, upp);
 }
+
+float Pu::AABB::GetDistance(Vector3 point) const
+{
+	return max(LowerBound - point, Vector3(), point - UpperBound).Length();
+}

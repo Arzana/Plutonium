@@ -24,10 +24,15 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ DescriptorSet& operator =(_In_ DescriptorSet &&other);
 
-		/* Writes image data to a specific binding (represented by the descriptor). */
-		void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture);
-		/* Writes buffer data to a specific binding (represented by the descriptor). */
+		/* Writes an image with a specific sampler to the set (represented by a descriptor). */
+		void Write(_In_ const Descriptor &descriptor, _In_ const ImageView &view, _In_ const Sampler &sampler);
+		/* Writes buffer data to the set (represented by the descriptor). */
 		void Write(_In_ const vector<const Descriptor*> &descriptors, _In_ const Buffer &buffer);
+		/* Writes an image/sampler combination to the set (represented by the descriptor). */
+		inline void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture)
+		{
+			Write(descriptor, *texture.view, *texture.Sampler);
+		}
 
 	private:
 		friend class DescriptorPool;

@@ -78,5 +78,5 @@ void Pu::FpsCamera::Finalize(void)
 void Pu::FpsCamera::WindowResizeEventHandler(const NativeWindow & sender, ValueChangedEventArgs<Vector2>)
 {
 	projDirty = false;
-	SetProjection(Matrix::CreatPerspective(fov, sender.GetAspectRatio(), near, far));
+	SetProjection(Matrix::CreatePerspective(fov, sender.GetAspectRatio(), near, far));
 }

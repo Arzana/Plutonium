@@ -1,11 +1,11 @@
 #include "Graphics/Vulkan/SPIR-V/FieldType.h"
 
 Pu::FieldType::FieldType(void)
-	: ComponentType(ComponentType::Invalid), ContainerType(SizeType::Scalar)
+	: ComponentType(ComponentType::Invalid), ContainerType(SizeType::Scalar), Length(1)
 {}
 
 Pu::FieldType::FieldType(Pu::ComponentType component, Pu::SizeType size)
-	: ComponentType(component), ContainerType(size)
+	: ComponentType(component), ContainerType(size), Length(1)
 {
 #ifdef _DEBUG
 	if (ComponentType != ComponentType::Image && ContainerType == SizeType::Cube)
@@ -86,7 +86,7 @@ size_t Pu::FieldType::GetSize(void) const
 		break;
 	}
 
-	return result;
+	return result * Length;
 }
 
 Pu::string Pu::FieldType::GetName(void) const
@@ -182,7 +182,8 @@ Pu::string Pu::FieldType::GetName(void) const
 		return "Unknown";
 	}
 
-	return result;
+	if (Length > 1) return result + " Array";
+	else return result;
 }
 
 Pu::Format Pu::FieldType::GetFormat(void) const
