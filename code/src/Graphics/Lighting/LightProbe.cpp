@@ -173,8 +173,8 @@ void Pu::LightProbe::CalculateFrustums(void)
 
 	block->SetFrustum(0, proj * Matrix::CreateLookIn(position, Vector3::Right(), Vector3::Down()));
 	block->SetFrustum(1, proj * Matrix::CreateLookIn(position, Vector3::Left(), Vector3::Down()));
-	block->SetFrustum(2, proj * Matrix::CreateLookIn(position, Vector3::Down(), Vector3::Forward()));
-	block->SetFrustum(3, proj * Matrix::CreateLookIn(position, Vector3::Up(), Vector3::Backward()));
+	block->SetFrustum(2, proj * Matrix::CreateLookIn(position, Vector3::Down(), Vector3::Backward()));
+	block->SetFrustum(3, proj * Matrix::CreateLookIn(position, Vector3::Up(), Vector3::Forward()));
 	block->SetFrustum(4, proj * Matrix::CreateLookIn(position, Vector3::Forward(), Vector3::Down()));
 	block->SetFrustum(5, proj * Matrix::CreateLookIn(position, Vector3::Backward(), Vector3::Down()));
 }

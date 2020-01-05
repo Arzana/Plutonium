@@ -122,7 +122,11 @@ void Pu::_CrtSetCurrentThreadName(const wstring & name)
 	if (thndl)
 	{
 		_bstr_t b(name.c_str());
-		if (SetThreadDescription(thndl, b)) return;
+		if (SetThreadDescription(thndl, b))
+		{
+			CloseHandle(thndl);
+			return;
+		}
 	}
 
 	/* Could not open thread or set description; log error. */
