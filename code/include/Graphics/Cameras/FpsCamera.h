@@ -20,14 +20,14 @@ namespace Pu
 		float Roll;
 
 		/* Initializes a new instance of a first person camera. */
-		FpsCamera(_In_ Application &app);
-		/* Copy constructor. */
-		FpsCamera(_In_ const FpsCamera &value);
+		FpsCamera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool);
+		FpsCamera(_In_ const FpsCamera&) = delete;
 		/* Move constructor. */
-		FpsCamera(_In_ FpsCamera &&value);
+		FpsCamera(_In_ FpsCamera &&value) = default;
 
 		_Check_return_ FpsCamera& operator =(_In_ const FpsCamera&) = delete;
-		_Check_return_ FpsCamera& operator =(_In_ FpsCamera&&) = delete;
+		/* Move assignment. */
+		_Check_return_ FpsCamera& operator =(_In_ FpsCamera &&other) = default;
 
 		/* Sets the near clipping plane. */
 		void SetNear(_In_ float value);
@@ -35,6 +35,8 @@ namespace Pu
 		void SetFar(_In_ float value);
 		/* Sets the fied of view (vertical in radians). */
 		void SetFoV(_In_ float value);
+		/* Updates the FPS camera. */
+		virtual void Update(_In_ CommandBuffer &cmdBuffer);
 
 		/* Gets the near clipping plane. */
 		_Check_return_ inline float GetNear(void) const
@@ -67,17 +69,15 @@ namespace Pu
 		}
 
 	protected:
-		/* Updates the camera's view. */
-		virtual void Update(_In_ float dt) override;
-		/* Finalizes the fps camera. */
-		virtual void Finalize(void) override;
+		/* Occurs when the native window changes it's size. */
+		virtual void OnWindowResize(const NativeWindow &sender, ValueChangedEventArgs<Vector2> args);
 
 	private:
-		float near, far, fov;
+		float near, far, fov, aspr;
 		Matrix orien;
 		bool projDirty;
 		Frustum frustum;
 
-		void WindowResizeEventHandler(const NativeWindow &sender, ValueChangedEventArgs<Vector2>);
+		void UpdateProjection(void);
 	};
 }

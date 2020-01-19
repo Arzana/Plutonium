@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\FullscreenQuad.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Geometry.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.frag" />

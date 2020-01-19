@@ -95,17 +95,23 @@ namespace Pu
 			suppressUpdate = true;
 		}
 
-		/* Supresses the next render call. */
-		inline void SuppressNextRender(void)
+		/* Supresses future render calls. */
+		inline void SuppressRender(void)
 		{
 			wnd->shouldSuppressRender = true;
+		}
+
+		/* Indicates that future render calls can be processed. */
+		inline void RestoreRender(void)
+		{
+			wnd->shouldSuppressRender = false;
 		}
 
 		/* Signals that the application should close. */
 		inline void Exit(void)
 		{
 			wnd->Close();
-			SuppressNextRender();
+			SuppressRender();
 		}
 
 		/* Returns whether the specified GPU can be choosen for the application. */
@@ -134,7 +140,6 @@ namespace Pu
 		float prevTime, accumElapTime, maxElapTime, lastDt;
 		float targetElapTimeFocused, targetElapTimeBackground;
 		Stopwatch gameTime;
-		uint32 graphicsQueueFamilyIndex;
 		const wstring name;
 
 		VulkanInstance *instance;

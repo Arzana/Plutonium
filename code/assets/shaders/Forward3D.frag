@@ -4,9 +4,11 @@
 const float PI = 3.141592653589793;
 const float EPSLION = 0.00001f;
 
-layout (binding = 1) uniform Globals
+layout (binding = 1) uniform Camera
 {
 	vec3 CamPos;
+	float Brightness;
+	float Contrast;
 };
 
 layout (binding = 2) uniform samplerCube Environment;
@@ -96,5 +98,5 @@ void main()
 
 	// Add light emitted by the object
 	const vec3 emissive = texture(Emissive, Uv).rgb;
-	L0 = vec4(color + emissive, 1.0f);
+	L0 = vec4(color + emissive, 1.0f) * Contrast + Brightness;
 }

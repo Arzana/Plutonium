@@ -23,7 +23,7 @@ namespace Pu
 		_Check_return_ UniformBlock& operator =(_In_ UniformBlock &&other);
 
 		/* Updates the uniform block if needed. */
-		void Update(_In_ CommandBuffer &cmdBuffer);
+		virtual void Update(_In_ CommandBuffer &cmdBuffer);
 
 		/* Gets the GPU size (in bytes) for the target buffer. */
 		_Check_return_ inline size_t GetSize(void) const

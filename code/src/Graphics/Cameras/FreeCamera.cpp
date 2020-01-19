@@ -1,4 +1,4 @@
-#include "Components/FreeCamera.h"
+#include "Graphics/Cameras/FreeCamera.h"
 #include "Input/Keys.h"
 #include "Core/EnumUtils.h"
 #include "Application.h"
@@ -16,48 +16,63 @@ R (bit 4): whether the right key is down.
 M (bit 5): Whether the look delta need to be reset.
 
 The movement states (F, B, L and R) are to make sure that repeat keys don't cause the camera to speed up.
-The mouse state (M) is to make sure that we reset the look delta after a mouse input event, 
+The mouse state (M) is to make sure that we reset the look delta after a mouse input event,
 this is needed because (unlike the slider input) the mouse doesn't reset itself.
 */
-Pu::FreeCamera::FreeCamera(Application & app, const InputDeviceHandler & inputHandler)
-	: FpsCamera(app), state(0), inputHandler(inputHandler),
+Pu::FreeCamera::FreeCamera(const NativeWindow & wnd, DescriptorPool & pool, const InputDeviceHandler & inputHandler)
+	: FpsCamera(wnd, pool), state(0), inputHandler(&inputHandler),
 	keyFrwd(_CrtEnum2Int(Keys::W)), keyBkwd(_CrtEnum2Int(Keys::S)),
 	keyLeft(_CrtEnum2Int(Keys::A)), keyRight(_CrtEnum2Int(Keys::D)),
 	MoveSpeed(1.0f), LookSpeed(6.0f), Inverted(false), DeadZone(0.05f)
 {
-	inputHandler.AnyKeyDown.Add(*this, &FreeCamera::KeyDownEventHandler);
-	inputHandler.AnyKeyUp.Add(*this, &FreeCamera::KeyUpEventHandler);
-	inputHandler.AnyMouseMoved.Add(*this, &FreeCamera::MouseMovedEventHandler);
-	inputHandler.AnyValueChanged.Add(*this, &FreeCamera::ValueEventHandler);
+	SetCallbacks();
 }
 
-void Pu::FreeCamera::Update(float dt)
+Pu::FreeCamera::FreeCamera(FreeCamera && value)
+	: FpsCamera(std::move(value)), inputHandler(value.inputHandler), state(value.state),
+	keyFrwd(value.keyFrwd), keyBkwd(value.keyBkwd), keyLeft(value.keyLeft), keyRight(value.keyRight),
+	moveDelta(value.moveDelta), lookDelta(value.lookDelta)
 {
-	if (IsEnabled())
-	{
-		/* The slider input might have come from a gamepad, so remove the deadzone. */
-		if (moveDelta.LengthSquared() < DeadZone) moveDelta = 0.0f;
-		if (lookDelta.LengthSquared() < DeadZone) lookDelta = 0.0f;
+	SetCallbacks();
+}
 
-		/* Update the position and orientaion. */
-		Move(GetOrientation() * moveDelta * MoveSpeed * dt);
-		Yaw -= lookDelta.X * DEG2RAD * LookSpeed * dt;
-		Pitch += lookDelta.Y * DEG2RAD * LookSpeed * dt;
+Pu::FreeCamera & Pu::FreeCamera::operator=(FreeCamera && other)
+{
+	if (this != &other)
+	{
+		Destroy();
+		FpsCamera::operator=(std::move(other));
+
+		inputHandler = other.inputHandler;
+		state = other.state;
+		keyFrwd = other.keyFrwd;
+		keyBkwd = other.keyBkwd;
+		keyLeft = other.keyLeft;
+		keyRight = other.keyRight;
+		moveDelta = other.moveDelta;
+		lookDelta = other.lookDelta;
+
+		SetCallbacks();
 	}
+
+	return *this;
+}
+
+void Pu::FreeCamera::Update(float dt, CommandBuffer & cmdBuffer)
+{
+	/* The slider input might have come from a gamepad, so remove the deadzone. */
+	if (moveDelta.LengthSquared() < DeadZone) moveDelta = 0.0f;
+	if (lookDelta.LengthSquared() < DeadZone) lookDelta = 0.0f;
+
+	/* Update the position and orientaion. */
+	Move(GetOrientation() * moveDelta * MoveSpeed * dt);
+	Yaw -= lookDelta.X * DEG2RAD * LookSpeed * dt;
+	Pitch += lookDelta.Y * DEG2RAD * LookSpeed * dt;
 
 	/* Reset the lookstate if needed. */
 	lookDelta *= !(state & 16);
 	state &= ~16;
-	FpsCamera::Update(dt);
-}
-
-void Pu::FreeCamera::Finalize(void)
-{
-	FpsCamera::Finalize();
-
-	inputHandler.AnyKeyDown.Remove(*this, &FreeCamera::KeyDownEventHandler);
-	inputHandler.AnyKeyUp.Remove(*this, &FreeCamera::KeyUpEventHandler);
-	inputHandler.AnyMouseMoved.Remove(*this, &FreeCamera::MouseMovedEventHandler);
+	FpsCamera::Update(cmdBuffer);
 }
 
 void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)
@@ -116,4 +131,20 @@ void Pu::FreeCamera::ValueEventHandler(const InputDevice &, const ValueEventArgs
 			break;
 		}
 	}
+}
+
+void Pu::FreeCamera::SetCallbacks(void)
+{
+	inputHandler->AnyKeyDown.Add(*this, &FreeCamera::KeyDownEventHandler);
+	inputHandler->AnyKeyUp.Add(*this, &FreeCamera::KeyUpEventHandler);
+	inputHandler->AnyMouseMoved.Add(*this, &FreeCamera::MouseMovedEventHandler);
+	inputHandler->AnyValueChanged.Add(*this, &FreeCamera::ValueEventHandler);
+}
+
+void Pu::FreeCamera::Destroy(void)
+{
+	inputHandler->AnyKeyDown.Remove(*this, &FreeCamera::KeyDownEventHandler);
+	inputHandler->AnyKeyUp.Remove(*this, &FreeCamera::KeyUpEventHandler);
+	inputHandler->AnyMouseMoved.Remove(*this, &FreeCamera::MouseMovedEventHandler);
+	inputHandler->AnyValueChanged.Remove(*this, &FreeCamera::ValueEventHandler);
 }

@@ -202,6 +202,12 @@
     <Filter Include="Source Files\Graphics\Lighting">
       <UniqueIdentifier>{522244a0-8633-4708-9a4b-9a33ede5baae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Cameras">
+      <UniqueIdentifier>{5bef3e8a-f36a-4bf3-999f-add5c5d1a907}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Cameras">
+      <UniqueIdentifier>{3e9e33f3-a946-49df-8931-a5093a1417c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -516,15 +522,6 @@
     <ClInclude Include="..\..\..\include\Components\Component.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Components\Camera.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Components\FpsCamera.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Components\FreeCamera.h">
-      <Filter>Header Files\Components</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Input\Mouse.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
@@ -735,11 +732,17 @@
     <ClInclude Include="..\..\..\include\Graphics\Lighting\DirectionalLight.h">
       <Filter>Header Files\Graphics\Lighting</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Lighting\CameraUniformBlock.h">
-      <Filter>Header Files\Graphics\Lighting</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Platform\SwapchainReCreatedEventArgs.h">
       <Filter>Header Files\Graphics\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Cameras\Camera.h">
+      <Filter>Header Files\Graphics\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Cameras\FpsCamera.h">
+      <Filter>Header Files\Graphics\Cameras</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Cameras\FreeCamera.h">
+      <Filter>Header Files\Graphics\Cameras</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -920,15 +923,6 @@
     <ClCompile Include="..\..\..\src\Components\Component.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Components\Camera.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Components\FpsCamera.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Components\FreeCamera.cpp">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Input\Mouse.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
@@ -1079,8 +1073,14 @@
     <ClCompile Include="..\..\..\src\Graphics\Lighting\DeferredRenderer.cpp">
       <Filter>Source Files\Graphics\Lighting</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Lighting\CameraUniformBlock.cpp">
-      <Filter>Source Files\Graphics\Lighting</Filter>
+    <ClCompile Include="..\..\..\src\Graphics\Cameras\Camera.cpp">
+      <Filter>Source Files\Graphics\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Cameras\FpsCamera.cpp">
+      <Filter>Source Files\Graphics\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Cameras\FreeCamera.cpp">
+      <Filter>Source Files\Graphics\Cameras</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

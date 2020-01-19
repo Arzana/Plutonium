@@ -13,7 +13,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame", std::thread::hardware_concurrency() - 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
-	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
+	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
 	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f)), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
@@ -31,11 +31,6 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 void TestGame::Initialize(void)
 {
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
-
-	AddComponent(cam = new FreeCamera(*this, GetInput()));
-	cam->Move(0.0f, 5.0f, -3.0f);
-	cam->Yaw = PI2;
-
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
@@ -74,7 +69,7 @@ void TestGame::LoadContent(void)
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
 	stageMaterials.emplace_back(PumMaterial());
 
-	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Basic3D.vert.spv", L"{Shaders}Basic3D.frag.spv" } });
+	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Forward3D.vert.spv", L"{Shaders}Forward3D.frag.spv" } });
 	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
 	renderPass->PostCreate.Add(*this, &TestGame::FinalizeRenderpass);
 }
@@ -86,7 +81,7 @@ void TestGame::UnLoadContent(void)
 	for (DescriptorSet &cur : probeSets) probePool->DeAllocate(cur);
 	delete probePool;
 
-	if (transform) delete transform;
+	if (cam) delete cam;
 	if (light) delete light;
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
@@ -114,17 +109,7 @@ void TestGame::Finalize(void)
 	}
 }
 
-void TestGame::Update(float)
-{
-	if (transform)
-	{
-		transform->SetProjection(cam->GetProjection());
-		transform->SetView(cam->GetView());
-		transform->SetCamPos(cam->GetPosition());
-	}
-}
-
-void TestGame::Render(float, CommandBuffer &cmd)
+void TestGame::Render(float dt, CommandBuffer &cmd)
 {
 	if (!gfxPipeline) return;
 	if (!gfxPipeline->IsUsable()) return;
@@ -160,7 +145,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 
-		transform->SetEnvironment(*environment);
+		cam->SetEnvironment(environment->GetTexture());
 		for (size_t i = 0; i < materials.size() - 1; i++)
 		{
 			PumMaterial &mat = stageMaterials[i];
@@ -211,6 +196,12 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		Vector3 pos = environment->GetPosition();
 		if (ImGui::SliderFloat3("Light Probe Position", pos.f, -25.0f, 25.0f)) environment->SetPosition(pos);
 
+		float contrast = cam->GetContrast();
+		if (ImGui::SliderFloat("Contrast", &contrast, 0.0f, 10.0f)) cam->SetContrast(contrast);
+
+		float brightness = cam->Brightness();
+		if (ImGui::SliderFloat("Brightness", &brightness, 0.0f, 1.0f)) cam->SetBrightness(brightness);
+
 		ImGui::End();
 	}
 
@@ -222,13 +213,13 @@ void TestGame::Render(float, CommandBuffer &cmd)
 	}
 	probeRenderer->End(*environment, cmd);
 
-	transform->Update(cmd);
+	cam->Update(dt * updateCam, cmd);
 	light->Update(cmd);
 
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
 	cmd.BindGraphicsPipeline(*gfxPipeline);
 
-	cmd.BindGraphicsDescriptor(*transform);
+	cmd.BindGraphicsDescriptor(*cam);
 	cmd.BindGraphicsDescriptor(*light);
 	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
 
@@ -255,15 +246,15 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		if (args.Key == Keys::Escape) Exit();
 		else if (args.Key == Keys::C)
 		{
-			if (cam->IsEnabled())
+			if (updateCam)
 			{
 				Mouse::ShowAndFreeCursor();
-				cam->Disable();
+				updateCam = false;
 			}
 			else
 			{
 				Mouse::HideAndLockCursor(GetWindow().GetNative());
-				cam->Enable();
+				updateCam = true;
 			}
 		}
 		else if (args.Key == Keys::NumAdd) cam->MoveSpeed++;
@@ -320,7 +311,9 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	const Subpass &pass = renderPass->GetSubpass(0);
 
 	descPoolCam = new DescriptorPool(*renderPass, pass, 0, 1);
-	transform = new TransformBlock(*descPoolCam);
+	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, GetInput());
+	cam->Move(0.0f, 5.0f, -3.0f);
+	cam->Yaw = PI2;
 
 	descPoolLight = new DescriptorPool(*renderPass, pass, 2, 1);
 	light = new DirectionalLight(*descPoolLight);

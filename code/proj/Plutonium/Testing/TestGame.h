@@ -1,12 +1,11 @@
 #pragma once
 #include <Application.h>
-#include <Components/FreeCamera.h>
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
+#include <Graphics/Cameras/FreeCamera.h>
+#include <Graphics/Lighting/DirectionalLight.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Graphics/Lighting/DirectionalLight.h>
-#include "TransformBlock.h"
 
 class TestGame
 	: public Pu::Application
@@ -25,12 +24,12 @@ protected:
 	virtual void LoadContent(void);
 	virtual void UnLoadContent(void);
 	virtual void Finalize(void);
-	virtual void Update(float);
+	virtual void Update(float) {}
 	virtual void Render(float dt, Pu::CommandBuffer &cmdBuffer);
 
 private:
 	Pu::FreeCamera *cam;
-	bool firstRun, markDepthBuffer;
+	bool firstRun, markDepthBuffer, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::LightProbeRenderer *probeRenderer;
@@ -53,7 +52,6 @@ private:
 	Pu::vector<Pu::PumMaterial> stageMaterials;
 
 	Pu::Matrix mdlMtrx;
-	TransformBlock *transform;
 	Pu::DirectionalLight *light;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

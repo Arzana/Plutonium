@@ -1,5 +1,5 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
-#include "Graphics/Lighting/CameraUniformBlock.h"
+#include "Graphics/Cameras/CameraUniformBlock.h"
 
 /*
 	The shaders define the following descriptor sets:

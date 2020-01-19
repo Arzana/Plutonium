@@ -4,7 +4,7 @@
 #include "Graphics/Models/Material.h"
 #include "Graphics/Models/Mesh.h"
 #include "DirectionalLight.h"
-#include "Components/Camera.h"
+#include "Graphics/Cameras/Camera.h"
 
 namespace Pu
 {

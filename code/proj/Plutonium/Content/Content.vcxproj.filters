@@ -16,6 +16,9 @@
     <Filter Include="Shaders\Deferred">
       <UniqueIdentifier>{be2a1bc9-3cf0-4159-b52c-247c171828eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Forward">
+      <UniqueIdentifier>{76bf7037-4d97-4098-af16-2ae52d81c67f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
@@ -47,6 +50,12 @@
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\ToneMap.frag">
       <Filter>Shaders\Deferred</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.frag">
+      <Filter>Shaders\Forward</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.vert">
+      <Filter>Shaders\Forward</Filter>
     </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
