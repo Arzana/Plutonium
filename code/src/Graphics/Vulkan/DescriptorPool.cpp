@@ -27,13 +27,13 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 set, size_t maxSets)
 	: renderpass(&renderpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
 	device(renderpass.device), pipelineLayout(renderpass.layoutHndl),
-	descriptorLayout(renderpass.descriptorSetLayouts[set])
+	descriptorLayout(renderpass.descriptorSetLayouts[set]), subpass(nullptr)
 {
 	vector<DescriptorPoolSize> sizes;
 
-	for (const Subpass &subpass : renderpass.subpasses)
+	for (const Subpass &cur : renderpass.subpasses)
 	{
-		for (const Descriptor &descriptor : subpass.descriptors)
+		for (const Descriptor &descriptor : cur.descriptors)
 		{
 			if (descriptor.GetSet() != set) continue;
 
@@ -96,11 +96,14 @@ Pu::DescriptorSet Pu::DescriptorPool::Allocate(void) const
 	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Pu::DescriptorPool::DeAllocate(DescriptorSet & set)
 {
 	FreeSet(set.hndl);
 	set.hndl = nullptr;
 }
+#pragma warning(pop)
 
 void Pu::DescriptorPool::Create(vector<DescriptorPoolSize>& sizes)
 {

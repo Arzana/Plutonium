@@ -3,8 +3,8 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0), 
-	lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false), invalidated(false)
+	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0),
+	lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false), invalidated(0)
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -233,7 +233,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 #pragma warning(disable:4458)
 void Pu::DebugRenderer::Reset(const DepthBuffer & depthBuffer)
 {
-	/* 
+	/*
 	Reset the depth buffer and recreate the framebuffers if needed.
 	The depth buffer might not have been invalidated yet, if this is the case;
 	just set the new depthbuffer and mark it as invalid.
@@ -242,12 +242,12 @@ void Pu::DebugRenderer::Reset(const DepthBuffer & depthBuffer)
 	{
 		this->depthBuffer = &depthBuffer;
 		CreateFrameBuffers();
-		invalidated = false;
+		invalidated = 0;
 	}
 	else
 	{
 		this->depthBuffer = &depthBuffer;
-		invalidated = true;
+		invalidated = 2;
 	}
 }
 #pragma warning(pop)
@@ -317,6 +317,11 @@ void Pu::DebugRenderer::CreateFrameBuffers(void)
 void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
 	/*
+	Invalidated can have 3 states:
+	0: The debug renderer is good to use
+	1: The debug renderer was invalidated by the spawchain being recreated
+	2: The debug renderer was invalidated by the user assigning a new depth buffer
+
 	We only need to recreate the renderpass if the format changed, the depth buffer will not change.
 	But we need to invalidate the debug renderer if the area changed, this is because the depth buffer will need to be recreated.
 	So if we're using a depth buffer then invalidate the debug renderer and wait for the user to set a new depth buffer, otherwise;
@@ -325,7 +330,7 @@ void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReC
 	if (args.FormatChanged) renderpass->Recreate();
 	else if (args.AreaChanged)
 	{
-		if (depthBuffer && !invalidated) invalidated = true;
-		else CreateFrameBuffers();
+		if (depthBuffer && !invalidated) invalidated = 1;
+		else if (invalidated != 1) CreateFrameBuffers();
 	}
 }

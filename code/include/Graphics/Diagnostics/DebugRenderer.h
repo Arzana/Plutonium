@@ -59,10 +59,10 @@ namespace Pu
 		BufferView *bufferView;
 		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
-		uint32 size, culled;
+		uint32 size, culled, invalidated;
 
 		float lineWidth;
-		bool dynamicLineWidth, thrown, invalidated;
+		bool dynamicLineWidth, thrown;
 
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);

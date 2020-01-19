@@ -5,7 +5,7 @@
 #include <imgui/include/imgui.h>
 #include <imgui/include/imgui_impl_win32.h>
 
-#define WS_WINDOWED		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU
+#define WS_WINDOWED		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX
 #define WS_BORDERLESS	WS_OVERLAPPED | WS_MAXIMIZE
 
 static Pu::vector<Pu::Win32Window*> activeWindows;
@@ -178,9 +178,6 @@ void Pu::Win32Window::SetMode(WindowMode newMode)
 
 bool Pu::Win32Window::Update(void)
 {
-	/* Reset the suppress render. */
-	shouldSuppressRender = false;
-
 	/* Query all messages. */
 	MSG message;
 	while (PeekMessage(&message, hndl, 0, 0, PM_REMOVE))
@@ -208,7 +205,7 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 	Only log an unknow warning if it's not one of the specified messages.
 	These messages occur before the window handle is returned and thusly we cannot match it to a window yet.
 	- WM_CREATE:		Sent to incidate a new window to be created by CreateWindowEx or CreateWindow.
-	- WM_GETMINMAXINFO:	Sent when the size or positio of a window is about to change.
+	- WM_GETMINMAXINFO:	Sent when the size or position of a window is about to change.
 	- WM_NCCREATE:		Sent prior to the WM_CREATE message.
 	- WM_NCCALCSIZE:	Sent when the size and position of the client area must be calculated.
 	*/
@@ -232,12 +229,15 @@ void Pu::Win32Window::Move(int x, int y)
 
 void Pu::Win32Window::Resize(int w, int h)
 {
-	ValueChangedEventArgs args(Vector2(vp.Width, vp.Height), Vector2(static_cast<float>(w), static_cast<float>(h)));
-	if (args.OldValue != args.NewValue)
+	if (w > 0 && h > 0)
 	{
-		vp.Width = args.NewValue.X;
-		vp.Height = args.NewValue.Y;
-		OnSizeChanged.Post(*this, args);
+		ValueChangedEventArgs args(Vector2(vp.Width, vp.Height), Vector2(static_cast<float>(w), static_cast<float>(h)));
+		if (args.OldValue != args.NewValue)
+		{
+			vp.Width = args.NewValue.X;
+			vp.Height = args.NewValue.Y;
+			OnSizeChanged.Post(*this, args);
+		}
 	}
 }
 
@@ -263,9 +263,6 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case (WM_SIZE):
 		Resize(GetLowWord(lParam), GetHighWord(lParam));
-		return 0;
-	case (WM_GETMINMAXINFO):
-		shouldSuppressRender = true;
 		return 0;
 	case (WM_SETFOCUS):
 		if (!focused)
@@ -316,6 +313,13 @@ LRESULT Pu::Win32Window::HandleSysCmd(WPARAM wParam, LPARAM lParam)
 		/* Deny Alt-F4 request if enabled. */
 		if (AllowAltF4) shouldClose = true;
 		return 0;
+	case (SC_MINIMIZE):
+		/* Handle a minimize call by supressing rendering. */
+		shouldSuppressRender = true;
+		break;
+	case (SC_RESTORE):
+		shouldSuppressRender = false;
+		break;
 	}
 
 	return DefWindowProc(hndl, WM_SYSCOMMAND, wParam, lParam);

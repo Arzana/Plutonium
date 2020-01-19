@@ -31,7 +31,7 @@ namespace Pu
 		/* Finalizes the render process for a specific light probe. */
 		void End(_In_ LightProbe &probe, _In_ CommandBuffer &cmdBuffer) const;
 		/* Creates a new descriptor pool for materials rendered through this light probe renderer. */
-		_Check_return_ DescriptorPool* CreateDescriptorPool(_In_ uint32 maxSets) const;
+		_Check_return_ DescriptorPool* CreateDescriptorPool(_In_ uint32 maxMaterials) const;
 
 		/* Gets whether the light probe renderer can be used. */
 		_Check_return_ inline bool IsUsable(void) const

@@ -78,7 +78,7 @@ void Pu::LightProbeRenderer::End(LightProbe & probe, CommandBuffer & cmdBuffer) 
 	probe.Unlock();
 }
 
-Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxSets) const
+Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxMaterials) const
 {
 	if (!renderpass->IsLoaded())
 	{
@@ -87,7 +87,7 @@ Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxSets
 	}
 
 	/* Set 1 is the material set. */
-	return new DescriptorPool(*renderpass, renderpass->GetSubpass(0), 1, maxSets);
+	return new DescriptorPool(*renderpass, renderpass->GetSubpass(0), 1, maxMaterials);
 }
 
 void Pu::LightProbeRenderer::InitializeRenderpass(Renderpass &)

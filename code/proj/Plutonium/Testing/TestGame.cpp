@@ -30,7 +30,7 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 
 void TestGame::Initialize(void)
 {
-	//GetWindow().GetNative().SetMode(WindowMode::Borderless);
+	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddComponent(cam = new FreeCamera(*this, GetInput()));

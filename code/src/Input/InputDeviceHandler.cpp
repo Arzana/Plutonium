@@ -5,11 +5,11 @@
 #include "Input/HID.h"
 
 Pu::InputDeviceHandler::InputDeviceHandler(void)
-	: AnyKeyDown("InputDeviceHandlerAnyKeyDown"),
-	AnyKeyUp("InputDeviceHandlerAnyKeyUp"),
-	AnyValueChanged("InputDeviceHandlerAnyValueChanged"),
-	AnyMouseScrolled("InputDeviceHandlerAnyMouseScrolled"),
-	AnyMouseMoved("InputDeviceHandlerAnyMouseMoved")
+	: AnyKeyDown("InputDeviceHandlerAnyKeyDown", true),
+	AnyKeyUp("InputDeviceHandlerAnyKeyUp", true),
+	AnyValueChanged("InputDeviceHandlerAnyValueChanged", true),
+	AnyMouseScrolled("InputDeviceHandlerAnyMouseScrolled", true),
+	AnyMouseMoved("InputDeviceHandlerAnyMouseMoved", true)
 {
 #ifdef _WIN32
 	/* Get the number of raw input devices currently active. */
