@@ -3,6 +3,7 @@
 #include "NativeWindow.h"
 #include "Graphics/Vulkan/CommandPool.h"
 #include "Graphics/Vulkan/Swapchain.h"
+#include "SwapchainReCreatedEventArgs.h"
 
 namespace Pu
 {
@@ -14,7 +15,7 @@ namespace Pu
 	{
 	public:
 		/* Occurs after the swapchain has been re-created. */
-		EventBus<const GameWindow> SwapchainRecreated;
+		EventBus<const GameWindow, const SwapchainReCreatedEventArgs&> SwapchainRecreated;
 
 		/* Initializes a new instance of a game window from a native window on specified logical device. */
 		GameWindow(_In_ NativeWindow &native, _In_ LogicalDevice &device);
@@ -39,6 +40,8 @@ namespace Pu
 		const vector<SurfaceFormat>& GetSupportedFormats(void) const;
 		/* Sets the color space used by the window. */
 		void SetColorSpace(_In_ ColorSpace colorSpace);
+		/* Sets the color space and format used by the window. */
+		void SetColorSpace(_In_ const SurfaceFormat &format);
 
 		/* Converts viewport coordinates to clip space coordinates linearly using an orthographics projection. */
 		_Check_return_ inline Vector4 ToLinearClipSpace(_In_ Vector4 v) const
@@ -114,7 +117,7 @@ namespace Pu
 		std::map<RenderPassHndl, vector<Framebuffer*>> frameBuffers;
 
 		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
-		void ReCreateSwapchain(Extent2D size, SurfaceFormat format);
+		void ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs &args);
 		void CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall);
 		void MakeSwapchainImageWritable(void);
 		void MakeImagePresentable(void);

@@ -3,6 +3,8 @@
 
 namespace Pu
 {
+	class StagingBuffer;
+
 	/* Defines a buffer which data will be updated multiple times. */
 	class DynamicBuffer
 		: public Buffer

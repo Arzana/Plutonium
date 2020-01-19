@@ -704,6 +704,18 @@ namespace Pu
 			result += ')';
 			return result;
 		}
+
+		/* Checks whether the two surface formats are the same. */
+		_Check_return_ inline bool operator ==(_In_ const SurfaceFormat &other) const
+		{
+			return Format == other.Format && ColorSpace == other.ColorSpace;
+		}
+
+		/* Checks whether the two surface formats differ. */
+		_Check_return_ inline bool operator !=(_In_ const SurfaceFormat &other) const
+		{
+			return Format != other.Format || ColorSpace != other.ColorSpace;
+		}
 	};
 
 	/* Defines the information required to create a swapchain. */

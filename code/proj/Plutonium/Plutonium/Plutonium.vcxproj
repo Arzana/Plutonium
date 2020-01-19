@@ -155,6 +155,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\RenderDoc.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\CameraUniformBlock.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\DeferredRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\DirectionalLight.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbe.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\LightProbeUniformBlock.h" />
@@ -166,6 +169,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Platform\SwapchainReCreatedEventArgs.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\BufferView.h" />
@@ -311,6 +315,9 @@
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\RenderDoc.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\CameraUniformBlock.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\DeferredRenderer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\DirectionalLight.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbe.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeUniformBlock.cpp" />

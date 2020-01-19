@@ -7,31 +7,46 @@
     <Filter Include="Models">
       <UniqueIdentifier>{63472200-ff95-4b8d-a501-55eb72f769ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Debug">
+      <UniqueIdentifier>{5eb63080-d81c-42f2-850d-90357dc67f39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Light Probes">
+      <UniqueIdentifier>{5feef365-5cf3-4fae-a4f5-43737b861eda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred">
+      <UniqueIdentifier>{be2a1bc9-3cf0-4159-b52c-247c171828eb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <SPIRVShader Include="..\..\..\assets\shaders\SkinnedAnimated.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Debug</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.vert">
-      <Filter>Shaders</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Basic3D.frag">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Debug</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.frag">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Light Probes</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.geom">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Light Probes</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Light Probes</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\StaticGeometry.vert">
+      <Filter>Shaders\Deferred</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Geometry.frag">
+      <Filter>Shaders\Deferred</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\FullscreenQuad.vert">
+      <Filter>Shaders\Deferred</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag">
+      <Filter>Shaders\Deferred</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\ToneMap.frag">
+      <Filter>Shaders\Deferred</Filter>
     </SPIRVShader>
   </ItemGroup>
   <ItemGroup>

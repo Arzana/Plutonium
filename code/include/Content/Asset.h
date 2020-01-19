@@ -88,6 +88,19 @@ namespace Pu
 		/* Initializes the hash of the asset, cannot replace valid hash! */
 		void SetHash(_In_ size_t hash);
 
+		/* Marks the current asset as temporarily loading. */
+		inline void MarkAsLoading(void)
+		{
+			loaded.store(false);
+		}
+
+		/* Marks the current asset as loaded after it was unloaded. */
+		inline void MarkAsLoaded(void)
+		{
+			if (identifier.empty()) Log::Fatal("MarkAsLoaded(void) cannot be called without it first being unloaded!");
+			loaded.store(true);
+		}
+
 		/* Marks the current asset as ready for use. */
 		inline void MarkAsLoaded(_In_ bool viaLoader, _In_ wstring &&name)
 		{

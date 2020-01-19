@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/CommandBuffer.h"
 #include "Graphics/Vulkan/CommandPool.h"
+#include "Graphics/Vulkan/DescriptorPool.h"
 
 const char* to_string(Pu::CommandBuffer::State state)
 {

@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/DescriptorSet.h"
 #include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Vulkan/DescriptorPool.h"
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
 	: parent(value.parent), hndl(value.hndl), set(value.set)

@@ -383,6 +383,31 @@ namespace Pu
 #pragma endregion
 	};
 
+	/* Define the storage primitives for Vulkan image formats. */
+	enum class NumericFormat
+	{
+		/* The image format is undefined. */
+		Undefined,
+		/* The components are stored using unsigned normalized values in the range [0, 1]. */
+		UNorm,
+		/* The components are stored using signed normalized values in the range [-1, 1]. */
+		SNorm,
+		/* The components are stored using unsigned integer values that get converted to floating-points in the range [0, 2^n - 1]. */
+		UScaled,
+		/* The components are stored using signed integer values that get converted to floating-points in the rane [-2^(n - 1), 2^(n - 1) - 1]. */
+		SScaled,
+		/* The components are stored using unsigned integer values in the range [0, 2^n - 1]. */
+		UInt,
+		/* The components are stored using signed integer values in the range [-2^(n - 1), 2^(n - 1) - 1]. */
+		SInt,
+		/* The RGB components are stored using unsigned normalized values withint sRGB nonlinear encoding, the A component is stored as a regular unisngned normalized value. */
+		SRgb,
+		/* The components are stored using unsigned floating-point numbers. */
+		UFloat,
+		/* The components are stored using signed floating-point numbers. */
+		SFloat
+	};
+
 	/* Defines the basic dimensionality of an image. */
 	enum class ImageType
 	{
@@ -1717,6 +1742,210 @@ namespace Pu
 		}
 	}
 
+	/* Gets the numeric format of the image format components. */
+	_Check_return_ inline NumericFormat format_component_format(_In_ Format format)
+	{
+		switch (format)
+		{
+		case Format::R4G4_UNORM_PACK8:
+		case Format::R4G4B4A4_UNORM_PACK16:
+		case Format::B4G4R4A4_UNORM_PACK16:
+		case Format::R5G6B5_UNORM_PACK16:
+		case Format::B5G6R5_UNORM_PACK16:
+		case Format::R5G5B5A1_UNORM_PACK16:
+		case Format::B5G5R5A1_UNORM_PACK16:
+		case Format::A1R5G5B5_UNORM_PACK16:
+		case Format::A8B8G8R8_UNORM_PACK32:
+		case Format::A2R10G10B10_UNORM_PACK32:
+		case Format::A2B10G10R10_UNORM_PACK32:
+		case Format::R8_UNORM:
+		case Format::R8G8_UNORM:
+		case Format::R8G8B8_UNORM:
+		case Format::B8G8R8_UNORM:
+		case Format::R8G8B8A8_UNORM:
+		case Format::B8G8R8A8_UNORM:
+		case Format::R16_UNORM:
+		case Format::R16G16_UNORM:
+		case Format::R16G16B16_UNORM:
+		case Format::R16G16B16A16_UNORM:
+		case Format::D16_UNORM:
+		case Format::X8_D24_UNORM_PACK32:
+		case Format::BC1_RGB_UNORM_BLOCK:
+		case Format::BC1_RGBA_UNORM_BLOCK:
+		case Format::BC2_UNORM_BLOCK:
+		case Format::BC3_UNORM_BLOCK:
+		case Format::BC4_UNORM_BLOCK:
+		case Format::BC5_UNORM_BLOCK:
+		case Format::BC7_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8A1_UNORM_BLOCK:
+		case Format::ETC2_R8G8B8A8_UNORM_BLOCK:
+		case Format::EAC_R11_UNORM_BLOCK:
+		case Format::EAC_R11G11_UNORM_BLOCK:
+		case Format::ASTC_4x4_UNORM_BLOCK:
+		case Format::ASTC_5x4_UNORM_BLOCK:
+		case Format::ASTC_5x5_UNORM_BLOCK:
+		case Format::ASTC_6x5_UNORM_BLOCK:
+		case Format::ASTC_6x6_UNORM_BLOCK:
+		case Format::ASTC_8x5_UNORM_BLOCK:
+		case Format::ASTC_8x6_UNORM_BLOCK:
+		case Format::ASTC_8x8_UNORM_BLOCK:
+		case Format::ASTC_10x5_UNORM_BLOCK:
+		case Format::ASTC_10x6_UNORM_BLOCK:
+		case Format::ASTC_10x8_UNORM_BLOCK:
+		case Format::ASTC_10x10_UNORM_BLOCK:
+		case Format::ASTC_12x10_UNORM_BLOCK:
+		case Format::ASTC_12x12_UNORM_BLOCK:
+			return NumericFormat::UNorm;
+		case Format::A8B8G8R8_SNORM_PACK32:
+		case Format::A2R10G10B10_SNORM_PACK32:
+		case Format::A2B10G10R10_SNORM_PACK32:
+		case Format::R8_SNORM:
+		case Format::R8G8_SNORM:
+		case Format::R8G8B8_SNORM:
+		case Format::B8G8R8_SNORM:
+		case Format::R8G8B8A8_SNORM:
+		case Format::B8G8R8A8_SNORM:
+		case Format::R16_SNORM:
+		case Format::R16G16_SNORM:
+		case Format::R16G16B16_SNORM:
+		case Format::R16G16B16A16_SNORM:
+		case Format::BC4_SNORM_BLOCK:
+		case Format::BC5_SNORM_BLOCK:
+		case Format::EAC_R11_SNORM_BLOCK:
+		case Format::EAC_R11G11_SNORM_BLOCK:
+			return NumericFormat::SNorm;
+		case Format::A8B8G8R8_USCALED_PACK32:
+		case Format::A2R10G10B10_USCALED_PACK32:
+		case Format::A2B10G10R10_USCALED_PACK32:
+		case Format::R8_USCALED:
+		case Format::R8G8_USCALED:
+		case Format::R8G8B8_USCALED:
+		case Format::B8G8R8_USCALED:
+		case Format::R8G8B8A8_USCALED:
+		case Format::B8G8R8A8_USCALED:
+		case Format::R16_USCALED:
+		case Format::R16G16_USCALED:
+		case Format::R16G16B16_USCALED:
+		case Format::R16G16B16A16_USCALED:
+			return NumericFormat::UScaled;
+		case Format::A8B8G8R8_SSCALED_PACK32:
+		case Format::A2R10G10B10_SSCALED_PACK32:
+		case Format::A2B10G10R10_SSCALED_PACK32:
+		case Format::R8_SSCALED:
+		case Format::R8G8_SSCALED:
+		case Format::R8G8B8_SSCALED:
+		case Format::B8G8R8_SSCALED:
+		case Format::R8G8B8A8_SSCALED:
+		case Format::B8G8R8A8_SSCALED:
+		case Format::R16_SSCALED:
+		case Format::R16G16_SSCALED:
+		case Format::R16G16B16_SSCALED:
+		case Format::R16G16B16A16_SSCALED:
+			return NumericFormat::SScaled;
+		case Format::A8B8G8R8_UINT_PACK32:
+		case Format::A2R10G10B10_UINT_PACK32:
+		case Format::A2B10G10R10_UINT_PACK32:
+		case Format::R8_UINT:
+		case Format::R8G8_UINT:
+		case Format::R8G8B8_UINT:
+		case Format::B8G8R8_UINT:
+		case Format::R8G8B8A8_UINT:
+		case Format::B8G8R8A8_UINT:
+		case Format::R16_UINT:
+		case Format::R16G16_UINT:
+		case Format::R16G16B16_UINT:
+		case Format::R16G16B16A16_UINT:
+		case Format::R32_UINT:
+		case Format::R32G32_UINT:
+		case Format::R32G32B32_UINT:
+		case Format::R32G32B32A32_UINT:
+		case Format::R64_UINT:
+		case Format::R64G64_UINT:
+		case Format::R64G64B64_UINT:
+		case Format::R64G64B64A64_UINT:
+		case Format::S8_UINT:
+			return NumericFormat::UInt;
+		case Format::A8B8G8R8_SINT_PACK32:
+		case Format::A2R10G10B10_SINT_PACK32:
+		case Format::A2B10G10R10_SINT_PACK32:
+		case Format::R8_SINT:
+		case Format::R8G8_SINT:
+		case Format::R8G8B8_SINT:
+		case Format::B8G8R8_SINT:
+		case Format::R8G8B8A8_SINT:
+		case Format::B8G8R8A8_SINT:
+		case Format::R16_SINT:
+		case Format::R16G16_SINT:
+		case Format::R16G16B16_SINT:
+		case Format::R16G16B16A16_SINT:
+		case Format::R32_SINT:
+		case Format::R32G32_SINT:
+		case Format::R32G32B32_SINT:
+		case Format::R32G32B32A32_SINT:
+		case Format::R64_SINT:
+		case Format::R64G64_SINT:
+		case Format::R64G64B64_SINT:
+		case Format::R64G64B64A64_SINT:
+			return NumericFormat::SInt;
+		case Format::A8B8G8R8_SRGB_PACK32:
+		case Format::R8_SRGB:
+		case Format::R8G8_SRGB:
+		case Format::R8G8B8_SRGB:
+		case Format::B8G8R8_SRGB:
+		case Format::R8G8B8A8_SRGB:
+		case Format::B8G8R8A8_SRGB:
+		case Format::BC1_RGB_SRGB_BLOCK:
+		case Format::BC1_RGBA_SRGB_BLOCK:
+		case Format::BC2_SRGB_BLOCK:
+		case Format::BC3_SRGB_BLOCK:
+		case Format::BC7_SRGB_BLOCK:
+		case Format::ETC2_R8G8B8_SRGB_BLOCK:
+		case Format::ETC2_R8G8B8A1_SRGB_BLOCK:
+		case Format::ETC2_R8G8B8A8_SRGB_BLOCK:
+		case Format::ASTC_4x4_SRGB_BLOCK:
+		case Format::ASTC_5x4_SRGB_BLOCK:
+		case Format::ASTC_5x5_SRGB_BLOCK:
+		case Format::ASTC_6x5_SRGB_BLOCK:
+		case Format::ASTC_6x6_SRGB_BLOCK:
+		case Format::ASTC_8x5_SRGB_BLOCK:
+		case Format::ASTC_8x6_SRGB_BLOCK:
+		case Format::ASTC_8x8_SRGB_BLOCK:
+		case Format::ASTC_10x5_SRGB_BLOCK:
+		case Format::ASTC_10x6_SRGB_BLOCK:
+		case Format::ASTC_10x8_SRGB_BLOCK:
+		case Format::ASTC_10x10_SRGB_BLOCK:
+		case Format::ASTC_12x10_SRGB_BLOCK:
+		case Format::ASTC_12x12_SRGB_BLOCK:
+			return NumericFormat::SRgb;
+		case Format::R16_SFLOAT:
+		case Format::R16G16_SFLOAT:
+		case Format::R16G16B16_SFLOAT:
+		case Format::R16G16B16A16_SFLOAT:
+		case Format::R32_SFLOAT:
+		case Format::R32G32_SFLOAT:
+		case Format::R32G32B32_SFLOAT:
+		case Format::R32G32B32A32_SFLOAT:
+		case Format::R64_SFLOAT:
+		case Format::R64G64_SFLOAT:
+		case Format::R64G64B64_SFLOAT:
+		case Format::R64G64B64A64_SFLOAT:
+		case Format::D32_SFLOAT:
+		case Format::BC6H_SFLOAT_BLOCK:
+			return NumericFormat::SFloat;
+		case Format::B10G11R11_UFLOAT_PACK32:
+		case Format::E5B9G9R9_UFLOAT_PACK32:
+		case Format::BC6H_UFLOAT_BLOCK:
+			return NumericFormat::UFloat;
+		case Format::Undefined:
+		case Format::D16_UNORM_S8_UINT:
+		case Format::D24_UNORM_S8_UINT:
+		case Format::D32_SFLOAT_S8_UINT:
+		default:
+			return NumericFormat::Undefined;
+		}
+	}
+
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)
 	{
 		/* Remove PFN_ prefix and KHR suffix. */
@@ -1728,97 +1957,97 @@ namespace Pu
 		/* Convert result to string and check whether it needs to raise. */
 		switch (result)
 		{
-		case Pu::VkApiResult::Success:
+		case VkApiResult::Success:
 			return;
-		case Pu::VkApiResult::NotReady:
+		case VkApiResult::NotReady:
 			raise = false;
 			code = "Not ready";
 			break;
-		case Pu::VkApiResult::Timeout:
+		case VkApiResult::Timeout:
 			raise = false;
 			code = "Timeout";
 			break;
-		case Pu::VkApiResult::EventSet:
+		case VkApiResult::EventSet:
 			raise = false;
 			code = "Event signaled";
 			break;
-		case Pu::VkApiResult::EventReset:
+		case VkApiResult::EventReset:
 			raise = false;
 			code = "Event unsignaled";
 			break;
-		case Pu::VkApiResult::Incomplete:
+		case VkApiResult::Incomplete:
 			raise = false;
 			code = "Incomplete";
 			break;
-		case Pu::VkApiResult::SuboptimalKhr:
+		case VkApiResult::SuboptimalKhr:
 			raise = false;
 			code = "Suboptimal swapchain";
 			break;
-		case Pu::VkApiResult::OutOfDateKhr:
+		case VkApiResult::OutOfDateKhr:
 			raise = false;
 			code = "Out of date";
 			break;
-		case Pu::VkApiResult::HostOutOfMemory:
+		case VkApiResult::HostOutOfMemory:
 			code = "Host out of memory";
 			break;
-		case Pu::VkApiResult::OutOfDeviceMemory:
+		case VkApiResult::OutOfDeviceMemory:
 			code = "Out of device memory";
 			break;
-		case Pu::VkApiResult::InitializationFailed:
+		case VkApiResult::InitializationFailed:
 			code = "Initialization failed";
 			break;
-		case Pu::VkApiResult::DeviceLost:
+		case VkApiResult::DeviceLost:
 			code = "Device lost";
 			break;
-		case Pu::VkApiResult::MemoryMapFailed:
+		case VkApiResult::MemoryMapFailed:
 			code = "Memory mapping failed";
 			break;
-		case Pu::VkApiResult::LayerNotPresent:
+		case VkApiResult::LayerNotPresent:
 			code = "Layer not present";
 			break;
-		case Pu::VkApiResult::ExtensionNotPresent:
+		case VkApiResult::ExtensionNotPresent:
 			code = "Extension not present";
 			break;
-		case Pu::VkApiResult::FeatureNotPresent:
+		case VkApiResult::FeatureNotPresent:
 			code = "Feature not present";
 			break;
-		case Pu::VkApiResult::IncompatibleDriver:
+		case VkApiResult::IncompatibleDriver:
 			code = "Incompatible driver";
 			break;
-		case Pu::VkApiResult::TooManyObjects:
+		case VkApiResult::TooManyObjects:
 			code = "Too many objects";
 			break;
-		case Pu::VkApiResult::FormatNotSupported:
+		case VkApiResult::FormatNotSupported:
 			code = "Format not supported";
 			break;
-		case Pu::VkApiResult::FragmentedPool:
+		case VkApiResult::FragmentedPool:
 			code = "Fragmented pool";
 			break;
-		case Pu::VkApiResult::OutOfPoolMemory:
+		case VkApiResult::OutOfPoolMemory:
 			code = "Out of pool memory";
 			break;
-		case Pu::VkApiResult::InvalidExternalHandle:
+		case VkApiResult::InvalidExternalHandle:
 			code = "Invalid external handle";
 			break;
-		case Pu::VkApiResult::SurfaceLostKhr:
+		case VkApiResult::SurfaceLostKhr:
 			code = "Surface lost";
 			break;
-		case Pu::VkApiResult::NativeWindowInUseKhr:
+		case VkApiResult::NativeWindowInUseKhr:
 			code = "Native window in use";
 			break;
-		case Pu::VkApiResult::IncompatibleDisplayKhr:
+		case VkApiResult::IncompatibleDisplayKhr:
 			code = "Incompatible display";
 			break;
-		case Pu::VkApiResult::ValidationFailedExt:
+		case VkApiResult::ValidationFailedExt:
 			code = "Validation failed";
 			break;
-		case Pu::VkApiResult::InvalidShaderNv:
+		case VkApiResult::InvalidShaderNv:
 			code = "Invalid shader";
 			break;
-		case Pu::VkApiResult::FragmentationExt:
+		case VkApiResult::FragmentationExt:
 			code = "Fragmentation";
 			break;
-		case Pu::VkApiResult::NotPermittedExt:
+		case VkApiResult::NotPermittedExt:
 			code = "Not premitted";
 			break;
 		}
@@ -1855,35 +2084,35 @@ namespace Pu
 	{
 		switch (colorSpace)
 		{
-		case Pu::ColorSpace::SRGB:
+		case ColorSpace::SRGB:
 			return "Non-linear sRGB";
-		case Pu::ColorSpace::DisplayP3:
+		case ColorSpace::DisplayP3:
 			return "Non-linear Display-P3";
-		case Pu::ColorSpace::LinearExtendedsRGB:
+		case ColorSpace::LinearExtendedsRGB:
 			return "Extended linear sRGB";
-		case Pu::ColorSpace::LinearDisplayP3:
+		case ColorSpace::LinearDisplayP3:
 			return "Linear Display-P3";
-		case Pu::ColorSpace::DCIP3:
+		case ColorSpace::DCIP3:
 			return "DCI-P3";
-		case Pu::ColorSpace::LinearBT709:
+		case ColorSpace::LinearBT709:
 			return "Linear BT709";
-		case Pu::ColorSpace::BT709:
+		case ColorSpace::BT709:
 			return "Non-linear BT709";
-		case Pu::ColorSpace::LinearBT2020:
+		case ColorSpace::LinearBT2020:
 			return "Linear BT2020";
-		case Pu::ColorSpace::HDR10_ST2084:
+		case ColorSpace::HDR10_ST2084:
 			return "HDR10 (ST2084)";
-		case Pu::ColorSpace::DolbyVision:
+		case ColorSpace::DolbyVision:
 			return "Dolby Vision";
-		case Pu::ColorSpace::HDR10_HLG:
+		case ColorSpace::HDR10_HLG:
 			return "HDR10 (HLG)";
-		case Pu::ColorSpace::LinearAdobeRGB:
+		case ColorSpace::LinearAdobeRGB:
 			return "Linear Adobe RGB";
-		case Pu::ColorSpace::AdobeRGB:
+		case ColorSpace::AdobeRGB:
 			return "Non-linear Adobe RGB";
-		case Pu::ColorSpace::ExtendedsRGB:
+		case ColorSpace::ExtendedsRGB:
 			return "Extended non-linear sRGB";
-		case Pu::ColorSpace::PassThrough:
+		case ColorSpace::PassThrough:
 		default:
 			return "Unknown";
 		}

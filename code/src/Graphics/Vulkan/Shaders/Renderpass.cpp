@@ -169,6 +169,23 @@ Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
 	return *this;
 }
 
+void Pu::Renderpass::Recreate(void)
+{
+	if (IsLoaded())
+	{
+		/* Destroy the old renderpass. */
+		MarkAsLoading();
+		device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
+
+		/* Only re-create the renderpass handle. */
+		PreCreate.Post(*this);
+		CreateRenderpass();
+		PostCreate.Post(*this);
+
+		MarkAsLoaded();
+	}
+}
+
 void Pu::Renderpass::Create(bool viaLoader)
 {
 	/*
@@ -204,6 +221,8 @@ void Pu::Renderpass::Create(bool viaLoader)
 
 void Pu::Renderpass::CreateRenderpass(void)
 {
+	clearValues.clear();
+
 	/* Copy the attachment descriptions from the initial output fields. */
 	vector<AttachmentDescription> attachmentDescriptions;
 	for (const Subpass &subpass : subpasses)

@@ -3,13 +3,39 @@
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass & subpass, uint32 set, size_t maxSets)
 	: subpass(&subpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(&subpass.shaders.front()->GetDevice()), pipelineLayout(renderpass.layoutHndl),
-	descriptorLayout(renderpass.descriptorSetLayouts[set])
+	device(renderpass.device), pipelineLayout(renderpass.layoutHndl),
+	descriptorLayout(renderpass.descriptorSetLayouts[set]), renderpass(&renderpass)
 {
 	vector<DescriptorPoolSize> sizes;
 	for (const Descriptor &descriptor : subpass.descriptors)
 	{
 		if (descriptor.GetSet() != set) continue;
+
+		/*
+		Check if the descriptor type is already defined,
+		if it is, then just increate the size by one,
+		otherwise; add the type with a size of one.
+		*/
+		decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
+		if (it != sizes.end()) ++it->DescriptorCount;
+		else sizes.emplace_back(descriptor.GetType(), 1);
+	}
+
+	Create(sizes);
+}
+
+Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 set, size_t maxSets)
+	: renderpass(&renderpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
+	device(renderpass.device), pipelineLayout(renderpass.layoutHndl),
+	descriptorLayout(renderpass.descriptorSetLayouts[set])
+{
+	vector<DescriptorPoolSize> sizes;
+
+	for (const Subpass &subpass : renderpass.subpasses)
+	{
+		for (const Descriptor &descriptor : subpass.descriptors)
+		{
+			if (descriptor.GetSet() != set) continue;
 
 			/*
 			Check if the descriptor type is already defined,
@@ -19,20 +45,16 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass 
 			decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
 			if (it != sizes.end()) ++it->DescriptorCount;
 			else sizes.emplace_back(descriptor.GetType(), 1);
+		}
 	}
 
-	/* The amount of descriptors are global, so we need to multiply our origional count by the maximum number of sets we want to allocate. */
-	for (DescriptorPoolSize &cur : sizes) cur.DescriptorCount *= max;
-
-	/* Create the pool. */
-	const DescriptorPoolCreateInfo createInfo(max, sizes);
-	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
+	Create(sizes);
 }
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: subpass(value.subpass), device(value.device), hndl(value.hndl),
 	pipelineLayout(value.pipelineLayout), descriptorLayout(value.descriptorLayout),
-	max(value.max), used(value.used), set(value.set)
+	max(value.max), used(value.used), set(value.set), renderpass(value.renderpass)
 {
 	value.hndl = nullptr;
 }
@@ -51,6 +73,7 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		max = other.max;
 		used = other.used;
 		set = other.set;
+		renderpass = other.renderpass;
 
 		other.hndl = nullptr;
 	}
@@ -77,6 +100,16 @@ void Pu::DescriptorPool::DeAllocate(DescriptorSet & set)
 {
 	FreeSet(set.hndl);
 	set.hndl = nullptr;
+}
+
+void Pu::DescriptorPool::Create(vector<DescriptorPoolSize>& sizes)
+{
+	/* The amount of descriptors are global, so we need to multiply our origional count by the maximum number of sets we want to allocate. */
+	for (DescriptorPoolSize &cur : sizes) cur.DescriptorCount *= max;
+
+	/* Create the pool. */
+	const DescriptorPoolCreateInfo createInfo(max, sizes);
+	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
 }
 
 void Pu::DescriptorPool::Destroy(void)

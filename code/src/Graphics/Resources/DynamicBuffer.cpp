@@ -1,4 +1,5 @@
 #include "Graphics/Resources/DynamicBuffer.h"
+#include "Graphics/Resources/StagingBuffer.h"
 
 Pu::DynamicBuffer::DynamicBuffer(LogicalDevice & device, size_t size, BufferUsageFlag usage)
 	: Buffer(device, size, usage, false), isDirty(false)

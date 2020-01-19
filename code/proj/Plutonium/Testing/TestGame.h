@@ -5,8 +5,8 @@
 #include <Graphics/Models/Material.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
+#include <Graphics/Lighting/DirectionalLight.h>
 #include "TransformBlock.h"
-#include "DirLight.h"
 
 class TestGame
 	: public Pu::Application
@@ -54,10 +54,10 @@ private:
 
 	Pu::Matrix mdlMtrx;
 	TransformBlock *transform;
-	DirLight *light;
+	Pu::DirectionalLight *light;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
-	void OnSwapchainRecreated(const Pu::GameWindow&);
+	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs &args);
 	void CreateDepthBuffer(void);
 	void InitializeRenderpass(Pu::Renderpass&);
 	void FinalizeRenderpass(Pu::Renderpass&);

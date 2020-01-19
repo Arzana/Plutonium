@@ -2,7 +2,6 @@
 #include "Subpass.h"
 #include "Content/Asset.h"
 #include "Core/Events/EventBus.h"
-#include "Graphics/Vulkan/DescriptorPool.h"
 
 namespace Pu
 {
@@ -28,7 +27,7 @@ namespace Pu
 		/* Move constructor. */
 		Renderpass(_In_ Renderpass &&value);
 		/* Releases the resources allocated by the renderpass. */
-		~Renderpass(void)
+		virtual ~Renderpass(void)
 		{
 			Destroy();
 		}
@@ -45,6 +44,8 @@ namespace Pu
 		void Preserve(_In_ const Output &field, _In_ uint32 subpass);
 		/* Sets the specified output as an input attachment (or depth/stencil) for the specified subpass. */
 		void SetAsInput(_In_ const Output &field, _In_ ImageLayout layout, _In_ uint32 subpass);
+		/* Recreates the renderpass after a attachment change. */
+		void Recreate(void);
 
 		/* Gets the subpass at the specified position in the renderpass. */
 		_Check_return_ inline Subpass& GetSubpass(_In_ size_t index)

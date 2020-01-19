@@ -45,6 +45,8 @@ namespace Pu
 		void AddFrustum(_In_ const Frustum &frustum, _In_ Color color);
 		/* Renders all shapes stored in the debug renderer. */
 		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view, _In_opt_ bool clearBuffer = true);
+		/* Resets the debug renderer with a new depth buffer if the old depth buffer changed. */
+		void Reset(_In_ const DepthBuffer &depthBuffer);
 
 	private: 
 		AssetFetcher &loader;
@@ -60,11 +62,12 @@ namespace Pu
 		uint32 size, culled;
 
 		float lineWidth;
-		bool dynamicLineWidth, thrown;
+		bool dynamicLineWidth, thrown, invalidated;
 
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);
 		void InitializePipeline(Renderpass&);
-		void SwapchainRecreated(const GameWindow&);
+		void CreateFrameBuffers(void);
+		void SwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 	};
 }

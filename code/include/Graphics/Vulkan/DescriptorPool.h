@@ -1,9 +1,9 @@
 #pragma once
-#include "DescriptorSet.h" 
+#include "DescriptorSet.h"
+#include "Shaders/Renderpass.h"
 
 namespace Pu
 {
-	class Renderpass;
 	class Subpass;
 
 	/* Defines an allocation pool for Vulkan descriptors. */
@@ -12,6 +12,8 @@ namespace Pu
 	public:
 		/* Initializes a new instance of a descriptor pool for a specific descriptor set. */
 		DescriptorPool(_In_ const Renderpass &renderpass, _In_ const Subpass &subpass, _In_ uint32 set, _In_ size_t maxSets);
+		/* Initializes a new instance of a descriptor pool for a specific descriptor set used in multiple subpasses. */
+		DescriptorPool(_In_ const Renderpass &renderpass, _In_ uint32 set, _In_ size_t maxSets);
 		DescriptorPool(_In_ const DescriptorPool&) = delete;
 		/* Move constructor. */
 		DescriptorPool(_In_ DescriptorPool &&value);
@@ -42,10 +44,16 @@ namespace Pu
 			return used < max;
 		}
 
-		/* Gets the subpass associated with this descriptor pool. */
+		/* Gets the subpass associated with this descriptor pool (only usable if this descriptor pool was created using 1 subpass). */
 		_Check_return_ inline const Subpass& GetSubpass(void) const
 		{
 			return *subpass;
+		}
+
+		/* Gets the subpass at the specified index. */
+		_Check_return_ inline const Subpass& GetSubpass(_In_ size_t index) const
+		{
+			return renderpass->GetSubpass(index);
 		}
 
 	private:
@@ -53,6 +61,7 @@ namespace Pu
 		friend class CommandBuffer;
 
 		const Subpass *subpass;
+		const Renderpass *renderpass;
 		LogicalDevice *device;
 
 		DescriptorPoolHndl hndl;
@@ -60,6 +69,7 @@ namespace Pu
 		DescriptorSetLayoutHndl descriptorLayout;
 		mutable uint32 max, used, set;
 
+		void Create(vector<DescriptorPoolSize> &sizes);
 		void Destroy(void);
 		void FreeSet(DescriptorSetHndl setHndl) const;
 	};

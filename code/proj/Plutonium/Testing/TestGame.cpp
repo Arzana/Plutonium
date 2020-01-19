@@ -30,7 +30,7 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 
 void TestGame::Initialize(void)
 {
-	GetWindow().GetNative().SetMode(WindowMode::Borderless);
+	//GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddComponent(cam = new FreeCamera(*this, GetInput()));
@@ -207,7 +207,7 @@ void TestGame::Render(float, CommandBuffer &cmd)
 		if (ImGui::ColorPicker3("Radiance", clr.f)) light->SetRadiance(clr);
 
 		Vector3 dir = light->GetDirection();
-		if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir);
+		if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir.X, dir.Y, dir.Z);
 
 		Vector3 pos = environment->GetPosition();
 		if (ImGui::SliderFloat3("Light Probe Position", pos.f, -25.0f, 25.0f)) environment->SetPosition(pos);
@@ -276,22 +276,31 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 	}
 }
 
-void TestGame::OnSwapchainRecreated(const Pu::GameWindow &)
+void TestGame::OnSwapchainRecreated(const Pu::GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	if (depthBuffer) CreateDepthBuffer();
-	if (renderPass->IsLoaded()) CreateGraphicsPipeline();
+	if (renderPass->IsLoaded())
+	{
+		if (args.FormatChanged) renderPass->Recreate();
+		if (args.AreaChanged)
+		{
+			if (depthBuffer)
+			{
+				CreateDepthBuffer();
+				dbgRenderer->Reset(*depthBuffer);
+			}
+
+			CreateGraphicsPipeline();
+		}
+	}
 }
 
 void TestGame::CreateDepthBuffer(void)
 {
-	if (depthBuffer)
-	{
-		delete depthBuffer;
-		delete dbgRenderer;
-	}
-
+	if (depthBuffer) delete depthBuffer;
 	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
-	dbgRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
+	markDepthBuffer = true;
+
+	if (!dbgRenderer) dbgRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
 }
 
 void TestGame::InitializeRenderpass(Pu::Renderpass&)
@@ -315,7 +324,7 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	transform = new TransformBlock(*descPoolCam);
 
 	descPoolLight = new DescriptorPool(*renderPass, pass, 2, 1);
-	light = new DirLight(*descPoolLight);
+	light = new DirectionalLight(*descPoolLight);
 
 	descPoolMats = new DescriptorPool(*renderPass, pass, 1, stageMaterials.size() + 1);
 	for (PumMaterial &material : stageMaterials)

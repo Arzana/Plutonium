@@ -198,7 +198,7 @@ Currently flags contains the following values:
 	- 0x01: double sided
 	- 0x02 & 0x04: alpha mode:
 		0x0: no blending
-		0x1: fully opaque if < threshold; discard if > threshold
+		0x1: fully opaque if >= threshold; discard if < threshold
 		0x2: Porter & Duff blending
 	- 0x08: diffuse texture present
 	- 0x10: speculargloss texture present

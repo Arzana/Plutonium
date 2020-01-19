@@ -2,6 +2,7 @@
 #include "Graphics/Resources/BufferView.h"
 #include "Shaders/GraphicsPipeline.h"
 #include "Graphics/Color.h"
+#include "DescriptorSet.h"
 #include "Framebuffer.h"
 #include "QueryPool.h"
 #include "Fence.h"

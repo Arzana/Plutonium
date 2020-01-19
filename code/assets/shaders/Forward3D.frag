@@ -29,7 +29,6 @@ layout (binding = 0, set = 2) uniform Light
 {
 	vec3 Direction;
 	vec3 Radiance;
-	float Intensity;
 };
 
 layout (location = 0) in vec2 Uv;
@@ -89,11 +88,11 @@ void main()
 	const float d = microfacet(ndh, a2);
 	const vec3 env = texture(Environment, -r).rgb;
 
-	// Composition
+	// Composition (light intensity is pre-calculated)
 	const vec3 fd = (1.0f - f) * (diff.rgb / PI);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * env;
 	const float ao = texture(Occlusion, Uv).r;
-	const vec3 color = (fd + fs) * ao * Radiance * Intensity;
+	const vec3 color = (fd + fs) * ao * Radiance;
 
 	// Add light emitted by the object
 	const vec3 emissive = texture(Emissive, Uv).rgb;

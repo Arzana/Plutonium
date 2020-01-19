@@ -123,7 +123,7 @@ const vector<SurfaceFormat>& Pu::GameWindow::GetSupportedFormats(void) const
 
 void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
 {
-	/* Make sure we don't change if it's not needed. */
+	/* Make sure that we don't change if it's not needed. */
 	if (swapchain)
 	{
 		if (colorSpace == swapchain->GetColorSpace()) return;
@@ -136,12 +136,34 @@ void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
 		{
 			/* Make sure non of the resources are in use. */
 			Log::Warning("Changing window color space, this might cause lag!");
-			ReCreateSwapchain(native.GetClientBounds().GetSize(), format);
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs(false, true, false));
 			return;
 		}
 	}
 
-	Log::Warning("Color space is not supported by the surface!");
+	Log::Warning("Color space (%s) is not supported by the surface!", to_string(colorSpace));
+}
+
+void Pu::GameWindow::SetColorSpace(const SurfaceFormat & format)
+{
+	/* Make sure that we don't change if it's not needed. */
+	if (swapchain)
+	{
+		if (format == swapchain->GetFormat()) return;
+	}
+
+	/* Check if the desired format is supported by the monitor. */
+	for (const SurfaceFormat &checkFormat : GetSupportedFormats())
+	{
+		if (format == checkFormat)
+		{
+			Log::Warning("Changing window format and color space, this might cause loag!");
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs(false, true, false));
+			return;
+		}
+	}
+
+	Log::Warning("Format %s is not supported by the surface!", ((string)format).c_str());
 }
 
 void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
@@ -150,11 +172,11 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 	if (swapchain)
 	{
 		Log::Warning("Window is being resized, this might cause lag!");
-		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format);
+		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, SwapchainReCreatedEventArgs(true, false, false));
 	}
 }
 
-void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format)
+void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs & args)
 {
 	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
 	Finalize();
@@ -164,6 +186,9 @@ void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format)
 
 	/* Update the swapchain images. */
 	CreateSwapchain(size, format, false);
+
+	/* Notify the subscribers of the change in size or format. */
+	SwapchainRecreated.Post(*this, args);
 }
 
 void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall)
@@ -266,9 +291,6 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 			ImGui_ImplVulkan_DestroyFontUploadObjects();
 		}
 	}
-
-	/* Notify the subscribers of the change in size or format. */
-	if (!firstCall) SwapchainRecreated.Post(*this);
 }
 
 void Pu::GameWindow::MakeSwapchainImageWritable(void)
@@ -294,7 +316,7 @@ void Pu::GameWindow::BeginRender(void)
 	{
 		device.WaitIdle();
 		swapchainOutOfDate = false;
-		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format);
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs(false, false, true));
 	}
 
 	/* Request new image from the swapchain. */

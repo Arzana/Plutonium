@@ -3,7 +3,8 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0), lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false)
+	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0), 
+	lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false), invalidated(false)
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -181,7 +182,7 @@ void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view, bool clearBuffer)
 {
 	/* Make sure we cannot access garbage memory. */
-	if (pipeline)
+	if (pipeline && !invalidated)
 	{
 		/* Only render if the pipeline is loaded. */
 		if (pipeline->IsUsable() && size)
@@ -227,6 +228,29 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 		culled = 0;
 	}
 }
+
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::DebugRenderer::Reset(const DepthBuffer & depthBuffer)
+{
+	/* 
+	Reset the depth buffer and recreate the framebuffers if needed.
+	The depth buffer might not have been invalidated yet, if this is the case;
+	just set the new depthbuffer and mark it as invalid.
+	*/
+	if (invalidated)
+	{
+		this->depthBuffer = &depthBuffer;
+		CreateFrameBuffers();
+		invalidated = false;
+	}
+	else
+	{
+		this->depthBuffer = &depthBuffer;
+		invalidated = true;
+	}
+}
+#pragma warning(pop)
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)
 {
@@ -276,28 +300,32 @@ void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 		pipeline->AddDynamicState(DynamicState::LineWidth);
 	}
 
+	pipeline->Finalize();
+	CreateFrameBuffers();
+}
+
+void Pu::DebugRenderer::CreateFrameBuffers(void)
+{
 	/*
 	Create the first framebuffers and finalize the pipeline.
 	Only add the depth buffer to the frame buffers if needed.
 	*/
 	if (depthBuffer) wnd.CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
 	else wnd.CreateFrameBuffers(*renderpass);
-	pipeline->Finalize();
 }
 
-void Pu::DebugRenderer::SwapchainRecreated(const GameWindow &)
+void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	if (renderpass->IsLoaded())
+	/*
+	We only need to recreate the renderpass if the format changed, the depth buffer will not change.
+	But we need to invalidate the debug renderer if the area changed, this is because the depth buffer will need to be recreated.
+	So if we're using a depth buffer then invalidate the debug renderer and wait for the user to set a new depth buffer, otherwise;
+	Just recreate the framebuffer.
+	*/
+	if (args.FormatChanged) renderpass->Recreate();
+	else if (args.AreaChanged)
 	{
-		/* Release all the resources that work with the renderpass. */
-		delete pipeline;
-		pipeline = nullptr;
-		loader.Release(*renderpass);
-
-		/* Reload the renderpass. */
-		renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
-		renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
-		renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
-		if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
+		if (depthBuffer && !invalidated) invalidated = true;
+		else CreateFrameBuffers();
 	}
 }

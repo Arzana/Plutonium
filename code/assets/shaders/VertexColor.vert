@@ -9,11 +9,6 @@ layout (push_constant) uniform Transforms
 layout (location = 0) in vec3 Position;
 layout (location = 1) in uint Color;
 
-out gl_PerVertex
-{
-	vec4 gl_Position;
-};
-
 layout (location = 0) out vec4 VertexColor;
 
 float unpack(in uint shift)
