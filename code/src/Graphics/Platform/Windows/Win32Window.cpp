@@ -23,14 +23,14 @@ static constexpr int GetHighWord(LPARAM lParam)
 }
 
 /* Disable input event and char input logging. */
-Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vector2 size)
-	: NativeWindow(), title(title), vp(size.X, size.Y), mode(WindowMode::Windowed),
+Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title)
+	: NativeWindow(), title(title), mode(WindowMode::Windowed),
 	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent", true),
 	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved"),
 	OnCharInput("Win32WindowOnCharInput", true), rawInputSize(sizeof(RAWINPUT))
 {
 	/* Push this window as an active window. */
-	activeWindows.push_back(this);
+	activeWindows.emplace_back(this);
 
 	/* Allocate the first input buffer. */
 	input = reinterpret_cast<PRAWINPUT>(calloc(1, sizeof(RAWINPUT)));
@@ -52,7 +52,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 		(HBRUSH)(COLOR_WINDOW + 1),			// background 
 		nullptr,							// menu name
 		title.c_str(),						// class name
-		nullptr								// icon sm
+		nullptr								// icon handle
 	};
 
 	/* Register new window class. */
@@ -61,7 +61,7 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title, Vec
 	/*
 	Create new window, we can only start with a windowed window as all other windows call messages that we can't handle set i.e. resize, move.
 	*/
-	hndl = CreateWindow(title.c_str(), title.c_str(), WS_WINDOWED, 0, 0, ipart(vp.Width), ipart(vp.Height), nullptr, nullptr, instance, nullptr);
+	hndl = CreateWindow(title.c_str(), title.c_str(), WS_WINDOWED, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, nullptr, instance, nullptr);
 	if (!hndl) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
 	if constexpr (ImGuiAvailable)

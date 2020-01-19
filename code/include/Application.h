@@ -16,7 +16,7 @@ namespace Pu
 		bool IsFixedTimeStep;
 
 		/* Initializes a new instance of an application object. */
-		Application(_In_ const wstring &name, _In_ float width, _In_ float height, _In_opt_ size_t threadCount = PuThread::GetMaxConcurrent() - 1);
+		Application(_In_ const wstring &name, _In_opt_ size_t threadCount = PuThread::GetMaxConcurrent() - 1);
 		Application(_In_ const Application&) = delete;
 		Application(_In_ Application&&) = delete;
 		/* Releases the resources allocated by the application. */
@@ -136,7 +136,6 @@ namespace Pu
 		Stopwatch gameTime;
 		uint32 graphicsQueueFamilyIndex;
 		const wstring name;
-		const Vector2 initialWndSize;
 
 		VulkanInstance *instance;
 		LogicalDevice *device;

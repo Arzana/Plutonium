@@ -9,8 +9,8 @@
 #include "Graphics/Platform/Windows/Win32Window.h"
 #endif
 
-Pu::Application::Application(const wstring & name, float width, float height, size_t threadCount)
-	: IsFixedTimeStep(true), suppressUpdate(false), name(name), initialWndSize(width, height),
+Pu::Application::Application(const wstring & name, size_t threadCount)
+	: IsFixedTimeStep(true), suppressUpdate(false), name(name),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
 	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), initialized(false)
 {
@@ -133,7 +133,7 @@ void Pu::Application::InitializeVulkan(void)
 
 	/* Create the native window. */
 #ifdef _WIN32
-	wnd = new Win32Window(*instance, name, initialWndSize);
+	wnd = new Win32Window(*instance, name);
 #else
 	Log::Fatal("Unable to create window on this platform!");
 #endif

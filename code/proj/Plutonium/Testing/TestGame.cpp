@@ -10,7 +10,7 @@ using namespace Pu;
 Stopwatch sw;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", 1280.0f, 720.0f, std::thread::hardware_concurrency() - 2), cam(nullptr),
+	: Application(L"TestGame", std::thread::hardware_concurrency() - 2), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), transform(nullptr), light(nullptr), firstRun(true),
@@ -30,7 +30,6 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 
 void TestGame::Initialize(void)
 {
-	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddComponent(cam = new FreeCamera(*this, GetInput()));

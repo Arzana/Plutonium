@@ -14,8 +14,8 @@ namespace Pu
 		/* Defines whether the Alt-F4 close command is allowed. */
 		bool AllowAltF4;
 
-		/* Initializes a new instance of a Windows window. */
-		Win32Window(_In_ VulkanInstance &vulkan, _In_ const wstring &title, _In_ Vector2 size);
+		/* Initializes a new instance of a Windows window (defaults to windowed mode). */
+		Win32Window(_In_ VulkanInstance &vulkan, _In_ const wstring &title);
 		Win32Window(_In_ const Win32Window&) = delete;
 		Win32Window(_In_ Win32Window&&) = delete;
 		/* Releases the resources allocated by the window. */
