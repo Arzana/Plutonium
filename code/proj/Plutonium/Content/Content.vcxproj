@@ -20,7 +20,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.geom" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\StaticGeometry.vert" />
-    <SPIRVShader Include="..\..\..\assets\shaders\ToneMap.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\CameraEffects.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
-#include "Graphics/Cameras/CameraUniformBlock.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -32,31 +31,22 @@
 	4: HDR Buffer (Only available in LDR mode)
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, const GameWindow & wnd, uint32 maxMaterials, uint32 maxLights)
-	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr),
+	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr), wnd(&wnd),
 	fetcher(&fetcher), gfxGPass(nullptr), gfxLightPass(nullptr), gfxTonePass(nullptr), curCmd(nullptr),
 	maxMaterials(maxMaterials), maxLights(maxLights), depthBuffer(nullptr)
 {
-	/* Some color spaces natively support HDR color spaces so we don't need a tone mapping pass. */
-	if (hdrSwapchain = wnd.GetSwapchain().IsNativeHDR())
-	{
-		renderpass = &fetcher.FetchRenderpass(
-			{
-				{ L"{Shaders}StaticGeometry.vert.spv", L"{Shaders}Geometry.frag.spv" },
-				{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" }
-			});
-	}
-	else
-	{
-		renderpass = &fetcher.FetchRenderpass(
-			{
-				{ L"{Shaders}StaticGeometry.vert.spv", L"{Shaders}Geometry.frag.spv" },
-				{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
-				{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}Tonemap.frag.spv" }
-			});
-	}
+	/* We need to know if we'll be doing tone mapping or not. */
+	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
+
+	renderpass = &fetcher.FetchRenderpass(
+		{
+			{ L"{Shaders}StaticGeometry.vert.spv", L"{Shaders}Geometry.frag.spv" },
+			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
+			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
+		});
 
 	/* We need to recreate resources if the window resizes, or the color space is changed. */
-	//wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
+	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
 	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
 }
@@ -69,9 +59,10 @@ void Pu::DeferredRenderer::BeginGeometry(CommandBuffer & cmdBuffer, const Camera
 
 	/* Start the geometry pass. */
 	cmdBuffer.AddLabel("Deferred Renderer (Geometry)", Color::Blue());
-	UpdateCameraDescriptors(camera);
+
 	cmdBuffer.BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*gfxGPass);
+	cmdBuffer.BindGraphicsDescriptor(camera);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -95,15 +86,15 @@ void Pu::DeferredRenderer::End(void)
 	if (!curCmd) Log::Fatal("Geometry pass should be started before the final pass can start!");
 #endif
 
-	/* End the light pass, do tonemapping if needed and end the renderpass. */
+	/* End the light pass, do tonemapping and end the renderpass. */
 	curCmd->EndLabel();
-	if (!hdrSwapchain) DoTonemap();
+	DoTonemap();
 	curCmd->EndRenderPass();
 }
 
 void Pu::DeferredRenderer::SetModel(const Matrix & value)
 {
-	curCmd->PushConstants(*renderpass, ShaderStageFlag::Vertex, sizeof(Matrix), value.GetComponents());
+	curCmd->PushConstants(*renderpass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
 }
 
 void Pu::DeferredRenderer::Render(const Mesh & mesh, const Material & material)
@@ -119,32 +110,52 @@ void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 	curCmd->Draw(3, 1, 0, 0);
 }
 
-void Pu::DeferredRenderer::UpdateCameraDescriptors(const Camera & camera)
-{
-	camBlock->SetProjection(camera.GetProjection());
-	camBlock->SetView(camera.GetView());
-	camBlock->Update(*curCmd);
-}
-
 void Pu::DeferredRenderer::DoTonemap(void)
 {
-	curCmd->AddLabel("Deferred Renderer (Tone Mapping)", Color::Blue());
+	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
+	curCmd->PushConstants(*renderpass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
 }
 
-void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow & wnd)
+void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	//TODO: find a way to handle this gracefully.
+	/* We can just ignore the event if the renderpass isn't loaded yet. */
 	if (renderpass->IsLoaded())
 	{
-		Log::Fatal("Deferred render is invalid!");
+		/* 
+		We need to recreate the entire renderpass if the format changed, 
+		but we only have to recreate the framebuffers if the area changed, because we use a dynamic viewport.
+		*/
+		if (args.FormatChanged) renderpass->Recreate();
+		if (args.AreaChanged) CreateWindowDependentResources();
 	}
 }
 
-void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
+void Pu::DeferredRenderer::Destroy(void)
 {
+	/* Delete the G-Buffer, HDR buffer and the framebuffer. */
+	if (framebuffer) delete framebuffer;
+	if (gbuffAttach1) delete gbuffAttach1;
+	if (gbuffAttach2) delete gbuffAttach2;
+	if (gbuffAttach3) delete gbuffAttach3;
+	if (gbuffAttach4) delete gbuffAttach4;
+	if (tmpHdrAttach) delete tmpHdrAttach;
+	if (depthBuffer) delete depthBuffer;
 
+	/* Delete the descriptor pools. */
+	if (camPool) delete camPool;
+	if (lightPool) delete lightPool;
+	if (materialPool) delete materialPool;
+
+	/* Delete the graphics pipelines. */
+	if (gfxGPass) delete gfxGPass;
+	if (gfxLightPass) delete gfxLightPass;
+	if (gfxTonePass) delete gfxTonePass;
+
+	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
+	fetcher->Release(*renderpass);
+	wnd->SwapchainRecreated.Remove(*this, &DeferredRenderer::OnSwapchainRecreated);
 }

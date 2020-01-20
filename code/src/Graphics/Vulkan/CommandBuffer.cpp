@@ -265,7 +265,7 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 	device->vkCmdBindIndexBuffer(hndl, view.buffer->bufferHndl, static_cast<DeviceSize>(view.offset), type);
 }
 
-void Pu::CommandBuffer::PushConstants(const Renderpass & renderpass, ShaderStageFlag stage, size_t size, const void * constants)
+void Pu::CommandBuffer::PushConstants(const Renderpass & renderpass, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
 {
 	DbgCheckIfRecording("push constants");
 	device->vkCmdPushConstants(hndl, renderpass.layoutHndl, stage, 0, static_cast<uint32>(size), constants);

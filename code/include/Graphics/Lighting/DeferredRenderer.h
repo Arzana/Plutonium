@@ -64,18 +64,18 @@ namespace Pu
 		DepthBuffer *depthBuffer;
 		Renderpass *renderpass;
 		DescriptorPool *materialPool, *lightPool, *camPool;
+		Image *gbuffAttach1, *gbuffAttach2, *gbuffAttach3, *gbuffAttach4, *tmpHdrAttach;
 		
 		AssetFetcher *fetcher;
+		const GameWindow *wnd;
 		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxTonePass;
 		CommandBuffer *curCmd;
-		CameraUniformBlock *camBlock;
 
 		uint32 maxMaterials, maxLights;
-		bool hdrSwapchain;
+		float hdrSwapchain;
 
-		void UpdateCameraDescriptors(const Camera &camera);
 		void DoTonemap(void);
-		void OnSwapchainRecreated(const GameWindow &wnd);
+		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
 		void CreateWindowDependentResources(void);
