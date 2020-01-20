@@ -133,6 +133,7 @@ void Pu::Camera::Stage(byte * dest)
 	Copy(dest + binding1, &pos);
 	Copy(dest + binding1 + sizeof(Vector3), &brightness);
 	Copy(dest + binding1 + sizeof(Vector4), &contrast);
+	Copy(dest + binding1 + sizeof(float) * 5, &exposure);
 #endif
 }
 

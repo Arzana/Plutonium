@@ -9,6 +9,7 @@ layout (binding = 1) uniform Camera
 	vec3 CamPos;
 	float Brightness;
 	float Contrast;
+	float Exposure;
 };
 
 layout (binding = 2) uniform samplerCube Environment;
@@ -98,5 +99,6 @@ void main()
 
 	// Add light emitted by the object
 	const vec3 emissive = texture(Emissive, Uv).rgb;
-	L0 = vec4(color + emissive, 1.0f) * Contrast + Brightness;
+	const vec3 hdr = (color + emissive) * Contrast + Brightness;
+	L0 = vec4(1.0f - exp(-hdr * Exposure), 1.0f);
 }

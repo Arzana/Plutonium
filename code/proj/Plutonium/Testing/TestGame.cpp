@@ -202,6 +202,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		float brightness = cam->Brightness();
 		if (ImGui::SliderFloat("Brightness", &brightness, 0.0f, 1.0f)) cam->SetBrightness(brightness);
 
+		float exposure = cam->GetExposure();
+		if (ImGui::SliderFloat("Exposure", &exposure, 0.0f, 10.0f)) cam->SetExposure(exposure);
+
 		ImGui::End();
 	}
 
