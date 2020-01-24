@@ -61,7 +61,7 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 
 void Pu::LightProbeRenderer::Render(const Mesh & mesh, const DescriptorSet & material, const Matrix &model, CommandBuffer & cmdBuffer)
 {
-	cmdBuffer.PushConstants(*renderpass, ShaderStageFlag::Vertex, sizeof(Matrix), &model);
+	cmdBuffer.PushConstants(*renderpass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &model);
 	cmdBuffer.BindGraphicsDescriptor(material);
 	mesh.Bind(cmdBuffer, 0);
 	mesh.Draw(cmdBuffer);

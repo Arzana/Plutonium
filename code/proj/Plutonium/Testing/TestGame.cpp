@@ -10,7 +10,7 @@ using namespace Pu;
 Stopwatch sw;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame", std::thread::hardware_concurrency() - 2), cam(nullptr),
+	: Application(L"TestGame"), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
@@ -31,6 +31,7 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 void TestGame::Initialize(void)
 {
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
+	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
@@ -224,7 +225,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	cmd.BindGraphicsDescriptor(*cam);
 	cmd.BindGraphicsDescriptor(*light);
-	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, sizeof(Matrix), mdlMtrx.GetComponents());
+	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
 
 	cmd.AddLabel("Model", Color::Blue());
 	for (const auto[matIdx, mesh] : meshes)
@@ -271,7 +272,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 
 void TestGame::OnSwapchainRecreated(const Pu::GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	if (renderPass->IsLoaded())
+	if (renderPass && renderPass->IsLoaded())
 	{
 		if (args.FormatChanged) renderPass->Recreate();
 		if (args.AreaChanged)
