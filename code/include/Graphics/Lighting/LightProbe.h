@@ -33,7 +33,7 @@ namespace Pu
 		LightProbe(void);
 		/* Initializes a new baked instance of a light probe. */
 		LightProbe(_In_ AssetFetcher &fetcher, _In_ TextureCube &baked);
-		/* Initializes a new updatable instance of a light probe.s */
+		/* Initializes a new updatable instance of a light probe. */
 		LightProbe(_In_ LightProbeRenderer &renderer, _In_ Extent2D resolution);
 		LightProbe(_In_ const LightProbe&) = delete;
 		/* Move constructor. */
