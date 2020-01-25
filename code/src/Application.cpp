@@ -3,6 +3,7 @@
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include "Core/Diagnostics/Memory.h"
 #include <imgui/include/imgui.h>
 
 #ifdef _WIN32
@@ -158,6 +159,11 @@ void Pu::Application::InitializeVulkan(void)
 	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
 	device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
+
+	/* Log the available memory, useful for system debugging. */
+	const uint64 dram = MemoryFrame::GetMemStats().TotalRam;
+	const uint64 vram = physicalDevice.GetDeviceLocalBytes();
+	Log::Message("Available memory: DRAM: %u GB, VRAM: %u GB", b2gb(dram), b2gb(vram));
 }
 
 const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)

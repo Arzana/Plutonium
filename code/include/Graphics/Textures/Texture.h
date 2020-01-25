@@ -25,7 +25,7 @@ namespace Pu
 		_Check_return_ Texture& operator =(_In_ Texture &&other);
 
 		/* Implicit convertion to get the image. */
-		_Check_return_ inline operator const Image&(void) const 
+		_Check_return_ inline operator const Image&(void) const
 		{
 			return *Image;
 		}
@@ -46,6 +46,12 @@ namespace Pu
 		_Check_return_ inline const Image& GetImage(void) const
 		{
 			return *Image;
+		}
+
+		/* Gets a view to the underlying image. */
+		_Check_return_ inline const ImageView& GetView(void) const
+		{
+			return *view;
 		}
 
 		/* Gets a sub-resource range spaning all sub-resources. */

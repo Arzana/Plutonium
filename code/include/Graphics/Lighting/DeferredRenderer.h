@@ -16,7 +16,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a deferred renderer for the specified window. */
-		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ const GameWindow &wnd, _In_ uint32 maxMaterials, _In_ uint32 maxLights);
+		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_ uint32 maxMaterials, _In_ uint32 maxLights);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
 		DeferredRenderer(_In_ DeferredRenderer&&) = delete;
 		/* Releases the resources allocated by the deferred renderer. */
@@ -65,9 +65,11 @@ namespace Pu
 		Renderpass *renderpass;
 		DescriptorPool *materialPool, *lightPool, *camPool;
 		Image *gbuffAttach1, *gbuffAttach2, *gbuffAttach3, *gbuffAttach4, *tmpHdrAttach;
+		vector<Texture2D*> textures;
+		Sampler &sampler;
 		
 		AssetFetcher *fetcher;
-		const GameWindow *wnd;
+		GameWindow *wnd;
 		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxTonePass;
 		CommandBuffer *curCmd;
 
@@ -79,6 +81,8 @@ namespace Pu
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
 		void CreateWindowDependentResources(void);
+		void CreateFramebuffer(void);
+		void DestroyWindowDependentResources(void);
 		void Destroy(void);
 	};
 }

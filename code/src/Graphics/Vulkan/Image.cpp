@@ -95,16 +95,20 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 {
 	/* Try to throw a better error than Vulkan. */
 	CanCreate(createInfo);
+	const bool lazy = _CrtEnumCheckFlag(createInfo.Usage, ImageUsageFlag::TransientAttachment);
 	MemoryPropertyFlag properties = MemoryPropertyFlag::None;
 
 	/* Create image object. */
 	VK_VALIDATE(parent->vkCreateImage(parent->hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
 	SetHash(std::hash<ImageHndl>{}(imageHndl));
 
-	/* Find the type of memory that best supports our needs. */
+	/* 
+	Find the type of memory that best supports our needs. 
+	Lazily allocated memory might not always be available, so mark that as an optional parameter.
+	*/
 	uint32 typeIdx;
 	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, properties, false, typeIdx))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, properties, lazy ? MemoryPropertyFlag::LazilyAllocated : MemoryPropertyFlag::None, typeIdx))
 	{
 		/* Allocate the image's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);

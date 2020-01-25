@@ -29,11 +29,22 @@
 		Direction
 		Radiance (pre-multiplied)
 	4: HDR Buffer (Only available in LDR mode)
+
+	The framebuffer has several attachments:			G-Pass		Light-Pass		Post-Pass		Default Idx
+	0: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-				0
+	1: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-				1
+	2: G-Buffer (Normal)		[x, y]					Color		Input			-				2
+	3: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
+	5: G-Buffer (Depth)			[d]						Color		Input			-				4
+	4: HDR-Buffer				[r, g, b, a]			Preserve	Color			Input			0
+	6: Swapchain				[r, g, b, a]			Preserve	Preserve		Color			1
+
+	We need to override the attachment reference in most of the subpasses.
 */
-Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, const GameWindow & wnd, uint32 maxMaterials, uint32 maxLights)
+Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, uint32 maxMaterials, uint32 maxLights)
 	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr), wnd(&wnd),
 	fetcher(&fetcher), gfxGPass(nullptr), gfxLightPass(nullptr), gfxTonePass(nullptr), curCmd(nullptr),
-	maxMaterials(maxMaterials), maxLights(maxLights), depthBuffer(nullptr)
+	maxMaterials(maxMaterials), maxLights(maxLights), depthBuffer(nullptr), sampler(fetcher.FetchSampler(SamplerCreateInfo()))
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -49,6 +60,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, const GameWindow 
 	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
 	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
+	CreateWindowDependentResources();
 }
 
 void Pu::DeferredRenderer::BeginGeometry(CommandBuffer & cmdBuffer, const Camera & camera)
@@ -130,20 +142,105 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 		but we only have to recreate the framebuffers if the area changed, because we use a dynamic viewport.
 		*/
 		if (args.FormatChanged) renderpass->Recreate();
-		if (args.AreaChanged) CreateWindowDependentResources();
+		if (args.AreaChanged)
+		{
+			CreateWindowDependentResources();
+			CreateFramebuffer();
+		}
 	}
 }
 
-void Pu::DeferredRenderer::Destroy(void)
+void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
+{
+	/* Set all the options for the Geometry-Pass. */
+	Subpass &gpass = renderpass->GetSubpass(0);
+
+	Output &depth = gpass.AddDepthStencil();
+	depth.SetFormat(depthBuffer->GetFormat());
+	depth.SetClearValue({ 1.0f, 0 });
+	depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilReadOnlyOptimal);
+
+	Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
+	diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+	diffA2.SetFormat(gbuffAttach1->GetFormat());
+	diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
+
+	Output &spec = gpass.GetOutput("GBufferSpecular");
+	spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+	spec.SetFormat(gbuffAttach2->GetFormat());
+	spec.SetStoreOperation(AttachmentStoreOp::DontCare);
+
+	Output &norm = gpass.GetOutput("GBufferNormal");
+	norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+	norm.SetFormat(gbuffAttach3->GetFormat());
+	norm.SetStoreOperation(AttachmentStoreOp::DontCare);
+
+
+}
+
+/*
+The function is only called on two events:
+- Before the initial renderpass create.
+- After the window resizes.
+*/
+void Pu::DeferredRenderer::CreateWindowDependentResources(void)
+{
+	/* Destroy the old resources if needed. */
+	DestroyWindowDependentResources();
+	LogicalDevice &device = wnd->GetDevice();
+	const Extent3D size{ wnd->GetSize(), 1 };
+	const ImageUsageFlag gbufferUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::InputAttachment | ImageUsageFlag::TransientAttachment;
+
+	/* Create the new images. */
+	depthBuffer = new DepthBuffer(device, Format::D32_SFLOAT, wnd->GetSize());
+	gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	gbuffAttach4 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+
+	/* Create the new image views and samplers. */
+	textures.emplace_back(new Texture2D(*gbuffAttach1, sampler));
+	textures.emplace_back(new Texture2D(*gbuffAttach2, sampler));
+	textures.emplace_back(new Texture2D(*gbuffAttach3, sampler));
+	textures.emplace_back(new Texture2D(*gbuffAttach4, sampler));
+	textures.emplace_back(new Texture2D(*tmpHdrAttach, sampler));
+}
+
+/*
+This function is called when either of the following events occur:
+- The initial framebuffer creation (after renderpass create).
+- After the window resizes.
+- When the window format changed.
+*/
+void Pu::DeferredRenderer::CreateFramebuffer(void)
+{
+	vector<const ImageView*> attachments{ textures.size() + 1 };
+	for (const Texture2D *cur : textures) attachments.emplace_back(&cur->GetView());
+	attachments.emplace_back(&depthBuffer->GetView());
+
+	wnd->CreateFrameBuffers(*renderpass, attachments);
+}
+
+void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 {
 	/* Delete the G-Buffer, HDR buffer and the framebuffer. */
 	if (framebuffer) delete framebuffer;
+
+	for (const Texture2D *cur : textures) delete cur;
+	textures.clear();
+
 	if (gbuffAttach1) delete gbuffAttach1;
 	if (gbuffAttach2) delete gbuffAttach2;
 	if (gbuffAttach3) delete gbuffAttach3;
 	if (gbuffAttach4) delete gbuffAttach4;
 	if (tmpHdrAttach) delete tmpHdrAttach;
 	if (depthBuffer) delete depthBuffer;
+}
+
+void Pu::DeferredRenderer::Destroy(void)
+{
+	DestroyWindowDependentResources();
 
 	/* Delete the descriptor pools. */
 	if (camPool) delete camPool;
@@ -157,5 +254,6 @@ void Pu::DeferredRenderer::Destroy(void)
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);
+	fetcher->Release(sampler);
 	wnd->SwapchainRecreated.Remove(*this, &DeferredRenderer::OnSwapchainRecreated);
 }

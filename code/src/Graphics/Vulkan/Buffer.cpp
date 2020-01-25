@@ -183,7 +183,7 @@ void Pu::Buffer::Allocate(void)
 	parent->vkGetBufferMemoryRequirements(parent->hndl, bufferHndl, &requirements);
 
 	/* Get the best type of memory available to us. */
-	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, false, memoryType))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, MemoryPropertyFlag::None, memoryType))
 	{
 		/* Only log wasted memory if desired, the buffer probably doesn't have a name at this point. */
 		gpuSize = static_cast<size_t>(requirements.Size);

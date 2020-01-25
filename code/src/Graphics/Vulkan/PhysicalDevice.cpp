@@ -232,7 +232,19 @@ uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
 	return choosen;
 }
 
-bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, bool preferCaching, uint32 & index)
+DeviceSize Pu::PhysicalDevice::GetDeviceLocalBytes(void) const
+{
+	DeviceSize result = 0;
+
+	for (const MemoryHeap *cur = memory.MemoryHeaps; cur < memory.MemoryHeaps + memory.MemoryTypeCount; cur++)
+	{
+		if (_CrtEnumCheckFlag(cur->Flags, MemoryHeapFlag::DeviceLocal)) result += cur->Size;
+	}
+
+	return result;
+}
+
+bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, MemoryPropertyFlag optionalProperties, uint32 & index)
 {
 	index = maxv<uint32>();
 	int32 highscore = -1, score = 0;
@@ -250,7 +262,7 @@ bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryProperty
 			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) score += 3;
 			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCoherent)) score += 2;
 			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostVisible)) ++score;
-			if (preferCaching && _CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCached)) ++score;
+			if (_CrtEnumCheckFlag(flags, optionalProperties)) ++score;
 
 			if (score > highscore)
 			{

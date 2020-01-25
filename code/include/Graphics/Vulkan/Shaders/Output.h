@@ -11,10 +11,10 @@ namespace Pu
 		: public Field
 	{
 	public:
-		/* Sets the layout of the output to a specified value. */
-		inline void SetLayout(_In_ ImageLayout layout)
+		/* Overrides the default image reference of the output. */
+		inline void SetReference(_In_ uint32 idx)
 		{
-			reference.Layout = layout;
+			reference.Attachment = idx;
 		}
 
 		/* Sets the format of the output image. */
@@ -23,16 +23,38 @@ namespace Pu
 			description.Format = format;
 		}
 
-		/* Sets the layout of the output before this output is used in the render pass. */
+		/* Sets the layout of the output to a specified value. */
+		inline void SetLayout(_In_ ImageLayout layout)
+		{
+			reference.Layout = layout;
+		}
+
+		/* Sets the layout of the output before this output is used in the sub pass. */
 		inline void SetInitialLayout(_In_ ImageLayout layout)
 		{
 			description.InitialLayout = layout;
 		}
 
-		/* Sets the layout of the output after this output is used in the render pass. */
+		/* Sets the layout of the output after this output is used in the sub pass. */
 		inline void SetFinalLayout(_In_ ImageLayout layout)
 		{
 			description.FinalLayout = layout;
+		}
+
+		/* Sets the layout of the output before, during and after it is used in the sub pass. */
+		inline void SetLayouts(_In_ ImageLayout layout)
+		{
+			description.InitialLayout = layout;
+			reference.Layout = layout;
+			description.FinalLayout = layout;
+		}
+
+		/* Set the layout of the output before, during and after it is used in the sub pass. */
+		inline void SetLayouts(_In_ ImageLayout initial, _In_ ImageLayout layout, _In_ ImageLayout final)
+		{
+			description.InitialLayout = initial;
+			reference.Layout = layout;
+			description.FinalLayout = final;
 		}
 
 		/* Sets how this output should be cleared before use. */
@@ -45,6 +67,12 @@ namespace Pu
 		inline void SetLoadOperation(_In_ AttachmentLoadOp op)
 		{
 			description.LoadOp = op;
+		}
+
+		/* Sets the color store operation of this output. */
+		inline void SetStoreOperation(_In_ AttachmentStoreOp op)
+		{
+			description.StoreOp = op;
 		}
 
 		/* Sets the output to the specified depth buffer format. */

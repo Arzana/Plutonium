@@ -42,6 +42,8 @@ namespace Pu
 		_Check_return_ uint32 GetBestGraphicsQueueFamily(void) const;
 		/* Gets the best transfer queue family index. */
 		_Check_return_ uint32 GetBestTransferQueueFamily(void) const;
+		/* Gets the amount of device local bytes supported by the device. */
+		_Check_return_ DeviceSize GetDeviceLocalBytes(void) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const
@@ -147,7 +149,7 @@ namespace Pu
 		ImageFormatProperties GetImageFormatProperties(const ImageCreateInfo &createInfo);
 		bool SupportsPlutonium(const Surface &surface) const;
 		uint32 GetBestGraphicsQueueFamilyInternal(const Surface *surface) const;
-		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, bool preferCaching, uint32 &index);
+		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &requiredProperties, MemoryPropertyFlag optionalProperties, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};
 }

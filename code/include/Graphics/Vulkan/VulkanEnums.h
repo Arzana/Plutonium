@@ -470,7 +470,7 @@ namespace Pu
 		Undefined = 0,
 		/* Supports all type of device access (slow!). */
 		General = 1,
-		/* Image can be used as a color od resolve attachment in a framebuffer. */
+		/* Image can be used as a color, input or resolve attachment in a framebuffer. */
 		ColorAttachmentOptimal = 2,
 		/* Image can be used as a depth/stencil attachment in a framebuffer. */
 		DepthStencilAttachmentOptimal = 3,
@@ -911,7 +911,7 @@ namespace Pu
 		DepthStencilAttachment = 0x00000020,
 		/* Specifies that the memory bound to this image will has been allocated lazily. */
 		TransientAttachment = 0x00000040,
-		/* Specifies that the image can be used to create an image view. */
+		/* Specifies that the image can be used to create an image view suitable for use as a input attachment. */
 		InputAttachment = 0x00000080
 	};
 
