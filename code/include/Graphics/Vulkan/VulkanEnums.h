@@ -800,6 +800,7 @@ namespace Pu
 		StorageBuffer = 7,
 		UniformBufferDynamic = 8,
 		StorageBufferDynamic = 9,
+		/* Defines an image that is writen to in a previous subpass (subpassInput in GLSL). */
 		InputAttachment = 10
 	};
 

@@ -80,7 +80,7 @@ namespace Pu
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
-		void CreateWindowDependentResources(void);
+		void CreateSizeDependentResources(void);
 		void CreateFramebuffer(void);
 		void DestroyWindowDependentResources(void);
 		void Destroy(void);

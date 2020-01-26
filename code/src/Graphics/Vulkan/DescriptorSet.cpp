@@ -30,8 +30,22 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const ImageView & v
 	if (descriptor.layoutBinding.DescriptorType != DescriptorType::CombinedImageSampler) Log::Fatal("Cannot update descriptor with image on non-image descriptor!");
 
 	/* Write the descriptor. */
-	DescriptorImageInfo info(sampler.hndl, view.hndl);
-	WriteDescriptorSet write(hndl, descriptor.layoutBinding.Binding, info);
+	DescriptorImageInfo info{ sampler.hndl, view.hndl };
+	WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
+	WriteDescriptor({ write });
+}
+
+void Pu::DescriptorSet::Write(const Descriptor & descriptor, const ImageView & view)
+{
+	/* Check if the descriptor type if correct. */
+	if (descriptor.layoutBinding.DescriptorType != DescriptorType::InputAttachment) Log::Fatal("Cannot update descriptor with input attachment on non-input attachment descriptor!");
+
+	/*
+	Write the descriptor.
+	No sampler is needed because the input attachment is pixel local and thusly will need no sampling.
+	*/
+	DescriptorImageInfo info{ nullptr, view.hndl };
+	WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
 	WriteDescriptor({ write });
 }
 

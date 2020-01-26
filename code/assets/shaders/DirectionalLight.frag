@@ -12,11 +12,11 @@ layout (binding = 1) uniform Camera
 	vec3 CamPos;
 };
 
-layout (set = 2, binding = 0) uniform sampler2D GBufferDepth;		// Stores the deth of the scene.
-layout (set = 2, binding = 1) uniform sampler2D GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
-layout (set = 2, binding = 2) uniform sampler2D GBufferSpecular;	// Stores the Specular color and power.
-layout (set = 2, binding = 3) uniform sampler2D GBufferNormal;		// Stores the normal in spherical world coorinates.
-layout (set = 2, binding = 4) uniform sampler2D GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
+layout (input_attachment_index = 0, set = 2, binding = 0) uniform subpassInput GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
+layout (input_attachment_index = 1, set = 2, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
+layout (input_attachment_index = 2, set = 2, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
+layout (input_attachment_index = 3, set = 2, binding = 3) uniform subpassInput GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
+layout (input_attachment_index = 5, set = 2, binding = 4) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
 
 layout (set = 3, binding = 0) uniform Light
 {
@@ -54,7 +54,7 @@ float microfacet(float ndh, float a2, float power)
 // Decodes the normal from optimzed spherical to a world normal.
 vec3 DecodeNormal()
 {
-	vec2 raw = texture(GBufferNormal, Uv).xy;
+	vec2 raw = subpassLoad(GBufferNormal).xy;
 	float st = sqrt(1.0f - raw.x);
 	float sp = sin(raw.y);
 	float cp = cos(raw.y);
@@ -64,7 +64,7 @@ vec3 DecodeNormal()
 // Decodes the position from linear depth buffer.
 vec3 DecodePosition()
 {
-	float ld = texture(GBufferDepth, Uv).r;
+	float ld = subpassLoad(GBufferDepth).r;
 	vec4 ndc = vec4(Uv.x, Uv.y, ld, 1.0f);
 	vec4 eye = IProjection * ndc;
 	eye /= eye.w;
@@ -79,9 +79,9 @@ float mdot(in vec3 a, in vec3 b)
 void main()
 {
 	// Get all of the values out of our G-Buffer.
-	const vec4 diffA2 = texture(GBufferDiffuseA2, Uv);
-	const vec4 spec = texture(GBufferSpecular, Uv);
-	const vec4 emisAo = texture(GBufferEmissiveAO, Uv);
+	const vec4 diffA2 = subpassLoad(GBufferDiffuseA2);
+	const vec4 spec = subpassLoad(GBufferSpecular);
+	const vec4 emisAo = subpassLoad(GBufferEmissiveAO);
 	const vec3 position = DecodePosition();
 	const vec3 normal = DecodeNormal();
 

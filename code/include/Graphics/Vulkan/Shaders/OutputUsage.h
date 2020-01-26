@@ -14,7 +14,9 @@ namespace Pu
 		/* The output field should be handled as a depth / stencil attachment. */
 		DepthStencil,
 		/* The output field should be resolved at the end of the pipeline. */
-		Resolve
+		Resolve,
+		/* The output field should be preserved for a later subpass. */
+		Preserve
 	};
 
 	/* Gets a human readable version of an output usage. */
@@ -22,15 +24,16 @@ namespace Pu
 	{
 		switch (usage)
 		{
-		case Pu::OutputUsage::Input:
+		case OutputUsage::Input:
 			return "Input";
-		case Pu::OutputUsage::Color:
+		case OutputUsage::Color:
 			return "Color";
-		case Pu::OutputUsage::DepthStencil:
+		case OutputUsage::DepthStencil:
 			return "Depth/Stencil";
-		case Pu::OutputUsage::Resolve:
+		case OutputUsage::Resolve:
 			return "Resolve";
-		case Pu::OutputUsage::Unknown:
+		case OutputUsage::Preserve:
+			return "Preserve";
 		default:
 			return "Unknown";
 		}

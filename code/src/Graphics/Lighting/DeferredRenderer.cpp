@@ -1,4 +1,5 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
+#include "Graphics/VertexLayouts/Basic3D.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -60,7 +61,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
 	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
-	CreateWindowDependentResources();
+	CreateSizeDependentResources();
 }
 
 void Pu::DeferredRenderer::BeginGeometry(CommandBuffer & cmdBuffer, const Camera & camera)
@@ -144,7 +145,7 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 		if (args.FormatChanged) renderpass->Recreate();
 		if (args.AreaChanged)
 		{
-			CreateWindowDependentResources();
+			CreateSizeDependentResources();
 			CreateFramebuffer();
 		}
 	}
@@ -153,29 +154,43 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 {
 	/* Set all the options for the Geometry-Pass. */
-	Subpass &gpass = renderpass->GetSubpass(0);
+	{
+		Subpass &gpass = renderpass->GetSubpass(0);
 
-	Output &depth = gpass.AddDepthStencil();
-	depth.SetFormat(depthBuffer->GetFormat());
-	depth.SetClearValue({ 1.0f, 0 });
-	depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilReadOnlyOptimal);
+		Output &depth = gpass.AddDepthStencil();
+		depth.SetFormat(depthBuffer->GetFormat());
+		depth.SetClearValue({ 1.0f, 0 });
+		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilReadOnlyOptimal);
 
-	Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
-	diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-	diffA2.SetFormat(gbuffAttach1->GetFormat());
-	diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
+		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
+		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		diffA2.SetFormat(gbuffAttach1->GetFormat());
+		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
 
-	Output &spec = gpass.GetOutput("GBufferSpecular");
-	spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-	spec.SetFormat(gbuffAttach2->GetFormat());
-	spec.SetStoreOperation(AttachmentStoreOp::DontCare);
+		Output &spec = gpass.GetOutput("GBufferSpecular");
+		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		spec.SetFormat(gbuffAttach2->GetFormat());
+		spec.SetStoreOperation(AttachmentStoreOp::DontCare);
 
-	Output &norm = gpass.GetOutput("GBufferNormal");
-	norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-	norm.SetFormat(gbuffAttach3->GetFormat());
-	norm.SetStoreOperation(AttachmentStoreOp::DontCare);
+		Output &norm = gpass.GetOutput("GBufferNormal");
+		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		norm.SetFormat(gbuffAttach3->GetFormat());
+		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 
+		Output &emissAo = gpass.GetOutput("GBufferEmissiveAO");
+		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		emissAo.SetFormat(gbuffAttach4->GetFormat());
+		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
 
+		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
+		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	}
+
+	/* Set all the options for the directional light pass. */
+	{
+		Subpass &dlpass = renderpass->GetSubpass(1);
+	}
 }
 
 /*
@@ -183,7 +198,7 @@ The function is only called on two events:
 - Before the initial renderpass create.
 - After the window resizes.
 */
-void Pu::DeferredRenderer::CreateWindowDependentResources(void)
+void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 {
 	/* Destroy the old resources if needed. */
 	DestroyWindowDependentResources();

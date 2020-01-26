@@ -1206,11 +1206,12 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a subpass description object. */
-		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments, _In_ const AttachmentReference *depthAttachment, _In_ const vector<AttachmentReference> &preserveAttachments)
-			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
-			InputAttachmentCount(0), InputAttachments(nullptr), 
-			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())), ColorAttachments(colorAttachments.data()), 
-			ResolveAttachments(nullptr), DepthStencilAttachment(depthAttachment),
+		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments, _In_ const vector<AttachmentReference> &preserveAttachments,
+			_In_ const vector<AttachmentReference> &inputAttachments, _In_ const vector<AttachmentReference> &resolveAttachments)
+			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics), DepthStencilAttachment(nullptr),
+			InputAttachmentCount(static_cast<uint32>(inputAttachments.size())), InputAttachments(inputAttachments.data()), 
+			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())), 
+			ColorAttachments(colorAttachments.data()), ResolveAttachments(resolveAttachments.data()),
 			PreserveAttachmentCount(static_cast<uint32>(preserveAttachments.size())), PreserveAttachments(preserveAttachments.data())
 		{}
 	};

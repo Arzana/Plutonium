@@ -40,10 +40,6 @@ namespace Pu
 		void Initialize(void);
 		/* Adds an external dependency to the end of the renderpass. */
 		void AddDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flag = DependencyFlag::None);
-		/* Preserves the specified output field for the specified subpass. */
-		void Preserve(_In_ const Output &field, _In_ uint32 subpass);
-		/* Sets the specified output as an input attachment (or depth/stencil) for the specified subpass. */
-		void SetAsInput(_In_ const Output &field, _In_ ImageLayout layout, _In_ uint32 subpass);
 		/* Recreates the renderpass after a attachment change. */
 		void Recreate(void);
 
@@ -99,10 +95,6 @@ namespace Pu
 		vector<DescriptorSetLayoutHndl> descriptorSetLayouts;
 		vector<Subpass> subpasses;
 		vector<ClearValue> clearValues;
-
-		std::map<uint32, vector<AttachmentReference>> inputAttachments;
-		std::map<uint32, AttachmentReference> depthStencilAttachments;
-		std::map<uint32, vector<AttachmentReference>> preserveAttachments;
 
 		void Create(bool viaLoader);
 		void CreateRenderpass(void);

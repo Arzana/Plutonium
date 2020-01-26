@@ -42,9 +42,8 @@ Pu::Renderpass::Renderpass(Renderpass && value)
 	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
 	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)), 
 	clearValues(std::move(value.clearValues)), usesDependency(value.usesDependency),
-	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), layoutHndl(value.layoutHndl),
-	inputAttachments(std::move(value.inputAttachments)), depthStencilAttachments(std::move(value.depthStencilAttachments)),
-	preserveAttachments(std::move(value.preserveAttachments)), descriptorSetLayouts(std::move(value.descriptorSetLayouts))
+	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), layoutHndl(value.layoutHndl), 
+	descriptorSetLayouts(std::move(value.descriptorSetLayouts))
 {
 	value.hndl = nullptr;
 	value.layoutHndl = nullptr;
@@ -67,9 +66,6 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		clearValues = std::move(other.clearValues);
 		PreCreate = std::move(other.PreCreate);
 		PostCreate = std::move(other.PostCreate);
-		inputAttachments = std::move(other.inputAttachments);
-		depthStencilAttachments = std::move(other.depthStencilAttachments);
-		preserveAttachments = std::move(other.preserveAttachments);
 		descriptorSetLayouts = std::move(other.descriptorSetLayouts);
 
 		other.hndl = nullptr;
@@ -95,65 +91,6 @@ void Pu::Renderpass::AddDependency(PipelineStageFlag srcStage, PipelineStageFlag
 	outputDependency.SrcAccessMask = srcAccess;
 	outputDependency.DstAccessMask = dstAccess;
 	outputDependency.DependencyFlags = flag;
-}
-
-void Pu::Renderpass::Preserve(const Output & field, uint32 subpass)
-{
-	/* Check if the specified subpass already has preserve attachments. */
-	decltype(preserveAttachments)::iterator it = preserveAttachments.find(subpass);
-	if (it != preserveAttachments.end())
-	{
-		/* Add the attachment to the pre-existing list. */
-		it->second.emplace_back(field.reference.Attachment, field.reference.Layout);
-	}
-	else
-	{
-		/* Just add a new vector (with the reference) to the list. */
-		vector<AttachmentReference> value = { AttachmentReference(field.reference.Attachment, field.reference.Layout) };
-		preserveAttachments.emplace(subpass, value);
-	}
-}
-
-void Pu::Renderpass::SetAsInput(const Output & field, ImageLayout layout, uint32 subpass)
-{
-	/* Only color and depth/stencil attachments can be passed to this method. */
-	if (field.type == OutputUsage::Color)
-	{
-		/* Check if the subpass already exists. */
-		decltype(inputAttachments)::iterator it = inputAttachments.find(subpass);
-		if (it != inputAttachments.end())
-		{
-			/* Add the attachment to the pre-existing list. */
-			it->second.emplace_back(field.reference.Attachment, layout);
-		}
-		else
-		{
-			/* Just add a new vector (with the reference) to the list. */
-			vector<AttachmentReference> value = { AttachmentReference(field.reference.Attachment, layout) };
-			inputAttachments.emplace(subpass, value);
-		}
-	}
-	else if (field.type == OutputUsage::DepthStencil)
-	{
-		/* Check if the subpass already exists. */
-		decltype(depthStencilAttachments)::iterator it = depthStencilAttachments.find(subpass);
-		if (it == depthStencilAttachments.end())
-		{
-			/* Check if we can add a depth/stencil attachment to the specified subpass. */
-			for (const Output &output : subpasses[subpass].outputs)
-			{
-				if (output.type == OutputUsage::DepthStencil)
-				{
-					Log::Error("Subpass %u already defined a depth/stencil attachment!", subpass);
-					return;
-				}
-			}
-
-			depthStencilAttachments.emplace(subpass, AttachmentReference(field.reference.Attachment, layout));
-		}
-		else Log::Error("Subpass %u already has a depth/stencil attachment defined!", subpass);
-	}
-	else Log::Error("Cannot use '%s' (%s attachment) as an input!", field.GetInfo().Name.c_str(), to_string(field.type));
 }
 
 Pu::Asset & Pu::Renderpass::Duplicate(AssetCache &)
@@ -234,62 +171,44 @@ void Pu::Renderpass::CreateRenderpass(void)
 		}
 	}
 
-	/* Generate the subpass descriptions. */
-	uint32 i = 0;
-	size_t j = 0;
+	/* Generate the subpass descriptions, make sure that the vectors don't resize. */
 	vector<SubpassDescription> subpassDescriptions;
-	vector<AttachmentReference> colorAttachments;
-
-	/* Make sure the vector doesn't resize. */
-	colorAttachments.reserve(attachmentDescriptions.size());
+	vector<vector<AttachmentReference>> inputAttachments{ subpasses.size() };
+	vector<vector<AttachmentReference>> colorAttachments{ subpasses.size() };
+	vector<vector<AttachmentReference>> resolveAttachments{ subpasses.size() };
+	vector<vector<AttachmentReference>> preserveAttachments{ subpasses.size() };
 
 	for (const Subpass &subpass : subpasses)
 	{
-		SubpassDescription description;
-
-		/* Add all the input attachments to the description. */
-		decltype(inputAttachments)::const_iterator it = inputAttachments.find(i);
-		if (it != inputAttachments.end())
-		{
-			description.InputAttachmentCount = static_cast<uint32>(it->second.size());
-			description.InputAttachments = it->second.data();
-		}
+		const size_t i = subpassDescriptions.size();
+		const AttachmentReference *depthStencil = nullptr;
 
 		/*
-		Add all the color and resolve attachments to a temporary vector
+		Add all the input, color, resolve and preserve attachments to a temporary vector
 		and set the depth/stencil attachment (if needed).
 		*/
 		for (const Output &output : subpass.outputs)
 		{
-			if (output.type == OutputUsage::Color) colorAttachments.emplace_back(output.reference);
-			// TODO: handle resolve attachments.
-			else if (output.type == OutputUsage::DepthStencil) description.DepthStencilAttachment = &output.reference;
+			if (output.type == OutputUsage::Color) colorAttachments[i].emplace_back(output.reference);
+			else if (output.type == OutputUsage::Resolve) resolveAttachments[i].emplace_back(output.reference);
+			else if (output.type == OutputUsage::Input) inputAttachments[i].emplace_back(output.reference);
+			else if (output.type == OutputUsage::Preserve) preserveAttachments[i].emplace_back(output.reference);
+			else if (output.type == OutputUsage::DepthStencil)
+			{
+				if (depthStencil) Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
+				depthStencil = &output.reference;
+			}
 		}
 
-		description.ColorAttachmentCount = static_cast<uint32>(colorAttachments.size() - j);
-		description.ColorAttachments = colorAttachments.data() + j;
-		// TODO: handle resolve attachments.
-
-		/* Set the depth/stencil attachment (if needed), a check for multiple has already occured. */
-		decltype(depthStencilAttachments)::const_iterator it2 = depthStencilAttachments.find(i);
-		if (it2 != depthStencilAttachments.end()) description.DepthStencilAttachment = &it2->second;
-
-		/* Set the preserve attachments. */
-		decltype(preserveAttachments)::const_iterator it3 = preserveAttachments.find(i);
-		if (it3 != preserveAttachments.end())
-		{
-			description.PreserveAttachmentCount = static_cast<uint32>(it3->second.size());
-			description.PreserveAttachments = it3->second.data();
-		}
-
-		i++;
-		j += description.ColorAttachmentCount;
+		/* Create the subpass description. */
+		SubpassDescription description{ colorAttachments[i], preserveAttachments[i], inputAttachments[i], resolveAttachments[i] };
+		description.DepthStencilAttachment = depthStencil;
 		subpassDescriptions.emplace_back(description);
 	}
 
 	/* Copy the dependencies from the subpasses. */
 	vector<SubpassDependency> dependencies;
-	for (i = 0; i < subpasses.size(); i++)
+	for (uint32 i = 0; i < subpasses.size(); i++)
 	{
 		const Subpass &subpass = subpasses[i];
 		if (subpass.dependencyUsed)

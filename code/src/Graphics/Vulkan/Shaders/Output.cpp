@@ -2,7 +2,7 @@
 
 void Pu::Output::SetUsage(OutputUsage usage)
 {
-	if (usage == OutputUsage::Input || usage == OutputUsage::Unknown)
+	if (usage == OutputUsage::Unknown)
 	{
 		Log::Error("Output field '%s' cannot be used as %s an attachment!", to_string(usage));
 		return;
