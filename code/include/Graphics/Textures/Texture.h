@@ -72,7 +72,7 @@ namespace Pu
 		/* The image data of the texture. */
 		Image *Image;
 
-		Texture(_In_ Pu::Sampler &sampler, _In_ Pu::Image &image, _In_ ImageViewType type);
+		Texture(_In_ Pu::Sampler *sampler, _In_ Pu::Image &image, _In_ ImageViewType type);
 
 	private:
 		friend class DescriptorSet;

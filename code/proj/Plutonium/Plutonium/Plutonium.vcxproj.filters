@@ -744,6 +744,12 @@
     <ClInclude Include="..\..\..\include\Graphics\Cameras\FreeCamera.h">
       <Filter>Header Files\Graphics\Cameras</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput.h">
+      <Filter>Header Files\Graphics\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput2D.h">
+      <Filter>Header Files\Graphics\Textures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -885,9 +891,6 @@
       <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp">
-      <Filter>Source Files\Graphics\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp">
       <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Content\Asset.cpp">
@@ -1049,9 +1052,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\PushConstant.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureCube.cpp">
-      <Filter>Source Files\Graphics\Textures</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Resources\SingleUseCommandBuffer.cpp">
       <Filter>Source Files\Graphics\Resources</Filter>
     </ClCompile>
@@ -1081,6 +1081,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Cameras\FreeCamera.cpp">
       <Filter>Source Files\Graphics\Cameras</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureInput.cpp">
+      <Filter>Source Files\Graphics\Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

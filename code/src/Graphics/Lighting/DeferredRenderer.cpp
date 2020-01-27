@@ -9,9 +9,9 @@
 		Inverse Projection
 		Inverse View
 		Position
-		Exposure	(Only available in LDR mode)
-		Brightness	(Only available in LDR mode)
-		Contrast	(Only available in LDR mode)
+		Exposure
+		Brightness
+		Contrast
 	1: Material
 		Diffuse
 		Specular / Glossiness
@@ -21,15 +21,15 @@
 		F0 / Specular Power
 		Diffuse Factor / Roughness
 		Alpha Threshold
-	2: G-Buffer
+	2: Input Attachments
 		Diffuse / Roughness^2
 		Specular / Specular power
 		Normal
 		Emissive / AO
+		HDR buffer
 	3: Directional Light
 		Direction
 		Radiance (pre-multiplied)
-	4: HDR Buffer (Only available in LDR mode)
 
 	The framebuffer has several attachments:			G-Pass		Light-Pass		Post-Pass		Default Idx
 	0: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-				0
@@ -37,15 +37,15 @@
 	2: G-Buffer (Normal)		[x, y]					Color		Input			-				2
 	3: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
 	5: G-Buffer (Depth)			[d]						Color		Input			-				4
-	4: HDR-Buffer				[r, g, b, a]			Preserve	Color			Input			0
-	6: Swapchain				[r, g, b, a]			Preserve	Preserve		Color			1
+	4: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
+	6: Swapchain				[r, g, b, a]			-			-				Color			0
 
 	We need to override the attachment reference in most of the subpasses.
 */
-Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, uint32 maxMaterials, uint32 maxLights)
-	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr), wnd(&wnd),
-	fetcher(&fetcher), gfxGPass(nullptr), gfxLightPass(nullptr), gfxTonePass(nullptr), curCmd(nullptr),
-	maxMaterials(maxMaterials), maxLights(maxLights), depthBuffer(nullptr), sampler(fetcher.FetchSampler(SamplerCreateInfo()))
+Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, uint32 maxMaterials, uint32 maxLights, uint32 maxCameras)
+	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr), wnd(&wnd), depthBuffer(nullptr),
+	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr),
+	maxMaterials(maxMaterials), maxLights(maxLights), maxCameras(maxCameras)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -89,7 +89,7 @@ void Pu::DeferredRenderer::BeginLight(void)
 	curCmd->EndLabel();
 	curCmd->AddLabel("Deferred Renderer (Directional Lights)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxLightPass);
+	curCmd->BindGraphicsPipeline(*gfxFullScreen);
 }
 
 void Pu::DeferredRenderer::End(void)
@@ -127,7 +127,7 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxTonePass);
+	curCmd->BindGraphicsPipeline(*gfxFullScreen);
 	curCmd->PushConstants(*renderpass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
@@ -140,13 +140,13 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 	{
 		/* 
 		We need to recreate the entire renderpass if the format changed, 
-		but we only have to recreate the framebuffers if the area changed, because we use a dynamic viewport.
+		but we only have to recreate the framebuffers and pipelines if the area changed.
 		*/
 		if (args.FormatChanged) renderpass->Recreate();
 		if (args.AreaChanged)
 		{
 			CreateSizeDependentResources();
-			CreateFramebuffer();
+			FinalizeRenderpass(*renderpass);
 		}
 	}
 }
@@ -164,22 +164,22 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 
 		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
 		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		diffA2.SetFormat(gbuffAttach1->GetFormat());
+		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
 		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
 
 		Output &spec = gpass.GetOutput("GBufferSpecular");
 		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		spec.SetFormat(gbuffAttach2->GetFormat());
+		spec.SetFormat(textures[1]->GetImage().GetFormat());
 		spec.SetStoreOperation(AttachmentStoreOp::DontCare);
 
 		Output &norm = gpass.GetOutput("GBufferNormal");
 		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		norm.SetFormat(gbuffAttach3->GetFormat());
+		norm.SetFormat(textures[2]->GetImage().GetFormat());
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 
 		Output &emissAo = gpass.GetOutput("GBufferEmissiveAO");
 		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		emissAo.SetFormat(gbuffAttach4->GetFormat());
+		emissAo.SetFormat(textures[3]->GetImage().GetFormat());
 		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
 
 		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
@@ -190,7 +190,69 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the directional light pass. */
 	{
 		Subpass &dlpass = renderpass->GetSubpass(1);
+		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
+
+		Output &hdr = dlpass.GetOutput("L0");
+		hdr.SetLayout(ImageLayout::ColorAttachmentOptimal);
+		hdr.SetFormat(textures[4]->GetImage().GetFormat());
+		hdr.SetLoadOperation(AttachmentLoadOp::DontCare);
+		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);
+		hdr.SetReference(4);
 	}
+
+	/* Set all the options for the camera pass. */
+	{
+		Subpass &fpass = renderpass->GetSubpass(2);
+		fpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
+
+		Output &screen = fpass.GetOutput("FragColor");
+		screen.SetDescription(wnd->GetSwapchain());
+		screen.SetLoadOperation(AttachmentLoadOp::DontCare);
+		screen.SetReference(6);
+	}
+}
+
+void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
+{
+	/* 
+	We should only create the descriptor pools once.
+	This method can however be called multiple times if the swapchain changes format.
+	So either create the descriptor pools (first run), or delete the old pipelines (and additional calls).
+	*/
+	if (!gfxGPass) CreateDescriptorPools();
+	else
+	{
+		delete gfxGPass;
+		delete gfxFullScreen;
+	}
+
+	/* Create the graphics pipeline for the static geometry pass. */
+	{
+		gfxGPass = new GraphicsPipeline(*renderpass, 0);
+		gfxGPass->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxGPass->SetTopology(PrimitiveTopology::TriangleList);
+		gfxGPass->EnableDepthTest(true, CompareOp::LessOrEqual);
+		gfxGPass->AddVertexBinding<Basic3D>(0);
+		gfxGPass->Finalize();
+	}
+
+	/* Create the graphics pipeline for the directional light and camera pass. */
+	{
+		gfxFullScreen = new GraphicsPipeline(*renderpass, 1);
+		gfxFullScreen->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxFullScreen->SetTopology(PrimitiveTopology::TriangleList);
+		gfxFullScreen->SetCullMode(CullModeFlag::Front);
+		gfxFullScreen->Finalize();
+	}
+
+	CreateFramebuffer();
+}
+
+void Pu::DeferredRenderer::CreateDescriptorPools(void)
+{
+	camPool = new DescriptorPool(*renderpass, 0, maxCameras);
+	materialPool = new DescriptorPool(*renderpass, 1, maxMaterials);
+	lightPool = new DescriptorPool(*renderpass, 3, maxLights);
 }
 
 /*
@@ -208,18 +270,18 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 
 	/* Create the new images. */
 	depthBuffer = new DepthBuffer(device, Format::D32_SFLOAT, wnd->GetSize());
-	gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	gbuffAttach4 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach4 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 
 	/* Create the new image views and samplers. */
-	textures.emplace_back(new Texture2D(*gbuffAttach1, sampler));
-	textures.emplace_back(new Texture2D(*gbuffAttach2, sampler));
-	textures.emplace_back(new Texture2D(*gbuffAttach3, sampler));
-	textures.emplace_back(new Texture2D(*gbuffAttach4, sampler));
-	textures.emplace_back(new Texture2D(*tmpHdrAttach, sampler));
+	textures.emplace_back(new TextureInput2D(*gbuffAttach1));
+	textures.emplace_back(new TextureInput2D(*gbuffAttach2));
+	textures.emplace_back(new TextureInput2D(*gbuffAttach3));
+	textures.emplace_back(new TextureInput2D(*gbuffAttach4));
+	textures.emplace_back(new TextureInput2D(*tmpHdrAttach));
 }
 
 /*
@@ -231,7 +293,7 @@ This function is called when either of the following events occur:
 void Pu::DeferredRenderer::CreateFramebuffer(void)
 {
 	vector<const ImageView*> attachments{ textures.size() + 1 };
-	for (const Texture2D *cur : textures) attachments.emplace_back(&cur->GetView());
+	for (const TextureInput2D *cur : textures) attachments.emplace_back(&cur->GetView());
 	attachments.emplace_back(&depthBuffer->GetView());
 
 	wnd->CreateFrameBuffers(*renderpass, attachments);
@@ -242,14 +304,10 @@ void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 	/* Delete the G-Buffer, HDR buffer and the framebuffer. */
 	if (framebuffer) delete framebuffer;
 
-	for (const Texture2D *cur : textures) delete cur;
+	/* The textures store the images for us. */
+	for (const TextureInput2D *cur : textures) delete cur;
 	textures.clear();
 
-	if (gbuffAttach1) delete gbuffAttach1;
-	if (gbuffAttach2) delete gbuffAttach2;
-	if (gbuffAttach3) delete gbuffAttach3;
-	if (gbuffAttach4) delete gbuffAttach4;
-	if (tmpHdrAttach) delete tmpHdrAttach;
 	if (depthBuffer) delete depthBuffer;
 }
 
@@ -264,11 +322,9 @@ void Pu::DeferredRenderer::Destroy(void)
 
 	/* Delete the graphics pipelines. */
 	if (gfxGPass) delete gfxGPass;
-	if (gfxLightPass) delete gfxLightPass;
-	if (gfxTonePass) delete gfxTonePass;
+	if (gfxFullScreen) delete gfxFullScreen;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);
-	fetcher->Release(sampler);
 	wnd->SwapchainRecreated.Remove(*this, &DeferredRenderer::OnSwapchainRecreated);
 }

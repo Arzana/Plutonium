@@ -249,18 +249,15 @@ void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 	Decoration result;
 	switch (decoration)
 	{
-	case (spv::Decoration::Block):			// Used for uniform blocks we don't have to define what is in which block.
-	case (spv::Decoration::Flat):			// Used for internal shader inputs (should not be interpolated), we cannot access this variable anyway.
-	case (spv::Decoration::BuiltIn):		// Used to indicate build in variables, they'll not be used.
-	case (spv::Decoration::ArrayStride):	// Used to specify the stride of arrays, this is currently only used in geometry shading.
+	case (spv::Decoration::Block):					// Used for uniform blocks we don't have to define what is in which block.
+	case (spv::Decoration::Flat):					// Used for internal shader inputs (should not be interpolated), we cannot access this variable anyway.
+	case (spv::Decoration::BuiltIn):				// Used to indicate build in variables, they'll not be used.
+	case (spv::Decoration::ArrayStride):			// Used to specify the stride of arrays, this is currently only used in geometry shading.
 		return;
-	case (spv::Decoration::Location):		// Location decoration stores a single literal number.
-		result.Numbers.emplace(decoration, reader.ReadWord());
-		break;
-	case (spv::Decoration::DescriptorSet):	// Descriptor set decoration stores a single literal number.
-		result.Numbers.emplace(decoration, reader.ReadWord());
-		break;
-	case (spv::Decoration::Binding):		// Binding decoration stores a single literal number.
+	case (spv::Decoration::Location):				// Location decoration stores a single literal number.
+	case (spv::Decoration::DescriptorSet):			// Descriptor set decoration stores a single literal number.
+	case (spv::Decoration::Binding):				// Binding decoration stores a single literal number.
+	case (spv::Decoration::InputAttachmentIndex):	// Describes the index of the input attachment in the framebuffer.
 		result.Numbers.emplace(decoration, reader.ReadWord());
 		break;
 	default:								// Just log that we don't hanle the decoration at this point.

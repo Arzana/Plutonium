@@ -4,7 +4,7 @@ void Pu::Output::SetUsage(OutputUsage usage)
 {
 	if (usage == OutputUsage::Unknown)
 	{
-		Log::Error("Output field '%s' cannot be used as %s an attachment!", to_string(usage));
+		Log::Error("Output field '%s' cannot be used as a %s attachment!", GetInfo().Name.c_str(), to_string(usage));
 		return;
 	}
 
@@ -31,21 +31,17 @@ void Pu::Output::SetDescription(const Swapchain & swapchain)
 {
 	description.Format = swapchain.GetImageFormat();
 	description.InitialLayout = ImageLayout::PresentSrcKhr;
-	description.FinalLayout = ImageLayout::PresentSrcKhr;
 	reference.Layout = ImageLayout::ColorAttachmentOptimal;
+	description.FinalLayout = ImageLayout::PresentSrcKhr;
 }
 
 void Pu::Output::SetDepthDescription(Format format)
 {
 	/* Set the format and default the clear value to the far plane and no stencil. */
+	type = OutputUsage::DepthStencil;
 	description.Format = format;
 	SetClearValue({ 1.0f, 0 });
-
-	/* Set the default layout to either read-only or read-write. */
-	const ImageLayout defaultLayout = ImageLayout::DepthStencilAttachmentOptimal;
-	description.InitialLayout = defaultLayout;
-	description.FinalLayout = defaultLayout;
-	SetLayout(defaultLayout);
+	SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
 }
 
 Pu::Output::Output(const FieldInfo & data, uint32 attachment, OutputUsage type)

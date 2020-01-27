@@ -5,6 +5,7 @@
 #include "Graphics/Models/Mesh.h"
 #include "DirectionalLight.h"
 #include "Graphics/Cameras/Camera.h"
+#include "Graphics/Textures/TextureInput2D.h"
 
 namespace Pu
 {
@@ -16,7 +17,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a deferred renderer for the specified window. */
-		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_ uint32 maxMaterials, _In_ uint32 maxLights);
+		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_ uint32 maxMaterials, _In_ uint32 maxLights, _In_ uint32 maxCameras);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
 		DeferredRenderer(_In_ DeferredRenderer&&) = delete;
 		/* Releases the resources allocated by the deferred renderer. */
@@ -64,22 +65,21 @@ namespace Pu
 		DepthBuffer *depthBuffer;
 		Renderpass *renderpass;
 		DescriptorPool *materialPool, *lightPool, *camPool;
-		Image *gbuffAttach1, *gbuffAttach2, *gbuffAttach3, *gbuffAttach4, *tmpHdrAttach;
-		vector<Texture2D*> textures;
-		Sampler &sampler;
+		vector<TextureInput2D*> textures;
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxTonePass;
+		GraphicsPipeline *gfxGPass, *gfxFullScreen;
 		CommandBuffer *curCmd;
 
-		uint32 maxMaterials, maxLights;
+		uint32 maxMaterials, maxLights, maxCameras;
 		float hdrSwapchain;
 
 		void DoTonemap(void);
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
+		void CreateDescriptorPools(void);
 		void CreateSizeDependentResources(void);
 		void CreateFramebuffer(void);
 		void DestroyWindowDependentResources(void);

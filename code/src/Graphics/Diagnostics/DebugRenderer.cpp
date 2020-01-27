@@ -285,6 +285,9 @@ void Pu::DebugRenderer::InitializeRenderpass(Renderpass &)
 
 void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 {
+	/* Delete the old pipeline if needed. */
+	if (pipeline) delete pipeline;
+
 	/* Initialize the pipeline. */
 	pipeline = new GraphicsPipeline(*renderpass, 0);
 	pipeline->SetViewport(wnd.GetNative().GetClientBounds());

@@ -182,6 +182,8 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureCube.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChart.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\CodeChartIterator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
@@ -335,8 +337,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Textures\DepthBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Sampler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Textures\Texture.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Textures\Texture2D.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureCube.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureInput.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />

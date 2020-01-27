@@ -3,7 +3,7 @@
 #include "Field.h"
 
 /* Redefine the offsetof macro so we can easily use it with our attribute. */
-#define vkoffsetof(container, member)	static_cast<uint32>(offsetof(container, member))
+#define vkoffsetof(container, member)	static_cast<Pu::uint32>(offsetof(container, member))
 
 namespace Pu
 {

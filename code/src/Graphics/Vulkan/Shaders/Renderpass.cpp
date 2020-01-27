@@ -176,7 +176,6 @@ void Pu::Renderpass::CreateRenderpass(void)
 	vector<vector<AttachmentReference>> inputAttachments{ subpasses.size() };
 	vector<vector<AttachmentReference>> colorAttachments{ subpasses.size() };
 	vector<vector<AttachmentReference>> resolveAttachments{ subpasses.size() };
-	vector<vector<AttachmentReference>> preserveAttachments{ subpasses.size() };
 
 	for (const Subpass &subpass : subpasses)
 	{
@@ -184,15 +183,13 @@ void Pu::Renderpass::CreateRenderpass(void)
 		const AttachmentReference *depthStencil = nullptr;
 
 		/*
-		Add all the input, color, resolve and preserve attachments to a temporary vector
+		Add all the color, resolve attachments to a temporary vector
 		and set the depth/stencil attachment (if needed).
 		*/
 		for (const Output &output : subpass.outputs)
 		{
 			if (output.type == OutputUsage::Color) colorAttachments[i].emplace_back(output.reference);
 			else if (output.type == OutputUsage::Resolve) resolveAttachments[i].emplace_back(output.reference);
-			else if (output.type == OutputUsage::Input) inputAttachments[i].emplace_back(output.reference);
-			else if (output.type == OutputUsage::Preserve) preserveAttachments[i].emplace_back(output.reference);
 			else if (output.type == OutputUsage::DepthStencil)
 			{
 				if (depthStencil) Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
@@ -200,8 +197,34 @@ void Pu::Renderpass::CreateRenderpass(void)
 			}
 		}
 
-		/* Create the subpass description. */
-		SubpassDescription description{ colorAttachments[i], preserveAttachments[i], inputAttachments[i], resolveAttachments[i] };
+		/* Add the input attachments from the descriptors. */
+		for (const Descriptor &descriptor : subpass.descriptors)
+		{
+			if (descriptor.GetType() == DescriptorType::InputAttachment)
+			{
+				const uint32 idx = descriptor.GetInfo().Decorations.Numbers.at(spv::Decoration::InputAttachmentIndex);
+				bool handled = false;
+
+				for (const vector<AttachmentReference> &attachments : colorAttachments)
+				{
+					for (const AttachmentReference &ref : attachments)
+					{
+						/* The input attachment will have the same index as a previous subpass color attachment. */
+						if (ref.Attachment == idx)
+						{
+							inputAttachments[i].emplace_back(ref);
+							handled = true;
+							break;
+						}
+					}
+
+					if (handled) break;
+				}
+			}
+		}
+
+		/* Create the subpass description, TODO: handle preserve attachments. */
+		SubpassDescription description{ colorAttachments[i], inputAttachments[i], resolveAttachments[i] };
 		description.DepthStencilAttachment = depthStencil;
 		subpassDescriptions.emplace_back(description);
 	}
