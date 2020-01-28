@@ -15,7 +15,7 @@ Pu::PushConstant::PushConstant(const PhysicalDevice & physicalDevice, const Fiel
 	: Field(data), maxRange(physicalDevice.GetLimits().MaxPushConstantsSize)
 {
 	range.StageFlags = stage;
-	range.Offset = 0;
+	range.Offset = data.Decorations.Numbers.at(spv::Decoration::Offset);
 	range.Size = static_cast<uint32>(Field::GetSize());
 
 	if (range.Size > maxRange)

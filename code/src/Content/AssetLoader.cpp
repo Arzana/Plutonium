@@ -9,13 +9,15 @@ Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, 
 
 void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<vector<wstring>> & shaders)
 {
+	/* The first index is the subpass, the second is the shader and the string is the path. */
 	vector<std::tuple<size_t, size_t, wstring>> toLoad;
 
-	size_t i = 0, j = 0;
+	size_t i = 0;
 	for (const vector<wstring> &subpass : shaders)
 	{
 		/* Add an empty subpass to the renderpass. */
 		renderpass.subpasses.emplace_back();
+		size_t j = 0;
 
 		for (const wstring &path : subpass)
 		{
@@ -29,8 +31,9 @@ void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<v
 			}
 			else
 			{
-				/* Create a new asset and store it in the cache. */
+				/* Create a new asset and store it in the cache, we need to already set the hash because the shader might appear twice in the requested list. */
 				Shader *shader = new Shader(device);
+				shader->SetHash(shaderHash);
 				cache.Store(shader);
 
 				/* Add the subpass to the to-load list and add it to the renderpass. */

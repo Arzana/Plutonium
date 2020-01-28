@@ -3,6 +3,7 @@
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
 
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
+constexpr spv::Word GlobalMemberIndex = ~0u;
 
 Pu::Shader::Shader(LogicalDevice & device)
 	: Asset(true), parent(&device)
@@ -120,10 +121,11 @@ void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass st
 	if (types.find(typePointer) != types.end())
 	{
 		/* User defined variables need to have at least one handlable decoration, all others must be build in variables, which we can skip. */
-		if (decorations.find(id) != decorations.end())
+		const DecoratePair key{ id, GlobalMemberIndex };
+		if (decorations.find(key) != decorations.end())
 		{
 			/* Only handle types with defined names, this should never occur. */
-			fields.emplace_back(id, std::move(names[id]), std::move(types[typePointer]), storage, decorations[id]);
+			fields.emplace_back(id, std::move(names[id]), std::move(types[typePointer]), storage, decorations[key]);
 		}
 	}
 	/* Handle struct types. */
@@ -140,8 +142,12 @@ void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass st
 			/* Skip any build in members (defined with 'gl_' prefix). */
 			if (!memberName.contains("gl_"))
 			{
+				const DecoratePair globalKey{ id, GlobalMemberIndex };
+				const DecoratePair memberKey{ typePointer, static_cast<spv::Word>(i) };
+
 				Decoration memberDecoration(offset);
-				memberDecoration.Merge(decorations[id]);
+				memberDecoration.Merge(decorations[globalKey]);
+				memberDecoration.Merge(decorations[memberKey]);
 
 				fields.emplace_back(memberTypeId, std::move(memberName), std::move(fieldType), storage, memberDecoration);
 			}
@@ -176,6 +182,9 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 		break;
 	case (spv::Op::OpDecorate):
 		HandleDecorate(reader);
+		break;
+	case (spv::Op::OpMemberDecorate):
+		HandleMemberDecorate(reader);
 		break;
 	case (spv::Op::OpTypePointer):
 		HandleType(reader);
@@ -245,7 +254,21 @@ void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 	/* Read the target and create the decoration object. */
 	const spv::Id target = reader.ReadWord();
 	const spv::Decoration decoration = _CrtInt2Enum<spv::Decoration>(reader.ReadWord());
+	HandleDecoration(reader, target, GlobalMemberIndex, decoration);
+}
 
+void Pu::Shader::HandleMemberDecorate(SPIRVReader & reader)
+{
+	/* We get the target struct and member index from the SPIR-V source. */
+	const spv::Id structType = reader.ReadWord();
+	const spv::Word member = reader.ReadWord();
+
+	const spv::Decoration decoration = _CrtInt2Enum<spv::Decoration>(reader.ReadWord());
+	HandleDecoration(reader, structType, member, decoration);
+}
+
+void Pu::Shader::HandleDecoration(SPIRVReader & reader, spv::Id target, spv::Word idx, spv::Decoration decoration)
+{
 	Decoration result;
 	switch (decoration)
 	{
@@ -253,21 +276,28 @@ void Pu::Shader::HandleDecorate(SPIRVReader & reader)
 	case (spv::Decoration::Flat):					// Used for internal shader inputs (should not be interpolated), we cannot access this variable anyway.
 	case (spv::Decoration::BuiltIn):				// Used to indicate build in variables, they'll not be used.
 	case (spv::Decoration::ArrayStride):			// Used to specify the stride of arrays, this is currently only used in geometry shading.
+	case (spv::Decoration::ColMajor):				// Plutonium expects column major matrices.
+	case (spv::Decoration::MatrixStride):			// Matrix stride is determined when a matrix type if found.
 		return;
 	case (spv::Decoration::Location):				// Location decoration stores a single literal number.
 	case (spv::Decoration::DescriptorSet):			// Descriptor set decoration stores a single literal number.
 	case (spv::Decoration::Binding):				// Binding decoration stores a single literal number.
 	case (spv::Decoration::InputAttachmentIndex):	// Describes the index of the input attachment in the framebuffer.
+	case (spv::Decoration::Offset):
 		result.Numbers.emplace(decoration, reader.ReadWord());
 		break;
+	case (spv::Decoration::RowMajor):
+		Log::Error("Plutonium uses column-major matrices, field %u uses row-major!", target);
+		return;
 	default:								// Just log that we don't hanle the decoration at this point.
 		Log::Warning("Unable to handle decoration type '%s' at this point!", to_string(decoration));
 		return;
 	}
 
 	/* Only push if the decoration type was handled, also merge them together if the target is already added. */
-	if (decorations.find(target) != decorations.end()) decorations[target].Merge(result);
-	else decorations.emplace(target, result);
+	const DecoratePair key{ target, idx };
+	if (decorations.find(key) != decorations.end()) decorations[key].Merge(result);
+	else decorations.emplace(key, result);
 }
 
 void Pu::Shader::HandleType(SPIRVReader & reader)
@@ -474,9 +504,7 @@ void Pu::Shader::Destroy(void)
 
 Pu::Shader::LoadTask::LoadTask(Shader & result, const wstring & path)
 	: result(result), path(path)
-{
-	result.SetHash(std::hash<wstring>{}(path));
-}
+{}
 
 Pu::Task::Result Pu::Shader::LoadTask::Execute(void)
 {

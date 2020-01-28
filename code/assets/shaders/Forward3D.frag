@@ -93,7 +93,7 @@ void main()
 
 	// Composition (light intensity is pre-calculated)
 	const vec3 fd = (1.0f - f) * (diff.rgb / PI);
-	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * env;
+	const vec3 fs = ((f * g * d) / (4.0f * ndl * ndv + EPSLION)) * env;
 	const float ao = texture(Occlusion, Uv).r;
 	const vec3 color = (fd + fs) * ao * Radiance;
 

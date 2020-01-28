@@ -17,7 +17,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a deferred renderer for the specified window. */
-		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_ uint32 maxMaterials, _In_ uint32 maxLights, _In_ uint32 maxCameras);
+		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
 		DeferredRenderer(_In_ DeferredRenderer&&) = delete;
 		/* Releases the resources allocated by the deferred renderer. */
@@ -35,20 +35,28 @@ namespace Pu
 			return renderpass->IsLoaded();
 		}
 
-		/* Gets the pool from which PBR materials can be allocated. */
-		_Check_return_ inline DescriptorPool& GetMaterialPool(void)
+		/* Creates a new descriptor pool that can allocate camera descriptor sets (the caller owns the pool!). */
+		_Check_return_ inline DescriptorPool* CreateCameraPool(_In_ size_t maxSets) const
 		{
-			return *materialPool;
+			return new DescriptorPool(*renderpass, 0, maxSets);
 		}
 
-		/* Gets the pool from which directional light can be allocated. */
-		_Check_return_ inline DescriptorPool& GetLightPool(void)
+		/* Creates a new descriptor pool that can allocate material descriptor sets (the caller owns the pool!). */
+		_Check_return_ inline DescriptorPool* CreateMaterialPool(_In_ size_t maxSets) const
 		{
-			return *lightPool;
+			return new DescriptorPool(*renderpass, 1, maxSets);
 		}
 
+		/* Creates a new descriptor pool that can allocate directional light descriptor sets (the caller owns the pool!). */
+		_Check_return_ inline DescriptorPool* CreateDirLightPool(_In_ size_t maxSets) const
+		{
+			return new DescriptorPool(*renderpass, 3, maxSets);
+		}
+
+		/* Performs needed resource transitions. */
+		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the deferred rendering pipeline. */
-		void BeginGeometry(_In_ CommandBuffer &cmdBuffer, _In_ const Camera &camera);
+		void BeginGeometry(_In_ const Camera &camera);
 		/* Starts the second phase of the deferred rendering pipeline. */
 		void BeginLight(void);
 		/* End the deferred rendering pipeline. */
@@ -64,7 +72,6 @@ namespace Pu
 		Framebuffer *framebuffer;
 		DepthBuffer *depthBuffer;
 		Renderpass *renderpass;
-		DescriptorPool *materialPool, *lightPool, *camPool;
 		vector<TextureInput2D*> textures;
 		
 		AssetFetcher *fetcher;
@@ -72,14 +79,13 @@ namespace Pu
 		GraphicsPipeline *gfxGPass, *gfxFullScreen;
 		CommandBuffer *curCmd;
 
-		uint32 maxMaterials, maxLights, maxCameras;
 		float hdrSwapchain;
+		bool markNeeded;
 
 		void DoTonemap(void);
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
-		void CreateDescriptorPools(void);
 		void CreateSizeDependentResources(void);
 		void CreateFramebuffer(void);
 		void DestroyWindowDependentResources(void);

@@ -54,6 +54,8 @@ namespace Pu
 		friend class Renderpass;
 		friend class GraphicsPipeline;
 
+		using DecoratePair = std::pair<spv::Id, spv::Word>;
+
 		class LoadTask
 			: public Task
 		{
@@ -81,7 +83,7 @@ namespace Pu
 		std::map<spv::Id, spv::Id> typedefs;
 		std::map<spv::Id, FieldType> types;
 		std::map<spv::Id, vector<spv::Id>> structs;
-		std::map<spv::Id, Decoration> decorations;
+		std::map<DecoratePair, Decoration> decorations;
 		std::map<spv::Id, double> constants;
 		vector<std::tuple<spv::Id, spv::Id, spv::StorageClass>> variables;
 
@@ -93,6 +95,8 @@ namespace Pu
 		void HandleName(SPIRVReader &reader);
 		void HandleMemberName(SPIRVReader &reader);
 		void HandleDecorate(SPIRVReader &reader);
+		void HandleMemberDecorate(SPIRVReader &reader);
+		void HandleDecoration(SPIRVReader &reader, spv::Id target, spv::Word idx, spv::Decoration decoration);
 		void HandleType(SPIRVReader &reader);
 		void HandleInt(SPIRVReader &reader);
 		void HandleFloat(SPIRVReader &reader);

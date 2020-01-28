@@ -42,10 +42,9 @@
 
 	We need to override the attachment reference in most of the subpasses.
 */
-Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, uint32 maxMaterials, uint32 maxLights, uint32 maxCameras)
-	: framebuffer(nullptr), materialPool(nullptr), lightPool(nullptr), wnd(&wnd), depthBuffer(nullptr),
-	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr),
-	maxMaterials(maxMaterials), maxLights(maxLights), maxCameras(maxCameras)
+Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
+	: framebuffer(nullptr), wnd(&wnd), depthBuffer(nullptr), markNeeded(true),
+	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -64,18 +63,35 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	CreateSizeDependentResources();
 }
 
-void Pu::DeferredRenderer::BeginGeometry(CommandBuffer & cmdBuffer, const Camera & camera)
+void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 {
-	/* Sets the command buffer. */
-	if (curCmd) Log::Fatal("Geometry pass has already been started!");
+	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
+	if (!markNeeded) return;
+	curCmd->AddLabel("Deferred Renderer (Initialization)", Color::Blue());
+
+	/* Mark all the framebuffer images as writable. */
+	depthBuffer->MakeWritable(cmdBuffer);
+	for (const TextureInput2D *attachment : textures)
+	{
+		cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
+	}
+
+	curCmd->EndLabel();
+}
+
+void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
+{
+	/* Check for invalid state on debug. */
+#ifdef _DEBUG
+	if (!curCmd) Log::Fatal("InitializeResources should be called before the geometry pass can start!");
+#endif
 
 	/* Start the geometry pass. */
-	cmdBuffer.AddLabel("Deferred Renderer (Geometry)", Color::Blue());
-
-	cmdBuffer.BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
-	cmdBuffer.BindGraphicsPipeline(*gfxGPass);
-	cmdBuffer.BindGraphicsDescriptor(camera);
+	curCmd->AddLabel("Deferred Renderer (Geometry)", Color::Blue());
+	curCmd->BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
+	curCmd->BindGraphicsPipeline(*gfxGPass);
+	curCmd->BindGraphicsDescriptor(camera);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -214,13 +230,8 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 {
-	/* 
-	We should only create the descriptor pools once.
-	This method can however be called multiple times if the swapchain changes format.
-	So either create the descriptor pools (first run), or delete the old pipelines (and additional calls).
-	*/
-	if (!gfxGPass) CreateDescriptorPools();
-	else
+	/* We need to delete the old pipelines if they are already created once. */
+	if(gfxGPass || gfxFullScreen)
 	{
 		delete gfxGPass;
 		delete gfxFullScreen;
@@ -248,13 +259,6 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	CreateFramebuffer();
 }
 
-void Pu::DeferredRenderer::CreateDescriptorPools(void)
-{
-	camPool = new DescriptorPool(*renderpass, 0, maxCameras);
-	materialPool = new DescriptorPool(*renderpass, 1, maxMaterials);
-	lightPool = new DescriptorPool(*renderpass, 3, maxLights);
-}
-
 /*
 The function is only called on two events:
 - Before the initial renderpass create.
@@ -267,6 +271,7 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	LogicalDevice &device = wnd->GetDevice();
 	const Extent3D size{ wnd->GetSize(), 1 };
 	const ImageUsageFlag gbufferUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::InputAttachment | ImageUsageFlag::TransientAttachment;
+	markNeeded = true;
 
 	/* Create the new images. */
 	depthBuffer = new DepthBuffer(device, Format::D32_SFLOAT, wnd->GetSize());
@@ -314,11 +319,6 @@ void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 void Pu::DeferredRenderer::Destroy(void)
 {
 	DestroyWindowDependentResources();
-
-	/* Delete the descriptor pools. */
-	if (camPool) delete camPool;
-	if (lightPool) delete lightPool;
-	if (materialPool) delete materialPool;
 
 	/* Delete the graphics pipelines. */
 	if (gfxGPass) delete gfxGPass;
