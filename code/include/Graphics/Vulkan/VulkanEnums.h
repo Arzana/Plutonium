@@ -1279,11 +1279,13 @@ namespace Pu
 		ColorAttachmentRead = 0x00000080,
 		/* Specifies write access to a color attachment. */
 		ColorAttachmentWrite = 0x00000100,
+		/* Specifies read and write access to a color attachment. */
+		ColorAttachmentReadWrite = ColorAttachmentRead | ColorAttachmentWrite,
 		/* Specifies read access to a depth/stencil attachment. */
 		DepthStencilAttachmentRead = 0x00000200,
 		/* Specifies write access to a depth/stencil attachment. */
 		DepthStencilAttachmentWrite = 0x00000400,
-		/* Specifies read and write access to the depth/stencil attachment. */
+		/* Specifies read and write access to a depth/stencil attachment. */
 		DepthStencilAttachmentReadWrite = DepthStencilAttachmentRead | DepthStencilAttachmentWrite,
 		/* Specifies read access to an image or buffer in a copy operation. */
 		TransferRead = 0x00000800,

@@ -167,6 +167,7 @@ void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass st
 			}
 		}
 	}
+	else Log::Warning("Unable to handle SPIR-V %s '%s'(%u)!", to_string(storage), names[id].c_str(), id);
 }
 
 void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordCnt)
@@ -413,6 +414,7 @@ void Pu::Shader::HandleImage(SPIRVReader & reader)
 		types.emplace(id, FieldType(ComponentType::Image, SizeType::Scalar));
 		break;
 	case (spv::Dim::Dim2D):
+	case (spv::Dim::SubpassData):		// Input attachments are always 2D.
 		types.emplace(id, FieldType(ComponentType::Image, SizeType::Vector2));
 		break;
 	case (spv::Dim::Dim3D):
@@ -420,6 +422,9 @@ void Pu::Shader::HandleImage(SPIRVReader & reader)
 		break;
 	case (spv::Dim::Cube):
 		types.emplace(id, FieldType(ComponentType::Image, SizeType::Cube));
+		break;
+	default:
+		Log::Warning("Unable to handle SPIR-V image (unhandled dimension)!");
 		break;
 	}
 

@@ -1154,7 +1154,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a attachment refrence. */
 		AttachmentReference(void)
-			: AttachmentReference(0, ImageLayout::Undefined)
+			: AttachmentReference(~0U, ImageLayout::Undefined)
 		{}
 
 		/* Initializes a new instance of a attachment reference. */

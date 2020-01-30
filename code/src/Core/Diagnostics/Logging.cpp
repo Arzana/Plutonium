@@ -191,18 +191,8 @@ void Pu::Log::LogMsg(LogType type, bool addNl, const char * format, va_list args
 	const size_t len = strlen(format);
 	if (len > 0 && !suppressLogging)
 	{
-		/* Lock logger. */
 		printLock.lock();
-
-		/* Check if new line needs to be added. */
-		if (shouldAddLinePrefix) LogLinePrefix(type);
-		shouldAddLinePrefix = true;
-
-		/* Log to output and add newline if needed. */
-		vprintf(format, args);
-		if (format[len - 1] != '\n' && addNl) printf("\n");
-
-		/* Unlock logger. */
+		LogMsgInternal(type, addNl, len, format, args);
 		printLock.unlock();
 	}
 }
@@ -220,9 +210,6 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	vector<StackFrame> callStack;
 	StackFrame::GetStackTrace(framesToSkip, callStack);
 	string line;
-
-	/* Lock logger. */
-	printLock.lock();
 
 	/* Make sure the color is correct. */
 	UpdateType(LogType::Error);
@@ -290,9 +277,6 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			}
 		}
 	}
-
-	/* Unlock logger. */
-	printLock.unlock();
 }
 
 void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
@@ -301,27 +285,26 @@ void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 	StackFrame frame;
 	StackFrame::GetCallerInfo(framesToSkip, frame);
 
+	/* 
+	Printing an exception is has 3 phases:
+	The error header, message and footer. 
+	We want no other message to interupt our exception so we handle locking in this function rather than the underlying ones.
+	*/
+	printLock.lock();
+
 	/* log error header. */
 	LogExcHdr(nullptr, frame.FileName, frame.FunctionName, frame.Line);
-
+	
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(msg);
-	if (len > 0 && !suppressLogging)
-	{
-		/* Lock logger. */
-		printLock.lock();
-
-		/* Log to output and add newline if needed. */
-		vprintf(msg, args);
-		if (msg[len - 1] != '\n') printf("\n");
-
-		/* Unlock logger. */
-		printLock.unlock();
-	}
+	if (len > 0 && !suppressLogging) LogMsgInternal(LogType::Error, true, len, msg, args);
 
 	/* Log error footer. */
 	LogExcFtr(framesToSkip + 1);
+
+	/* Make sure that the log cannot be used during a raise event (this is to make sure that the exception is always handled as a exit condition). */
 	Raise(msg, args);
+	printLock.unlock();
 }
 
 Pu::Log::Log(void)
@@ -372,6 +355,9 @@ int32 Pu::Log::CrtErrorHandler(int32 category, char * msg, int32 * retVal)
 
 void Pu::Log::Raise(const char * msg, va_list args)
 {
+	/* Make sure that we leave the console in the default state before raising. */
+	UpdateType(LogType::None);
+
 	switch (mode)
 	{
 	case RaiseMode::Ignore:
@@ -447,40 +433,65 @@ void Pu::Log::LogMsgVa(LogType type, bool addNl, const char * format, ...)
 {
 	va_list args;
 	va_start(args, format);
-	LogMsg(type, addNl, format, args);
+	LogMsgInternal(type, addNl, strlen(format), format, args);
 	va_end(args);
+}
+
+void Pu::Log::LogMsgInternal(LogType type, bool addNl, size_t len, const char * format, va_list args)
+{
+	/* Check if new line needs to be added. */
+	if (shouldAddLinePrefix) LogLinePrefix(type);
+	shouldAddLinePrefix = true;
+
+	/* Log to output and add newline if needed. */
+	vprintf(format, args);
+	if (format[len - 1] != '\n' && addNl) printf("\n");
 }
 
 void Pu::Log::UpdateType(LogType type)
 {
 	lastType = type;
-	WORD typeClr;
+
+#ifdef _WIN32
+	uint16 typeClr;
+#endif
 
 	switch (type)
 	{
 	case (LogType::Debug):
 		typeStr = "Debug";
-		typeClr = 7;
+#ifdef _WIN32
+		typeClr = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+#endif
 		break;
 	case (LogType::Info):
 		typeStr = "Info";
-		typeClr = 7;
+#ifdef _WIN32
+		typeClr = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+#endif
 		break;
 	case (LogType::Warning):
 		typeStr = "Warning";
-		typeClr = 14;
+#ifdef _WIN32
+		typeClr = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN;
+#endif
 		break;
 	case (LogType::Error):
 		typeStr = "Error";
-		typeClr = 4;
+#ifdef _WIN32
+		typeClr = FOREGROUND_RED;
+#endif
 		break;
 	default:
 		typeStr = "NULL";
-		typeClr = 0;
+#ifdef _WIN32
+		/* This case is used just after raising an exception so we return back to the Windows default. */
+		typeClr = FOREGROUND_INTENSITY | FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+#endif
 		break;
 	}
 
-#if defined(_WIN32)
+#ifdef _WIN32
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), typeClr);
 #endif
 }

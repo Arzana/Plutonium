@@ -81,9 +81,9 @@ namespace Pu
 	protected:
 		/* Log a message line to the output. */
 		void LogMsg(_In_ LogType type, _In_ bool addNl, _In_ const char *format, _In_opt_ va_list args);
-		/* Logs a fatal error header to the output with a specified sender. */
+		/* Logs a fatal error header to the output with a specified sender (doesn't lock). */
 		void LogExcHdr(_In_ const char *sender, _In_ const wstring &file, _In_ const wstring &func, _In_ int32 line);
-		/* Logs a fatal error footer to the output. */
+		/* Logs a fatal error footer to the output (doesn't lock). */
 		void LogExcFtr(_In_ uint32 framesToSkip);
 		/* Logs a fatal exception to the output and breaks excecution. */
 		void LogExc(_In_ const char *msg, _In_ uint32 framesToSkip, _In_opt_ va_list args);
@@ -112,6 +112,7 @@ namespace Pu
 		void Raise(const char *msg, va_list args);
 		void CreateCrashReport(void);
 		void LogMsgVa(LogType type, bool addNl, const char *format, ...);
+		void LogMsgInternal(LogType type, bool addNl, size_t len, const char *format, va_list args);
 		void UpdateType(LogType type);
 		void LogLinePrefix(LogType type);
 	};

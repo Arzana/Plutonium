@@ -107,6 +107,8 @@ namespace Pu
 		_Check_return_ static Quaternion Lerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
 		/* Performs spherical linear interpolation between two quaternions. */
 		_Check_return_ static Quaternion SLerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
+		/* Gets the inverse rotation specified by the quaternion. */
+		_Check_return_ Quaternion Inverse(void) const;
 
 	private:
 		friend struct Matrix;

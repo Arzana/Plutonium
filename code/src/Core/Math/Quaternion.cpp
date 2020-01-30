@@ -85,3 +85,9 @@ Pu::Quaternion Pu::Quaternion::SLerp(Quaternion q1, Quaternion q2, float a)
 	/* Return new quaternion. */
 	return q1 * a1 + q2 * a2;
 }
+
+Pu::Quaternion Pu::Quaternion::Inverse(void) const
+{
+	/* Inverse is just the quaterion conjugate divided by its squared magnitude. */
+	return Quaternion(r, -i, -j, -k) * recip(LengthSquared());
+}
