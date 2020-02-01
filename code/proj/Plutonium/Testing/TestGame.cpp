@@ -33,6 +33,8 @@ void TestGame::Initialize(void)
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
+
+	cache = new PipelineCache(GetDevice(), GetScheduler(), L"cache/PipelineCache.bin");
 }
 
 void TestGame::LoadContent(void)
@@ -103,6 +105,8 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	delete cache;
+
 	if (depthBuffer)
 	{
 		delete depthBuffer;
@@ -344,4 +348,6 @@ void TestGame::CreateGraphicsPipeline(void)
 
 	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();
+
+	if (!cache->LoadedFromFile()) cache->Store(L"cache/PipelineCache.bin");
 }

@@ -114,6 +114,10 @@ namespace Pu
 	PFN_vkCmdEndQuery vkCmdEndQuery;
 	PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
 	PFN_vkCmdBlitImage vkCmdBlitImage;
+	PFN_vkCreatePipelineCache vkCreatePipelineCache;
+	PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
+	PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+	PFN_vkMergePipelineCaches vkMergePipelineCaches;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -224,6 +228,10 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCmdEndQuery);
 	LOAD_INSTANCE_PROC(vkGetDeviceMemoryCommitment);
 	LOAD_INSTANCE_PROC(vkCmdBlitImage);
+	LOAD_INSTANCE_PROC(vkCreatePipelineCache);
+	LOAD_INSTANCE_PROC(vkDestroyPipelineCache);
+	LOAD_INSTANCE_PROC(vkGetPipelineCacheData);
+	LOAD_INSTANCE_PROC(vkMergePipelineCaches);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{

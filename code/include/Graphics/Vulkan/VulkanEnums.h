@@ -12,6 +12,7 @@ namespace Pu
 {
 	/* Possible values of the second group of four bytes in the header returnd by getPipelineCacheData. */
 	enum class PipelineCacheHeaderVersion
+		: uint32
 	{
 		/* Version 1. */
 		One = 1

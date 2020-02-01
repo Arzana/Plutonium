@@ -208,6 +208,12 @@
     <Filter Include="Source Files\Graphics\Cameras">
       <UniqueIdentifier>{3e9e33f3-a946-49df-8931-a5093a1417c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Vulkan\Pipelines">
+      <UniqueIdentifier>{83b4bb2b-bafa-4699-b2dd-24a2f7e5fbce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Vulkan\Pipelines">
+      <UniqueIdentifier>{77564d15-2f45-4ea1-be9e-9caa624dca8e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -630,9 +636,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Renderpass.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\GraphicsPipeline.h">
-      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
@@ -749,6 +752,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput2D.h">
       <Filter>Header Files\Graphics\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\GraphicsPipeline.h">
+      <Filter>Header Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\PipelineCache.h">
+      <Filter>Header Files\Graphics\Vulkan\Pipelines</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1013,9 +1022,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp">
       <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\GraphicsPipeline.cpp">
-      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp">
       <Filter>Source Files\Graphics\Models</Filter>
     </ClCompile>
@@ -1084,6 +1090,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Textures\TextureInput.cpp">
       <Filter>Source Files\Graphics\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\GraphicsPipeline.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\PipelineCache.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

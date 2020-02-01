@@ -1,7 +1,7 @@
 #pragma once
 #include "AssetCache.h"
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 #include "Graphics/Text/Font.h"
 
 namespace Pu

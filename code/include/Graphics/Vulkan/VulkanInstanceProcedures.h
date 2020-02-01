@@ -121,6 +121,10 @@ namespace Pu
 	extern PFN_vkCmdEndQuery vkCmdEndQuery;
 	extern PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
 	extern PFN_vkCmdBlitImage vkCmdBlitImage;
+	extern PFN_vkCreatePipelineCache vkCreatePipelineCache;
+	extern PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
+	extern PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+	extern PFN_vkMergePipelineCaches vkMergePipelineCaches;
 
 #ifdef _WIN32
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;

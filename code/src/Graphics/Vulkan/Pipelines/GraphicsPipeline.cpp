@@ -1,4 +1,4 @@
-#include "Graphics/Vulkan/Shaders/GraphicsPipeline.h"
+#include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 
 Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 subpass)
 	: renderpass(&renderpass), hndl(nullptr), subpass(subpass)

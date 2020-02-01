@@ -3240,6 +3240,33 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information needed to create a new pipeline cache. */
+	struct PipelineCacheCreateInfo
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the size (in bytes) of the InitialData memory. */
+		size_t InitialDataSize;
+		/* Specifies a pointer to the previously retrieved pipeline cache data store. */
+		const void *InitialData;
+
+		/* Initializes an empty instance of a pipeline cache create info object. */
+		PipelineCacheCreateInfo(void)
+			: PipelineCacheCreateInfo(0, nullptr)
+		{}
+
+		/* Initializes a new instance of a pipeline cache create info object. */
+		PipelineCacheCreateInfo(_In_ size_t size, _In_ const void *data)
+			: Type(StructureType::PipelineCacheCreateInfo), Next(nullptr), Flags(0),
+			InitialDataSize(size), InitialData(data)
+		{}
+	};
+
 	/* Defines the region of an image blit operation. */
 	struct ImageBlit
 	{

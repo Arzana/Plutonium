@@ -239,6 +239,12 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateQueryPool);
 	LOAD_DEVICE_PROC(vkDestroyQueryPool);
 	LOAD_DEVICE_PROC(vkGetQueryPoolResults);
+
+	/* Pipeline cache related functions. */
+	LOAD_DEVICE_PROC(vkCreatePipelineCache);
+	LOAD_DEVICE_PROC(vkDestroyPipelineCache);
+	LOAD_DEVICE_PROC(vkGetPipelineCacheData);
+	LOAD_DEVICE_PROC(vkMergePipelineCaches);
 }
 
 void Pu::LogicalDevice::Destory(void)

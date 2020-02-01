@@ -81,10 +81,10 @@ namespace Pu
 			return *input;
 		}
 
-		/* Schedules the specified task for execution. */
-		inline void ProcessTask(_In_ Task &task)
+		/* Gets the task scheduler. */
+		_Check_return_ inline TaskScheduler& GetScheduler(void)
 		{
-			scheduler->Spawn(task);
+			return *scheduler;
 		}
 
 	protected:

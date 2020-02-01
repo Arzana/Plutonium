@@ -137,6 +137,7 @@ namespace Pu
 		friend class Image;
 		friend class Application;
 		friend class GameWindow;
+		friend class PipelineCache;
 
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;

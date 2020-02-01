@@ -5,7 +5,6 @@
 #include <Graphics/Vulkan/Instance.h>
 #include <Graphics/Vulkan/Framebuffer.h>
 #include <Graphics/Models/UniformBlock.h>
-#include <Graphics/Vulkan/Shaders/GraphicsPipeline.h>
 #include <Graphics/Vulkan/CommandPool.h>
 
 using namespace Pu;

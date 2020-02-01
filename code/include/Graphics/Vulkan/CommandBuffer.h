@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/Resources/BufferView.h"
-#include "Shaders/GraphicsPipeline.h"
+#include "Pipelines/GraphicsPipeline.h"
 #include "Graphics/Color.h"
 #include "DescriptorSet.h"
 #include "Framebuffer.h"

@@ -112,6 +112,10 @@ namespace Pu
 	using PFN_vkCmdEndQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
 	using PFN_vkGetDeviceMemoryCommitment = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory, _Out_ DeviceSize *size);
 	using PFN_vkCmdBlitImage = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl srcImage, _In_ ImageLayout srcImageLayout, _In_ ImageHndl dstImage, _In_ ImageLayout dstImageLayout, _In_ uint32 regionCount, _In_ const ImageBlit *regions, _In_ Filter filter);;
+	using PFN_vkCreatePipelineCache = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineCacheCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineCacheHndl *pipelineCache);
+	using PFN_vkDestroyPipelineCache = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl pipelineCache, _In_opt_ const AllocationCallbacks *allocator);
+	using PFN_vkGetPipelineCacheData = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl pipelineCache, _Out_ size_t *dataSize, _Out_ void *data);
+	using PFN_vkMergePipelineCaches = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl dstCache, _In_ uint32 srcCacheCount, _In_ const PipelineCacheHndl *srcCaches);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

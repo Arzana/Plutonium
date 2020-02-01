@@ -97,6 +97,7 @@ namespace Pu
 		friend class DescriptorSet;
 		friend class Sampler;
 		friend class QueryPool;
+		friend class PipelineCache;
 		friend class RenderDoc;
 
 		PhysicalDevice *parent;
@@ -188,6 +189,10 @@ namespace Pu
 		PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
 		PFN_vkQueueWaitIdle vkQueueWaitIdle;
 		PFN_vkGetDeviceMemoryCommitment vkGetDeviceMemoryCommitment;
+		PFN_vkCreatePipelineCache vkCreatePipelineCache;
+		PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
+		PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+		PFN_vkMergePipelineCaches vkMergePipelineCaches;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo);
 
