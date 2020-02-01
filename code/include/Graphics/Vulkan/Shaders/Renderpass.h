@@ -1,7 +1,7 @@
 #pragma once
-#include "Subpass.h"
 #include "Content/Asset.h"
 #include "Core/Events/EventBus.h"
+#include "Graphics/Vulkan/Pipelines/PipelineLayout.h"
 
 namespace Pu
 {
@@ -88,17 +88,15 @@ namespace Pu
 
 		LogicalDevice *device;
 		RenderPassHndl hndl;
-		PipelineLayoutHndl layoutHndl;
 		SubpassDependency outputDependency;
 		bool ownsShaders, usesDependency;
 
-		vector<DescriptorSetLayoutHndl> descriptorSetLayouts;
+		PipelineLayout *layout;
 		vector<Subpass> subpasses;
 		vector<ClearValue> clearValues;
 
 		void Create(bool viaLoader);
 		void CreateRenderpass(void);
-		void CreateDescriptorSetLayouts(void);
 		void Destroy(void);
 	};
 }

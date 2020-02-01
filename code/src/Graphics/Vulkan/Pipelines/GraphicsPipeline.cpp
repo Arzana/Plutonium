@@ -109,7 +109,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	dynamicState.DynamicStates = dynamicStates.data();
 
 	/* Create the graphics pipeline. */
-	GraphicsPipelineCreateInfo createInfo(shaderStages, renderpass->layoutHndl, renderpass->hndl, subpass);
+	GraphicsPipelineCreateInfo createInfo(shaderStages, renderpass->layout->hndl, renderpass->hndl, subpass);
 	createInfo.VertexInputState = &vertexInputState;
 	createInfo.InputAssemblyState = &inputAssemblyState;
 	createInfo.TessellationState = &tessellationState;

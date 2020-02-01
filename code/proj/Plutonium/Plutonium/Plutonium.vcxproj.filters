@@ -759,6 +759,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\PipelineCache.h">
       <Filter>Header Files\Graphics\Vulkan\Pipelines</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\PipelineLayout.h">
+      <Filter>Header Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1095,6 +1098,9 @@
       <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\PipelineCache.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\PipelineLayout.cpp">
       <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
     </ClCompile>
   </ItemGroup>

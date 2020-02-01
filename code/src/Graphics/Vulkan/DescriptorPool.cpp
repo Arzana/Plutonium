@@ -3,8 +3,8 @@
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass & subpass, uint32 set, size_t maxSets)
 	: subpass(&subpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(renderpass.device), pipelineLayout(renderpass.layoutHndl),
-	descriptorLayout(renderpass.descriptorSetLayouts[set]), renderpass(&renderpass)
+	device(renderpass.device), pipelineLayout(renderpass.layout->hndl),
+	descriptorLayout(renderpass.layout->setHndls[set]), renderpass(&renderpass)
 {
 	vector<DescriptorPoolSize> sizes;
 	for (const Descriptor &descriptor : subpass.descriptors)
@@ -26,8 +26,8 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass 
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 set, size_t maxSets)
 	: renderpass(&renderpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(renderpass.device), pipelineLayout(renderpass.layoutHndl),
-	descriptorLayout(renderpass.descriptorSetLayouts[set]), subpass(nullptr)
+	device(renderpass.device), pipelineLayout(renderpass.layout->hndl),
+	descriptorLayout(renderpass.layout->setHndls[set]), subpass(nullptr)
 {
 	vector<DescriptorPoolSize> sizes;
 

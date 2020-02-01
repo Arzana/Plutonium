@@ -3,7 +3,7 @@
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false), usesDependency(false),
-	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate")
+	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate"), layout(nullptr)
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, std::initializer_list<std::initializer_list<wstring>> shaderModules)
@@ -42,11 +42,11 @@ Pu::Renderpass::Renderpass(Renderpass && value)
 	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
 	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)), 
 	clearValues(std::move(value.clearValues)), usesDependency(value.usesDependency),
-	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), layoutHndl(value.layoutHndl), 
-	descriptorSetLayouts(std::move(value.descriptorSetLayouts))
+	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), 
+	layout(value.layout)
 {
 	value.hndl = nullptr;
-	value.layoutHndl = nullptr;
+	value.layout = nullptr;
 }
 
 Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
@@ -58,7 +58,7 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		Asset::operator=(std::move(other));
 		device = other.device;
 		hndl = other.hndl;
-		layoutHndl = other.layoutHndl;
+		layout = other.layout;
 		ownsShaders = other.ownsShaders;
 		usesDependency = other.usesDependency;
 		outputDependency = other.outputDependency;
@@ -66,10 +66,9 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		clearValues = std::move(other.clearValues);
 		PreCreate = std::move(other.PreCreate);
 		PostCreate = std::move(other.PostCreate);
-		descriptorSetLayouts = std::move(other.descriptorSetLayouts);
 
 		other.hndl = nullptr;
-		other.layoutHndl = nullptr;
+		other.layout = nullptr;
 	}
 
 	return *this;
@@ -150,7 +149,7 @@ void Pu::Renderpass::Create(bool viaLoader)
 	PreCreate.Post(*this);
 
 	CreateRenderpass();
-	CreateDescriptorSetLayouts();
+	layout = new PipelineLayout(*device, subpasses.front());
 
 	PostCreate.Post(*this);
 	MarkAsLoaded(viaLoader, L"Renderpass");
@@ -253,63 +252,10 @@ void Pu::Renderpass::CreateRenderpass(void)
 	VK_VALIDATE(device->vkCreateRenderPass(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
 }
 
-void Pu::Renderpass::CreateDescriptorSetLayouts(void)
-{
-	/*
-	We want to precreate a list of all descriptor sets with their specific bindings.
-	For each of these sets we need to create a layout handle.
-	*/
-	std::map<uint32, vector<DescriptorSetLayoutBinding>> layoutBindings;
-	vector<PushConstantRange> constRanges;
-
-	for (const Subpass &subpass : subpasses)
-	{
-		/* Get all the descriptor sets from the subpass. */
-		for (const Descriptor &descriptor : subpass.descriptors)
-		{
-			/* Check if the set is already in the list. */
-			decltype(layoutBindings)::iterator it = layoutBindings.find(descriptor.set);
-			if (it != layoutBindings.end())
-			{
-				/* Descriptors might have the same binding (multiple in a uniform buffer) we should theat this as one descriptor. */
-				vector<DescriptorSetLayoutBinding>::iterator it2 = it->second.iteratorOf([&descriptor](const DescriptorSetLayoutBinding &cur) { return cur.Binding == descriptor.GetBinding(); });
-				if (it2 == it->second.end()) it->second.emplace_back(descriptor.layoutBinding);
-			}
-			else
-			{
-				/* Just add the descriptor to the list with its parent set. */
-				vector<DescriptorSetLayoutBinding> value = { descriptor.layoutBinding };
-				layoutBindings.emplace(descriptor.set, std::move(value));
-			}
-		}
-
-		/* Just add the push constant ranges to the list. */
-		for (const PushConstant &pushConstant : subpass.pushConstants)
-		{
-			vector<PushConstantRange>::iterator it = constRanges.iteratorOf([&pushConstant](const PushConstantRange &cur) { return cur.StageFlags == pushConstant.range.StageFlags; });
-			if (it != constRanges.end()) it->Size += static_cast<uint32>(pushConstant.GetSize());
-			else constRanges.emplace_back(pushConstant.range);
-		}
-	}
-
-	/* Create the descriptor sets. */
-	descriptorSetLayouts.resize(layoutBindings.size());
-	size_t i = 0;
-	for (const auto &[set, bindings] : layoutBindings)
-	{
-		const DescriptorSetLayoutCreateInfo createInfo(bindings);
-		VK_VALIDATE(device->vkCreateDescriptorSetLayout(device->hndl, &createInfo, nullptr, &descriptorSetLayouts[i++]), PFN_vkCreateDescriptorSetLayout);
-	}
-
-	/* Create the pipeline layout. */
-	const PipelineLayoutCreateInfo layoutCreateInfo(descriptorSetLayouts, constRanges);
-	VK_VALIDATE(device->vkCreatePipelineLayout(device->hndl, &layoutCreateInfo, nullptr, &layoutHndl), PFN_vkCreatePipelineLayout);
-}
-
 void Pu::Renderpass::Destroy(void)
 {
 	if (hndl) device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
-	if (layoutHndl) device->vkDestroyPipelineLayout(device->hndl, layoutHndl, nullptr);
+	if (layout) delete layout;
 
 	/* This means we loaded the shaders inline, which means we need to free them. */
 	if (ownsShaders)
@@ -319,9 +265,6 @@ void Pu::Renderpass::Destroy(void)
 			for (const Shader *shader : subpass.GetShaders()) delete shader;
 		}
 	}
-
-	/* Release the descriptor set layouts. */
-	for (DescriptorSetLayoutHndl cur : descriptorSetLayouts) device->vkDestroyDescriptorSetLayout(device->hndl, cur, nullptr);
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, size_t, wstring>>& toLoad)

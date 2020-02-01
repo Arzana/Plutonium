@@ -141,9 +141,16 @@ const PushConstant & Pu::Subpass::GetPushConstant(const string & name) const
 void Pu::Subpass::Link(const PhysicalDevice & physicalDevice)
 {
 #ifdef _DEBUG
-	/* Check if no shader modules where added with the same type. */
 	for (size_t i = 0; i < shaders.size(); i++)
 	{
+		/* Make sure compute shaders aren't thrown in the mix. */
+		if (shaders.size() > 1 && shaders[i]->GetType() == ShaderStageFlag::Compute)
+		{
+			Log::Error("Compute shaders can only apear as seperate entities in a subpass!");
+			return;
+		}
+
+		/* Check if no shader modules where added with the same type. */
 		for (size_t j = 0; j < shaders.size(); j++)
 		{
 			if (i != j && shaders[i]->GetType() == shaders[j]->GetType())
@@ -199,7 +206,7 @@ void Pu::Subpass::LoadFields(const PhysicalDevice & physicalDevice)
 		if (info.Storage == spv::StorageClass::Input) attributes.emplace_back(Attribute(info));
 	}
 
-	/* 
+	/*
 	Load all the outputs, these have to be color attachments because we cannot check for depth/stencil via reflection,
 	preserve makes no sense to save here, input also cannot be checked for and resolve is not curentlt handled.
 	Outputs can only be defined in the last shader module of the subpass.

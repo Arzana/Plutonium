@@ -98,6 +98,7 @@ namespace Pu
 		friend class Sampler;
 		friend class QueryPool;
 		friend class PipelineCache;
+		friend class PipelineLayout;
 		friend class RenderDoc;
 
 		PhysicalDevice *parent;

@@ -33,7 +33,7 @@ namespace Pu
 
 	private:
 		friend class Subpass;
-		friend class Renderpass;
+		friend class PipelineLayout;
 
 		PushConstantRange range;
 		size_t maxRange;

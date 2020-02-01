@@ -62,6 +62,7 @@ namespace Pu
 
 	private:
 		friend class Renderpass;
+		friend class PipelineLayout;
 		friend class GraphicsPipeline;
 		friend class DescriptorPool;
 		friend class UniformBlock;

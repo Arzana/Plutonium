@@ -268,7 +268,7 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 void Pu::CommandBuffer::PushConstants(const Renderpass & renderpass, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
 {
 	DbgCheckIfRecording("push constants");
-	device->vkCmdPushConstants(hndl, renderpass.layoutHndl, stage, offset, static_cast<uint32>(size), constants);
+	device->vkCmdPushConstants(hndl, renderpass.layout->hndl, stage, offset, static_cast<uint32>(size), constants);
 }
 
 void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
