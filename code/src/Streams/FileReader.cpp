@@ -9,17 +9,17 @@
 
 using namespace Pu;
 
-Pu::FileReader::FileReader(const wstring &path)
+Pu::FileReader::FileReader(const wstring &path, bool log)
 	: fpath(path), open(false), hndlr(nullptr)
 {
-	Open();
+	Open(log);
 }
 
 Pu::FileReader::FileReader(const FileReader & value)
 	: fpath(value.fpath), open(false), hndlr(nullptr)
 {
 	/* Open a new file handle if needed. */
-	if (value.open) Open();
+	if (value.open) Open(false);
 }
 
 Pu::FileReader::FileReader(FileReader && value)
@@ -48,7 +48,7 @@ FileReader & Pu::FileReader::operator=(const FileReader & other)
 		fpath = other.fpath;
 
 		/* Open file is needed. */
-		if (other.open) Open();
+		if (other.open) Open(false);
 	}
 
 	return *this;
@@ -226,7 +226,7 @@ void Pu::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
 	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%ls' (%ls)!", amount, fpath.fileName().c_str(), FileError().c_str());
 }
 
-void Pu::FileReader::Open(void)
+void Pu::FileReader::Open(bool log)
 {
 	const wstring fname = fpath.fileName();
 
@@ -238,7 +238,7 @@ void Pu::FileReader::Open(void)
 			open = true;
 			Log::Verbose("Successfully opened file '%ls'.", fname.c_str());
 		}
-		else Log::Error("Failed to open '%ls' (%ls)!", fpath.c_str(), _CrtGetErrorString().c_str());
+		else if (log) Log::Error("Failed to open '%ls' (%ls)!", fpath.c_str(), _CrtGetErrorString().c_str());
 	}
 	else Log::Warning("Cannot open already opened file '%ls'!", fname.c_str());
 }

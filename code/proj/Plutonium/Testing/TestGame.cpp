@@ -251,7 +251,11 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 {
 	if (sender.Type == InputDeviceType::Keyboard)
 	{
-		if (args.Key == Keys::Escape) Exit();
+		if (args.Key == Keys::Escape)
+		{
+			cache->Store();
+			Exit();
+		}
 		else if (args.Key == Keys::C)
 		{
 			if (updateCam)
@@ -348,6 +352,4 @@ void TestGame::CreateGraphicsPipeline(void)
 
 	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();
-
-	if (!cache->LoadedFromFile()) cache->Store(L"cache/PipelineCache.bin");
 }

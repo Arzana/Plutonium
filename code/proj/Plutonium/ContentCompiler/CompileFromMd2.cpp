@@ -341,10 +341,9 @@ void readMd2Frames(FileReader &reader, const md2_header_t &header, Md2LoaderResu
 
 int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
 {
-	FileReader reader(args.Input.toWide());
-
 	/* Check if file is available. */
-	if (!reader.IsOpen()) Log::Fatal("Unable to open MD2 file!");
+	FileReader reader{ args.Input.toWide() };
+	if (!reader.IsOpen()) return EXIT_FAILURE;
 
 	/* Read and parse the file data. */
 	const md2_header_t header = readMd2Header(reader);

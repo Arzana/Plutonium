@@ -8,8 +8,6 @@ namespace Pu
 	class PipelineCache
 	{
 	public:
-		/* Initializes an empty instance of a pipeline cache object. */
-		PipelineCache(_In_ LogicalDevice &device, _In_ TaskScheduler &scheduler);
 		/* Initializes a new instance of a pipeline cache object from a disk cache file. */
 		PipelineCache(_In_ LogicalDevice &device, _In_ TaskScheduler &scheduler, _In_ const wstring &path);
 		PipelineCache(_In_ const PipelineCache&) = delete;
@@ -26,21 +24,15 @@ namespace Pu
 		_Check_return_ PipelineCache& operator =(_In_ PipelineCache &&other);
 
 		/* Stores the pipeline cache to disk. */
-		void Store(_In_ const wstring &path) const;
+		void Store(void) const;
 		/* Merges the other pipeline cache into this pipeline cache. */
 		void Merge(_In_ const PipelineCache &other);
-
-		/* Gets whether this pipeline cache was loaded from disk. */
-		_Check_return_ inline bool LoadedFromFile(void) const
-		{
-			return fromFile;
-		}
 
 	private:
 		PipelineCacheHndl hndl;
 		LogicalDevice *device;
 		TaskScheduler *scheduler;
-		bool fromFile;
+		wstring path;
 
 		void Destroy(void);
 	};

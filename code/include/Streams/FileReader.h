@@ -11,8 +11,8 @@ namespace Pu
 		: public StreamReader
 	{
 	public:
-		/* Initializes a new file reader from a specified path. */
-		FileReader(_In_ const wstring &path);
+		/* Initializes a new file reader from a specified path (optionally specify whether to log an error if opening the file failed). */
+		FileReader(_In_ const wstring &path, _In_opt_ bool log = true);
 		/* Copy constructor. */
 		FileReader(_In_ const FileReader &value);
 		/* Move constructor. */
@@ -101,7 +101,7 @@ namespace Pu
 		_iobuf *hndlr;
 
 		void SeekInternal(SeekOrigin from, int64 amount) const;
-		void Open(void);
+		void Open(bool log);
 		wstring FileError(void) const;
 		void FileNotOpen(void);
 	};
