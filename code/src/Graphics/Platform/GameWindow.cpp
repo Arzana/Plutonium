@@ -76,16 +76,10 @@ Pu::GameWindow::~GameWindow(void)
 	delete swapchain;
 }
 
-void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vector<const ImageView*> & views)
+void Pu::GameWindow::CreateFramebuffers(const Renderpass & renderpass, const vector<const ImageView*> & views)
 {
 	/* Make sure we don't create too many. */
-	decltype(frameBuffers)::iterator it = frameBuffers.find(renderPass.hndl);
-	if (it != frameBuffers.end())
-	{
-		Log::Warning("Recreating framebuffers for renderpass!");
-		for (const Framebuffer *cur : it->second) delete cur;
-		frameBuffers.erase(it);
-	}
+	DestroyFramebuffers(renderpass);
 
 	/* Get dimensions of the window and create buffer for storage. */
 	const Extent2D dimensions = native.GetClientBounds().GetSize();
@@ -99,17 +93,28 @@ void Pu::GameWindow::CreateFrameBuffers(const Renderpass & renderPass, const vec
 
 		/* The additional views need to be added afterwards to comply with the attachment index order. */
 		for (const ImageView *view : views) attachments.emplace_back(view);
-		tmpFramebuffers.emplace_back(new Framebuffer(renderPass, dimensions, attachments));
+		tmpFramebuffers.emplace_back(new Framebuffer(renderpass, dimensions, attachments));
 	}
 
 	/* Add all framebuffers of the render pass to the buffer. */
-	frameBuffers.emplace(renderPass.hndl, tmpFramebuffers);
+	framebuffers.emplace(renderpass.hndl, tmpFramebuffers);
+}
+
+void Pu::GameWindow::DestroyFramebuffers(const Renderpass & renderpass)
+{
+	/* Make sure we actually have framebuffers to delete. */
+	decltype(framebuffers)::const_iterator it = framebuffers.find(renderpass.hndl);
+	if (it != framebuffers.end())
+	{
+		for (const Framebuffer *cur : it->second) delete cur;
+		framebuffers.erase(it);
+	}
 }
 
 const Framebuffer & Pu::GameWindow::GetCurrentFramebuffer(const Renderpass & renderPass) const
 {
-	std::map<RenderPassHndl, vector<Framebuffer*>>::const_iterator it = frameBuffers.find(renderPass.hndl);
-	if (it == frameBuffers.end()) Log::Fatal("Attempting to retrieve framebuffer for unknown render pass!");
+	std::map<RenderPassHndl, vector<Framebuffer*>>::const_iterator it = framebuffers.find(renderPass.hndl);
+	if (it == framebuffers.end()) Log::Fatal("Attempting to retrieve framebuffer for unknown render pass!");
 
 	return *it->second[curImgIdx];
 }
@@ -279,7 +284,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 			imGuiFrameBuffers.emplace_back(new Framebuffer(device, imGuiRenderPass, dimensions, cur.hndl));
 		}
 
-		frameBuffers.emplace(imGuiRenderPass, imGuiFrameBuffers);
+		framebuffers.emplace(imGuiRenderPass, imGuiFrameBuffers);
 
 		if (!firstCall)
 		{
@@ -348,7 +353,7 @@ void Pu::GameWindow::EndRender(void)
 	if constexpr (ImGuiAvailable)
 	{
 		static vector<ClearValue> clearValues = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-		const Framebuffer &imGuiFramebuffer = *frameBuffers[imGuiRenderPass][curImgIdx];
+		const Framebuffer &imGuiFramebuffer = *framebuffers[imGuiRenderPass][curImgIdx];
 
 		ImGui::Render();
 		cmdBuf.AddLabel("ImGui", Color::CodGray());
@@ -376,12 +381,12 @@ void Pu::GameWindow::DestroyImGui(void)
 {
 	ImGui_ImplVulkan_Shutdown();
 
-	for (const auto &[key, framebuffers] : frameBuffers)
+	for (const auto &[key, frames] : framebuffers)
 	{
 		if (key == imGuiRenderPass)
 		{
-			for (const Framebuffer *cur : framebuffers) delete cur;
-			frameBuffers.erase(key);
+			for (const Framebuffer *cur : frames) delete cur;
+			framebuffers.erase(key);
 			break;
 		}
 	}
@@ -393,12 +398,12 @@ void Pu::GameWindow::DestroyImGui(void)
 void Pu::GameWindow::DestroyFramebuffers(void)
 {
 	/* One is with a capital and one is without, not the best naming... */
-	for (const auto &[key, framebuffers] : frameBuffers)
+	for (const auto &[key, frames] : framebuffers)
 	{
-		for (const Framebuffer *cur : framebuffers) delete cur;
+		for (const Framebuffer *cur : frames) delete cur;
 	}
 
-	frameBuffers.clear();
+	framebuffers.clear();
 }
 
 void Pu::GameWindow::Finalize(void)

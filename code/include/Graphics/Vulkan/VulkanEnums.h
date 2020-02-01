@@ -2448,4 +2448,36 @@ namespace Pu
 			return "Unknown";
 		}
 	}
+
+	/* Gets the human readable version of a descriptor type. */
+	_Check_return_ inline const char* to_string(_In_ DescriptorType type)
+	{
+		switch (type)
+		{
+		case DescriptorType::Sampler:
+			return "Sampler";
+		case DescriptorType::CombinedImageSampler:
+			return "Combined Image Sampler";
+		case DescriptorType::SampledImage:
+			return "Sampled Image";
+		case DescriptorType::StorageImage:
+			return "Storage Image";
+		case DescriptorType::UniformTexelBuffer:
+			return "Uniform Texel Buffer";
+		case DescriptorType::StorageTexelBuffer:
+			return "Storage Texel Buffer";
+		case DescriptorType::UniformBuffer:
+			return "Uniform Buffer";
+		case DescriptorType::StorageBuffer:
+			return "Storage Buffer";
+		case DescriptorType::UniformBufferDynamic:
+			return "Dynamic Uniform Buffer";
+		case DescriptorType::StorageBufferDynamic:
+			return "Dynamic Storage Buffer";
+		case DescriptorType::InputAttachment:
+			return "Input Attachment";
+		default:
+			return "Unknown";
+		}
+	}
 }

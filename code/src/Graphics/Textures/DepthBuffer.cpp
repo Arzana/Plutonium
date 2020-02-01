@@ -50,7 +50,7 @@ Pu::ImageCreateInfo Pu::DepthBuffer::CreateImageInfo(Format depthFormat, Extent2
 		1,
 		layers,
 		SampleCountFlag::Pixel1Bit,
-		ImageUsageFlag::DepthStencilAttachment | ImageUsageFlag::TransientAttachment
+		ImageUsageFlag::DepthStencilAttachment | ImageUsageFlag::TransientAttachment | ImageUsageFlag::InputAttachment
 	};
 }
 #pragma warning(pop)

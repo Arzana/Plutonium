@@ -21,11 +21,13 @@ Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo
 	{
 		/* The descriptor is an input attachment. */
 		layoutBinding.DescriptorType = DescriptorType::InputAttachment;
+		size = 0;
 	}
 	else if (data.Type.ComponentType == ComponentType::Image)
 	{
 		/* GLSL restrics us to only use combined descriptors. */
 		layoutBinding.DescriptorType = DescriptorType::CombinedImageSampler;
+		size = 0;
 	}
 	else
 	{

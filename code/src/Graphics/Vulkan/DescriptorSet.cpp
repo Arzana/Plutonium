@@ -46,6 +46,7 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const ImageView & v
 	*/
 	DescriptorImageInfo info{ nullptr, view.hndl };
 	WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
+	write.DescriptorType = DescriptorType::InputAttachment;
 	WriteDescriptor({ write });
 }
 
