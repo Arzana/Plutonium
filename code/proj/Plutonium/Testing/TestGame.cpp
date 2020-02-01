@@ -342,6 +342,6 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
 	gfxPipeline->AddVertexBinding<Basic3D>(0);
 
-	GetWindow().CreateFrameBuffers(*renderPass, { &depthBuffer->GetView() });
+	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();
 }

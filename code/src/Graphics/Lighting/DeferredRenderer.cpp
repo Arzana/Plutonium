@@ -301,7 +301,7 @@ void Pu::DeferredRenderer::CreateFramebuffer(void)
 	for (const TextureInput2D *cur : textures) attachments.emplace_back(&cur->GetView());
 	attachments.emplace_back(&depthBuffer->GetView());
 
-	wnd->CreateFrameBuffers(*renderpass, attachments);
+	wnd->CreateFramebuffers(*renderpass, attachments);
 }
 
 void Pu::DeferredRenderer::DestroyWindowDependentResources(void)

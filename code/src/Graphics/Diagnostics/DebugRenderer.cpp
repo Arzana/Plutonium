@@ -313,8 +313,8 @@ void Pu::DebugRenderer::CreateFrameBuffers(void)
 	Create the first framebuffers and finalize the pipeline.
 	Only add the depth buffer to the frame buffers if needed.
 	*/
-	if (depthBuffer) wnd.CreateFrameBuffers(*renderpass, { &depthBuffer->GetView() });
-	else wnd.CreateFrameBuffers(*renderpass);
+	if (depthBuffer) wnd.CreateFramebuffers(*renderpass, { &depthBuffer->GetView() });
+	else wnd.CreateFramebuffers(*renderpass);
 }
 
 void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)

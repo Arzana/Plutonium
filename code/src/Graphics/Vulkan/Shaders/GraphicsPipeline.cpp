@@ -96,10 +96,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 
 	/* Add the shader stages to the final create information. */
 	vector<PipelineShaderStageCreateInfo> shaderStages;
-	for (const Subpass &cur : renderpass->subpasses)
-	{
-		for (const Shader *shader : cur.shaders) shaderStages.emplace_back(shader->info);
-	}
+	for (const Shader *shader : renderpass->subpasses[subpass].shaders) shaderStages.emplace_back(shader->info);
 
 	/* Finalize the vertex input state. */
 	vertexInputState.VertexAttributeDescriptionCount = static_cast<uint32>(attributeDescriptions.size());
