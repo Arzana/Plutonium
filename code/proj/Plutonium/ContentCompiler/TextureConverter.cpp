@@ -345,7 +345,7 @@ bool InitializeVulkan(size_t maxSets)
 	pipeline->Finalize();
 
 	/* Allocate a descriptor pool for all the material attributes. */
-	descPool = new DescriptorPool(*renderpass, renderpass->GetSubpass(0), 0, maxSets);
+	descPool = new DescriptorPool(*pipeline, renderpass->GetSubpass(0), 0, maxSets);
 	return true;
 }
 
@@ -636,7 +636,7 @@ void ConvertTextures(PumIntermediate & data, const wstring &wdir, const ustring 
 
 		cmdBuffer.BeginRenderPass(*renderpass, *framebuffers[i], SubpassContents::Inline);
 		cmdBuffer.BindGraphicsPipeline(*pipeline);
-		cmdBuffer.BindGraphicsDescriptor(*uniformBlocks[i]);
+		cmdBuffer.BindGraphicsDescriptor(*pipeline, *uniformBlocks[i]);
 		cmdBuffer.SetViewportAndScissor(framebuffers[i]->GetArea());
 		cmdBuffer.Draw(3, 1, 0, 0);
 		cmdBuffer.EndRenderPass();

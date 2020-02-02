@@ -55,14 +55,14 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 
 	cmdBuffer.BeginRenderPass(*renderpass, *probe.framebuffer, SubpassContents::Inline);
 	cmdBuffer.BindGraphicsPipeline(*gfx);
-	cmdBuffer.BindGraphicsDescriptor(*probe.block);
+	cmdBuffer.BindGraphicsDescriptor(*gfx, *probe.block);
 	cmdBuffer.SetViewportAndScissor(probe.GetViewport());
 }
 
 void Pu::LightProbeRenderer::Render(const Mesh & mesh, const DescriptorSet & material, const Matrix &model, CommandBuffer & cmdBuffer)
 {
-	cmdBuffer.PushConstants(*renderpass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &model);
-	cmdBuffer.BindGraphicsDescriptor(material);
+	cmdBuffer.PushConstants(*gfx, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &model);
+	cmdBuffer.BindGraphicsDescriptor(*gfx, material);
 	mesh.Bind(cmdBuffer, 0);
 	mesh.Draw(cmdBuffer);
 }
@@ -87,7 +87,7 @@ Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxMate
 	}
 
 	/* Set 1 is the material set. */
-	return new DescriptorPool(*renderpass, renderpass->GetSubpass(0), 1, maxMaterials);
+	return new DescriptorPool(*gfx, renderpass->GetSubpass(0), 1, maxMaterials);
 }
 
 void Pu::LightProbeRenderer::InitializeRenderpass(Renderpass &)
@@ -120,7 +120,7 @@ void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
 	gfx->Finalize();
 
 	/* This descriptor pool is for the view transformations. */
-	pool = new DescriptorPool(*renderpass, renderpass->GetSubpass(0), 0, maxSets);
+	pool = new DescriptorPool(*gfx, renderpass->GetSubpass(0), 0, maxSets);
 }
 
 void Pu::LightProbeRenderer::Destroy(void)

@@ -35,24 +35,6 @@ namespace Pu
 			return renderpass->IsLoaded();
 		}
 
-		/* Creates a new descriptor pool that can allocate camera descriptor sets (the caller owns the pool!). */
-		_Check_return_ inline DescriptorPool* CreateCameraPool(_In_ size_t maxSets) const
-		{
-			return new DescriptorPool(*renderpass, 0, maxSets);
-		}
-
-		/* Creates a new descriptor pool that can allocate material descriptor sets (the caller owns the pool!). */
-		_Check_return_ inline DescriptorPool* CreateMaterialPool(_In_ size_t maxSets) const
-		{
-			return new DescriptorPool(*renderpass, 1, maxSets);
-		}
-
-		/* Creates a new descriptor pool that can allocate directional light descriptor sets (the caller owns the pool!). */
-		_Check_return_ inline DescriptorPool* CreateDirLightPool(_In_ size_t maxSets) const
-		{
-			return new DescriptorPool(*renderpass, 3, maxSets);
-		}
-
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the deferred rendering pipeline. */

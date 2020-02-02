@@ -91,7 +91,7 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 	curCmd->AddLabel("Deferred Renderer (Geometry)", Color::Blue());
 	curCmd->BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPass);
-	curCmd->BindGraphicsDescriptor(camera);
+	curCmd->BindGraphicsDescriptor(*gfxGPass, camera);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -123,19 +123,19 @@ void Pu::DeferredRenderer::End(void)
 
 void Pu::DeferredRenderer::SetModel(const Matrix & value)
 {
-	curCmd->PushConstants(*renderpass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
+	curCmd->PushConstants(*gfxGPass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
 }
 
 void Pu::DeferredRenderer::Render(const Mesh & mesh, const Material & material)
 {
-	curCmd->BindGraphicsDescriptor(material);
+	curCmd->BindGraphicsDescriptor(*gfxGPass, material);
 	mesh.Bind(*curCmd, 0);
 	mesh.Draw(*curCmd);
 }
 
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 {
-	curCmd->BindGraphicsDescriptor(light);
+	curCmd->BindGraphicsDescriptor(*gfxFullScreen, light);
 	curCmd->Draw(3, 1, 0, 0);
 }
 
@@ -144,7 +144,7 @@ void Pu::DeferredRenderer::DoTonemap(void)
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxFullScreen);
-	curCmd->PushConstants(*renderpass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
+	curCmd->PushConstants(*gfxFullScreen, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
 }

@@ -250,7 +250,7 @@ void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Fra
 void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 {
 	DbgCheckIfRecording("bind graphics pipeline");
-	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.hndl);
+	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.Hndl);
 }
 
 void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const BufferView & view)
@@ -265,16 +265,16 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 	device->vkCmdBindIndexBuffer(hndl, view.buffer->bufferHndl, static_cast<DeviceSize>(view.offset), type);
 }
 
-void Pu::CommandBuffer::PushConstants(const Renderpass & renderpass, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
+void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
 {
 	DbgCheckIfRecording("push constants");
-	device->vkCmdPushConstants(hndl, renderpass.layout->hndl, stage, offset, static_cast<uint32>(size), constants);
+	device->vkCmdPushConstants(hndl, pipeline.layout.hndl, stage, offset, static_cast<uint32>(size), constants);
 }
 
-void Pu::CommandBuffer::BindGraphicsDescriptor(const DescriptorSet & descriptor)
+void Pu::CommandBuffer::BindGraphicsDescriptor(const Pipeline & pipeline, const DescriptorSet & descriptor)
 {
 	DbgCheckIfRecording("bind descriptor to graphics bind point");
-	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, descriptor.parent->pipelineLayout, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
+	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.layout.hndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)

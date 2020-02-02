@@ -99,6 +99,7 @@ namespace Pu
 		friend class QueryPool;
 		friend class PipelineCache;
 		friend class PipelineLayout;
+		friend class Pipeline;
 		friend class RenderDoc;
 
 		PhysicalDevice *parent;

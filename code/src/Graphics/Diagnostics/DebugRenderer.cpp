@@ -202,7 +202,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 
 			/* Update the descriptors. */
 			const Matrix constants[2] = { projection, view };
-			cmdBuffer.PushConstants(*renderpass, ShaderStageFlag::Vertex, 0, sizeof(Matrix) << 1, constants);
+			cmdBuffer.PushConstants(*pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix) << 1, constants);
 
 			/* Render the debug lines. */
 			cmdBuffer.BindVertexBuffer(0, *bufferView);

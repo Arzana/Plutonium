@@ -1,7 +1,7 @@
 #pragma once
 #include "Content/Asset.h"
 #include "Core/Events/EventBus.h"
-#include "Graphics/Vulkan/Pipelines/PipelineLayout.h"
+#include "Subpass.h"
 
 namespace Pu
 {
@@ -91,7 +91,6 @@ namespace Pu
 		SubpassDependency outputDependency;
 		bool ownsShaders, usesDependency;
 
-		PipelineLayout *layout;
 		vector<Subpass> subpasses;
 		vector<ClearValue> clearValues;
 

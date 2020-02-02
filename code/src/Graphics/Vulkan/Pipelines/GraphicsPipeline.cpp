@@ -1,7 +1,7 @@
 #include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 
 Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 subpass)
-	: renderpass(&renderpass), hndl(nullptr), subpass(subpass)
+	: Pipeline(*renderpass.device, renderpass.GetSubpass(subpass)), renderpass(&renderpass)
 {
 	/* Initialize the viewport state. */
 	viewportState.ViewportCount = 1;
@@ -21,7 +21,7 @@ Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 sub
 }
 
 Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
-	: renderpass(value.renderpass), hndl(value.hndl), subpass(value.subpass),
+	: Pipeline(std::move(value)), renderpass(value.renderpass),
 	vertexInputState(std::move(value.vertexInputState)), inputAssemblyState(std::move(value.inputAssemblyState)),
 	tessellationState(std::move(value.tessellationState)), viewportState(std::move(value.viewportState)),
 	rasterizationState(std::move(value.rasterizationState)), depthStencilState(std::move(value.depthStencilState)),
@@ -34,19 +34,14 @@ Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
 	colorBlendState.AttachmentCount = static_cast<uint32>(colorBlendAttachments.size());
 	colorBlendState.Attachments = colorBlendAttachments.data();
 	if (multisampleState.SampleMask) multisampleState.SampleMask = &sampleMask;
-
-	value.hndl = nullptr;
 }
 
 Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other)
 {
 	if (this != &other)
 	{
-		Destroy();
-
+		Pipeline::operator=(std::move(other));
 		renderpass = other.renderpass;
-		hndl = other.hndl;
-		subpass = other.subpass;
 
 		vertexInputState = std::move(other.vertexInputState);
 		inputAssemblyState = std::move(other.inputAssemblyState);
@@ -70,8 +65,6 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		colorBlendState.AttachmentCount = static_cast<uint32>(colorBlendAttachments.size());
 		colorBlendState.Attachments = colorBlendAttachments.data();
 		if (multisampleState.SampleMask) multisampleState.SampleMask = &sampleMask;
-
-		other.hndl = nullptr;
 	}
 
 	return *this;
@@ -83,7 +76,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	Just destroy the old one if the graphics pipeline needs to be recreated.
 	We do need to wait for the old one to become available again so just wait idle here.
 	*/
-	if (hndl)
+	if (Hndl)
 	{
 		Log::Warning("Recreating graphics pipeline, this may cause lag!");
 		renderpass->device->WaitIdle();
@@ -93,10 +86,6 @@ void Pu::GraphicsPipeline::Finalize(void)
 	/* Add the vertex input binding descriptions to the final create information. */
 	vector<VertexInputAttributeDescription> attributeDescriptions;
 	for (const Attribute &attrib : renderpass->subpasses[subpass].attributes) attributeDescriptions.emplace_back(attrib.description);
-
-	/* Add the shader stages to the final create information. */
-	vector<PipelineShaderStageCreateInfo> shaderStages;
-	for (const Shader *shader : renderpass->subpasses[subpass].shaders) shaderStages.emplace_back(shader->info);
 
 	/* Finalize the vertex input state. */
 	vertexInputState.VertexAttributeDescriptionCount = static_cast<uint32>(attributeDescriptions.size());
@@ -109,7 +98,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	dynamicState.DynamicStates = dynamicStates.data();
 
 	/* Create the graphics pipeline. */
-	GraphicsPipelineCreateInfo createInfo(shaderStages, renderpass->layout->hndl, renderpass->hndl, subpass);
+	GraphicsPipelineCreateInfo createInfo{ GetShaderStages(), GetLayoutHndl(), renderpass->hndl, subpass };
 	createInfo.VertexInputState = &vertexInputState;
 	createInfo.InputAssemblyState = &inputAssemblyState;
 	createInfo.TessellationState = &tessellationState;
@@ -119,7 +108,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	createInfo.DepthStencilState = &depthStencilState;
 	createInfo.ColorBlendState = &colorBlendState;
 	createInfo.DynamicState = &dynamicState;
-	VK_VALIDATE(renderpass->device->vkCreateGraphicsPipelines(renderpass->device->hndl, nullptr, 1, &createInfo, nullptr, &hndl), PFN_vkCreateGraphicsPipelines);
+	VK_VALIDATE(renderpass->device->vkCreateGraphicsPipelines(renderpass->device->hndl, nullptr, 1, &createInfo, nullptr, &Hndl), PFN_vkCreateGraphicsPipelines);
 }
 
 void Pu::GraphicsPipeline::SetTopology(PrimitiveTopology topology)
@@ -332,9 +321,4 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(cons
 const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareSupport(void) const
 {
 	return renderpass->device->GetPhysicalDevice().GetFeatures();
-}
-
-void Pu::GraphicsPipeline::Destroy(void)
-{
-	if (hndl) renderpass->device->vkDestroyPipeline(renderpass->device->hndl, hndl, nullptr);
 }

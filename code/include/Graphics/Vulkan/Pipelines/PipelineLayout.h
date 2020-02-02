@@ -25,7 +25,7 @@ namespace Pu
 	private:
 		friend class CommandBuffer;
 		friend class DescriptorPool;
-		friend class GraphicsPipeline;
+		friend class Pipeline;
 
 		PipelineLayoutHndl hndl;
 		vector<DescriptorSetLayoutHndl> setHndls;

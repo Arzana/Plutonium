@@ -3,7 +3,7 @@
 
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false), usesDependency(false),
-	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate"), layout(nullptr)
+	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate")
 {}
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, std::initializer_list<std::initializer_list<wstring>> shaderModules)
@@ -42,11 +42,9 @@ Pu::Renderpass::Renderpass(Renderpass && value)
 	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
 	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)), 
 	clearValues(std::move(value.clearValues)), usesDependency(value.usesDependency),
-	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate)), 
-	layout(value.layout)
+	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate))
 {
 	value.hndl = nullptr;
-	value.layout = nullptr;
 }
 
 Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
@@ -58,7 +56,6 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		Asset::operator=(std::move(other));
 		device = other.device;
 		hndl = other.hndl;
-		layout = other.layout;
 		ownsShaders = other.ownsShaders;
 		usesDependency = other.usesDependency;
 		outputDependency = other.outputDependency;
@@ -68,7 +65,6 @@ Pu::Renderpass & Pu::Renderpass::operator=(Renderpass && other)
 		PostCreate = std::move(other.PostCreate);
 
 		other.hndl = nullptr;
-		other.layout = nullptr;
 	}
 
 	return *this;
@@ -149,7 +145,6 @@ void Pu::Renderpass::Create(bool viaLoader)
 	PreCreate.Post(*this);
 
 	CreateRenderpass();
-	layout = new PipelineLayout(*device, subpasses.front());
 
 	PostCreate.Post(*this);
 	MarkAsLoaded(viaLoader, L"Renderpass");
@@ -255,7 +250,6 @@ void Pu::Renderpass::CreateRenderpass(void)
 void Pu::Renderpass::Destroy(void)
 {
 	if (hndl) device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
-	if (layout) delete layout;
 
 	/* This means we loaded the shaders inline, which means we need to free them. */
 	if (ownsShaders)

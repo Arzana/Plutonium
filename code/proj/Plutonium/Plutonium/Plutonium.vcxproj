@@ -210,6 +210,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\LogicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\PhysicalDevice.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\GraphicsPipeline.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\Pipeline.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\PipelineCache.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\PipelineLayout.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\QueryPool.h" />
@@ -357,6 +358,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\LogicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\GraphicsPipeline.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\Pipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\PipelineCache.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\PipelineLayout.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\QueryPool.cpp" />

@@ -52,7 +52,7 @@ namespace Pu
 	private:
 		friend class Subpass;
 		friend class Renderpass;
-		friend class GraphicsPipeline;
+		friend class Pipeline;
 
 		using DecoratePair = std::pair<spv::Id, spv::Word>;
 

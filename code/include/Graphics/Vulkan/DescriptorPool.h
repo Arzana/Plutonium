@@ -1,6 +1,6 @@
 #pragma once
 #include "DescriptorSet.h"
-#include "Shaders/Renderpass.h"
+#include "Pipelines/Pipeline.h"
 
 namespace Pu
 {
@@ -11,9 +11,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a descriptor pool for a specific descriptor set. */
-		DescriptorPool(_In_ const Renderpass &renderpass, _In_ const Subpass &subpass, _In_ uint32 set, _In_ size_t maxSets);
-		/* Initializes a new instance of a descriptor pool for a specific descriptor set used in multiple subpasses. */
-		DescriptorPool(_In_ const Renderpass &renderpass, _In_ uint32 set, _In_ size_t maxSets);
+		DescriptorPool(_In_ const Pipeline &pipeline, _In_ const Subpass &subpass, _In_ uint32 set, _In_ size_t maxSets);
 		DescriptorPool(_In_ const DescriptorPool&) = delete;
 		/* Move constructor. */
 		DescriptorPool(_In_ DescriptorPool &&value);
@@ -50,23 +48,15 @@ namespace Pu
 			return *subpass;
 		}
 
-		/* Gets the subpass at the specified index. */
-		_Check_return_ inline const Subpass& GetSubpass(_In_ size_t index) const
-		{
-			return renderpass->GetSubpass(index);
-		}
-
 	private:
 		friend class DescriptorSet;
 		friend class CommandBuffer;
 
-		const Subpass *subpass;
-		const Renderpass *renderpass;
 		LogicalDevice *device;
+		const Subpass *subpass;
+		DescriptorSetLayoutHndl layoutHndl;
 
 		DescriptorPoolHndl hndl;
-		PipelineLayoutHndl pipelineLayout;
-		DescriptorSetLayoutHndl descriptorLayout;
 		mutable uint32 max, used, set;
 
 		void Create(vector<DescriptorPoolSize> &sizes);

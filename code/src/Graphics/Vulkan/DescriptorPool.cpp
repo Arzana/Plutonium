@@ -1,10 +1,9 @@
 #include "Graphics/Vulkan/DescriptorPool.h"
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 
-Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass & subpass, uint32 set, size_t maxSets)
+Pu::DescriptorPool::DescriptorPool(const Pipeline & pipeline, const Subpass & subpass, uint32 set, size_t maxSets)
 	: subpass(&subpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(renderpass.device), pipelineLayout(renderpass.layout->hndl),
-	descriptorLayout(renderpass.layout->setHndls[set]), renderpass(&renderpass)
+	device(&pipeline.GetDevice()), layoutHndl(pipeline.layout.setHndls[set])
 {
 	vector<DescriptorPoolSize> sizes;
 	for (const Descriptor &descriptor : subpass.descriptors)
@@ -24,37 +23,10 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Subpass 
 	Create(sizes);
 }
 
-Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 set, size_t maxSets)
-	: renderpass(&renderpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(renderpass.device), pipelineLayout(renderpass.layout->hndl),
-	descriptorLayout(renderpass.layout->setHndls[set]), subpass(nullptr)
-{
-	vector<DescriptorPoolSize> sizes;
-
-	for (const Subpass &cur : renderpass.subpasses)
-	{
-		for (const Descriptor &descriptor : cur.descriptors)
-		{
-			if (descriptor.GetSet() != set) continue;
-
-			/*
-			Check if the descriptor type is already defined,
-			if it is, then just increate the size by one,
-			otherwise; add the type with a size of one.
-			*/
-			decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
-			if (it != sizes.end()) ++it->DescriptorCount;
-			else sizes.emplace_back(descriptor.GetType(), 1);
-		}
-	}
-
-	Create(sizes);
-}
-
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: subpass(value.subpass), device(value.device), hndl(value.hndl),
-	pipelineLayout(value.pipelineLayout), descriptorLayout(value.descriptorLayout),
-	max(value.max), used(value.used), set(value.set), renderpass(value.renderpass)
+	layoutHndl(value.layoutHndl), max(value.max), 
+	used(value.used), set(value.set)
 {
 	value.hndl = nullptr;
 }
@@ -68,12 +40,10 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		subpass = other.subpass;
 		device = other.device;
 		hndl = other.hndl;
-		pipelineLayout = other.pipelineLayout;
-		descriptorLayout = other.descriptorLayout;
+		layoutHndl = other.layoutHndl;
 		max = other.max;
 		used = other.used;
 		set = other.set;
-		renderpass = other.renderpass;
 
 		other.hndl = nullptr;
 	}
@@ -88,7 +58,7 @@ Pu::DescriptorSet Pu::DescriptorPool::Allocate(void) const
 	used++;
 
 	/* Initialize creation info. */
-	const DescriptorSetAllocateInfo allocInfo(hndl, descriptorLayout);
+	const DescriptorSetAllocateInfo allocInfo(hndl, layoutHndl);
 	DescriptorSetHndl setHndl;
 
 	/* Allocate new descriptor set. */

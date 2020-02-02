@@ -227,16 +227,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
 	cmd.BindGraphicsPipeline(*gfxPipeline);
 
-	cmd.BindGraphicsDescriptor(*cam);
-	cmd.BindGraphicsDescriptor(*light);
-	cmd.PushConstants(*renderPass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
+	cmd.BindGraphicsDescriptor(*gfxPipeline, *cam);
+	cmd.BindGraphicsDescriptor(*gfxPipeline, *light);
+	cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
 
 	cmd.AddLabel("Model", Color::Blue());
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
 		{
-			cmd.BindGraphicsDescriptor(matIdx != -1 ? *materials[matIdx] : *materials.back());
+			cmd.BindGraphicsDescriptor(*gfxPipeline, matIdx != -1 ? *materials[matIdx] : *materials.back());
 			mesh->Bind(cmd, 0);
 			mesh->Draw(cmd);
 		}
@@ -321,23 +321,23 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 {
 	const Subpass &pass = renderPass->GetSubpass(0);
+	CreateGraphicsPipeline();
 
-	descPoolCam = new DescriptorPool(*renderPass, pass, 0, 1);
+	descPoolCam = new DescriptorPool(*gfxPipeline, pass, 0, 1);
 	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, GetInput());
 	cam->Move(0.0f, 5.0f, -3.0f);
 	cam->Yaw = PI2;
 
-	descPoolLight = new DescriptorPool(*renderPass, pass, 2, 1);
+	descPoolLight = new DescriptorPool(*gfxPipeline, pass, 2, 1);
 	light = new DirectionalLight(*descPoolLight);
 
-	descPoolMats = new DescriptorPool(*renderPass, pass, 1, stageMaterials.size() + 1);
+	descPoolMats = new DescriptorPool(*gfxPipeline, pass, 1, stageMaterials.size() + 1);
 	for (PumMaterial &material : stageMaterials)
 	{
 		materials.emplace_back(new Material(*descPoolMats, material));
 	}
 
 	materials.emplace_back(new Material(*descPoolMats));
-	CreateGraphicsPipeline();
 }
 
 void TestGame::CreateGraphicsPipeline(void)

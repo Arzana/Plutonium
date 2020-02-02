@@ -105,9 +105,9 @@ namespace Pu
 		/* Appends a index buffer bind command to the command buffer. */
 		void BindIndexBuffer(_In_ const BufferView &view, _In_ IndexType type);
 		/* Appends a update for the push constrant to the command buffer. */
-		void PushConstants(_In_ const Renderpass &renderpass, _In_ ShaderStageFlag stage, _In_ uint32 offset, _In_ size_t size, _In_ const void *constants);
+		void PushConstants(_In_ const Pipeline &pipeline, _In_ ShaderStageFlag stage, _In_ uint32 offset, _In_ size_t size, _In_ const void *constants);
 		/* Appends a graphics descriptor bind command to the command buffer. */
-		void BindGraphicsDescriptor(_In_ const DescriptorSet &descriptor);
+		void BindGraphicsDescriptor(_In_ const Pipeline &pipeline, _In_ const DescriptorSet &descriptor);
 		/* Appends a draw command to the command buffer. */
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 		/* Appends an indexed draw command to the command buffer. */

@@ -1,10 +1,12 @@
 #pragma once
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
+#include "Pipeline.h"
 
 namespace Pu
 {
 	/* Defines a Vulkan graphics pipeline that can be used with a specific subpass. */
 	class GraphicsPipeline
+		: public Pipeline
 	{
 	public:
 		/* Initializes a new instance of a Vulkan graphics pipeline from a specific render pass. */
@@ -12,21 +14,10 @@ namespace Pu
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
 		/* Move constructor. */
 		GraphicsPipeline(_In_ GraphicsPipeline &&value);
-		/* Releases the resources allocated by the graphics pipeline. */
-		~GraphicsPipeline(void)
-		{
-			Destroy();
-		}
 
 		_Check_return_ GraphicsPipeline& operator =(_In_ const GraphicsPipeline&) = delete;
 		/* Move assignment. */
 		_Check_return_ GraphicsPipeline& operator =(_In_ GraphicsPipeline &&other);
-
-		/* Gets whether this graphics pipeline can be bound. */
-		_Check_return_ inline bool IsUsable(void) const
-		{
-			return hndl;
-		}
 
 		/* Adds a vertex binding to the graphics pipeline. */
 		template <typename vertex_t>
@@ -85,10 +76,7 @@ namespace Pu
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendState(_In_ const string &output);
 
 	private:
-		friend class CommandBuffer;
-
 		const Renderpass *renderpass;
-		PipelineHndl hndl;
 		uint32 subpass;
 
 		PipelineVertexInputStateCreateInfo vertexInputState;
@@ -109,6 +97,5 @@ namespace Pu
 		SampleMask sampleMask;
 
 		const PhysicalDeviceFeatures& GetHardwareSupport(void) const;
-		void Destroy(void);
 	};
 }
