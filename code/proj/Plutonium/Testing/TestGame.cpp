@@ -213,11 +213,14 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
+	uint32 drawCalls = 0;
+
 	probeRenderer->Start(*environment, cmd);
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
 		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), mdlMtrx, cmd);
+		++drawCalls;
 	}
 	probeRenderer->End(*environment, cmd);
 
@@ -236,6 +239,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
 		{
+			++drawCalls;
 			cmd.BindGraphicsDescriptor(*gfxPipeline, matIdx != -1 ? *materials[matIdx] : *materials.back());
 			mesh->Bind(cmd, 0);
 			mesh->Draw(cmd);
@@ -243,6 +247,14 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 	cmd.EndLabel();
 	cmd.EndRenderPass();
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		ImGui::Text("Draw Calls: %u", drawCalls);
+		ImGui::Separator();
+		ImGui::Text("%d FPS", iround(recip(dt)));
+		ImGui::EndMainMenuBar();
+	}
 
 	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 }

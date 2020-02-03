@@ -202,12 +202,10 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 	ortho = Matrix::CreateOrtho(static_cast<float>(size.Width), static_cast<float>(size.Height), 0.0f, 1.0f);
 
 	/* Create swapchain information for a general LDR color RT, just pick the first available format. */
-	SwapchainCreateInfo info(native.GetSurface().hndl, size);
-	info.PresentMode = PresentMode::MailBox;
+	SwapchainCreateInfo info{ native.GetSurface().hndl, size };
 	info.ImageColorSpace = format.ColorSpace;
 	info.ImageFormat = format.Format;
 	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
-	info.Transform = SurfaceTransformFlag::Identity;
 	if (swapchain) info.OldSwapChain = swapchain->hndl;
 
 	/* Create new swapchain or replace the old one. */

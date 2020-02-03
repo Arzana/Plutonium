@@ -767,7 +767,7 @@ namespace Pu
 		/* Initializes a new instance of the swapchain creation info object. */
 		SwapchainCreateInfo(_In_ SurfaceHndl surface, _In_ Extent2D size)
 			: Type(StructureType::SwapChainCreateInfoKhr), Next(nullptr), Flags(0),
-			Surface(surface), MinImageCount(2), ImageFormat(Format::Undefined),
+			Surface(surface), MinImageCount(3), ImageFormat(Format::Undefined),
 			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(1),
 			ImageUsage(ImageUsageFlag::None), ImageSharingMode(SharingMode::Exclusive),
 			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlag::Identity),
