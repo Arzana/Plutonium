@@ -62,7 +62,8 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>dbghelp.lib;hid.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -86,7 +87,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>dbghelp.lib;hid.lib;Ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
