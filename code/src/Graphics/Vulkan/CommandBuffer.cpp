@@ -268,13 +268,13 @@ void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
 void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
 {
 	DbgCheckIfRecording("push constants");
-	device->vkCmdPushConstants(hndl, pipeline.layout.hndl, stage, offset, static_cast<uint32>(size), constants);
+	device->vkCmdPushConstants(hndl, pipeline.LayoutHndl, stage, offset, static_cast<uint32>(size), constants);
 }
 
 void Pu::CommandBuffer::BindGraphicsDescriptor(const Pipeline & pipeline, const DescriptorSet & descriptor)
 {
 	DbgCheckIfRecording("bind descriptor to graphics bind point");
-	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.layout.hndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
+	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)

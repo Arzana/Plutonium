@@ -1,5 +1,5 @@
 #pragma once
-#include "PipelineLayout.h"
+#include "Graphics/Vulkan/Shaders/Subpass.h"
 
 namespace Pu
 {
@@ -13,7 +13,7 @@ namespace Pu
 		/* Releases the resources allocated by the pipeline. */
 		virtual ~Pipeline(void)
 		{
-			Destroy();
+			FullDestroy();
 		}
 
 		_Check_return_ Pipeline& operator =(_In_ const Pipeline&) = delete;
@@ -29,29 +29,16 @@ namespace Pu
 			return Hndl;
 		}
 
-		/* Gets the logical device on which this pipeline lives. */
-		_Check_return_ inline LogicalDevice& GetDevice(void) const
-		{
-			return *layout.device;
-		}
-
-		/* Gets the layout of this pipeline. */
-		_Check_return_ inline const PipelineLayout& GetLayout(void) const
-		{
-			return layout;
-		}
-
 	protected:
+		/* The raw Vulkan handle to the pipeline. */
 		PipelineHndl Hndl;
+		/* The raw Vulkan handle to the pipeline layout. */
+		PipelineLayoutHndl LayoutHndl;
+		/* The logical device on which this pipeline was created. */
+		LogicalDevice *Device;
 
 		/* Initializes a new instance of a Vulkan pipeline. */
 		Pipeline(_In_ LogicalDevice &device, _In_ const Subpass &subpass);
-
-		/* Gets the handle of the pipeline layout. */
-		_Check_return_ inline PipelineLayoutHndl GetLayoutHndl(void) const
-		{
-			return layout.hndl;
-		}
 
 		/* Gets the shader stages used by the pipeline. */
 		_Check_return_ inline const vector<PipelineShaderStageCreateInfo>& GetShaderStages(void) const
@@ -59,14 +46,18 @@ namespace Pu
 			return shaderStages;
 		}
 
-		/* Releases the pipeline handle. */
+		/* Releases the pipeline. */
 		void Destroy(void);
 
 	private:
 		friend class CommandBuffer;
 		friend class DescriptorPool;
 
-		PipelineLayout layout;
 		vector<PipelineShaderStageCreateInfo> shaderStages;
+		vector<DescriptorSetLayoutHndl> setHndls;
+
+		void CreateDescriptorSetLayouts(const Subpass &subpass);
+		void CreatePipelineLayout(const Subpass &subpass);
+		void FullDestroy(void);
 	};
 }

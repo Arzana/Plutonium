@@ -98,7 +98,6 @@ namespace Pu
 		friend class Sampler;
 		friend class QueryPool;
 		friend class PipelineCache;
-		friend class PipelineLayout;
 		friend class Pipeline;
 		friend class RenderDoc;
 

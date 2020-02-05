@@ -3,7 +3,7 @@
 
 Pu::DescriptorPool::DescriptorPool(const Pipeline & pipeline, const Subpass & subpass, uint32 set, size_t maxSets)
 	: subpass(&subpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(&pipeline.GetDevice()), layoutHndl(pipeline.layout.setHndls[set])
+	device(pipeline.Device), layoutHndl(pipeline.setHndls[set])
 {
 	vector<DescriptorPoolSize> sizes;
 	for (const Descriptor &descriptor : subpass.descriptors)
