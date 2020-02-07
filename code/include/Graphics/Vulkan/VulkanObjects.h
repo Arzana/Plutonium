@@ -3064,7 +3064,7 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of the descriptor set allocate info object. */
-		DescriptorSetAllocateInfo(_In_ DescriptorPoolHndl pool, _In_ const DescriptorSetLayoutHndl &layout)
+		DescriptorSetAllocateInfo(_In_ DescriptorPoolHndl pool, _In_ DescriptorSetLayoutHndl layout)
 			: Type(StructureType::DescriptorSetAllocateInfo), Next(nullptr), DescriptorPool(pool),
 			DescriptorSetCount(1), SetLayouts(&layout)
 		{}
