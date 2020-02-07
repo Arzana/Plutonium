@@ -51,7 +51,7 @@ namespace Pu
 
 	private:
 		friend class CommandBuffer;
-		friend class DescriptorPool;
+		friend class DescriptorSet;
 
 		vector<PipelineShaderStageCreateInfo> shaderStages;
 		vector<DescriptorSetLayoutHndl> setHndls;

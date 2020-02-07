@@ -1,34 +1,49 @@
 #include "Graphics/Vulkan/DescriptorPool.h"
-#include "Graphics/Vulkan/Shaders/Renderpass.h"
+#include "Graphics/Resources/DynamicBuffer.h"
 
-Pu::DescriptorPool::DescriptorPool(const Pipeline & pipeline, const Subpass & subpass, uint32 set, size_t maxSets)
-	: subpass(&subpass), max(static_cast<uint32>(maxSets)), used(0), set(set),
-	device(pipeline.Device), layoutHndl(pipeline.setHndls[set])
+Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets, std::initializer_list<std::pair<uint32, std::initializer_list<uint32>>> sets)
+	: device(renderpass.device)
 {
 	vector<DescriptorPoolSize> sizes;
-	for (const Descriptor &descriptor : subpass.descriptors)
-	{
-		if (descriptor.GetSet() != set) continue;
+	DeviceSize bufferSize = 0;
 
-		/*
-		Check if the descriptor type is already defined,
-		if it is, then just increate the size by one,
-		otherwise; add the type with a size of one.
-		*/
-		decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
-		if (it != sizes.end()) ++it->DescriptorCount;
-		else sizes.emplace_back(descriptor.GetType(), 1);
+	/* Loop through all the subpasses and descriptors to get the sets that should contribute to the pool. */
+	for (const auto &[subpass, setIdxs] : sets)
+	{
+		for (const Descriptor &descriptor : renderpass.GetSubpass(subpass).descriptors)
+		{
+			for (uint32 set : setIdxs)
+			{
+				/* Only add the descriptor if it's part of the subpass sets. */
+				if (descriptor.GetSet() == set)
+				{
+					decltype(sizes)::iterator it = sizes.iteratorOf([&descriptor](const DescriptorPoolSize &cur) { return cur.Type == descriptor.GetType(); });
+					if (it != sizes.end()) ++it->DescriptorCount;
+					else sizes.emplace_back(descriptor.GetType(), 1);
+
+					/* Add the uniform buffer descriptor size. */
+					if (descriptor.GetType() == DescriptorType::UniformBuffer)
+					{
+						bufferSize = descriptor.GetAllignedOffset(bufferSize) + descriptor.GetSize();
+					}
+
+					break;
+				}
+			}
+		}
 	}
 
-	Create(sizes);
+	Create(sizes, maxSets);
+
+	/* Allocate the dynamic buffer if this pool has uniform buffers. */
+	if (bufferSize) buffer = new DynamicBuffer(*device, bufferSize, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
 }
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
-	: subpass(value.subpass), device(value.device), hndl(value.hndl),
-	layoutHndl(value.layoutHndl), max(value.max), 
-	used(value.used), set(value.set)
+	: hndl(value.hndl), buffer(value.buffer), device(value.device)
 {
 	value.hndl = nullptr;
+	value.buffer = nullptr;
 }
 
 Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
@@ -36,62 +51,39 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 	if (this != &other)
 	{
 		Destroy();
-
-		subpass = other.subpass;
-		device = other.device;
+		
 		hndl = other.hndl;
-		layoutHndl = other.layoutHndl;
-		max = other.max;
-		used = other.used;
-		set = other.set;
+		buffer = other.buffer;
+		device = other.device;
 
 		other.hndl = nullptr;
+		other.buffer = nullptr;
 	}
 
 	return *this;
 }
 
-Pu::DescriptorSet Pu::DescriptorPool::Allocate(void) const
+void Pu::DescriptorPool::Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl * result) const
 {
-	/* Make sure we don't alocate over our maximum. */
-	if (used >= max) Log::Fatal("Cannot allocate more the maximum defined amount of sets!");
-	used++;
-
-	/* Initialize creation info. */
-	const DescriptorSetAllocateInfo allocInfo(hndl, layoutHndl);
-	DescriptorSetHndl setHndl;
-
-	/* Allocate new descriptor set. */
-	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &allocInfo, &setHndl), PFN_vkAllocateDescriptorSets);
-	return DescriptorSet(const_cast<DescriptorPool&>(*this), setHndl, set);
+	const DescriptorSetAllocateInfo info{ hndl, layout };
+	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &info, result), PFN_vkAllocateDescriptorSets);
 }
 
-#pragma warning(push)
-#pragma warning(disable:4458)
-void Pu::DescriptorPool::DeAllocate(DescriptorSet & set)
+void Pu::DescriptorPool::Free(DescriptorSetHndl set) const
 {
-	FreeSet(set.hndl);
-	set.hndl = nullptr;
+	VK_VALIDATE(device->vkFreeDescriptorSets(device->hndl, hndl, 1, &set), PFN_vkFreeDescriptorSets);
 }
-#pragma warning(pop)
 
-void Pu::DescriptorPool::Create(vector<DescriptorPoolSize>& sizes)
+void Pu::DescriptorPool::Create(vector<DescriptorPoolSize>& sizes, uint32 maxSets)
 {
-	/* The amount of descriptors are global, so we need to multiply our origional count by the maximum number of sets we want to allocate. */
-	for (DescriptorPoolSize &cur : sizes) cur.DescriptorCount *= max;
+	/* The amount of descriptors is global, so we need to multiply our origional count by the maximum number of sets. */
+	for (DescriptorPoolSize &size : sizes) size.DescriptorCount *= maxSets;
 
-	/* Create the pool. */
-	const DescriptorPoolCreateInfo createInfo(max, sizes);
-	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateDescriptorPool);
+	const DescriptorPoolCreateInfo info{ maxSets, sizes };
+	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &info, nullptr, &hndl), PFN_vkCreateDescriptorPool);
 }
 
 void Pu::DescriptorPool::Destroy(void)
 {
 	if (hndl) device->vkDestroyDescriptorPool(device->hndl, hndl, nullptr);
-}
-
-void Pu::DescriptorPool::FreeSet(DescriptorSetHndl setHndl) const
-{
-	--used;
-	device->vkFreeDescriptorSets(device->hndl, hndl, 1, &setHndl);
 }
