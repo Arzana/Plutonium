@@ -30,8 +30,11 @@ namespace Pu
 		DescriptorPoolHndl hndl;
 		DynamicBuffer *buffer;
 		LogicalDevice *device;
+		DeviceSize setStride;
+		mutable uint32 allocCnt;
 
-		void Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl *result) const;
+		BufferHndl GetBuffer(void) const;
+		DeviceSize Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl *result) const;
 		void Free(DescriptorSetHndl set) const;
 		void Create(vector<DescriptorPoolSize> &sizes, uint32 maxSets);
 		void Destroy(void);

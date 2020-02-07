@@ -75,7 +75,7 @@ namespace Pu
 		friend class BufferView;
 		friend class StagingBuffer;
 		friend class CommandBuffer;
-		friend class DescriptorSet;
+		friend class DescriptorPool;
 
 		LogicalDevice *parent;
 		mutable AccessFlag srcAccess;
