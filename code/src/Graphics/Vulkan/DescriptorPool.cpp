@@ -20,10 +20,14 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets
 					if (it != sizes.end()) ++it->DescriptorCount;
 					else sizes.emplace_back(descriptor.GetType(), 1);
 
-					/* Add the uniform buffer descriptor size. */
+					/* 
+					Add the uniform buffer descriptor size. 
+					Also add it to a list of descriptors that should be written to the buffer afterwards.
+					*/
 					if (descriptor.GetType() == DescriptorType::UniformBuffer)
 					{
 						setStride = descriptor.GetAllignedOffset(setStride) + descriptor.GetSize();
+						writes.emplace_back(&descriptor);
 					}
 
 					break;
@@ -40,7 +44,7 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: hndl(value.hndl), buffer(value.buffer), device(value.device),
-	setStride(value.setStride), allocCnt(value.allocCnt)
+	setStride(value.setStride), allocCnt(value.allocCnt), writes(std::move(value.writes))
 {
 	value.hndl = nullptr;
 	value.buffer = nullptr;
@@ -57,12 +61,18 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		device = other.device;
 		setStride = other.setStride;
 		allocCnt = other.allocCnt;
+		writes = std::move(other.writes);
 
 		other.hndl = nullptr;
 		other.buffer = nullptr;
 	}
 
 	return *this;
+}
+
+void Pu::DescriptorPool::Initialize(CommandBuffer & cmdBuffer, PipelineStageFlag dstStage)
+{
+	cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
 }
 
 Pu::BufferHndl Pu::DescriptorPool::GetBuffer(void) const

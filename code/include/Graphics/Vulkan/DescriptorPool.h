@@ -24,6 +24,20 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ DescriptorPool& operator =(_In_  DescriptorPool &&other);
 
+		/* Initializes the descriptor pool for use. */
+		void Initialize(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlag dstStage);
+		/* Starts the process of transfering data from the CPU to the pool's buffer. */
+		inline void BeginMemoryTransfer(void)
+		{
+			buffer->BeginMemoryTransfer();
+		}
+
+		/* Ends the process of transfering data from the CPU to the pool's buffer. */
+		inline void EndMemoryTransfer(void)
+		{
+			buffer->EndMemoryTransfer();
+		}
+
 	private:
 		friend class DescriptorSet;
 
@@ -31,6 +45,7 @@ namespace Pu
 		DynamicBuffer *buffer;
 		LogicalDevice *device;
 		DeviceSize setStride;
+		vector<const Descriptor*> writes;
 		mutable uint32 allocCnt;
 
 		BufferHndl GetBuffer(void) const;

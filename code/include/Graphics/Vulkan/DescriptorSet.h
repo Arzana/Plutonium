@@ -28,10 +28,10 @@ namespace Pu
 		void Write(_In_ const Descriptor &descriptor, _In_ const TextureInput &input);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture);
-		/* Writes uniform block data to the set, represented by multiple descriptors. */
-		void Write(_In_ const vector<const Descriptor*> &descriptors);
 		/* Free's the descriptor set from its parent pool. */
 		void Free(void);
+		/* Gets a pointer to the CPU memory buffer for the parent pool (BeginMemoryTransfer should be called on the pool beforehand). */
+		_Check_return_ byte* GetStagePointer(void) const;
 
 	private:
 		DescriptorSetHndl hndl;
@@ -39,6 +39,7 @@ namespace Pu
 		uint32 set;
 		DeviceSize baseOffset;
 
+		void WriteBuffer(void);
 		void ValidateDescriptor(const Descriptor &descriptor, DescriptorType type) const;
 		void WriteDescriptors(const vector<WriteDescriptorSet> &writes);
 		void Destroy(void);

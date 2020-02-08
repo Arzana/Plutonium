@@ -1,10 +1,14 @@
 #include "Graphics/Vulkan/DescriptorSet.h"
+#include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DescriptorSet::DescriptorSet(const DescriptorPool & pool, const Pipeline & pipeline, uint32 set)
 	: pool(&pool), set(set)
 {
 	/* Sets handles are always incremental. */
 	baseOffset = pool.Alloc(pipeline.setHndls.at(set), &hndl);
+
+	/* Immediately write the uniform buffer descriptors to this set. */
+	if (!pool.writes.empty()) WriteBuffer();
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
@@ -49,7 +53,7 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & tex
 	WriteDescriptors({ write });
 }
 
-void Pu::DescriptorSet::Write(const vector<const Descriptor*>& descriptors)
+void Pu::DescriptorSet::WriteBuffer(void)
 {
 	/*
 	All descriptors are in the same buffer and have the same binding (i.e. one descriptor block)
@@ -63,7 +67,7 @@ void Pu::DescriptorSet::Write(const vector<const Descriptor*>& descriptors)
 
 	DeviceSize offset = baseOffset;
 	std::map<uint32, DescriptorBufferInfo> tmp;
-	for (const Descriptor *cur : descriptors)
+	for (const Descriptor *cur : pool->writes)
 	{
 		/* Make sure that the descriptor is accepted in the operation and get it's size. */
 		ValidateDescriptor(*cur, DescriptorType::UniformBuffer);
@@ -109,6 +113,11 @@ void Pu::DescriptorSet::Free(void)
 {
 	Destroy();
 	hndl = nullptr;
+}
+
+Pu::byte * Pu::DescriptorSet::GetStagePointer(void) const
+{
+	return reinterpret_cast<byte*>(pool->buffer->GetHostMemory()) + baseOffset;
 }
 
 void Pu::DescriptorSet::ValidateDescriptor(const Descriptor & descriptor, DescriptorType type) const
