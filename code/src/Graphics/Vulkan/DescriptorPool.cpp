@@ -58,7 +58,7 @@ Pu::DescriptorSet Pu::DescriptorPool::Allocate(void) const
 	used++;
 
 	/* Initialize creation info. */
-	const DescriptorSetAllocateInfo allocInfo(hndl, layoutHndl);
+	const DescriptorSetAllocateInfo allocInfo{ hndl, layoutHndl };
 	DescriptorSetHndl setHndl;
 
 	/* Allocate new descriptor set. */

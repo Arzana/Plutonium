@@ -61,11 +61,13 @@ Pu::BinaryWriter & Pu::BinaryWriter::operator=(BinaryWriter && other)
 
 void Pu::BinaryWriter::Write(bool value)
 {
+	EnsureCapacity(sizeof(byte));
 	data[size++] = static_cast<byte>(value ? 1 : 0);
 }
 
 void Pu::BinaryWriter::Write(byte value)
 {
+	EnsureCapacity(sizeof(byte));
 	data[size++] = value;
 }
 

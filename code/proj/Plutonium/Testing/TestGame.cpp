@@ -54,11 +54,13 @@ void TestGame::LoadContent(void)
 		{
 			if (mesh.HasMaterial)
 			{
-				meshes.emplace_back(std::make_tuple(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
+				meshes.emplace_back(std::make_pair(mesh.Material, new Mesh(*vrtxBuffer, mesh)));
 			}
-			else meshes.emplace_back(std::make_tuple(-1, new Mesh(*vrtxBuffer, mesh)));
+			else meshes.emplace_back(std::make_pair(-1, new Mesh(*vrtxBuffer, mesh)));
 		}
 	}
+
+	std::sort(meshes.begin(), meshes.end(), [](const decltype(meshes)::value_type &a, const decltype(meshes)::value_type &b) { return a.first < b.first; });
 
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
@@ -213,7 +215,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
-	uint32 drawCalls = 0;
+	uint32 drawCalls = 0, batchCalls = 0;
 
 	probeRenderer->Start(*environment, cmd);
 	for (const auto[matIdx, mesh] : meshes)
@@ -221,6 +223,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
 		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), mdlMtrx, cmd);
 		++drawCalls;
+		++batchCalls;
 	}
 	probeRenderer->End(*environment, cmd);
 
@@ -235,12 +238,19 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
 
 	cmd.AddLabel("Model", Color::Blue());
+	uint32 oldMat = -1;
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
 		{
 			++drawCalls;
-			cmd.BindGraphicsDescriptor(*gfxPipeline, matIdx != -1 ? *materials[matIdx] : *materials.back());
+			if (matIdx != oldMat)
+			{
+				cmd.BindGraphicsDescriptor(*gfxPipeline, matIdx != -1 ? *materials[matIdx] : *materials.back());
+				oldMat = matIdx;
+				++batchCalls;
+			}
+
 			mesh->Bind(cmd, 0);
 			mesh->Draw(cmd);
 		}
@@ -250,7 +260,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	if (ImGui::BeginMainMenuBar())
 	{
-		ImGui::Text("Draw Calls: %u", drawCalls);
+		ImGui::Text("Draw Calls: %u (%u batches)", drawCalls, batchCalls);
 		ImGui::Separator();
 		ImGui::Text("%d FPS", iround(recip(dt)));
 		ImGui::EndMainMenuBar();

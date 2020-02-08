@@ -48,7 +48,7 @@ private:
 
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *stagingBuffer;
-	Pu::vector<std::tuple<Pu::uint32, Pu::Mesh*>> meshes;
+	Pu::vector<std::pair<Pu::uint32, Pu::Mesh*>> meshes;
 	Pu::vector<Pu::Material*> materials;
 	Pu::vector<Pu::Texture2D*> textures;
 	Pu::vector<Pu::PumMaterial> stageMaterials;

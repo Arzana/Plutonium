@@ -101,8 +101,8 @@ void Pu::Buffer::EndMemoryTransfer(void)
 	}
 #endif
 
-	/* Flush the entire buffer and unmap the memory. */
-	Flush(WholeSize, 0);
+	/* Flush the entire buffer (if it's not host coherent) and unmap the memory. */
+	if (!_CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCoherent)) Flush(WholeSize, 0);
 	UnMap();
 }
 
