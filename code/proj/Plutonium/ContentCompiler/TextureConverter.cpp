@@ -482,6 +482,14 @@ void InitializeFramebuffers(const vector<std::pair<uint32, uint32>> &sources)
 	}
 }
 
+/* Gets either the textures defined in the material or the default texture. */
+Texture2D& GetTexture(bool has, uint32 idx)
+{
+	/* It is possible for the material to be marked to have a texture whilst that texture is currently a default texture. */
+	if (has && textures[idx] != nullptr) return *textures[idx];
+	else return *textures.back();
+}
+
 /* Initializes all the material uniform blocks with their properties and textures. */
 void InitializeUniformBlocks(const PumIntermediate &data)
 {
@@ -490,8 +498,8 @@ void InitializeUniformBlocks(const PumIntermediate &data)
 		if (material.IsFinalized) continue;
 
 		ConverterUniformBlock *block = new ConverterUniformBlock(*descPool, material.Metalness, 1.0f - material.Glossiness, material.DiffuseFactor);
-		block->SetAlbedo(*(material.HasDiffuseTexture ? textures[material.DiffuseTexture] : textures.back()));
-		block->SetMetalRough(*(material.HasSpecularGlossTexture ? textures[material.SpecGlossTexture] : textures.back()));
+		block->SetAlbedo(GetTexture(material.HasDiffuseTexture, material.DiffuseTexture));
+		block->SetMetalRough(GetTexture(material.HasSpecularGlossTexture, material.SpecGlossTexture));
 
 		uniformBlocks.emplace_back(block);
 	}
