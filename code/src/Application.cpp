@@ -33,6 +33,8 @@ Pu::Application::~Application(void)
 {
 	delete input;
 	delete scheduler;
+	delete device;
+	delete instance;
 
 	/* Finalize ImGui if needed. */
 	if constexpr (ImGuiAvailable) ImGui::DestroyContext();
@@ -307,9 +309,7 @@ void Pu::Application::DoFinalize(void)
 	delete content;
 	delete saver;
 	delete gameWnd;
-	delete device;
 	delete wnd;
-	delete instance;
 }
 
 void Pu::Application::DoUpdate(float dt)

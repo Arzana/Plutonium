@@ -11,6 +11,8 @@ namespace Pu
 		Vector3 Position;
 		/* The surface normal of the vertex. */
 		Vector3 Normal;
+		/* The tangent of the vertex. */
+		Vector4 Tangent;
 		/* The texture coordinate of the vertex. */
 		Vector2 TexCoord;
 		/* The indeces of the joints affecting the vertex. */

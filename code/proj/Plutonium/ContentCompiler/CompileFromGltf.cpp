@@ -1243,6 +1243,8 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 			{
 				const GLTFAccessor &accessor = input.Accessors[cur.Indices];
 				const GLTFBufferView &view = input.BufferViews[accessor.BufferView];
+				mesh.IndexViewStart = result.Data.GetSize();
+				mesh.IndexViewSize = view.Length - accessor.Start;
 
 				/* Set the index mode and do some error checking. */
 				if (accessor.Type != GlTfType::Scalar)
@@ -1252,16 +1254,29 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 				}
 				else if (accessor.ComponentType == GlTfComponentType::UInt16) mesh.IndexMode = 0;
 				else if (accessor.ComponentType == GlTfComponentType::UInt32) mesh.IndexMode = 1;
+				else if (accessor.ComponentType == GlTfComponentType::UInt8)
+				{
+					Log::Warning("Primitive in mesh '%s' uses non Vulkan supported index type (UInt8), converting to UInt16!", glMesh.Name.c_str());
+					mesh.IndexMode = 0;
+					mesh.IndexViewSize <<= 1;
+
+					/* Just write the byte indices as the smallest possible type (uint16). */
+					const byte *start = reinterpret_cast<const byte*>(bufferData[view.Buffer].data()) + view.Start + accessor.Start;
+					const byte *end = start + (view.Length - accessor.Start);
+					for (const byte *cur = start; cur != end; cur++) result.Data.Write(static_cast<uint16>(*cur));
+				}
 				else
 				{
-					Log::Error("Primitive in mesh '%s' has an invalid index accessor component type!", glMesh.Name.c_str());
+					Log::Error("Primitive in mesh '%s' uses unsupported index type, skipping primitive!", glMesh.Name.c_str());
 					continue;
 				}
 
-				/* Copy over the index data to our buffer and fill in the data for the result mesh. */
-				mesh.IndexViewStart = result.Data.GetSize();
-				mesh.IndexViewSize = view.Length - accessor.Start;
-				result.Data.Write(reinterpret_cast<const byte*>(bufferData[view.Buffer].data()), view.Start + accessor.Start, mesh.IndexViewSize);
+				/* Only write the indices directly if another handler hasn't written them yet. */
+				if (result.Data.GetSize() == mesh.IndexViewStart)
+				{
+					/* Copy over the index data to our buffer and fill in the data for the result mesh. */
+					result.Data.Write(reinterpret_cast<const byte*>(bufferData[view.Buffer].data()), view.Start + accessor.Start, mesh.IndexViewSize);
+				}
 			}
 
 			/* Calculate the size (in bytes) of the vertex buffer (for this mesh) and its stride. */
@@ -1272,9 +1287,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 				const GLTFAccessor &accessor = input.Accessors[idx];
 				const GLTFBufferView &view = input.BufferViews[accessor.BufferView];
 
-				mesh.VertexViewSize += view.Length - accessor.Start;
-				vrtxStrideBytes += accessor.GetElementSize();
-
+				bool increaseStride = true;
 				switch (type)
 				{
 				case GLTFPrimitiveAttribute::Position:
@@ -1297,6 +1310,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 					break;
 				case GLTFPrimitiveAttribute::TexCoord2:
 					Log::Warning("Plutonium models cannot have more than 1 set of texture coordiantes!");
+					increaseStride = false;
 					break;
 				case GLTFPrimitiveAttribute::Color:
 					mesh.HasVertexColors = true;
@@ -1305,6 +1319,13 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 					if (accessor.ComponentType == GlTfComponentType::UInt8) mesh.HasJoints = 1;
 					else if (accessor.ComponentType == GlTfComponentType::UInt16) mesh.HasJoints = 2;
 					break;
+				}
+
+				/* The 2nd texture coordinates should not affect our vertex stride and buffer size. */
+				if (increaseStride)
+				{
+					mesh.VertexViewSize += view.Length - accessor.Start;
+					vrtxStrideBytes += accessor.GetElementSize();
 				}
 			}
 

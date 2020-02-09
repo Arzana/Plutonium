@@ -11,11 +11,12 @@ struct MikkTSpaceUserData
 	const PumIntermediate &Data;
 	pum_mesh &Mesh;
 	Vector4 *Tangents;
+	size_t stride;
 
 	MikkTSpaceUserData(const PumIntermediate &data, pum_mesh &mesh)
-		: Data(data), Mesh(mesh)
+		: Data(data), Mesh(mesh), stride(mesh.GetStride())
 	{
-		Tangents = reinterpret_cast<Vector4*>(malloc(sizeof(Vector4) * (Mesh.VertexViewSize / GetStride())));
+		Tangents = reinterpret_cast<Vector4*>(malloc(sizeof(Vector4) * (Mesh.VertexViewSize / stride)));
 	}
 
 	~MikkTSpaceUserData(void)
@@ -23,15 +24,8 @@ struct MikkTSpaceUserData
 		free(Tangents);
 	}
 
-	inline size_t GetStride(void) const
-	{
-		/* A convertable mesh always has a position, normal and texture coordinate. */
-		return sizeof(Vector3) + sizeof(Vector3) + sizeof(Vector2) + (sizeof(uint32) * Mesh.HasVertexColors);
-	}
-
 	inline size_t GetIdx(int faceIdx, int vertIdx) const
 	{
-		const size_t stride = GetStride();
 		return (faceIdx * stride * 3) + (vertIdx * stride);
 	}
 };
@@ -40,7 +34,7 @@ int PumGetNumFaces(const SMikkTSpaceContext *context)
 {
 	/* The amount of faces are always specified in the vertex view, never in the index view. */
 	const MikkTSpaceUserData &data = *reinterpret_cast<MikkTSpaceUserData*>(context->m_pUserData);
-	return static_cast<int>((data.Mesh.VertexViewSize / data.GetStride()) / 3);
+	return static_cast<int>((data.Mesh.VertexViewSize / data.stride) / 3);
 }
 
 int PumGetNumVerticesOfFace(const SMikkTSpaceContext *context, const int)
@@ -125,7 +119,7 @@ void GenerateTangents(PumIntermediate & data)
 		if (mesh.HasNormals && mesh.HasTextureUvs && mesh.Topology == 3 && !mesh.HasTangents)
 		{
 			meshCnt++;
-			const size_t oldStride = (sizeof(Vector3) << 1) + sizeof(Vector2) + (sizeof(uint32) * mesh.HasVertexColors);
+			const size_t oldStride = mesh.GetStride();
 			const size_t newStride = oldStride + sizeof(Vector4);
 			const size_t elementCnt = mesh.VertexViewSize / oldStride;
 			outputSize += elementCnt * newStride;
@@ -161,11 +155,12 @@ void GenerateTangents(PumIntermediate & data)
 				}
 
 				/* Make sure that the mesh starts at an alligned offset. */
-				const size_t zeroBytes = newData.GetSize() % (userData.GetStride() + sizeof(Vector4));
+				const size_t zeroBytes = newData.GetSize() % (userData.stride + sizeof(Vector4));
 				newData.Pad(zeroBytes);
 
+				/* The end stride is just the stride with the position and normal size subtracted. */
 				const size_t start = newData.GetSize();
-				const size_t endStride = sizeof(Vector2) + (mesh.HasVertexColors) * sizeof(uint32);
+				const size_t endStride = userData.stride - (sizeof(Vector3) << 1);
 				const byte *raw = data.Data.GetData();
 
 				for (size_t i = mesh.VertexViewStart, j = 0; i < mesh.VertexViewStart + mesh.VertexViewSize; j++)

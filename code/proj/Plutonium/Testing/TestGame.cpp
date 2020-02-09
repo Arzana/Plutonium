@@ -2,7 +2,7 @@
 #include <Input/Keys.h>
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Graphics/VertexLayouts/Basic3D.h>
+#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -14,7 +14,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f)), dbgRenderer(nullptr)
+	markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.03f)*/), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -33,14 +33,12 @@ void TestGame::Initialize(void)
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
-
-	cache = new PipelineCache(GetDevice(), GetScheduler(), L"cache/PipelineCache.bin");
 }
 
 void TestGame::LoadContent(void)
 {
 	sw.Start();
-	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
+	const string file = FileReader(L"assets/Models/Shark.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -107,8 +105,6 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
-	delete cache;
-
 	if (depthBuffer)
 	{
 		delete depthBuffer;
@@ -273,11 +269,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 {
 	if (sender.Type == InputDeviceType::Keyboard)
 	{
-		if (args.Key == Keys::Escape)
-		{
-			cache->Store();
-			Exit();
-		}
+		if (args.Key == Keys::Escape) Exit();
 		else if (args.Key == Keys::C)
 		{
 			if (updateCam)
@@ -335,9 +327,9 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 	pass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	pass.AddDepthStencil().SetDescription(*depthBuffer);
 
-	pass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
-	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	pass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
+	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
 }
 
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
@@ -370,7 +362,8 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->AddVertexBinding<Basic3D>(0);
+	gfxPipeline->AddVertexBinding<SkinnedAnimated>(0);
+	gfxPipeline->SetCullMode(CullModeFlag::None);
 
 	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();

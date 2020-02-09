@@ -116,6 +116,17 @@ struct pum_mesh
 
 		return result;
 	}
+
+	inline size_t GetStride(void) const
+	{
+		return sizeof(Pu::Vector3) + 
+			(sizeof(Pu::Vector3) * HasNormals) +
+			(sizeof(Pu::Vector4) * HasTangents) +
+			(sizeof(Pu::Vector2) * HasTextureUvs) +
+			(sizeof(Pu::uint32) * HasVertexColors) +
+			(sizeof(Pu::uint32) * HasJoints) +
+			(sizeof(Pu::Vector4) * (HasJoints != 0));
+	}
 };
 
 struct pum_frame
