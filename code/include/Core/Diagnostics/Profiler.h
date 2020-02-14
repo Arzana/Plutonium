@@ -2,6 +2,8 @@
 #include "Graphics/Color.h"
 #include "Stopwatch.h"
 
+struct ImDrawList;
+
 namespace Pu
 {
 	/* Defines an application global interface used to record timed events. */
@@ -29,11 +31,11 @@ namespace Pu
 		using Section = std::tuple<string, Color, int64>;
 		using Timer = std::pair<size_t, Stopwatch>;
 
-		static int64 profilerTime;
 		std::map<uint64, Timer> activeThreads;
 
 		vector<Section> categories;
-		float spacing, height, length, offset, max;
+		int64 target;
+		float spacing, height, length, offset;
 
 		Profiler(void);
 		static Profiler& GetInstance(void);
@@ -41,5 +43,7 @@ namespace Pu
 		void EndInternal(uint64 thread);
 		void AddInternal(const string &category, Color color, int64 time);
 		void VisualizeInternal(void);
+		float DrawBarAndText(ImDrawList *drawList, float y, float x0, int64 time, Color clr, const string &txt);
+		float DrawBar(ImDrawList *drawList, float y, float x0, int64 time, Color clr);
 	};
 }

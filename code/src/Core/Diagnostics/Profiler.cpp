@@ -2,48 +2,44 @@
 #include "Core/Threading/ThreadUtils.h"
 #include "imgui/include/imgui.h"
 
-Pu::int64 Pu::Profiler::profilerTime = 0;
 static std::mutex lock;
+
+static inline Pu::int64 sec_to_ms(float sec)
+{
+	return static_cast<Pu::int64>(sec * 1000.0f);
+}
 
 void Pu::Profiler::Begin(const string & category, Color color)
 {
-	Stopwatch sw = Stopwatch::StartNew();
 	lock.lock();
 
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
 	GetInstance().BeginInternal(category, color, _CrtGetCurrentThreadId());
 
 	lock.unlock();
-	profilerTime += sw.Milliseconds();
 }
 
 void Pu::Profiler::End(void)
 {
-	Stopwatch sw = Stopwatch::StartNew();
 	lock.lock();
 
 	/* We need the thread ID to make sure we end the correct section. */
 	GetInstance().EndInternal(_CrtGetCurrentThreadId());
 
 	lock.unlock();
-	profilerTime += sw.Milliseconds();
 }
 
 void Pu::Profiler::Add(const string & category, Color color, int64 time)
 {
-	Stopwatch sw = Stopwatch::StartNew();
 	lock.lock();
 
 	GetInstance().AddInternal(category, color, time);
 
 	lock.unlock();
-	profilerTime += sw.Milliseconds();
 }
 
 void Pu::Profiler::Visualize(void)
 {
-	Add("Profiler", Color::Gray(), profilerTime);
-
 	lock.lock();
 	GetInstance().VisualizeInternal();
 	lock.unlock();
@@ -51,14 +47,14 @@ void Pu::Profiler::Visualize(void)
 
 void Pu::Profiler::SetTargetFrameTime(float fps)
 {
-	GetInstance().max = fps * 10000.0f;
+	GetInstance().target = sec_to_ms(fps);
 }
 
 Pu::Profiler::Profiler(void)
-	: spacing(8.0f), length(10), max(recip(60.0f) * 10000.0f)
+	: spacing(8.0f), length(10), target(sec_to_ms(recip(60.0f)))
 {
 	height = ImGui::GetIO().FontGlobalScale * 10.0f;
-	offset = ImGui::GetIO().FontGlobalScale * 200.0f;
+	offset = ImGui::GetIO().FontGlobalScale * 250.0f;
 }
 
 Pu::Profiler & Pu::Profiler::GetInstance(void)
@@ -107,7 +103,6 @@ void Pu::Profiler::EndInternal(uint64 thread)
 void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 {
 	/* Search if the category already exists. */
-	size_t i = 0;
 	for (auto &[cat, clr, total] : categories)
 	{
 		if (cat == category)
@@ -133,22 +128,13 @@ void Pu::Profiler::VisualizeInternal(void)
 
 		for (const auto &[category, color, ms] : categories)
 		{
-			/* Create a random color for the bar. */
-			const ImColor clr = ImColor(color.R, color.G, color.B);
-
-			/* Render the category tag. */
-			ImGui::TextColored(clr, "%s - %ums", category.c_str(), ms);
-
-			/* Render the bar. */
-			const float x1 = x0 + ms * length;
-			gfx->AddRectFilled(ImVec2(x0, start.y), ImVec2(x1, start.y + height), clr);
-			x0 = x1;
+			/* Render the text and bar. */
+			x0 = DrawBarAndText(gfx, start.y, x0, ms, color, category);
 		}
 
 		/* Render the target framerate. */
-		const float x1 = max * length + offset;
 		const float y1 = start.y + height + spacing;
-		gfx->AddRectFilled(ImVec2(maxStart, y1), ImVec2(x1, y1 + height), IM_COL32_WHITE);
+		DrawBar(gfx, y1, maxStart, target, Color::White());
 
 		/* Render the profiler controls. */
 		ImGui::Dummy(ImVec2(0.0f, height * 2.0f));
@@ -164,5 +150,17 @@ void Pu::Profiler::VisualizeInternal(void)
 	}
 
 	categories.clear();
-	profilerTime = 0;
+}
+
+float Pu::Profiler::DrawBarAndText(ImDrawList * drawList, float y, float x0, int64 time, Color clr, const string & txt)
+{
+	ImGui::TextColored(clr.ToVector4(), "%s - %ums", txt.c_str(), time);
+	return DrawBar(drawList, y, x0, time, clr);
+}
+
+float Pu::Profiler::DrawBar(ImDrawList * drawList, float y, float x0, int64 time, Color clr)
+{
+	const float x1 = x0 + time * length;
+	drawList->AddRectFilled(ImVec2(x0, y), ImVec2(x1, y + height), ImColor(clr));
+	return x1;
 }

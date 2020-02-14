@@ -12,7 +12,7 @@
 //-----------------------------------------------------------------------------
 
 #pragma once
-#include "Core/Math/Vector4.h"
+#include "Graphics/Color.h"
 #include "Graphics/Vulkan/VulkanObjects.h"
 
 //---- Define assertion handler. Defaults to calling assert().
@@ -56,14 +56,18 @@
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.
 
 #define IM_VEC2_CLASS_EXTRA																							\
-        ImVec2(const Pu::Vector2& f) { x = f.X; y = f.Y; }															\
+        ImVec2(const Pu::Vector2 &f) { x = f.X; y = f.Y; }															\
         operator Pu::Vector2() const { return Pu::Vector2(x,y); }													\
-		ImVec2(const Pu::Extent2D& f) { x = static_cast<float>(f.Width); y = static_cast<float>(f.Height); }		\
+		ImVec2(const Pu::Extent2D &f) { x = static_cast<float>(f.Width); y = static_cast<float>(f.Height); }		\
 		operator Pu::Extent2D() const { return Pu::Extent2D(static_cast<uint32_t>(x), static_cast<uint32_t>(y)); }
 
 #define IM_VEC4_CLASS_EXTRA																							\
-        ImVec4(const Pu::Vector4& f) { x = f.X; y = f.Y; z = f.Z; w = f.W; }										\
+        ImVec4(const Pu::Vector4 &f) { x = f.X; y = f.Y; z = f.Z; w = f.W; }										\
         operator Pu::Vector4() const { return Pu::Vector4(x,y,z,w); }
+
+#define IM_CLR_CLASS_EXTRA																							\
+		ImColor(const Pu::Color &clr) { Value = clr.ToVector4(); }													\
+		operator Pu::Color() const { return Pu::Color(Value); }
 
 
 //---- Use 32-bit vertex indices (default is 16-bit) to allow meshes with more than 64K vertices. Render function needs to support it.

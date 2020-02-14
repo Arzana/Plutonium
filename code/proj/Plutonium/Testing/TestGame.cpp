@@ -32,12 +32,14 @@ void TestGame::Initialize(void)
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 	GetWindow().GetNative().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
+
+	queries = new QueryPool(GetDevice(), QueryType::Timestamp, 4);
 }
 
 void TestGame::LoadContent(void)
 {
 	Profiler::Begin("Loading", Color::Cyan());
-	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
+	const string file = FileReader(L"assets/Models/Shark.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -104,6 +106,8 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
+	delete queries;
+
 	if (depthBuffer)
 	{
 		delete depthBuffer;
@@ -210,9 +214,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	uint32 drawCalls = 0, batchCalls = 0;
-	Profiler::Begin("Render (CPU)", Color::Blue());
+	Profiler::Add("Light Probe Update (GPU)", Color::Green(), queries->GetTimeDelta(0, false) * 0.000001f);
+	Profiler::Add("Render (GPU)", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.000001f);
 
+	cmd.ResetQueries(*queries);
 	probeRenderer->Start(*environment, cmd);
+	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 0);
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
@@ -220,6 +227,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		++drawCalls;
 		++batchCalls;
 	}
+	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 1);
 	probeRenderer->End(*environment, cmd);
 
 	cam->Update(dt * updateCam, cmd);
@@ -232,6 +240,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.BindGraphicsDescriptor(*gfxPipeline, *light);
 	cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
 
+	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 2);
 	cmd.AddLabel("Model", Color::Blue());
 	uint32 oldMat = -1;
 	for (const auto[matIdx, mesh] : meshes)
@@ -251,8 +260,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 	}
 	cmd.EndLabel();
+	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 3);
 	cmd.EndRenderPass();
-
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -264,7 +273,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 
-	Profiler::End();
 	Profiler::Visualize();
 }
 

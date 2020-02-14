@@ -124,8 +124,10 @@ namespace Pu
 		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
 		/* Starts an occlusion query. */
 		void BeginOcclusionQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex, _In_opt_ QueryControlFlag flags = QueryControlFlag::None);
-		/* Ends a query. */
+		/* Ends an occlusion query. */
 		void EndQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex);
+		/* Resets all queries in a query pool. */
+		void ResetQueries(_In_ QueryPool &pool);
 		/* Sets the viewport information for a graphics pipeline with dynamic state viewports. */
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */

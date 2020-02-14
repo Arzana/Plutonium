@@ -36,6 +36,7 @@ namespace Pu
 
 		LogicalDevice *parent;
 		QueryPoolHndl hndl;
+		uint32 count;
 
 		void Destroy(void);
 	};

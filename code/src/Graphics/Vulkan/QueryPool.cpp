@@ -2,21 +2,21 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, QueryType type, size_t count)
-	: parent(&device)
+	: parent(&device), count(static_cast<uint32>(count))
 {
 	const QueryPoolCreateInfo createInfo(type, static_cast<uint32>(count));
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, size_t count, QueryPipelineStatisticFlag statistics)
-	: parent(&device)
+	: parent(&device), count(static_cast<uint32>(count))
 {
 	const QueryPoolCreateInfo createInfo(QueryType::PipelineStatistics, static_cast<uint32>(count), statistics);
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
 Pu::QueryPool::QueryPool(QueryPool && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), count(value.count)
 {
 	value.hndl = nullptr;
 }
@@ -29,6 +29,7 @@ Pu::QueryPool & Pu::QueryPool::operator=(QueryPool && other)
 
 		parent = other.parent;
 		hndl = other.hndl;
+		count = other.count;
 
 		other.hndl = nullptr;
 	}

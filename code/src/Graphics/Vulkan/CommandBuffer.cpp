@@ -345,6 +345,12 @@ void Pu::CommandBuffer::EndQuery(QueryPool & pool, uint32 queryIndex)
 	device->vkCmdEndQuery(hndl, pool.hndl, queryIndex);
 }
 
+void Pu::CommandBuffer::ResetQueries(QueryPool & pool)
+{
+	DbgCheckIfRecording("reset query pool");
+	device->vkCmdResetQueryPool(hndl, pool.hndl, 0, pool.count);
+}
+
 void Pu::CommandBuffer::SetViewport(const Viewport& viewport)
 {
 	DbgCheckIfRecording("set viewport");
