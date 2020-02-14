@@ -2,19 +2,18 @@
 #include <Input/Keys.h>
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Graphics/VertexLayouts/SkinnedAnimated.h>
+#include <Graphics/VertexLayouts/Basic3D.h>
+#include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
 using namespace Pu;
-
-Stopwatch sw;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.03f)*/), dbgRenderer(nullptr)
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f)), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -37,8 +36,8 @@ void TestGame::Initialize(void)
 
 void TestGame::LoadContent(void)
 {
-	sw.Start();
-	const string file = FileReader(L"assets/Models/Shark.pum").ReadToEnd();
+	Profiler::Begin("Loading", Color::Cyan());
+	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -181,8 +180,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		defMat.SetOcclusion(*textures[textures.size() - 3]);
 		defMat.Update(cmd);
 
-		sw.End();
-		Log::Message("Finished loading, took %f seconds.", sw.SecondsAccurate());
+		Profiler::End();
 	}
 
 	if (ImGui::Begin("Light Editor"))
@@ -212,6 +210,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	uint32 drawCalls = 0, batchCalls = 0;
+	Profiler::Begin("Render (CPU)", Color::Blue());
 
 	probeRenderer->Start(*environment, cmd);
 	for (const auto[matIdx, mesh] : meshes)
@@ -254,6 +253,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.EndLabel();
 	cmd.EndRenderPass();
 
+
 	if (ImGui::BeginMainMenuBar())
 	{
 		ImGui::Text("Draw Calls: %u (%u batches)", drawCalls, batchCalls);
@@ -263,6 +263,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
+
+	Profiler::End();
+	Profiler::Visualize();
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
@@ -327,9 +330,9 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 	pass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	pass.AddDepthStencil().SetDescription(*depthBuffer);
 
-	pass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
-	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+	pass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
+	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
 }
 
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
@@ -362,8 +365,7 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->AddVertexBinding<SkinnedAnimated>(0);
-	gfxPipeline->SetCullMode(CullModeFlag::None);
+	gfxPipeline->AddVertexBinding<Basic3D>(0);
 
 	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();

@@ -8,6 +8,8 @@ namespace Pu
 	class Stopwatch
 	{
 	public:
+		/* Specifies the type of clock used. */
+		using clock_t = std::chrono::high_resolution_clock;
 
 		/* Initializes a new instance of a stopwatch. */
 		Stopwatch(void)
@@ -32,7 +34,7 @@ namespace Pu
 			if (startCalled) Log::Warning("Calling Start on stopwatch before calling end!");
 			startCalled = true;
 #endif
-			start = clock::now();
+			start = clock_t::now();
 		}
 
 		/* Stops the measuring. */
@@ -42,7 +44,7 @@ namespace Pu
 			if (!startCalled) Log::Warning("Calling End on stopwatch before calling Start!");
 #endif
 			endCalled = true;
-			end = clock::now();
+			end = clock_t::now();
 		}
 
 		/* Resets the stopwatch making it ready to be used again. */
@@ -52,8 +54,8 @@ namespace Pu
 			startCalled = false;
 #endif
 			endCalled = false;
-			start = clock::time_point();
-			end = clock::time_point();
+			start = clock_t::time_point();
+			end = clock_t::time_point();
 		}
 
 		/* Restarts the stopwatch reseting the timer and starting time measuring. */
@@ -63,8 +65,8 @@ namespace Pu
 			startCalled = true;
 #endif
 			endCalled = false;
-			start = clock::now();
-			end = clock::time_point();
+			start = clock_t::now();
+			end = clock_t::time_point();
 		}
 
 		/* Gets the amount of nanoseconds since End was called or now. */
@@ -104,9 +106,7 @@ namespace Pu
 		}
 
 	private:
-		using clock = std::chrono::high_resolution_clock;
-
-		clock::time_point start, end;
+		clock_t::time_point start, end;
 		bool endCalled;
 #ifdef _DEBUG
 		bool startCalled;
@@ -120,7 +120,7 @@ namespace Pu
 			if (!startCalled) Log::Warning("Cannot get time of stopwatch that hasn't been started!");
 #endif
 
-			return std::chrono::duration_cast<duration_t>((endCalled ? end : clock::now()) - start).count();
+			return std::chrono::duration_cast<duration_t>((endCalled ? end : clock_t::now()) - start).count();
 		}
 	};
 }

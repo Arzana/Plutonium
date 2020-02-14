@@ -4,6 +4,7 @@
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Memory.h"
+#include "Core/Diagnostics/Profiler.h"
 #include <imgui/include/imgui.h>
 
 #ifdef _WIN32
@@ -26,6 +27,7 @@ Pu::Application::Application(const wstring & name, size_t threadCount)
 		IMGUI_CHECKVERSION();
 #endif
 		ImGui::CreateContext();
+		Profiler::SetTargetFrameTime(ApplicationFocusedTargetTime);
 	}
 }
 
@@ -95,6 +97,13 @@ void Pu::Application::RemoveComponent(Component & component)
 			return;
 		}
 	}
+}
+
+void Pu::Application::SetTargetTimeStep(int32 hertz)
+{
+	targetElapTimeFocused = 1.0f / hertz;
+	Profiler::SetTargetFrameTime(targetElapTimeFocused);
+	targetElapTimeBackground = min(targetElapTimeFocused, targetElapTimeBackground);
 }
 
 void Pu::Application::InitializePlutonium(void)

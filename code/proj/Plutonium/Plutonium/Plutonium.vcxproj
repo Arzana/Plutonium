@@ -116,6 +116,7 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Profiler.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h" />
     <ClInclude Include="..\..\..\include\Core\EnumUtils.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Profiler.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\StackTrace.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
