@@ -152,10 +152,16 @@ namespace Pu
 			return Matrix(c, -s, 0.0f, 0.0f, s, c, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		}
 
-		/* Create a 2D world matrix from the specified parameters. */
+		/* Creates a 2D world matrix from the specified parameters. */
 		_Check_return_ static inline Matrix CreateWorld(_In_ Vector2 pos, _In_ float theta, _In_ Vector2 scale)
 		{
 			return Matrix::CreateTranslation(pos.X, pos.Y, 0.0f) * Matrix::CreateRoll(theta) * Matrix::CreateScalar(scale.X, scale.Y, 1.0f);
+		}
+
+		/* Creates a 3D world matrix from the specified parameters. */
+		_Check_return_ static inline Matrix CreateWorld(_In_ Vector3 pos, _In_ Quaternion orientation, _In_ Vector3 scale)
+		{
+			return Matrix::CreateTranslation(pos) * Matrix::CreateRotation(orientation) * Matrix::CreateScalar(scale);
 		}
 
 		/* Creates an orthographics projection matrix (assumes left and bottom are at [0,0]). */

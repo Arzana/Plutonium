@@ -181,6 +181,11 @@ void Pu::BinaryWriter::Pad(size_t bytes, byte value)
 	size += bytes;
 }
 
+void Pu::BinaryWriter::Align(size_t alignment)
+{
+	Pad(size % alignment);
+}
+
 void Pu::BinaryWriter::EnsureCapacity(size_t requiredAddition)
 {
 	if (capacity - size < requiredAddition)
