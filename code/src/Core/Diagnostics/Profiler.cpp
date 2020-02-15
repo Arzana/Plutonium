@@ -1,4 +1,4 @@
-#include "Core/Diagnostics/Profiler.h"
+﻿#include "Core/Diagnostics/Profiler.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "imgui/include/imgui.h"
 
@@ -6,7 +6,7 @@ static std::mutex lock;
 
 static inline Pu::int64 sec_to_ms(float sec)
 {
-	return static_cast<Pu::int64>(sec * 1000.0f);
+	return static_cast<Pu::int64>(sec * 1000000.0f);
 }
 
 void Pu::Profiler::Begin(const string & category, Color color)
@@ -51,7 +51,7 @@ void Pu::Profiler::SetTargetFrameTime(float fps)
 }
 
 Pu::Profiler::Profiler(void)
-	: spacing(8.0f), length(10), target(sec_to_ms(recip(60.0f)))
+	: spacing(8.0f), length(0.05f), target(sec_to_ms(recip(60.0f)))
 {
 	height = ImGui::GetIO().FontGlobalScale * 10.0f;
 	offset = ImGui::GetIO().FontGlobalScale * 250.0f;
@@ -92,7 +92,7 @@ void Pu::Profiler::EndInternal(uint64 thread)
 	if (it == activeThreads.end()) Log::Fatal("Profiler cannot end a section that hasn't started!");
 
 	/* Get the time and the category, then remove the entry.  */
-	const int64 time = it->second.second.Milliseconds();
+	const int64 time = it->second.second.Microseconds();
 	const size_t category = it->second.first;
 	activeThreads.erase(it);
 
@@ -136,16 +136,6 @@ void Pu::Profiler::VisualizeInternal(void)
 		const float y1 = start.y + height + spacing;
 		DrawBar(gfx, y1, maxStart, target, Color::White());
 
-		/* Render the profiler controls. */
-		ImGui::Dummy(ImVec2(0.0f, height * 2.0f));
-		ImGui::Separator();
-		ImGui::PushItemWidth(offset);
-
-		ImGui::SliderFloat("Spacing", &spacing, 0.0f, 10.0f, "%.1f");
-		ImGui::SliderFloat("Height", &height, 1.0f, 100.0f, "%.1f");
-		ImGui::SliderFloat("Length", &length, 5.0f, 100.0f, "%.1f");
-		ImGui::PopItemWidth();
-
 		ImGui::End();
 	}
 
@@ -154,7 +144,7 @@ void Pu::Profiler::VisualizeInternal(void)
 
 float Pu::Profiler::DrawBarAndText(ImDrawList * drawList, float y, float x0, int64 time, Color clr, const string & txt)
 {
-	ImGui::TextColored(clr.ToVector4(), "%s - %ums", txt.c_str(), time);
+	ImGui::TextColored(clr.ToVector4(), "%s - %uus", txt.c_str(), time);
 	return DrawBar(drawList, y, x0, time, clr);
 }
 

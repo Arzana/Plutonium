@@ -526,6 +526,16 @@ namespace Pu
 		ExtensionProperties(void)
 			: ExtensionName("Invalid"), SpecVersion(makeVersion(0, 0, 0))
 		{}
+
+		/* Gets a string version of the extension. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result = ExtensionName;
+			result += " (";
+			result += string::from(getMajor(SpecVersion)) += '.';
+			result += string::from(getMinor(SpecVersion)) += '.';
+			return result + string::from(getPatch(SpecVersion)) + ')';
+		}
 	};
 
 	/* Defines the properties of a layer. */
@@ -546,6 +556,16 @@ namespace Pu
 			: LayerName(u8"Invalid"), SpecVersion(makeVersion(0, 0, 0)),
 			ImplementationVersion(makeVersion(0, 0, 0)), Description(u8"")
 		{}
+
+		/* Gets a string version of the layer. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result = LayerName;
+			result += " (";
+			result += string::from(getMajor(ImplementationVersion)) += '.';
+			result += string::from(getMinor(ImplementationVersion)) += '.';
+			return result + string::from(getPatch(ImplementationVersion)) + ')';
+		}
 	};
 
 	/* Defines information about a queue family. */
