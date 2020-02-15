@@ -2,7 +2,7 @@
 #include <Input/Keys.h>
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Graphics/VertexLayouts/Basic3D.h>
+#include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
@@ -39,7 +39,7 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	Profiler::Begin("Loading", Color::Cyan());
-	const string file = FileReader(L"assets/Models/Shark.pum").ReadToEnd();
+	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
 
@@ -338,9 +338,9 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 	pass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
 	pass.AddDepthStencil().SetDescription(*depthBuffer);
 
-	pass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
-	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	pass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
+	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
 }
 
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
@@ -373,7 +373,7 @@ void TestGame::CreateGraphicsPipeline(void)
 	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
 	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
 	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->AddVertexBinding<Basic3D>(0);
+	gfxPipeline->AddVertexBinding(0, meshes.front().second->GetStride());
 
 	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
 	gfxPipeline->Finalize();

@@ -32,6 +32,12 @@ namespace Pu
 			return size / stride;
 		}
 
+		/* Gets the stride (in bytes) of the elements in this buffer view. */
+		_Check_return_ inline size_t GetStride(void) const
+		{
+			return stride;
+		}
+
 	private:
 		friend class BufferAccessor;
 		friend class CommandBuffer;
