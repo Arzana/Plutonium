@@ -3,6 +3,7 @@
 #include "imgui/include/imgui.h"
 
 static std::mutex lock;
+static Pu::Stopwatch timer;
 
 static inline Pu::int64 sec_to_ms(float sec)
 {
@@ -50,11 +51,20 @@ void Pu::Profiler::SetTargetFrameTime(float fps)
 	GetInstance().target = sec_to_ms(fps);
 }
 
+void Pu::Profiler::SetInterval(float value)
+{
+	lock.lock();
+	GetInstance().interval = fabs(value);
+	lock.unlock();
+}
+
 Pu::Profiler::Profiler(void)
-	: spacing(8.0f), length(0.05f), target(sec_to_ms(recip(60.0f)))
+	: spacing(8.0f), length(0.05f), target(sec_to_ms(recip(60.0f))),
+	interval(1.0f), ticks(1)
 {
 	height = ImGui::GetIO().FontGlobalScale * 10.0f;
 	offset = ImGui::GetIO().FontGlobalScale * 250.0f;
+	timer.Start();
 }
 
 Pu::Profiler & Pu::Profiler::GetInstance(void)
@@ -69,7 +79,7 @@ void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 th
 
 	/* Check if the category already exists, if so just start a stopwatch. */
 	size_t i = 0;
-	for (const auto &[cat, clr, total] : categories) 
+	for (const auto &[cat, clr, total] : cpuSections)
 	{
 		if (cat == category)
 		{
@@ -81,7 +91,7 @@ void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 th
 	}
 
 	/* The category was not found, so add it and start a new timer. */
-	categories.emplace_back(std::make_tuple(category, color, 0));
+	cpuSections.emplace_back(std::make_tuple(category, color, 0));
 	activeThreads.emplace(thread, std::make_pair(i, Stopwatch::StartNew()));
 }
 
@@ -97,13 +107,13 @@ void Pu::Profiler::EndInternal(uint64 thread)
 	activeThreads.erase(it);
 
 	/* Add the total time to the category list. */
-	std::get<2>(categories[category]) += time;
+	std::get<2>(cpuSections[category]) += time;
 }
 
 void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 {
 	/* Search if the category already exists. */
-	for (auto &[cat, clr, total] : categories)
+	for (auto &[cat, clr, total] : gpuSections)
 	{
 		if (cat == category)
 		{
@@ -113,33 +123,53 @@ void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 	}
 
 	/* Add the category with the specified time if it doesn't exist yet. */
-	categories.emplace_back(std::make_tuple(category, color, time));
+	gpuSections.emplace_back(std::make_tuple(category, color, time));
 }
 
 void Pu::Profiler::VisualizeInternal(void)
 {
 	if (ImGui::Begin("Profiler"))
 	{
-		ImDrawList *gfx = ImGui::GetWindowDrawList();
-		const ImVec2 start = ImGui::GetCursorScreenPos();
-
-		float x0 = start.x + offset;
-		const float maxStart = x0;
-
-		for (const auto &[category, color, ms] : categories)
-		{
-			/* Render the text and bar. */
-			x0 = DrawBarAndText(gfx, start.y, x0, ms, color, category);
-		}
-
-		/* Render the target framerate. */
-		const float y1 = start.y + height + spacing;
-		DrawBar(gfx, y1, maxStart, target, Color::White());
-
+		RenderSections(cpuSections, "CPU", true);
+		ImGui::Separator();
+		RenderSections(gpuSections, "GPU", false);
 		ImGui::End();
 	}
 
-	categories.clear();
+	if (timer.SecondsAccurate() >= interval)
+	{
+		timer.Restart();
+		ticks = 1;
+
+		/* Always clear all of the sections, to make sure that we don't overload after the window is minimized. */
+		cpuSections.clear();
+		gpuSections.clear();
+	}
+	else ticks++;
+}
+
+void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * type, bool addDummy)
+{
+	ImGui::Text(type);
+
+	ImDrawList *gfx = ImGui::GetWindowDrawList();
+	const ImVec2 start = ImGui::GetCursorScreenPos();
+
+	float x0 = start.x + offset;
+	const float maxStart = x0;
+
+	for (const auto &[category, color, ms] : sections)
+	{
+		/* Render the text and bar. */
+		x0 = DrawBarAndText(gfx, start.y, x0, ms / ticks, color, category);
+	}
+
+	/* We need to add some empty space for the white bar if it's not the last bar. */
+	if (addDummy) ImGui::Dummy(ImVec2(0.0f, height));
+
+	/* Render the target framerate. */
+	const float y1 = start.y + (height + spacing) * !sections.empty();
+	DrawBar(gfx, y1, maxStart, target, Color::White());
 }
 
 float Pu::Profiler::DrawBarAndText(ImDrawList * drawList, float y, float x0, int64 time, Color clr, const string & txt)

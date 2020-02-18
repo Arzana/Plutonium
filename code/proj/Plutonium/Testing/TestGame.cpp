@@ -214,10 +214,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	uint32 drawCalls = 0, batchCalls = 0;
-	Profiler::Add("Light Probe Update (GPU)", Color::Green(), queries->GetTimeDelta(0, false) * 0.000001f);
-	Profiler::Add("Render (GPU)", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.000001f);
-
+	Profiler::Add("Light Probe Update", Color::Green(), queries->GetTimeDelta(0, false) * 0.001f);
+	Profiler::Add("Render", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.001f);
 	cmd.ResetQueries(*queries);
+
+	Profiler::Begin("Light Probe Update", Color::Green());
 	probeRenderer->Start(*environment, cmd);
 	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 0);
 	for (const auto[matIdx, mesh] : meshes)
@@ -229,10 +230,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 1);
 	probeRenderer->End(*environment, cmd);
+	Profiler::End();
 
 	cam->Update(dt * updateCam, cmd);
 	light->Update(cmd);
 
+	Profiler::Begin("Render", Color::Yellow());
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
 	cmd.BindGraphicsPipeline(*gfxPipeline);
 
@@ -262,6 +265,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.EndLabel();
 	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 3);
 	cmd.EndRenderPass();
+	Profiler::End();
 
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -273,6 +277,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 
+	
 	Profiler::Visualize();
 }
 
