@@ -272,6 +272,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::Text("Draw Calls: %u (%u batches)", drawCalls, batchCalls);
 		ImGui::Separator();
 		ImGui::Text("%d FPS", iround(recip(dt)));
+
+		DeviceSize used;
+		if (GetDevice().GetPhysicalDevice().TryGetUsedDeviceLocalBytes(used))
+		{
+			DeviceSize max = GetDevice().GetPhysicalDevice().GetDeviceLocalBytes();
+
+			ImGui::Separator();
+			ImGui::Text("GPU memory %u/%u", b2mb(used), b2mb(max));
+		}
+
 		ImGui::EndMainMenuBar();
 	}
 

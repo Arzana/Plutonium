@@ -150,6 +150,8 @@ namespace Pu
 		DebugUtilsObjectNameInfoExt = 1000128000,
 		DebugUtilsMessangerCallbackDataExt = 1000128003,
 		DebugUtilsMessengerCreateInfoExt = 1000128004,
+		PhysicalDeviceMemoryBudgetPropertiesExt = 1000237000,
+		PhysicalDeviceMemoryProperties2 = 1000059006
 	};
 
 	/* Defines the lifetime of a system allocation. */

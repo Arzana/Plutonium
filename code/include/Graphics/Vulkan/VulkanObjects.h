@@ -2722,6 +2722,28 @@ namespace Pu
 		{}
 	};
 
+	/* Defines a chain structure for getting extended memory properties for a phsyical device. */
+	struct PhysicalDeviceMemoryProperties2
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the non-extended memory properties. */
+		PhysicalDeviceMemoryProperties MemoryProperties;
+
+		/* Initializes an empty instance of the physical device memory properties object. */
+		PhysicalDeviceMemoryProperties2(void)
+			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(nullptr)
+		{}
+
+		/* Initializes an instance of the physical device memory properties object. */
+		PhysicalDeviceMemoryProperties2(const void *next)
+			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(next)
+		{}
+	};
+
 	/* Defines the information required to allocate memory on a physical device. */
 	struct MemoryAllocateInfo
 	{
@@ -3284,6 +3306,25 @@ namespace Pu
 		PipelineCacheCreateInfo(_In_ size_t size, _In_ const void *data)
 			: Type(StructureType::PipelineCacheCreateInfo), Next(nullptr), Flags(0),
 			InitialDataSize(size), InitialData(data)
+		{}
+	};
+
+	/* Defines information about the available and used memory heaps. */
+	struct PhysicalDeviceMemoryBudgetProperties
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies a rough estimate of the maximum memory that can be allocated from each individual memory heap. */
+		DeviceSize HeapBudget[MaxMemoryHeaps];
+		/* Specifies an estimate of the current heap usage by the process. */
+		DeviceSize HeapUsage[MaxMemoryHeaps];
+
+		/* Initializes an empty instance of a physical device memory budget properties object. */
+		PhysicalDeviceMemoryBudgetProperties(void)
+			: Type(StructureType::PhysicalDeviceMemoryBudgetPropertiesExt), Next(nullptr)
 		{}
 	};
 

@@ -128,6 +128,7 @@ void Pu::Application::InitializeVulkan(void)
 	/* 
 	Create the Vulkan instance, we need the surface extensions for the native window. 
 	Additional color spaces are nice to support but we can do with just sRGB.
+	Additional information about physical devices can also come in handy, but it's not needed.
 	*/
 	instance = new VulkanInstance(name.toUTF8().c_str(),
 		{
@@ -140,7 +141,8 @@ void Pu::Application::InitializeVulkan(void)
 #endif
 		},
 		{
-			u8"VK_EXT_swapchain_colorspace"
+			u8"VK_EXT_swapchain_colorspace",
+			u8"VK_KHR_get_physical_device_properties2"
 		});
 
 	/* Create the native window. */

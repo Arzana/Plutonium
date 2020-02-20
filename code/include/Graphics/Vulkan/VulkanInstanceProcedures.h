@@ -126,6 +126,7 @@ namespace Pu
 	extern PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
 	extern PFN_vkMergePipelineCaches vkMergePipelineCaches;
 	extern PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
+	extern PFN_vkGetPhysicalDeviceMemoryProperties2KHR vkGetPhysicalDeviceMemoryProperties2KHR;
 
 #ifdef _WIN32
 	extern PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
