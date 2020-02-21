@@ -30,7 +30,7 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 void TestGame::Initialize(void)
 {
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
-	GetWindow().GetNative().SetMode(WindowMode::Borderless);
+	GetWindow().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 
 	queries = new QueryPool(GetDevice(), QueryType::Timestamp, 4);

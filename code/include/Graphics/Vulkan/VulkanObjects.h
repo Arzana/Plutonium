@@ -3341,8 +3341,13 @@ namespace Pu
 
 		/* Initializes a new instance of a surface full-screen exclusive info object. */
 		SurfaceFullScreenExclusiveInfoExt(void)
+			: SurfaceFullScreenExclusiveInfoExt(FullScreenExclusive::Default)
+		{}
+
+		/* Initializes a new instance of a surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveInfoExt(_In_ Pu::FullScreenExclusive mode)
 			: Type(StructureType::SurfaceFullScreenExclusiveInfoExt), Next(nullptr),
-			FullScreenExclusive(FullScreenExclusive::Default)
+			FullScreenExclusive(mode)
 		{}
 	};
 

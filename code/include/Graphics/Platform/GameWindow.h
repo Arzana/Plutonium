@@ -44,6 +44,8 @@ namespace Pu
 		void SetColorSpace(_In_ ColorSpace colorSpace);
 		/* Sets the color space and format used by the window. */
 		void SetColorSpace(_In_ const SurfaceFormat &format);
+		/* Sets the display mode of the window. */
+		void SetMode(_In_ WindowMode mode);
 
 		/* Converts viewport coordinates to clip space coordinates linearly using an orthographics projection. */
 		_Check_return_ inline Vector4 ToLinearClipSpace(_In_ Vector4 v) const
@@ -109,6 +111,7 @@ namespace Pu
 		uint32 curImgIdx;
 		Matrix ortho;
 		bool swapchainOutOfDate;
+		FullScreenExclusive fullScreen;
 
 		RenderPassHndl imGuiRenderPass;
 		DescriptorPoolHndl imGuiDescriptorPool;
@@ -118,6 +121,8 @@ namespace Pu
 		mutable vector<SurfaceFormat> supportedFormats;
 		std::map<RenderPassHndl, vector<Framebuffer*>> framebuffers;
 
+		void ReleaseFullScreen(void);
+		void AquireFullScreen(void);
 		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
 		void ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs &args);
 		void CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall);

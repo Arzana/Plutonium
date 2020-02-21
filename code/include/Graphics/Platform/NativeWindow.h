@@ -42,10 +42,14 @@ namespace Pu
 		_Check_return_ virtual const Viewport& GetClientBounds(void) const = 0;
 		/* Gets the position of the window relative the monitor. */
 		_Check_return_ virtual Vector2 GetPosition(void) const = 0;
-		/* Gets the current mode of the window. */
-		_Check_return_ virtual WindowMode GetWindowMode(void) const = 0;
 		/* Gets whether the window has focus. */
 		_Check_return_ virtual bool HasFocus(void) const = 0;
+
+		/* Gets the current mode of the window. */
+		_Check_return_ inline WindowMode GetWindowMode(void) const
+		{
+			return mode;
+		}
 
 		/* Gets the size of the window. */
 		_Check_return_ inline Extent2D GetSize(void) const
@@ -99,6 +103,8 @@ namespace Pu
 		bool shouldSuppressRender;
 		/* Defines the surface associated with this window (NativeWindow doesn't take ownership!). */
 		Surface *surface;
+		/* Defines the current mode of the window. */
+		WindowMode mode;
 
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);

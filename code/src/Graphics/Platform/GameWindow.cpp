@@ -16,7 +16,7 @@ static void ImGuiVkValidate(VkApiResult result)
 }
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr),
+	: native(native), device(device), swapchain(nullptr), fullScreen(FullScreenExclusive::Disallowed),
 	SwapchainRecreated("GameWindowSwapchainRecreated"), swapchainOutOfDate(false)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
@@ -163,12 +163,62 @@ void Pu::GameWindow::SetColorSpace(const SurfaceFormat & format)
 		if (format == checkFormat)
 		{
 			Log::Warning("Changing window format and color space, this might cause loag!");
-			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs(false, true, false));
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs{ false, true, false });
 			return;
 		}
 	}
 
 	Log::Warning("Format %s is not supported by the surface!", ((string)format).c_str());
+}
+
+void Pu::GameWindow::SetMode(WindowMode mode)
+{
+	/* Only update if needed. */
+	if (mode != native.mode)
+	{
+		/* We need to reset the swapchain if the old mode was fullscreen. */
+		if (native.mode == WindowMode::Fullscreen) ReleaseFullScreen();
+
+		if (mode == WindowMode::Fullscreen)
+		{
+			/* Full-screen mode is handled by Vulkan, other modes are handled by the OS. */
+			native.mode = mode;
+			AquireFullScreen();
+		}
+		else native.SetMode(mode);
+	}
+}
+
+void Pu::GameWindow::ReleaseFullScreen(void)
+{
+	/* Check if application controlled full-screen is supported, if so we can use a simple function. */
+	if (native.surface->IsExclusiveFullScreenSupported(*device.parent, native.GetDisplay()))
+	{
+		fullScreen = FullScreenExclusive::ApplicationControlled;
+		device.vkReleaseFullScreenExclusiveModeEXT(device.hndl, swapchain->hndl);
+	}
+	else
+	{
+		/* Otherwise we have to recreate the swapchain. */
+		fullScreen = FullScreenExclusive::Disallowed;
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
+	}
+}
+
+void Pu::GameWindow::AquireFullScreen(void)
+{
+	/* We can use a simple function is application controlled full-screen is supported. */
+	if (native.surface->IsExclusiveFullScreenSupported(*device.parent, native.GetDisplay()))
+	{
+		fullScreen = FullScreenExclusive::ApplicationControlled;
+		device.vkAcquireFullScreenExclusiveModeEXT(device.hndl, swapchain->hndl);
+	}
+	else
+	{
+		/* Otherwise we have to recreate the swapchain. */
+		fullScreen = FullScreenExclusive::Default;
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
+	}
 }
 
 void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChangedEventArgs<Vector2> args)
@@ -177,7 +227,7 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 	if (swapchain)
 	{
 		Log::Warning("Window is being resized, this might cause lag!");
-		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, SwapchainReCreatedEventArgs(true, false, false));
+		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, SwapchainReCreatedEventArgs{ true, false, false });
 	}
 }
 
@@ -207,6 +257,13 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 	info.ImageFormat = format.Format;
 	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
 	if (swapchain) info.OldSwapChain = swapchain->hndl;
+
+	/* Add the fullscreen information if the extension is supported. */
+	if (device.parent->exclusiveFullScreenSupported)
+	{
+		SurfaceFullScreenExclusiveInfoExt fullScreenInfo{ fullScreen };
+		info.Next = &fullScreenInfo;
+	}
 
 	/* Create new swapchain or replace the old one. */
 	if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);

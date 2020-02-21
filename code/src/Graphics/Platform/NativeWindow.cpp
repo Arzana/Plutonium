@@ -5,5 +5,5 @@ Pu::NativeWindow::NativeWindow(void)
 	OnLocationChanged("NativeWindowLocationChanged"),
 	OnGainedFocus("NativeWindowGainedFocus"),
 	OnLostFocus("NativeWindowLoseFocus"),
-	shouldSuppressRender(false)
+	shouldSuppressRender(false), mode(WindowMode::Windowed)
 {}
