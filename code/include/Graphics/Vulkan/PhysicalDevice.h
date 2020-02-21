@@ -131,6 +131,18 @@ namespace Pu
 			return properties.SparseProperties.ResidencyNonResidentStrict;
 		}
 
+		/* Gets the Vulkan instance of this physical device. */
+		_Check_return_ inline const VulkanInstance& GetInstance(void) const
+		{
+			return *parent;
+		}
+
+		/* Gets the Vulkan instance of this physical device. */
+		_Check_return_ inline VulkanInstance& GetInstance(void)
+		{
+			return *parent;
+		}
+
 	private:
 		friend class VulkanInstance;
 		friend class LogicalDevice;
@@ -146,7 +158,7 @@ namespace Pu
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceFeatures features;
 		PhysicalDeviceMemoryProperties memory;
-		bool canQueryMemoryUsage;
+		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 

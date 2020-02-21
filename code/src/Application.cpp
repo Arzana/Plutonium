@@ -142,7 +142,8 @@ void Pu::Application::InitializeVulkan(void)
 		},
 		{
 			u8"VK_EXT_swapchain_colorspace",
-			u8"VK_KHR_get_physical_device_properties2"
+			u8"VK_KHR_get_physical_device_properties2",
+			u8"VK_KHR_get_surface_capabilities2"
 		});
 
 	/* Create the native window. */

@@ -66,6 +66,12 @@ namespace Pu
 			return Display::GetDisplayAt(GetClientBounds().GetPosition());
 		}
 
+		/* Gets the surface associated with this window. */
+		_Check_return_ inline const Surface& GetSurface(void) const
+		{
+			return *surface;
+		}
+
 		/* Resizes the window to the specified size. */
 		inline void Resize(_In_ float width, _In_ float height)
 		{
@@ -89,13 +95,14 @@ namespace Pu
 		friend class GameWindow;
 		friend class Application;
 
+		/* Defines whether the next render call should be suppressed. */
 		bool shouldSuppressRender;
+		/* Defines the surface associated with this window (NativeWindow doesn't take ownership!). */
+		Surface *surface;
 
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);
 
-		/* Gets the surface to render to. */
-		_Check_return_ virtual Surface& GetSurface(void) = 0;
 		/* Updates the window, returns whether the window should remain active. */
 		_Check_return_ virtual bool Update(void) = 0;
 	};

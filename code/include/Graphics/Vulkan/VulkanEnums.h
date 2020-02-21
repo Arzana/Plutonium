@@ -79,7 +79,9 @@ namespace Pu
 		/* A descriptor pool creation has failed due to fragmentation. */
 		FragmentationExt = -1000161000,
 		/* The command was not permitted. */
-		NotPermittedExt = -1000174001
+		NotPermittedExt = -1000174001,
+		/* An operation on a fullscreen swapchain failed as it didn't have exclusive sullscreen access. */
+		FullScreenExclusiveModeLostExt = -1000255000
 	};
 
 	/* Defines the types of structures supported by the Vulkan API. */
@@ -146,12 +148,17 @@ namespace Pu
 		AndroidSurfaceCreateInfoKhr = 1000008000,
 		Win32SurfaceCreateInfoKhr = 1000009000,
 		DebugReportCreateInfoExt = 1000011000,
-		DebugUtilsLabelExt = 1000128002,
+		PhysicalDeviceMemoryProperties2 = 1000059006,
 		DebugUtilsObjectNameInfoExt = 1000128000,
+		DebugUtilsLabelExt = 1000128002,
 		DebugUtilsMessangerCallbackDataExt = 1000128003,
 		DebugUtilsMessengerCreateInfoExt = 1000128004,
 		PhysicalDeviceMemoryBudgetPropertiesExt = 1000237000,
-		PhysicalDeviceMemoryProperties2 = 1000059006
+		SurfaceFullScreenExclusiveInfoExt = 1000255000,
+		SurfaceFullScreenExclusiveWin32InfoExt = 1000255001,
+		SurfaceCapabilitiesFullScreenExclusiveExt = 1000255002,
+		PhysicalDeviceSurfaceInfo2Khr = 1000119000,
+		SurfaceCapabilities2Khr = 1000119001
 	};
 
 	/* Defines the lifetime of a system allocation. */
@@ -1422,8 +1429,8 @@ namespace Pu
 		Inherit = 0x00000008
 	};
 
-	/* 
-	Defines different types of color space. 
+	/*
+	Defines different types of color space.
 	https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkColorSpaceKHR.html
 	*/
 	enum class ColorSpace
@@ -1454,8 +1461,8 @@ namespace Pu
 		LinearAdobeRGB = 1000104011,
 		/* Non-linear Adobe RGB color space. */
 		AdobeRGB = 1000104012,
-		/* 
-		This is not a color space but rather a catch all scenario, 
+		/*
+		This is not a color space but rather a catch all scenario,
 		the color components are passed through to the display "as is".
 		*/
 		PassThrough = 1000104013,
@@ -1570,6 +1577,19 @@ namespace Pu
 		PushDescriptor = 0x00000001,
 		/* Specifies that descriptor sets using this layout must be allocated from a descriptor pool created with this flag. */
 		UpdateAfterBindPool = 0x00000002
+	};
+
+	/* Defines the possible methods for creating a full-screen swapchain. */
+	enum class FullScreenExclusive
+	{
+		/* Indicates that the implementation should determine the full-screen method. */
+		Default = 0,
+		/* Indicates that the implementation may use full-screen exclusive mechanisms. */
+		Allowed = 1,
+		/* Indicates that the implementation should avoid using full-screen mechanisms. */
+		Disallowed = 2,
+		/* Indicates that the application will manage full-screen exclusive modes. */
+		ApplicationControlled = 3
 	};
 
 	/* Appends the flag bits of an image usage flag. */

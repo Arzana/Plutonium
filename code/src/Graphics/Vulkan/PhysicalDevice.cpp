@@ -134,8 +134,9 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceFeatures(hndl, &features);
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 
-	/* Querying whether the extension is supported is slow, so just query it on creation. */
+	/* Querying whether the extensions are supported is slow, so just query it on creation. */
 	canQueryMemoryUsage = IsExtensionSupported(u8"VK_EXT_memory_budget");
+	exclusiveFullScreenSupported = IsExtensionSupported(u8"VK_EXT_full_screen_exclusive");
 }
 
 ImageFormatProperties Pu::PhysicalDevice::GetImageFormatProperties(const ImageCreateInfo & createInfo)

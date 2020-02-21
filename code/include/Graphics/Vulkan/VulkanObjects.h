@@ -3328,6 +3328,86 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the information about the full screen behavior. */
+	struct SurfaceFullScreenExclusiveInfoExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the preferred full-screen transition behavior. */
+		FullScreenExclusive FullScreenExclusive;
+
+		/* Initializes a new instance of a surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveInfoExt(void)
+			: Type(StructureType::SurfaceFullScreenExclusiveInfoExt), Next(nullptr),
+			FullScreenExclusive(FullScreenExclusive::Default)
+		{}
+	};
+
+	/* Defines whether exclusive full-screen capabilies are available. */
+	struct SurfaceCapabilitiesFullScreenExclusiveExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies whether the surface is able to make use of exclusive full-screen access. */
+		Bool32 FullScreenExclusiveSupported;
+
+		/* Initializes a new instance of a surface capabilities full-screen exclusive object. */
+		SurfaceCapabilitiesFullScreenExclusiveExt(void)
+			: Type(StructureType::SurfaceCapabilitiesFullScreenExclusiveExt), Next(nullptr),
+			FullScreenExclusiveSupported(false)
+		{}
+	};
+
+	/* Defines additional paremeters for swapchain creation. */
+	struct PhysicalDeviceSurfaceInfo2Khr
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the surface that will be associated with the swapchain. */
+		SurfaceHndl Surface;
+
+		/* Initializes an empty instance of the physical device surface info object. */
+		PhysicalDeviceSurfaceInfo2Khr(void)
+			: PhysicalDeviceSurfaceInfo2Khr(nullptr)
+		{}
+
+		/* Initializes a new instance of the physical device surface info object. */
+		PhysicalDeviceSurfaceInfo2Khr(_In_ SurfaceHndl surface)
+			: Type(StructureType::PhysicalDeviceSurfaceInfo2Khr),
+			Next(nullptr), Surface(surface)
+		{}
+	};
+
+	/* Defines a chain structure for getting additional surface capabilities. */
+	struct SurfaceCapabilities2Khr
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the default surface capabilities. */
+		SurfaceCapabilities SurfaceCapabilities;
+
+		/* Initializes an empty instance of a surface capabilities object. */
+		SurfaceCapabilities2Khr(void)
+			: SurfaceCapabilities2Khr(nullptr)
+		{}
+
+		/* Initializes a new instance of a surface capabilities object. */
+		SurfaceCapabilities2Khr(_In_ const void *next)
+			: Type(StructureType::SurfaceCapabilities2Khr), Next(next)
+		{}
+	};
+
 	/* Defines the region of an image blit operation. */
 	struct ImageBlit
 	{
@@ -3386,10 +3466,33 @@ namespace Pu
 			: Win32SurfaceCreateInfo(nullptr, nullptr)
 		{}
 
-		/* Initializes a new instance of te surface create info object. */
+		/* Initializes a new instance of the surface create info object. */
 		Win32SurfaceCreateInfo(_In_ HINSTANCE hinstance, _In_ HWND hwnd)
 			: Type(StructureType::Win32SurfaceCreateInfoKhr), Next(nullptr),
 			Flags(0), Instance(hinstance), Window(hwnd)
+		{}
+	};
+
+	/* Defines additional Window information about exclusive full-screen mode. */
+	struct SurfaceFullScreenExclusiveWin32InfoExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* The handle to the monitor to create the surface with. */
+		HMONITOR Monitor;
+
+		/* Initializes an empty instance of the surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveWin32InfoExt(void)
+			: SurfaceFullScreenExclusiveWin32InfoExt(nullptr)
+		{}
+
+		/* Initializes a new instance of the surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveWin32InfoExt(_In_ HMONITOR monitor)
+			: Type(StructureType::SurfaceFullScreenExclusiveWin32InfoExt), 
+			Next(nullptr), Monitor(monitor)
 		{}
 	};
 #endif

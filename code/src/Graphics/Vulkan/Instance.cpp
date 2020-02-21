@@ -285,6 +285,11 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties2KHR);
 	}
 
+	if (IsExtensionEnabled(u8"VK_KHR_get_surface_capabilities2"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceCapabilities2KHR);
+	}
+
 #ifdef _WIN32
 	if (IsExtensionEnabled(u8"VK_KHR_win32_surface"))
 	{

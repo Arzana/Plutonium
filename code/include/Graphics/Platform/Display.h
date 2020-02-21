@@ -70,6 +70,8 @@ namespace Pu
 		_Check_return_ static const vector<Display>& GetAll(void);
 
 	private:
+		friend class Surface;
+
 		static Display Empty;
 
 		wstring name;
@@ -83,6 +85,7 @@ namespace Pu
 		static void FindDisplays(void);
 
 #ifdef _WIN32
+		HMONITOR hndl;
 		static BOOL MonitorProc(HMONITOR monitor, HDC, LPRECT vp, LPARAM);
 #endif
 	};
