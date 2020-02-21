@@ -88,6 +88,11 @@ void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring & reportDir, RaiseCallb
 	}
 }
 
+void Pu::Log::SetDetails(LogDetails details)
+{
+	GetInstance().details = details;
+}
+
 void Pu::Log::SetBufferWidth(uint32 width)
 {
 #if defined(_WIN32)
@@ -309,7 +314,8 @@ void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 
 Pu::Log::Log(void)
 	: shouldAddLinePrefix(true), suppressLogging(false),
-	lastType(LogType::None), typeStr(""), reportDir(L"CrashReports\\"), callback(nullptr),
+	lastType(LogType::None), details(LogDetails::All),
+	typeStr(""), reportDir(L"CrashReports\\"), callback(nullptr),
 #ifdef _DEBUG
 	mode(RaiseMode::CrashWindow)
 #else
@@ -498,31 +504,52 @@ void Pu::Log::UpdateType(LogType type)
 
 void Pu::Log::LogLinePrefix(LogType type)
 {
-	/* Gets the current milliseconds. */
-	constexpr float nano2milli = 1.0f / 10000000.0f;
-	timespec ts;
-	timespec_get(&ts, TIME_UTC);
-	int32 millisec = static_cast<int32>(ts.tv_nsec * nano2milli);
+	bool loggedPrefix = false;
 
-	/* Attempt to get the current time. */
-	const time_t now = std::time(nullptr);
-	char buffer[100];
-	if (std::strftime(buffer, sizeof(buffer), "%H:%M:%S", std::localtime(&now)) == 0) return;
+	if (_CrtEnumCheckFlag(details, LogDetails::Timestamp))
+	{
+		/* Gets the current milliseconds. */
+		constexpr float nano2milli = 1.0f / 10000000.0f;
+		timespec ts;
+		timespec_get(&ts, TIME_UTC);
+		int32 millisec = static_cast<int32>(ts.tv_nsec * nano2milli);
+
+		/* Attempt to get the current time. */
+		const time_t now = std::time(nullptr);
+		char buffer[100];
+		if (std::strftime(buffer, sizeof(buffer), "%H:%M:%S", std::localtime(&now)) == 0) return;
+
+		printf("[%s:%02d]", buffer, millisec);
+		loggedPrefix = true;
+	}
 
 	/* Update type prefix. */
 	if (type != lastType) UpdateType(type);
 
-	/* If any of the funtions in here start to log we end up in an endless loop. */
-	suppressLogging = true;
+	if (_CrtEnumCheckFlag(details, LogDetails::Threading))
+	{
+		/* If any of the funtions in here start to log we end up in an endless loop. */
+		suppressLogging = true;
 
-	/* Get process id. */
-	const uint64 pid = _CrtGetCurrentProcessId();
-	if (processNames.find(pid) == processNames.end()) processNames.emplace(pid, _CrtGetProcessNameFromId(pid));
+		/* Get process id. */
+		const uint64 pid = _CrtGetCurrentProcessId();
+		if (processNames.find(pid) == processNames.end()) processNames.emplace(pid, _CrtGetProcessNameFromId(pid));
 
-	/* Get thread id. */
-	const uint64 tid = _CrtGetCurrentThreadId();
-	if (threadNames.find(tid) == threadNames.end()) threadNames.emplace(tid, _CrtGetThreadNameFromId(tid));
+		/* Get thread id. */
+		const uint64 tid = _CrtGetCurrentThreadId();
+		if (threadNames.find(tid) == threadNames.end()) threadNames.emplace(tid, _CrtGetThreadNameFromId(tid));
+		suppressLogging = false;
 
-	printf("[%s:%02d][%ls/%ls][%s]: ", buffer, millisec, processNames[pid].c_str(), threadNames[tid].c_str(), typeStr);
-	suppressLogging = false;
+		printf("[%ls/%ls]", processNames[pid].c_str(), threadNames[tid].c_str());
+		loggedPrefix = true;
+	}
+
+	if (_CrtEnumCheckFlag(details, LogDetails::Type))
+	{
+		printf("[%s]", typeStr);
+		loggedPrefix = true;
+	}
+
+	/* Add a litte seperator if we logged any prefix. */
+	if (loggedPrefix) printf(": ");
 }

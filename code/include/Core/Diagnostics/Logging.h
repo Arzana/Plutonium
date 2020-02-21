@@ -37,6 +37,21 @@ namespace Pu
 		Custom
 	};
 
+	/* Defines which parts of the log to display. */
+	enum class LogDetails
+	{
+		/* Display no additional information than the message. */
+		None = 0,
+		/* Displays the timestamp of the log message. */
+		Timestamp = 1,
+		/* Displays the thread and process ID. */
+		Threading = 2,
+		/* Displays the log type. */
+		Type = 4,
+		/* Displays all optional log details. */
+		All = 7
+	};
+
 	/* Defines the custom callback signature used for custom raise callbacks. */
 	using RaiseCallback = void(*)(_In_ const char *format, _In_ va_list args);
 
@@ -67,6 +82,8 @@ namespace Pu
 		callback is only used if the mode is Custom.
 		*/
 		static void SetRaiseMode(_In_ RaiseMode mode, _In_opt_ const wstring &reportDir = nullptr, _In_opt_ RaiseCallback callback = nullptr);
+		/* Set the details of the log messages. */
+		static void SetDetails(_In_  LogDetails details);
 		/* Makes sure that the output buffer is large enough to fit strings with the specified length. */
 		static void SetBufferWidth(_In_ uint32 width);
 		/* Moves the output window to a specified location. */
@@ -95,6 +112,7 @@ namespace Pu
 		const char *typeStr;
 
 		RaiseMode mode;
+		LogDetails details;
 		wstring reportDir;
 		RaiseCallback callback;
 

@@ -20,6 +20,7 @@
     <CustomBuild
       Sources="@(PuModel)"
       MinimalRebuildFromTracking="True"
-      TrackerLogDirectory="$(IntDir)$(ProjectName).tlog\"/>
+      TrackerLogDirectory="$(IntDir)$(ProjectName).tlog\"
+      ErrorListRegex="\[(?'CATEGORY'Error|Warning)\]: (?'TEXT'.*)"/>
   </Target>
 </Project>

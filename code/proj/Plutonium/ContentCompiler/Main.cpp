@@ -145,6 +145,9 @@ int main(int argc, char **argv)
 {
 	try
 	{
+		/* We only show the type, this is easy to put into a MSBuild error regex. */
+		Log::SetDetails(LogDetails::Type);
+
 		vector<string> args;
 		args.reserve(argc);
 
