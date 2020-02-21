@@ -27,6 +27,7 @@ void Pu::_CrtPuThreadStart(uint32 id, const wstring & name)
 	Lock the thread buffer to make sure we don't mess up between threads.
 	Using a lock because this operation should always be fast and doesn't need atmoic optimization.
 	*/
+	bool found = false;
 	bufferLock.lock();
 
 	for (PuThread *cur : activeThreads)
@@ -35,22 +36,40 @@ void Pu::_CrtPuThreadStart(uint32 id, const wstring & name)
 		{
 			/* Unlock the buffer because we found our thread. */
 			bufferLock.unlock();
+			found = true;
 
 			/* Wait for the thread to be started. */
 			while (!cur->started.load()) PuThread::Sleep(ThreadStartWaitInterval);
 
 			/* Launch the thread object's main. */
 			cur->_CrtPuThreadMain();
-
-			/* Make sure the object's stop indintifier is set, might cause problems with detach. */
-			cur->stopped.store(true);
-			return;
+			break;
 		}
 	}
 
-	/* Couldn't find thread in buffer, this should never occur! */
-	bufferLock.unlock();
-	Log::Error("Unable to find thread object for thread %zu (%lu)!", id, _CrtGetCurrentThreadId());
+	/* The vector might have been resized after we've ran the thread, so re-get the actual thread. */
+	if (found)
+	{
+		bufferLock.lock();
+
+		for (PuThread *cur : activeThreads)
+		{
+			if (cur->id == id)
+			{
+				/* Make sure the object's stop indintifier is set, might cause problems with detach. */
+				cur->stopped.store(true);
+				break;
+			}
+		}
+
+		bufferLock.unlock();
+	}
+	else
+	{
+		/* Couldn't find thread in buffer, this should never occur! */
+		bufferLock.unlock();
+		Log::Error("Unable to find thread object for thread %zu (%lu)!", id, _CrtGetCurrentThreadId());
+	}
 }
 
 Pu::PuThread::PuThread(const wstring & name)
@@ -71,14 +90,14 @@ Pu::PuThread::PuThread(const wstring & name)
 
 Pu::PuThread::~PuThread(void) noexcept
 {
+	/* Wait for the thread to end and delete thread object. */
+	Wait();
+	delete thread;
+
 	/* Safely remove the thread from the buffer. */
 	bufferLock.lock();
 	activeThreads.remove(this);
 	bufferLock.unlock();
-
-	/* Wait for the thread to end and delete thread object. */
-	Wait();
-	delete thread;
 }
 
 void Pu::PuThread::Start(void)
