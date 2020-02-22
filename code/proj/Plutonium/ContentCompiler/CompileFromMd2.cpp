@@ -369,13 +369,10 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 {
 	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]{1,2})");
 
-	/*
-	MD2 doesn't have nodes but will always have one mesh.
-	So we just add a single controllable node with a reference to that mesh.
-	*/
-	pum_node node;
-	node.SetMesh(0);
-	result.Nodes.emplace_back(node);
+	/* The Y of Md2 models is inverted from Plutoniums Y, so add a rotation global root node to fix it. */
+	pum_node root;
+	root.SetRotation(Quaternion::CreateRotation(0.0f, 0.0f, PI));
+	result.Nodes.emplace_back(root);
 
 	/* Convert the name to UTF-32 and enable linear for the filters. */
 	for (const string &path : input.textures)

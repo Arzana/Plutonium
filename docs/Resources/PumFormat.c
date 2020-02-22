@@ -46,7 +46,10 @@ struct Color
 /*
 A node is a point in the model file that can be represented by a transform in the local space.
 The only thing it needs are the child count and children (if the child count > 0).
-Al other things are only present if their flag is set.
+All other things are only present if their flag is set.
+Unlike GLTF nodes, PuM nodes aren't needed to render a mesh,
+if a mesh isn't attached to a node then the mesh will be rendered with either the root node transform,
+or no transform (if no root node was present).
 The flags currently contain the following values:
 	- 0x01: whether a mesh index is present.
 	- 0x02: whether a skin index is present.

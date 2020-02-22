@@ -504,7 +504,9 @@ void Pu::Log::UpdateType(LogType type)
 
 void Pu::Log::LogLinePrefix(LogType type)
 {
+	/* Update type prefix. */
 	bool loggedPrefix = false;
+	if (type != lastType) UpdateType(type);
 
 	if (_CrtEnumCheckFlag(details, LogDetails::Timestamp))
 	{
@@ -522,9 +524,6 @@ void Pu::Log::LogLinePrefix(LogType type)
 		printf("[%s:%02d]", buffer, millisec);
 		loggedPrefix = true;
 	}
-
-	/* Update type prefix. */
-	if (type != lastType) UpdateType(type);
 
 	if (_CrtEnumCheckFlag(details, LogDetails::Threading))
 	{

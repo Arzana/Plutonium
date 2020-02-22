@@ -13,7 +13,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.03f)), dbgRenderer(nullptr)
+	markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.05f)*/), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -46,6 +46,7 @@ void TestGame::LoadContent(void)
 	stagingBuffer = mdl.Buffer;
 	vrtxBuffer = new Buffer(GetDevice(), stagingBuffer->GetSize(), BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer, false);
 	stageMaterials = std::move(mdl.Materials);
+	nodes = std::move(mdl.Nodes);
 
 	for (const PumMesh &mesh : mdl.Geometry)
 	{
@@ -66,7 +67,7 @@ void TestGame::LoadContent(void)
 
 	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256, 256));
-	environment->SetPosition(Vector3(15.0f, 4.0f, 4.5f));
+	environment->SetPosition(Vector3(3.88f, 1.37f, 1.11f));
 
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
@@ -198,9 +199,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		Vector3 dir = light->GetDirection();
 		if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir.X, dir.Y, dir.Z);
 
-		Vector3 pos = environment->GetPosition();
-		if (ImGui::SliderFloat3("Light Probe Position", pos.f, -25.0f, 25.0f)) environment->SetPosition(pos);
-
 		float contrast = cam->GetContrast();
 		if (ImGui::SliderFloat("Contrast", &contrast, 0.0f, 10.0f)) cam->SetContrast(contrast);
 
@@ -213,6 +211,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
+	vector<Matrix> nodeTransforms{ nodes.size() };
+	if (!nodeTransforms.empty()) SetNodeTransform(nodeTransforms, 0, mdlMtrx);
+
 	uint32 drawCalls = 0, batchCalls = 0;
 	Profiler::Add("Light Probe Update", Color::Green(), queries->GetTimeDelta(0, false) * 0.001f);
 	Profiler::Add("Render", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.001f);
@@ -221,13 +222,17 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	Profiler::Begin("Light Probe Update", Color::Green());
 	probeRenderer->Start(*environment, cmd);
 	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 0);
+	size_t i = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
+		const Matrix transform = GetMeshTransform(nodeTransforms, i++);
+
 		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
-		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), mdlMtrx, cmd);
+		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), transform, cmd);
 		++drawCalls;
 		++batchCalls;
 	}
+	i = 0;
 	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 1);
 	probeRenderer->End(*environment, cmd);
 	Profiler::End();
@@ -241,19 +246,24 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	cmd.BindGraphicsDescriptor(*gfxPipeline, *cam);
 	cmd.BindGraphicsDescriptor(*gfxPipeline, *light);
-	cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), mdlMtrx.GetComponents());
 
 	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 2);
 	cmd.AddLabel("Model", Color::Blue());
 	uint32 oldMat = -1;
+
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * mdlMtrx))
+		const Matrix transform = GetMeshTransform(nodeTransforms, i++);
+		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * transform))
 		{
+			cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
+			//dbgRenderer->AddBox(mesh->GetBoundingBox(), transform, Color::Yellow());
+
 			++drawCalls;
 			if (matIdx != oldMat)
 			{
-				cmd.BindGraphicsDescriptor(*gfxPipeline, matIdx != -1 ? *materials[matIdx] : *materials.back());
+				const Material &material = *(matIdx != -1 ? materials[matIdx] : materials.back());
+				cmd.BindGraphicsDescriptor(*gfxPipeline, material);
 				oldMat = matIdx;
 				++batchCalls;
 			}
@@ -262,6 +272,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			mesh->Draw(cmd);
 		}
 	}
+
 	cmd.EndLabel();
 	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 3);
 	cmd.EndRenderPass();
@@ -287,8 +298,33 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 
-	
+
 	Profiler::Visualize();
+}
+
+void TestGame::SetNodeTransform(vector<Matrix>& transforms, size_t idx, const Matrix & parent) const
+{
+	const PumNode &node = nodes[idx];
+	const Matrix transform = parent * node.GetTransform();
+	transforms[idx] = transform;
+
+	for (size_t child : node.Children)
+	{
+		SetNodeTransform(transforms, child, transform);
+	}
+}
+
+Matrix TestGame::GetMeshTransform(vector<Matrix>& nodeTransforms, size_t idx) const
+{
+	if (nodeTransforms.empty()) return Matrix{};
+
+	for (size_t i = 0; i < nodes.size(); i++)
+	{
+		const PumNode &node = nodes[i];
+		if (node.HasMesh && node.Mesh == idx) return nodeTransforms[i];
+	}
+
+	return nodeTransforms.front();
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
@@ -365,7 +401,7 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 
 	descPoolCam = new DescriptorPool(*gfxPipeline, pass, 0, 1);
 	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, GetInput());
-	cam->Move(0.0f, 5.0f, -3.0f);
+	cam->Move(0.0f, 1.0f, -1.0f);
 	cam->Yaw = PI2;
 
 	descPoolLight = new DescriptorPool(*gfxPipeline, pass, 2, 1);

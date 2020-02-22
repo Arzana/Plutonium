@@ -27,6 +27,15 @@ Pu::PumNode::PumNode(BinaryReader & reader)
 	if (HasScale) Scale = reader.ReadVector3();
 }
 
+Pu::Matrix Pu::PumNode::GetTransform(void) const
+{
+	Matrix result;
+	if (HasTranslation) result *= Matrix::CreateTranslation(Translation);
+	if (HasRotation) result *= Matrix::CreateRotation(Rotation);
+	if (HasScale) result *= Matrix::CreateScalar(Scale);
+	return result;
+}
+
 Pu::PumMesh::PumMesh(void)
 	: HasMaterial(false), HasNormals(false), HasTangents(false), HasTextureCoordinates(false),
 	HasColors(false), JointType(PumJointType::None), Topology(PrimitiveTopology::PointList),

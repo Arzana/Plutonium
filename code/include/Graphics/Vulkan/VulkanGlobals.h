@@ -40,7 +40,7 @@ namespace Pu
 	}
 
 	/* Defines the current Vulkan API version. */
-	constexpr uint32 VulkanVersion = makeVersion(1, 0, 3);
+	constexpr uint32 VulkanVersion = makeVersion(1, 1, 104);
 
 	/* Defines the type of generic flags. */
 	using Flags = uint32;
