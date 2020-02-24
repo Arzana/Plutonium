@@ -702,9 +702,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\PushConstant.h">
       <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
-      <Filter>Header Files\Graphics\Platform\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureCube.h">
       <Filter>Header Files\Graphics\Textures</Filter>
     </ClInclude>
@@ -764,6 +761,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Profiler.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h">
+      <Filter>Header Files\Graphics\Platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

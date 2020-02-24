@@ -1,5 +1,4 @@
 #include "TestGame.h"
-#include <Input/Keys.h>
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
@@ -13,7 +12,7 @@ TestGame::TestGame(void)
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
 	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.05f)*/), dbgRenderer(nullptr)
+	markDepthBuffer(true), mdlMtrx(), dbgRenderer(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -42,6 +41,12 @@ void TestGame::LoadContent(void)
 	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
+
+	animated = false;
+	for (const PumAnimation &anim : mdl.Animations)
+	{
+		if (anim.IsMorphAnimation) animated = true;
+	}
 
 	stagingBuffer = mdl.Buffer;
 	vrtxBuffer = new Buffer(GetDevice(), stagingBuffer->GetSize(), BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer | BufferUsageFlag::IndexBuffer, false);
@@ -136,7 +141,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		if (probeRenderer->IsUsable())
 		{
-			probePool = probeRenderer->CreateDescriptorPool(static_cast<uint32>(materials.size()));
+			probePool = probeRenderer->CreateDescriptorPool(static_cast<uint32>(stageMaterials.size()));
 			const Descriptor &diffuseDescriptor = probeRenderer->GetDiffuseDescriptor();
 
 			for (const PumMaterial &mat : stageMaterials)
@@ -270,6 +275,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			mesh->Bind(cmd, 0);
 			mesh->Draw(cmd);
+			if (animated) break;
 		}
 	}
 

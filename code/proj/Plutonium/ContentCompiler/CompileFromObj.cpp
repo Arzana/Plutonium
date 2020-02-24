@@ -96,7 +96,7 @@ bool PushShapeIfNeeded(ObjLoaderResult &result, ObjLoaderMesh &curMesh, bool kee
 	/* Check if current mesh has data. */
 	if (!(curMesh.Name.empty() || curMesh.Indices.empty()))
 	{
-		if (curMesh.Material == -1) Log::Warning("Pushing shape '%s' with no material defined!", curMesh.Name.c_str());
+		if (curMesh.Material == -1) Log::Verbose("Pushing shape '%s' with no material defined!", curMesh.Name.c_str());
 
 		/* Push old mesh. */
 		result.Shapes.emplace_back(curMesh);
@@ -406,7 +406,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult &result, Obj
 				const size_t oldMtlIdx = curMesh.Material;
 				if (PushShapeIfNeeded(result, curMesh, true))
 				{
-					Log::Warning("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh.Name.c_str(), result.Materials[oldMtlIdx].Name.c_str(), line);
+					Log::Verbose("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh.Name.c_str(), result.Materials[oldMtlIdx].Name.c_str(), line);
 				}
 			}
 
@@ -663,7 +663,7 @@ inline void HandleIllumModelLine(const char *line, ObjLoaderMaterial &curMateria
 inline void HandleDissolveLine(const char *line, ObjLoaderMaterial &curMaterial, bool &hasd, bool &hastr)
 {
 	const float value = ParseFloat(line);
-	if (hastr && curMaterial.Dissolve != value) Log::Warning("Both 'd' and 'Tr' are defined within material '%s' using value of 'd' for dissolve!", curMaterial.Name.c_str());
+	if (hastr && curMaterial.Dissolve != value) Log::Verbose("Both 'd' and 'Tr' are defined within material '%s' using value of 'd' for dissolve!", curMaterial.Name.c_str());
 
 	hasd = true;
 	curMaterial.Dissolve = value;
@@ -675,7 +675,7 @@ inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial &curMa
 	const float value = 1.0f - ParseFloat(line);
 	if (hasd)
 	{
-		if(curMaterial.Dissolve != value) Log::Warning("Both 'd' and 'Tr' are defined within material '%s', using value of 'd' for dissolve!", curMaterial.Name.c_str());
+		if(curMaterial.Dissolve != value) Log::Verbose("Both 'd' and 'Tr' are defined within material '%s', using value of 'd' for dissolve!", curMaterial.Name.c_str());
 	}
 	else
 	{

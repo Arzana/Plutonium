@@ -117,7 +117,7 @@ struct pum_mesh
 		return result;
 	}
 
-	inline size_t GetStride(void) const
+	inline size_t GetVrtxStride(void) const
 	{
 		return sizeof(Pu::Vector3) + 
 			(sizeof(Pu::Vector3) * HasNormals) +
@@ -126,6 +126,16 @@ struct pum_mesh
 			(sizeof(Pu::uint32) * HasVertexColors) +
 			(sizeof(Pu::uint32) * HasJoints) +
 			(sizeof(Pu::Vector4) * (HasJoints != 0));
+	}
+
+	inline size_t GetIdxStride(void) const
+	{
+		return (IndexMode * 2 + 2) * (IndexMode != 2);
+	}
+
+	inline size_t GetIndexCount(void) const
+	{
+		return (IndexViewSize >> (IndexMode + 1)) * (IndexMode != 2);
 	}
 };
 

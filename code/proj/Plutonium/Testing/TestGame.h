@@ -53,6 +53,7 @@ private:
 	Pu::vector<Pu::Texture2D*> textures;
 	Pu::vector<Pu::PumMaterial> stageMaterials;
 	Pu::vector<Pu::PumNode> nodes;
+	bool animated;
 
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *light;

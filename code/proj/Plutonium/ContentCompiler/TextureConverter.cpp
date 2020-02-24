@@ -1,5 +1,6 @@
 #include "TextureConverter.h"
 #include <Streams/FileWriter.h>
+#include <Streams/FileReader.h>
 #include <Content/AssetSaver.h>
 #include <Content/AssetFetcher.h>
 #include <Graphics/Vulkan/Instance.h>
@@ -212,7 +213,6 @@ static const uint32 FRAGMENT_SHADER[] =
 constexpr uint32 DEFAULT_INDEX = maxv<uint32>();
 VulkanInstance *instance = nullptr;
 LogicalDevice *device = nullptr;
-TaskScheduler *scheduler = nullptr;
 AssetFetcher *loader = nullptr;
 AssetSaver *saver = nullptr;
 Shader *vrtxShader = nullptr, *fragShader = nullptr;
@@ -250,8 +250,12 @@ size_t DiskCopyTextures(PumIntermediate &data, const wstring &wdir, const ustrin
 			const ustring dstName = ldir + texture.Identifier.fileName();
 
 			/* Let the OS copy the file over, we just set a new name in the intermediate. */
-			FileWriter::CopyFile(srcPath, dstPath);
-			texture.Identifier = dstName;
+			if (FileReader::FileExists(srcPath))
+			{
+				FileWriter::CopyFile(srcPath, dstPath);
+				texture.Identifier = dstName;
+			}
+			else Log::Warning("Texture file '%ls' could not be found!", srcName.c_str());
 		}
 	}
 
@@ -259,7 +263,7 @@ size_t DiskCopyTextures(PumIntermediate &data, const wstring &wdir, const ustrin
 	return result;
 }
 
-bool InitializeVulkan(size_t maxSets)
+bool InitializeVulkan(size_t maxSets, TaskScheduler &scheduler)
 {
 	/* Create the Vulkan instance. */
 	instance = new VulkanInstance("Plutonium Content Compiler");
@@ -296,10 +300,9 @@ bool InitializeVulkan(size_t maxSets)
 		}
 	}
 
-	/* Create the task scheduler and the asset loader for the image load process. */
-	scheduler = new TaskScheduler();
-	loader = new AssetFetcher(*scheduler, *device);
-	saver = new AssetSaver(*scheduler, *device);
+	/* Create the asset loader for the image load process. */
+	loader = new AssetFetcher(scheduler, *device);
+	saver = new AssetSaver(scheduler, *device);
 	saver->OnAssetSaved += [](const AssetSaver&, const Image&) { imageSaveCnt++; };
 
 	/* Create the shaders needed for the conversion. */
@@ -361,7 +364,6 @@ void FinalizeVulkan()
 
 	delete saver;
 	delete loader;
-	delete scheduler;
 	delete device;
 }
 
@@ -679,7 +681,7 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 	for (pum_material &mat : data.Materials) setCnt += !mat.IsFinalized;
 
 	/* Make sure that we only start the conversion if all the component were properly created. */
-	if (InitializeVulkan(setCnt))
+	if (InitializeVulkan(setCnt, *args.Scheduluer))
 	{
 		ConvertTextures(data, wdir, ldir);
 		FinalizeVulkan();

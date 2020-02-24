@@ -229,7 +229,11 @@ int CompileToPum(const CLArgs & args)
 		return EXIT_FAILURE;
 	}
 
-	if (args.RecalcTangents) GenerateTangents(data);
+	if (args.RecalcTangents)
+	{
+		/* Early out if the generation failed somehow. */
+		if (GenerateTangents(data, args) == EXIT_FAILURE) return EXIT_FAILURE;
+	}
 
 	CopyAndConvertMaterials(data, args);
 	SavePumToFile(args, data);

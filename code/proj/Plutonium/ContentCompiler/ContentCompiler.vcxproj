@@ -92,6 +92,7 @@
     <ClCompile Include="CompileFromMd2.cpp" />
     <ClCompile Include="CompileFromObj.cpp" />
     <ClCompile Include="CompileToPum.cpp" />
+    <ClCompile Include="IndicesGenerator.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="TangentGenerator.cpp" />
     <ClCompile Include="TextureConverter.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="CompileFromMd2.h" />
     <ClInclude Include="CompileFromObj.h" />
     <ClInclude Include="CompileToPum.h" />
+    <ClInclude Include="IndicesGenerator.h" />
     <ClInclude Include="PumData.h" />
     <ClInclude Include="TangentGenerator.h" />
     <ClInclude Include="TextureConverter.h" />

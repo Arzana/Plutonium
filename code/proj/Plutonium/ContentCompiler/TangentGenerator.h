@@ -1,4 +1,5 @@
 #pragma once
 #include "PumData.h"
+#include "CommandLineArguments.h"
 
-void GenerateTangents(PumIntermediate &data);
+int GenerateTangents(PumIntermediate &data, const CLArgs &args);

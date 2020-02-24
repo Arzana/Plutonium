@@ -387,7 +387,19 @@ void HandleJsonMeshPrimitives(const json &primitives, GLTFMesh &mesh)
 					else if (upperType == "WEIGHTS_0")
 					{
 						if (idx.is_number_unsigned()) primitive.Attributes.emplace(GLTFPrimitiveAttribute::Weights, idx);
-						else LogCorruptJsonHeader("mesh primitive wiehgts isn't a valid index");
+						else LogCorruptJsonHeader("mesh primitive weights isn't a valid index");
+					}
+					else
+					{
+						if (idx.is_number_unsigned())
+						{
+							/* Log the mesh name if it is already loaded (might not be the case). */
+							if (mesh.Name.empty()) Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute!", type.c_str());
+							else Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute in mesh '%s'!", type.c_str(), mesh.Name.c_str());
+
+							primitive.Attributes.emplace(GLTFPrimitiveAttribute::Other, idx);
+						}
+						else LogCorruptJsonHeader("unknonw mesh primitive isn't a valid index");
 					}
 				}
 			}
@@ -1026,6 +1038,7 @@ void HandleJsonBufferViews(const json &bufferViews, GLTFLoaderResult &file)
 		buffer:			The associated buffer index.
 		byteLength:		The amount of byte.
 		byteOffset:		The start of the data.
+		byteStride:		The stride of the vertex data (optional by GLTF, required by Plutonium, so we calculate it ourselves).
 		target:			The OpenGL target (not used)
 		*/
 		for (const auto&[key, val] : cur.items())
@@ -1128,6 +1141,9 @@ void LoadJsonGLTF(const string &source, GLTFLoaderResult &file)
 		else if (elementType == "BUFFERS") HandleJsonBuffers(val, file);
 		else
 		{
+			/* Skip any extension indicators, we just ignore those. */
+			if (elementType == "EXTENSIONSUSED" || elementType == "EXTENSIONSREQUIRED") continue;
+
 			/* Just log a warning for all unhandled types. */
 			Log::Warning("Unable to handle element type '%s' in GLTF header at this point!", elementType.c_str());
 		}
@@ -1188,7 +1204,7 @@ size_t CopyMeshAttribute(const vector<string> &bufferData, byte *destination, si
 		const size_t attribSize = accessor.GetElementSize();
 		const char *data = bufferData[view.Buffer].data();
 
-		/* Copy the data. */
+		/* Copy the data (interleaved). */
 		for (size_t i = 0, j = view.Start + accessor.Start; i < accessor.Count; i++, j += attribSize, offset += stride)
 		{
 			memcpy(destination + offset, data + j, attribSize);
@@ -1243,6 +1259,8 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 			{
 				const GLTFAccessor &accessor = input.Accessors[cur.Indices];
 				const GLTFBufferView &view = input.BufferViews[accessor.BufferView];
+
+				result.Data.Align(accessor.GetElementSize());
 				mesh.IndexViewStart = result.Data.GetSize();
 				mesh.IndexViewSize = view.Length - accessor.Start;
 
@@ -1256,7 +1274,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 				else if (accessor.ComponentType == GlTfComponentType::UInt32) mesh.IndexMode = 1;
 				else if (accessor.ComponentType == GlTfComponentType::UInt8)
 				{
-					Log::Warning("Primitive in mesh '%s' uses non Vulkan supported index type (UInt8), converting to UInt16!", glMesh.Name.c_str());
+					Log::Verbose("Primitive in mesh '%s' uses non Vulkan supported index type (UInt8), converting to UInt16!", glMesh.Name.c_str());
 					mesh.IndexMode = 0;
 					mesh.IndexViewSize <<= 1;
 
@@ -1309,19 +1327,27 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 					mesh.HasTextureUvs = true;
 					break;
 				case GLTFPrimitiveAttribute::TexCoord2:
-					Log::Warning("Plutonium models cannot have more than 1 set of texture coordiantes!");
+					Log::Warning("Plutonium models cannot have more than 1 set of texture coordinates!");
 					increaseStride = false;
 					break;
 				case GLTFPrimitiveAttribute::Color:
 					mesh.HasVertexColors = true;
 					break;
-				case GLTFPrimitiveAttribute::Joints:
+				case GLTFPrimitiveAttribute::Joints:	// Weights are handled by the default case.
 					if (accessor.ComponentType == GlTfComponentType::UInt8) mesh.HasJoints = 1;
 					else if (accessor.ComponentType == GlTfComponentType::UInt16) mesh.HasJoints = 2;
+					else Log::Warning("Invalid joint component type is used!");
+					break;
+				case GLTFPrimitiveAttribute::Other:
+					/* Ignore any attributes that we don't handle. */
+					increaseStride = false;
 					break;
 				}
 
-				/* The 2nd texture coordinates should not affect our vertex stride and buffer size. */
+				/*
+				Additional attributes should not affect our vertex stride and buffer size.
+				The view might also specify a stride for use, if this is the case; just use that.
+				*/
 				if (increaseStride)
 				{
 					mesh.VertexViewSize += view.Length - accessor.Start;
@@ -1330,14 +1356,12 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 			}
 
 			/* Copy the actual vertex data to the output buffer. */
-			mesh.VertexViewStart = result.Data.GetSize();
 			byte *tmp = reinterpret_cast<byte*>(malloc(mesh.VertexViewSize));
 			size_t offset = 0;
 
 			/* Make sure that the mesh starts at a alligned offset. */
-			const size_t zeroBytes = mesh.VertexViewStart % vrtxStrideBytes;
-			result.Data.Pad(zeroBytes);
-			mesh.VertexViewStart += zeroBytes;
+			result.Data.Align(vrtxStrideBytes);
+			mesh.VertexViewStart = result.Data.GetSize();
 
 			offset += CopyMeshAttribute(bufferData, tmp, offset, vrtxStrideBytes, input, cur, GLTFPrimitiveAttribute::Position);
 			offset += CopyMeshAttribute(bufferData, tmp, offset, vrtxStrideBytes, input, cur, GLTFPrimitiveAttribute::Normal);
