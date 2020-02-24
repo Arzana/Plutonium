@@ -268,6 +268,12 @@ namespace Pu
 		return v / v.Length();
 	}
 
+	/* Checks if two vectors are equal with a specfied error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ Vector2 v, _In_ Vector2 w, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyeql(v.X, w.X, tolerance) && nrlyeql(v.Y, w.Y, tolerance);
+	}
+
 	/* Calculates the prep dot product of the two specified vectors. */
 	_Check_return_ inline float prepdot(_In_ Vector2 v, _In_ Vector2 w)
 	{

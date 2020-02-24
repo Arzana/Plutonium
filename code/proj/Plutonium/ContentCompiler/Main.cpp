@@ -133,6 +133,9 @@ int run(const vector<string> &args)
 		return EXIT_FAILURE;
 	}
 
+	/* Set the user parameter to the file name, so we can use it in MSBuild. */
+	Log::SetUserInfo(finalArgs.Input.fileName());
+
 	if (finalArgs.Type == ContentType::PUM) return CompileToPum(finalArgs);
 	else
 	{

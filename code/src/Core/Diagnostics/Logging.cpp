@@ -93,6 +93,13 @@ void Pu::Log::SetDetails(LogDetails details)
 	GetInstance().details = details;
 }
 
+void Pu::Log::SetUserInfo(const string & info)
+{
+	Log &instance = GetInstance();
+	instance.userInfo = info;
+	instance.details = _CrtEnumAddFlag(instance.details, LogDetails::UserInfo);
+}
+
 void Pu::Log::SetBufferWidth(uint32 width)
 {
 #if defined(_WIN32)
@@ -314,7 +321,7 @@ void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 
 Pu::Log::Log(void)
 	: shouldAddLinePrefix(true), suppressLogging(false),
-	lastType(LogType::None), details(LogDetails::All),
+	lastType(LogType::None), details(LogDetails::Default),
 	typeStr(""), reportDir(L"CrashReports\\"), callback(nullptr),
 #ifdef _DEBUG
 	mode(RaiseMode::CrashWindow)
@@ -546,6 +553,12 @@ void Pu::Log::LogLinePrefix(LogType type)
 	if (_CrtEnumCheckFlag(details, LogDetails::Type))
 	{
 		printf("[%s]", typeStr);
+		loggedPrefix = true;
+	}
+
+	if (_CrtEnumCheckFlag(details, LogDetails::UserInfo))
+	{
+		printf("[%s]", userInfo.c_str());
 		loggedPrefix = true;
 	}
 

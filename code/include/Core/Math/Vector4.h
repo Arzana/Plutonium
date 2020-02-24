@@ -254,6 +254,12 @@ namespace Pu
 		return v / v.Length();
 	}
 
+	/* Checks if two vectors are equal with a specfied error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ Vector4 v, _In_ Vector4 w, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyeql(v.X, w.X, tolerance) && nrlyeql(v.Y, w.Y, tolerance) && nrlyeql(v.Z, w.Z) && nrlyeql(v.W, w.W);
+	}
+
 	/* Gets the sign of each component of the input vector. */
 	_Check_return_ inline Vector4 sign(_In_ Vector4 v)
 	{

@@ -21,6 +21,6 @@
       Sources="@(PuModel)"
       MinimalRebuildFromTracking="True"
       TrackerLogDirectory="$(IntDir)$(ProjectName).tlog\"
-      ErrorListRegex="\[(?'CATEGORY'Error|Warning)\]: (?'TEXT'.*)"/>
+      ErrorListRegex="\[(?'CATEGORY'Error|Warning|Info|Debug)\]\[((?'FILENAME'.+))\]: (?'TEXT'.*)"/>
   </Target>
 </Project>

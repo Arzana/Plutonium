@@ -203,7 +203,8 @@ void Pu::BinaryWriter::Write(const byte * data, size_t offset, size_t amount)
 
 	if (endian == NativeEndian)
 	{
-		for (size_t i = offset; i < offset + amount; i++) this->data[size++] = data[i];
+		memcpy(this->data + size, data + offset, amount);
+		size += amount;
 	}
 	else
 	{
