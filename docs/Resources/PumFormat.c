@@ -16,12 +16,16 @@ struct VEC3
 	float Z;
 };
 
+/*
+Quaternions are stored using a packed format of 63-bits, halving their storage requirements.
+This allows normalized quaternions to be stored with just their i, r, and k components.
+Giving each component 21-bits of storage space, allowing for an error of just 3.57e-07 per component.
+This method is choosen over Smallest Three because the encode and decode speed is much faster.
+It's also choosen over Half-Angle because we can store them in less space with comparable encode and decode speed.
+*/
 struct QUAT
 {
-	float I;
-	float J;
-	float K;
-	float R;
+	long long Packed;
 };
 
 struct MAT4
@@ -35,7 +39,7 @@ struct BOX
 	VEC3 UpperBound;
 };
 
-struct Color
+struct CLR
 {
 	unsigned char R;
 	unsigned char G;

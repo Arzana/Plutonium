@@ -53,13 +53,16 @@ private:
 	Pu::vector<Pu::Texture2D*> textures;
 	Pu::vector<Pu::PumMaterial> stageMaterials;
 	Pu::vector<Pu::PumNode> nodes;
+
+	Pu::vector<Pu::Matrix> nodeTransforms;
+	Pu::vector<Pu::Matrix> meshTransforms;
 	bool animated;
 
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *light;
 
-	void SetNodeTransform(Pu::vector<Pu::Matrix> &transforms, size_t idx, const Pu::Matrix &parent) const;
-	Pu::Matrix GetMeshTransform(Pu::vector<Pu::Matrix> &nodeTransforms, size_t idx) const;
+	void SetNodeTransform(size_t idx, const Pu::Matrix &parent);
+	void SetMeshTransforms(void);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs &args);
 	void CreateDepthBuffer(void);

@@ -86,8 +86,38 @@ Pu::Quaternion Pu::Quaternion::SLerp(Quaternion q1, Quaternion q2, float a)
 	return q1 * a1 + q2 * a2;
 }
 
+Pu::Quaternion Pu::Quaternion::Unpack(int64 packed)
+{
+	/* [kkkkkkkkkkkkkkkkkkkkkjjjjjjjjjjjjjjjjjjjjjiiiiiiiiiiiiiiiiiiiii0] */
+	const float i = (packed >> 42) * 0.00000047683716f;
+	const float j = ((packed << 22) >> 43) * 0.00000095367432f;
+	const float k = (packed & 0x1FFFFF) * 0.00000095367432f;
+
+	/* 
+	Make sure that we handle the rotation where the real component would be zero. 
+	[-116, 42, -116]
+	*/
+	const float ilen = 1.0f - (i * i + j * j + k * k);
+	const float r = ilen >= 0.00000095367432f ? sqrtf(ilen) : 0.0f;
+
+	return Quaternion{ r, i, j, k };
+}
+
 Pu::Quaternion Pu::Quaternion::Inverse(void) const
 {
 	/* Inverse is just the quaterion conjugate divided by its squared magnitude. */
 	return Quaternion(r, -i, -j, -k) * recip(LengthSquared());
+}
+
+Pu::int64 Pu::Quaternion::Pack(void) const
+{
+	/*
+	Packs the quaterion as a normalized vector with 21 bits of precision per component.
+	The real component can be recalculated when unpacking.
+	*/
+	const float sign = r >= 0.0f ? 1.0f : -1.0f;
+	const int64 x = static_cast<int64>(sign * i * 2097152.0f) << 21;
+	const int64 y = static_cast<int64>(sign * j * 1048576.0f) & 0x1FFFFF;
+	const int64 z = static_cast<int64>(sign * k * 1048576.0f) & 0x1FFFFF;
+	return z | ((y | x) << 21);
 }

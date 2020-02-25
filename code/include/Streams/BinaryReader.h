@@ -49,8 +49,10 @@ namespace Pu
 		_Check_return_ Vector3 ReadVector3(void);
 		/* Reads the next 16 bytes from the buffer as a 4D floating point vector and increases the position by 16 bytes. */
 		_Check_return_ Vector4 ReadVector4(void);
-		/* Reads the next 16 bytes form the buffer as a quaternion and increases the position by 16 bytes. */
+		/* Reads the next 128 bytes form the buffer as a quaternion and increases the position by 128 bytes. */
 		_Check_return_ Quaternion ReadQuaternion(void);
+		/* Reads the next 64 bytes from the buffer as a packed quaternion and increases the position by 64 bytes. */
+		_Check_return_ Quaternion ReadPackedQuaternion(void);
 		/* Reads the next 64 bytes from the buffer as a matrix and increases the position by 64 bytes. */
 		_Check_return_ Matrix ReadMatrix(void);
 		/* Reads a variable amount of bytes from the buffer as a length first ANSI string and increases the position. */
@@ -96,8 +98,10 @@ namespace Pu
 		_Check_return_ Vector3 PeekVector3(void) const;
 		/* Reads the next 16 bytes from the buffer as a 4D floating point vector. */
 		_Check_return_ Vector4 PeekVector4(void) const;
-		/* Reads the next 16 bytes form the buffer as a quaternion. */
+		/* Reads the next 128 bytes from the buffer as a quaternion. */
 		_Check_return_ Quaternion PeekQuaternion(void) const;
+		/* Reads the next 64 bytes from the buffer as a packed quaternion. */
+		_Check_return_ Quaternion PeekPackedQuaternion(void) const;
 		/* Reads the next 64 bytes from the buffer as a matrix. */
 		_Check_return_ Matrix PeekMatrix(void) const;
 		/* Reads a variable amount of bytes from the buffer as a length first ANSI string. */

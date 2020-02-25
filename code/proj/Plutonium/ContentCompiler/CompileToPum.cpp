@@ -55,7 +55,7 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 			if (node.WriteSkinIndex) writer.Write(node.Skin);
 
 			if (node.WriteTranslation) writer.Write(node.Translation);
-			if (node.WriteRotation) writer.Write(node.Rotation);
+			if (node.WriteRotation) writer.Write(node.Rotation.Pack());
 			if (node.WriteScale) writer.Write(node.Scale);
 		}
 
@@ -118,7 +118,7 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 					{
 						writer.Write(frame.Time);
 						writer.Write(frame.Translation);
-						writer.Write(frame.Rotation);
+						writer.Write(frame.Rotation.Pack());
 						writer.Write(frame.Scale);
 						writer.Write(frame.Bounds.LowerBound);
 						writer.Write(frame.Bounds.UpperBound);

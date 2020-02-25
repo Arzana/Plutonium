@@ -91,8 +91,7 @@ private:
 	size_t GetVrtxCount(void) const
 	{
 		/* Get the vertex count through either the indices or the vertices. */
-		if (Mesh.IndexMode != 2) return Mesh.GetIndexCount();
-		else return (Mesh.VertexViewSize / oldStride);
+		return Mesh.IndexMode != 2 ? Mesh.GetIndexCount() : Mesh.GetVrtxCount();
 	}
 
 	size_t GetOffset(int faceIdx, int vertIdx)
@@ -252,6 +251,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	vector<GenerateTask*> tasks;
 
 	int result = EXIT_SUCCESS;
+	size_t reserveSize = 0;
 	for (pum_mesh &mesh : data.Geometry)
 	{
 		const string name = mesh.Identifier.toUTF8();
@@ -280,9 +280,18 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 			GenerateTask *task = new GenerateTask(data, mesh, interfaces, writeLock, writer);
 			tasks.emplace_back(task);
 			args.Scheduluer->Spawn(*task);
+
+			/* Add the maximum required amount of bytes to the output buffer. */
+			const size_t elementSize = mesh.IndexMode != 2 ? mesh.GetIndexCount() : mesh.GetVrtxCount();
+			reserveSize += elementSize * mesh.GetVrtxStride() + sizeof(Vector4);
 		}
 		else Log::Warning("Unable to generate tangents for mesh '%s' (mesh doesn't have normals, texture coordinates, or isn't a triangle list)!", name.c_str());
 	}
+
+	/* Reserve the writer to make sure it doesn't reallocate during it's runtime. */
+	writeLock.lock();
+	writer.EnsureCapacity(reserveSize);
+	writeLock.unlock();
 
 	/* Wait for all of the tasks to complete. */
 	bool working;

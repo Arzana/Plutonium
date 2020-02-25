@@ -107,13 +107,19 @@ namespace Pu
 		_Check_return_ static Quaternion Lerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
 		/* Performs spherical linear interpolation between two quaternions. */
 		_Check_return_ static Quaternion SLerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
+		/* Unpacks the quaterion from the first 63-bits. */
+		_Check_return_ static Quaternion Unpack(_In_ int64 packed);
 		/* Gets the inverse rotation specified by the quaternion. */
 		_Check_return_ Quaternion Inverse(void) const;
+		/* Packs the quaterion in 63-bits. */
+		_Check_return_ int64 Pack(void) const;
 
 	private:
 		friend struct Matrix;
 		friend class BinaryWriter;
 		friend float dot(Quaternion, Quaternion);
+		friend bool nrlyeql(Quaternion, Quaternion, float);
+		friend bool nrlyneql(Quaternion, Quaternion, float);
 
 		float i, j, k, r;
 	};
@@ -122,5 +128,17 @@ namespace Pu
 	_Check_return_ inline float dot(_In_ Quaternion q1, _In_ Quaternion q2)
 	{
 		return q1.i * q2.i + q1.j * q2.j + q1.k * q2.k + q1.r * q2.r;
+	}
+
+	/* Checks whether two quaternions are equal within a specified error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ Quaternion q1, _In_ Quaternion q2, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyeql(q1.i, q2.i, tolerance) && nrlyeql(q1.j, q2.j, tolerance) && nrlyeql(q1.k, q2.k, tolerance) && nrlyeql(q1.r, q2.r, tolerance);
+	}
+
+	/* Checks if two quaternions differ within a specific tolerance. */
+	_Check_return_ inline bool nrlyneql(_In_ Quaternion q1, _In_ Quaternion q2, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyneql(q1.i, q2.i, tolerance) || nrlyneql(q1.j, q2.j, tolerance) || nrlyneql(q1.k, q2.k, tolerance) || nrlyneql(q1.r, q2.r, tolerance);
 	}
 }

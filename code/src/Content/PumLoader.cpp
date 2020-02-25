@@ -23,7 +23,7 @@ Pu::PumNode::PumNode(BinaryReader & reader)
 	if (HasMesh) Mesh = reader.ReadUInt32();
 	if (HasSkin) Skin = reader.ReadUInt32();
 	if (HasTranslation) Translation = reader.ReadVector3();
-	if (HasRotation) Rotation = reader.ReadQuaternion();
+	if (HasRotation) Rotation = reader.ReadPackedQuaternion();
 	if (HasScale) Scale = reader.ReadVector3();
 }
 
@@ -79,7 +79,7 @@ Pu::PumFrame::PumFrame(BinaryReader & reader)
 {
 	TimeStamp = reader.ReadSingle();
 	Translation = reader.ReadVector3();
-	Rotation = reader.ReadQuaternion();
+	Rotation = reader.ReadPackedQuaternion();
 	Scale = reader.ReadVector3();
 	Bounds.LowerBound = reader.ReadVector3();
 	Bounds.UpperBound = reader.ReadVector3();

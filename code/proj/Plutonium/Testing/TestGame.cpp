@@ -67,6 +67,9 @@ void TestGame::LoadContent(void)
 
 	std::sort(meshes.begin(), meshes.end(), [](const decltype(meshes)::value_type &a, const decltype(meshes)::value_type &b) { return a.first < b.first; });
 
+	nodeTransforms.resize(nodes.size());
+	meshTransforms.resize(meshes.size());
+
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
@@ -191,6 +194,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		defMat.Update(cmd);
 
 		Profiler::End();
+
+		if (!nodeTransforms.empty())
+		{
+			SetNodeTransform(0, mdlMtrx);
+			SetMeshTransforms();
+		}
 	}
 
 	if (ImGui::Begin("Light Editor"))
@@ -216,9 +225,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
-	vector<Matrix> nodeTransforms{ nodes.size() };
-	if (!nodeTransforms.empty()) SetNodeTransform(nodeTransforms, 0, mdlMtrx);
-
 	uint32 drawCalls = 0, batchCalls = 0;
 	Profiler::Add("Light Probe Update", Color::Green(), queries->GetTimeDelta(0, false) * 0.001f);
 	Profiler::Add("Render", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.001f);
@@ -230,7 +236,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	size_t i = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		const Matrix transform = GetMeshTransform(nodeTransforms, i++);
+		const Matrix transform = meshTransforms[i++];
 
 		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
 		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), transform, cmd);
@@ -258,7 +264,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
-		const Matrix transform = GetMeshTransform(nodeTransforms, i++);
+		const Matrix transform = meshTransforms[i++];
 		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * transform))
 		{
 			cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
@@ -308,29 +314,34 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	Profiler::Visualize();
 }
 
-void TestGame::SetNodeTransform(vector<Matrix>& transforms, size_t idx, const Matrix & parent) const
+void TestGame::SetNodeTransform(size_t idx, const Matrix & parent)
 {
 	const PumNode &node = nodes[idx];
 	const Matrix transform = parent * node.GetTransform();
-	transforms[idx] = transform;
+	nodeTransforms[idx] = transform;
 
 	for (size_t child : node.Children)
 	{
-		SetNodeTransform(transforms, child, transform);
+		SetNodeTransform(child, transform);
 	}
 }
 
-Matrix TestGame::GetMeshTransform(vector<Matrix>& nodeTransforms, size_t idx) const
+void TestGame::SetMeshTransforms(void)
 {
-	if (nodeTransforms.empty()) return Matrix{};
-
-	for (size_t i = 0; i < nodes.size(); i++)
+	for (size_t i = 0; i < meshes.size(); i++)
 	{
-		const PumNode &node = nodes[i];
-		if (node.HasMesh && node.Mesh == idx) return nodeTransforms[i];
-	}
+		meshTransforms[i] = nodeTransforms.front();
 
-	return nodeTransforms.front();
+		for (size_t j = 0; j < nodes.size(); j++)
+		{
+			const PumNode &node = nodes[j];
+			if (node.HasMesh && node.Mesh == i)
+			{
+				meshTransforms[i] = nodeTransforms[j];
+				break;
+			}
+		}
+	}
 }
 
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)

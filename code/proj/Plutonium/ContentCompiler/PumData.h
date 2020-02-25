@@ -133,6 +133,11 @@ struct pum_mesh
 		return (IndexMode * 2 + 2) * (IndexMode != 2);
 	}
 
+	inline size_t GetVrtxCount(void) const
+	{
+		return VertexViewSize / GetVrtxStride();
+	}
+
 	inline size_t GetIndexCount(void) const
 	{
 		return (IndexViewSize >> (IndexMode + 1)) * (IndexMode != 2);

@@ -15,38 +15,36 @@ struct BigVertex
 	Vector4 Tangent;
 	Vector2 TexCoord;
 	uint32 Color;
-	uint16 Joints[4];
+	uint64 Joints;
 	Vector4 Weights;
 
 	BigVertex(void)
-		: Color(0)
-	{
-		memset(Joints, 0, sizeof(Joints));
-	}
+		: Color(0), Joints(0)
+	{}
 
-	bool operator ==(const BigVertex &other) const
+	bool operator <(const BigVertex &other) const
 	{
-		return nrlyeql(Position, other.Position, EPS)
-			&& nrlyeql(Normal, other.Normal, EPS)
-			&& nrlyeql(Tangent, other.Tangent, EPS)
-			&& nrlyeql(TexCoord, other.TexCoord, EPS)
-			&& Color == other.Color
-			&& Joints[0] == other.Joints[0]
-			&& Joints[1] == other.Joints[1]
-			&& Joints[2] == other.Joints[2]
-			&& Joints[3] == other.Joints[3]
-			&& nrlyeql(Weights, other.Weights, EPS);
+		if (nrlyneql(Position, other.Position, EPS)) return Position < other.Position;
+		if (nrlyneql(Normal, other.Normal, EPS)) return Normal < other.Normal;
+		if (nrlyneql(Tangent, other.Tangent, EPS)) return Tangent < other.Tangent;
+		if (nrlyneql(TexCoord, other.TexCoord, EPS)) return TexCoord < other.TexCoord;
+		if (Color != other.Color) return Color < other.Color;
+		if (Joints != other.Joints) return Joints < other.Joints;
+		if (nrlyneql(Weights, other.Weights, EPS)) return Weights < other.Weights;
+		return false;
 	}
 };
 
 /* Defines our temporary storage medium. */
 using ExclusiveVertex = std::pair<BigVertex, uint32>;
 
-/* Compares whether two vertices are roughly equal. */
-bool operator ==(const ExclusiveVertex &v, const ExclusiveVertex &w)
+struct VertexComparitor
 {
-	return v.first == w.first;
-}
+	inline bool operator()(const ExclusiveVertex &v, const ExclusiveVertex &w) const
+	{
+		return v.first < w.first;
+	}
+};
 
 template <typename T>
 void WriteIndices(pum_mesh &mesh, BinaryWriter &writer, const vector<uint32> &indices, char mode)
@@ -64,6 +62,8 @@ void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writ
 	/* Get the amount of input vertices and allocate a temporary set used for caomparisons. */
 	const size_t stride = mesh.GetVrtxStride();
 	const size_t inputCount = mesh.VertexViewSize / stride;
+
+	std::set<ExclusiveVertex, VertexComparitor> set;
 	vector<ExclusiveVertex> tmp;
 	vector<uint32> indices;
 
@@ -113,33 +113,41 @@ void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writ
 		{
 			if (mesh.HasJoints == 1)
 			{
-				for (size_t i = 0; i < 4; i++, j += sizeof(uint8))
-				{
-					vrtx.Joints[i] = CAST(vertices, j, uint8);
-				}
+				/* We're just comparing, so store them packed, so we don't have to unpack them. */
+				vrtx.Joints = CAST(vertices, j, uint32);
+				j += sizeof(uint32);
 			}
 			else if (mesh.HasJoints == 2)
 			{
-				for (size_t i = 0; i < 4; i++, j += sizeof(uint16))
-				{
-					vrtx.Joints[i] = CAST(vertices, j, uint16);
-				}
+				vrtx.Joints = CAST(vertices, j, uint64);
+				j += sizeof(uint64);
 			}
 
 			vrtx.Weights = CAST(vertices, j, Vector4);
 			j += sizeof(Vector4);
 		}
 
-		/* Either emplace the index to the index list if the vertex already exists. */
-		decltype(tmp)::iterator it = tmp.iteratorOf(std::make_pair(vrtx, 0u));
-		if (it != tmp.end()) indices.emplace_back(it->second);
+		/* 
+		Either emplace the index to the index list if the vertex already exists.
+		We use a set to speed up the search, the vector is O(n^2) whilst the set is O(n log n).
+		*/
+		decltype(set)::iterator it = set.find(std::make_pair(vrtx, 0u));
+		if (it != set.end()) indices.emplace_back(it->second);
 		else
 		{
-			/* Add a new a index to the list and the vertex to the output buffer. */
+			/*
+			We use the set to check if a vertex already exists, 
+			this set is however sorted, so our indices will be wrong.
+			Therefor we store it in a vector as well, but this is only used for output.
+			*/
+			set.emplace(std::make_pair(vrtx, k));
 			tmp.emplace_back(std::make_pair(vrtx, k));
 			indices.emplace_back(k++);
 		}
 	}
+
+	/* We don't need to compare anymore, so deallocate the set to save on memory. */
+	set.clear();
 
 	/* All our work might have made the mesh bigger than it had to be, if this is the case, just void our effords. */
 	size_t reserveSize = indices.size() * (indices.size() < maxv<uint16>() ? sizeof(uint16) : sizeof(uint32));
@@ -183,14 +191,9 @@ void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writ
 
 		if (mesh.HasJoints)
 		{
-			if (mesh.HasJoints == 1)
-			{
-				for (size_t i = 0; i < 4; i++) writer.Write(static_cast<uint8>(vrtx.Joints[i]));
-			}
-			else if (mesh.HasJoints == 2)
-			{
-				for (size_t i = 0; i < 4; i++) writer.Write(vrtx.Joints[i]);
-			}
+			/* We don't have to worry about the endianness as they are loaded with the same as they're stored. */
+			if (mesh.HasJoints == 1) writer.Write(static_cast<uint32>(vrtx.Joints));
+			else if (mesh.HasJoints == 2) writer.Write(vrtx.Joints);
 
 			writer.Write(vrtx.Weights);
 		}
