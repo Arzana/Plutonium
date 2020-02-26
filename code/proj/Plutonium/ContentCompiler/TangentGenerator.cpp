@@ -147,13 +147,15 @@ class GenerateTask
 	: public Task
 {
 public:
-	GenerateTask(const PumIntermediate &data, pum_mesh &mesh, SMikkTSpaceInterface &delegates, std::mutex &lock, BinaryWriter &writer)
-		: data(data), mesh(mesh), delegates(delegates), running(true), writeLock(lock), writer(writer)
-	{}
-
-	inline bool IsWorking(void) const
+	GenerateTask(const PumIntermediate &data, pum_mesh &mesh, SMikkTSpaceInterface &delegates, std::mutex &lock, std::atomic_uint32_t &counter, BinaryWriter &writer)
+		: data(data), mesh(mesh), delegates(delegates), writeLock(lock), writer(writer), running(counter)
 	{
-		return running.load();
+		running++;
+	}
+
+	~GenerateTask(void)
+	{
+		--running;
 	}
 
 	virtual Result Execute(void) override
@@ -170,15 +172,14 @@ public:
 		else Log::Error("MikkTSpace failed for mesh '%s'!", mesh.Identifier.toUTF8().c_str());
 
 		/* We're always done at this point. */
-		running.store(false);
-		return Result::Default();
+		return Result::AutoDelete();
 	}
 
 private:
 	pum_mesh &mesh;
 	const PumIntermediate &data;
 	SMikkTSpaceInterface &delegates;
-	std::atomic_bool running;
+	std::atomic_uint32_t& running;
 	std::mutex &writeLock;
 	BinaryWriter &writer;
 };
@@ -252,6 +253,8 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 
 	int result = EXIT_SUCCESS;
 	size_t reserveSize = 0;
+	std::atomic_uint32_t tasksRunning{ 0 };
+
 	for (pum_mesh &mesh : data.Geometry)
 	{
 		const string name = mesh.Identifier.toUTF8();
@@ -277,7 +280,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 		else if (mesh.HasNormals && mesh.HasTextureUvs && mesh.Topology == 3)
 		{
 			/* Just spwan a tasks that will generate the tangents (and maybe indices) for us. */
-			GenerateTask *task = new GenerateTask(data, mesh, interfaces, writeLock, writer);
+			GenerateTask *task = new GenerateTask(data, mesh, interfaces, writeLock, tasksRunning, writer);
 			tasks.emplace_back(task);
 			args.Scheduluer->Spawn(*task);
 
@@ -294,29 +297,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	writeLock.unlock();
 
 	/* Wait for all of the tasks to complete. */
-	bool working;
-	do
-	{
-		working = false;
-
-		for (GenerateTask *cur : tasks)
-		{
-			if (cur->IsWorking()) working = true;
-			else
-			{
-				/* Wait for a small moment to allow the thread to fully finish, it's safe to delete it already, but might throw a warning. */
-				PuThread::Sleep(100);
-				working = !tasks.empty();
-
-				/* Delete the task to free up memory once it's completed. */
-				tasks.remove(cur);
-				delete cur;
-				break;
-			}
-		}
-
-		PuThread::Sleep(100);
-	} while (working);
+	while (tasksRunning.load()) PuThread::Sleep(100);
 
 	/* Override the old data. */
 	writeLock.lock();

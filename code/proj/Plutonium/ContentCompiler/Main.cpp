@@ -11,9 +11,8 @@ void logHelp(void)
 		"--help				Displays this message.\n"
 		"-o <path>			Specifies the output file.\n"
 		"-dn <name>			Overrides the default model name.\n"
-		"-n					(Re)calculate face normals.\n"
-		"-t					(Re)calculate vertex tangents.\n"
-		"-rf				Reorders the verices in the faces to match backface culling.\n"
+		"-b					Bakes meshes with identical materials into one mesh.\n"
+		"-t					Calculate vertex tangents (MikkTSpace).\n"
 		"-at <path>;<path>;	Adds the specified textures to the output model.");
 }
 
@@ -49,14 +48,9 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 				state = EXIT_FAILURE;
 			}
 		}
-		else if (cur == "-n")		// Generate normals.
+		else if (cur == "-b")		// Bake meshes.
 		{
-			if (!result.ReorderFaces) result.RecalcNormals = true;
-			else
-			{
-				Log::Error("Recalculate normals (-n) cannot be active at the same time as reoder face vertices (-rf)!");
-				state = EXIT_FAILURE;
-			}
+			result.BakeMeshes = true;
 		}
 		else if (cur == "-t")		// Generate tangents.
 		{
@@ -68,15 +62,6 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 			else
 			{
 				Log::Error("Missing textures for additional textures option!");
-				state = EXIT_FAILURE;
-			}
-		}
-		else if (cur == "-rf")		// Reorder face vertices.
-		{
-			if (!result.RecalcNormals) result.ReorderFaces = true;
-			else
-			{
-				Log::Error("Reoder face vertices (-rf) cannot be active at the same time as recalculate normales (-n)!");
 				state = EXIT_FAILURE;
 			}
 		}

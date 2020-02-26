@@ -1,4 +1,5 @@
 #include "Streams/BinaryWriter.h"
+#include "Core/Diagnostics/Logging.h"
 
 Pu::BinaryWriter::BinaryWriter(size_t initialCapacity, Endian endian)
 	: endian(endian), size(0), capacity(max(initialCapacity, 1ull))
@@ -169,6 +170,18 @@ void Pu::BinaryWriter::Write(const ustring & value)
 
 	Write(static_cast<string_length_t>(value.length()));
 	for (char32 c : value) Write(*reinterpret_cast<uint32*>(&c));
+}
+
+void Pu::BinaryWriter::Write(const BinaryWriter & other)
+{
+	if (endian == other.endian)
+	{
+		/* It's faster to directly copy, then to go through the write functions. */
+		EnsureCapacity(other.size);
+		memcpy(data + size, other.data, other.size);
+		size += other.size;
+	}
+	else Log::Fatal("Cannot combine two binary writers with different endianness!");
 }
 
 void Pu::BinaryWriter::Pad(size_t bytes, byte value)

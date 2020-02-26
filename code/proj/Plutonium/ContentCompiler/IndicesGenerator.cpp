@@ -57,6 +57,42 @@ void WriteIndices(pum_mesh &mesh, BinaryWriter &writer, const vector<uint32> &in
 	for (uint32 i : indices) writer.Write(static_cast<T>(i));
 }
 
+size_t WriteIndices(pum_mesh &mesh, BinaryWriter &writer, const vector<uint32> &indices)
+{
+	if (indices.size() < maxv<uint16>())
+	{
+		WriteIndices<uint16>(mesh, writer, indices, 0);
+		return sizeof(uint16);
+	}
+	else
+	{
+		WriteIndices<uint32>(mesh, writer, indices, 1);
+		return sizeof(uint32);
+	}
+}
+
+void WriteOutput(const pum_mesh &mesh, BinaryWriter &writer, const vector<ExclusiveVertex> &vertices)
+{
+	/* Write only the vertices to the result buffer. */
+	for (const auto &[vrtx, idx] : vertices)
+	{
+		writer.Write(vrtx.Position);
+		if (mesh.HasNormals) writer.Write(vrtx.Normal);
+		if (mesh.HasTangents) writer.Write(vrtx.Tangent);
+		if (mesh.HasTextureUvs) writer.Write(vrtx.TexCoord);
+		if (mesh.HasVertexColors) writer.Write(vrtx.Color);
+
+		if (mesh.HasJoints)
+		{
+			/* We don't have to worry about the endianness as they are loaded with the same as they're stored. */
+			if (mesh.HasJoints == 1) writer.Write(static_cast<uint32>(vrtx.Joints));
+			else if (mesh.HasJoints == 2) writer.Write(vrtx.Joints);
+
+			writer.Write(vrtx.Weights);
+		}
+	}
+}
+
 void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writer, std::mutex *lock)
 {
 	/* Get the amount of input vertices and allocate a temporary set used for caomparisons. */
@@ -150,8 +186,8 @@ void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writ
 	set.clear();
 
 	/* All our work might have made the mesh bigger than it had to be, if this is the case, just void our effords. */
-	size_t reserveSize = indices.size() * (indices.size() < maxv<uint16>() ? sizeof(uint16) : sizeof(uint32));
-	reserveSize += tmp.size() * stride;
+	const size_t indicesSize = indices.size() * (indices.size() < maxv<uint16>() ? sizeof(uint16) : sizeof(uint32));
+	const size_t reserveSize = indicesSize + tmp.size() * stride;
 	if (reserveSize >= mesh.VertexViewSize)
 	{
 		/* Clear the buffers to get some more memory (in case we need it). */
@@ -168,39 +204,45 @@ void GenerateIndices(pum_mesh & mesh, const void * vertices, BinaryWriter & writ
 		return;
 	}
 
-	/* Allocate all the memory for the writer in one go, to save on allocation time later. */
-	if (lock) lock->lock();
-	writer.EnsureCapacity(reserveSize);
-
-	/* We can use a small index list if the indices never passed the 16-bit limit. */
-	if (indices.size() < maxv<uint16>()) WriteIndices<uint16>(mesh, writer, indices, 0);
-	else WriteIndices<uint32>(mesh, writer, indices, 1);
-	indices.clear();
-
-	/* Write only the vertices to the result buffer. */
-	writer.Align(stride);
-	mesh.VertexViewStart = writer.GetSize();
 	mesh.VertexViewSize = tmp.size() * stride;
-	for (const auto &[vrtx, idx] : tmp)
+
+	if (lock)
 	{
-		writer.Write(vrtx.Position);
-		if (mesh.HasNormals) writer.Write(vrtx.Normal);
-		if (mesh.HasTangents) writer.Write(vrtx.Tangent);
-		if (mesh.HasTextureUvs) writer.Write(vrtx.TexCoord);
-		if (mesh.HasVertexColors) writer.Write(vrtx.Color);
+		/* 
+		We might need to lock the actual writer, if this is the case; we first write to a temporary buffer. 
+		This is to lower the time writing to the shared resource, because we'll need to decode the buffer.
+		After that we just copy the buffer to the shared resource.
+		*/
+		BinaryWriter buffer;
+		buffer.EnsureCapacity(reserveSize);
+		const size_t align = WriteIndices(mesh, buffer, indices);
+		buffer.Align(stride);
+		WriteOutput(mesh, buffer, tmp);
 
-		if (mesh.HasJoints)
-		{
-			/* We don't have to worry about the endianness as they are loaded with the same as they're stored. */
-			if (mesh.HasJoints == 1) writer.Write(static_cast<uint32>(vrtx.Joints));
-			else if (mesh.HasJoints == 2) writer.Write(vrtx.Joints);
+		/* We don't need this memory anymore. */
+		indices.clear();
+		tmp.clear();
 
-			writer.Write(vrtx.Weights);
-		}
+		/* 
+		We need to align the indices to their stride and override the default index start (based on our temporary buffer).
+		We also need to set the vertex start, which is the index start + the index size + the vertex alignment.
+		*/
+		lock->lock();
+		writer.Align(align);
+		mesh.IndexViewStart = writer.GetSize();
+		mesh.VertexViewStart = mesh.IndexViewStart + indicesSize + (indicesSize % stride);
+		writer.Write(buffer);
+		lock->unlock();
+	}
+	else
+	{
+		writer.EnsureCapacity(reserveSize);
+		WriteIndices(mesh, writer, indices);
+		writer.Align(stride);
+		mesh.VertexViewStart = writer.GetSize();
+		WriteOutput(mesh, writer, tmp);
 	}
 
-	/* Only log if we actually use the indices. */
-	if (lock)lock->unlock();
-	const string name = mesh.Identifier.toUTF8();
-	Log::Message("Generated indices for mesh '%s'.", name.c_str());
+	/* Log a simple message afterwards to indicate that we've finished. */
+	Log::Message("Generated indices for mesh '%s'.", mesh.Identifier.toUTF8().c_str());
 }

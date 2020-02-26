@@ -59,6 +59,8 @@ namespace Pu
 		void Write(_In_ const string &value);
 		/* Writes the specified UTF-32 string to the buffer as a length first string. */
 		void Write(_In_ const ustring &value);
+		/* Writes the contents of another binary writer to the end of this one. */
+		void Write(_In_ const BinaryWriter &other);
 		/* Writes a specified amount of bytes to the buffer to use as alignment padding. */
 		void Pad(_In_ size_t bytes, _In_ byte value = 0);
 		/* Pads zero's to the stream until it's aligned to the specied amount. */

@@ -242,6 +242,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), transform, cmd);
 		++drawCalls;
 		++batchCalls;
+		if (animated) break;
 	}
 	i = 0;
 	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 1);
