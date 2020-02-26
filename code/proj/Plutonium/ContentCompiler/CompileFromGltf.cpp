@@ -1221,7 +1221,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 	/* A GLTF mesh is not the same as a Plutonium mesh so we don't do much with it. */
 	for (const GLTFMesh &glMesh : input.Meshes)
 	{
-		Log::Verbose("Processing mesh: %s.", glMesh.Name.c_str());
+		if (!glMesh.Name.empty()) Log::Verbose("Processing mesh: %s.", glMesh.Name.c_str());
 
 		/* A GLTF primitive is a Plutonium mesh so start from here. */
 		for (const GLTFPrimitive &cur : glMesh.Primitives)

@@ -45,7 +45,9 @@
       <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Shark\Shark.gltf" />
-    <PuModel Include="..\..\..\assets\models\Sponza\Sponza.gltf" />
+    <PuModel Include="..\..\..\assets\models\Sponza\Sponza.gltf">
+      <BakeMeshesPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-b</BakeMeshesPum>
+    </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

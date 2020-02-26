@@ -4,6 +4,7 @@
 #include "CompileFromObj.h"
 #include "TextureConverter.h"
 #include "TangentGenerator.h"
+#include "MeshBaker.h"
 #include <Streams/FileWriter.h>
 #include <Core/Diagnostics/Stopwatch.h>
 
@@ -228,6 +229,8 @@ int CompileToPum(const CLArgs & args)
 		Log::Error("Invalid file extension passed to compile to .pum!");
 		return EXIT_FAILURE;
 	}
+
+	if (args.BakeMeshes) BakeMeshes(data, args.DisplayName);
 
 	if (args.RecalcTangents)
 	{
