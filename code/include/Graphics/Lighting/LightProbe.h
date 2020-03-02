@@ -81,6 +81,18 @@ namespace Pu
 			return position;
 		}
 
+		/* Gets the near plane distance of this light probe. */
+		_Check_return_ inline float GetNear(void) const
+		{
+			return near;
+		}
+
+		/* Gets the far plane distance of this light probe. */
+		_Check_return_ inline float GetFar(void) const
+		{
+			return far;
+		}
+
 		/* Indicates that this light probe is being updated and cannot be used. */
 		inline void Lock(void)
 		{
