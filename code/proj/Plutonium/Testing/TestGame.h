@@ -6,7 +6,7 @@
 #include <Graphics/Lighting/DirectionalLight.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Graphics/Vulkan/QueryPool.h>
+#include <Graphics/Diagnostics/QueryChain.h>
 
 class TestGame
 	: public Pu::Application
@@ -32,7 +32,7 @@ private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
-	Pu::QueryPool *queries;
+	Pu::QueryChain *probeQueries, *renderQueries;
 
 	Pu::LightProbeRenderer *probeRenderer;
 	Pu::LightProbe *environment;

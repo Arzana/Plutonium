@@ -32,7 +32,8 @@ void TestGame::Initialize(void)
 	GetWindow().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 
-	queries = new QueryPool(GetDevice(), QueryType::Timestamp, 4);
+	probeQueries = new QueryChain(GetDevice(), QueryType::Timestamp, 2);
+	renderQueries = new QueryChain(GetDevice(), QueryType::Timestamp, 2);
 }
 
 void TestGame::LoadContent(void)
@@ -115,7 +116,8 @@ void TestGame::UnLoadContent(void)
 
 void TestGame::Finalize(void)
 {
-	delete queries;
+	delete probeQueries;
+	delete renderQueries;
 
 	if (depthBuffer)
 	{
@@ -226,13 +228,15 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	uint32 drawCalls = 0, batchCalls = 0;
-	Profiler::Add("Light Probe Update", Color::Green(), queries->GetTimeDelta(0, false) * 0.001f);
-	Profiler::Add("Render", Color::Yellow(), queries->GetTimeDelta(2, false) * 0.001f);
-	cmd.ResetQueries(*queries);
+	Profiler::Add("Light Probe Update", Color::Green(), probeQueries->GetTimeDelta() * 0.001f);
+	Profiler::Add("Render", Color::Yellow(), renderQueries->GetTimeDelta() * 0.001f);
+	
+	probeQueries->Reset(cmd);
+	renderQueries->Reset(cmd);
 
 	Profiler::Begin("Light Probe Update", Color::Green());
 	probeRenderer->Start(*environment, cmd);
-	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 0);
+	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
 	size_t i = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
@@ -245,7 +249,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		if (animated) break;
 	}
 	i = 0;
-	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 1);
+	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::BottomOfPipe);
 	probeRenderer->End(*environment, cmd);
 	Profiler::End();
 
@@ -259,7 +263,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cmd.BindGraphicsDescriptor(*gfxPipeline, *cam);
 	cmd.BindGraphicsDescriptor(*gfxPipeline, *light);
 
-	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 2);
+	renderQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
 	cmd.AddLabel("Model", Color::Blue());
 	uint32 oldMat = ~0;
 
@@ -287,7 +291,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	cmd.EndLabel();
-	cmd.WriteTimestamp(PipelineStageFlag::BottomOfPipe, *queries, 3);
+	renderQueries->RecordTimestamp(cmd, PipelineStageFlag::BottomOfPipe);
 	cmd.EndRenderPass();
 	Profiler::End();
 
