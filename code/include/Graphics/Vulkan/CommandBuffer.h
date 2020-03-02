@@ -128,6 +128,8 @@ namespace Pu
 		void EndQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex);
 		/* Resets all queries in a query pool. */
 		void ResetQueries(_In_ QueryPool &pool);
+		/* Resets specific queries in a query pool. */
+		void ResetQueries(_In_ QueryPool &pool, _In_ uint32 first, _In_ uint32 count);
 		/* Sets the viewport information for a graphics pipeline with dynamic state viewports. */
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the scissor rectangle for a graphics pipeline with dynamic state scissors. */

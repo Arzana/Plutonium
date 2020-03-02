@@ -57,6 +57,13 @@ namespace Pu
 			return GetClientBounds().GetSize();
 		}
 
+		/* Gets the offset of the window to the origin of the surface. */
+		_Check_return_ inline Offset2D GetOffset(void) const
+		{
+			const Vector2 pos = GetPosition();
+			return Offset2D(static_cast<int32>(pos.X), static_cast<int32>(pos.Y));
+		}
+
 		/* Gets the aspect ratio of the window. */
 		_Check_return_ inline float GetAspectRatio(void) const
 		{

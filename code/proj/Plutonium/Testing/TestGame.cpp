@@ -261,7 +261,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	cmd.WriteTimestamp(PipelineStageFlag::TopOfPipe, *queries, 2);
 	cmd.AddLabel("Model", Color::Blue());
-	uint32 oldMat = -1;
+	uint32 oldMat = ~0;
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
