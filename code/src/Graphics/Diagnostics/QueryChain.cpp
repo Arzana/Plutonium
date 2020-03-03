@@ -23,8 +23,6 @@ Pu::QueryChain::QueryChain(LogicalDevice & device, QueryType type, size_t buffer
 
 void Pu::QueryChain::Reset(CommandBuffer & cmdBuffer)
 {
-	if (chain.empty()) return;
-
 	const uint32 start = GetNext();
 	cmdBuffer.ResetQueries(*this, start, flags & MASK_RESET);
 }
@@ -32,7 +30,7 @@ void Pu::QueryChain::Reset(CommandBuffer & cmdBuffer)
 void Pu::QueryChain::RecordTimestamp(CommandBuffer & cmdBuffer, PipelineStageFlag stage)
 {
 	/* Get the index of the current set of queries. */
-	const uint32 i = chain.empty() ? 0 : GetNext();
+	const uint32 i = GetNext();
 
 	/* Use the correct index for the query. */
 	if (flags & MASK_SET)
@@ -78,5 +76,5 @@ float Pu::QueryChain::GetTimeDelta(void) const
 Pu::uint32 Pu::QueryChain::GetNext(void) const
 {
 	/* We use the chain as a circular buffer, so modulo loop back to the start. */
-	return (chain.back() + (flags & MASK_RESET)) % GetPoolSize();
+	return chain.empty() ? 0 : ((chain.back() + (flags & MASK_RESET)) % GetPoolSize());
 }
