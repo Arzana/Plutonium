@@ -1,6 +1,6 @@
-#ifdef _DEBUG
-
 #pragma once
+
+#ifdef _DEBUG
 #include "Graphics/Vulkan/LogicalDevice.h"
 
 struct RENDERDOC_API_1_4_0;

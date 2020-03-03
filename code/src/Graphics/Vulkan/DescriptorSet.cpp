@@ -48,7 +48,7 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const TextureInput 
 	ValidateDescriptor(descriptor, DescriptorType::InputAttachment);
 
 	/* An input attachment descriptor doesn't have a sampler (because the samples are fragment local). */
-	const DescriptorImageInfo info{ nullptr, input.view };
+	const DescriptorImageInfo info{ nullptr, input.view->hndl };
 	WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
 	write.DescriptorType = DescriptorType::InputAttachment;
 	WriteDescriptors({ write });
@@ -58,7 +58,7 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & tex
 {
 	ValidateDescriptor(descriptor, DescriptorType::CombinedImageSampler);
 
-	const DescriptorImageInfo info{ texture.Sampler, texture.view };
+	const DescriptorImageInfo info{ texture.Sampler->hndl, texture.view->hndl };
 	const WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
 	WriteDescriptors({ write });
 }
@@ -96,7 +96,7 @@ void Pu::DescriptorSet::WriteBuffer(void)
 			We also must ensure that the offset within the buffer is handled correctly.
 			*/
 			offset = cur->GetAllignedOffset(offset);
-			tmp.emplace(cur->GetBinding(), DescriptorBufferInfo{ pool->GetBuffer(), offset, size });
+			tmp.emplace(cur->GetBinding(), DescriptorBufferInfo{ pool->buffer->bufferHndl, offset, size });
 		}
 
 		offset += size;

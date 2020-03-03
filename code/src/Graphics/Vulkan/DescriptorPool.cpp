@@ -2,7 +2,7 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Pipeline & pipeline, uint32 maxSets)
-	: device(renderpass.device), renderpass(&renderpass), pipeline(&pipeline),
+	: device(renderpass.device), renderpass(&renderpass), pipeline(&pipeline), firstUpdate(true),
 	OnStage("DescriptorPoolOnStage"), setStride(0), allocCnt(0), maxSets(maxSets), buffer(nullptr)
 {}
 
@@ -16,7 +16,7 @@ Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: hndl(value.hndl), buffer(value.buffer), device(value.device), maxSets(value.maxSets),
 	setStride(value.setStride), allocCnt(value.allocCnt), writes(std::move(value.writes)),
 	sizes(std::move(value.sizes)), OnStage(std::move(value.OnStage)),
-	renderpass(value.renderpass), pipeline(value.pipeline)
+	renderpass(value.renderpass), pipeline(value.pipeline), firstUpdate(value.firstUpdate)
 {
 	value.hndl = nullptr;
 	value.buffer = nullptr;
@@ -27,7 +27,7 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 	if (this != &other)
 	{
 		Destroy();
-		
+
 		hndl = other.hndl;
 		buffer = other.buffer;
 		device = other.device;
@@ -39,6 +39,7 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		renderpass = other.renderpass;
 		pipeline = other.pipeline;
 		OnStage = std::move(other.OnStage);
+		firstUpdate = other.firstUpdate;
 
 		other.hndl = nullptr;
 		other.buffer = nullptr;
@@ -71,8 +72,8 @@ void Pu::DescriptorPool::AddSets(uint32 subpass, std::initializer_list<uint32> s
 			if (it != sizes.end()) ++it->DescriptorCount;
 			else sizes.emplace_back(descriptor.GetType(), 1);
 
-			/* 
-			The stride needs to be increased if we found a uniform buffer descriptor. 
+			/*
+			The stride needs to be increased if we found a uniform buffer descriptor.
 			We also need to add it to a list of descriptors that need initialization.
 			*/
 			if (type == DescriptorType::UniformBuffer)
@@ -91,14 +92,15 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 	/* Create the pool if it hasn't been created yet. */
 	if (!hndl) Create();
 
-	/* We just need to create and initialize the underlying buffer if the set actually has uniform buffers. */
-	if (setStride && !buffer)
+	if (buffer)
 	{
-		buffer = new DynamicBuffer(*device, setStride * maxSets, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
-		cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
-	}
-	else
-	{
+		/* We need to move the buffer to uniform read mode once. */
+		if (firstUpdate)
+		{
+			firstUpdate = false;
+			cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
+		}
+
 		/* Start by staging the memory to the buffer. */
 		buffer->BeginMemoryTransfer();
 		OnStage.Post(*this, reinterpret_cast<byte*>(buffer->GetHostMemory()));
@@ -107,11 +109,6 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 		/* Update the contents of the dynamic buffer. */
 		buffer->Update(cmdBuffer);
 	}
-}
-
-Pu::BufferHndl Pu::DescriptorPool::GetBuffer(void) const
-{
-	return buffer->bufferHndl;
 }
 
 Pu::DeviceSize Pu::DescriptorPool::Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl * result)
@@ -123,7 +120,7 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(DescriptorSetLayoutHndl layout, Descrip
 	const DescriptorSetAllocateInfo info{ hndl, layout };
 	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &info, result), PFN_vkAllocateDescriptorSets);
 
-	/* 
+	/*
 	We return the buffer offset if this pool allocated a buffer.
 	This is simply the stride of a single descriptor set multiplies with the previous allocation count.
 	*/
@@ -144,6 +141,9 @@ void Pu::DescriptorPool::Create(void)
 
 	const DescriptorPoolCreateInfo info{ maxSets, sizes };
 	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &info, nullptr, &hndl), PFN_vkCreateDescriptorPool);
+
+	/* The buffer is needed for the set to do a write when it allocates. */
+	if (setStride) buffer = new DynamicBuffer(*device, setStride * maxSets, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
 }
 
 void Pu::DescriptorPool::Destroy(void)
@@ -152,5 +152,6 @@ void Pu::DescriptorPool::Destroy(void)
 	{
 		if (allocCnt > 0) Log::Error("Destroying descriptor pool without first destroying the %u remaining sets!", allocCnt);
 		device->vkDestroyDescriptorPool(device->hndl, hndl, nullptr);
+		delete buffer;
 	}
 }

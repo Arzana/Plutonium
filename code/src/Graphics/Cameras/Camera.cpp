@@ -13,7 +13,7 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool)
 	binding2 = GetDescriptor(2, "Exposure").GetAllignedOffset((sizeof(Matrix) << 2) + sizeof(Vector3));
 #else
 	binding1 = GetDescriptor(0, "CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
-	envMap = &GetDescriptor(0, "Enviornment");
+	envMap = &GetDescriptor(0, "Environment");
 #endif
 }
 

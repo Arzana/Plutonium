@@ -14,13 +14,12 @@ void Pu::RenderDoc::StartFrameCapture(const LogicalDevice & device)
 void Pu::RenderDoc::EndFrameCapture(const LogicalDevice & device)
 {
 	RENDERDOC_API_1_4_0 *api = GetInstance().api;
-	if (api)api->EndFrameCapture(device.hndl, nullptr);
+	if (api) api->EndFrameCapture(device.hndl, nullptr);
 }
 
 Pu::RenderDoc::RenderDoc(void)
 	: api(nullptr)
 {
-	/* The loader only need to stay in memory during the constructor, because RENDERDOC_GetAPI gets all the procedures. */
 	DynamicLibLoader loader{ L"renderdoc.dll" };
 
 	/* Only attempt to load the API if the dll could be loaded. */

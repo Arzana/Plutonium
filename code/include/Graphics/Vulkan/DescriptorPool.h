@@ -47,11 +47,11 @@ namespace Pu
 
 		DeviceSize setStride;
 		uint32 maxSets, allocCnt;
+		bool firstUpdate;
 
 		vector<const Descriptor*> writes;
 		vector<DescriptorPoolSize> sizes;
 
-		BufferHndl GetBuffer(void) const;
 		DeviceSize Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl *result);
 		void Free(DescriptorSetHndl set);
 		void Create(void);

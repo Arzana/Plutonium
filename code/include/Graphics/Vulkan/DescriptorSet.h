@@ -39,7 +39,7 @@ namespace Pu
 		template <typename value_t>
 		static inline void Copy(_In_ byte *destination, _In_ const value_t *value)
 		{
-			memcpy(destination, value, sizeof(std::remove_pointer<value_t>));
+			memcpy(destination, value, sizeof(std::remove_pointer_t<value_t>));
 		}
 
 		/* Gets the specific descriptor from the specific subpass. */

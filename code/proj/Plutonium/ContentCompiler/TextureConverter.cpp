@@ -487,7 +487,7 @@ void InitializeFramebuffers(const vector<std::pair<uint32, uint32>> &sources)
 Texture2D& GetTexture(bool has, uint32 idx)
 {
 	/* It is possible for the material to be marked to have a texture whilst that texture is currently a default texture. */
-	if (has && textures[idx] != nullptr) return *textures[idx];
+	if (has && textures[idx]) return *textures[idx];
 	else return *textures.back();
 }
 
