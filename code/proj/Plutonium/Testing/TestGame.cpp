@@ -233,7 +233,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	
 	probeQueries->Reset(cmd);
 	renderQueries->Reset(cmd);
-
+	
 	Profiler::Begin("Light Probe Update", Color::Green());
 	probeRenderer->Start(*environment, cmd);
 	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
@@ -242,7 +242,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		const Matrix transform = meshTransforms[i++];
 
-		//if (environment->Cull(mesh->GetBoundingBox() * mdlMtrx)) continue;
+		if (environment->Cull(mesh->GetBoundingBox() * transform)) continue;
 		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), transform, cmd);
 		++drawCalls;
 		++batchCalls;
@@ -265,7 +265,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	renderQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
 	cmd.AddLabel("Model", Color::Blue());
-	uint32 oldMat = ~0;
+	uint32 oldMat = ~0u;
 
 	for (const auto[matIdx, mesh] : meshes)
 	{
