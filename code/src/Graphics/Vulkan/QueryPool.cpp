@@ -2,21 +2,21 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, QueryType type, size_t count)
-	: parent(&device)
+	: parent(&device), count(static_cast<uint32>(count))
 {
 	const QueryPoolCreateInfo createInfo(type, static_cast<uint32>(count));
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
 Pu::QueryPool::QueryPool(LogicalDevice & device, size_t count, QueryPipelineStatisticFlag statistics)
-	: parent(&device)
+	: parent(&device), count(static_cast<uint32>(count))
 {
 	const QueryPoolCreateInfo createInfo(QueryType::PipelineStatistics, static_cast<uint32>(count), statistics);
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
 Pu::QueryPool::QueryPool(QueryPool && value)
-	: parent(value.parent), hndl(value.hndl)
+	: parent(value.parent), hndl(value.hndl), count(value.count)
 {
 	value.hndl = nullptr;
 }
@@ -29,6 +29,7 @@ Pu::QueryPool & Pu::QueryPool::operator=(QueryPool && other)
 
 		parent = other.parent;
 		hndl = other.hndl;
+		count = other.count;
 
 		other.hndl = nullptr;
 	}
@@ -38,6 +39,11 @@ Pu::QueryPool & Pu::QueryPool::operator=(QueryPool && other)
 
 Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 queryCount, bool wait, bool partial) const
 {
+	/* Check for if we're not accessing outsize of pool range on debug. */
+#ifdef _DEBUG
+	CheckRange(firstQuery, queryCount);
+#endif
+
 	/* Define the flags. */
 	QueryResultFlag flags = QueryResultFlag::None;
 	if (wait) flags |= QueryResultFlag::Wait;
@@ -52,22 +58,25 @@ Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 query
 	return results;
 }
 
-float Pu::QueryPool::GetTimeDelta(uint32 firstQuery, bool wait)
+float Pu::QueryPool::GetTimeDelta(uint32 firstQuery, bool wait) const
 {
-	/* Get the number of nanoseconds requireed for a timestamp to be incremented by 1. */
-	const float period = parent->GetPhysicalDevice().GetLimits().TimestampPeriod;
-
-	/* Query the two timestamps. */
-	uint32 timestamps[2];
-	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint32), wait ? QueryResultFlag::Wait : QueryResultFlag::None);
-
-	/* Only return if we could get the timestamps, otherwise just return zero. */
-	if (result == VkApiResult::NotReady) return 0.0f;
-	return (timestamps[1] - timestamps[0]) * period;
+	float result = 0.0f;
+	if (GetTimeDeltaInternal(firstQuery, wait ? QueryResultFlag::Wait : QueryResultFlag::None, result)) return result;
+	return 0.0f;
 }
 
-Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait)
+bool Pu::QueryPool::TryGetTimeDelta(uint32 firstQuery, float & result) const
 {
+	return GetTimeDeltaInternal(firstQuery, QueryResultFlag::None, result);
+}
+
+Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait) const
+{
+	/* Check for if we're not accessing outsize of pool range on debug. */
+#ifdef _DEBUG
+	CheckRange(queryIndex, 1);
+#endif
+
 	/* Gets the total amount of fragments passed. */
 	uint32 fragments;
 	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, queryIndex, 1, sizeof(uint32), &fragments, sizeof(uint32), wait ? QueryResultFlag::Wait : QueryResultFlag::None);
@@ -75,6 +84,30 @@ Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait)
 	/* if the query was not done yet; just return zero. */
 	if (result == VkApiResult::NotReady) return 0;
 	return fragments;
+}
+
+bool Pu::QueryPool::GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlag flag, float & delta) const
+{
+	/* Check for if we're not accessing outsize of pool range on debug. */
+#ifdef _DEBUG
+	CheckRange(firstQuery, 2);
+#endif
+
+	/* Get the number of nanoseconds requireed for a timestamp to be incremented by 1. */
+	const float period = parent->GetPhysicalDevice().GetLimits().TimestampPeriod;
+
+	/* Query the two timestamps. */
+	uint32 timestamps[2];
+	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, 2, sizeof(timestamps), timestamps, sizeof(uint32), flag);
+
+	/* Set the delta and return whether the result is valid. */
+	delta = (timestamps[1] - timestamps[0]) * period;
+	return result != VkApiResult::NotReady;
+}
+
+void Pu::QueryPool::CheckRange(uint32 start, uint32 cnt) const
+{
+	if (start + cnt > count) Log::Fatal("Attempting to access query outside of buffer range (%u > %u)!", start + cnt, count);
 }
 
 void Pu::QueryPool::Destroy(void)

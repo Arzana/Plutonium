@@ -37,6 +37,25 @@ namespace Pu
 		Custom
 	};
 
+	/* Defines which parts of the log to display. */
+	enum class LogDetails
+	{
+		/* Display no additional information than the message. */
+		None = 0,
+		/* Displays the timestamp of the log message. */
+		Timestamp = 1,
+		/* Displays the thread and process ID. */
+		Threading = 2,
+		/* Displays the log type. */
+		Type = 4,
+		/* Display a user defined string. */
+		UserInfo = 8,
+		/* Displays everything except the user info. */
+		Default = 7,
+		/* Displays all optional log details. */
+		All = 15
+	};
+
 	/* Defines the custom callback signature used for custom raise callbacks. */
 	using RaiseCallback = void(*)(_In_ const char *format, _In_ va_list args);
 
@@ -67,6 +86,10 @@ namespace Pu
 		callback is only used if the mode is Custom.
 		*/
 		static void SetRaiseMode(_In_ RaiseMode mode, _In_opt_ const wstring &reportDir = nullptr, _In_opt_ RaiseCallback callback = nullptr);
+		/* Set the details of the log messages. */
+		static void SetDetails(_In_  LogDetails details);
+		/* Sets a user defined string that should be logged with every future log entry. */
+		static void SetUserInfo(_In_ const string &info);
 		/* Makes sure that the output buffer is large enough to fit strings with the specified length. */
 		static void SetBufferWidth(_In_ uint32 width);
 		/* Moves the output window to a specified location. */
@@ -93,20 +116,20 @@ namespace Pu
 		bool suppressLogging;
 		LogType lastType;
 		const char *typeStr;
+		string userInfo;
 
 		RaiseMode mode;
+		LogDetails details;
 		wstring reportDir;
 		RaiseCallback callback;
 
 		std::map<uint64, wstring> processNames;
 		std::map<uint64, wstring> threadNames;
-
 		std::mutex printLock;
 
 		Log(void);
 
 		static Log& GetInstance(void);
-
 		static int32 CrtErrorHandler(int32 category, char *msg, int32 *retVal);
 
 		void Raise(const char *msg, va_list args);

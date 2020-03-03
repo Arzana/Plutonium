@@ -116,6 +116,7 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h" />
+    <ClInclude Include="..\..\..\include\Core\Diagnostics\Profiler.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h" />
     <ClInclude Include="..\..\..\include\Core\EnumUtils.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Cameras\FreeCamera.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\QueryChain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\RenderDoc.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\DeferredRenderer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\DirectionalLight.h" />
@@ -298,6 +300,7 @@
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Logging.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\Memory.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Diagnostics\Profiler.cpp" />
     <ClCompile Include="..\..\..\src\Core\Diagnostics\StackTrace.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
@@ -319,6 +322,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Cameras\FreeCamera.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\DebugRenderer.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\QueryChain.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\RenderDoc.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\DeferredRenderer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\DirectionalLight.cpp" />

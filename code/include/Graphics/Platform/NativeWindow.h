@@ -42,15 +42,26 @@ namespace Pu
 		_Check_return_ virtual const Viewport& GetClientBounds(void) const = 0;
 		/* Gets the position of the window relative the monitor. */
 		_Check_return_ virtual Vector2 GetPosition(void) const = 0;
-		/* Gets the current mode of the window. */
-		_Check_return_ virtual WindowMode GetWindowMode(void) const = 0;
 		/* Gets whether the window has focus. */
 		_Check_return_ virtual bool HasFocus(void) const = 0;
+
+		/* Gets the current mode of the window. */
+		_Check_return_ inline WindowMode GetWindowMode(void) const
+		{
+			return mode;
+		}
 
 		/* Gets the size of the window. */
 		_Check_return_ inline Extent2D GetSize(void) const
 		{
 			return GetClientBounds().GetSize();
+		}
+
+		/* Gets the offset of the window to the origin of the surface. */
+		_Check_return_ inline Offset2D GetOffset(void) const
+		{
+			const Vector2 pos = GetPosition();
+			return Offset2D(static_cast<int32>(pos.X), static_cast<int32>(pos.Y));
 		}
 
 		/* Gets the aspect ratio of the window. */
@@ -64,6 +75,12 @@ namespace Pu
 		_Check_return_ inline const Display& GetDisplay(void) const
 		{
 			return Display::GetDisplayAt(GetClientBounds().GetPosition());
+		}
+
+		/* Gets the surface associated with this window. */
+		_Check_return_ inline const Surface& GetSurface(void) const
+		{
+			return *surface;
 		}
 
 		/* Resizes the window to the specified size. */
@@ -89,13 +106,16 @@ namespace Pu
 		friend class GameWindow;
 		friend class Application;
 
+		/* Defines whether the next render call should be suppressed. */
 		bool shouldSuppressRender;
+		/* Defines the surface associated with this window (NativeWindow doesn't take ownership!). */
+		Surface *surface;
+		/* Defines the current mode of the window. */
+		WindowMode mode;
 
 		/* Initializes the global instance of a native window. */
 		NativeWindow(void);
 
-		/* Gets the surface to render to. */
-		_Check_return_ virtual Surface& GetSurface(void) = 0;
 		/* Updates the window, returns whether the window should remain active. */
 		_Check_return_ virtual bool Update(void) = 0;
 	};

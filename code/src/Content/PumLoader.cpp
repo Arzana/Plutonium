@@ -23,8 +23,17 @@ Pu::PumNode::PumNode(BinaryReader & reader)
 	if (HasMesh) Mesh = reader.ReadUInt32();
 	if (HasSkin) Skin = reader.ReadUInt32();
 	if (HasTranslation) Translation = reader.ReadVector3();
-	if (HasRotation) Rotation = reader.ReadQuaternion();
+	if (HasRotation) Rotation = reader.ReadPackedQuaternion();
 	if (HasScale) Scale = reader.ReadVector3();
+}
+
+Pu::Matrix Pu::PumNode::GetTransform(void) const
+{
+	Matrix result;
+	if (HasTranslation) result *= Matrix::CreateTranslation(Translation);
+	if (HasRotation) result *= Matrix::CreateRotation(Rotation);
+	if (HasScale) result *= Matrix::CreateScalar(Scale);
+	return result;
 }
 
 Pu::PumMesh::PumMesh(void)
@@ -70,7 +79,7 @@ Pu::PumFrame::PumFrame(BinaryReader & reader)
 {
 	TimeStamp = reader.ReadSingle();
 	Translation = reader.ReadVector3();
-	Rotation = reader.ReadQuaternion();
+	Rotation = reader.ReadPackedQuaternion();
 	Scale = reader.ReadVector3();
 	Bounds.LowerBound = reader.ReadVector3();
 	Bounds.UpperBound = reader.ReadVector3();
@@ -205,8 +214,8 @@ Pu::PumTexture::PumTexture(BinaryReader & reader)
 	Minification = _CrtInt2Enum<Filter>((flags & 0x2) >> 1);
 	MipMap = _CrtInt2Enum<SamplerMipmapMode>((flags & 0x4) >> 2);
 	IsSRGB = flags & 0x8;
-	AddressModeU = _CrtInt2Enum<SamplerAddressMode>((flags & 0x30) >> 3);
-	AddressModeV = _CrtInt2Enum<SamplerAddressMode>((flags & 0xC0) >> 3);
+	AddressModeU = _CrtInt2Enum<SamplerAddressMode>((flags & 0x30) >> 4);
+	AddressModeV = _CrtInt2Enum<SamplerAddressMode>((flags & 0xC0) >> 6);
 }
 
 Pu::SamplerCreateInfo Pu::PumTexture::GetSamplerCreateInfo(void) const

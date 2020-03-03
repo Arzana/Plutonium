@@ -96,6 +96,9 @@ namespace Pu
 		PumNode(void);
 		/* Initializes a new instance of a PuM node from a binary data stream. */
 		PumNode(_In_ BinaryReader &reader);
+
+		/* Gets the full transform of this node. */
+		_Check_return_ Matrix GetTransform(void) const;
 	};
 
 	/* Defines static geometry in the model. */

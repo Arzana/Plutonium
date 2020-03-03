@@ -41,8 +41,6 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	InstanceCreateInfo createInfo(appInfo, enabledExtensions);
 
 #ifdef _DEBUG
-	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
-
 	/* Enable the LunarG validation layer if available. */
 	static const char *VALIDATION_LAYER = "VK_LAYER_LUNARG_standard_validation";
 	if (IsLayerSupported(VALIDATION_LAYER))
@@ -65,6 +63,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 
 	/* If needed setup the debug layer. */
 #ifdef _DEBUG
+	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
 	SetUpDebugLayer();
 #endif
 }
@@ -281,6 +280,16 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfacePresentModesKHR);
 	}
 
+	if (IsExtensionEnabled(u8"VK_KHR_get_physical_device_properties2"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties2KHR);
+	}
+
+	if (IsExtensionEnabled(u8"VK_KHR_get_surface_capabilities2"))
+	{
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceSurfaceCapabilities2KHR);
+	}
+
 #ifdef _WIN32
 	if (IsExtensionEnabled(u8"VK_KHR_win32_surface"))
 	{
@@ -354,25 +363,28 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 
 		for (const ExtensionProperties &extension : GetSupportedExtensions(nullptr))
 		{
-			msg += "Extension ";
-			msg += extension.ExtensionName;
-			msg += " (";
-			msg += std::to_string(getMajor(extension.SpecVersion)) += '.';
-			msg += std::to_string(getMinor(extension.SpecVersion)) += '.';
-			msg += std::to_string(getPatch(extension.SpecVersion)) += ") available.\n";
+			msg += "Instance Extension "+ extension.ToString() + " available.\n";
 		}
 
 		msg += barStr;
 
+		/* Log the available device extensions as well. */
+		for (const PhysicalDevice &device : physicalDevices)
+		{
+			const string deviceName = device.GetName();
+
+			for (const ExtensionProperties &extension : device.GetSupportedExtensions(nullptr))
+			{
+				msg += deviceName + " Extension " + extension.ToString() + " available.\n";
+			}
+
+			msg += barStr;
+		}
+
 		/* Log the available layers too bewteen lines. */
 		for (const LayerProperties &layer : GetSupportedLayers())
 		{
-			msg += "Layer ";
-			msg += layer.LayerName;
-			msg += " (";
-			msg += string::from(getMajor(layer.ImplementationVersion)) += '.';
-			msg += string::from(getMinor(layer.ImplementationVersion)) += '.';
-			msg += string::from(getPatch(layer.ImplementationVersion)) += ") available.\n";
+			msg += "Layer " + layer.ToString() + " available.\n";
 		}
 
 		msg += barStr;

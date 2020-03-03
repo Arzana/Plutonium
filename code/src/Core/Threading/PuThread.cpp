@@ -71,14 +71,14 @@ Pu::PuThread::PuThread(const wstring & name)
 
 Pu::PuThread::~PuThread(void) noexcept
 {
+	/* Wait for the thread to end and delete thread object. */
+	Wait();
+	delete thread;
+
 	/* Safely remove the thread from the buffer. */
 	bufferLock.lock();
 	activeThreads.remove(this);
 	bufferLock.unlock();
-
-	/* Wait for the thread to end and delete thread object. */
-	Wait();
-	delete thread;
 }
 
 void Pu::PuThread::Start(void)

@@ -31,13 +31,8 @@ namespace Pu
 		void AddComponent(_In_ Component *component);
 		/* Removes and deletes the specified component from the application. */
 		void RemoveComponent(_In_ Component &component);
-
 		/* Sets the target time setp in Hz. */
-		inline void SetTargetTimeStep(_In_ int32 hertz)
-		{
-			targetElapTimeFocused = 1.0f / hertz;
-			targetElapTimeBackground = min(targetElapTimeFocused, targetElapTimeBackground);
-		}
+		void SetTargetTimeStep(_In_ int32 hertz);
 
 		/* Gets the delta time used for the last render. */
 		_Check_return_ inline float GetDeltaTime(void) const

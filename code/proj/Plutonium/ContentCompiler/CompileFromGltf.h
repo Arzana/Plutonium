@@ -158,7 +158,9 @@ enum class GLTFPrimitiveAttribute
 	The weights of the joints (Must be 4D).
 	Can either be stored as floats or unsigned normalized values (see TexCoord1).
 	*/
-	Weights
+	Weights,
+	/* Any primitive attribute not recognized by Plutonium. */
+	Other
 };
 
 /* Defines an accessor in the GLTF format. */
@@ -367,7 +369,7 @@ struct GLTFMaterial
 struct GLTFPrimitive
 {
 	/* Defines the named attribute of this primitive and it's accessor index. */
-	std::map<GLTFPrimitiveAttribute, size_t> Attributes;
+	std::multimap<GLTFPrimitiveAttribute, size_t> Attributes;
 	/* Defines an optional material index to apply to this primitive. */
 	size_t Material;
 	/* The index of the accessor that defines the indeces of this primitve (optional). */

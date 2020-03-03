@@ -96,7 +96,7 @@ bool PushShapeIfNeeded(ObjLoaderResult &result, ObjLoaderMesh &curMesh, bool kee
 	/* Check if current mesh has data. */
 	if (!(curMesh.Name.empty() || curMesh.Indices.empty()))
 	{
-		if (curMesh.Material == -1) Log::Warning("Pushing shape '%s' with no material defined!", curMesh.Name.c_str());
+		if (curMesh.Material == -1) Log::Verbose("Pushing shape '%s' with no material defined!", curMesh.Name.c_str());
 
 		/* Push old mesh. */
 		result.Shapes.emplace_back(curMesh);
@@ -406,7 +406,7 @@ inline void HandleUseMaterialLine(const char *line, ObjLoaderResult &result, Obj
 				const size_t oldMtlIdx = curMesh.Material;
 				if (PushShapeIfNeeded(result, curMesh, true))
 				{
-					Log::Warning("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh.Name.c_str(), result.Materials[oldMtlIdx].Name.c_str(), line);
+					Log::Verbose("Redefined material for shape %s (%s -> %s), creating new shape!", curMesh.Name.c_str(), result.Materials[oldMtlIdx].Name.c_str(), line);
 				}
 			}
 
@@ -663,7 +663,7 @@ inline void HandleIllumModelLine(const char *line, ObjLoaderMaterial &curMateria
 inline void HandleDissolveLine(const char *line, ObjLoaderMaterial &curMaterial, bool &hasd, bool &hastr)
 {
 	const float value = ParseFloat(line);
-	if (hastr && curMaterial.Dissolve != value) Log::Warning("Both 'd' and 'Tr' are defined within material '%s' using value of 'd' for dissolve!", curMaterial.Name.c_str());
+	if (hastr && curMaterial.Dissolve != value) Log::Verbose("Both 'd' and 'Tr' are defined within material '%s' using value of 'd' for dissolve!", curMaterial.Name.c_str());
 
 	hasd = true;
 	curMaterial.Dissolve = value;
@@ -675,7 +675,7 @@ inline void HandleInverseDissolveLine(const char *line, ObjLoaderMaterial &curMa
 	const float value = 1.0f - ParseFloat(line);
 	if (hasd)
 	{
-		if(curMaterial.Dissolve != value) Log::Warning("Both 'd' and 'Tr' are defined within material '%s', using value of 'd' for dissolve!", curMaterial.Name.c_str());
+		if(curMaterial.Dissolve != value) Log::Verbose("Both 'd' and 'Tr' are defined within material '%s', using value of 'd' for dissolve!", curMaterial.Name.c_str());
 	}
 	else
 	{
@@ -1013,6 +1013,38 @@ void LoadMaterialLibraryFromFile(const string &dir, const char *name, ObjLoaderR
 	if (!material.Name.empty()) result.Materials.emplace_back(material);
 }
 
+void ReserveVectors(FileReader &reader, ObjLoaderResult &result)
+{
+	size_t posCnt = 0, normCnt = 0, texCoordCnt = 0;
+
+	/* 
+	Read through the entire file to find out how many vertices, normals and texture coordinates are in this file.
+	This makes us read the entire file twice, but it's still faster than resizing big vectors.
+	*/
+	while (reader.Peek() != EOF)
+	{
+		/* Skip empty lines. */
+		const string line = reader.ReadLine();
+		if (line.size() < 2) continue;
+
+		const char *ptr = line.c_str();
+		SkipUseless(ptr);
+
+		/* Increase the counters based in the indicator. */
+		posCnt += (ptr[0] == 'v' && IS_SPACE(ptr[1]));
+		normCnt += (ptr[0] == 'v' && ptr[1] == 'n' && IS_SPACE(ptr[2]));
+		texCoordCnt += (ptr[0] == 'v' && ptr[1] == 't' && IS_SPACE(ptr[2]));
+	}
+
+	/* Reserve the vectors to eliminate reallocations later. */
+	result.Vertices.reserve(posCnt);
+	result.Normals.reserve(normCnt);
+	result.TexCoords.reserve(texCoordCnt);
+
+	/* Move back to the start before we actually read the data. */
+	reader.Seek(SeekOrigin::Begin, 0);
+}
+
 void LoadObjMtl(const string & path, ObjLoaderResult & result)
 {
 	/* Open obj file. */
@@ -1026,6 +1058,8 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 	ObjLoaderMesh shape;
 	uint64 smoothingGroup;
 	vector<string> loadedMaterialLibraries;
+
+	ReserveVectors(reader, result);
 
 	/* Read untill the end of the file. */
 	while (reader.Peek() != EOF)
@@ -1050,19 +1084,6 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 	result.Vertices.shrink_to_fit();
 }
 #pragma endregion
-
-void GenerateNodes(const ObjLoaderResult &input, PumIntermediate &result)
-{
-	const uint32 len = static_cast<uint32>(input.Shapes.size());
-	result.Nodes.reserve(len);
-
-	for (uint32 i = 0; i < len; i++)
-	{
-		pum_node node;
-		node.SetMesh(i);
-		result.Nodes.emplace_back(node);
-	}
-}
 
 void CopyGeometry(const ObjLoaderResult &input, PumIntermediate &result)
 {
@@ -1169,8 +1190,6 @@ void ParseMaterialsAndTextures(const ObjLoaderResult &input, PumIntermediate &re
 
 void ObjToPum(ObjLoaderResult & input, PumIntermediate & result)
 {
-	/* We need to generate nodes for OBJ files as they don't have a concept of them, so we just create a node per mesh. */
-	GenerateNodes(input, result);
 	CopyGeometry(input, result);
 
 	/* All the geometry has been copied at this point so we can clear the vectors to save on memory for larger models. */

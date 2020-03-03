@@ -61,6 +61,12 @@ namespace Pu
 			return *parent;
 		}
 
+		/* Gets the physical device the logical device was created on. */
+		_Check_return_ inline PhysicalDevice& GetPhysicalDevice(void)
+		{
+			return *parent;
+		}
+
 		/* Halts the current thread until the logical device has reached an idle state, this should only be used when no other method of synchronization is possible! */
 		void WaitIdle(void) const
 		{
@@ -146,6 +152,7 @@ namespace Pu
 		PFN_vkCmdBeginQuery vkCmdBeginQuery;
 		PFN_vkCmdEndQuery vkCmdEndQuery;
 		PFN_vkCmdBlitImage vkCmdBlitImage;
+		PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;
@@ -194,6 +201,8 @@ namespace Pu
 		PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
 		PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
 		PFN_vkMergePipelineCaches vkMergePipelineCaches;
+		PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
+		PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo);
 

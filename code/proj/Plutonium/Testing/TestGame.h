@@ -6,7 +6,7 @@
 #include <Graphics/Lighting/DirectionalLight.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Graphics/Vulkan/Pipelines/PipelineCache.h>
+#include <Graphics/Diagnostics/QueryChain.h>
 
 class TestGame
 	: public Pu::Application
@@ -32,7 +32,7 @@ private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
-	Pu::PipelineCache *cache;
+	Pu::QueryChain *probeQueries, *renderQueries;
 
 	Pu::LightProbeRenderer *probeRenderer;
 	Pu::LightProbe *environment;
@@ -48,14 +48,21 @@ private:
 
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *stagingBuffer;
-	Pu::vector<std::tuple<Pu::uint32, Pu::Mesh*>> meshes;
+	Pu::vector<std::pair<Pu::uint32, Pu::Mesh*>> meshes;
 	Pu::vector<Pu::Material*> materials;
 	Pu::vector<Pu::Texture2D*> textures;
 	Pu::vector<Pu::PumMaterial> stageMaterials;
+	Pu::vector<Pu::PumNode> nodes;
+
+	Pu::vector<Pu::Matrix> nodeTransforms;
+	Pu::vector<Pu::Matrix> meshTransforms;
+	bool animated;
 
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *light;
 
+	void SetNodeTransform(size_t idx, const Pu::Matrix &parent);
+	void SetMeshTransforms(void);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs &args);
 	void CreateDepthBuffer(void);

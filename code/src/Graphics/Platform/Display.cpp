@@ -7,11 +7,17 @@ Pu::Display Pu::Display::Empty = Pu::Display();
 Pu::Display::Display(const Display & value)
 	: name(value.name), viewport(value.viewport), hertz(value.hertz),
 	depth(value.depth), isPrimary(value.isPrimary), correction(value.correction)
+#ifdef _WIN32
+	, hndl(value.hndl)
+#endif
 {}
 
 Pu::Display::Display(Display && value)
 	: name(std::move(value.name)), viewport(value.viewport), hertz(value.hertz),
 	depth(value.depth), isPrimary(value.isPrimary), correction(value.correction)
+#ifdef _WIN32
+	, hndl(value.hndl)
+#endif
 {}
 
 Pu::Display & Pu::Display::operator=(const Display & other)
@@ -24,6 +30,10 @@ Pu::Display & Pu::Display::operator=(const Display & other)
 		depth = other.depth;
 		isPrimary = other.isPrimary;
 		correction = other.correction;
+
+#ifdef _WIN32
+		hndl = other.hndl;
+#endif
 	}
 
 	return *this;
@@ -39,6 +49,10 @@ Pu::Display & Pu::Display::operator=(Display && other)
 		depth = other.depth;
 		isPrimary = other.isPrimary;
 		correction = other.correction;
+
+#ifdef _WIN32
+		hndl = other.hndl;
+#endif
 	}
 
 	return *this;
@@ -78,6 +92,9 @@ const Pu::vector<Pu::Display>& Pu::Display::GetAll(void)
 
 Pu::Display::Display(void)
 	: depth(0), hertz(0), isPrimary(false)
+#ifdef _WIN32
+	, hndl(nullptr)
+#endif
 {}
 
 void Pu::Display::FindDisplays(void)
@@ -103,6 +120,7 @@ void Pu::Display::FindDisplays(void)
 BOOL Pu::Display::MonitorProc(HMONITOR monitor, HDC, LPRECT vp, LPARAM)
 {
 	Display result;
+	result.hndl = monitor;
 
 	/* Get monitor viewport. */
 	const Offset2D pos(static_cast<int32>(vp->left), static_cast<int32>(vp->top));

@@ -118,6 +118,8 @@ namespace Pu
 	PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
 	PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
 	PFN_vkMergePipelineCaches vkMergePipelineCaches;
+	PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
+	PFN_vkGetPhysicalDeviceMemoryProperties2KHR vkGetPhysicalDeviceMemoryProperties2KHR;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -232,6 +234,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkDestroyPipelineCache);
 	LOAD_INSTANCE_PROC(vkGetPipelineCacheData);
 	LOAD_INSTANCE_PROC(vkMergePipelineCaches);
+	LOAD_INSTANCE_PROC(vkCmdResetQueryPool);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{
@@ -251,6 +254,11 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR);
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR);
+	}
+
+	if (enabledExtensions.contains(u8"VK_KHR_get_physical_device_properties2"))
+	{
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2KHR);
 	}
 
 #ifdef _WIN32

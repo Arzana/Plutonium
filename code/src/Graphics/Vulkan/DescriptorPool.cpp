@@ -76,7 +76,7 @@ void Pu::DescriptorPool::Initialize(CommandBuffer & cmdBuffer, PipelineStageFlag
 }
 
 Pu::BufferHndl Pu::DescriptorPool::GetBuffer(void) const
-{
+	const DescriptorSetAllocateInfo allocInfo{ hndl, layoutHndl };
 	return buffer->bufferHndl;
 }
 

@@ -526,6 +526,16 @@ namespace Pu
 		ExtensionProperties(void)
 			: ExtensionName("Invalid"), SpecVersion(makeVersion(0, 0, 0))
 		{}
+
+		/* Gets a string version of the extension. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result = ExtensionName;
+			result += " (";
+			result += string::from(getMajor(SpecVersion)) += '.';
+			result += string::from(getMinor(SpecVersion)) += '.';
+			return result + string::from(getPatch(SpecVersion)) + ')';
+		}
 	};
 
 	/* Defines the properties of a layer. */
@@ -546,6 +556,16 @@ namespace Pu
 			: LayerName(u8"Invalid"), SpecVersion(makeVersion(0, 0, 0)),
 			ImplementationVersion(makeVersion(0, 0, 0)), Description(u8"")
 		{}
+
+		/* Gets a string version of the layer. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result = LayerName;
+			result += " (";
+			result += string::from(getMajor(ImplementationVersion)) += '.';
+			result += string::from(getMinor(ImplementationVersion)) += '.';
+			return result + string::from(getPatch(ImplementationVersion)) + ')';
+		}
 	};
 
 	/* Defines information about a queue family. */
@@ -2702,6 +2722,28 @@ namespace Pu
 		{}
 	};
 
+	/* Defines a chain structure for getting extended memory properties for a phsyical device. */
+	struct PhysicalDeviceMemoryProperties2
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the non-extended memory properties. */
+		PhysicalDeviceMemoryProperties MemoryProperties;
+
+		/* Initializes an empty instance of the physical device memory properties object. */
+		PhysicalDeviceMemoryProperties2(void)
+			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(nullptr)
+		{}
+
+		/* Initializes an instance of the physical device memory properties object. */
+		PhysicalDeviceMemoryProperties2(const void *next)
+			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(next)
+		{}
+	};
+
 	/* Defines the information required to allocate memory on a physical device. */
 	struct MemoryAllocateInfo
 	{
@@ -3267,6 +3309,110 @@ namespace Pu
 		{}
 	};
 
+	/* Defines information about the available and used memory heaps. */
+	struct PhysicalDeviceMemoryBudgetProperties
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies a rough estimate of the maximum memory that can be allocated from each individual memory heap. */
+		DeviceSize HeapBudget[MaxMemoryHeaps];
+		/* Specifies an estimate of the current heap usage by the process. */
+		DeviceSize HeapUsage[MaxMemoryHeaps];
+
+		/* Initializes an empty instance of a physical device memory budget properties object. */
+		PhysicalDeviceMemoryBudgetProperties(void)
+			: Type(StructureType::PhysicalDeviceMemoryBudgetPropertiesExt), Next(nullptr)
+		{}
+	};
+
+	/* Defines the information about the full screen behavior. */
+	struct SurfaceFullScreenExclusiveInfoExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the preferred full-screen transition behavior. */
+		FullScreenExclusive FullScreenExclusive;
+
+		/* Initializes a new instance of a surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveInfoExt(void)
+			: SurfaceFullScreenExclusiveInfoExt(FullScreenExclusive::Default)
+		{}
+
+		/* Initializes a new instance of a surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveInfoExt(_In_ Pu::FullScreenExclusive mode)
+			: Type(StructureType::SurfaceFullScreenExclusiveInfoExt), Next(nullptr),
+			FullScreenExclusive(mode)
+		{}
+	};
+
+	/* Defines whether exclusive full-screen capabilies are available. */
+	struct SurfaceCapabilitiesFullScreenExclusiveExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies whether the surface is able to make use of exclusive full-screen access. */
+		Bool32 FullScreenExclusiveSupported;
+
+		/* Initializes a new instance of a surface capabilities full-screen exclusive object. */
+		SurfaceCapabilitiesFullScreenExclusiveExt(void)
+			: Type(StructureType::SurfaceCapabilitiesFullScreenExclusiveExt), Next(nullptr),
+			FullScreenExclusiveSupported(false)
+		{}
+	};
+
+	/* Defines additional paremeters for swapchain creation. */
+	struct PhysicalDeviceSurfaceInfo2Khr
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the surface that will be associated with the swapchain. */
+		SurfaceHndl Surface;
+
+		/* Initializes an empty instance of the physical device surface info object. */
+		PhysicalDeviceSurfaceInfo2Khr(void)
+			: PhysicalDeviceSurfaceInfo2Khr(nullptr)
+		{}
+
+		/* Initializes a new instance of the physical device surface info object. */
+		PhysicalDeviceSurfaceInfo2Khr(_In_ SurfaceHndl surface)
+			: Type(StructureType::PhysicalDeviceSurfaceInfo2Khr),
+			Next(nullptr), Surface(surface)
+		{}
+	};
+
+	/* Defines a chain structure for getting additional surface capabilities. */
+	struct SurfaceCapabilities2Khr
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the default surface capabilities. */
+		SurfaceCapabilities SurfaceCapabilities;
+
+		/* Initializes an empty instance of a surface capabilities object. */
+		SurfaceCapabilities2Khr(void)
+			: SurfaceCapabilities2Khr(nullptr)
+		{}
+
+		/* Initializes a new instance of a surface capabilities object. */
+		SurfaceCapabilities2Khr(_In_ const void *next)
+			: Type(StructureType::SurfaceCapabilities2Khr), Next(next)
+		{}
+	};
+
 	/* Defines the region of an image blit operation. */
 	struct ImageBlit
 	{
@@ -3325,10 +3471,33 @@ namespace Pu
 			: Win32SurfaceCreateInfo(nullptr, nullptr)
 		{}
 
-		/* Initializes a new instance of te surface create info object. */
+		/* Initializes a new instance of the surface create info object. */
 		Win32SurfaceCreateInfo(_In_ HINSTANCE hinstance, _In_ HWND hwnd)
 			: Type(StructureType::Win32SurfaceCreateInfoKhr), Next(nullptr),
 			Flags(0), Instance(hinstance), Window(hwnd)
+		{}
+	};
+
+	/* Defines additional Window information about exclusive full-screen mode. */
+	struct SurfaceFullScreenExclusiveWin32InfoExt
+	{
+	public:
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* The handle to the monitor to create the surface with. */
+		HMONITOR Monitor;
+
+		/* Initializes an empty instance of the surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveWin32InfoExt(void)
+			: SurfaceFullScreenExclusiveWin32InfoExt(nullptr)
+		{}
+
+		/* Initializes a new instance of the surface full-screen exclusive info object. */
+		SurfaceFullScreenExclusiveWin32InfoExt(_In_ HMONITOR monitor)
+			: Type(StructureType::SurfaceFullScreenExclusiveWin32InfoExt), 
+			Next(nullptr), Monitor(monitor)
 		{}
 	};
 #endif

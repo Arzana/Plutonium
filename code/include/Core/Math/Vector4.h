@@ -179,6 +179,12 @@ namespace Pu
 			return X != v.X || Y != v.Y || Z != v.Z || W != v.W;
 		}
 
+		/* Gets whether this vector should be sorted before the specified vector. */
+		_Check_return_ inline bool operator <(_In_ Vector4 v) const
+		{
+			return X < v.X || (!(v.X < X) && Y < v.Y) || (!(v.X < X) && !(v.Y < Y) && Z < v.Z) || (!(v.X < X) && !(v.Y < Y) && !(v.Z < Z) && W < v.W);
+		}
+
 		/* Implicitly converts the 4D vector to a string. */
 		_Check_return_ inline operator string() const
 		{
@@ -252,6 +258,18 @@ namespace Pu
 	_Check_return_ inline Vector4 normalize(_In_ Vector4 v)
 	{
 		return v / v.Length();
+	}
+
+	/* Checks if two vectors are equal with a specfied error tolerance. */
+	_Check_return_ inline bool nrlyeql(_In_ Vector4 v, _In_ Vector4 w, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyeql(v.X, w.X, tolerance) && nrlyeql(v.Y, w.Y, tolerance) && nrlyeql(v.Z, w.Z, tolerance) && nrlyeql(v.W, w.W, tolerance);
+	}
+
+	/* Checks if two vectors differ within a specific tolerance. */
+	_Check_return_ inline bool nrlyneql(_In_ Vector4 v, _In_ Vector4 w, _In_opt_ float tolerance = EPSILON)
+	{
+		return nrlyneql(v.X, w.X, tolerance) || nrlyneql(v.Y, w.Y, tolerance) || nrlyneql(v.Z, w.Z, tolerance) || nrlyneql(v.W, w.W, tolerance);
 	}
 
 	/* Gets the sign of each component of the input vector. */

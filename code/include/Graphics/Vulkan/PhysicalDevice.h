@@ -44,6 +44,8 @@ namespace Pu
 		_Check_return_ uint32 GetBestTransferQueueFamily(void) const;
 		/* Gets the amount of device local bytes supported by the device. */
 		_Check_return_ DeviceSize GetDeviceLocalBytes(void) const;
+		/* Attempts to get the device local bytes used by the device. */
+		_Check_return_ bool TryGetUsedDeviceLocalBytes(_Out_ DeviceSize &result) const;
 
 		/* Gets the maximum supported version of Vulkan supported by the physical device. */
 		_Check_return_ inline std::tuple<uint32, uint32, uint32> GetVulkanVersion(void) const
@@ -129,6 +131,18 @@ namespace Pu
 			return properties.SparseProperties.ResidencyNonResidentStrict;
 		}
 
+		/* Gets the Vulkan instance of this physical device. */
+		_Check_return_ inline const VulkanInstance& GetInstance(void) const
+		{
+			return *parent;
+		}
+
+		/* Gets the Vulkan instance of this physical device. */
+		_Check_return_ inline VulkanInstance& GetInstance(void)
+		{
+			return *parent;
+		}
+
 	private:
 		friend class VulkanInstance;
 		friend class LogicalDevice;
@@ -144,6 +158,7 @@ namespace Pu
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceFeatures features;
 		PhysicalDeviceMemoryProperties memory;
+		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 

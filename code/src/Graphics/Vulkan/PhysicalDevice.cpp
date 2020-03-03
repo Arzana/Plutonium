@@ -5,7 +5,9 @@
 using namespace Pu;
 
 Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
-	: PhysicalDevice(*value.parent, value.hndl)
+	: parent(value.parent), hndl(value.hndl), properties(std::move(value.properties)),
+	features(std::move(value.features)), memory(std::move(value.memory)), 
+	canQueryMemoryUsage(value.canQueryMemoryUsage)
 {
 	value.hndl = nullptr;
 }
@@ -21,10 +23,14 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 	{
 		parent->OnDestroy.Remove(*this, &PhysicalDevice::OnParentDestroyed);
 
-		hndl = other.hndl;
 		parent = other.parent;
-		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
+		hndl = other.hndl;
+		properties = std::move(other.properties);
+		features = std::move(other.features);
+		memory = std::move(other.memory);
+		canQueryMemoryUsage = other.canQueryMemoryUsage;
 
+		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 		other.hndl = nullptr;
 	}
 
@@ -127,6 +133,10 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceProperties(hndl, &properties);
 	parent.vkGetPhysicalDeviceFeatures(hndl, &features);
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
+
+	/* Querying whether the extensions are supported is slow, so just query it on creation. */
+	canQueryMemoryUsage = IsExtensionSupported(u8"VK_EXT_memory_budget");
+	exclusiveFullScreenSupported = IsExtensionSupported(u8"VK_EXT_full_screen_exclusive");
 }
 
 ImageFormatProperties Pu::PhysicalDevice::GetImageFormatProperties(const ImageCreateInfo & createInfo)
@@ -236,12 +246,33 @@ DeviceSize Pu::PhysicalDevice::GetDeviceLocalBytes(void) const
 {
 	DeviceSize result = 0;
 
-	for (const MemoryHeap *cur = memory.MemoryHeaps; cur < memory.MemoryHeaps + memory.MemoryTypeCount; cur++)
+	for (const MemoryHeap *cur = memory.MemoryHeaps; cur < memory.MemoryHeaps + memory.MemoryHeapCount; cur++)
 	{
 		if (_CrtEnumCheckFlag(cur->Flags, MemoryHeapFlag::DeviceLocal)) result += cur->Size;
 	}
 
 	return result;
+}
+
+bool Pu::PhysicalDevice::TryGetUsedDeviceLocalBytes(DeviceSize & result) const
+{
+	/* Early out if this action isn't possible on this GPU. */
+	if (!canQueryMemoryUsage) return false;
+	result = 0;
+
+	/* Query the memory budget properties from the physical device. */
+	PhysicalDeviceMemoryBudgetProperties budget;
+	PhysicalDeviceMemoryProperties2 properties2{ &budget };
+	parent->vkGetPhysicalDeviceMemoryProperties2KHR(hndl, &properties2);
+
+	/* Add the used memory for each of the device local flagged heaps. */
+	for (uint32 i = 0; i < properties2.MemoryProperties.MemoryHeapCount; i++)
+	{
+		const MemoryHeap &cur = properties2.MemoryProperties.MemoryHeaps[i];
+		if (_CrtEnumCheckFlag(cur.Flags, MemoryHeapFlag::DeviceLocal)) result += budget.HeapUsage[i];
+	}
+
+	return true;
 }
 
 bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, MemoryPropertyFlag optionalProperties, uint32 & index)

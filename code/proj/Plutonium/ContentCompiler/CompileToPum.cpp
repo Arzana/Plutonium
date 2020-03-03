@@ -4,6 +4,7 @@
 #include "CompileFromObj.h"
 #include "TextureConverter.h"
 #include "TangentGenerator.h"
+#include "MeshBaker.h"
 #include <Streams/FileWriter.h>
 #include <Core/Diagnostics/Stopwatch.h>
 
@@ -55,7 +56,7 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 			if (node.WriteSkinIndex) writer.Write(node.Skin);
 
 			if (node.WriteTranslation) writer.Write(node.Translation);
-			if (node.WriteRotation) writer.Write(node.Rotation);
+			if (node.WriteRotation) writer.Write(node.Rotation.Pack());
 			if (node.WriteScale) writer.Write(node.Scale);
 		}
 
@@ -118,7 +119,7 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 					{
 						writer.Write(frame.Time);
 						writer.Write(frame.Translation);
-						writer.Write(frame.Rotation);
+						writer.Write(frame.Rotation.Pack());
 						writer.Write(frame.Scale);
 						writer.Write(frame.Bounds.LowerBound);
 						writer.Write(frame.Bounds.UpperBound);
@@ -229,7 +230,13 @@ int CompileToPum(const CLArgs & args)
 		return EXIT_FAILURE;
 	}
 
-	if (args.RecalcTangents) GenerateTangents(data);
+	if (args.BakeMeshes) BakeMeshes(data, args.DisplayName);
+
+	if (args.RecalcTangents)
+	{
+		/* Early out if the generation failed somehow. */
+		if (GenerateTangents(data, args) == EXIT_FAILURE) return EXIT_FAILURE;
+	}
 
 	CopyAndConvertMaterials(data, args);
 	SavePumToFile(args, data);

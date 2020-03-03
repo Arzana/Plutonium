@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Platform/Windows/Windows.h"
+#include "Graphics/Platform/Display.h"
 #include "PhysicalDevice.h"
 
 namespace Pu
@@ -25,6 +25,8 @@ namespace Pu
 
 		/* Gets the capabilities of a surface for a specific physical device. */
 		_Check_return_ SurfaceCapabilities GetCapabilities(_In_ const PhysicalDevice &physicalDevice) const;
+		/* Gets whether exclusive full-screen is supported on the specified monitor for a specific physical device. */
+		_Check_return_ bool IsExclusiveFullScreenSupported(_In_ const PhysicalDevice &physicalDevice, _In_ const Display &display) const;
 		/* Gets the supported surface formats for a specific physical device. */
 		_Check_return_ vector<SurfaceFormat> GetSupportedFormats(_In_ const PhysicalDevice &physicalDevice) const;
 		/* Gets the supported present modes for a specified physical device. */

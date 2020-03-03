@@ -128,7 +128,7 @@ void Pu::_CrtFinalizeWinProcess(void)
 #ifdef _DEBUG
 void Pu::_CrtMoveDebugTerminal(const NativeWindow & wnd)
 {
-	const Offset2D wndPos = wnd.GetClientBounds().GetPosition();
+	const Offset2D wndPos = wnd.GetOffset();
 	for (const Display &cur : Display::GetAll())
 	{
 		const Rect2D vp = cur.GetClientBounds();

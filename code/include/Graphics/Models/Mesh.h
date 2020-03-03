@@ -53,6 +53,12 @@ namespace Pu
 			return boundingBox;
 		}
 
+		/* Gets the stride (in bytes) of the vertices in this mesh. */
+		_Check_return_ inline uint32 GetStride(void) const
+		{
+			return static_cast<uint32>(vertex->GetStride());
+		}
+
 	private:
 		const BufferView *vertex;
 		const BufferView *index;

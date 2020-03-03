@@ -141,6 +141,13 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 		LOAD_DEVICE_PROC(vkQueuePresentKHR);
 	}
 
+	/* Functions related to the full-screen extension. */
+	if (IsExtensionEnabled(u8"VK_EXT_full_screen_exclusive"))
+	{
+		LOAD_DEVICE_PROC(vkAcquireFullScreenExclusiveModeEXT);
+		LOAD_DEVICE_PROC(vkReleaseFullScreenExclusiveModeEXT);
+	}
+
 	/* Semaphore related functions. */
 	LOAD_DEVICE_PROC(vkCreateSemaphore);
 	LOAD_DEVICE_PROC(vkDestroySemaphore);
@@ -176,6 +183,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdBeginQuery);
 	LOAD_DEVICE_PROC(vkCmdEndQuery);
 	LOAD_DEVICE_PROC(vkCmdBlitImage);
+	LOAD_DEVICE_PROC(vkCmdResetQueryPool);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

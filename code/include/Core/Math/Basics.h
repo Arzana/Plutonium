@@ -399,6 +399,12 @@ namespace Pu
 		return fabsf(a - b) < tolerance;
 	}
 
+	/* Checks if two floats differ within a specific tolerance. */
+	_Check_return_ inline bool nrlyneql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
+	{
+		return fabsf(a - b) > tolerance;
+	}
+
 	/* Checks if float a is less or equal with a specified error tolernace to float b. */
 	_Check_return_ inline bool lnrlyeql(_In_ float a, _In_ float b, _In_opt_ float tolerance = EPSILON)
 	{

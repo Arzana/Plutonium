@@ -90,5 +90,5 @@ AABB Pu::AABB::GetOverlap(const AABB & r) const
 
 float Pu::AABB::GetDistance(Vector3 point) const
 {
-	return max(LowerBound - point, Vector3(), point - UpperBound).Length();
+	return max(LowerBound - point, point - UpperBound).Length();
 }

@@ -4,6 +4,7 @@
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Memory.h"
+#include "Core/Diagnostics/Profiler.h"
 #include <imgui/include/imgui.h>
 
 #ifdef _WIN32
@@ -26,6 +27,7 @@ Pu::Application::Application(const wstring & name, size_t threadCount)
 		IMGUI_CHECKVERSION();
 #endif
 		ImGui::CreateContext();
+		Profiler::SetTargetFrameTime(ApplicationFocusedTargetTime);
 	}
 }
 
@@ -33,6 +35,8 @@ Pu::Application::~Application(void)
 {
 	delete input;
 	delete scheduler;
+	delete device;
+	delete instance;
 
 	/* Finalize ImGui if needed. */
 	if constexpr (ImGuiAvailable) ImGui::DestroyContext();
@@ -95,6 +99,13 @@ void Pu::Application::RemoveComponent(Component & component)
 	}
 }
 
+void Pu::Application::SetTargetTimeStep(int32 hertz)
+{
+	targetElapTimeFocused = 1.0f / hertz;
+	Profiler::SetTargetFrameTime(targetElapTimeFocused);
+	targetElapTimeBackground = min(targetElapTimeFocused, targetElapTimeBackground);
+}
+
 void Pu::Application::InitializePlutonium(void)
 {
 	/* Make sure this is only called once. */
@@ -117,6 +128,7 @@ void Pu::Application::InitializeVulkan(void)
 	/* 
 	Create the Vulkan instance, we need the surface extensions for the native window. 
 	Additional color spaces are nice to support but we can do with just sRGB.
+	Additional information about physical devices can also come in handy, but it's not needed.
 	*/
 	instance = new VulkanInstance(name.toUTF8().c_str(),
 		{
@@ -129,7 +141,9 @@ void Pu::Application::InitializeVulkan(void)
 #endif
 		},
 		{
-			u8"VK_EXT_swapchain_colorspace"
+			u8"VK_EXT_swapchain_colorspace",
+			u8"VK_KHR_get_physical_device_properties2",
+			u8"VK_KHR_get_surface_capabilities2"
 		});
 
 	/* Create the native window. */
@@ -307,9 +321,7 @@ void Pu::Application::DoFinalize(void)
 	delete content;
 	delete saver;
 	delete gameWnd;
-	delete device;
 	delete wnd;
-	delete instance;
 }
 
 void Pu::Application::DoUpdate(float dt)

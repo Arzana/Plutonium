@@ -24,10 +24,10 @@ static constexpr int GetHighWord(LPARAM lParam)
 
 /* Disable input event and char input logging. */
 Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title)
-	: NativeWindow(), title(title), mode(WindowMode::Windowed),
-	shouldClose(false), AllowAltF4(true), focused(false), OnInputEvent("Win32WindowOnInputEvent", true),
-	InputDeviceAdded("Win32WindowInputDeviceAdded"), InputDeviceRemoved("Win32WindowInputDeviceRemoved"),
-	OnCharInput("Win32WindowOnCharInput", true), rawInputSize(sizeof(RAWINPUT))
+	: NativeWindow(), title(title), shouldClose(false), AllowAltF4(true), focused(false), 
+	OnInputEvent("Win32WindowOnInputEvent", true), InputDeviceAdded("Win32WindowInputDeviceAdded"), 
+	InputDeviceRemoved("Win32WindowInputDeviceRemoved"), OnCharInput("Win32WindowOnCharInput", true),
+	rawInputSize(sizeof(RAWINPUT))
 {
 	/* Push this window as an active window. */
 	activeWindows.emplace_back(this);
@@ -162,18 +162,18 @@ void Pu::Win32Window::Move(Vector2 newLocation)
 
 void Pu::Win32Window::SetMode(WindowMode newMode)
 {
-	/* Only reset the mode if it's actually different. */
-	if (newMode != mode)
+	mode = newMode;
+
+	/* Set the new mode. */
+	if (mode == WindowMode::Windowed) SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
+	else if (mode == WindowMode::Borderless)
 	{
-		/* Set the new mode. */
-		if ((mode = newMode) == WindowMode::Windowed) SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
-		else
-		{
-			/* Fullscreen mode and borderless are basically the same on Windows. */
-			SetWindowLong(hndl, GWL_STYLE, WS_BORDERLESS);
-			ShowWindow(hndl, SW_SHOWMAXIMIZED);
-		}
+		/* Borderless just means a window that has not border style and has the same dimensions as the display. */
+		SetWindowLong(hndl, GWL_STYLE, WS_BORDERLESS);
+		ShowWindow(hndl, SW_SHOWMAXIMIZED);
 	}
+	else if (mode == WindowMode::Fullscreen) Log::Warning("Full-screen mode is handled on Swapchain level not NativeWindow level!");
+	else Log::Warning("Unknown Window mode passed to NativeWindow SetMode!");
 }
 
 bool Pu::Win32Window::Update(void)

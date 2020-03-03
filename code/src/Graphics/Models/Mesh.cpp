@@ -25,8 +25,8 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 	vertexStride += mesh.HasTangents * sizeof(Vector4);
 	vertexStride += mesh.HasTextureCoordinates * sizeof(Vector2);
 	vertexStride += mesh.HasColors * sizeof(uint32);
-	if (mesh.JointType == PumJointType::Byte) vertexStride += sizeof(uint8) + sizeof(Vector4);
-	else if (mesh.JointType == PumJointType::UShort) vertexStride += sizeof(uint16) + sizeof(Vector4);
+	if (mesh.JointType == PumJointType::Byte) vertexStride += (sizeof(uint8) << 2) + sizeof(Vector4);
+	else if (mesh.JointType == PumJointType::UShort) vertexStride += (sizeof(uint16) << 2) + sizeof(Vector4);
 
 	/* Create the buffer views. */
 	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, vertexStride);

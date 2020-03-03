@@ -116,6 +116,32 @@ struct pum_mesh
 
 		return result;
 	}
+
+	inline size_t GetVrtxStride(void) const
+	{
+		return sizeof(Pu::Vector3) + 
+			(sizeof(Pu::Vector3) * HasNormals) +
+			(sizeof(Pu::Vector4) * HasTangents) +
+			(sizeof(Pu::Vector2) * HasTextureUvs) +
+			(sizeof(Pu::uint32) * HasVertexColors) +
+			(sizeof(Pu::uint32) * HasJoints) +
+			(sizeof(Pu::Vector4) * (HasJoints != 0));
+	}
+
+	inline size_t GetIdxStride(void) const
+	{
+		return (IndexMode * 2 + 2) * (IndexMode != 2);
+	}
+
+	inline size_t GetVrtxCount(void) const
+	{
+		return VertexViewSize / GetVrtxStride();
+	}
+
+	inline size_t GetIndexCount(void) const
+	{
+		return (IndexViewSize >> (IndexMode + 1)) * (IndexMode != 2);
+	}
 };
 
 struct pum_frame

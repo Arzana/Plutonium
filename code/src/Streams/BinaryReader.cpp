@@ -162,6 +162,11 @@ Quaternion Pu::BinaryReader::PeekQuaternion(void) const
 	return endian == NativeEndian ? raw : ByteSwap(raw, sizeof(float));
 }
 
+Quaternion Pu::BinaryReader::PeekPackedQuaternion(void) const
+{
+	return Quaternion::Unpack(PeekInt64());
+}
+
 Matrix Pu::BinaryReader::PeekMatrix(void) const
 {
 	CheckOverflow(sizeof(Matrix), true);
@@ -372,6 +377,11 @@ Quaternion Pu::BinaryReader::ReadQuaternion(void)
 	const Quaternion result = PeekQuaternion();
 	position += sizeof(Quaternion);
 	return result;
+}
+
+Quaternion Pu::BinaryReader::ReadPackedQuaternion(void)
+{
+	return Quaternion::Unpack(ReadInt64());
 }
 
 Matrix Pu::BinaryReader::ReadMatrix(void)

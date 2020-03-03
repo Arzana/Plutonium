@@ -41,12 +41,6 @@ namespace Pu
 			return vp;
 		}
 
-		/* Gets the current mode of the window. */
-		_Check_return_ virtual inline WindowMode GetWindowMode(void) const override 
-		{
-			return mode;
-		}
-
 		/* Gets whether the window has focus. */
 		_Check_return_ virtual inline bool HasFocus(void) const override
 		{
@@ -85,12 +79,6 @@ namespace Pu
 		/* Occurs when a unicode character is provided by the user. */
 		EventBus<const Win32Window, wchar_t> OnCharInput;
 
-		/* Gets the surface to render to. */
-		_Check_return_ virtual inline Surface& GetSurface(void) override
-		{
-			return *surface;
-		}
-
 		/* Updates the window, returns whether the window should remain active. */
 		_Check_return_ virtual bool Update(void) override;
 
@@ -98,13 +86,11 @@ namespace Pu
 		friend class InputDeviceHandler;
 		friend class Mouse;
 
-		Surface *surface;
 		HINSTANCE instance;
 		HWND hndl;
 		const wstring title;
 		Viewport vp;
 		Vector2 pos;
-		WindowMode mode;
 		bool shouldClose, focused;
 		RAWINPUT *input;
 		uint32 rawInputSize;

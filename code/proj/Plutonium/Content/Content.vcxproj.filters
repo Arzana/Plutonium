@@ -57,6 +57,9 @@
     <SPIRVShader Include="..\..\..\assets\shaders\CameraEffects.frag">
       <Filter>Shaders\Deferred</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Forward3D_Unlit.frag">
+      <Filter>Shaders\Forward</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
@@ -75,6 +78,15 @@
       <Filter>Models</Filter>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\BoomBox\BoomBox.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Monster\Monster.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Shark\Shark.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Phoenix\Phoenix.gltf">
       <Filter>Models</Filter>
     </PuModel>
   </ItemGroup>

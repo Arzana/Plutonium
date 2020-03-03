@@ -31,6 +31,26 @@ SurfaceCapabilities Pu::Surface::GetCapabilities(const PhysicalDevice & physical
 	return capabilities;
 }
 
+bool Pu::Surface::IsExclusiveFullScreenSupported(const PhysicalDevice & physicalDevice, const Display & display) const
+{
+	/* Early out if the implementation doesn't support the extension. */
+	if (!physicalDevice.exclusiveFullScreenSupported) return false;
+	PhysicalDeviceSurfaceInfo2Khr info{ hndl };
+
+	SurfaceCapabilitiesFullScreenExclusiveExt fullscreen;
+	SurfaceCapabilities2Khr capabilities { &fullscreen };
+
+#ifdef _WIN32
+	/* We need to add monitor specific information on Win32. */
+	SurfaceFullScreenExclusiveWin32InfoExt win32{ display.hndl };
+	fullscreen.Next = &win32;
+#endif
+
+	/* Query the instance if it's supported for this phsyical device. */
+	VK_VALIDATE(parent->vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice.hndl, &info, &capabilities), PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR);
+	return fullscreen.FullScreenExclusiveSupported;
+}
+
 vector<SurfaceFormat> Pu::Surface::GetSupportedFormats(const PhysicalDevice & physicalDevice) const
 {
 	/* Query amount of formats specified. */
