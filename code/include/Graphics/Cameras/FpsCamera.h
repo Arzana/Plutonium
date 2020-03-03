@@ -36,7 +36,7 @@ namespace Pu
 		/* Sets the fied of view (vertical in radians). */
 		void SetFoV(_In_ float value);
 		/* Updates the FPS camera. */
-		virtual void Update(_In_ CommandBuffer &cmdBuffer);
+		virtual void Update(_In_ float dt) override;
 
 		/* Gets the near clipping plane. */
 		_Check_return_ inline float GetNear(void) const

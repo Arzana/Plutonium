@@ -26,7 +26,7 @@ void Pu::FpsCamera::SetFoV(float value)
 	projDirty = true;
 }
 
-void Pu::FpsCamera::Update(CommandBuffer & cmdBuffer)
+void Pu::FpsCamera::Update(float dt)
 {
 	/* Update the projection if needed. */
 	if (projDirty) UpdateProjection();
@@ -38,8 +38,7 @@ void Pu::FpsCamera::Update(CommandBuffer & cmdBuffer)
 	SetView(Matrix::CreateLookIn(GetPosition(), orien.GetForward(), orien.GetUp()));
 	frustum = Frustum(GetProjection() * GetView());
 
-	/* We need to update the base last as it will stage the set and projection. */
-	Camera::Update(cmdBuffer);
+	Camera::Update(dt);
 }
 
 void Pu::FpsCamera::OnWindowResize(const NativeWindow & sender, ValueChangedEventArgs<Vector2> args)

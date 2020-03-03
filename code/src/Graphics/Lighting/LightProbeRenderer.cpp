@@ -41,6 +41,12 @@ Pu::LightProbeRenderer & Pu::LightProbeRenderer::operator=(LightProbeRenderer &&
 	return *this;
 }
 
+void Pu::LightProbeRenderer::Initialize(CommandBuffer & cmdBuffer)
+{
+	/* We need to initialize the transforms pool at least once. */
+	pool->Update(cmdBuffer, PipelineStageFlag::GeometryShader);
+}
+
 void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer) const
 {
 	/* Ingore baked light probes. */
@@ -50,7 +56,6 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 	/* The image should be in a color attachment write access. */
 	cmdBuffer.AddLabel("Light Probe Update", Color::Red());
 	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::FragmentShader, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ColorAttachmentWrite, probe.texture->GetFullRange());
-	probe.block->Update(cmdBuffer);
 	probe.depth->MakeWritable(cmdBuffer);
 
 	cmdBuffer.BeginRenderPass(*renderpass, *probe.framebuffer, SubpassContents::Inline);
@@ -87,7 +92,7 @@ Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxMate
 	}
 
 	/* Set 1 is the material set. */
-	return new DescriptorPool(*gfx, renderpass->GetSubpass(0), 1, maxMaterials);
+	return new DescriptorPool(*renderpass, *gfx, maxMaterials, 0, 1);
 }
 
 void Pu::LightProbeRenderer::InitializeRenderpass(Renderpass &)
@@ -120,7 +125,7 @@ void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
 	gfx->Finalize();
 
 	/* This descriptor pool is for the view transformations. */
-	pool = new DescriptorPool(*gfx, renderpass->GetSubpass(0), 0, maxSets);
+	pool = new DescriptorPool(*renderpass, *gfx, maxSets, 0, 0);
 }
 
 void Pu::LightProbeRenderer::Destroy(void)

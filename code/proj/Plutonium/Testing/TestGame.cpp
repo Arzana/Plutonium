@@ -92,7 +92,7 @@ void TestGame::UnLoadContent(void)
 {
 	AssetFetcher &fetcher = GetContent();
 
-	for (DescriptorSet &cur : probeSets) probePool->DeAllocate(cur);
+	for (DescriptorSet &cur : probeSets) cur.Free();
 	delete probePool;
 
 	if (cam) delete cam;
@@ -151,7 +151,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			for (const PumMaterial &mat : stageMaterials)
 			{
-				probeSets.emplace_back(std::move(probePool->Allocate()));
+				probeSets.emplace_back(*probePool, 1);
 				if (mat.HasDiffuseTexture) probeSets.back().Write(diffuseDescriptor, *textures[mat.DiffuseTexture]);
 				else probeSets.back().Write(diffuseDescriptor, *textures[textures.size() - 3]);
 			}
@@ -182,19 +182,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			if (mat.HasOcclusionTexture) mat2.SetOcclusion(*textures[mat.OcclusionTexture]);
 			else mat2.SetOcclusion(*textures[textures.size() - 3]);
-
-			mat2.Update(cmd);
 		}
 
 		Material &defMat = *materials.back();
-		defMat.ForceUpdate();
 		defMat.SetDiffuse(*textures[textures.size() - 3]);
 		defMat.SetSpecular(*textures[textures.size() - 2]);
 		defMat.SetNormal(*textures[textures.size() - 1]);
 		defMat.SetEmissive(*textures[textures.size() - 2]);
 		defMat.SetOcclusion(*textures[textures.size() - 3]);
-		defMat.Update(cmd);
 
+		descPoolMats->Update(cmd, PipelineStageFlag::FragmentShader);
 		Profiler::End();
 
 		if (!nodeTransforms.empty())
@@ -228,13 +225,14 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 
 	uint32 drawCalls = 0, batchCalls = 0;
-	Profiler::Add("Light Probe Update", Color::Green(), probeQueries->GetTimeDelta() * 0.001f);
-	Profiler::Add("Render", Color::Yellow(), renderQueries->GetTimeDelta() * 0.001f);
+	Profiler::Add("Light Probe Update", Color::Green(), static_cast<int64>(probeQueries->GetTimeDelta() * 0.001f));
+	Profiler::Add("Render", Color::Yellow(), static_cast<int64>(renderQueries->GetTimeDelta() * 0.001f));
 	
 	probeQueries->Reset(cmd);
 	renderQueries->Reset(cmd);
 	
 	Profiler::Begin("Light Probe Update", Color::Green());
+	probeRenderer->Initialize(cmd);
 	probeRenderer->Start(*environment, cmd);
 	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
 	size_t i = 0;
@@ -253,8 +251,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	probeRenderer->End(*environment, cmd);
 	Profiler::End();
 
-	cam->Update(dt * updateCam, cmd);
-	light->Update(cmd);
+	cam->Update(dt * updateCam);
+	descPoolCam->Update(cmd, PipelineStageFlag::VertexShader);
+	descPoolLight->Update(cmd, PipelineStageFlag::FragmentShader);
 
 	Profiler::Begin("Render", Color::Yellow());
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
@@ -418,18 +417,17 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 {
-	const Subpass &pass = renderPass->GetSubpass(0);
 	CreateGraphicsPipeline();
 
-	descPoolCam = new DescriptorPool(*gfxPipeline, pass, 0, 1);
+	descPoolCam = new DescriptorPool(*renderPass, *gfxPipeline, 1, 0, 0);
 	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, GetInput());
 	cam->Move(0.0f, 1.0f, -1.0f);
 	cam->Yaw = PI2;
 
-	descPoolLight = new DescriptorPool(*gfxPipeline, pass, 2, 1);
+	descPoolLight = new DescriptorPool(*renderPass, *gfxPipeline, 1, 0, 2);
 	light = new DirectionalLight(*descPoolLight);
 
-	descPoolMats = new DescriptorPool(*gfxPipeline, pass, 1, stageMaterials.size() + 1);
+	descPoolMats = new DescriptorPool(*renderPass, *gfxPipeline, static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
 	for (PumMaterial &material : stageMaterials)
 	{
 		materials.emplace_back(new Material(*descPoolMats, material));

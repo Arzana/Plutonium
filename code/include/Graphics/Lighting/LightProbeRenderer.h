@@ -24,6 +24,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ LightProbeRenderer& operator =(_In_ LightProbeRenderer &&other);
 
+		/* Stages the light probe information to the GPU. */
+		void Initialize(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the render process for a specific light probe. */
 		void Start(_In_ LightProbe &probe, _In_ CommandBuffer &cmdBuffer) const;
 		/* Renders a single mesh with a specified texture to the bound light probe. */

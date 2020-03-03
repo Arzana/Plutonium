@@ -1,11 +1,11 @@
 #include "Graphics/Models/Material.h"
 
 Pu::Material::Material(DescriptorPool & pool)
-	: UniformBlock(pool, false), diffuseMap(&pool.GetSubpass().GetDescriptor("Diffuse")),
-	specularMap(&pool.GetSubpass().GetDescriptor("SpecularGlossiness")),
-	normalMap(&pool.GetSubpass().GetDescriptor("Normal")),
-	emissiveMap(&pool.GetSubpass().GetDescriptor("Emissive")),
-	occlusionMap(&pool.GetSubpass().GetDescriptor("Occlusion")),
+	: DescriptorSet(pool, 1), diffuseMap(&GetDescriptor(0, "Diffuse")),
+	specularMap(&GetDescriptor(0, "SpecularGlossiness")),
+	normalMap(&GetDescriptor(0, "Normal")),
+	emissiveMap(&GetDescriptor(0, "Emissive")),
+	occlusionMap(&GetDescriptor(0, "Occlusion")),
 	roughness(1.0f), power(2.0f)
 {}
 
@@ -16,7 +16,7 @@ Pu::Material::Material(DescriptorPool & pool, const PumMaterial & parameters)
 }
 
 Pu::Material::Material(Material && value)
-	: UniformBlock(std::move(value)), diffuseMap(value.diffuseMap), roughness(value.roughness), 
+	: DescriptorSet(std::move(value)), diffuseMap(value.diffuseMap), roughness(value.roughness), 
 	specularMap(value.specularMap), power(value.power), f0(value.f0), diffuse(value.diffuse),
 	normalMap(value.normalMap), emissiveMap(value.emissiveMap), occlusionMap(value.occlusionMap)
 {
@@ -31,7 +31,7 @@ Pu::Material & Pu::Material::operator=(Material && other)
 {
 	if (this != &other)
 	{
-		UniformBlock::operator=(std::move(other));
+		DescriptorSet::operator=(std::move(other));
 		diffuseMap = other.diffuseMap;
 		specularMap = other.specularMap;
 		normalMap = other.normalMap;
@@ -61,7 +61,6 @@ void Pu::Material::SetParameters(float glossiness, float specPower, Vector3 spec
 	power = specPower;
 	f0 = specular;
 	this->diffuse = diffuse;
-	IsDirty = true;
 }
 
 void Pu::Material::SetParameters(float glossiness, float specPower, Color specular, Color diffuse)

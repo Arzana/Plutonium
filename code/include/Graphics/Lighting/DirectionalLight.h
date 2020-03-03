@@ -1,12 +1,12 @@
 #pragma once
-#include "Graphics/Models/UniformBlock.h"
+#include "Graphics/Vulkan/DescriptorSet.h"
 #include "Core/Math/Matrix.h"
 
 namespace Pu
 {
 	/* Defines a directional light uniform block. */
 	class DirectionalLight
-		: public UniformBlock
+		: public DescriptorSet
 	{
 	public:
 		/* Initializes a new instance of a directional light. */
@@ -59,7 +59,6 @@ namespace Pu
 		inline void SetDirection(_In_ float yaw, _In_ float pitch, _In_ float roll)
 		{
 			orien = Matrix::CreateRotation(yaw, pitch, roll);
-			IsDirty = true;
 		}
 
 		/* Sets the direction of the light. */
@@ -72,14 +71,12 @@ namespace Pu
 		inline void SetRadiance(_In_ Color value)
 		{
 			radiance = value.ToVector3();
-			IsDirty = true;
 		}
 
 		/* Sets the intensity of the light. */
 		inline void SetIntensity(_In_ float value)
 		{
 			intensity = value;
-			IsDirty = true;
 		}
 
 	protected:

@@ -1,6 +1,6 @@
 #pragma once
-#include "Graphics/Models/UniformBlock.h"
 #include "Core/Math/Matrix.h"
+#include "Graphics/Vulkan/DescriptorSet.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "Graphics/Textures/TextureCube.h"
 
@@ -13,7 +13,7 @@ namespace Pu
 
 	/* Defines a camera base. */
 	class Camera
-		: public UniformBlock
+		: public DescriptorSet
 	{
 	public:
 		Camera(_In_ const Camera&) = delete;
@@ -82,7 +82,6 @@ namespace Pu
 		inline virtual void SetPosition(_In_ Vector3 position)
 		{
 			pos = position;
-			IsDirty = true;
 		}
 
 		/* Adds the specified offset to the position. */
@@ -101,21 +100,18 @@ namespace Pu
 		inline void SetExposure(_In_ float value)
 		{
 			exposure = value;
-			IsDirty = true;
 		}
 
 		/* Sets the brightness of this camera. */
 		inline void SetBrightness(_In_ float value)
 		{
 			brightness = value;
-			IsDirty = true;
 		}
 
 		/* Sets the contrast of the camera. */
 		inline void SetContrast(_In_ float value)
 		{
 			contrast = value;
-			IsDirty = true;
 		}
 
 #ifdef PU_CAMERA_USE_FORWARD
@@ -129,6 +125,8 @@ namespace Pu
 		/* Initializes a new instance of a camera. */
 		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool);
 
+		/* Updates the camera. */
+		virtual void Update(_In_ float /*dt*/) {};
 		/* Sets the view matrix. */
 		void SetView(_In_ const Matrix &value);
 		/* Sets the projection matrix. */

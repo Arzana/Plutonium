@@ -519,9 +519,6 @@
     <ClInclude Include="..\..\..\include\Input\Keys.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h">
-      <Filter>Header Files\Graphics\Models</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image3D.h">
       <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
@@ -574,9 +571,6 @@
       <Filter>Header Files\Graphics\Resources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h">
-      <Filter>Header Files\Graphics\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h">
       <Filter>Header Files\Graphics\Text</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\VulkanProcedres.h">
@@ -938,9 +932,6 @@
     <ClCompile Include="..\..\..\src\Input\Keyboard.cpp">
       <Filter>Source Files\Input</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp">
-      <Filter>Source Files\Graphics\Models</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Components\Component.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -978,9 +969,6 @@
       <Filter>Source Files\Graphics\Resources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp">
-      <Filter>Source Files\Graphics\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp">
       <Filter>Source Files\Graphics\Text</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp">

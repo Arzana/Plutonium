@@ -58,7 +58,7 @@ Pu::FreeCamera & Pu::FreeCamera::operator=(FreeCamera && other)
 	return *this;
 }
 
-void Pu::FreeCamera::Update(float dt, CommandBuffer & cmdBuffer)
+void Pu::FreeCamera::Update(float dt)
 {
 	/* The slider input might have come from a gamepad, so remove the deadzone. */
 	if (moveDelta.LengthSquared() < DeadZone) moveDelta = 0.0f;
@@ -72,7 +72,7 @@ void Pu::FreeCamera::Update(float dt, CommandBuffer & cmdBuffer)
 	/* Reset the lookstate if needed. */
 	lookDelta *= !(state & 16);
 	state &= ~16;
-	FpsCamera::Update(cmdBuffer);
+	FpsCamera::Update(dt);
 }
 
 void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)

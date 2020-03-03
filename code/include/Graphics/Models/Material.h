@@ -1,12 +1,12 @@
 #pragma once
-#include "UniformBlock.h"
+#include "Graphics/Vulkan/DescriptorSet.h"
 #include "Content/PumLoader.h"
 
 namespace Pu
 {
 	/* Defines the specular glossiness material used by the model renderer. */
 	class Material
-		: public UniformBlock
+		: public DescriptorSet
 	{
 	public:
 		/* Initializes a new instance of a PBR material from the specified descriptor pool for the specified subpass. */
@@ -36,20 +36,18 @@ namespace Pu
 		inline void SetGlossiness(_In_ float value)
 		{
 			roughness = 1.0f - value;
-			IsDirty = true;
 		}
 
+		/* Sets the specular power of this material. */
 		inline void SetSpecularPower(_In_ float value)
 		{
 			power = value;
-			IsDirty = true;
 		}
 
 		/* Sets the specular factor for this material. */
 		inline void SetSpecular(_In_ Vector3 value)
 		{
 			f0 = value;
-			IsDirty = true;
 		}
 
 		/* Sets the specular factor for this material (alpha is ignored). */
@@ -62,7 +60,6 @@ namespace Pu
 		inline void SetDiffuse(_In_ Vector3 value)
 		{
 			diffuse = value;
-			IsDirty = true;
 		}
 
 		/* Sets the diffuse factor for this material (alpha is ignored). */

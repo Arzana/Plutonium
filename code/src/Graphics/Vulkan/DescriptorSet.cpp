@@ -1,20 +1,28 @@
 #include "Graphics/Vulkan/DescriptorSet.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
-Pu::DescriptorSet::DescriptorSet(const DescriptorPool & pool, const Pipeline & pipeline, uint32 set)
+Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, uint32 set)
 	: pool(&pool), set(set)
 {
 	/* Sets handles are always incremental. */
-	baseOffset = pool.Alloc(pipeline.setHndls.at(set), &hndl);
+	baseOffset = pool.Alloc(pool.pipeline->setHndls.at(set), &hndl);
 
-	/* Immediately write the uniform buffer descriptors to this set. */
-	if (!pool.writes.empty()) WriteBuffer();
+	/*
+	Immediately write the uniform buffer descriptors to this set.
+	This means that this descriptor set contains a uniform block.
+	*/
+	if (pool.writes.size())
+	{
+		WriteBuffer();
+		SubscribeIfNeeded();
+	}
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
-	: hndl(value.hndl), pool(value.pool), set(value.set)
+	: hndl(value.hndl), pool(value.pool), set(value.set), baseOffset(value.baseOffset)
 {
 	value.hndl = nullptr;
+	SubscribeIfNeeded();
 }
 
 Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
@@ -26,6 +34,8 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 		hndl = other.hndl;
 		pool = other.pool;
 		set = other.set;
+		baseOffset = other.baseOffset;
+		SubscribeIfNeeded();
 
 		other.hndl = nullptr;
 	}
@@ -81,7 +91,7 @@ void Pu::DescriptorSet::WriteBuffer(void)
 		}
 		else
 		{
-			/* 
+			/*
 			This binding is not yet found, we need a new DescriptorBufferInfo.
 			We also must ensure that the offset within the buffer is handled correctly.
 			*/
@@ -92,7 +102,7 @@ void Pu::DescriptorSet::WriteBuffer(void)
 		offset += size;
 	}
 
-	/* 
+	/*
 	Preallocate the required buffers (required, otherwise the vector pointer will be invalid)
 	and fill them with the required data.
 	*/
@@ -109,15 +119,21 @@ void Pu::DescriptorSet::WriteBuffer(void)
 	WriteDescriptors(writes);
 }
 
+void Pu::DescriptorSet::SubscribeIfNeeded(void)
+{
+	/* We only need to subscribe to the stage event if this set contains a uniform block. */
+	if (pool->writes.size()) pool->OnStage.Add(*this, &DescriptorSet::StageInternal);
+}
+
+void Pu::DescriptorSet::StageInternal(DescriptorPool &, byte * destination)
+{
+	Stage(destination + baseOffset);
+}
+
 void Pu::DescriptorSet::Free(void)
 {
 	Destroy();
 	hndl = nullptr;
-}
-
-Pu::byte * Pu::DescriptorSet::GetStagePointer(void) const
-{
-	return reinterpret_cast<byte*>(pool->buffer->GetHostMemory()) + baseOffset;
 }
 
 void Pu::DescriptorSet::ValidateDescriptor(const Descriptor & descriptor, DescriptorType type) const
@@ -133,7 +149,7 @@ void Pu::DescriptorSet::ValidateDescriptor(const Descriptor & descriptor, Descri
 	/* Make sure that this type is accepted. */
 	if (descriptor.GetType() != type)
 	{
-		Log::Fatal("Cannot write descriptor '%s'(%s) as a %s descriptor!", 
+		Log::Fatal("Cannot write descriptor '%s'(%s) as a %s descriptor!",
 			descriptor.GetInfo().Name.c_str(),
 			to_string(descriptor.GetType()),
 			to_string(type));
@@ -148,4 +164,5 @@ void Pu::DescriptorSet::WriteDescriptors(const vector<WriteDescriptorSet>& write
 void Pu::DescriptorSet::Destroy(void)
 {
 	if (hndl) pool->Free(hndl);
+	pool->OnStage.Remove(*this, &DescriptorSet::StageInternal);
 }

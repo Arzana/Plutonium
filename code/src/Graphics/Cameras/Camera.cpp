@@ -2,23 +2,23 @@
 #include "Application.h"
 
 Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool)
-	: UniformBlock(pool, false), viewDirty(false),
+	: DescriptorSet(pool, 0), viewDirty(false),
 	exposure(1.0f), brightness(0.0f), contrast(1.0f),
 	window(&wnd)
 {
 	wnd.OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 
 #ifndef PU_CAMERA_USE_FORWARD
-	binding1 = pool.GetSubpass(1).GetDescriptor("IProjection").GetAllignedOffset(sizeof(Matrix) << 1);
-	binding2 = pool.GetSubpass(2).GetDescriptor("Exposure").GetAllignedOffset((sizeof(Matrix) << 2) + sizeof(Vector3));
+	binding1 = GetDescriptor(1, "IProjection").GetAllignedOffset(sizeof(Matrix) << 1);
+	binding2 = GetDescriptor(2, "Exposure").GetAllignedOffset((sizeof(Matrix) << 2) + sizeof(Vector3));
 #else
-	binding1 = pool.GetSubpass().GetDescriptor("CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
-	envMap = &pool.GetSubpass().GetDescriptor("Environment");
+	binding1 = GetDescriptor(0, "CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
+	envMap = &GetDescriptor(0, "Enviornment");
 #endif
 }
 
 Pu::Camera::Camera(Camera && value)
-	: UniformBlock(std::move(value)), pos(value.pos), window(value.window),
+	: DescriptorSet(std::move(value)), pos(value.pos), window(value.window),
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
 	wndSize(value.wndSize), viewDirty(value.viewDirty), binding1(value.binding1),
@@ -36,7 +36,7 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 	if (this != &other)
 	{
 		Destroy();
-		UniformBlock::operator=(std::move(other));
+		DescriptorSet::operator=(std::move(other));
 
 		pos = other.pos;
 		view = other.view;

@@ -1,12 +1,12 @@
 #pragma once
-#include "Graphics/Models/UniformBlock.h"
+#include "Graphics/Vulkan/DescriptorSet.h"
 #include "Core/Math/Matrix.h"
 
 namespace Pu
 {
 	/* Defines the uniform block used to pass the transforms to the light probe renderpass. */
 	class LightProbeUniformBlock
-		: public UniformBlock
+		: public DescriptorSet
 	{
 	public:
 		/* Initializes a new instance of a light probe uniform block from the specified descriptor pool. */
@@ -23,7 +23,6 @@ namespace Pu
 		inline void SetFrustum(_In_ size_t idx, _In_ const Matrix &mtrx)
 		{
 			views[idx] = mtrx;
-			IsDirty = true;
 		}
 
 	protected:

@@ -5,21 +5,20 @@
 #include <Content/AssetFetcher.h>
 #include <Graphics/Vulkan/Instance.h>
 #include <Graphics/Vulkan/Framebuffer.h>
-#include <Graphics/Models/UniformBlock.h>
 #include <Graphics/Vulkan/CommandPool.h>
 
 using namespace Pu;
 
 /* Defines the uniform block used by the conversion shader. */
 class ConverterUniformBlock
-	: public UniformBlock
+	: public DescriptorSet
 {
 public:
 	ConverterUniformBlock(DescriptorPool &pool, float metal, float roughness, Color factor)
-		: UniformBlock(pool, true), metalFactor(metal),
+		: DescriptorSet(pool, 0), metalFactor(metal),
 		roughnessFactor(roughness), albedoFactor(factor.ToVector4()),
-		albedo(&pool.GetSubpass().GetDescriptor("Albedo")),
-		metalRough(&pool.GetSubpass().GetDescriptor("MetalRoughness"))
+		albedo(&GetDescriptor(0, "Albedo")),
+		metalRough(&GetDescriptor(0, "MetalRoughness"))
 	{}
 
 	void SetAlbedo(const Texture2D &map)
@@ -263,7 +262,7 @@ size_t DiskCopyTextures(PumIntermediate &data, const wstring &wdir, const ustrin
 	return result;
 }
 
-bool InitializeVulkan(size_t maxSets, TaskScheduler &scheduler)
+bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 {
 	/* Create the Vulkan instance. */
 	instance = new VulkanInstance("Plutonium Content Compiler");
@@ -348,7 +347,7 @@ bool InitializeVulkan(size_t maxSets, TaskScheduler &scheduler)
 	pipeline->Finalize();
 
 	/* Allocate a descriptor pool for all the material attributes. */
-	descPool = new DescriptorPool(*pipeline, renderpass->GetSubpass(0), 0, maxSets);
+	descPool = new DescriptorPool(*renderpass, *pipeline, maxSets, 0, 0);
 	return true;
 }
 
@@ -634,7 +633,7 @@ void ConvertTextures(PumIntermediate & data, const wstring &wdir, const ustring 
 	CommandBuffer &memoryCmdBuffer = cmdBuffers.front();
 	memoryCmdBuffer.Begin();
 	memoryCmdBuffer.MemoryBarrier(srcMemoryBarriers, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead);
-	for (ConverterUniformBlock *block : uniformBlocks) block->Update(memoryCmdBuffer);
+	descPool->Update(memoryCmdBuffer, PipelineStageFlag::FragmentShader);
 	memoryCmdBuffer.End();
 	queue.Submit(memoryCmdBuffer);
 
@@ -677,7 +676,7 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 	Log::Message("Converting %zu textures from metal/roughness to specular/glossiness.", parseCnt);
 
 	/* The amount of descriptor sets if the same as the material count. */
-	size_t setCnt = 0;
+	uint32 setCnt = 0;
 	for (pum_material &mat : data.Materials) setCnt += !mat.IsFinalized;
 
 	/* Make sure that we only start the conversion if all the component were properly created. */

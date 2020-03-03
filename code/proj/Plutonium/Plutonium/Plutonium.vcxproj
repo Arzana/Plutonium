@@ -168,7 +168,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Models\UniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
@@ -193,7 +192,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Text\Font.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\Glyph.h" />
     <ClInclude Include="..\..\..\include\Graphics\Text\TextBuffer.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Text\TextUniformBlock.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
@@ -332,7 +330,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Models\UniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
@@ -349,7 +346,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Text\CodeChart.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\Font.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Text\TextBuffer.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Text\TextUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Buffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />

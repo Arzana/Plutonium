@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a descriptor set from a specific pool. */
-		DescriptorSet(_In_ const DescriptorPool &pool, _In_ const Pipeline &pipeline, _In_ uint32 set);
+		DescriptorSet(_In_ DescriptorPool &pool, _In_ uint32 set);
 		DescriptorSet(_In_ const DescriptorSet&) = delete;
 		/* Move constructor. */
 		DescriptorSet(_In_ DescriptorSet &&value);
@@ -30,16 +30,35 @@ namespace Pu
 		void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Free's the descriptor set from its parent pool. */
 		void Free(void);
-		/* Gets a pointer to the CPU memory buffer for the parent pool (BeginMemoryTransfer should be called on the pool beforehand). */
-		_Check_return_ byte* GetStagePointer(void) const;
+
+	protected:
+		/* Copies the block data to the CPU staging buffer. */
+		virtual void Stage(_In_ byte* /*destination*/) {};
+
+		/* Copies the specific value into the array. */
+		template <typename value_t>
+		static inline void Copy(_In_ byte *destination, _In_ const value_t *value)
+		{
+			memcpy(destination, value, sizeof(std::remove_pointer<value_t>));
+		}
+
+		/* Gets the specific descriptor from the specific subpass. */
+		_Check_return_ inline const Descriptor& GetDescriptor(_In_ uint32 subpass, _In_ const string &name) const
+		{
+			return pool->renderpass->GetSubpass(subpass).GetDescriptor(name);
+		}
 
 	private:
+		friend class CommandBuffer;
+
 		DescriptorSetHndl hndl;
-		const DescriptorPool *pool;
+		DescriptorPool *pool;
 		uint32 set;
 		DeviceSize baseOffset;
 
 		void WriteBuffer(void);
+		void SubscribeIfNeeded(void);
+		void StageInternal(DescriptorPool&, byte *destination);
 		void ValidateDescriptor(const Descriptor &descriptor, DescriptorType type) const;
 		void WriteDescriptors(const vector<WriteDescriptorSet> &writes);
 		void Destroy(void);
