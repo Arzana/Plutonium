@@ -1538,11 +1538,11 @@ namespace Pu
 		case spv::Op::OpGroupDecorate:
 			return "Group Decorate";
 		case spv::Op::OpGroupMemberDecorate:
-			break;
+			return "Group Member Decorate";
 		case spv::Op::OpVectorExtractDynamic:
-			break;
+			return "Vector Extract Dynamic";
 		case spv::Op::OpVectorInsertDynamic:
-			break;
+			return "Vector Insert Dynamic";
 		case spv::Op::OpVectorShuffle:
 			return "Vector Shuffle";
 		case spv::Op::OpCompositeConstruct:
@@ -1550,63 +1550,63 @@ namespace Pu
 		case spv::Op::OpCompositeExtract:
 			return "Composite Extract";
 		case spv::Op::OpCompositeInsert:
-			break;
+			return "Composite Insert";
 		case spv::Op::OpCopyObject:
-			break;
+			return "Copy Object";
 		case spv::Op::OpTranspose:
-			break;
+			return "Transpose";
 		case spv::Op::OpSampledImage:
-			break;
+			return "Sampled Image";
 		case spv::Op::OpImageSampleImplicitLod:
 			return "Image Sample Implicit LoD";
 		case spv::Op::OpImageSampleExplicitLod:
-			break;
+			return "Image Sample Explicit LoD";
 		case spv::Op::OpImageSampleDrefImplicitLod:
-			break;
+			return "Image Sample Depth Reference Implicit LoD";
 		case spv::Op::OpImageSampleDrefExplicitLod:
-			break;
+			return "Image Sample Depth Reference Explicit LoD";
 		case spv::Op::OpImageSampleProjImplicitLod:
-			break;
+			return "Image Sample Projection Implicit LoD";
 		case spv::Op::OpImageSampleProjExplicitLod:
-			break;
+			return "Image Sampler Projection Explicit LoD";
 		case spv::Op::OpImageSampleProjDrefImplicitLod:
-			break;
+			return "Image Sample Projection Depth Reference Implicit LoD";
 		case spv::Op::OpImageSampleProjDrefExplicitLod:
-			break;
+			return "Image Sample projection Depth Reference Explicit LoD";
 		case spv::Op::OpImageFetch:
-			break;
+			return "Image Fetch";
 		case spv::Op::OpImageGather:
-			break;
+			return "Image Gather";
 		case spv::Op::OpImageDrefGather:
-			break;
+			return "Image Depth Reference Gather";
 		case spv::Op::OpImageRead:
 			return "Image Read";
 		case spv::Op::OpImageWrite:
-			break;
+			return "Image Write";
 		case spv::Op::OpImage:
-			break;
+			return "Image";
 		case spv::Op::OpImageQueryFormat:
-			break;
+			return "Image Query Format";
 		case spv::Op::OpImageQueryOrder:
-			break;
+			return "Image Query Order";
 		case spv::Op::OpImageQuerySizeLod:
-			break;
+			return "Image Query Size LoD";
 		case spv::Op::OpImageQuerySize:
-			break;
+			return "Image Query Size";
 		case spv::Op::OpImageQueryLod:
-			break;
+			return "Image Query LoD";
 		case spv::Op::OpImageQueryLevels:
-			break;
+			return "Image Query Levels";
 		case spv::Op::OpImageQuerySamples:
-			break;
+			return "Image Query Samples";
 		case spv::Op::OpConvertFToU:
-			break;
+			return "Floating-point to Unsigned-int Conversion";
 		case spv::Op::OpConvertFToS:
-			break;
+			return "Floating-point to Signed-int Conversion";
 		case spv::Op::OpConvertSToF:
 			return "Signed-int to Floating-point Conversion";
 		case spv::Op::OpConvertUToF:
-			break;
+			return "Unsigned-int to Floating-point Conversion";
 		case spv::Op::OpUConvert:
 			break;
 		case spv::Op::OpSConvert:
@@ -1630,51 +1630,51 @@ namespace Pu
 		case spv::Op::OpGenericCastToPtrExplicit:
 			break;
 		case spv::Op::OpBitcast:
-			break;
+			return "Bit Pattern-preserving Conversion";
 		case spv::Op::OpSNegate:
-			break;
+			return "Signed-int Negate";
 		case spv::Op::OpFNegate:
-			break;
+			return "Floating-point Negate";
 		case spv::Op::OpIAdd:
-			break;
+			return "Integer Addition";
 		case spv::Op::OpFAdd:
 			return "Floating-point Addition";
 		case spv::Op::OpISub:
-			break;
+			return "Integer Subtraction";
 		case spv::Op::OpFSub:
 			return "Floating-point Subtraction";
 		case spv::Op::OpIMul:
-			break;
+			return "Integer Multiplication";
 		case spv::Op::OpFMul:
 			return "Floating-point Multiplication";
 		case spv::Op::OpUDiv:
-			break;
+			return "Unsigned-int Division";
 		case spv::Op::OpSDiv:
-			break;
+			return "Signed-int Division";
 		case spv::Op::OpFDiv:
-			return "Floating-point Divisions";
+			return "Floating-point Division";
 		case spv::Op::OpUMod:
-			break;
+			return "Unsigned-int Modulo";
 		case spv::Op::OpSRem:
-			break;
+			return "Signed-int Remainder";
 		case spv::Op::OpSMod:
-			break;
+			return "Signed-int Modulo";
 		case spv::Op::OpFRem:
-			break;
+			return "Floating-point Remainder";
 		case spv::Op::OpFMod:
-			break;
+			return "Floating-point Modulo";
 		case spv::Op::OpVectorTimesScalar:
 			return "Vector Times Scalar";
 		case spv::Op::OpMatrixTimesScalar:
-			break;
+			return "Matrix Times Scalar";
 		case spv::Op::OpVectorTimesMatrix:
-			break;
+			return "Vector Times Matrix";
 		case spv::Op::OpMatrixTimesVector:
 			return "Matrix Times Vector";
 		case spv::Op::OpMatrixTimesMatrix:
 			return "Matrix Times Matrix";
 		case spv::Op::OpOuterProduct:
-			break;
+			return "Outer Product";
 		case spv::Op::OpDot:
 			return "Dot Product";
 		case spv::Op::OpIAddCarry:
@@ -1690,53 +1690,53 @@ namespace Pu
 		case spv::Op::OpAll:
 			break;
 		case spv::Op::OpIsNan:
-			break;
+			return "Floating-point Is NaN";
 		case spv::Op::OpIsInf:
-			break;
+			return "Floating-point is Infinite";
 		case spv::Op::OpIsFinite:
-			break;
+			return "Floating-point is Finite";
 		case spv::Op::OpIsNormal:
-			break;
+			return "Floating-point is Normal";
 		case spv::Op::OpSignBitSet:
-			break;
+			return "Is Sign Bit Set";
 		case spv::Op::OpLessOrGreater:
-			break;
+			return "<Depricated>";
 		case spv::Op::OpOrdered:
 			break;
 		case spv::Op::OpUnordered:
 			break;
 		case spv::Op::OpLogicalEqual:
-			break;
+			return "Logical Equalily";
 		case spv::Op::OpLogicalNotEqual:
-			break;
+			return "Logical Not Equal";
 		case spv::Op::OpLogicalOr:
-			break;
+			return "Logical Or";
 		case spv::Op::OpLogicalAnd:
-			break;
+			return "Logical And";
 		case spv::Op::OpLogicalNot:
-			break;
+			return "Logical Not";
 		case spv::Op::OpSelect:
 			break;
 		case spv::Op::OpIEqual:
-			break;
+			return "Integer Equalily";
 		case spv::Op::OpINotEqual:
-			break;
+			return "Integer Not Equal";
 		case spv::Op::OpUGreaterThan:
-			break;
+			return "Unsigned-int Greater Than";
 		case spv::Op::OpSGreaterThan:
-			break;
+			return "Signed-int Greater Than";
 		case spv::Op::OpUGreaterThanEqual:
-			break;
+			return "Unsigned-int Greater Or Equal Than";
 		case spv::Op::OpSGreaterThanEqual:
-			break;
+			return "Signed-int Greater Or Equal Than";
 		case spv::Op::OpULessThan:
 			return "Unsigned-int Less Than";
 		case spv::Op::OpSLessThan:
-			break;
+			return "Signed-int Less Than";
 		case spv::Op::OpULessThanEqual:
-			break;
+			return "Unsigned-int Less Or Equal Than";
 		case spv::Op::OpSLessThanEqual:
-			break;
+			return "Signed-int Less or Equal Than";
 		case spv::Op::OpFOrdEqual:
 			break;
 		case spv::Op::OpFUnordEqual:
@@ -1768,9 +1768,9 @@ namespace Pu
 		case spv::Op::OpShiftLeftLogical:
 			return "Logical Shift Left";
 		case spv::Op::OpBitwiseOr:
-			break;
+			return "Bitwise Or";
 		case spv::Op::OpBitwiseXor:
-			break;
+			return "Bitwise Xor";
 		case spv::Op::OpBitwiseAnd:
 			return "Bitwise And";
 		case spv::Op::OpNot:
@@ -1862,7 +1862,7 @@ namespace Pu
 		case spv::Op::OpSwitch:
 			break;
 		case spv::Op::OpKill:
-			return "Kil";
+			return "Kill";
 		case spv::Op::OpReturn:
 			return "Return";
 		case spv::Op::OpReturnValue:
