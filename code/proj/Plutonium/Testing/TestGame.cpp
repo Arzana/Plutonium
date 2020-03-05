@@ -418,22 +418,23 @@ void TestGame::InitializeRenderpass(Pu::Renderpass&)
 void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 {
 	CreateGraphicsPipeline();
+	const Subpass &subpass = renderPass->GetSubpass(0);
 
-	descPoolCam = new DescriptorPool(*renderPass, *gfxPipeline, 1, 0, 0);
-	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, GetInput());
+	descPoolCam = new DescriptorPool(*renderPass, 1, 0, 0);
+	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, subpass.GetSetLayout(1), GetInput());
 	cam->Move(0.0f, 1.0f, -1.0f);
 	cam->Yaw = PI2;
 
-	descPoolLight = new DescriptorPool(*renderPass, *gfxPipeline, 1, 0, 2);
-	light = new DirectionalLight(*descPoolLight);
+	descPoolLight = new DescriptorPool(*renderPass, 1, 0, 2);
+	light = new DirectionalLight(*descPoolLight, subpass.GetSetLayout(2));
 
-	descPoolMats = new DescriptorPool(*renderPass, *gfxPipeline, static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
+	descPoolMats = new DescriptorPool(*renderPass, static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
 	for (PumMaterial &material : stageMaterials)
 	{
-		materials.emplace_back(new Material(*descPoolMats, material));
-	}
+		materials.emplace_back(new Material(*descPoolMats, subpass.GetSetLayout(1), material));
 
-	materials.emplace_back(new Material(*descPoolMats));
+	}
+	materials.emplace_back(new Material(*descPoolMats, subpass.GetSetLayout(1)));
 }
 
 void TestGame::CreateGraphicsPipeline(void)

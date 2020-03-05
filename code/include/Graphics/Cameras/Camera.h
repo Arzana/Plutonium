@@ -123,7 +123,7 @@ namespace Pu
 
 	protected:
 		/* Initializes a new instance of a camera. */
-		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool);
+		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout);
 
 		/* Updates the camera. */
 		virtual void Update(_In_ float /*dt*/) {};

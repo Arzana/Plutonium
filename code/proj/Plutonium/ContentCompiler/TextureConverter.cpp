@@ -14,8 +14,8 @@ class ConverterUniformBlock
 	: public DescriptorSet
 {
 public:
-	ConverterUniformBlock(DescriptorPool &pool, float metal, float roughness, Color factor)
-		: DescriptorSet(pool, 0), metalFactor(metal),
+	ConverterUniformBlock(DescriptorPool &pool, const DescriptorSetLayout &layout, float metal, float roughness, Color factor)
+		: DescriptorSet(pool, layout), metalFactor(metal),
 		roughnessFactor(roughness), albedoFactor(factor.ToVector4()),
 		albedo(&GetDescriptor(0, "Albedo")),
 		metalRough(&GetDescriptor(0, "MetalRoughness"))
@@ -309,11 +309,11 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	fragShader = new Shader(*device, FRAGMENT_SHADER, sizeof(FRAGMENT_SHADER), ShaderStageFlag::Fragment);
 
 	/* Create the subpass and renderpass. */
-	Subpass subpass{ device->GetPhysicalDevice(), { vrtxShader, fragShader } };
+	Subpass subpass{ *device, { vrtxShader, fragShader } };
 	subpass.SetDependency(PipelineStageFlag::FragmentShader, PipelineStageFlag::ColorAttachmentOutput, AccessFlag::None, AccessFlag::ColorAttachmentWrite, DependencyFlag::ByRegion);
 
 	/* Add an external dependency so we can skip a memory barrier later on. */
-	renderpass = new Renderpass(*device, subpass);
+	renderpass = new Renderpass(*device, std::move(subpass));
 	renderpass->AddDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::Transfer, AccessFlag::ColorAttachmentWrite, AccessFlag::TransferRead, DependencyFlag::ByRegion);
 
 	/* Both the diffuse and specular/glossiness will transform from color attachments to transfer destinations after the subpass. */
@@ -347,7 +347,7 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	pipeline->Finalize();
 
 	/* Allocate a descriptor pool for all the material attributes. */
-	descPool = new DescriptorPool(*renderpass, *pipeline, maxSets, 0, 0);
+	descPool = new DescriptorPool(*renderpass, maxSets, 0, 0);
 	return true;
 }
 
@@ -494,11 +494,13 @@ Texture2D& GetTexture(bool has, uint32 idx)
 /* Initializes all the material uniform blocks with their properties and textures. */
 void InitializeUniformBlocks(const PumIntermediate &data)
 {
+	const DescriptorSetLayout &layout = renderpass->GetSubpass(0).GetSetLayout(0);
+
 	for (const pum_material material : data.Materials)
 	{
 		if (material.IsFinalized) continue;
 
-		ConverterUniformBlock *block = new ConverterUniformBlock(*descPool, material.Metalness, 1.0f - material.Glossiness, material.DiffuseFactor);
+		ConverterUniformBlock *block = new ConverterUniformBlock(*descPool, layout, material.Metalness, 1.0f - material.Glossiness, material.DiffuseFactor);
 		block->SetAlbedo(GetTexture(material.HasDiffuseTexture, material.DiffuseTexture));
 		block->SetMetalRough(GetTexture(material.HasSpecularGlossTexture, material.SpecGlossTexture));
 

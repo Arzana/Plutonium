@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a light probe uniform block from the specified descriptor pool. */
-		LightProbeUniformBlock(_In_ DescriptorPool &pool);
+		LightProbeUniformBlock(_In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout);
 		LightProbeUniformBlock(_In_ const LightProbeUniformBlock&) = delete;
 		/* Move constructor. */
 		LightProbeUniformBlock(_In_ LightProbeUniformBlock &&value) = default;

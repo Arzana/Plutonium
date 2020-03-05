@@ -2,8 +2,8 @@
 #include "Shader.h"
 #include "Output.h"
 #include "Attribute.h"
-#include "Descriptor.h"
 #include "PushConstant.h"
+#include "DescriptorSetLayout.h"
 
 namespace Pu
 {
@@ -14,16 +14,14 @@ namespace Pu
 		/* Initializes an empty instance of a subpass. */
 		Subpass(void);
 		/* Initializes a new instance of a subpass from specific shader modules. */
-		Subpass(_In_ const PhysicalDevice &physicalDevice, _In_ std::initializer_list<Shader*> shaderModules);
+		Subpass(_In_ LogicalDevice &device, _In_ std::initializer_list<Shader*> shaderModules);
 		/* Initializes a new instance of a subpass from specific shader modules. */
-		Subpass(_In_ const PhysicalDevice &physicalDevice, _In_ const vector<Shader*> &shaderModules);
-		/* Copy constructor. */
-		Subpass(_In_ const Subpass&) = default;
+		Subpass(_In_ LogicalDevice &device, _In_ const vector<Shader*> &shaderModules);
+		Subpass(_In_ const Subpass&) = delete;
 		/* Move constructor. */
 		Subpass(_In_ Subpass&&) = default;
 
-		/* Copy assignment. */
-		_Check_return_ Subpass& operator =(_In_ const Subpass&) = default;
+		_Check_return_ Subpass& operator =(_In_ const Subpass&) = delete;
 		/* Move assignment. */
 		_Check_return_ Subpass& operator =(_In_ Subpass&&) = default;
 
@@ -60,6 +58,12 @@ namespace Pu
 			return shaders;
 		}
 
+		/* Gets the descriptor set layout for the specified set. */
+		_Check_return_ inline const DescriptorSetLayout& GetSetLayout(_In_ uint32 set) const
+		{
+			return setLayouts.at(set);
+		}
+
 	private:
 		friend class Renderpass;
 		friend class Pipeline;
@@ -82,14 +86,16 @@ namespace Pu
 		vector<Attribute> attributes;
 		vector<Descriptor> descriptors;
 		vector<PushConstant> pushConstants;
+		vector<DescriptorSetLayout> setLayouts;
 		vector<Output> outputs;
 
 		/* src and dest subpasses are set by the renderpass. */
 		SubpassDependency dependency;
 		bool dependencyUsed;
 
-		void Link(const PhysicalDevice &physicalDevice);
+		void Link(LogicalDevice &device);
 		void LoadFields(const PhysicalDevice &physicalDevice);
 		bool CheckIO(const Shader &a, const Shader &b);
+		void CreateSetLayouts(LogicalDevice &device);
 	};
 }

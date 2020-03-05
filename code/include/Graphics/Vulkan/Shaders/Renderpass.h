@@ -20,7 +20,7 @@ namespace Pu
 		/* Creates a new instance of a renderpass with specified shader modules for specified subpasses (needs to be initialized). */
 		Renderpass(_In_ LogicalDevice &device, _In_ std::initializer_list<std::initializer_list<wstring>> shaderModules);
 		/* Creates a new instance of a renderpass with one specific subpass (needs to be initialized). */
-		Renderpass(_In_ LogicalDevice &device, _In_ Subpass &subpass);
+		Renderpass(_In_ LogicalDevice &device, _In_ Subpass &&subpass);
 		/* Creates a new instance of a renderpass with specified subpasses (needs to be initialized). */
 		Renderpass(_In_ LogicalDevice &device, _In_ vector<Subpass> &&subpasses);
 		Renderpass(_In_ const Renderpass&) = delete;

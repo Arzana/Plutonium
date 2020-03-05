@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/Vulkan/Shaders/Subpass.h"
+#include "Graphics/Vulkan/Shaders/DescriptorSetLayout.h"
 
 namespace Pu
 {
@@ -51,12 +52,9 @@ namespace Pu
 
 	private:
 		friend class CommandBuffer;
-		friend class DescriptorSet;
 
 		vector<PipelineShaderStageCreateInfo> shaderStages;
-		vector<DescriptorSetLayoutHndl> setHndls;
 
-		void CreateDescriptorSetLayouts(const Subpass &subpass);
 		void CreatePipelineLayout(const Subpass &subpass);
 		void FullDestroy(void);
 	};

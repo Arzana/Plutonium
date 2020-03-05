@@ -13,16 +13,16 @@ Pu::Subpass::Subpass()
 	: linkSuccessfull(false), ds(nullptr), dependencyUsed(false)
 {}
 
-Subpass::Subpass(const PhysicalDevice & physicalDevice, std::initializer_list<Shader*> shaderModules)
+Subpass::Subpass(LogicalDevice & device, std::initializer_list<Shader*> shaderModules)
 	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
 {
-	Link(physicalDevice);
+	Link(device);
 }
 
-Pu::Subpass::Subpass(const PhysicalDevice & physicalDevice, const vector<Shader*>& shaderModules)
+Pu::Subpass::Subpass(LogicalDevice & device, const vector<Shader*>& shaderModules)
 	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
 {
-	Link(physicalDevice);
+	Link(device);
 }
 
 void Pu::Subpass::SetDependency(PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flags)
@@ -138,7 +138,7 @@ const PushConstant & Pu::Subpass::GetPushConstant(const string & name) const
 	return defConst;
 }
 
-void Pu::Subpass::Link(const PhysicalDevice & physicalDevice)
+void Pu::Subpass::Link(LogicalDevice & device)
 {
 #ifdef _DEBUG
 	for (size_t i = 0; i < shaders.size(); i++)
@@ -183,7 +183,8 @@ void Pu::Subpass::Link(const PhysicalDevice & physicalDevice)
 
 	/* At this point we know that the linking was successfull so we can start loading the fields. */
 	linkSuccessfull = true;
-	LoadFields(physicalDevice);
+	LoadFields(device.GetPhysicalDevice());
+	CreateSetLayouts(device);
 
 	/* Log the creation of the subpass on debug mode. */
 #ifdef _DEBUG
@@ -294,4 +295,27 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 	}
 
 	return result;
+}
+
+void Pu::Subpass::CreateSetLayouts(LogicalDevice & device)
+{
+	/* Get all the sets in this subpass and their descriptors. */
+	std::map<uint32, vector<const Descriptor*>> sets;
+	for (const Descriptor &descriptor : descriptors)
+	{
+		decltype(sets)::iterator it = sets.find(descriptor.set);
+		if (it != sets.end()) it->second.emplace_back(&descriptor);
+		else
+		{
+			vector<const Descriptor*> buffer{ { &descriptor } };
+			sets.emplace(descriptor.set, std::move(buffer));
+		}
+	}
+
+	/* Allocate the descriptor set layouts. */
+	setLayouts.reserve(sets.size());
+	for (const auto &[set, arguments] : sets)
+	{
+		setLayouts.emplace_back(device, arguments);
+	}
 }

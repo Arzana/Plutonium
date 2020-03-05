@@ -1,28 +1,23 @@
 #include "Graphics/Vulkan/DescriptorSet.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
-Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, uint32 set)
-	: pool(&pool), set(set)
+Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, const DescriptorSetLayout & setLayout)
+	: pool(&pool), set(setLayout.set)
 {
-	/* Sets handles are always incremental. */
-	baseOffset = pool.Alloc(pool.pipeline->setHndls.at(set), &hndl);
-
-	/*
-	Immediately write the uniform buffer descriptors to this set.
-	This means that this descriptor set contains a uniform block.
-	*/
-	if (pool.writes.size())
+	baseOffset = pool.Alloc(setLayout.hndl, &hndl);
+	if (setLayout.HasUniformBufferMemory())
 	{
-		WriteBuffer();
-		SubscribeIfNeeded();
+		WriteBuffer(setLayout);
+		pool.OnStage.Add(*this, &DescriptorSet::StageInternal);
 	}
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
-	: hndl(value.hndl), pool(value.pool), set(value.set), baseOffset(value.baseOffset)
+	: hndl(value.hndl), pool(value.pool), set(value.set), 
+	baseOffset(value.baseOffset), subscribe(value.subscribe)
 {
 	value.hndl = nullptr;
-	SubscribeIfNeeded();
+	if (subscribe) pool->OnStage.Add(*this, &DescriptorSet::StageInternal);
 }
 
 Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
@@ -35,8 +30,9 @@ Pu::DescriptorSet & Pu::DescriptorSet::operator=(DescriptorSet && other)
 		pool = other.pool;
 		set = other.set;
 		baseOffset = other.baseOffset;
-		SubscribeIfNeeded();
+		subscribe = other.subscribe;
 
+		if (subscribe) pool->OnStage.Add(*this, &DescriptorSet::StageInternal);
 		other.hndl = nullptr;
 	}
 
@@ -63,66 +59,24 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & tex
 	WriteDescriptors({ write });
 }
 
-void Pu::DescriptorSet::WriteBuffer(void)
+void Pu::DescriptorSet::WriteBuffer(const DescriptorSetLayout & layout)
 {
-	/*
-	All descriptors are in the same buffer and have the same binding (i.e. one descriptor block)
-		For this we need to create only one WriteDescriptorSet with one DescriptorBufferInfo spanning the block's size.
-	All descriptors are in the same buffer, but we have different bindings (i.e. multiple descriptor blocks)
-		For this we need to create multiple WriteDescriptorSet's with mutiple DescriptorBufferInfo's with alligned offsets.
-		The first rule still applied for descriptors with the same binding.
-
-	We also start the buffer offset from a predefined point, this is because the buffer is shared for all sets from the parent pool.
-	*/
-
-	DeviceSize offset = baseOffset;
-	std::map<uint32, DescriptorBufferInfo> tmp;
-	for (const Descriptor *cur : pool->writes)
-	{
-		/* Make sure that the descriptor is accepted in the operation and get it's size. */
-		ValidateDescriptor(*cur, DescriptorType::UniformBuffer);
-		const DeviceSize size = cur->GetSize();
-
-		decltype(tmp)::iterator it = tmp.find(cur->GetBinding());
-		if (it != tmp.end())
-		{
-			/* This binding is already found, so we just add the descriptor size to its range. */
-			it->second.Range += size;
-		}
-		else
-		{
-			/*
-			This binding is not yet found, we need a new DescriptorBufferInfo.
-			We also must ensure that the offset within the buffer is handled correctly.
-			*/
-			offset = cur->GetAllignedOffset(offset);
-			tmp.emplace(cur->GetBinding(), DescriptorBufferInfo{ pool->buffer->bufferHndl, offset, size });
-		}
-
-		offset += size;
-	}
-
 	/*
 	Preallocate the required buffers (required, otherwise the vector pointer will be invalid)
 	and fill them with the required data.
 	*/
 	vector<DescriptorBufferInfo> bufferInfos;
+	bufferInfos.reserve(layout.ranges.size());
 	vector<WriteDescriptorSet> writes;
-	bufferInfos.reserve(tmp.size());
-	writes.reserve(tmp.size());
-	for (const auto&[binding, info] : tmp)
+	writes.reserve(layout.ranges.size());
+
+	for (const auto&[binding, range] : layout.ranges)
 	{
-		bufferInfos.emplace_back(info);
+		bufferInfos.emplace_back(pool->buffer->bufferHndl, baseOffset + range.first, range.second);
 		writes.emplace_back(WriteDescriptorSet{ hndl, binding, bufferInfos.back() });
 	}
 
 	WriteDescriptors(writes);
-}
-
-void Pu::DescriptorSet::SubscribeIfNeeded(void)
-{
-	/* We only need to subscribe to the stage event if this set contains a uniform block. */
-	if (pool->writes.size()) pool->OnStage.Add(*this, &DescriptorSet::StageInternal);
 }
 
 void Pu::DescriptorSet::StageInternal(DescriptorPool &, byte * destination)

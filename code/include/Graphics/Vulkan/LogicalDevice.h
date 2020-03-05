@@ -101,6 +101,7 @@ namespace Pu
 		friend class Image;
 		friend class DescriptorPool;
 		friend class DescriptorSet;
+		friend class DescriptorSetLayout;
 		friend class Sampler;
 		friend class QueryPool;
 		friend class PipelineCache;

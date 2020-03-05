@@ -92,7 +92,7 @@ Pu::DescriptorPool * Pu::LightProbeRenderer::CreateDescriptorPool(uint32 maxMate
 	}
 
 	/* Set 1 is the material set. */
-	return new DescriptorPool(*renderpass, *gfx, maxMaterials, 0, 1);
+	return new DescriptorPool(*renderpass, maxMaterials, 0, 1);
 }
 
 void Pu::LightProbeRenderer::InitializeRenderpass(Renderpass &)
@@ -125,7 +125,7 @@ void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
 	gfx->Finalize();
 
 	/* This descriptor pool is for the view transformations. */
-	pool = new DescriptorPool(*renderpass, *gfx, maxSets, 0, 0);
+	pool = new DescriptorPool(*renderpass, maxSets, 0, 0);
 }
 
 void Pu::LightProbeRenderer::Destroy(void)

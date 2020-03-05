@@ -218,6 +218,7 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Queue.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Semaphore.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Attribute.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\DescriptorSetLayout.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Field.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\Output.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\OutputUsage.h" />
@@ -365,6 +366,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Queue.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Semaphore.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Attribute.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\DescriptorSetLayout.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Output.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\PushConstant.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\Renderpass.cpp" />

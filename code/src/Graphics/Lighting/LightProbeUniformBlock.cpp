@@ -1,7 +1,7 @@
 #include "Graphics/Lighting/LightProbeUniformBlock.h"
 
-Pu::LightProbeUniformBlock::LightProbeUniformBlock(DescriptorPool & pool)
-	: DescriptorSet(pool, 0)
+Pu::LightProbeUniformBlock::LightProbeUniformBlock(DescriptorPool & pool, const DescriptorSetLayout & layout)
+	: DescriptorSet(pool, layout)
 {}
 
 void Pu::LightProbeUniformBlock::Stage(byte * dest)

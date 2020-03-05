@@ -19,8 +19,8 @@ The movement states (F, B, L and R) are to make sure that repeat keys don't caus
 The mouse state (M) is to make sure that we reset the look delta after a mouse input event,
 this is needed because (unlike the slider input) the mouse doesn't reset itself.
 */
-Pu::FreeCamera::FreeCamera(const NativeWindow & wnd, DescriptorPool & pool, const InputDeviceHandler & inputHandler)
-	: FpsCamera(wnd, pool), state(0), inputHandler(&inputHandler),
+Pu::FreeCamera::FreeCamera(const NativeWindow & wnd, DescriptorPool & pool, const DescriptorSetLayout & layout, const InputDeviceHandler & inputHandler)
+	: FpsCamera(wnd, pool, layout), state(0), inputHandler(&inputHandler),
 	keyFrwd(_CrtEnum2Int(Keys::W)), keyBkwd(_CrtEnum2Int(Keys::S)),
 	keyLeft(_CrtEnum2Int(Keys::A)), keyRight(_CrtEnum2Int(Keys::D)),
 	MoveSpeed(1.0f), LookSpeed(6.0f), Inverted(false), DeadZone(0.05f)

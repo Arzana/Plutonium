@@ -1,22 +1,22 @@
 #include "Graphics/Vulkan/DescriptorPool.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
-Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Pipeline & pipeline, uint32 maxSets)
-	: device(renderpass.device), renderpass(&renderpass), pipeline(&pipeline), firstUpdate(true),
+Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets)
+	: device(renderpass.device), renderpass(&renderpass), firstUpdate(true),
 	OnStage("DescriptorPoolOnStage"), setStride(0), allocCnt(0), maxSets(maxSets), buffer(nullptr)
 {}
 
-Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, const Pipeline & pipeline, uint32 maxSets, uint32 subpass, uint32 set)
-	: DescriptorPool(renderpass, pipeline, maxSets)
+Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets, uint32 subpass, uint32 set)
+	: DescriptorPool(renderpass, maxSets)
 {
 	AddSets(subpass, { set });
 }
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: hndl(value.hndl), buffer(value.buffer), device(value.device), maxSets(value.maxSets),
-	setStride(value.setStride), allocCnt(value.allocCnt), writes(std::move(value.writes)),
+	setStride(value.setStride), allocCnt(value.allocCnt),
 	sizes(std::move(value.sizes)), OnStage(std::move(value.OnStage)),
-	renderpass(value.renderpass), pipeline(value.pipeline), firstUpdate(value.firstUpdate)
+	renderpass(value.renderpass), firstUpdate(value.firstUpdate)
 {
 	value.hndl = nullptr;
 	value.buffer = nullptr;
@@ -34,10 +34,8 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		setStride = other.setStride;
 		allocCnt = other.allocCnt;
 		maxSets = other.maxSets;
-		writes = std::move(other.writes);
 		sizes = std::move(other.sizes);
 		renderpass = other.renderpass;
-		pipeline = other.pipeline;
 		OnStage = std::move(other.OnStage);
 		firstUpdate = other.firstUpdate;
 
@@ -59,30 +57,26 @@ void Pu::DescriptorPool::AddSets(uint32 subpass, std::initializer_list<uint32> s
 	}
 #endif
 
-	/* Get the descriptors that are part of the specified subpass and sets. */
-	for (const Descriptor &descriptor : renderpass->GetSubpass(subpass).descriptors)
+	for (uint32 set : sets)
 	{
-		for (uint32 set : sets)
+		/* Get the layout of this set and increase the total stride. */
+		const DescriptorSetLayout &layout = renderpass->GetSubpass(subpass).GetSetLayout(set);
+
+		/* Only increase the set stride if the set actually has a uniform buffer. */
+		if (layout.HasUniformBufferMemory())
 		{
-			if (descriptor.GetSet() != set) continue;
-			const DescriptorType type = descriptor.GetType();
+			setStride = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(setStride) + layout.GetStride();
+		}
 
-			/* Either add the descriptor to the size list or increase the specific descriptor count by one. */
-			decltype(sizes)::iterator it = sizes.iteratorOf([type](const DescriptorPoolSize &cur) { return cur.Type == type; });
+		/* Add all the descriptors to the allocation list. */
+		for (const Descriptor *descriptor : layout.descriptors)
+		{
+			const DescriptorType type = descriptor->GetType();
+
+			/* Add the descriptor to out allocation list. */
+			decltype(sizes)::iterator it = sizes.iteratorOf([type](const DescriptorPoolSize &cur) {return cur.Type == type; });
 			if (it != sizes.end()) ++it->DescriptorCount;
-			else sizes.emplace_back(descriptor.GetType(), 1);
-
-			/*
-			The stride needs to be increased if we found a uniform buffer descriptor.
-			We also need to add it to a list of descriptors that need initialization.
-			*/
-			if (type == DescriptorType::UniformBuffer)
-			{
-				setStride = descriptor.GetAllignedOffset(setStride) + descriptor.GetSize();
-				writes.emplace_back(&descriptor);
-			}
-
-			break;
+			else sizes.emplace_back(type, 1);
 		}
 	}
 }

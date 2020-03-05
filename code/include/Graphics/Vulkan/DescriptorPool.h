@@ -1,6 +1,5 @@
 #pragma once
 #include "Shaders/Renderpass.h"
-#include "Pipelines/Pipeline.h"
 
 namespace Pu
 {
@@ -14,9 +13,9 @@ namespace Pu
 		EventBus<DescriptorPool, byte*> OnStage;
 
 		/* Initializes a new instance of a descriptor pool. */
-		DescriptorPool(_In_ const Renderpass &renderpass, _In_ const Pipeline &pipeline, _In_ uint32 maxSets);
+		DescriptorPool(_In_ const Renderpass &renderpass, _In_ uint32 maxSets);
 		/* Creates a descriptor pool for the specific descriptor set in the specific subpasses. */
-		DescriptorPool(_In_ const Renderpass &renderpass, _In_ const Pipeline &pipeline, _In_ uint32 maxSets, _In_ uint32 subpass, _In_ uint32 set);
+		DescriptorPool(_In_ const Renderpass &renderpass, _In_ uint32 maxSets, _In_ uint32 subpass, _In_ uint32 set);
 		DescriptorPool(_In_ const DescriptorPool &value) = delete;
 		/* Move constructor. */
 		DescriptorPool(_In_ DescriptorPool &&value);
@@ -43,13 +42,10 @@ namespace Pu
 		DynamicBuffer *buffer;
 		LogicalDevice *device;
 		const Renderpass *renderpass;
-		const Pipeline *pipeline;
 
 		DeviceSize setStride;
 		uint32 maxSets, allocCnt;
 		bool firstUpdate;
-
-		vector<const Descriptor*> writes;
 		vector<DescriptorPoolSize> sizes;
 
 		DeviceSize Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl *result);

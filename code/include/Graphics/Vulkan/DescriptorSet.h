@@ -1,7 +1,7 @@
 #pragma once
 #include "DescriptorPool.h"
-#include "Pipelines/Pipeline.h"
 #include "Graphics/Textures/TextureInput.h"
+#include "Graphics/Vulkan/Shaders/DescriptorSetLayout.h"
 
 namespace Pu
 {
@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a descriptor set from a specific pool. */
-		DescriptorSet(_In_ DescriptorPool &pool, _In_ uint32 set);
+		DescriptorSet(_In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &setLayout);
 		DescriptorSet(_In_ const DescriptorSet&) = delete;
 		/* Move constructor. */
 		DescriptorSet(_In_ DescriptorSet &&value);
@@ -55,9 +55,9 @@ namespace Pu
 		DescriptorPool *pool;
 		uint32 set;
 		DeviceSize baseOffset;
+		bool subscribe;
 
-		void WriteBuffer(void);
-		void SubscribeIfNeeded(void);
+		void WriteBuffer(const DescriptorSetLayout &layout);
 		void StageInternal(DescriptorPool&, byte *destination);
 		void ValidateDescriptor(const Descriptor &descriptor, DescriptorType type) const;
 		void WriteDescriptors(const vector<WriteDescriptorSet> &writes);

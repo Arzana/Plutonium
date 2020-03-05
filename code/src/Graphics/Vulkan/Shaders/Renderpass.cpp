@@ -22,14 +22,14 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, std::initializer_list<std::in
 			shaders.emplace_back(new Shader(device, shader));
 		}
 
-		subpasses.emplace_back(device.GetPhysicalDevice(), shaders);
+		subpasses.emplace_back(device, shaders);
 	}
 }
 
-Pu::Renderpass::Renderpass(LogicalDevice & device, Subpass & subpass)
+Pu::Renderpass::Renderpass(LogicalDevice & device, Subpass && subpass)
 	: Renderpass(device)
 {
-	subpasses.emplace_back(subpass);
+	subpasses.emplace_back(std::move(subpass));
 }
 
 Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
@@ -302,7 +302,7 @@ bool Pu::Renderpass::LoadTask::ShouldContinue(void) const
 Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
 	/* Make sure that the subpasses are compatible and initialized. */
-	for (Subpass &subpass : renderpass.subpasses) subpass.Link(renderpass.device->GetPhysicalDevice());
+	for (Subpass &subpass : renderpass.subpasses) subpass.Link(*renderpass.device);
 
 	/* Delete the underlying shader load tasks, create the renderpass and finally allow the scheduler to delete this task. */
 	for (const Shader::LoadTask *task : children) delete task;

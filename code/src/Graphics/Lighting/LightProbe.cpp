@@ -157,7 +157,7 @@ Pu::Viewport Pu::LightProbe::GetViewport(void) const
 void Pu::LightProbe::OnRenderpassDone(Renderpass&)
 {
 	/* We need a uniform block if we want to render to the probe, we also need to create a layered framebuffer. */
-	block = new LightProbeUniformBlock(*renderer->pool);
+	block = new LightProbeUniformBlock(*renderer->pool, renderer->renderpass->GetSubpass(0).GetSetLayout(0));
 	framebuffer = new Framebuffer(*renderer->renderpass, image->GetExtent().To2D(), 6, { view, &depth->GetView() });
 	CalculateFrustums();
 }

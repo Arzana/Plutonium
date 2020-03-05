@@ -1,7 +1,7 @@
 #include "Graphics/Models/Material.h"
 
-Pu::Material::Material(DescriptorPool & pool)
-	: DescriptorSet(pool, 1), diffuseMap(&GetDescriptor(0, "Diffuse")),
+Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout)
+	: DescriptorSet(pool, layout), diffuseMap(&GetDescriptor(0, "Diffuse")),
 	specularMap(&GetDescriptor(0, "SpecularGlossiness")),
 	normalMap(&GetDescriptor(0, "Normal")),
 	emissiveMap(&GetDescriptor(0, "Emissive")),
@@ -9,8 +9,8 @@ Pu::Material::Material(DescriptorPool & pool)
 	roughness(1.0f), power(2.0f)
 {}
 
-Pu::Material::Material(DescriptorPool & pool, const PumMaterial & parameters)
-	: Material(pool)
+Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout, const PumMaterial & parameters)
+	: Material(pool, layout)
 {
 	SetParameters(parameters);
 }

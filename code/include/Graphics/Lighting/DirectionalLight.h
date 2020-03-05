@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a directional light. */
-		DirectionalLight(_In_ DescriptorPool &pool);
+		DirectionalLight(_In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout);
 		DirectionalLight(_In_ const DirectionalLight&) = delete;
 		/* Move constructor. */
 		DirectionalLight(_In_ DirectionalLight &&value) = default;

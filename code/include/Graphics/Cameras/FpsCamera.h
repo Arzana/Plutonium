@@ -20,7 +20,7 @@ namespace Pu
 		float Roll;
 
 		/* Initializes a new instance of a first person camera. */
-		FpsCamera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool);
+		FpsCamera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout);
 		FpsCamera(_In_ const FpsCamera&) = delete;
 		/* Move constructor. */
 		FpsCamera(_In_ FpsCamera &&value) = default;
