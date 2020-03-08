@@ -59,6 +59,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\deps\imgui\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Plutonium.lib;dbghelp.lib;hid.lib;%(AdditionalDependencies)</AdditionalDependencies>

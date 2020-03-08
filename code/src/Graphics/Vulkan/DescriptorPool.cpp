@@ -2,7 +2,7 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets)
-	: device(renderpass.device), renderpass(&renderpass), firstUpdate(true),
+	: device(renderpass.device), renderpass(&renderpass), firstUpdate(true), allocStride(0),
 	OnStage("DescriptorPoolOnStage"), setStride(0), allocCnt(0), maxSets(maxSets), buffer(nullptr)
 {}
 
@@ -14,7 +14,7 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets
 
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: hndl(value.hndl), buffer(value.buffer), device(value.device), maxSets(value.maxSets),
-	setStride(value.setStride), allocCnt(value.allocCnt),
+	setStride(value.setStride), allocCnt(value.allocCnt), allocStride(value.allocStride),
 	sizes(std::move(value.sizes)), OnStage(std::move(value.OnStage)),
 	renderpass(value.renderpass), firstUpdate(value.firstUpdate)
 {
@@ -32,6 +32,7 @@ Pu::DescriptorPool & Pu::DescriptorPool::operator=(DescriptorPool && other)
 		buffer = other.buffer;
 		device = other.device;
 		setStride = other.setStride;
+		allocStride = other.allocStride;
 		allocCnt = other.allocCnt;
 		maxSets = other.maxSets;
 		sizes = std::move(other.sizes);
@@ -118,7 +119,7 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(DescriptorSetLayoutHndl layout, Descrip
 	We return the buffer offset if this pool allocated a buffer.
 	This is simply the stride of a single descriptor set multiplies with the previous allocation count.
 	*/
-	if (buffer) return setStride * (allocCnt - 1);
+	if (buffer) return allocStride * (allocCnt - 1);
 	else return 0;
 }
 
@@ -137,7 +138,12 @@ void Pu::DescriptorPool::Create(void)
 	VK_VALIDATE(device->vkCreateDescriptorPool(device->hndl, &info, nullptr, &hndl), PFN_vkCreateDescriptorPool);
 
 	/* The buffer is needed for the set to do a write when it allocates. */
-	if (setStride) buffer = new DynamicBuffer(*device, setStride * maxSets, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
+	if (setStride)
+	{
+		/* We must allign the final set stride to the physical device allignment, otherwise multiple sets will not start at proper allignment. */
+		allocStride = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(setStride);
+		buffer = new DynamicBuffer(*device, allocStride * maxSets, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
+	}
 }
 
 void Pu::DescriptorPool::Destroy(void)

@@ -47,6 +47,12 @@ namespace Pu
 			return renderpass->GetSubpass(0).GetDescriptor("Diffuse");
 		}
 
+		/* Gets the descriptor set layout for the materials used my the light probe renderer (set 1). */
+		_Check_return_ inline const DescriptorSetLayout& GetLayout(void) const
+		{
+			return renderpass->GetSubpass(0).GetSetLayout(1);
+		}
+
 	private:
 		friend class LightProbe;
 

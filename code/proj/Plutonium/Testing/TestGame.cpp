@@ -151,7 +151,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			for (const PumMaterial &mat : stageMaterials)
 			{
-				probeSets.emplace_back(*probePool, 1);
+				probeSets.emplace_back(*probePool, probeRenderer->GetLayout());
 				if (mat.HasDiffuseTexture) probeSets.back().Write(diffuseDescriptor, *textures[mat.DiffuseTexture]);
 				else probeSets.back().Write(diffuseDescriptor, *textures[textures.size() - 3]);
 			}
@@ -306,7 +306,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			DeviceSize max = GetDevice().GetPhysicalDevice().GetDeviceLocalBytes();
 
 			ImGui::Separator();
-			ImGui::Text("GPU memory %u/%u", b2mb(used), b2mb(max));
+			ImGui::Text("GPU memory %u/%u MB", b2mb(used), b2mb(max));
 		}
 
 		ImGui::EndMainMenuBar();
@@ -421,7 +421,7 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	const Subpass &subpass = renderPass->GetSubpass(0);
 
 	descPoolCam = new DescriptorPool(*renderPass, 1, 0, 0);
-	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, subpass.GetSetLayout(1), GetInput());
+	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, subpass.GetSetLayout(0), GetInput());
 	cam->Move(0.0f, 1.0f, -1.0f);
 	cam->Yaw = PI2;
 

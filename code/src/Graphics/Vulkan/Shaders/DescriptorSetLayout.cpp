@@ -28,7 +28,7 @@ Pu::DescriptorSetLayout::DescriptorSetLayout(LogicalDevice & device, const vecto
 #endif
 
 		/* Only add a new binding if it was not yet defined. */
-		if (bindings.contains([binding](const DescriptorSetLayoutBinding &cur) { return cur.Binding == binding; }))
+		if (!bindings.contains([binding](const DescriptorSetLayoutBinding &cur) { return cur.Binding == binding; }))
 		{
 			bindings.emplace_back(descriptor->layoutBinding);
 		}

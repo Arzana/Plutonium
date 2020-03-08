@@ -43,7 +43,7 @@ namespace Pu
 		LogicalDevice *device;
 		const Renderpass *renderpass;
 
-		DeviceSize setStride;
+		DeviceSize setStride, allocStride;
 		uint32 maxSets, allocCnt;
 		bool firstUpdate;
 		vector<DescriptorPoolSize> sizes;
