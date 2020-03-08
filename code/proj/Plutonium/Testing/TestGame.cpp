@@ -418,9 +418,9 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	CreateGraphicsPipeline();
 	const Subpass &subpass = renderPass->GetSubpass(0);
 
-	descPoolConst = new DescriptorPool(*renderPass, 2);
-	descPoolConst->AddSet(0, 0);	// Camera set
-	descPoolConst->AddSet(0, 2);	// Light set
+	descPoolConst = new DescriptorPool(*renderPass);
+	descPoolConst->AddSet(0, 0, 1);	// Camera set
+	descPoolConst->AddSet(0, 2, 1);	// Light set
 
 	cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, subpass.GetSetLayout(0), GetInput());
 	cam->Move(0.0f, 1.0f, -1.0f);
