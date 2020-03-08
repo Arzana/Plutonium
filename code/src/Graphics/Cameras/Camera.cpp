@@ -2,7 +2,7 @@
 #include "Application.h"
 
 Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const DescriptorSetLayout & layout)
-	: DescriptorSet(pool, layout), viewDirty(false),
+	: DescriptorSet(pool, 0, layout), viewDirty(false),
 	exposure(1.0f), brightness(0.0f), contrast(1.0f),
 	window(&wnd)
 {

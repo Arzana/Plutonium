@@ -15,7 +15,7 @@ class ConverterUniformBlock
 {
 public:
 	ConverterUniformBlock(DescriptorPool &pool, const DescriptorSetLayout &layout, float metal, float roughness, Color factor)
-		: DescriptorSet(pool, layout), metalFactor(metal),
+		: DescriptorSet(pool, 0, layout), metalFactor(metal),
 		roughnessFactor(roughness), albedoFactor(factor.ToVector4()),
 		albedo(&GetDescriptor(0, "Albedo")),
 		metalRough(&GetDescriptor(0, "MetalRoughness"))

@@ -42,8 +42,7 @@ private:
 	Pu::Renderpass *renderPass;
 	Pu::GraphicsPipeline *gfxPipeline;
 	Pu::DepthBuffer *depthBuffer;
-	Pu::DescriptorPool *descPoolCam;
-	Pu::DescriptorPool *descPoolLight;
+	Pu::DescriptorPool *descPoolConst;
 	Pu::DescriptorPool *descPoolMats;
 
 	Pu::Buffer *vrtxBuffer;

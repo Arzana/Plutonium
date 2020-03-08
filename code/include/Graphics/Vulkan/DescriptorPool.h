@@ -29,8 +29,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ DescriptorPool& operator =(_In_  DescriptorPool &&other);
 
-		/* Adds several descriptor sets in the specified subpass to the pool. */
-		void AddSets(_In_ uint32 subpass, _In_ std::initializer_list<uint32> sets);
+		/* Adds a descriptor set from a specific subpass to the pool. */
+		void AddSet(_In_ uint32 subpass, _In_ uint32 set);
 		/* Updates the descriptor pool, staging all the descriptors to the GPU. */
 		void Update(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlag dstStage);
 
@@ -38,17 +38,20 @@ namespace Pu
 		friend class DescriptorSet;
 		friend class UniformBlock;
 
+		using SetInfo = std::pair<uint64, DeviceSize>;
+
 		DescriptorPoolHndl hndl;
 		DynamicBuffer *buffer;
 		LogicalDevice *device;
 		const Renderpass *renderpass;
 
-		DeviceSize setStride, allocStride;
+		DeviceSize stride;
 		uint32 maxSets, allocCnt;
 		bool firstUpdate;
 		vector<DescriptorPoolSize> sizes;
+		vector<SetInfo> sets;
 
-		DeviceSize Alloc(DescriptorSetLayoutHndl layout, DescriptorSetHndl *result);
+		DeviceSize Alloc(uint32 subpass, const DescriptorSetLayout &layout, DescriptorSetHndl *result);
 		void Free(DescriptorSetHndl set);
 		void Create(void);
 		void Destroy(void);

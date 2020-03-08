@@ -1,4 +1,5 @@
 #include "Graphics/Vulkan/Shaders/DescriptorSetLayout.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::DescriptorSetLayout::DescriptorSetLayout(LogicalDevice & device, const vector<const Descriptor*>& descriptors)
 	: descriptors(descriptors), device(&device)
@@ -97,6 +98,11 @@ Pu::DeviceSize Pu::DescriptorSetLayout::GetStride(void) const
 	}
 
 	return stride;
+}
+
+Pu::DeviceSize Pu::DescriptorSetLayout::GetAllignedStride(void) const
+{
+	return device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(GetStride());
 }
 
 void Pu::DescriptorSetLayout::Destroy(void)

@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a descriptor set from a specific pool. */
-		DescriptorSet(_In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &setLayout);
+		DescriptorSet(_In_ DescriptorPool &pool, _In_ uint32 subpass, _In_ const DescriptorSetLayout &setLayout);
 		DescriptorSet(_In_ const DescriptorSet&) = delete;
 		/* Move constructor. */
 		DescriptorSet(_In_ DescriptorSet &&value);

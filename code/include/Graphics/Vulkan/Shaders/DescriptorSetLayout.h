@@ -25,6 +25,8 @@ namespace Pu
 
 		/* Gets the stride of the uniform block in the set (if this is not a uniform block, returns 0). */
 		_Check_return_ DeviceSize GetStride(void) const;
+		/* Gets the stride of the uniform block in the set (alligned to the physical device minimum). */
+		_Check_return_ DeviceSize GetAllignedStride(void) const;
 
 		/* Gets the set number for this descriptor set layout. */
 		_Check_return_ inline uint32 GetSet(void) const
@@ -50,7 +52,6 @@ namespace Pu
 
 		vector<const Descriptor*> descriptors;
 		std::map<uint32, Range> ranges;
-
 		uint32 set;
 
 		void Destroy(void);

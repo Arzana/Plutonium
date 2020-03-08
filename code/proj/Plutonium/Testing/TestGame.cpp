@@ -10,7 +10,7 @@ using namespace Pu;
 TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
 	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
-	descPoolCam(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
+	descPoolConst(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
 	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
 	markDepthBuffer(true), mdlMtrx(), dbgRenderer(nullptr)
 {
@@ -101,9 +101,8 @@ void TestGame::UnLoadContent(void)
 	if (probeRenderer) delete probeRenderer;
 
 	for (Material *material : materials) delete material;
-	if (descPoolCam) delete descPoolCam;
+	if (descPoolConst) delete descPoolConst;
 	if (descPoolMats) delete descPoolMats;
-	if (descPoolLight) delete descPoolLight;
 	if (gfxPipeline) delete gfxPipeline;
 
 	delete vrtxBuffer;
@@ -151,7 +150,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			for (const PumMaterial &mat : stageMaterials)
 			{
-				probeSets.emplace_back(*probePool, probeRenderer->GetLayout());
+				probeSets.emplace_back(*probePool, 0, probeRenderer->GetLayout());
 				if (mat.HasDiffuseTexture) probeSets.back().Write(diffuseDescriptor, *textures[mat.DiffuseTexture]);
 				else probeSets.back().Write(diffuseDescriptor, *textures[textures.size() - 3]);
 			}
@@ -252,8 +251,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	Profiler::End();
 
 	cam->Update(dt * updateCam);
-	descPoolCam->Update(cmd, PipelineStageFlag::VertexShader);
-	descPoolLight->Update(cmd, PipelineStageFlag::FragmentShader);
+	descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 	Profiler::Begin("Render", Color::Yellow());
 	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
@@ -420,13 +418,15 @@ void TestGame::FinalizeRenderpass(Pu::Renderpass&)
 	CreateGraphicsPipeline();
 	const Subpass &subpass = renderPass->GetSubpass(0);
 
-	descPoolCam = new DescriptorPool(*renderPass, 1, 0, 0);
-	cam = new FreeCamera(GetWindow().GetNative(), *descPoolCam, subpass.GetSetLayout(0), GetInput());
+	descPoolConst = new DescriptorPool(*renderPass, 2);
+	descPoolConst->AddSet(0, 0);	// Camera set
+	descPoolConst->AddSet(0, 2);	// Light set
+
+	cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, subpass.GetSetLayout(0), GetInput());
 	cam->Move(0.0f, 1.0f, -1.0f);
 	cam->Yaw = PI2;
 
-	descPoolLight = new DescriptorPool(*renderPass, 1, 0, 2);
-	light = new DirectionalLight(*descPoolLight, subpass.GetSetLayout(2));
+	light = new DirectionalLight(*descPoolConst, subpass.GetSetLayout(2));
 
 	descPoolMats = new DescriptorPool(*renderPass, static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
 	for (PumMaterial &material : stageMaterials)

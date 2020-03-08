@@ -1,11 +1,11 @@
 #include "Graphics/Vulkan/DescriptorSet.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
-Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, const DescriptorSetLayout & setLayout)
+Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, uint32 subpass, const DescriptorSetLayout & setLayout)
 	: pool(&pool), set(setLayout.set)
 {
-	baseOffset = pool.Alloc(setLayout.hndl, &hndl);
-	if (setLayout.HasUniformBufferMemory())
+	baseOffset = pool.Alloc(subpass, setLayout, &hndl);
+	if (subscribe = setLayout.HasUniformBufferMemory())
 	{
 		WriteBuffer(setLayout);
 		pool.OnStage.Add(*this, &DescriptorSet::StageInternal);
@@ -13,7 +13,7 @@ Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, const DescriptorSetLayou
 }
 
 Pu::DescriptorSet::DescriptorSet(DescriptorSet && value)
-	: hndl(value.hndl), pool(value.pool), set(value.set), 
+	: hndl(value.hndl), pool(value.pool), set(value.set),
 	baseOffset(value.baseOffset), subscribe(value.subscribe)
 {
 	value.hndl = nullptr;
@@ -73,7 +73,7 @@ void Pu::DescriptorSet::WriteBuffer(const DescriptorSetLayout & layout)
 	for (const auto&[binding, range] : layout.ranges)
 	{
 		bufferInfos.emplace_back(pool->buffer->bufferHndl, baseOffset + range.first, range.second);
-		writes.emplace_back(WriteDescriptorSet{ hndl, binding, bufferInfos.back() });
+		writes.emplace_back(hndl, binding, bufferInfos.back());
 	}
 
 	WriteDescriptors(writes);
@@ -120,6 +120,6 @@ void Pu::DescriptorSet::Destroy(void)
 	if (hndl)
 	{
 		pool->Free(hndl);
-		pool->OnStage.Remove(*this, &DescriptorSet::StageInternal);
+		if (subscribe) pool->OnStage.Remove(*this, &DescriptorSet::StageInternal);
 	}
 }
