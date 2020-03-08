@@ -117,6 +117,9 @@ void Pu::DescriptorSet::WriteDescriptors(const vector<WriteDescriptorSet>& write
 
 void Pu::DescriptorSet::Destroy(void)
 {
-	if (hndl) pool->Free(hndl);
-	pool->OnStage.Remove(*this, &DescriptorSet::StageInternal);
+	if (hndl)
+	{
+		pool->Free(hndl);
+		pool->OnStage.Remove(*this, &DescriptorSet::StageInternal);
+	}
 }

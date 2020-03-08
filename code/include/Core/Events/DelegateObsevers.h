@@ -22,33 +22,33 @@ namespace Pu
 		{}
 
 		/* Copy assignment. */
-		_Check_return_ inline base_t& operator =(_In_ const base_t &other)
+		_Check_return_ base_t& operator =(_In_ const base_t &other)
 		{
 			id = other.id;
 			return *this;
 		}
 
 		/* Move assignment. */
-		_Check_return_ inline base_t& operator =(_In_ base_t &&other)
+		_Check_return_ base_t& operator =(_In_ base_t &&other)
 		{
 			id = other.id;
 			return *this;
 		}
 
 		/* Checks whether two delegates are equal. */
-		_Check_return_ inline bool operator ==(_In_ const int64 &other) const
+		_Check_return_ bool operator ==(_In_ const int64 &other) const
 		{
 			return other == id;
 		}
 
 		/* Checks whether two delegates differ. */
-		_Check_return_ inline bool operator !=(_In_ const int64 &other) const
+		_Check_return_ bool operator !=(_In_ const int64 &other) const
 		{
 			return other != id;
 		}
 
 		/* Gets the unique indentifier of this delegate. */
-		_Check_return_ inline int64 GetID(void) const
+		_Check_return_ int64 GetID(void) const
 		{
 			return id;
 		}
@@ -65,7 +65,7 @@ namespace Pu
 		{}
 
 		/* Computes a raw delegate hash from the two input parameters. */
-		static inline int64 ComputeRawHash(const void *arg1, const void *arg2)
+		static int64 ComputeRawHash(const void *arg1, const void *arg2)
 		{
 			const int64 first = static_cast<int64>(reinterpret_cast<intptr_t>(arg1));
 			const int64 second = static_cast<int64>(reinterpret_cast<intptr_t>(arg2));
@@ -105,7 +105,7 @@ namespace Pu
 		{}
 
 		/* Copy assignment. */
-		_Check_return_ inline func_t& operator =(_In_ const func_t &other)
+		_Check_return_ func_t& operator =(_In_ const func_t &other)
 		{
 			base_t::operator=(other);
 			hndlr = other.hndlr;
@@ -113,7 +113,7 @@ namespace Pu
 		}
 
 		/* Move assignment. */
-		_Check_return_ inline func_t& operator =(_In_ func_t &&other)
+		_Check_return_ func_t& operator =(_In_ func_t &&other)
 		{
 			base_t::operator=(std::move(other));
 			hndlr = other.hndlr;
@@ -121,19 +121,19 @@ namespace Pu
 		}
 
 		/* Invokes this delegate. */
-		virtual inline void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) override
+		void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) final
 		{
 			hndlr(sender, arg...);
 		}
 
 		/* Copies this delegate (requires delete!). */
-		_Check_return_ virtual inline base_t* Copy(void) override
+		_Check_return_ base_t* Copy(void) final
 		{
 			return new func_t(hndlr);
 		}
 
 		/* Computes the hash for a function delegate. */
-		_Check_return_ static inline int64 ComputeHash(_In_ handler_t hndlr)
+		_Check_return_ static int64 ComputeHash(_In_ handler_t hndlr)
 		{
 			return base_t::ComputeRawHash(nullptr, reinterpret_cast<const void*>(hndlr));
 		}
@@ -171,7 +171,7 @@ namespace Pu
 		{}
 
 		/* Copy assignment. */
-		_Check_return_ inline method_t& operator =(_In_ const method_t &other)
+		_Check_return_ method_t& operator =(_In_ const method_t &other)
 		{
 			if (this != &other)
 			{
@@ -184,7 +184,7 @@ namespace Pu
 		}
 
 		/* Move assignment. */
-		_Check_return_ inline method_t& operator =(_In_ method_t &&other)
+		_Check_return_ method_t& operator =(_In_ method_t &&other)
 		{
 			if (this != &other)
 			{
@@ -197,13 +197,13 @@ namespace Pu
 		}
 
 		/* Invokes this delegate. */
-		virtual inline void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) override
+		void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) final
 		{
 			((*obj).*hndlr)(sender, arg...);
 		}
 
 		/* Copies this delegate (requires delete!). */
-		_Check_return_ virtual inline base_t* Copy(void) override
+		_Check_return_ base_t* Copy(void) final
 		{
 			return new method_t(*obj, hndlr);
 		}
@@ -248,7 +248,7 @@ namespace Pu
 		{}
 
 		/* Copy assignment. */
-		_Check_return_ inline func_t& operator =(_In_ const func_t &other)
+		_Check_return_ func_t& operator =(_In_ const func_t &other)
 		{
 			base_t::operator=(other);
 			lambda = other.lambda;
@@ -256,7 +256,7 @@ namespace Pu
 		}
 
 		/* Move assignment. */
-		_Check_return_ inline func_t& operator =(_In_ func_t &&other)
+		_Check_return_ func_t& operator =(_In_ func_t &&other)
 		{
 			base_t::operator=(std::move(other));
 			lambda = other.lambda;
@@ -264,19 +264,19 @@ namespace Pu
 		}
 
 		/* Invokes this delegate. */
-		virtual inline void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) override
+		void Invoke(_In_ sender_t &sender, _In_ argument_t ... arg) final
 		{
 			return lambda.operator()(sender, arg...);
 		}
 
 		/* Copies this delegate (requires delete!). */
-		_Check_return_ virtual inline base_t* Copy(void) override
+		_Check_return_ base_t* Copy(void) final
 		{
 			return new func_t(lambda);
 		}
 
 		/* COmputes the hash for a lambda delegate. */
-		_Check_return_ static inline int64 ComputeHash(void)
+		_Check_return_ static int64 ComputeHash(void)
 		{
 			handler_t hndlr = reinterpret_cast<handler_t>(&lambda_t::operator());
 			return base_t::ComputeRawHash(nullptr, (const void*&)hndlr);

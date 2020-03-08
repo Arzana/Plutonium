@@ -15,7 +15,7 @@ namespace Pu
 		/* Move constructor. */
 		DescriptorSet(_In_ DescriptorSet &&value);
 		/* Releases the resources allocated by the descriptor set. */
-		~DescriptorSet(void)
+		virtual ~DescriptorSet(void)
 		{
 			Destroy();
 		}
