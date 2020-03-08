@@ -91,6 +91,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetDebugName(path.toUTF8().fileNameWithoutExtension());
 		image->SetHash(hash);
 		cache->Store(image);
 

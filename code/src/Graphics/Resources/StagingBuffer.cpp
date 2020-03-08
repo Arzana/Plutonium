@@ -2,24 +2,25 @@
 
 Pu::StagingBuffer::StagingBuffer(Buffer & target)
 	: Buffer(*target.parent, target.GetSize(), BufferUsageFlag::TransferSrc, true)
-{}
+{
+	SetDebugName("StagingBuffer");
+}
 
 Pu::StagingBuffer::StagingBuffer(LogicalDevice & device, size_t size)
 	: Buffer(device, size, BufferUsageFlag::TransferSrc, true)
-{}
-
-Pu::StagingBuffer::StagingBuffer(StagingBuffer && value)
-	: Buffer(std::move(value))
-{}
-
-Pu::StagingBuffer & Pu::StagingBuffer::operator=(StagingBuffer && other)
 {
-	if (this != &other)
-	{
-		Buffer::operator=(std::move(other));
-	}
+	SetDebugName("StagingBuffer");
+}
 
-	return *this;
+void Pu::StagingBuffer::EndMemoryTransfer(void)
+{
+	Buffer::EndMemoryTransfer();
+
+	/*
+	Mark the staging buffer as loaded, making it ready for use.
+	This should never be called via a loader so don't mark it as such.
+	*/
+	MarkAsLoaded(false, L"StagingBuffer");
 }
 
 void Pu::StagingBuffer::Load(const void * data)
@@ -28,10 +29,4 @@ void Pu::StagingBuffer::Load(const void * data)
 	BeginMemoryTransfer();
 	SetData(data, size, 0);
 	EndMemoryTransfer();
-
-	/*
-	Mark the staging buffer as loaded, making it ready for use. 
-	This should never be called via a loader so don't mark it as such. 
-	*/
-	MarkAsLoaded(false, L"StagingBuffer");
 }

@@ -104,6 +104,14 @@ namespace Pu
 			access = newAccess;
 		}
 
+		/* Sets a debuggable name for the image (only does something on debug mode). */
+		inline void SetDebugName(_In_ const string &name) const
+		{
+#ifdef _DEBUG
+			parent->SetDebugName(ObjectType::Image, imageHndl, name);
+#endif
+		}
+
 	protected:
 		/* References the asset and returns itself. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;

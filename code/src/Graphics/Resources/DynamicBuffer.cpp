@@ -4,6 +4,7 @@
 Pu::DynamicBuffer::DynamicBuffer(LogicalDevice & device, size_t size, BufferUsageFlag usage)
 	: Buffer(device, size, usage, false), isDirty(false)
 {
+	SetDebugName("DynamicBuffer");
 	stagingBuffer = new StagingBuffer(*this);
 }
 

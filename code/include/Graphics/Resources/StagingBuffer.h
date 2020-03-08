@@ -14,12 +14,14 @@ namespace Pu
 		StagingBuffer(_In_ LogicalDevice &device, _In_ size_t size);
 		StagingBuffer(_In_ const StagingBuffer&) = delete;
 		/* Move assignment. */
-		StagingBuffer(_In_ StagingBuffer &&value);
+		StagingBuffer(_In_ StagingBuffer&&) = default;
 
 		_Check_return_ StagingBuffer& operator =(_In_ const StagingBuffer&) = delete;
 		/* Move assignment. */
-		_Check_return_ StagingBuffer& operator =(_In_ StagingBuffer &&other);
+		_Check_return_ StagingBuffer& operator =(_In_ StagingBuffer&&) = default;
 
+		/* Ends the process of transfering data from the CPU to this buffer. */
+		virtual void EndMemoryTransfer(void) final;
 		/* Sets the data of the staging buffer (expects the full data)! */
 		void Load(const void *data);
 	};

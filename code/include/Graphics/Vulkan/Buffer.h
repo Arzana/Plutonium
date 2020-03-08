@@ -48,6 +48,14 @@ namespace Pu
 			return size;
 		}
 
+		/* Sets a debuggable name for the buffer (only does something on debug mode). */
+		inline void SetDebugName(_In_ const string &name) const
+		{
+#ifdef _DEBUG
+			parent->SetDebugName(ObjectType::Buffer, bufferHndl, name);
+#endif
+		}
+
 		/* Gets the amount of lazily-allocated bytes that are committed for the buffer. */
 		_Check_return_ DeviceSize GetLazyMemory(void) const;
 		/* Starts the process of transfering data from the CPU to this buffer. */

@@ -143,6 +143,7 @@ void Pu::DescriptorPool::Create(void)
 		/* We must allign the final set stride to the physical device allignment, otherwise multiple sets will not start at proper allignment. */
 		allocStride = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(setStride);
 		buffer = new DynamicBuffer(*device, allocStride * maxSets, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
+		buffer->SetDebugName("Uniform Buffer");
 	}
 }
 
