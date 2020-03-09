@@ -24,7 +24,7 @@ namespace Pu
 
 	private:
 		friend class Framebuffer;
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 		friend class GameWindow;
 
 		ImageViewHndl hndl;

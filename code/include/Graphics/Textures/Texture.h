@@ -75,7 +75,7 @@ namespace Pu
 		Texture(_In_ Pu::Sampler *sampler, _In_ Pu::Image &image, _In_ ImageViewType type);
 
 	private:
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 		friend class AssetLoader;
 		friend class AssetFetcher;
 

@@ -203,6 +203,8 @@
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorSet.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorSetBase.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\DescriptorSetGroup.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Fence.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Framebuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Image.h" />
@@ -352,6 +354,8 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\CommandPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorSet.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorSetBase.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\DescriptorSetGroup.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Fence.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Framebuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Image.cpp" />

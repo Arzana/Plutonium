@@ -9,10 +9,10 @@ using namespace Pu;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
-	renderPass(nullptr), gfxPipeline(nullptr), depthBuffer(nullptr),
-	descPoolConst(nullptr), descPoolMats(nullptr), vrtxBuffer(nullptr),
-	stagingBuffer(nullptr), light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(), dbgRenderer(nullptr)
+	renderer(nullptr), descPoolConst(nullptr), 
+	descPoolMats(nullptr), vrtxBuffer(nullptr),
+	stagingBuffer(nullptr), light(nullptr), firstRun(true),
+	updateCam(true), markDepthBuffer(true), mdlMtrx()
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -28,12 +28,8 @@ void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
 
 void TestGame::Initialize(void)
 {
-	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 	GetWindow().SetMode(WindowMode::Borderless);
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
-
-	probeQueries = new QueryChain(GetDevice(), QueryType::Timestamp, 2);
-	renderQueries = new QueryChain(GetDevice(), QueryType::Timestamp, 2);
 }
 
 void TestGame::LoadContent(void)
@@ -74,94 +70,64 @@ void TestGame::LoadContent(void)
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
 
-	probeRenderer = new LightProbeRenderer(fetcher, 1);
-	environment = new LightProbe(*probeRenderer, Extent2D(256, 256));
-	environment->SetPosition(Vector3(3.88f, 1.37f, 1.11f));
-
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
-	stageMaterials.emplace_back(PumMaterial());
-
-	renderPass = &GetContent().FetchRenderpass({ { L"{Shaders}Forward3D.vert.spv", L"{Shaders}Forward3D.frag.spv" } });
-	renderPass->PreCreate.Add(*this, &TestGame::InitializeRenderpass);
-	renderPass->PostCreate.Add(*this, &TestGame::FinalizeRenderpass);
+	renderer = new DeferredRenderer(fetcher, GetWindow());
 }
 
 void TestGame::UnLoadContent(void)
 {
 	AssetFetcher &fetcher = GetContent();
 
-	for (DescriptorSet &cur : probeSets) cur.Free();
-	delete probePool;
-
 	if (cam) delete cam;
 	if (light) delete light;
-	if (environment) delete environment;
-	if (probeRenderer) delete probeRenderer;
+	if (renderer) delete renderer;
 
 	for (Material *material : materials) delete material;
 	if (descPoolConst) delete descPoolConst;
 	if (descPoolMats) delete descPoolMats;
-	if (gfxPipeline) delete gfxPipeline;
 
 	delete vrtxBuffer;
 	delete stagingBuffer;
-	fetcher.Release(*renderPass);
 
 	for (auto[mat, mesh] : meshes) delete mesh;
 	for (Texture2D *texture : textures) fetcher.Release(*texture);
 }
 
-void TestGame::Finalize(void)
-{
-	delete probeQueries;
-	delete renderQueries;
-
-	if (depthBuffer)
-	{
-		delete depthBuffer;
-		delete dbgRenderer;
-	}
-}
-
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
-	if (!gfxPipeline) return;
-	if (!gfxPipeline->IsUsable()) return;
-
+	if (!renderer->IsUsable()) return;
 	for (Texture2D *texture : textures)
 	{
 		if (!texture->IsUsable()) return;
 	}
 
-	if (markDepthBuffer)
-	{
-		markDepthBuffer = false;
-		depthBuffer->MakeWritable(cmd);
-	}
-
 	if (firstRun)
 	{
-		if (probeRenderer->IsUsable())
-		{
-			probePool = probeRenderer->CreateDescriptorPool(static_cast<uint32>(stageMaterials.size()));
-			const Descriptor &diffuseDescriptor = probeRenderer->GetDiffuseDescriptor();
-
-			for (const PumMaterial &mat : stageMaterials)
-			{
-				probeSets.emplace_back(*probePool, 0, probeRenderer->GetLayout());
-				if (mat.HasDiffuseTexture) probeSets.back().Write(diffuseDescriptor, *textures[mat.DiffuseTexture]);
-				else probeSets.back().Write(diffuseDescriptor, *textures[textures.size() - 3]);
-			}
-		}
-		else return;
-
 		firstRun = false;
+		renderer->InitializeResources(cmd);
+
+		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
+		descPoolConst->AddSet(0, 0, 1);	// First camera set
+		descPoolConst->AddSet(1, 0, 1); // Second camera set
+		descPoolConst->AddSet(2, 0, 1); // Third camera sets
+		descPoolConst->AddSet(1, 1, 1);	// Light set
+
+		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
+		cam->Move(0.0f, 1.0f, -1.0f);
+		cam->Yaw = PI2;
+
+		light = new DirectionalLight(*descPoolConst, renderer->GetRenderpass().GetSubpass(1).GetSetLayout(1));
+
+		descPoolMats = new DescriptorPool(renderer->GetRenderpass(), static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
+		const DescriptorSetLayout &matLayout = renderer->GetRenderpass().GetSubpass(0).GetSetLayout(0);
+		for (const PumMaterial &material : stageMaterials)
+		{
+			materials.emplace_back(new Material(*descPoolMats, matLayout, material));
+		}
+		materials.emplace_back(new Material(*descPoolMats, matLayout));
+
 		cmd.CopyEntireBuffer(*stagingBuffer, *vrtxBuffer);
 		cmd.MemoryBarrier(*vrtxBuffer, PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 
-		cam->SetEnvironment(environment->GetTexture());
 		for (size_t i = 0; i < materials.size() - 1; i++)
 		{
 			PumMaterial &mat = stageMaterials[i];
@@ -223,95 +189,30 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
-	uint32 drawCalls = 0, batchCalls = 0;
-	Profiler::Add("Light Probe Update", Color::Green(), static_cast<int64>(probeQueries->GetTimeDelta() * 0.001f));
-	Profiler::Add("Render", Color::Yellow(), static_cast<int64>(renderQueries->GetTimeDelta() * 0.001f));
-	
-	probeQueries->Reset(cmd);
-	renderQueries->Reset(cmd);
-	
-	Profiler::Begin("Light Probe Update", Color::Green());
-	probeRenderer->Initialize(cmd);
-	probeRenderer->Start(*environment, cmd);
-	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
-	size_t i = 0;
-	for (const auto[matIdx, mesh] : meshes)
-	{
-		const Matrix transform = meshTransforms[i++];
-
-		if (environment->Cull(mesh->GetBoundingBox() * transform)) continue;
-		probeRenderer->Render(*mesh, matIdx != -1 ? probeSets[matIdx] : probeSets.back(), transform, cmd);
-		++drawCalls;
-		++batchCalls;
-		if (animated) break;
-	}
-	i = 0;
-	probeQueries->RecordTimestamp(cmd, PipelineStageFlag::BottomOfPipe);
-	probeRenderer->End(*environment, cmd);
-	Profiler::End();
-
 	cam->Update(dt * updateCam);
 	descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 	Profiler::Begin("Render", Color::Yellow());
-	cmd.BeginRenderPass(*renderPass, GetWindow().GetCurrentFramebuffer(*renderPass), SubpassContents::Inline);
-	cmd.BindGraphicsPipeline(*gfxPipeline);
+	renderer->BeginGeometry(*cam);
 
-	cmd.BindGraphicsDescriptor(*gfxPipeline, *cam);
-	cmd.BindGraphicsDescriptor(*gfxPipeline, *light);
-
-	renderQueries->RecordTimestamp(cmd, PipelineStageFlag::TopOfPipe);
 	cmd.AddLabel("Model", Color::Blue());
-	uint32 oldMat = ~0u;
-
+	size_t i = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		const Matrix transform = meshTransforms[i++];
 		if (cam->GetClip().IntersectionBox(mesh->GetBoundingBox() * transform))
 		{
-			cmd.PushConstants(*gfxPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
-			//dbgRenderer->AddBox(mesh->GetBoundingBox(), transform, Color::Yellow());
-
-			++drawCalls;
-			if (matIdx != oldMat)
-			{
-				const Material &material = *(matIdx != -1 ? materials[matIdx] : materials.back());
-				cmd.BindGraphicsDescriptor(*gfxPipeline, material);
-				oldMat = matIdx;
-				++batchCalls;
-			}
-
-			mesh->Bind(cmd, 0);
-			mesh->Draw(cmd);
+			renderer->SetModel(transform);
+			renderer->Render(*mesh, *(matIdx != -1 ? materials[matIdx] : materials.back()));
 			if (animated) break;
 		}
 	}
 
 	cmd.EndLabel();
-	renderQueries->RecordTimestamp(cmd, PipelineStageFlag::BottomOfPipe);
-	cmd.EndRenderPass();
+	renderer->BeginLight();
+	renderer->Render(*light);
+	renderer->End();
 	Profiler::End();
-
-	if (ImGui::BeginMainMenuBar())
-	{
-		ImGui::Text("Draw Calls: %u (%u batches)", drawCalls, batchCalls);
-		ImGui::Separator();
-		ImGui::Text("%d FPS", iround(recip(dt)));
-
-		DeviceSize used;
-		if (GetDevice().GetPhysicalDevice().TryGetUsedDeviceLocalBytes(used))
-		{
-			DeviceSize max = GetDevice().GetPhysicalDevice().GetDeviceLocalBytes();
-
-			ImGui::Separator();
-			ImGui::Text("GPU memory %u/%u MB", b2mb(used), b2mb(max));
-		}
-
-		ImGui::EndMainMenuBar();
-	}
-
-	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
-
 
 	Profiler::Visualize();
 }
@@ -371,82 +272,4 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 	{
 		if (args.Key == Keys::XBoxB) Exit();
 	}
-}
-
-void TestGame::OnSwapchainRecreated(const Pu::GameWindow&, const SwapchainReCreatedEventArgs & args)
-{
-	if (renderPass && renderPass->IsLoaded())
-	{
-		if (args.FormatChanged) renderPass->Recreate();
-		if (args.AreaChanged)
-		{
-			if (depthBuffer)
-			{
-				CreateDepthBuffer();
-				dbgRenderer->Reset(*depthBuffer);
-			}
-
-			CreateGraphicsPipeline();
-		}
-	}
-}
-
-void TestGame::CreateDepthBuffer(void)
-{
-	if (depthBuffer) delete depthBuffer;
-	depthBuffer = new DepthBuffer(GetDevice(), Format::D32_SFLOAT, GetWindow().GetSize());
-	markDepthBuffer = true;
-
-	if (!dbgRenderer) dbgRenderer = new DebugRenderer(GetWindow(), GetContent(), depthBuffer, 2.0f);
-}
-
-void TestGame::InitializeRenderpass(Pu::Renderpass&)
-{
-	if (!depthBuffer) CreateDepthBuffer();
-	Subpass &pass = renderPass->GetSubpass(0);
-
-	pass.GetOutput("L0").SetDescription(GetWindow().GetSwapchain());
-	pass.AddDepthStencil().SetDescription(*depthBuffer);
-
-	pass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-	pass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
-	pass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
-}
-
-void TestGame::FinalizeRenderpass(Pu::Renderpass&)
-{
-	CreateGraphicsPipeline();
-	const Subpass &subpass = renderPass->GetSubpass(0);
-
-	descPoolConst = new DescriptorPool(*renderPass);
-	descPoolConst->AddSet(0, 0, 1);	// Camera set
-	descPoolConst->AddSet(0, 2, 1);	// Light set
-
-	cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, subpass.GetSetLayout(0), GetInput());
-	cam->Move(0.0f, 1.0f, -1.0f);
-	cam->Yaw = PI2;
-
-	light = new DirectionalLight(*descPoolConst, subpass.GetSetLayout(2));
-
-	descPoolMats = new DescriptorPool(*renderPass, static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
-	for (PumMaterial &material : stageMaterials)
-	{
-		materials.emplace_back(new Material(*descPoolMats, subpass.GetSetLayout(1), material));
-
-	}
-	materials.emplace_back(new Material(*descPoolMats, subpass.GetSetLayout(1)));
-}
-
-void TestGame::CreateGraphicsPipeline(void)
-{
-	if (gfxPipeline) delete gfxPipeline;
-
-	gfxPipeline = new GraphicsPipeline(*renderPass, 0);
-	gfxPipeline->SetViewport(GetWindow().GetNative().GetClientBounds());
-	gfxPipeline->SetTopology(PrimitiveTopology::TriangleList);
-	gfxPipeline->EnableDepthTest(true, CompareOp::LessOrEqual);
-	gfxPipeline->AddVertexBinding(0, meshes.front().second->GetStride());
-
-	GetWindow().CreateFramebuffers(*renderPass, { &depthBuffer->GetView() });
-	gfxPipeline->Finalize();
 }

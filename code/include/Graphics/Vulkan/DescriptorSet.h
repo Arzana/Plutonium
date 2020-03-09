@@ -1,12 +1,11 @@
 #pragma once
-#include "DescriptorPool.h"
-#include "Graphics/Textures/TextureInput.h"
-#include "Graphics/Vulkan/Shaders/DescriptorSetLayout.h"
+#include "DescriptorSetBase.h"
 
 namespace Pu
 {
 	/* Defines a set of descriptors. */
 	class DescriptorSet
+		: public DescriptorSetBase
 	{
 	public:
 		/* Initializes a new instance of a descriptor set from a specific pool. */
@@ -35,32 +34,15 @@ namespace Pu
 		/* Copies the block data to the CPU staging buffer. */
 		virtual void Stage(_In_ byte* /*destination*/) {};
 
-		/* Copies the specific value into the array. */
-		template <typename value_t>
-		static inline void Copy(_In_ byte *destination, _In_ const value_t *value)
-		{
-			memcpy(destination, value, sizeof(std::remove_pointer_t<value_t>));
-		}
-
-		/* Gets the specific descriptor from the specific subpass. */
-		_Check_return_ inline const Descriptor& GetDescriptor(_In_ uint32 subpass, _In_ const string &name) const
-		{
-			return pool->renderpass->GetSubpass(subpass).GetDescriptor(name);
-		}
-
 	private:
 		friend class CommandBuffer;
 
 		DescriptorSetHndl hndl;
-		DescriptorPool *pool;
 		uint32 set;
 		DeviceSize baseOffset;
 		bool subscribe;
 
-		void WriteBuffer(const DescriptorSetLayout &layout);
 		void StageInternal(DescriptorPool&, byte *destination);
-		void ValidateDescriptor(const Descriptor &descriptor, DescriptorType type) const;
-		void WriteDescriptors(const vector<WriteDescriptorSet> &writes);
 		void Destroy(void);
 	};
 }

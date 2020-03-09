@@ -35,7 +35,9 @@ namespace Pu
 		void Update(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlag dstStage);
 
 	private:
+		friend class DescriptorSetBase;
 		friend class DescriptorSet;
+		friend class DescriptorSetGroup;
 		friend class UniformBlock;
 
 		struct SetInfo
@@ -63,5 +65,7 @@ namespace Pu
 		void Free(DescriptorSetHndl set);
 		void Create(void);
 		void Destroy(void);
+
+		static uint64 MakeId(uint32 subpass, uint32 set);
 	};
 }

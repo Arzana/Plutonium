@@ -277,6 +277,22 @@ void Pu::CommandBuffer::BindGraphicsDescriptor(const Pipeline & pipeline, const 
 	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 }
 
+void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint32 subpassIdx, const DescriptorSetGroup & descriptors)
+{
+	DbgCheckIfRecording("bind descriptors to graphics bind point");
+
+	/* We need to bind all of the descriptors in the group that match the subpass index. */
+	for (const auto[id, setHndl] : descriptors.hndls)
+	{
+		const uint32 subpass = static_cast<uint32>(id >> 32);
+		if (subpass == subpassIdx)
+		{
+			const uint32 set = static_cast<uint32>(id & 0xFFFFFFFF);
+			device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, set, 1, &setHndl, 0, nullptr);
+		}
+	}
+}
+
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
 	DbgCheckIfRecording("draw");

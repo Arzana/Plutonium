@@ -1,11 +1,9 @@
 #pragma once
-#include "Core/Math/Matrix.h"
-#include "Graphics/Vulkan/DescriptorSet.h"
+#include "Graphics/Vulkan/DescriptorSetGroup.h"
+#include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "Graphics/Textures/TextureCube.h"
-
-/* Used temporarily when before switching to deferred fulltime. */
-#define PU_CAMERA_USE_FORWARD
+#include "Core/Math/Matrix.h"
 
 namespace Pu
 {
@@ -13,7 +11,7 @@ namespace Pu
 
 	/* Defines a camera base. */
 	class Camera
-		: public DescriptorSet
+		: public DescriptorSetGroup
 	{
 	public:
 		Camera(_In_ const Camera&) = delete;
@@ -114,16 +112,9 @@ namespace Pu
 			contrast = value;
 		}
 
-#ifdef PU_CAMERA_USE_FORWARD
-		inline void SetEnvironment(const TextureCube &probe)
-		{
-			Write(*envMap, probe);
-		}
-#endif
-
 	protected:
 		/* Initializes a new instance of a camera. */
-		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout);
+		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const Renderpass &renderpass);
 
 		/* Updates the camera. */
 		virtual void Update(_In_ float /*dt*/) {};
@@ -132,7 +123,7 @@ namespace Pu
 		/* Sets the projection matrix. */
 		void SetProjection(_In_ const Matrix &value);
 		/* Stages the contents of the uniform block to the GPU. */
-		virtual void Stage(byte *dest) override;
+		void Stage(DescriptorPool&, byte *dest) final;
 		/* Occurs when the native window changes it's size. */
 		virtual void OnWindowResize(const NativeWindow&, ValueChangedEventArgs<Vector2>);
 
@@ -143,12 +134,7 @@ namespace Pu
 		Vector2 wndSize;
 		const NativeWindow *window;
 
-#ifndef PU_CAMERA_USE_FORWARD
-		size_t binding1, binding2;
-#else
-		size_t binding1;
-		const Descriptor *envMap;
-#endif
+		DeviceSize offsetSp1, offsetSp2, offsetSp3;
 
 		mutable Matrix iview;
 		mutable bool viewDirty;

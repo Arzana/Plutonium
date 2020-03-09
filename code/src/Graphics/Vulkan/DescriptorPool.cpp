@@ -1,12 +1,6 @@
 #include "Graphics/Vulkan/DescriptorPool.h"
 #include "Graphics/Resources/DynamicBuffer.h"
 
-static Pu::uint64 make_id(Pu::uint32 subpass, Pu::uint32 set)
-{
-	constexpr Pu::uint64 bits_per_uint32 = sizeof(Pu::uint32) << 3;
-	return (static_cast<Pu::uint64>(subpass) << bits_per_uint32) | set;
-}
-
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass)
 	: device(renderpass.device), renderpass(&renderpass), firstUpdate(true), stride(0),
 	OnStage("DescriptorPoolOnStage"), buffer(nullptr), maxSets(0)
@@ -58,7 +52,7 @@ void Pu::DescriptorPool::AddSet(uint32 subpass, uint32 set, uint32 max)
 #ifdef _DEBUG
 	if (hndl) Log::Fatal("Cannot add set to descriptor pool (%x) after it has been initialized!", hndl);
 
-	if (sets.contains([subpass, set](const SetInfo &cur) { return cur.Id == make_id(subpass, set); }))
+	if (sets.contains([subpass, set](const SetInfo &cur) { return cur.Id == MakeId(subpass, set); }))
 	{
 		Log::Fatal("Set %u from subpass %u has already been added to this descriptor pool!", set, subpass);
 	}
@@ -131,7 +125,7 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayo
 	if (buffer)
 	{
 		/* Get the base offset of the set in the buffer. */
-		const uint64 id = make_id(subpass, layout.set);
+		const uint64 id = MakeId(subpass, layout.set);
 		SetInfo &setInfo = *sets.iteratorOf([id](const SetInfo &cur) { return cur.Id == id; });
 		return setInfo.Offset + layout.GetAllignedStride() * setInfo.AllocCnt++;
 	}
@@ -168,6 +162,12 @@ void Pu::DescriptorPool::Destroy(void)
 	}
 }
 
+Pu::uint64 Pu::DescriptorPool::MakeId(uint32 subpass, uint32 set)
+{
+	constexpr Pu::uint64 bits_per_uint32 = sizeof(Pu::uint32) << 3;
+	return (static_cast<Pu::uint64>(subpass) << bits_per_uint32) | set;
+}
+
 Pu::DescriptorPool::SetInfo::SetInfo(uint32 subpass, uint32 set, uint32 max, DeviceSize offset)
-	: Id(make_id(subpass, set)), MaxSets(max), Offset(offset), AllocCnt(0)
+	: Id(MakeId(subpass, set)), MaxSets(max), Offset(offset), AllocCnt(0)
 {}

@@ -36,7 +36,7 @@ namespace Pu
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 		friend class AssetFetcher;
 
 		SamplerHndl hndl;

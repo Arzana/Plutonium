@@ -23,7 +23,7 @@ namespace Pu
 		Default controlls are WASD for movement and normal cursor controlls.
 		The keyboard to take input from can only be specified here.
 		*/
-		FreeCamera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout, _In_ const InputDeviceHandler &inputHandler);
+		FreeCamera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const Renderpass &renderpass, _In_ const InputDeviceHandler &inputHandler);
 		FreeCamera(_In_ const FreeCamera&) = delete;
 		/* Move constructor. */
 		FreeCamera(_In_ FreeCamera &&value);

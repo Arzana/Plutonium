@@ -1,32 +1,25 @@
 #include "Graphics/Cameras/Camera.h"
 #include "Application.h"
 
-Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const DescriptorSetLayout & layout)
-	: DescriptorSet(pool, 0, layout), viewDirty(false),
+Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
+	: DescriptorSetGroup(pool), viewDirty(false),
 	exposure(1.0f), brightness(0.0f), contrast(1.0f),
 	window(&wnd)
 {
 	wnd.OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 
-#ifndef PU_CAMERA_USE_FORWARD
-	binding1 = GetDescriptor(1, "IProjection").GetAllignedOffset(sizeof(Matrix) << 1);
-	binding2 = GetDescriptor(2, "Exposure").GetAllignedOffset((sizeof(Matrix) << 2) + sizeof(Vector3));
-#else
-	binding1 = GetDescriptor(0, "CamPos").GetAllignedOffset(sizeof(Pu::Matrix) * 2);
-	envMap = &GetDescriptor(0, "Environment");
-#endif
+	/* All of the camera descriptor sets use set ID 0. */
+	offsetSp1 = Add(0, renderpass.GetSubpass(0).GetSetLayout(0));
+	offsetSp2 = Add(1, renderpass.GetSubpass(1).GetSetLayout(0));
+	offsetSp3 = Add(2, renderpass.GetSubpass(2).GetSetLayout(0));
 }
 
 Pu::Camera::Camera(Camera && value)
-	: DescriptorSet(std::move(value)), pos(value.pos), window(value.window),
+	: DescriptorSetGroup(std::move(value)), pos(value.pos), window(value.window),
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
-	wndSize(value.wndSize), viewDirty(value.viewDirty), binding1(value.binding1),
-#ifndef PU_CAMERA_USE_FORWARD
-	binding2(value.binding2)
-#else
-	envMap(value.envMap)
-#endif
+	wndSize(value.wndSize), viewDirty(value.viewDirty), offsetSp1(value.offsetSp1),
+	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3)
 {
 	window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 }
@@ -36,7 +29,7 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 	if (this != &other)
 	{
 		Destroy();
-		DescriptorSet::operator=(std::move(other));
+		DescriptorSetGroup::operator=(std::move(other));
 
 		pos = other.pos;
 		view = other.view;
@@ -49,13 +42,9 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 		wndSize = other.wndSize;
 		window = other.window;
 		viewDirty = other.viewDirty;
-		binding1 = other.binding1;
-
-#ifndef PU_CAMERA_USE_FORWARD	
-		binding2 = other.binding2;
-#else
-		envMap = other.envMap;
-#endif
+		offsetSp1 = other.offsetSp1;
+		offsetSp2 = other.offsetSp2;
+		offsetSp3 = other.offsetSp3;
 
 		window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 	}
@@ -113,28 +102,21 @@ void Pu::Camera::SetProjection(const Matrix & value)
 	iproj = proj.GetInverse();
 }
 
-void Pu::Camera::Stage(byte * dest)
+void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 {
-	/* Binding 0 (G-Pass). */
-	Copy(dest, &proj);
-	Copy(dest + sizeof(Matrix), &view);
+	/* Stage the view and projection matrix for the first subpass. */
+	Copy(dest + offsetSp1, &proj);
+	Copy(dest + offsetSp1 + sizeof(Matrix), &view);
 
-#ifndef PU_CAMERA_USE_FORWARD
-	/* Binding 1 (Light-Pass). */
-	Copy(dest + binding1, &iproj);
-	Copy(dest + binding1 + sizeof(Matrix), &iview);
-	Copy(dest + binding1 + (sizeof(Matrix) << 1), &pos);
+	/* Stage the inverse view, projection, and the camera position to the second subpass. */
+	Copy(dest + offsetSp2, &iproj);
+	Copy(dest + offsetSp2 + sizeof(Matrix), &iview);
+	Copy(dest + offsetSp2 + (sizeof(Matrix) << 1), &pos);
 
-	/* Binding 2 (Tonemap-Pass). */
-	Copy(dest + binding2, &exposure);
-	Copy(dest + binding2 + sizeof(float), &brightness);
-	Copy(dest + binding2 + (sizeof(float) << 1), &contrast);
-#else
-	Copy(dest + binding1, &pos);
-	Copy(dest + binding1 + sizeof(Vector3), &brightness);
-	Copy(dest + binding1 + sizeof(Vector4), &contrast);
-	Copy(dest + binding1 + sizeof(float) * 5, &exposure);
-#endif
+	/* Stage the exposure, brightness and contrast to the third and final subpass. */
+	Copy(dest + offsetSp3, &exposure);
+	Copy(dest + offsetSp3 + sizeof(float), &brightness);
+	Copy(dest + offsetSp3 + sizeof(Vector2), &contrast);
 }
 
 void Pu::Camera::Destroy(void)

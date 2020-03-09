@@ -100,7 +100,7 @@ namespace Pu
 		friend class Buffer;
 		friend class Image;
 		friend class DescriptorPool;
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 		friend class DescriptorSetLayout;
 		friend class Sampler;
 		friend class QueryPool;

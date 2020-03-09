@@ -1,8 +1,8 @@
 #include "Graphics/Cameras/FpsCamera.h"
 #include "Application.h"
 
-Pu::FpsCamera::FpsCamera(const NativeWindow & wnd, DescriptorPool & pool, const DescriptorSetLayout & layout)
-	: Camera(wnd, pool, layout), near(0.1f), far(1000.0f), fov(PI4),
+Pu::FpsCamera::FpsCamera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
+	: Camera(wnd, pool, renderpass), near(0.1f), far(1000.0f), fov(PI4),
 	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), aspr(wnd.GetAspectRatio())
 {
 	UpdateProjection();

@@ -1,5 +1,5 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
-#include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/VertexLayouts/SkinnedAnimated.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -44,7 +44,7 @@
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: framebuffer(nullptr), wnd(&wnd), depthBuffer(nullptr), markNeeded(true),
-	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr)
+	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr), curCam(nullptr)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -88,17 +88,18 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 #endif
 
 	/* Start the geometry pass. */
+	curCam = &camera;
 	curCmd->AddLabel("Deferred Renderer (Geometry)", Color::Blue());
 	curCmd->BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPass);
-	curCmd->BindGraphicsDescriptor(*gfxGPass, camera);
+	curCmd->BindGraphicsDescriptors(*gfxGPass, 0, camera);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
 {
 	/* Check for invalid state on debug. */
 #ifdef _DEBUG
-	if (!curCmd) Log::Fatal("Geometry pass should be started before the light pass can start!");
+	if (!curCam) Log::Fatal("Geometry pass should be started before the light pass can start!");
 #endif
 
 	/* End the geometry pass and start the directional light pass. */
@@ -106,13 +107,14 @@ void Pu::DeferredRenderer::BeginLight(void)
 	curCmd->AddLabel("Deferred Renderer (Directional Lights)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxFullScreen);
+	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 1, *curCam);
 }
 
 void Pu::DeferredRenderer::End(void)
 {
 	/* Check for invalid state on debug. */
 #ifdef _DEBUG
-	if (!curCmd) Log::Fatal("Geometry pass should be started before the final pass can start!");
+	if (!curCam) Log::Fatal("Geometry pass should be started before the final pass can start!");
 #endif
 
 	/* End the light pass, do tonemapping and end the renderpass. */
@@ -144,6 +146,7 @@ void Pu::DeferredRenderer::DoTonemap(void)
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxFullScreen);
+	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 2, *curCam);
 	curCmd->PushConstants(*gfxFullScreen, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
@@ -198,9 +201,9 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		emissAo.SetFormat(textures[3]->GetImage().GetFormat());
 		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
 
-		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
-		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
+		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
+		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
 	}
 
 	/* Set all the options for the directional light pass. */
@@ -243,7 +246,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPass->EnableDepthTest(true, CompareOp::LessOrEqual);
-		gfxGPass->AddVertexBinding<Basic3D>(0);
+		gfxGPass->AddVertexBinding<SkinnedAnimated>(0);
 		gfxGPass->Finalize();
 	}
 

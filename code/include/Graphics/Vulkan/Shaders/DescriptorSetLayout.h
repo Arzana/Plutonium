@@ -43,7 +43,7 @@ namespace Pu
 	private:
 		friend class Pipeline;
 		friend class DescriptorPool;
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 
 		using Range = std::pair<DeviceSize, DeviceSize>;
 

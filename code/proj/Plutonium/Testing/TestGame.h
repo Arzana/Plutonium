@@ -3,10 +3,7 @@
 #include <Graphics/Models/Mesh.h>
 #include <Graphics/Models/Material.h>
 #include <Graphics/Cameras/FreeCamera.h>
-#include <Graphics/Lighting/DirectionalLight.h>
-#include <Graphics/Diagnostics/DebugRenderer.h>
-#include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Graphics/Diagnostics/QueryChain.h>
+#include <Graphics/Lighting/DeferredRenderer.h>
 
 class TestGame
 	: public Pu::Application
@@ -24,24 +21,15 @@ protected:
 	virtual void Initialize(void);
 	virtual void LoadContent(void);
 	virtual void UnLoadContent(void);
-	virtual void Finalize(void);
+	virtual void Finalize(void) {}
 	virtual void Update(float) {}
 	virtual void Render(float dt, Pu::CommandBuffer &cmdBuffer);
 
 private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer, updateCam;
-	Pu::DebugRenderer *dbgRenderer;
-	Pu::QueryChain *probeQueries, *renderQueries;
 
-	Pu::LightProbeRenderer *probeRenderer;
-	Pu::LightProbe *environment;
-	Pu::DescriptorPool *probePool;
-	Pu::vector<Pu::DescriptorSet> probeSets;
-
-	Pu::Renderpass *renderPass;
-	Pu::GraphicsPipeline *gfxPipeline;
-	Pu::DepthBuffer *depthBuffer;
+	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
 	Pu::DescriptorPool *descPoolMats;
 
@@ -63,9 +51,4 @@ private:
 	void SetNodeTransform(size_t idx, const Pu::Matrix &parent);
 	void SetMeshTransforms(void);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
-	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs &args);
-	void CreateDepthBuffer(void);
-	void InitializeRenderpass(Pu::Renderpass&);
-	void FinalizeRenderpass(Pu::Renderpass&);
-	void CreateGraphicsPipeline(void);
 };

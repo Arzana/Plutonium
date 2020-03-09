@@ -35,6 +35,12 @@ namespace Pu
 			return renderpass->IsLoaded();
 		}
 
+		/* Gets the renderpass used by the deferred renderer. */
+		_Check_return_ inline const Renderpass& GetRenderpass(void) const
+		{
+			return *renderpass;
+		}
+
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the deferred rendering pipeline. */
@@ -59,7 +65,9 @@ namespace Pu
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
 		GraphicsPipeline *gfxGPass, *gfxFullScreen;
+
 		CommandBuffer *curCmd;
+		const Camera *curCam;
 
 		float hdrSwapchain;
 		bool markNeeded;

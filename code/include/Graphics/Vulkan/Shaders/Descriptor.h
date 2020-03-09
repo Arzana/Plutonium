@@ -63,7 +63,7 @@ namespace Pu
 	private:
 		friend class Subpass;
 		friend class DescriptorSetLayout;
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 
 		const PhysicalDevice *physicalDevice;
 
