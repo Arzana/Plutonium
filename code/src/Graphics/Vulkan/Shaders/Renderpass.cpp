@@ -192,6 +192,8 @@ void Pu::Renderpass::CreateRenderpass(void)
 
 	/* Generate the subpass descriptions, make sure that the vectors don't resize. */
 	vector<SubpassDescription> subpassDescriptions;
+	subpassDescriptions.reserve(subpasses.size());
+
 	vector<vector<AttachmentReference>> inputAttachments{ subpasses.size() };
 	vector<vector<AttachmentReference>> colorAttachments{ subpasses.size() };
 	vector<vector<AttachmentReference>> resolveAttachments{ subpasses.size() };
@@ -235,15 +237,35 @@ void Pu::Renderpass::CreateRenderpass(void)
 						/* The input attachment will have the same index as a previous subpass color attachment. */
 						if (ref.Attachment == idx)
 						{
-							/* The layout of input attachments can only be read only or general, general is bad. */
-							ref.Layout = ImageLayout::ShaderReadOnlyOptimal;
-							inputAttachments[i].emplace_back(ref);
+							/* Color attachments will always have shader read only optimal layout. */
+							inputAttachments[i].emplace_back(idx, ImageLayout::ShaderReadOnlyOptimal);
 							handled = true;
 							break;
 						}
 					}
 
 					if (handled) break;
+				}
+
+				/* It wasn't a color attachment, maybe it was a depth/stencil attachment? */
+				if (!handled)
+				{
+					const SubpassDescription &desc = subpassDescriptions[i - 1];
+					if (desc.DepthStencilAttachment)
+					{
+						if (desc.DepthStencilAttachment->Attachment == idx)
+						{
+							/* Depth/stencil attachments will also always have shader read only optimal layout. */
+							inputAttachments[i].emplace_back(idx, ImageLayout::ShaderReadOnlyOptimal);
+							handled = true;
+						}
+					}
+				}
+
+				/* Crash if we could not handle the input attachment. */
+				if (!handled)
+				{
+					Log::Fatal("Unable to find origional attachment for input attachment '%s' cannot create reference!", descriptor.GetInfo().Name.c_str());
 				}
 			}
 		}

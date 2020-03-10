@@ -1143,7 +1143,7 @@ namespace Pu
 		AttachmentStoreOp StencilStoreOp;
 		/* Specifies the initial layout of the image subresource. */
 		ImageLayout InitialLayout;
-		/* Specifies the layout of the image subresource after the subpass. */
+		/* Specifies the layout of the image subresource after the renderpass. */
 		ImageLayout FinalLayout;
 
 		/* Initializes an empty instance of the attachment description object. */
@@ -1169,7 +1169,7 @@ namespace Pu
 
 		/* The index of the attachment of the render pass. */
 		uint32 Attachment;
-		/* Specifies the layout the attachment uses during the subpass. */
+		/* Specifies the layout the attachment uses during the renderpass. */
 		ImageLayout Layout;
 
 		/* Initializes an empty instance of a attachment refrence. */

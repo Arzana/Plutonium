@@ -41,11 +41,16 @@ Pu::DeviceSize Pu::DescriptorSetGroup::Add(uint32 subpass, const DescriptorSetLa
 	const DeviceSize offset = Pool->Alloc(subpass, layout, &hndl);
 	hndls.emplace(id, hndl);
 
-	/* Subscribe to the pools stage event if we need to. */
-	if (layout.HasUniformBufferMemory() && !subscribe)
+	if (layout.HasUniformBufferMemory())
 	{
-		subscribe = true;
-		Pool->OnStage.Add(*this, &DescriptorSetGroup::Stage);
+		/* Subscribe to the pools stage event if we need to. */
+		if (!subscribe)
+		{
+			subscribe = true;
+			Pool->OnStage.Add(*this, &DescriptorSetGroup::Stage);
+		}
+
+		/* We need to update the descriptor if it is a uniform block. */
 		DescriptorSetBase::Write(hndl, layout, offset);
 	}
 

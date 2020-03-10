@@ -29,19 +29,19 @@ namespace Pu
 			reference.Layout = layout;
 		}
 
-		/* Sets the layout of the output before this output is used in the sub pass. */
+		/* Sets the layout of the output before this output is used in the renderpass. */
 		inline void SetInitialLayout(_In_ ImageLayout layout)
 		{
 			description.InitialLayout = layout;
 		}
 
-		/* Sets the layout of the output after this output is used in the sub pass. */
+		/* Sets the layout of the output after this output is used in the renderpass. */
 		inline void SetFinalLayout(_In_ ImageLayout layout)
 		{
 			description.FinalLayout = layout;
 		}
 
-		/* Sets the layout of the output before, during and after it is used in the sub pass. */
+		/* Sets the layout of the output before, during and after it is used in the renderpass. */
 		inline void SetLayouts(_In_ ImageLayout layout)
 		{
 			description.InitialLayout = layout;
@@ -49,7 +49,7 @@ namespace Pu
 			description.FinalLayout = layout;
 		}
 
-		/* Set the layout of the output before, during and after it is used in the sub pass. */
+		/* Set the layout of the output before, during and after it is used in the renderpass. */
 		inline void SetLayouts(_In_ ImageLayout initial, _In_ ImageLayout layout, _In_ ImageLayout final)
 		{
 			description.InitialLayout = initial;

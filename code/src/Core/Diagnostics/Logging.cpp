@@ -309,7 +309,11 @@ void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 	
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(msg);
-	if (len > 0 && !suppressLogging) LogMsgInternal(LogType::Error, true, len, msg, args);
+	if (len > 0)
+	{
+		shouldAddLinePrefix = false;
+		LogMsgInternal(LogType::Error, true, len, msg, args);
+	}
 
 	/* Log error footer. */
 	LogExcFtr(framesToSkip + 1);

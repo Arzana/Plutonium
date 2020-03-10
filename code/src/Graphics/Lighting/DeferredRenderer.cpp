@@ -38,7 +38,7 @@
 	3: G-Buffer (Normal)		[x, y]					Color		Input			-				2
 	4: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
 	5: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
-	6: G-Buffer (Depth)			[d]						Color		Input			-				4
+	6: G-Buffer (Depth)			[d]						Depth		Input			-				4
 
 	We need to override the attachment reference in most of the subpasses.
 */
@@ -182,29 +182,29 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		Output &depth = gpass.AddDepthStencil();
 		depth.SetFormat(depthBuffer->GetFormat());
 		depth.SetClearValue({ 1.0f, 0 });
-		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilReadOnlyOptimal);
+		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
 		depth.SetReference(6);
 
 		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
-		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
+		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
 		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
 		diffA2.SetReference(1);
 
 		Output &spec = gpass.GetOutput("GBufferSpecular");
-		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
+		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		spec.SetFormat(textures[1]->GetImage().GetFormat());
 		spec.SetStoreOperation(AttachmentStoreOp::DontCare);
 		spec.SetReference(2);
 
 		Output &norm = gpass.GetOutput("GBufferNormal");
-		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
+		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		norm.SetFormat(textures[2]->GetImage().GetFormat());
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 		norm.SetReference(3);
 
 		Output &emissAo = gpass.GetOutput("GBufferEmissiveAO");
-		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
+		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		emissAo.SetFormat(textures[3]->GetImage().GetFormat());
 		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
 		emissAo.SetReference(4);
@@ -220,7 +220,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
 
 		Output &hdr = dlpass.GetOutput("L0");
-		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
+		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		hdr.SetFormat(textures[4]->GetImage().GetFormat());
 		hdr.SetLoadOperation(AttachmentLoadOp::DontCare);
 		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);

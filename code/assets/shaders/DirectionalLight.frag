@@ -12,11 +12,11 @@ layout (binding = 1) uniform Camera
 	vec3 CamPos;
 };
 
-layout (input_attachment_index = 0, set = 1, binding = 0) uniform subpassInput GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
-layout (input_attachment_index = 1, set = 1, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
-layout (input_attachment_index = 2, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
-layout (input_attachment_index = 3, set = 1, binding = 3) uniform subpassInput GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
-layout (input_attachment_index = 5, set = 1, binding = 4) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
+layout (input_attachment_index = 1, set = 1, binding = 0) uniform subpassInput GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
+layout (input_attachment_index = 2, set = 1, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
+layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
+layout (input_attachment_index = 4, set = 1, binding = 3) uniform subpassInput GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
+layout (input_attachment_index = 6, set = 1, binding = 4) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
 
 layout (set = 2, binding = 0) uniform Light
 {
