@@ -47,6 +47,11 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const TextureInput 
 	DescriptorSetBase::Write(hndl, set, descriptor, input);
 }
 
+void Pu::DescriptorSet::Write(const Descriptor & descriptor, const DepthBuffer & input)
+{
+	DescriptorSetBase::Write(hndl, set, descriptor, input);
+}
+
 void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & texture)
 {
 	DescriptorSetBase::Write(hndl, set, descriptor, texture);

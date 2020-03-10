@@ -611,7 +611,7 @@ namespace Pu
 
 		/* Initializes a new instance of a queue create information object. */
 		DeviceQueueCreateInfo(_In_ uint32 familyIndex, _In_ uint32 count, _In_ const float *priorities, _In_opt_ DeviceQueueCreateFlag flags = DeviceQueueCreateFlag::None)
-			: Type (StructureType::DeviceQueueCreateInfo), Next(nullptr),
+			: Type(StructureType::DeviceQueueCreateInfo), Next(nullptr),
 			Flags(flags), QueueFamilyIndex(familyIndex), Count(count), QueuePriorities(priorities)
 		{}
 	};
@@ -647,12 +647,12 @@ namespace Pu
 		{}
 
 		/* Creates a new instance of the device create information object. */
-		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos, 
-			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr, 
+		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos,
+			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr,
 			_In_opt_ const PhysicalDeviceFeatures *enabledFeatures = nullptr)
-			: Type (StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
+			: Type(StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
 			EnabledLayerCount(0), EnabledLayerNames(nullptr),
-			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos), 
+			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos),
 			EnabledExtensionCount(enabledExtensionCount), EnabledExtensionNames(enabledExtensionNames), EnabledFeatures(enabledFeatures)
 		{}
 	};
@@ -959,7 +959,7 @@ namespace Pu
 		/* Initializes a new instance of a secondaly command buffer inheritance info object. */
 		CommandBufferInheritanceInfo(_In_ RenderPassHndl renderPass)
 			: Type(StructureType::CommandBufferInheritanceInfo), Next(nullptr), RenderPass(renderPass),
-			Subpass(0), FrameBuffer(nullptr), OcclusionQueryEnable(false), 
+			Subpass(0), FrameBuffer(nullptr), OcclusionQueryEnable(false),
 			QueryFlags(QueryControlFlag::None), PipelineStatistics(QueryPipelineStatisticFlag::None)
 		{}
 	};
@@ -1076,7 +1076,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a global memory barrier. */
 		MemoryBarrier()
-			: MemoryBarrier(AccessFlag::None, AccessFlag::None) 
+			: MemoryBarrier(AccessFlag::None, AccessFlag::None)
 		{}
 
 		/* Initializes a new instance of a global memory barrier. */
@@ -1229,8 +1229,8 @@ namespace Pu
 		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments,
 			_In_ const vector<AttachmentReference> &inputAttachments, _In_ const vector<AttachmentReference> &resolveAttachments)
 			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics), DepthStencilAttachment(nullptr),
-			InputAttachmentCount(static_cast<uint32>(inputAttachments.size())), InputAttachments(inputAttachments.data()), 
-			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())), 
+			InputAttachmentCount(static_cast<uint32>(inputAttachments.size())), InputAttachments(inputAttachments.data()),
+			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())),
 			ColorAttachments(colorAttachments.data()), ResolveAttachments(resolveAttachments.data()),
 			PreserveAttachmentCount(0), PreserveAttachments(nullptr)
 		{}
@@ -1262,7 +1262,7 @@ namespace Pu
 
 		/* Initializes a new instance of a subpass dependency. */
 		SubpassDependency(_In_ uint32 source, _In_ uint32 destination)
-			: SrcSubpass(source), DstSubpass(destination), 
+			: SrcSubpass(source), DstSubpass(destination),
 			SrcStageMask(PipelineStageFlag::AllCommands), DstStageMask(PipelineStageFlag::AllCommands),
 			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None), DependencyFlags(DependencyFlag::None)
 		{}
@@ -1310,7 +1310,7 @@ namespace Pu
 		RenderPassCreateInfo(_In_ const vector<AttachmentDescription> &attachments, _In_ const SubpassDescription &subpass, _In_ const vector<SubpassDependency> &dependencies)
 			: Type(StructureType::RenderPassCreateInfo), Next(nullptr), Flags(0),
 			AttachmentCount(static_cast<uint32>(attachments.size())), Attachments(attachments.data()),
-			SubpassCount(1), Subpasses(&subpass), 
+			SubpassCount(1), Subpasses(&subpass),
 			DependencyCount(static_cast<uint32>(dependencies.size())), Dependencies(dependencies.data())
 		{}
 
@@ -1610,9 +1610,9 @@ namespace Pu
 		/* Copy contructor. */
 		PipelineVertexInputStateCreateInfo(_In_ const PipelineVertexInputStateCreateInfo &value)
 			: Type(StructureType::PipelineVertexInputStateCreateInfo), Next(value.Next), Flags(value.Flags),
-			VertexBindingDescriptionCount(value.VertexBindingDescriptionCount), 
+			VertexBindingDescriptionCount(value.VertexBindingDescriptionCount),
 			VertexBindingDescriptions(value.VertexBindingDescriptions),
-			VertexAttributeDescriptionCount(value.VertexAttributeDescriptionCount), 
+			VertexAttributeDescriptionCount(value.VertexAttributeDescriptionCount),
 			VertexAttributeDescriptions(value.VertexAttributeDescriptions)
 		{}
 
@@ -1855,7 +1855,7 @@ namespace Pu
 
 		/* Initializes a new instance of a viewport object. */
 		Viewport(_In_ Rect2D size)
-			: X(static_cast<float>(size.Offset.X)), Y(static_cast<float>(size.Offset.Y)), 
+			: X(static_cast<float>(size.Offset.X)), Y(static_cast<float>(size.Offset.Y)),
 			Width(static_cast<float>(size.Extent.Width)), Height(static_cast<float>(size.Extent.Height)),
 			MinDepth(0.0f), MaxDepth(1.0f)
 		{}
@@ -1912,8 +1912,8 @@ namespace Pu
 
 		/* Copy constructor. */
 		PipelineViewportStateCreateInfo(_In_ const PipelineViewportStateCreateInfo &value)
-			: Type(StructureType::PipelineViewportStateCreateInfo), Next(value.Next), 
-			Flags(value.Flags), ViewportCount(value.ViewportCount), 
+			: Type(StructureType::PipelineViewportStateCreateInfo), Next(value.Next),
+			Flags(value.Flags), ViewportCount(value.ViewportCount),
 			Viewports(value.Viewports), ScissorCount(value.ScissorCount), Scissors(value.Scissors)
 		{}
 
@@ -1981,9 +1981,9 @@ namespace Pu
 		/* Copy constructor. */
 		PipelineRasterizationStateCreateInfo(_In_ const PipelineRasterizationStateCreateInfo &value)
 			: Type(StructureType::PipelineRasterizationStateCreateInfo), Next(value.Next), Flags(value.Flags),
-			DepthClampEnable(value.DepthClampEnable), RasterizerDiscardEnable(value.RasterizerDiscardEnable), 
-			PolygonMode(value.PolygonMode), CullMode(value.CullMode), FrontFace(value.FrontFace), 
-			DepthBiasEnable(value.DepthBiasEnable), DepthBiasConstantFactor(value.DepthBiasConstantFactor), 
+			DepthClampEnable(value.DepthClampEnable), RasterizerDiscardEnable(value.RasterizerDiscardEnable),
+			PolygonMode(value.PolygonMode), CullMode(value.CullMode), FrontFace(value.FrontFace),
+			DepthBiasEnable(value.DepthBiasEnable), DepthBiasConstantFactor(value.DepthBiasConstantFactor),
 			DepthBiasClamp(value.DepthBiasClamp), DepthBiasSlopeFactor(value.DepthBiasSlopeFactor), LineWidth(value.LineWidth)
 		{}
 
@@ -2047,8 +2047,8 @@ namespace Pu
 
 		/* Copy constructor. */
 		PipelineMultisampleStateCreateInfo(_In_ const PipelineMultisampleStateCreateInfo &value)
-			: Type(StructureType::PipelineMultiSampleStateCreateInfo), Next(value.Next), 
-			Flags(value.Flags), RasterizationSamples(value.RasterizationSamples), 
+			: Type(StructureType::PipelineMultiSampleStateCreateInfo), Next(value.Next),
+			Flags(value.Flags), RasterizationSamples(value.RasterizationSamples),
 			SampleShading(value.SampleShading), MinSampleShading(value.MinSampleShading),
 			SampleMask(value.SampleMask), AlphaToCoverageEnable(value.AlphaToCoverageEnable),
 			AlphaToOneEnable(value.AlphaToOneEnable)
@@ -2138,7 +2138,7 @@ namespace Pu
 		/* Copy constructor. */
 		PipelineDepthStencilStateCreateInfo(_In_ const PipelineDepthStencilStateCreateInfo &value)
 			: Type(StructureType::PipelineDepthStencilStateCreateInfo), Next(value.Next), Flags(value.Flags),
-			DepthTestEnable(value.DepthTestEnable), DepthWriteEnable(value.DepthWriteEnable), 
+			DepthTestEnable(value.DepthTestEnable), DepthWriteEnable(value.DepthWriteEnable),
 			DepthCompareOp(value.DepthCompareOp), DepthBoundsTestEnable(value.DepthBoundsTestEnable),
 			StencilTestEnable(value.StencilTestEnable), MinDepthBounds(value.MinDepthBounds), MaxDepthBounds(value.MaxDepthBounds)
 		{}
@@ -2223,14 +2223,14 @@ namespace Pu
 		/* Initializes a new instance of the pipeline color blend state create info object. */
 		PipelineColorBlendStateCreateInfo(_In_ const vector<PipelineColorBlendAttachmentState> &states)
 			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(nullptr), Flags(0),
-			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(static_cast<uint32>(states.size())), 
-			Attachments(states.data()), BlendConstants{0.0f, 0.0f, 0.0f, 0.0f}
+			LogicOpEnable(false), LogicOp(LogicOp::Copy), AttachmentCount(static_cast<uint32>(states.size())),
+			Attachments(states.data()), BlendConstants{ 0.0f, 0.0f, 0.0f, 0.0f }
 		{}
 
 		/* Copy constructor. */
 		PipelineColorBlendStateCreateInfo(_In_ const PipelineColorBlendStateCreateInfo &value)
-			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(value.Next), 
-			Flags(value.Flags), LogicOpEnable(value.LogicOpEnable), LogicOp(value.LogicOp), 
+			: Type(StructureType::PipelineColorBlendStateCreateInfo), Next(value.Next),
+			Flags(value.Flags), LogicOpEnable(value.LogicOpEnable), LogicOp(value.LogicOp),
 			AttachmentCount(value.AttachmentCount), Attachments(value.Attachments)
 		{
 			memcpy(BlendConstants, value.BlendConstants, sizeof(BlendConstants));
@@ -2282,7 +2282,7 @@ namespace Pu
 
 		/* Copy constructor. */
 		PipelineDynamicStateCreateInfo(_In_ const PipelineDynamicStateCreateInfo &value)
-			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(value.Next), Flags(value.Flags), 
+			: Type(StructureType::PipelineDynamicStateCreateInfo), Next(value.Next), Flags(value.Flags),
 			DynamicStateCount(value.DynamicStateCount), DynamicStates(value.DynamicStates)
 		{}
 
@@ -2351,7 +2351,7 @@ namespace Pu
 		/* Initializes a new instance of the pipeline layout create info object. */
 		PipelineLayoutCreateInfo(_In_ const vector<DescriptorSetLayoutHndl>& descriptorSets, _In_ const vector<PushConstantRange> &pushConstants)
 			: Type(StructureType::PipelineLayourCreateInfo), Next(nullptr), Flags(0),
-			SetLayoutCount(static_cast<uint32>(descriptorSets.size())), SetLayouts(descriptorSets.data()), 
+			SetLayoutCount(static_cast<uint32>(descriptorSets.size())), SetLayouts(descriptorSets.data()),
 			PushConstantRangeCount(static_cast<uint32>(pushConstants.size())), PushConstantRanges(pushConstants.data())
 		{}
 	};
@@ -2411,7 +2411,7 @@ namespace Pu
 		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass, _In_ uint32 subpass)
 			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
 			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(nullptr),
-			InputAssemblyState(nullptr), ViewportState(nullptr), TessellationState(nullptr), RasterizationState(nullptr), 
+			InputAssemblyState(nullptr), ViewportState(nullptr), TessellationState(nullptr), RasterizationState(nullptr),
 			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
 			Layout(layout), Renderpass(renderpass), Subpass(subpass), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
@@ -2444,6 +2444,21 @@ namespace Pu
 		ClearColorValue Color;
 		/* Specifies the depth/stencil clear value. */
 		ClearDepthStencilValue DepthStencil;
+
+		/* Initializes an empty instance of a clear value union. */
+		ClearValue(void)
+			: Color{ 0.0f, 0.0f, 0.0f, 0.0f }
+		{}
+
+		/* Initializes a new instance of a clear value union for a depth/stencil clear. */
+		ClearValue(_In_ float depth, _In_ uint32 stencil)
+			: DepthStencil(depth, stencil)
+		{}
+
+		/* Initializes a new instance of a clear value union for a color clear. */
+		ClearValue(_In_ float r, _In_ float g, _In_ float b, _In_ float a)
+			: Color{ r, g, b, a }
+		{}
 	};
 
 	/* Defines the information required to start a render pass. */
@@ -2493,7 +2508,7 @@ namespace Pu
 		/* Initializes an empty instance of a label region. */
 		DebugUtilsLabel(void)
 			: Type(StructureType::DebugUtilsLabelExt), Next(nullptr),
-			LabelName(nullptr), Color{0.0f, 0.0f, 0.0f, 0.0f}
+			LabelName(nullptr), Color{ 0.0f, 0.0f, 0.0f, 0.0f }
 		{}
 	};
 
@@ -2796,7 +2811,7 @@ namespace Pu
 
 		/* Initializes a new instance of a mapped memory range object. */
 		MappedMemoryRange(_In_ DeviceMemoryHndl memory, _In_ DeviceSize offset, _In_ DeviceSize size)
-			: Type(StructureType::MappedMemoryRange), Next(nullptr), 
+			: Type(StructureType::MappedMemoryRange), Next(nullptr),
 			Memory(memory), Offset(offset), Size(size)
 		{}
 	};
@@ -2866,7 +2881,7 @@ namespace Pu
 		/* Initializes a new instance of the image create info object. */
 		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ uint32 mipLevels, _In_ uint32 arrayLayers, _In_ SampleCountFlag samples, _In_ ImageUsageFlag usage)
 			: Type(StructureType::ImageCreateInfo), Next(nullptr), Flags(ImageCreateFlag::None),
-			ImageType(type), Format(format), Extent(extent), MipLevels(mipLevels), 
+			ImageType(type), Format(format), Extent(extent), MipLevels(mipLevels),
 			ArrayLayers(arrayLayers), Samples(samples), Tiling(ImageTiling::Optimal),
 			Usage(usage), SharingMode(SharingMode::Exclusive), QueueFamilyIndexCount(0),
 			QueueFamilyIndeces(nullptr), InitialLayout(ImageLayout::Undefined)
@@ -3015,7 +3030,7 @@ namespace Pu
 		uint32 PoolSizeCount;
 		/* Specifies how many descriptors from each type can be created via the pool. */
 		const DescriptorPoolSize *PoolSizes;
-		
+
 		/* Initializes an empty instance of the descriptor pool create info object. */
 		DescriptorPoolCreateInfo(void)
 			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlag::None),
@@ -3043,7 +3058,7 @@ namespace Pu
 		ShaderStageFlag StageFlags;
 		/* Specifies an optional set of constant samplers that cannot be changed later. */
 		const SamplerHndl *ImmutableSamplers;
-		
+
 		/* Initializes an empty instance of the descriptor set layout binding object. */
 		DescriptorSetLayoutBinding(void)
 			: DescriptorSetLayoutBinding(0, DescriptorType::Sampler, 0)
@@ -3101,7 +3116,7 @@ namespace Pu
 
 		/* Initializes an empty instance of the descriptor set allocate info object. */
 		DescriptorSetAllocateInfo(void)
-			: Type(StructureType::DescriptorSetAllocateInfo), Next(nullptr), 
+			: Type(StructureType::DescriptorSetAllocateInfo), Next(nullptr),
 			DescriptorPool(nullptr), DescriptorSetCount(0), SetLayouts(nullptr)
 		{}
 
@@ -3496,7 +3511,7 @@ namespace Pu
 
 		/* Initializes a new instance of the surface full-screen exclusive info object. */
 		SurfaceFullScreenExclusiveWin32InfoExt(_In_ HMONITOR monitor)
-			: Type(StructureType::SurfaceFullScreenExclusiveWin32InfoExt), 
+			: Type(StructureType::SurfaceFullScreenExclusiveWin32InfoExt),
 			Next(nullptr), Monitor(monitor)
 		{}
 	};

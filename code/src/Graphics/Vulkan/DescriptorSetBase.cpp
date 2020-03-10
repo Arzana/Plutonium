@@ -27,15 +27,12 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, const DescriptorSetLay
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const TextureInput & input)
 {
-#ifdef _DEBUG
-	ValidateDescriptor(descriptor, set, DescriptorType::InputAttachment);
-#endif
+	WriteInput(hndl, set, descriptor, input.view->hndl);
+}
 
-	/* An input attachment descriptor doesn't have a sampler (because the samples are fragment local). */
-	const DescriptorImageInfo info{ nullptr, input.view->hndl };
-	WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
-	write.DescriptorType = DescriptorType::InputAttachment;
-	WriteDescriptors({ write });
+void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const DepthBuffer & input)
+{
+	WriteInput(hndl, set, descriptor, input.GetView().hndl);
 }
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const Texture & texture)
@@ -67,6 +64,19 @@ void Pu::DescriptorSetBase::ValidateDescriptor(const Descriptor & descriptor, ui
 			to_string(descriptor.GetType()),
 			to_string(type));
 	}
+}
+
+void Pu::DescriptorSetBase::WriteInput(DescriptorSetHndl setHndl, uint32 set, const Descriptor & descriptor, ImageViewHndl viewHndl)
+{
+#ifdef _DEBUG
+	ValidateDescriptor(descriptor, set, DescriptorType::InputAttachment);
+#endif
+
+	/* An input attachment descriptor doesn't have a sampler (because the samples are fragment local). */
+	const DescriptorImageInfo info{ nullptr, viewHndl };
+	WriteDescriptorSet write{ setHndl, descriptor.layoutBinding.Binding, info };
+	write.DescriptorType = DescriptorType::InputAttachment;
+	WriteDescriptors({ write });
 }
 
 void Pu::DescriptorSetBase::WriteDescriptors(const vector<WriteDescriptorSet>& writes)

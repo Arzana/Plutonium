@@ -23,16 +23,18 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ DescriptorSetGroup& operator =(_In_ DescriptorSetGroup &&other);
 		
+		/* Adds a descriptor set layout from a specific subpass to this grouping, returns the offset of this set in the staging buffer. */
+		_Check_return_ DeviceSize Add(_In_ uint32 subpass, _In_ const DescriptorSetLayout &layout);
 		/* Writes an input attachment to the set. */
 		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const TextureInput &input);
+		/* Writes a depth buffer as an input attachment to the set. */
+		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const DepthBuffer &input);
 		/* Writes an image/sampler combination to the specified set. */
 		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Frees the descriptor sets from their parent pool. */
 		void Free(void);
 
 	protected:
-		/* Adds a descriptor set layout from a specific subpass to this grouping, returns the offset of this set in the staging buffer. */
-		_Check_return_ DeviceSize Add(_In_ uint32 subpass, _In_ const DescriptorSetLayout &layout);
 		/* Copies the block data to the CPU staging buffer. */
 		virtual void Stage(_In_ DescriptorPool& /*sender*/, _In_ byte* /*destination*/) {};
 
@@ -41,5 +43,7 @@ namespace Pu
 
 		std::map<uint64, DescriptorSetHndl> hndls;
 		bool subscribe;
+
+		DescriptorSetHndl GetSetHandle(uint32 subpass, const Descriptor &descriptor) const;
 	};
 }

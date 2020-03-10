@@ -128,6 +128,7 @@ void Pu::_CrtFinalizeWinProcess(void)
 #ifdef _DEBUG
 void Pu::_CrtMoveDebugTerminal(const NativeWindow & wnd)
 {
+	/* Attempt to move the debug terminal to non obstructed screen. */
 	const Offset2D wndPos = wnd.GetOffset();
 	for (const Display &cur : Display::GetAll())
 	{
@@ -140,5 +141,9 @@ void Pu::_CrtMoveDebugTerminal(const NativeWindow & wnd)
 			return;
 		}
 	}
+
+	/* Just resize the terminal to the size of the current window if we cannot move it to a different screen. */
+	const Extent2D size = wnd.GetDisplay().GetClientBounds().Extent;
+	Log::Resize(size.Width, size.Height);
 }
 #endif

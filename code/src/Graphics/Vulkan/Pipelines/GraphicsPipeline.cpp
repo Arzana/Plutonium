@@ -1,7 +1,8 @@
 #include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 
 Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 subpass)
-	: Pipeline(*renderpass.device, renderpass.GetSubpass(subpass)), renderpass(&renderpass)
+	: Pipeline(*renderpass.device, renderpass.GetSubpass(subpass)), 
+	renderpass(&renderpass), subpass(subpass)
 {
 	/* Initialize the viewport state. */
 	viewportState.ViewportCount = 1;

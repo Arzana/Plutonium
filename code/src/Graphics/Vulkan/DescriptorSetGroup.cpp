@@ -36,55 +36,35 @@ Pu::DeviceSize Pu::DescriptorSetGroup::Add(uint32 subpass, const DescriptorSetLa
 	if (hndls.find(id) != hndls.end()) Log::Fatal("Attempting to add already added subpass set to descriptor set group!");
 #endif
 
+	/* Allocate the set and add it to the list. */
+	DescriptorSetHndl hndl;
+	const DeviceSize offset = Pool->Alloc(subpass, layout, &hndl);
+	hndls.emplace(id, hndl);
+
 	/* Subscribe to the pools stage event if we need to. */
 	if (layout.HasUniformBufferMemory() && !subscribe)
 	{
 		subscribe = true;
 		Pool->OnStage.Add(*this, &DescriptorSetGroup::Stage);
+		DescriptorSetBase::Write(hndl, layout, offset);
 	}
-
-	/* Allocate the set and add it to the list. */
-	DescriptorSetHndl hndl;
-	const DeviceSize offset = Pool->Alloc(subpass, layout, &hndl);
-	hndls.emplace(id, hndl);
 
 	return offset;
 }
 
 void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const TextureInput & input)
 {
-	/* Get the handle to the descriptor set. */
-	const uint64 id = Pool->MakeId(subpass, descriptor.GetSet());
-	decltype(hndls)::const_iterator it = hndls.find(id);
+	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, input);
+}
 
-	/* Check for invalid usage on debug mode. */
-#ifdef _DEBUG
-	if (it == hndls.end())
-	{
-		Log::Fatal("Attempting to write input attachment to unknown descriptor set in descriptor set group!");
-		return;
-	}
-#endif
-
-	DescriptorSetBase::Write(it->second, descriptor.GetSet(), descriptor, input);
+void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const DepthBuffer & input)
+{
+	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, input);
 }
 
 void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const Texture & texture)
 {
-	/* Get the handle to the descriptor set. */
-	const uint64 id = Pool->MakeId(subpass, descriptor.GetSet());
-	decltype(hndls)::const_iterator it = hndls.find(id);
-
-	/* Check for invalid usage on debug mode. */
-#ifdef _DEBUG
-	if (it == hndls.end())
-	{
-		Log::Fatal("Attempting to write texture attachment to unknown descriptor set in descriptor set group!");
-		return;
-	}
-#endif
-
-	DescriptorSetBase::Write(it->second, descriptor.GetSet(), descriptor, texture);
+	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, texture);
 }
 
 void Pu::DescriptorSetGroup::Free(void)
@@ -98,4 +78,18 @@ void Pu::DescriptorSetGroup::Free(void)
 		subscribe = false;
 		Pool->OnStage.Remove(*this, &DescriptorSetGroup::Stage);
 	}
+}
+
+Pu::DescriptorSetHndl Pu::DescriptorSetGroup::GetSetHandle(uint32 subpass, const Descriptor & descriptor) const
+{
+	/* Get the handle to the descriptor set. */
+	const uint64 id = Pool->MakeId(subpass, descriptor.GetSet());
+	decltype(hndls)::const_iterator it = hndls.find(id);
+
+	/* Check for invalid usage on debug mode. */
+#ifdef _DEBUG
+	if (it == hndls.end()) Log::Fatal("Attempting to write texture attachment to unknown descriptor set in descriptor set group!");
+#endif
+
+	return it->second;
 }

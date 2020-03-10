@@ -89,10 +89,13 @@ void Pu::GameWindow::CreateFramebuffers(const Renderpass & renderpass, const vec
 	for (const ImageView &cur : swapchain->views)
 	{
 		vector<const ImageView*> attachments;
-		attachments.emplace_back(&cur);
+		attachments.reserve(views.size() + 1);
 
 		/* The additional views need to be added afterwards to comply with the attachment index order. */
+		attachments.emplace_back(&cur);
 		for (const ImageView *view : views) attachments.emplace_back(view);
+
+		/* Create the framebuffer for this swapchain image. */
 		tmpFramebuffers.emplace_back(new Framebuffer(renderpass, dimensions, attachments));
 	}
 

@@ -3,7 +3,7 @@
 Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout)
 	: DescriptorSet(pool, 0, layout), diffuseMap(&GetDescriptor(0, "Diffuse")),
 	specularMap(&GetDescriptor(0, "SpecularGlossiness")),
-	normalMap(&GetDescriptor(0, "Normal")),
+	normalMap(&GetDescriptor(0, "Bump")),
 	emissiveMap(&GetDescriptor(0, "Emissive")),
 	occlusionMap(&GetDescriptor(0, "Occlusion")),
 	roughness(1.0f), power(2.0f)

@@ -25,6 +25,8 @@ namespace Pu
 
 		/* Writes an input attachment to the set. */
 		void Write(_In_ const Descriptor &descriptor, _In_ const TextureInput &input);
+		/* Writes a depth buffer as an input attachment to the set. */
+		void Write(_In_ const Descriptor &descriptor, _In_ const DepthBuffer &input);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Free's the descriptor set from its parent pool. */

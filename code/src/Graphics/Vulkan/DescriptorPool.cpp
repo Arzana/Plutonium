@@ -126,8 +126,12 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayo
 	{
 		/* Get the base offset of the set in the buffer. */
 		const uint64 id = MakeId(subpass, layout.set);
-		SetInfo &setInfo = *sets.iteratorOf([id](const SetInfo &cur) { return cur.Id == id; });
-		return setInfo.Offset + layout.GetAllignedStride() * setInfo.AllocCnt++;
+		decltype(sets)::iterator it = sets.iteratorOf([id](const SetInfo &cur) { return cur.Id == id; });
+		if (it != sets.end()) return it->Offset + layout.GetAllignedStride() * it->AllocCnt++;
+		else
+		{
+			Log::Fatal("Cannot allocate set %u (subpass %u) from descriptor pool (combination wasn't specified during creation)!", layout.set, subpass);
+		}
 	}
 
 	return 0;

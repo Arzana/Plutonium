@@ -1,6 +1,10 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Threading/Tasks/Scheduler.h"
 
+#ifdef _DEBUG
+#include <set>
+#endif
+
 Pu::Renderpass::Renderpass(LogicalDevice & device)
 	: Asset(true), device(&device), hndl(nullptr), ownsShaders(false), usesDependency(false),
 	PreCreate("RenderpassPreCreate"), PostCreate("RenderpassPostCreate")
@@ -144,6 +148,27 @@ void Pu::Renderpass::Create(bool viaLoader)
 	*/
 	PreCreate.Post(*this);
 
+#ifdef _DEBUG
+	/* We do an additional check on debug mode to see if non of the attachment indices overlap. */
+	std::set<uint32> references;
+	uint32 i = 0;
+	for (const Subpass &subpass : subpasses)
+	{
+		for (const Output &output : subpass.outputs)
+		{
+			if (references.find(output.reference.Attachment) != references.end())
+			{
+				Log::Fatal("Output '%s' in subpass %u uses an already defined attachment index (%u)!",
+					output.GetInfo().Name.c_str(), i, output.reference.Attachment);
+			}
+
+			references.emplace(output.reference.Attachment);
+		}
+
+		++i;
+	}
+#endif
+
 	CreateRenderpass();
 
 	PostCreate.Post(*this);
@@ -152,18 +177,18 @@ void Pu::Renderpass::Create(bool viaLoader)
 
 void Pu::Renderpass::CreateRenderpass(void)
 {
+	/* We aren't going to use the old clear values anymore. */
 	clearValues.clear();
 
-	/* Copy the attachment descriptions from the initial output fields. */
+	/* 
+	Pre-set the size of the attachment descriptions. 
+	The order of the descriptions is based on the references set by the user (or kept as default).
+	*/
+	size_t reserveSize = 0;
 	vector<AttachmentDescription> attachmentDescriptions;
-	for (const Subpass &subpass : subpasses)
-	{
-		for (const Output &output : subpass.outputs)
-		{
-			attachmentDescriptions.emplace_back(output.description);
-			clearValues.emplace_back(output.clear);
-		}
-	}
+	for (const Subpass &subpass : subpasses) reserveSize += subpass.outputs.size();
+	attachmentDescriptions.resize(reserveSize);
+	clearValues.resize(reserveSize);
 
 	/* Generate the subpass descriptions, make sure that the vectors don't resize. */
 	vector<SubpassDescription> subpassDescriptions;
@@ -189,6 +214,10 @@ void Pu::Renderpass::CreateRenderpass(void)
 				if (depthStencil) Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
 				depthStencil = &output.reference;
 			}
+
+			/* Set the correct attachment description and clear value. */
+			attachmentDescriptions[output.reference.Attachment] = output.description;
+			clearValues[output.reference.Attachment] = output.clear;
 		}
 
 		/* Add the input attachments from the descriptors. */
@@ -201,11 +230,13 @@ void Pu::Renderpass::CreateRenderpass(void)
 
 				for (const vector<AttachmentReference> &attachments : colorAttachments)
 				{
-					for (const AttachmentReference &ref : attachments)
+					for (AttachmentReference ref : attachments)
 					{
 						/* The input attachment will have the same index as a previous subpass color attachment. */
 						if (ref.Attachment == idx)
 						{
+							/* The layout of input attachments can only be read only or general, general is bad. */
+							ref.Layout = ImageLayout::ShaderReadOnlyOptimal;
 							inputAttachments[i].emplace_back(ref);
 							handled = true;
 							break;

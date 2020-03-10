@@ -69,6 +69,10 @@ void TestGame::LoadContent(void)
 
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
+	stageMaterials.emplace_back(PumMaterial());
 
 	renderer = new DeferredRenderer(fetcher, GetWindow());
 }
@@ -109,16 +113,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(0, 0, 1);	// First camera set
 		descPoolConst->AddSet(1, 0, 1); // Second camera set
 		descPoolConst->AddSet(2, 0, 1); // Third camera sets
-		descPoolConst->AddSet(1, 1, 1);	// Light set
+		descPoolConst->AddSet(1, 2, 1);	// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
 		cam->Yaw = PI2;
 
-		light = new DirectionalLight(*descPoolConst, renderer->GetRenderpass().GetSubpass(1).GetSetLayout(1));
+		light = new DirectionalLight(*descPoolConst, renderer->GetRenderpass().GetSubpass(1).GetSetLayout(2));
 
 		descPoolMats = new DescriptorPool(renderer->GetRenderpass(), static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
-		const DescriptorSetLayout &matLayout = renderer->GetRenderpass().GetSubpass(0).GetSetLayout(0);
+		const DescriptorSetLayout &matLayout = renderer->GetRenderpass().GetSubpass(0).GetSetLayout(1);
 		for (const PumMaterial &material : stageMaterials)
 		{
 			materials.emplace_back(new Material(*descPoolMats, matLayout, material));

@@ -32,19 +32,20 @@
 		Radiance (pre-multiplied)
 
 	The framebuffer has several attachments:			G-Pass		Light-Pass		Post-Pass		Default Idx
-	0: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-				0
-	1: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-				1
-	2: G-Buffer (Normal)		[x, y]					Color		Input			-				2
-	3: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
-	5: G-Buffer (Depth)			[d]						Color		Input			-				4
-	4: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
-	6: Swapchain				[r, g, b, a]			-			-				Color			0
+	0: Swapchain				[r, g, b, a]			-			-				Color			5
+	1: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-				0
+	2: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-				1
+	3: G-Buffer (Normal)		[x, y]					Color		Input			-				2
+	4: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
+	5: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
+	6: G-Buffer (Depth)			[d]						Color		Input			-				4
 
 	We need to override the attachment reference in most of the subpasses.
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
-	: framebuffer(nullptr), wnd(&wnd), depthBuffer(nullptr), markNeeded(true),
-	fetcher(&fetcher), gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr), curCam(nullptr)
+	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher),
+	gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr), curCam(nullptr),
+	descPoolInput(nullptr), descSetInput(nullptr)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -90,7 +91,7 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 	/* Start the geometry pass. */
 	curCam = &camera;
 	curCmd->AddLabel("Deferred Renderer (Geometry)", Color::Blue());
-	curCmd->BeginRenderPass(*renderpass, *framebuffer, SubpassContents::Inline);
+	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPass);
 	curCmd->BindGraphicsDescriptors(*gfxGPass, 0, camera);
 }
@@ -108,6 +109,7 @@ void Pu::DeferredRenderer::BeginLight(void)
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxFullScreen);
 	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 1, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 1, *descSetInput);
 }
 
 void Pu::DeferredRenderer::End(void)
@@ -147,6 +149,7 @@ void Pu::DeferredRenderer::DoTonemap(void)
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxFullScreen);
 	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 2, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 2, *descSetInput);
 	curCmd->PushConstants(*gfxFullScreen, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
@@ -157,8 +160,8 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 	/* We can just ignore the event if the renderpass isn't loaded yet. */
 	if (renderpass->IsLoaded())
 	{
-		/* 
-		We need to recreate the entire renderpass if the format changed, 
+		/*
+		We need to recreate the entire renderpass if the format changed,
 		but we only have to recreate the framebuffers and pipelines if the area changed.
 		*/
 		if (args.FormatChanged) renderpass->Recreate();
@@ -180,26 +183,31 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		depth.SetFormat(depthBuffer->GetFormat());
 		depth.SetClearValue({ 1.0f, 0 });
 		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilAttachmentOptimal, ImageLayout::DepthStencilReadOnlyOptimal);
+		depth.SetReference(6);
 
 		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
-		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
 		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
 		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
+		diffA2.SetReference(1);
 
 		Output &spec = gpass.GetOutput("GBufferSpecular");
-		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
 		spec.SetFormat(textures[1]->GetImage().GetFormat());
 		spec.SetStoreOperation(AttachmentStoreOp::DontCare);
+		spec.SetReference(2);
 
 		Output &norm = gpass.GetOutput("GBufferNormal");
-		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
 		norm.SetFormat(textures[2]->GetImage().GetFormat());
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
+		norm.SetReference(3);
 
 		Output &emissAo = gpass.GetOutput("GBufferEmissiveAO");
-		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
 		emissAo.SetFormat(textures[3]->GetImage().GetFormat());
 		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
+		emissAo.SetReference(4);
 
 		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
 		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
@@ -212,11 +220,11 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
 
 		Output &hdr = dlpass.GetOutput("L0");
-		hdr.SetLayout(ImageLayout::ColorAttachmentOptimal);
+		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal, ImageLayout::ColorAttachmentOptimal, ImageLayout::ShaderReadOnlyOptimal);
 		hdr.SetFormat(textures[4]->GetImage().GetFormat());
 		hdr.SetLoadOperation(AttachmentLoadOp::DontCare);
 		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);
-		hdr.SetReference(4);
+		hdr.SetReference(5);
 	}
 
 	/* Set all the options for the camera pass. */
@@ -227,17 +235,36 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		Output &screen = fpass.GetOutput("FragColor");
 		screen.SetDescription(wnd->GetSwapchain());
 		screen.SetLoadOperation(AttachmentLoadOp::DontCare);
-		screen.SetReference(6);
+		screen.SetReference(0);
 	}
 }
 
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 {
 	/* We need to delete the old pipelines if they are already created once. */
-	if(gfxGPass || gfxFullScreen)
+	if (gfxGPass || gfxFullScreen)
 	{
 		delete gfxGPass;
 		delete gfxFullScreen;
+	}
+	else
+	{
+		/* We only need to create the descriptor set for the input attachments once. */
+		descPoolInput = new DescriptorPool(*renderpass);
+		descPoolInput->AddSet(1, 1, 1);
+		descPoolInput->AddSet(2, 1, 1);
+
+		descSetInput = new DescriptorSetGroup(*descPoolInput);
+		descSetInput->Add(1, renderpass->GetSubpass(1).GetSetLayout(1));
+		descSetInput->Add(2, renderpass->GetSubpass(2).GetSetLayout(1));
+
+		/* Write the input attachments to the descriptor set. */
+		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDiffuseA2"), *textures[0]);
+		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferSpecular"), *textures[1]);
+		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferNormal"), *textures[2]);
+		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferEmissiveAO"), *textures[3]);
+		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDepth"), *depthBuffer);
+		descSetInput->Write(2, renderpass->GetSubpass(2).GetDescriptor("HdrBuffer"), *textures[4]);
 	}
 
 	/* Create the graphics pipeline for the static geometry pass. */
@@ -300,7 +327,9 @@ This function is called when either of the following events occur:
 */
 void Pu::DeferredRenderer::CreateFramebuffer(void)
 {
-	vector<const ImageView*> attachments{ textures.size() + 1 };
+	vector<const ImageView*> attachments;
+	attachments.reserve(textures.size() + 1);
+
 	for (const TextureInput2D *cur : textures) attachments.emplace_back(&cur->GetView());
 	attachments.emplace_back(&depthBuffer->GetView());
 
@@ -309,9 +338,6 @@ void Pu::DeferredRenderer::CreateFramebuffer(void)
 
 void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 {
-	/* Delete the G-Buffer, HDR buffer and the framebuffer. */
-	if (framebuffer) delete framebuffer;
-
 	/* The textures store the images for us. */
 	for (const TextureInput2D *cur : textures) delete cur;
 	textures.clear();
@@ -326,6 +352,8 @@ void Pu::DeferredRenderer::Destroy(void)
 	/* Delete the graphics pipelines. */
 	if (gfxGPass) delete gfxGPass;
 	if (gfxFullScreen) delete gfxFullScreen;
+	if (descSetInput) delete descSetInput;
+	if (descPoolInput) delete descPoolInput;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);

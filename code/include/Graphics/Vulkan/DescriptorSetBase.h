@@ -1,6 +1,7 @@
 #pragma once
 #include "DescriptorPool.h"
 #include "Graphics/Textures/TextureInput.h"
+#include "Graphics/Textures/DepthBuffer.h"
 
 namespace Pu
 {
@@ -31,6 +32,8 @@ namespace Pu
 		void Write(_In_ DescriptorSetHndl hndl, _In_ const DescriptorSetLayout &layout, _In_ DeviceSize offset);
 		/* Writes an input attachment to the specified set. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const TextureInput &input);
+		/* Writes a deth buffer attachment to the specified set as an input attachment. */
+		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const DepthBuffer &input);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
 
@@ -50,6 +53,7 @@ namespace Pu
 	private:
 		static void ValidateDescriptor(const Descriptor &descriptor, uint32 set, DescriptorType type);
 
+		void WriteInput(DescriptorSetHndl setHndl, uint32 set, const Descriptor &descriptor, _In_ ImageViewHndl viewHndl);
 		void WriteDescriptors(const vector<WriteDescriptorSet> &writes);
 	};
 }

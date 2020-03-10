@@ -57,7 +57,6 @@ namespace Pu
 		void Render(_In_ const DirectionalLight &light);
 
 	private:
-		Framebuffer *framebuffer;
 		DepthBuffer *depthBuffer;
 		Renderpass *renderpass;
 		vector<TextureInput2D*> textures;
@@ -65,6 +64,9 @@ namespace Pu
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
 		GraphicsPipeline *gfxGPass, *gfxFullScreen;
+
+		DescriptorPool *descPoolInput;
+		DescriptorSetGroup *descSetInput;
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
