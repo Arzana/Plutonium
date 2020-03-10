@@ -44,8 +44,8 @@
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher),
-	gfxGPass(nullptr), gfxFullScreen(nullptr), curCmd(nullptr), curCam(nullptr),
-	descPoolInput(nullptr), descSetInput(nullptr)
+	gfxGPass(nullptr), gfxLightPass(nullptr), gfxTonePass(nullptr), 
+	curCmd(nullptr), curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -107,9 +107,9 @@ void Pu::DeferredRenderer::BeginLight(void)
 	curCmd->EndLabel();
 	curCmd->AddLabel("Deferred Renderer (Directional Lights)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxFullScreen);
-	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 1, *curCam);
-	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 1, *descSetInput);
+	curCmd->BindGraphicsPipeline(*gfxLightPass);
+	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *descSetInput);
 }
 
 void Pu::DeferredRenderer::End(void)
@@ -139,7 +139,7 @@ void Pu::DeferredRenderer::Render(const Mesh & mesh, const Material & material)
 
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 {
-	curCmd->BindGraphicsDescriptor(*gfxFullScreen, light);
+	curCmd->BindGraphicsDescriptor(*gfxLightPass, light);
 	curCmd->Draw(3, 1, 0, 0);
 }
 
@@ -147,10 +147,10 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxFullScreen);
-	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 2, *curCam);
-	curCmd->BindGraphicsDescriptors(*gfxFullScreen, 2, *descSetInput);
-	curCmd->PushConstants(*gfxFullScreen, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
+	curCmd->BindGraphicsPipeline(*gfxTonePass);
+	curCmd->BindGraphicsDescriptors(*gfxTonePass, 2, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxTonePass, 2, *descSetInput);
+	curCmd->PushConstants(*gfxTonePass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
 }
@@ -242,10 +242,11 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 {
 	/* We need to delete the old pipelines if they are already created once. */
-	if (gfxGPass || gfxFullScreen)
+	if (gfxGPass || gfxLightPass || gfxTonePass)
 	{
 		delete gfxGPass;
-		delete gfxFullScreen;
+		delete gfxLightPass;
+		delete gfxTonePass;
 	}
 	else
 	{
@@ -277,13 +278,22 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPass->Finalize();
 	}
 
-	/* Create the graphics pipeline for the directional light and camera pass. */
+	/* Create the graphics pipeline for the directional light pass. */
 	{
-		gfxFullScreen = new GraphicsPipeline(*renderpass, 1);
-		gfxFullScreen->SetViewport(wnd->GetNative().GetClientBounds());
-		gfxFullScreen->SetTopology(PrimitiveTopology::TriangleList);
-		gfxFullScreen->SetCullMode(CullModeFlag::Front);
-		gfxFullScreen->Finalize();
+		gfxLightPass = new GraphicsPipeline(*renderpass, 1);
+		gfxLightPass->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxLightPass->SetTopology(PrimitiveTopology::TriangleList);
+		gfxLightPass->SetCullMode(CullModeFlag::Front);
+		gfxLightPass->Finalize();
+	}
+
+	/* Create the graphics pipeline for the directional camera pass. */
+	{
+		gfxTonePass = new GraphicsPipeline(*renderpass, 2);
+		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
+		gfxTonePass->SetCullMode(CullModeFlag::Front);
+		gfxTonePass->Finalize();
 	}
 
 	CreateFramebuffer();
@@ -351,7 +361,8 @@ void Pu::DeferredRenderer::Destroy(void)
 
 	/* Delete the graphics pipelines. */
 	if (gfxGPass) delete gfxGPass;
-	if (gfxFullScreen) delete gfxFullScreen;
+	if (gfxLightPass) delete gfxLightPass;
+	if (gfxTonePass) delete gfxTonePass;
 	if (descSetInput) delete descSetInput;
 	if (descPoolInput) delete descPoolInput;
 

@@ -63,7 +63,7 @@ namespace Pu
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxGPass, *gfxFullScreen;
+		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;

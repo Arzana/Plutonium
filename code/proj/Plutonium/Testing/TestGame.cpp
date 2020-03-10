@@ -4,6 +4,7 @@
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
+#include <Graphics/Diagnostics/RenderDoc.h>
 
 using namespace Pu;
 
@@ -106,6 +107,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 	if (firstRun)
 	{
+		RenderDoc::StartFrameCapture(GetDevice());
 		firstRun = false;
 		renderer->InitializeResources(cmd);
 
@@ -168,6 +170,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			SetNodeTransform(0, mdlMtrx);
 			SetMeshTransforms();
 		}
+	}
+	else
+	{
+		RenderDoc::EndFrameCapture(GetDevice());
+		Exit();
 	}
 
 	if (ImGui::Begin("Light Editor"))
