@@ -1,5 +1,7 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/Diagnostics/QueryChain.h"
+#include "Core/Diagnostics/Profiler.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -49,6 +51,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
+	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 2);
 
 	renderpass = &fetcher.FetchRenderpass(
 		{
@@ -66,10 +69,13 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 {
+	/* Update the profiler and reset the query. */
+	Profiler::Add("Deferred Rendering", Color::Yellow(), static_cast<int64>(timer->GetTimeDelta() * 0.001f));
+	timer->Reset(cmdBuffer);
+
 	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
 	if (!markNeeded) return;
-	curCmd->AddLabel("Deferred Renderer (Initialization)", Color::Blue());
 
 	/* Mark all the framebuffer images as writable. */
 	depthBuffer->MakeWritable(cmdBuffer);
@@ -77,8 +83,6 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 	{
 		cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
 	}
-
-	curCmd->EndLabel();
 }
 
 void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
@@ -94,6 +98,7 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPass);
 	curCmd->BindGraphicsDescriptors(*gfxGPass, 0, camera);
+	timer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -122,7 +127,12 @@ void Pu::DeferredRenderer::End(void)
 	/* End the light pass, do tonemapping and end the renderpass. */
 	curCmd->EndLabel();
 	DoTonemap();
+	timer->RecordTimestamp(*curCmd, PipelineStageFlag::BottomOfPipe);
 	curCmd->EndRenderPass();
+
+	/* Setting these to nullptr gives us the option to catch invalid usage. */
+	curCmd = nullptr;
+	curCmd = nullptr;
 }
 
 void Pu::DeferredRenderer::SetModel(const Matrix & value)
@@ -379,6 +389,7 @@ void Pu::DeferredRenderer::Destroy(void)
 	if (gfxTonePass) delete gfxTonePass;
 	if (descSetInput) delete descSetInput;
 	if (descPoolInput) delete descPoolInput;
+	if (timer) delete timer;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);

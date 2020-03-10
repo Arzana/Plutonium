@@ -55,10 +55,11 @@ float microfacet(float ndh, float a2, float power)
 vec3 DecodeNormal()
 {
 	vec2 raw = subpassLoad(GBufferNormal).xy;
-	float st = sqrt(1.0f - raw.x);
+	float st = sin(raw.x);
+	float ct = cos(raw.x);
 	float sp = sin(raw.y);
 	float cp = cos(raw.y);
-	return vec3(st * cp, st * sp, raw.x);
+	return vec3(st * cp, st * sp, ct);
 }
 
 // Decodes the position from linear depth buffer.

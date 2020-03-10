@@ -110,7 +110,7 @@ void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 
 	/* Stage the inverse view, projection, and the camera position to the second subpass. */
 	Copy(dest + offsetSp2, &iproj);
-	Copy(dest + offsetSp2 + sizeof(Matrix), &iview);
+	Copy(dest + offsetSp2 + sizeof(Matrix), &GetInverseView());
 	Copy(dest + offsetSp2 + (sizeof(Matrix) << 1), &pos);
 
 	/* Stage the exposure, brightness and contrast to the third and final subpass. */

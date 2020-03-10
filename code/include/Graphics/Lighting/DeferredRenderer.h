@@ -10,7 +10,7 @@
 namespace Pu
 {
 	class Framebuffer;
-	class CameraUniformBlock;
+	class QueryChain;
 
 	/* Defines a deferred renderer that renders models in PBR to an HDR output. */
 	class DeferredRenderer
@@ -70,6 +70,7 @@ namespace Pu
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
+		QueryChain *timer;
 
 		float hdrSwapchain;
 		bool markNeeded;

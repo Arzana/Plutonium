@@ -107,7 +107,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun)
 	{
 		firstRun = false;
-		renderer->InitializeResources(cmd);
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		descPoolConst->AddSet(0, 0, 1);	// First camera set
@@ -193,6 +192,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
+	renderer->InitializeResources(cmd);
 	cam->Update(dt * updateCam);
 	descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
