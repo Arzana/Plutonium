@@ -6,7 +6,7 @@ Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout
 	normalMap(&GetDescriptor(0, "Bump")),
 	emissiveMap(&GetDescriptor(0, "Emissive")),
 	occlusionMap(&GetDescriptor(0, "Occlusion")),
-	roughness(1.0f), power(2.0f)
+	threshold(0.0f)
 {}
 
 Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout, const PumMaterial & parameters)
@@ -16,8 +16,8 @@ Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout
 }
 
 Pu::Material::Material(Material && value)
-	: DescriptorSet(std::move(value)), diffuseMap(value.diffuseMap), roughness(value.roughness), 
-	specularMap(value.specularMap), power(value.power), f0(value.f0), diffuse(value.diffuse),
+	: DescriptorSet(std::move(value)), diffuseMap(value.diffuseMap),  specular(value.specular),
+	specularMap(value.specularMap), threshold(value.threshold), diffuse(value.diffuse),
 	normalMap(value.normalMap), emissiveMap(value.emissiveMap), occlusionMap(value.occlusionMap)
 {
 	value.diffuseMap = nullptr;
@@ -37,9 +37,8 @@ Pu::Material & Pu::Material::operator=(Material && other)
 		normalMap = other.normalMap;
 		emissiveMap = other.emissiveMap;
 		occlusionMap = other.occlusionMap;
-		roughness = other.roughness;
-		power = other.power;
-		f0 = other.f0;
+		threshold = other.threshold;
+		specular = other.specular;
 		diffuse = other.diffuse;
 
 		other.diffuseMap = nullptr;
@@ -55,28 +54,24 @@ Pu::Material & Pu::Material::operator=(Material && other)
 /* Diffuse hides class member. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-void Pu::Material::SetParameters(float glossiness, float specPower, Vector3 specular, Vector3 diffuse)
+void Pu::Material::SetParameters(float glossiness, float specPower, Vector3 specular, Vector3 diffuse, float threshold)
 {
-	roughness = 1.0f - glossiness;
-	power = specPower;
-	f0 = specular;
-	this->diffuse = diffuse;
+	this->diffuse.W = 1.0f - glossiness;
+	this->specular.W = specPower;
+	this->specular.XYZ = specular;
+	this->diffuse.XYZ = diffuse;
+	this->threshold = threshold;
 }
 
-void Pu::Material::SetParameters(float glossiness, float specPower, Color specular, Color diffuse)
+void Pu::Material::SetParameters(float glossiness, float specPower, Color specular, Color diffuse, float threshold)
 {
-	SetParameters(glossiness, specPower, specular.ToVector3(), diffuse.ToVector3());
+	SetParameters(glossiness, specPower, specular.ToVector3(), diffuse.ToVector3(), threshold);
 }
 #pragma warning(pop)
 
 void Pu::Material::Stage(byte * dest)
 {
-	constexpr size_t offset1 = sizeof(Vector4);
-	constexpr size_t offset2 = offset1 + sizeof(Vector3);
-	constexpr size_t offset3 = offset2 + sizeof(float);
-
-	Copy(dest, &f0);					// Allignment 0.
-	Copy(dest + offset1, &diffuse);		// Allignment 16, vec3 starts at 16 byte boundry
-	Copy(dest + offset2, &roughness);	// Allignment 28, float starts at 4 byte boundry
-	Copy(dest + offset3, &power);		// Allignment 32, float starts at 4 byte boundry
+	Copy(dest, &specular);
+	Copy(dest + sizeof(Vector4), &diffuse);
+	Copy(dest + (sizeof(Vector4) << 1), &threshold);
 }

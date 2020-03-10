@@ -95,13 +95,6 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 
 	if (buffer)
 	{
-		/* We need to move the buffer to uniform read mode once. */
-		if (firstUpdate)
-		{
-			firstUpdate = false;
-			cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
-		}
-
 		/* Start by staging the memory to the buffer. */
 		buffer->BeginMemoryTransfer();
 		OnStage.Post(*this, reinterpret_cast<byte*>(buffer->GetHostMemory()));
@@ -109,6 +102,13 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 
 		/* Update the contents of the dynamic buffer. */
 		buffer->Update(cmdBuffer);
+
+		/* We need to move the buffer to uniform read mode once. */
+		if (firstUpdate)
+		{
+			firstUpdate = false;
+			cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
+		}
 	}
 }
 

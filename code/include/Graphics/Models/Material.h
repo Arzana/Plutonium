@@ -22,32 +22,32 @@ namespace Pu
 		_Check_return_ Material& operator =(_In_ Material &&other);
 
 		/* Sets all of the values for this material. */
-		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Vector3 specular, _In_ Vector3 diffuse);
+		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Vector3 specular, _In_ Vector3 diffuse, _In_ float threshold);
 		/* Sets all of the values for this material. */
-		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Color specular, _In_ Color diffuse);
+		void SetParameters(_In_ float glossiness, _In_ float specPower, _In_ Color specular, _In_ Color diffuse, _In_ float theshold);
 
 		/* Sets all of the values for this material from a Plutonium model material. */
 		inline void SetParameters(_In_ const PumMaterial &value)
 		{
-			SetParameters(value.Glossiness, value.SpecularPower, value.SpecularFactor, value.DiffuseFactor);
+			SetParameters(value.Glossiness, value.SpecularPower, value.SpecularFactor, value.DiffuseFactor, value.AlphaTheshold);
 		}
 
 		/* Sets the glossiness value for this material. */
 		inline void SetGlossiness(_In_ float value)
 		{
-			roughness = 1.0f - value;
+			diffuse.W = 1.0f - value;
 		}
 
 		/* Sets the specular power of this material. */
 		inline void SetSpecularPower(_In_ float value)
 		{
-			power = value;
+			specular.W = value;
 		}
 
 		/* Sets the specular factor for this material. */
 		inline void SetSpecular(_In_ Vector3 value)
 		{
-			f0 = value;
+			specular.XYZ = value;
 		}
 
 		/* Sets the specular factor for this material (alpha is ignored). */
@@ -59,13 +59,19 @@ namespace Pu
 		/* Sets the diffuse factor for this material. */
 		inline void SetDiffuse(_In_ Vector3 value)
 		{
-			diffuse = value;
+			diffuse.XYZ = value;
 		}
 
 		/* Sets the diffuse factor for this material (alpha is ignored). */
 		inline void SetDiffuse(_In_ Color value)
 		{
 			SetDiffuse(value.ToVector3());
+		}
+
+		/* Sets the alpha threshold for this material. */
+		inline void SetAlphaThreshold(_In_ float value)
+		{
+			threshold = value;
 		}
 
 		/* Sets the diffuse texture for this material. */
@@ -101,29 +107,35 @@ namespace Pu
 		/* Gets the glossiness component of this material. */
 		_Check_return_ inline float GetGlossiness(void) const
 		{
-			return 1.0f - roughness;
+			return 1.0f - diffuse.W;
 		}
 
 		/* Gets the specular power component of this material. */
 		_Check_return_ inline float GetSpecularPower(void) const
 		{
-			return power;
+			return specular.W;
 		}
 
 		/* Gets the specular tint component of this material. */
 		_Check_return_ inline Vector3 GetSpecularColor(void) const
 		{
-			return f0;
+			return specular.XYZ;
+		}
+
+		/* Gets the alpha threshold of this material.s */
+		_Check_return_ inline float GetAlphaThreshold(void) const
+		{
+			return threshold;
 		}
 
 	protected:
 		/* Stages the buffer data for the uniform buffer. */
-		virtual void Stage(_In_ byte *dest) override;
+		void Stage(_In_ byte *dest) final;
 
 	private:
-		Vector3 f0;
-		Vector3 diffuse;
-		float roughness, power;
+		Vector4 specular;
+		Vector4 diffuse;
+		float threshold;
 
 		const Descriptor *diffuseMap, *specularMap, *normalMap, *emissiveMap, *occlusionMap;
 	};

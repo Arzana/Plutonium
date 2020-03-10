@@ -306,6 +306,12 @@ The function is only called on two events:
 */
 void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 {
+	/* Make sure we can actually use the input attachments on this system. */
+	if (wnd->GetDevice().GetPhysicalDevice().GetLimits().MaxDescriptorSetInputAttachments < 5)
+	{
+		Log::Fatal("Cannot run deferred renderer on this system (cannot use Vulkan input attachments)!");
+	}
+
 	/* Destroy the old resources if needed. */
 	DestroyWindowDependentResources();
 	LogicalDevice &device = wnd->GetDevice();
@@ -327,6 +333,14 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	textures.emplace_back(new TextureInput2D(*gbuffAttach3));
 	textures.emplace_back(new TextureInput2D(*gbuffAttach4));
 	textures.emplace_back(new TextureInput2D(*tmpHdrAttach));
+
+#ifdef _DEBUG
+	gbuffAttach1->SetDebugName("G-Buffer Diffuse/Roughness");
+	gbuffAttach2->SetDebugName("G-Buffer Specular/Power");
+	gbuffAttach3->SetDebugName("G-Buffer World Normal");
+	gbuffAttach4->SetDebugName("G-Buffer Emissive/AO");
+	tmpHdrAttach->SetDebugName("Deferred HDR Buffer");
+#endif
 }
 
 /*
