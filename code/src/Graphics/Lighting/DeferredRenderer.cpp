@@ -1,5 +1,5 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
-#include "Graphics/VertexLayouts/SkinnedAnimated.h"
+#include "Graphics/VertexLayouts/Basic3D.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -209,9 +209,9 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
 		emissAo.SetReference(4);
 
-		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(SkinnedAnimated, Normal));
-		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(SkinnedAnimated, Tangent));
-		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(SkinnedAnimated, TexCoord));
+		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
+		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
+		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
 	}
 
 	/* Set all the options for the directional light pass. */
@@ -274,7 +274,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPass->EnableDepthTest(true, CompareOp::LessOrEqual);
-		gfxGPass->AddVertexBinding<SkinnedAnimated>(0);
+		gfxGPass->AddVertexBinding<Basic3D>(0);
 		gfxGPass->Finalize();
 	}
 
