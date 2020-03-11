@@ -75,7 +75,6 @@ namespace Pu
 	private:
 		float near, far, fov, aspr;
 		Matrix orien;
-		bool projDirty;
 		Frustum frustum;
 
 		void UpdateProjection(void);

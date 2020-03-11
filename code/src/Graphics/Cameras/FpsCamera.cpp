@@ -11,26 +11,23 @@ Pu::FpsCamera::FpsCamera(const NativeWindow & wnd, DescriptorPool & pool, const 
 void Pu::FpsCamera::SetNear(float value)
 {
 	near = value;
-	projDirty = true;
+	UpdateProjection();
 }
 
 void Pu::FpsCamera::SetFar(float value)
 {
 	far = value;
-	projDirty = true;
+	UpdateProjection();
 }
 
 void Pu::FpsCamera::SetFoV(float value)
 {
 	fov = value;
-	projDirty = true;
+	UpdateProjection();
 }
 
 void Pu::FpsCamera::Update(float dt)
 {
-	/* Update the projection if needed. */
-	if (projDirty) UpdateProjection();
-
 	/* Update the camera's orientation. */
 	orien.SetOrientation(Yaw, Pitch, Roll);
 
@@ -51,6 +48,5 @@ void Pu::FpsCamera::OnWindowResize(const NativeWindow & sender, ValueChangedEven
 
 void Pu::FpsCamera::UpdateProjection(void)
 {
-	projDirty = false;
 	SetProjection(Matrix::CreatePerspective(fov, aspr, near, far));
 }

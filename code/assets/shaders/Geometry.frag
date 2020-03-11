@@ -28,9 +28,8 @@ layout (location = 3) out vec4 GBufferEmissiveAO;	// Stores the (pre-multipled) 
 vec2 EncodeNormal()
 {
 	vec3 normal = normalize(TBN * normalize(texture(Bump, Uv).xyz * 2.0f - 1.0f));
-	float theta = acos(normal.z);
 	float phi = atan(normal.y, normal.x);
-	return vec2(theta, phi);
+	return vec2(normal.z, phi);
 }
 
 void main()

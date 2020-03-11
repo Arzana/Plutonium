@@ -35,6 +35,8 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(void)
 {
 	Profiler::Begin("Loading", Color::Cyan());
+	renderer = new DeferredRenderer(GetContent(), GetWindow());
+
 	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
@@ -73,8 +75,6 @@ void TestGame::LoadContent(void)
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
 	stageMaterials.emplace_back(PumMaterial());
-
-	renderer = new DeferredRenderer(fetcher, GetWindow());
 }
 
 void TestGame::UnLoadContent(void)
