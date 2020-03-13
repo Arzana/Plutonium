@@ -3,6 +3,7 @@
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Graphics/VertexLayouts/SkinnedAnimated.h>
 #include <Core/Diagnostics/Profiler.h>
+#include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -71,8 +72,8 @@ void TestGame::LoadContent(void)
 
 	AssetFetcher &fetcher = GetContent();
 	for (const PumTexture &texture : mdl.Textures) textures.emplace_back(&fetcher.FetchTexture2D(texture));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse_Occlusion", Color::White()));
-	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness_Emisive", Color::Black()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_Diffuse", Color::White()));
+	textures.emplace_back(&fetcher.CreateTexture2D("Default_SpecularGlossiness", Color::Black()));
 	textures.emplace_back(&fetcher.CreateTexture2D("Default_Normal", Color::Malibu()));
 	stageMaterials.emplace_back(PumMaterial());
 }
@@ -145,19 +146,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			if (mat.HasNormalTexture) mat2.SetNormal(*textures[mat.NormalTexture]);
 			else mat2.SetNormal(*textures[textures.size() - 1]);
 
-			if (mat.HasEmissiveTexture) mat2.SetEmissive(*textures[mat.EmissiveTexture]);
-			else mat2.SetEmissive(*textures[textures.size() - 2]);
-
-			if (mat.HasOcclusionTexture) mat2.SetOcclusion(*textures[mat.OcclusionTexture]);
-			else mat2.SetOcclusion(*textures[textures.size() - 3]);
 		}
 
 		Material &defMat = *materials.back();
 		defMat.SetDiffuse(*textures[textures.size() - 3]);
 		defMat.SetSpecular(*textures[textures.size() - 2]);
 		defMat.SetNormal(*textures[textures.size() - 1]);
-		defMat.SetEmissive(*textures[textures.size() - 2]);
-		defMat.SetOcclusion(*textures[textures.size() - 3]);
 
 		descPoolMats->Update(cmd, PipelineStageFlag::FragmentShader);
 		Profiler::End();
@@ -196,11 +190,10 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	cam->Update(dt * updateCam);
 	descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
-	Profiler::Begin("Render", Color::Yellow());
 	renderer->BeginGeometry(*cam);
 
 	cmd.AddLabel("Model", Color::Blue());
-	size_t i = 0;
+	size_t i = 0, drawCalls = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		const Matrix transform = meshTransforms[i++];
@@ -208,6 +201,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		{
 			renderer->SetModel(transform);
 			renderer->Render(*mesh, *(matIdx != -1 ? materials[matIdx] : materials.back()));
+			++drawCalls;
 			if (animated) break;
 		}
 	}
@@ -216,7 +210,22 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	renderer->BeginLight();
 	renderer->Render(*light);
 	renderer->End();
-	Profiler::End();
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		const MemoryFrame cpuStats = MemoryFrame::GetCPUMemStats();
+		const MemoryFrame gpuStats = MemoryFrame::GetGPUMemStats(GetDevice().GetPhysicalDevice());
+
+		ImGui::Text("FPS: %d", iround(recip(dt)));
+		ImGui::Separator();
+		ImGui::Text("Draw Calls: %zu", drawCalls);
+		ImGui::Separator();
+		ImGui::Text("CPU: %zu MB / %zu MB", b2mb(cpuStats.UsedVRam), b2mb(cpuStats.TotalVRam));
+		ImGui::Separator();
+		ImGui::Text("GPU %zu MB / %zu MB", b2mb(gpuStats.UsedVRam), b2mb(gpuStats.TotalVRam));
+
+		ImGui::EndMainMenuBar();
+	}
 
 	Profiler::Visualize();
 }

@@ -5,9 +5,7 @@
 layout (set = 1, binding = 0) uniform sampler2D Diffuse;
 layout (set = 1, binding = 1) uniform sampler2D SpecularGlossiness;
 layout (set = 1, binding = 2) uniform sampler2D Bump;
-layout (set = 1, binding = 3) uniform sampler2D Emissive;
-layout (set = 1, binding = 4) uniform sampler2D Occlusion;
-layout (set = 1, binding = 5) uniform Material
+layout (set = 1, binding = 4) uniform Material
 {
 	vec4 F0Power;					// Stores the specular base (F0) and the specular power.
 	vec4 DiffuseFactorRoughness;	// Stores the diffuse factor and roughness.
@@ -21,7 +19,6 @@ layout (location = 2) in mat3 TBN;
 layout (location = 0) out vec4 GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
 layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical world coorinates.
-layout (location = 3) out vec4 GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
 
 // Encodes the normal in spherical coordinates.
 // Optimized to use as little space and transformations as possible.
@@ -50,9 +47,4 @@ void main()
 
 	// Set the third attachment.
 	GBufferNormal = EncodeNormal();
-
-	// Set the final attachment.
-	const vec3 emissive = texture(Emissive, Uv).rgb;
-	const float ao = texture(Occlusion, Uv).r;
-	GBufferEmissiveAO = vec4(emissive, ao);
 }

@@ -70,7 +70,7 @@ namespace Pu
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
-		QueryChain *timer;
+		QueryChain *geometryTimer, *lightingTimer, *postTimer;
 
 		float hdrSwapchain;
 		bool markNeeded;

@@ -38,9 +38,8 @@
 	1: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-				0
 	2: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-				1
 	3: G-Buffer (Normal)		[x, y]					Color		Input			-				2
-	4: G-Buffer (Emissive)		[r, g, b, ao]			Color		Input			-				3
-	5: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
-	6: G-Buffer (Depth)			[d]						Depth		Input			-				4
+	4: HDR-Buffer				[r, g, b, a]			-			Color			Input			0
+	5: G-Buffer (Depth)			[d]						Depth		Input			-				3
 
 	We need to override the attachment reference in most of the subpasses.
 */
@@ -51,7 +50,11 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
-	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 2);
+
+	/* Allocate all the profiler timers. */
+	geometryTimer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp);
+	lightingTimer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp);
+	postTimer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp);
 
 	renderpass = &fetcher.FetchRenderpass(
 		{
@@ -69,9 +72,15 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 {
-	/* Update the profiler and reset the query. */
-	Profiler::Add("Deferred Rendering", Color::Yellow(), static_cast<int64>(timer->GetTimeDelta() * 0.001f));
-	timer->Reset(cmdBuffer);
+	/* Update the profiler and reset the queries. */
+	Profiler::Begin("Rendering", Color::Red());
+	Profiler::Add("Rendering (Geometry)", Color::Red(), geometryTimer->GetProfilerTimeDelta());
+	Profiler::Add("Rendering (Lighting)", Color::Yellow(), lightingTimer->GetProfilerTimeDelta());
+	Profiler::Add("Rendering (Post-Processing)", Color::Green(), postTimer->GetProfilerTimeDelta());
+
+	geometryTimer->Reset(cmdBuffer);
+	lightingTimer->Reset(cmdBuffer);
+	postTimer->Reset(cmdBuffer);
 
 	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
@@ -98,7 +107,7 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPass);
 	curCmd->BindGraphicsDescriptors(*gfxGPass, 0, camera);
-	timer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
+	geometryTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -110,8 +119,10 @@ void Pu::DeferredRenderer::BeginLight(void)
 
 	/* End the geometry pass and start the directional light pass. */
 	curCmd->EndLabel();
+	geometryTimer->RecordTimestamp(*curCmd, PipelineStageFlag::BottomOfPipe);
 	curCmd->AddLabel("Deferred Renderer (Directional Lights)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
+	lightingTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 	curCmd->BindGraphicsPipeline(*gfxLightPass);
 	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *descSetInput);
@@ -126,13 +137,14 @@ void Pu::DeferredRenderer::End(void)
 
 	/* End the light pass, do tonemapping and end the renderpass. */
 	curCmd->EndLabel();
+	lightingTimer->RecordTimestamp(*curCmd, PipelineStageFlag::BottomOfPipe);
 	DoTonemap();
-	timer->RecordTimestamp(*curCmd, PipelineStageFlag::BottomOfPipe);
 	curCmd->EndRenderPass();
 
 	/* Setting these to nullptr gives us the option to catch invalid usage. */
 	curCmd = nullptr;
 	curCmd = nullptr;
+	Profiler::End();
 }
 
 void Pu::DeferredRenderer::SetModel(const Matrix & value)
@@ -157,12 +169,14 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
+	postTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, 2, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, 2, *descSetInput);
 	curCmd->PushConstants(*gfxTonePass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
+	postTimer->RecordTimestamp(*curCmd, PipelineStageFlag::BottomOfPipe);
 }
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
@@ -193,7 +207,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		depth.SetFormat(depthBuffer->GetFormat());
 		depth.SetClearValue({ 1.0f, 0 });
 		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
-		depth.SetReference(6);
+		depth.SetReference(5);
 
 		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
 		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
@@ -213,12 +227,6 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 		norm.SetReference(3);
 
-		Output &emissAo = gpass.GetOutput("GBufferEmissiveAO");
-		emissAo.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		emissAo.SetFormat(textures[3]->GetImage().GetFormat());
-		emissAo.SetStoreOperation(AttachmentStoreOp::DontCare);
-		emissAo.SetReference(4);
-
 		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
 		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
 		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
@@ -231,10 +239,10 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 
 		Output &hdr = dlpass.GetOutput("L0");
 		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal);
-		hdr.SetFormat(textures[4]->GetImage().GetFormat());
+		hdr.SetFormat(textures[3]->GetImage().GetFormat());
 		hdr.SetLoadOperation(AttachmentLoadOp::DontCare);
 		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);
-		hdr.SetReference(5);
+		hdr.SetReference(4);
 	}
 
 	/* Set all the options for the camera pass. */
@@ -273,9 +281,8 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDiffuseA2"), *textures[0]);
 		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferSpecular"), *textures[1]);
 		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferNormal"), *textures[2]);
-		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferEmissiveAO"), *textures[3]);
 		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDepth"), *depthBuffer);
-		descSetInput->Write(2, renderpass->GetSubpass(2).GetDescriptor("HdrBuffer"), *textures[4]);
+		descSetInput->Write(2, renderpass->GetSubpass(2).GetDescriptor("HdrBuffer"), *textures[3]);
 	}
 
 	/* Create the graphics pipeline for the static geometry pass. */
@@ -334,21 +341,18 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *gbuffAttach4 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 
 	/* Create the new image views and samplers. */
 	textures.emplace_back(new TextureInput2D(*gbuffAttach1));
 	textures.emplace_back(new TextureInput2D(*gbuffAttach2));
 	textures.emplace_back(new TextureInput2D(*gbuffAttach3));
-	textures.emplace_back(new TextureInput2D(*gbuffAttach4));
 	textures.emplace_back(new TextureInput2D(*tmpHdrAttach));
 
 #ifdef _DEBUG
 	gbuffAttach1->SetDebugName("G-Buffer Diffuse/Roughness");
 	gbuffAttach2->SetDebugName("G-Buffer Specular/Power");
 	gbuffAttach3->SetDebugName("G-Buffer World Normal");
-	gbuffAttach4->SetDebugName("G-Buffer Emissive/AO");
 	tmpHdrAttach->SetDebugName("Deferred HDR Buffer");
 #endif
 }
@@ -389,7 +393,11 @@ void Pu::DeferredRenderer::Destroy(void)
 	if (gfxTonePass) delete gfxTonePass;
 	if (descSetInput) delete descSetInput;
 	if (descPoolInput) delete descPoolInput;
-	if (timer) delete timer;
+
+	/* Queries are always made. */
+	delete geometryTimer;
+	delete lightingTimer;
+	delete postTimer;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);

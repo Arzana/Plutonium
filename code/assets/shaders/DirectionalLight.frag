@@ -15,8 +15,7 @@ layout (binding = 1) uniform Camera
 layout (input_attachment_index = 1, set = 1, binding = 0) uniform subpassInput GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
 layout (input_attachment_index = 2, set = 1, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
 layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
-layout (input_attachment_index = 4, set = 1, binding = 3) uniform subpassInput GBufferEmissiveAO;	// Stores the (pre-multipled) emissve color and ambient occlusion.
-layout (input_attachment_index = 6, set = 1, binding = 4) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
+layout (input_attachment_index = 5, set = 1, binding = 3) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
 
 layout (set = 2, binding = 0) uniform Light
 {
@@ -81,7 +80,6 @@ void main()
 	// Get all of the values out of our G-Buffer.
 	const vec4 diffA2 = subpassLoad(GBufferDiffuseA2);
 	const vec4 spec = subpassLoad(GBufferSpecular);
-	const vec4 emisAo = subpassLoad(GBufferEmissiveAO);
 	const vec3 position = DecodePosition();
 	const vec3 normal = DecodeNormal();
 
@@ -101,8 +99,5 @@ void main()
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffA2.rgb / PI);
 	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
-	const vec3 color = (fd + fs) * emisAo.w * Radiance;
-
-	// Add emitted light.
-	L0 = vec4(color + emisAo.rgb, 1.0f);
+	L0 = vec4((fd + fs) * Radiance, 1.0f);
 }

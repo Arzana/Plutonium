@@ -3,6 +3,8 @@
 
 namespace Pu
 {
+	class PhysicalDevice;
+
 	struct MemoryFrame
 	{
 	public:
@@ -20,7 +22,9 @@ namespace Pu
 			: TotalVRam(0), TotalRam(0), UsedVRam(0), UsedRam(0)
 		{}
 
-		/* Gets the current memory statistics for the calling process. */
-		_Check_return_ static const MemoryFrame GetMemStats(void);
+		/* Gets the current memory statistics for the calling process (CPU). */
+		_Check_return_ static MemoryFrame GetCPUMemStats(void);
+		/* Gets the current memory statictics for the calling process (GPU). */
+		_Check_return_ static MemoryFrame GetGPUMemStats(_In_ const PhysicalDevice &physicalDevice);
 	};
 }

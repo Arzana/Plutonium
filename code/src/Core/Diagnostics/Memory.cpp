@@ -6,10 +6,11 @@
 #include "Core/Diagnostics/Memory.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
 using namespace Pu;
 
-const MemoryFrame Pu::MemoryFrame::GetMemStats(void)
+MemoryFrame Pu::MemoryFrame::GetCPUMemStats(void)
 {
 	MemoryFrame result;
 
@@ -45,6 +46,17 @@ const MemoryFrame Pu::MemoryFrame::GetMemStats(void)
 #else
 	Log::Error("Cannot get memory statistics on this platform!");
 #endif
+
+	return result;
+}
+
+MemoryFrame Pu::MemoryFrame::GetGPUMemStats(const PhysicalDevice & physicalDevice)
+{
+	MemoryFrame result;
+	result.TotalVRam = physicalDevice.GetDeviceLocalBytes();
+
+	DeviceSize cur;
+	if (physicalDevice.TryGetUsedDeviceLocalBytes(cur)) result.UsedVRam = cur;
 
 	return result;
 }

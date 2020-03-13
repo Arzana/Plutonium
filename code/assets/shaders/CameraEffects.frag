@@ -13,7 +13,7 @@ layout (binding = 2) uniform Camera
 	float Contrast;
 };
 
-layout (input_attachment_index = 5, set = 1, binding = 0) uniform subpassInput HdrBuffer;
+layout (input_attachment_index = 4, set = 1, binding = 0) uniform subpassInput HdrBuffer;
 
 layout (location = 0) in vec2 Uv;					// We don't use the Uv, but we need to pass it for the shaders to properly connect.
 layout (location = 0) out vec4 FragColor;

@@ -175,7 +175,7 @@ void Pu::Application::InitializeVulkan(void)
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 
 	/* Log the available memory, useful for system debugging. */
-	const uint64 dram = MemoryFrame::GetMemStats().TotalRam;
+	const uint64 dram = MemoryFrame::GetCPUMemStats().TotalRam;
 	const uint64 vram = physicalDevice.GetDeviceLocalBytes();
 	Log::Message("Available memory: DRAM: %u GB, VRAM: %u GB", b2gb(dram), b2gb(vram));
 }

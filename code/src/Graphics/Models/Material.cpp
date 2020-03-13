@@ -4,8 +4,6 @@ Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout
 	: DescriptorSet(pool, 0, layout), diffuseMap(&GetDescriptor(0, "Diffuse")),
 	specularMap(&GetDescriptor(0, "SpecularGlossiness")),
 	normalMap(&GetDescriptor(0, "Bump")),
-	emissiveMap(&GetDescriptor(0, "Emissive")),
-	occlusionMap(&GetDescriptor(0, "Occlusion")),
 	threshold(0.0f)
 {}
 
@@ -18,13 +16,11 @@ Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout
 Pu::Material::Material(Material && value)
 	: DescriptorSet(std::move(value)), diffuseMap(value.diffuseMap),  specular(value.specular),
 	specularMap(value.specularMap), threshold(value.threshold), diffuse(value.diffuse),
-	normalMap(value.normalMap), emissiveMap(value.emissiveMap), occlusionMap(value.occlusionMap)
+	normalMap(value.normalMap)
 {
 	value.diffuseMap = nullptr;
 	value.specularMap = nullptr;
 	value.normalMap = nullptr;
-	value.emissiveMap = nullptr;
-	value.occlusionMap = nullptr;
 }
 
 Pu::Material & Pu::Material::operator=(Material && other)
@@ -35,8 +31,6 @@ Pu::Material & Pu::Material::operator=(Material && other)
 		diffuseMap = other.diffuseMap;
 		specularMap = other.specularMap;
 		normalMap = other.normalMap;
-		emissiveMap = other.emissiveMap;
-		occlusionMap = other.occlusionMap;
 		threshold = other.threshold;
 		specular = other.specular;
 		diffuse = other.diffuse;
@@ -44,8 +38,6 @@ Pu::Material & Pu::Material::operator=(Material && other)
 		other.diffuseMap = nullptr;
 		other.specularMap = nullptr;
 		other.normalMap = nullptr;
-		other.emissiveMap = nullptr;
-		other.occlusionMap = nullptr;
 	}
 
 	return *this;
