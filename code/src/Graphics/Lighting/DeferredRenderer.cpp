@@ -2,6 +2,7 @@
 #include "Graphics/VertexLayouts/Basic3D.h"
 #include "Graphics/Diagnostics/QueryChain.h"
 #include "Core/Diagnostics/Profiler.h"
+#include "Graphics/Textures/TextureInput2D.h"
 
 /*
 	The shaders define the following descriptor sets:
@@ -32,6 +33,7 @@
 	3: Directional Light
 		Direction
 		Radiance (pre-multiplied)
+		Environment map (temporary?)
 
 	The framebuffer has several attachments:			G-Pass		Light-Pass		Post-Pass		Default Idx
 	0: Swapchain				[r, g, b, a]			-			-				Color			5

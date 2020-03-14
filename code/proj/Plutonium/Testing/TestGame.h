@@ -4,6 +4,7 @@
 #include <Graphics/Models/Material.h>
 #include <Graphics/Cameras/FreeCamera.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
+#include <Graphics/Lighting/LightProbeRenderer.h>
 
 class TestGame
 	: public Pu::Application
@@ -32,6 +33,11 @@ private:
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
 	Pu::DescriptorPool *descPoolMats;
+
+	Pu::LightProbeRenderer *probeRenderer;
+	Pu::LightProbe *environment;
+	Pu::DescriptorPool *descPoolProbes;
+	Pu::vector<Pu::DescriptorSet> probeSets;
 
 	Pu::Buffer *vrtxBuffer;
 	Pu::StagingBuffer *stagingBuffer;

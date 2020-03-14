@@ -277,6 +277,11 @@ namespace Pu
 			: Width(0), Height(0)
 		{}
 
+		/* Initializes a new instance of a 2D extent object with both components set to one value. */
+		Extent2D(_In_ uint32 value)
+			: Width(value), Height(value)
+		{}
+
 		/* Initializes a new instace of a 2D extent object. */
 		Extent2D(_In_ uint32 width, _In_ uint32 height)
 			: Width(width), Height(height)

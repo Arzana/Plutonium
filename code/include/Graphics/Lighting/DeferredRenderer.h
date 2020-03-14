@@ -1,16 +1,16 @@
 #pragma once
-#include "Content/AssetFetcher.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Models/Material.h"
-#include "Graphics/Models/Mesh.h"
-#include "DirectionalLight.h"
 #include "Graphics/Cameras/Camera.h"
-#include "Graphics/Textures/TextureInput2D.h"
+#include "Graphics/Models/Mesh.h"
+#include "Content/AssetFetcher.h"
+#include "DirectionalLight.h"
 
 namespace Pu
 {
 	class Framebuffer;
 	class QueryChain;
+	class TextureInput2D;
 
 	/* Defines a deferred renderer that renders models in PBR to an HDR output. */
 	class DeferredRenderer

@@ -105,6 +105,12 @@ namespace Pu
 			locked.store(false);
 		}
 
+		/* Sets the position of the light probe. */
+		inline void SetPosition(_In_ float x, _In_ float y, _In_ float z)
+		{
+			SetPosition(Vector3(x, y, z));
+		}
+
 	private:
 		friend class LightProbeRenderer;
 

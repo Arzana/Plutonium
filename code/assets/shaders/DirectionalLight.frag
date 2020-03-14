@@ -17,7 +17,8 @@ layout (input_attachment_index = 2, set = 1, binding = 1) uniform subpassInput G
 layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
 layout (input_attachment_index = 5, set = 1, binding = 3) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
 
-layout (set = 2, binding = 0) uniform Light
+layout (set = 2, binding = 0) uniform samplerCube Environment;
+layout (set = 2, binding = 1) uniform Light
 {
 	vec3 Direction;
 	vec3 Radiance;
@@ -95,9 +96,10 @@ void main()
 	const vec3 f = fresnel(ndh, spec.xyz);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, diffA2.w, spec.w);
+	const vec3 envi = texture(Environment, reflect(-v, normal)).rgb;
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffA2.rgb / PI);
-	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION);
+	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * envi;
 	L0 = vec4((fd + fs) * Radiance, 1.0f);
 }

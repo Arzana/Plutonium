@@ -1,7 +1,7 @@
 #include "Graphics/Lighting/DirectionalLight.h"
 
 Pu::DirectionalLight::DirectionalLight(DescriptorPool & pool, const DescriptorSetLayout & layout)
-	: DescriptorSet(pool, 1, layout), radiance(1.0f), intensity(1.0f)
+	: DescriptorSet(pool, 1, layout), radiance(1.0f), intensity(1.0f), envi(&GetDescriptor(1, "Environment"))
 {
 	const Vector3 dir = normalize(Vector3(0.7f));
 	SetDirection(dir.X, dir.Y, dir.Z);

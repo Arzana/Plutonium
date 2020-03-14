@@ -1,6 +1,8 @@
 #include "Graphics/Lighting/LightProbeRenderer.h"
 #include "Graphics/Lighting/LightProbeUniformBlock.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/Diagnostics/QueryChain.h"
+#include "Core/Diagnostics/Profiler.h"
 
 Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProbeCount)
 	: loader(&loader), gfx(nullptr), pool(nullptr), maxSets(maxProbeCount)
@@ -10,15 +12,18 @@ Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProb
 	renderpass->PreCreate.Add(*this, &LightProbeRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &LightProbeRenderer::InitializePipeline);
 	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
+
+	timer = new QueryChain(loader.GetDevice(), QueryType::Timestamp, 2);
 }
 
 Pu::LightProbeRenderer::LightProbeRenderer(LightProbeRenderer && value)
 	: loader(value.loader), renderpass(value.renderpass), gfx(value.gfx),
-	pool(value.pool), maxSets(value.maxSets)
+	pool(value.pool), maxSets(value.maxSets), timer(value.timer)
 {
 	value.renderpass = nullptr;
 	value.gfx = nullptr;
 	value.pool = nullptr;
+	value.timer = nullptr;
 }
 
 Pu::LightProbeRenderer & Pu::LightProbeRenderer::operator=(LightProbeRenderer && other)
@@ -32,10 +37,12 @@ Pu::LightProbeRenderer & Pu::LightProbeRenderer::operator=(LightProbeRenderer &&
 		gfx = other.gfx;
 		pool = other.pool;
 		maxSets = other.maxSets;
+		timer = other.timer;
 
 		other.renderpass = nullptr;
 		other.gfx = nullptr;
 		other.pool = nullptr;
+		other.timer = nullptr;
 	}
 
 	return *this;
@@ -45,6 +52,8 @@ void Pu::LightProbeRenderer::Initialize(CommandBuffer & cmdBuffer)
 {
 	/* We need to initialize the transforms pool at least once. */
 	pool->Update(cmdBuffer, PipelineStageFlag::GeometryShader);
+	Profiler::Add("Light Probe Update", Color::Blue(), timer->GetProfilerTimeDelta());
+	timer->Reset(cmdBuffer);
 }
 
 void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer) const
@@ -54,11 +63,13 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 	probe.Lock();
 
 	/* The image should be in a color attachment write access. */
+	Profiler::Begin("Light Probes", Color::Blue());
 	cmdBuffer.AddLabel("Light Probe Update", Color::Red());
 	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::FragmentShader, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ColorAttachmentWrite, probe.texture->GetFullRange());
 	probe.depth->MakeWritable(cmdBuffer);
 
 	cmdBuffer.BeginRenderPass(*renderpass, *probe.framebuffer, SubpassContents::Inline);
+	timer->RecordTimestamp(cmdBuffer, PipelineStageFlag::TopOfPipe);
 	cmdBuffer.BindGraphicsPipeline(*gfx);
 	cmdBuffer.BindGraphicsDescriptor(*gfx, *probe.block);
 	cmdBuffer.SetViewportAndScissor(probe.GetViewport());
@@ -77,9 +88,11 @@ void Pu::LightProbeRenderer::End(LightProbe & probe, CommandBuffer & cmdBuffer) 
 	if (probe.cycleMode == LightProbe::CycleMode::Baked) return;
 
 	/* We need the shader read access to use it as an environment map. */
+	timer->RecordTimestamp(cmdBuffer, PipelineStageFlag::BottomOfPipe);
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, probe.texture->GetFullRange());
 	cmdBuffer.EndLabel();
+	Profiler::End();
 	probe.Unlock();
 }
 
@@ -133,4 +146,5 @@ void Pu::LightProbeRenderer::Destroy(void)
 	if (pool) delete pool;
 	if (gfx) delete gfx;
 	if (renderpass) loader->Release(*renderpass);
+	if (timer) delete timer;
 }

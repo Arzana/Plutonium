@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Vulkan/DescriptorSet.h"
 #include "Core/Math/Matrix.h"
+#include "Graphics/Textures/TextureCube.h"
 
 namespace Pu
 {
@@ -79,6 +80,12 @@ namespace Pu
 			intensity = value;
 		}
 
+		/* Sets the environment map used by this light source. */
+		inline void SetEnvironment(_In_ const TextureCube &probe)
+		{
+			Write(*envi, probe);
+		}
+
 	protected:
 		/* Stages the lights properties to the buffer. */
 		virtual void Stage(byte *dest) override;
@@ -87,5 +94,6 @@ namespace Pu
 		Matrix orien;
 		Vector3 radiance;
 		float intensity;
+		const Descriptor *envi;
 	};
 }

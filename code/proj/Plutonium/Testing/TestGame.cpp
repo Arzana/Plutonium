@@ -38,6 +38,10 @@ void TestGame::LoadContent(void)
 	Profiler::Begin("Loading", Color::Cyan());
 	renderer = new DeferredRenderer(GetContent(), GetWindow());
 
+	probeRenderer = new LightProbeRenderer(GetContent(), 1);
+	environment = new LightProbe(*probeRenderer, Extent2D(256));
+	environment->SetPosition(3.88f, 1.37f, 1.11f);
+
 	const string file = FileReader(L"assets/Models/Sponza.pum").ReadToEnd();
 	BinaryReader reader{ file.c_str(), file.length(), Endian::Little };
 	PuMData mdl{ GetDevice(), reader };
@@ -85,6 +89,11 @@ void TestGame::UnLoadContent(void)
 	if (cam) delete cam;
 	if (light) delete light;
 	if (renderer) delete renderer;
+	if (environment) delete environment;
+	if (probeRenderer) delete probeRenderer;
+
+	for (DescriptorSet &set : probeSets) set.Free();
+	if (descPoolProbes) delete descPoolProbes;
 
 	for (Material *material : materials) delete material;
 	if (descPoolConst) delete descPoolConst;
@@ -100,6 +109,7 @@ void TestGame::UnLoadContent(void)
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
 	if (!renderer->IsUsable()) return;
+	if (!probeRenderer->IsUsable()) return;
 	for (Texture2D *texture : textures)
 	{
 		if (!texture->IsUsable()) return;
@@ -108,6 +118,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun)
 	{
 		firstRun = false;
+
+		descPoolProbes = probeRenderer->CreateDescriptorPool(static_cast<uint32>(stageMaterials.size()));
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		descPoolConst->AddSet(0, 0, 1);	// First camera set
@@ -120,12 +132,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		cam->Yaw = PI2;
 
 		light = new DirectionalLight(*descPoolConst, renderer->GetRenderpass().GetSubpass(1).GetSetLayout(2));
+		light->SetEnvironment(environment->GetTexture());
 
 		descPoolMats = new DescriptorPool(renderer->GetRenderpass(), static_cast<uint32>(stageMaterials.size() + 1), 0, 1);
 		const DescriptorSetLayout &matLayout = renderer->GetRenderpass().GetSubpass(0).GetSetLayout(1);
 		for (const PumMaterial &material : stageMaterials)
 		{
 			materials.emplace_back(new Material(*descPoolMats, matLayout, material));
+
+			probeSets.emplace_back(DescriptorSet(*descPoolProbes, 0, probeRenderer->GetLayout()));
+			probeSets.back().Write(probeRenderer->GetDiffuseDescriptor(), *(material.HasDiffuseTexture ? textures[material.DiffuseTexture] : textures[textures.size() - 3]));
 		}
 		materials.emplace_back(new Material(*descPoolMats, matLayout));
 
@@ -186,6 +202,20 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 
+	probeRenderer->Initialize(cmd);
+	probeRenderer->Start(*environment, cmd);
+	size_t i = 0, drawCalls = 0;
+	for (const auto[matIdx, mesh] : meshes)
+	{
+		const Matrix transform = meshTransforms[i++];
+		if (environment->Cull(mesh->GetBoundingBox() * transform) || matIdx == -1) continue;
+
+		probeRenderer->Render(*mesh, probeSets[matIdx], transform, cmd);
+		++drawCalls;
+		if (animated) break;
+	}
+	probeRenderer->End(*environment, cmd);
+
 	renderer->InitializeResources(cmd);
 	cam->Update(dt * updateCam);
 	descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
@@ -193,7 +223,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	renderer->BeginGeometry(*cam);
 
 	cmd.AddLabel("Model", Color::Blue());
-	size_t i = 0, drawCalls = 0;
+	i = 0;
 	for (const auto[matIdx, mesh] : meshes)
 	{
 		const Matrix transform = meshTransforms[i++];
