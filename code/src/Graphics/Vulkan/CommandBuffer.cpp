@@ -28,11 +28,13 @@ const char* to_string(Pu::CommandBuffer::State state)
 #endif
 
 Pu::CommandBuffer::CommandBuffer(void)
-	: parent(nullptr), device(nullptr), hndl(nullptr), state(State::Invalid), submitFence(nullptr)
+	: parent(nullptr), device(nullptr), hndl(nullptr), 
+	state(State::Invalid), submitFence(nullptr), Usage(CommandBufferUsageFlag::None)
 {}
 
 Pu::CommandBuffer::CommandBuffer(CommandBuffer && value)
-	: parent(value.parent), device(value.device), hndl(value.hndl), state(value.state), submitFence(value.submitFence)
+	: parent(value.parent), device(value.device), hndl(value.hndl), 
+	state(value.state), submitFence(value.submitFence), Usage(value.Usage)
 {
 	value.hndl = nullptr;
 	value.submitFence = nullptr;
@@ -50,6 +52,7 @@ Pu::CommandBuffer & Pu::CommandBuffer::operator=(CommandBuffer && other)
 		device = other.device;
 		state = other.state;
 		submitFence = other.submitFence;
+		Usage = other.Usage;
 
 		other.hndl = nullptr;
 		other.submitFence = nullptr;
@@ -400,7 +403,7 @@ void Pu::CommandBuffer::SetLineWidth(float width)
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
-	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial)
+	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), Usage(CommandBufferUsageFlag::None)
 {
 	submitFence = new Fence(*device);
 }
@@ -416,11 +419,10 @@ void Pu::CommandBuffer::BeginRenderPassInternal(RenderPassHndl renderPass, const
 
 void Pu::CommandBuffer::Begin(void)
 {
-	static const CommandBufferBeginInfo info;
-
 	/* Wait for the commandbuffer to be released by the device if it's been submitted before. */
 	if (CanBegin(true))
 	{
+		const CommandBufferBeginInfo info{ Usage };
 		VK_VALIDATE(device->vkBeginCommandBuffer(hndl, &info), PFN_vkBeginCommandBuffer);
 		state = State::Recording;
 	}

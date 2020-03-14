@@ -964,23 +964,23 @@ void HandleMtlLine(const char *line, const string &dir, ObjLoaderResult &result,
 	}
 
 	/* Check if line is glossiness tex line. */
-	if (!strncmp(line, "map_Pr", 4) && IS_SPACE(line[4]))
+	if (!strncmp(line, "map_Pr", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 5, dir, curMaterial.GlossinessMap, false);
+		HandleTextureLine(line + 7, dir, curMaterial.GlossinessMap, false);
 		return;
 	}
 
 	/* Check if line is metallic tex line. */
-	if (!strncmp(line, "map_Pm", 4) && IS_SPACE(line[4]))
+	if (!strncmp(line, "map_Pm", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 5, dir, curMaterial.MetallicMap, false);
+		HandleTextureLine(line + 7, dir, curMaterial.MetallicMap, false);
 		return;
 	}
 
 	/* Check if line is emissive tex line. */
-	if (!strncmp(line, "map_Ke", 4) && IS_SPACE(line[4]))
+	if (!strncmp(line, "map_Ke", 6) && IS_SPACE(line[6]))
 	{
-		HandleTextureLine(line + 5, dir, curMaterial.EmissiveMap, false);
+		HandleTextureLine(line + 7, dir, curMaterial.EmissiveMap, false);
 		return;
 	}
 

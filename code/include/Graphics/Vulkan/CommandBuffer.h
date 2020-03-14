@@ -142,6 +142,10 @@ namespace Pu
 		/* Sets the dynamic line width state. */
 		void SetLineWidth(_In_ float width);
 
+	protected:
+		/* Defines how this command buffer will be used. */
+		CommandBufferUsageFlag Usage;
+
 	private:
 		friend class CommandPool;
 		friend class Queue;
