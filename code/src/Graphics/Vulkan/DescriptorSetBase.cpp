@@ -39,6 +39,8 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Desc
 {
 #ifdef _DEBUG
 	ValidateDescriptor(descriptor, set, DescriptorType::CombinedImageSampler);
+#else 
+	(void)set;
 #endif
 
 	const DescriptorImageInfo info{ texture.Sampler->hndl, texture.view->hndl };
@@ -70,6 +72,8 @@ void Pu::DescriptorSetBase::WriteInput(DescriptorSetHndl setHndl, uint32 set, co
 {
 #ifdef _DEBUG
 	ValidateDescriptor(descriptor, set, DescriptorType::InputAttachment);
+#else
+	(void)set;
 #endif
 
 	/* An input attachment descriptor doesn't have a sampler (because the samples are fragment local). */

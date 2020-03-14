@@ -10,6 +10,7 @@
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/StackTrace.h"
 #include "Streams/FileWriter.h"
+#include "Core/EnumUtils.h"
 #include "Config.h"
 #include <cstdio>
 #include <ctime>

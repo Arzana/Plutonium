@@ -109,6 +109,8 @@ namespace Pu
 		{
 #ifdef _DEBUG
 			parent->SetDebugName(ObjectType::Image, imageHndl, name);
+#else
+			(void)name;
 #endif
 		}
 

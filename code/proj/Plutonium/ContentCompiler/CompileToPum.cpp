@@ -220,7 +220,6 @@ int CompileToPum(const CLArgs & args)
 	else if (ext == "OBJ")
 	{
 		ObjLoaderResult raw;
-
 		LoadObjMtl(args.Input, raw);
 		ObjToPum(raw, data);
 	}
@@ -239,6 +238,7 @@ int CompileToPum(const CLArgs & args)
 	}
 
 	CopyAndConvertMaterials(data, args);
+
 	SavePumToFile(args, data);
 
 	Log::Message("Finishes converting '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());

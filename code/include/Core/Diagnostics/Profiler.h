@@ -6,6 +6,8 @@ struct ImDrawList;
 
 namespace Pu
 {
+	class FileWriter;
+
 	/* Defines an application global interface used to record timed events. */
 	class Profiler
 	{
@@ -24,6 +26,8 @@ namespace Pu
 		static void Add(_In_ const string &category, _In_ Color color, _In_ int64 time);
 		/* Renders the current profiler data to ImGUI and clears the list. */
 		static void Visualize(void);
+		/* Logs the current profiler data to disk and clears the list. */
+		static void Save(_In_ const wstring &path);
 		/* Sets the target frame time (in seconds). */
 		static void SetTargetFrameTime(_In_ float fps);
 		/* Sets the smoothing interval (in seconds). */
@@ -48,7 +52,10 @@ namespace Pu
 		void EndInternal(uint64 thread);
 		void AddInternal(const string &category, Color color, int64 time);
 		void VisualizeInternal(void);
+		void SaveInternal(const wstring &path);
+		void ClearIfNeeded(void);
 		void RenderSections(const vector<Section> &sections, const char *type, bool addDummy);
+		void SaveSections(FileWriter &writer, const vector<Section> &sections);
 		float DrawBarAndText(ImDrawList *drawList, float y, float x0, int64 time, Color clr, const string &txt);
 		float DrawBar(ImDrawList *drawList, float y, float x0, int64 time, Color clr);
 	};

@@ -1,6 +1,10 @@
-﻿#include "Core/Diagnostics/Profiler.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+
+#include "Core/Diagnostics/Profiler.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "imgui/include/imgui.h"
+#include "Streams/FileWriter.h"
+#include <ctime>
 
 static std::mutex lock;
 static Pu::Stopwatch timer;
@@ -46,6 +50,13 @@ void Pu::Profiler::Visualize(void)
 	lock.unlock();
 }
 
+void Pu::Profiler::Save(const wstring & path)
+{
+	lock.lock();
+	GetInstance().SaveInternal(path);
+	lock.unlock();
+}
+
 void Pu::Profiler::SetTargetFrameTime(float fps)
 {
 	GetInstance().target = sec_to_ms(fps);
@@ -62,8 +73,12 @@ Pu::Profiler::Profiler(void)
 	: spacing(8.0f), length(0.05f), target(sec_to_ms(recip(60.0f))),
 	interval(1.0f), ticks(1)
 {
-	height = ImGui::GetIO().FontGlobalScale * 10.0f;
-	offset = ImGui::GetIO().FontGlobalScale * 250.0f;
+	/* ImGui might not have been initialized. */
+	if (ImGui::GetCurrentContext())
+	{
+		height = ImGui::GetIO().FontGlobalScale * 10.0f;
+		offset = ImGui::GetIO().FontGlobalScale * 250.0f;
+	}
 	timer.Start();
 }
 
@@ -130,12 +145,62 @@ void Pu::Profiler::VisualizeInternal(void)
 {
 	if (ImGui::Begin("Profiler"))
 	{
-		RenderSections(cpuSections, "CPU", true);
-		ImGui::Separator();
-		RenderSections(gpuSections, "GPU", false);
+		if (cpuSections.size())
+		{
+			RenderSections(cpuSections, "CPU", true);
+			ImGui::Separator();
+		}
+
+		if (gpuSections.size())
+		{
+			RenderSections(gpuSections, "GPU", false);
+		}
+		
 		ImGui::End();
 	}
 
+	ClearIfNeeded();
+}
+
+void Pu::Profiler::SaveInternal(const wstring & path)
+{
+	FileWriter writer{ path };
+
+	/* Write the timestamp to the diagnostics log. */
+	const time_t now = std::time(nullptr);
+	char buffer[100];
+	size_t end;
+	if ((end  = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))))
+	{
+		writer.Write("Profiler log for: ");
+		writer.Write(string::from(ticks));
+		writer.Write(" tick(s), ");
+
+		buffer[end] = '\n';
+		buffer[end + 1] = '\n';
+		buffer[end + 2] = '\0';
+		writer.Write(buffer);
+	}
+
+	/* Write the CPU section of the profiler if anything was saved. */
+	if (cpuSections.size())
+	{
+		writer.Write("-----------------------CPU-----------------------\n");
+		SaveSections(writer, cpuSections);
+	}
+
+	/* Write the GPU section of the profiler if anything was saved. */
+	if (gpuSections.size())
+	{
+		writer.Write("-----------------------GPU-----------------------\n");
+		SaveSections(writer, gpuSections);
+	}
+
+	ClearIfNeeded();
+}
+
+void Pu::Profiler::ClearIfNeeded(void)
+{
 	if (timer.SecondsAccurate() >= interval)
 	{
 		timer.Restart();
@@ -150,7 +215,6 @@ void Pu::Profiler::VisualizeInternal(void)
 
 void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * type, bool addDummy)
 {
-	if (sections.empty()) return;
 	ImGui::Text(type);
 
 	ImDrawList *gfx = ImGui::GetWindowDrawList();
@@ -171,6 +235,18 @@ void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * 
 	/* Render the target framerate. */
 	const float y1 = start.y + (height + spacing) * !sections.empty();
 	DrawBar(gfx, y1, maxStart, target, Color::White());
+}
+
+void Pu::Profiler::SaveSections(FileWriter & writer, const vector<Section>& sections)
+{
+	for (const auto &[category, color, ms] : sections)
+	{
+		writer.Write("|- '");
+		writer.Write(category);
+		writer.Write("': ");
+		writer.Write(string::from(ms));
+		writer.Write(" ms\n");
+	}
 }
 
 float Pu::Profiler::DrawBarAndText(ImDrawList * drawList, float y, float x0, int64 time, Color clr, const string & txt)

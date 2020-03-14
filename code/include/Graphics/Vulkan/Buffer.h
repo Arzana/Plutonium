@@ -53,6 +53,8 @@ namespace Pu
 		{
 #ifdef _DEBUG
 			parent->SetDebugName(ObjectType::Buffer, bufferHndl, name);
+#else
+			(void)name;
 #endif
 		}
 

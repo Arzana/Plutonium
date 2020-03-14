@@ -146,7 +146,7 @@ string Pu::FileReader::ReadLine(void)
 
 		if (c == EOF || c == '\n') break;
 
-		/* Handle \r\n by just skipping any cartridge return in the result but still reading it. */
+		/* Handle \r\n by just skipping any carriage return in the result but still reading it. */
 		if (c != '\r') result += static_cast<char>(c);
 	}
 
