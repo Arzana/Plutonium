@@ -147,30 +147,7 @@ void Pu::Renderpass::Create(bool viaLoader)
 	Marking as loaded should always be the last thing to do for thread safety.
 	*/
 	PreCreate.Post(*this);
-
-#ifdef _DEBUG
-	/* We do an additional check on debug mode to see if non of the attachment indices overlap. */
-	std::set<uint32> references;
-	uint32 i = 0;
-	for (const Subpass &subpass : subpasses)
-	{
-		for (const Output &output : subpass.outputs)
-		{
-			if (references.find(output.reference.Attachment) != references.end())
-			{
-				Log::Fatal("Output '%s' in subpass %u uses an already defined attachment index (%u)!",
-					output.GetInfo().Name.c_str(), i, output.reference.Attachment);
-			}
-
-			references.emplace(output.reference.Attachment);
-		}
-
-		++i;
-	}
-#endif
-
 	CreateRenderpass();
-
 	PostCreate.Post(*this);
 	MarkAsLoaded(viaLoader, L"Renderpass");
 }
@@ -198,6 +175,7 @@ void Pu::Renderpass::CreateRenderpass(void)
 	vector<vector<AttachmentReference>> colorAttachments{ subpasses.size() };
 	vector<vector<AttachmentReference>> resolveAttachments{ subpasses.size() };
 
+	uint32 maxReference = 0;
 	for (const Subpass &subpass : subpasses)
 	{
 		const size_t i = subpassDescriptions.size();
@@ -216,6 +194,9 @@ void Pu::Renderpass::CreateRenderpass(void)
 				if (depthStencil) Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
 				depthStencil = &output.reference;
 			}
+
+			/* This is used to scale down the attachments that are used in multiple subpasses. */
+			maxReference = max(maxReference, output.reference.Attachment);
 
 			/* Set the correct attachment description and clear value. */
 			attachmentDescriptions[output.reference.Attachment] = output.description;
@@ -294,6 +275,9 @@ void Pu::Renderpass::CreateRenderpass(void)
 
 	/* Only add the external output dependency if the user created one. */
 	if (usesDependency) dependencies.emplace_back(outputDependency);
+
+	/* Scale the attachments down to avoid duplicates. */
+	attachmentDescriptions.resize(maxReference + 1);
 
 	/* Create the renderpass. */
 	const RenderPassCreateInfo createInfo(attachmentDescriptions, subpassDescriptions, dependencies);

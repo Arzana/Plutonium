@@ -12,6 +12,7 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Render
 	offsetSp1 = Add(0, renderpass.GetSubpass(0).GetSetLayout(0));
 	offsetSp2 = Add(1, renderpass.GetSubpass(1).GetSetLayout(0));
 	offsetSp3 = Add(2, renderpass.GetSubpass(2).GetSetLayout(0));
+	offsetSp4 = Add(3, renderpass.GetSubpass(3).GetSetLayout(0));
 }
 
 Pu::Camera::Camera(Camera && value)
@@ -19,7 +20,7 @@ Pu::Camera::Camera(Camera && value)
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
 	wndSize(value.wndSize), viewDirty(value.viewDirty), offsetSp1(value.offsetSp1),
-	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3)
+	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3), offsetSp4(value.offsetSp4)
 {
 	window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 }
@@ -45,6 +46,7 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 		offsetSp1 = other.offsetSp1;
 		offsetSp2 = other.offsetSp2;
 		offsetSp3 = other.offsetSp3;
+		offsetSp4 = other.offsetSp4;
 
 		window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 	}
@@ -113,10 +115,14 @@ void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 	Copy(dest + offsetSp2 + sizeof(Matrix), &GetInverseView());
 	Copy(dest + offsetSp2 + (sizeof(Matrix) << 1), &pos);
 
-	/* Stage the exposure, brightness and contrast to the third and final subpass. */
-	Copy(dest + offsetSp3, &exposure);
-	Copy(dest + offsetSp3 + sizeof(float), &brightness);
-	Copy(dest + offsetSp3 + sizeof(Vector2), &contrast);
+	/* Stage the inverse projection matrix for the third subpass. */
+	Copy(dest + offsetSp3, &iproj);
+	Copy(dest + offsetSp3 + sizeof(Matrix), &GetInverseView());
+
+	/* Stage the exposure, brightness and contrast to the fourth and final subpass. */
+	Copy(dest + offsetSp4, &exposure);
+	Copy(dest + offsetSp4 + sizeof(float), &brightness);
+	Copy(dest + offsetSp4 + sizeof(Vector2), &contrast);
 }
 
 void Pu::Camera::Destroy(void)

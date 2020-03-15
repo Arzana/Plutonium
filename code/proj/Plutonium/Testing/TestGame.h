@@ -34,6 +34,7 @@ private:
 
 	Pu::LightProbeRenderer *probeRenderer;
 	Pu::LightProbe *environment;
+	Pu::TextureCube *skybox;
 
 	Pu::Model *model;
 	Pu::Matrix mdlMtrx;

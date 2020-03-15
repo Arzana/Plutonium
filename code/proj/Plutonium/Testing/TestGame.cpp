@@ -40,7 +40,16 @@ void TestGame::LoadContent(void)
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
 	environment->SetPosition(3.88f, 1.37f, 1.11f);
 
-	model = &GetContent().FetchModel(L"assets/Models/Sponza.pum", *renderer, *probeRenderer);
+	model = &GetContent().FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
+	skybox = &GetContent().FetchTextureCube(L"Skybox", SamplerCreateInfo{}, true, 
+		{
+			L"{Textures}Skybox/right.jpg",
+			L"{Textures}Skybox/left.jpg",
+			L"{Textures}Skybox/top.jpg",
+			L"{Textures}Skybox/bottom.jpg",
+			L"{Textures}Skybox/front.jpg",
+			L"{Textures}Skybox/back.jpg"
+		});
 }
 
 void TestGame::UnLoadContent(void)
@@ -52,19 +61,21 @@ void TestGame::UnLoadContent(void)
 	if (probeRenderer) delete probeRenderer;
 
 	GetContent().Release(*model);
+	GetContent().Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
-	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable())
+	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		descPoolConst->AddSet(0, 0, 1);	// First camera set
 		descPoolConst->AddSet(1, 0, 1); // Second camera set
-		descPoolConst->AddSet(2, 0, 1); // Third camera sets
+		descPoolConst->AddSet(2, 0, 1);	// Third camera set
+		descPoolConst->AddSet(3, 0, 1); // Forth camera sets
 		descPoolConst->AddSet(1, 2, 1);	// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
@@ -73,6 +84,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		light = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		light->SetEnvironment(environment->GetTexture());
+
+		renderer->SetSkybox(*skybox);
 	}
 	else if (!firstRun)
 	{

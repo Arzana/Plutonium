@@ -134,7 +134,7 @@ namespace Pu
 		Vector2 wndSize;
 		const NativeWindow *window;
 
-		DeviceSize offsetSp1, offsetSp2, offsetSp3;
+		DeviceSize offsetSp1, offsetSp2, offsetSp3, offsetSp4;
 
 		mutable Matrix iview;
 		mutable bool viewDirty;

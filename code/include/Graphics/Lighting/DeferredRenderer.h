@@ -69,6 +69,8 @@ namespace Pu
 		void Render(_In_ const Mesh &mesh, _In_ const Material &material);
 		/* Renders the specified direction light onto the scene. */
 		void Render(_In_ const DirectionalLight &light);
+		/* Sets the skybox to use. */
+		void SetSkybox(_In_ const TextureCube &texture);
 
 	private:
 		DepthBuffer *depthBuffer;
@@ -77,10 +79,11 @@ namespace Pu
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxTonePass;
+		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxSkybox, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
+		Descriptor *skybox;
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
@@ -89,6 +92,7 @@ namespace Pu
 		float hdrSwapchain;
 		bool markNeeded;
 
+		void DoSkybox(void);
 		void DoTonemap(void);
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);

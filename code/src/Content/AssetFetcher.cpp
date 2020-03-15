@@ -11,6 +11,7 @@ Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device
 	AddWildcard(L"{Shaders}", L"assets/shaders/");
 	AddWildcard(L"{Textures}", L"{Assets}images/");
 	AddWildcard(L"{Fonts}", L"{Assets}fonts/");
+	AddWildcard(L"{Models}", L"assets/models/");
 }
 
 Pu::AssetFetcher::~AssetFetcher(void)
