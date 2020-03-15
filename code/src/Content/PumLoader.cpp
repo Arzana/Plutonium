@@ -1,4 +1,5 @@
 #include "Content/PumLoader.h"
+#include "Streams/FileReader.h"
 
 Pu::PumNode::PumNode(void)
 	: HasMesh(false), HasSkin(false), HasTranslation(false),
@@ -99,7 +100,7 @@ Pu::PumSequence::PumSequence(BinaryReader & reader)
 }
 
 Pu::PumAnimation::PumAnimation(void)
-	: Interpolation(PumInterpolationType::None), ShouldLoop(false), PlayInReverse(false), 
+	: Interpolation(PumInterpolationType::None), ShouldLoop(false), PlayInReverse(false),
 	IsMorphAnimation(false), ShouldBake(false), Duration(0.0f)
 {}
 
@@ -232,11 +233,15 @@ Pu::SamplerCreateInfo Pu::PumTexture::GetSamplerCreateInfo(void) const
 	return info;
 }
 
+Pu::PuMData::PuMData(void)
+	: Version(0), Buffer(nullptr)
+{}
+
 Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 {
 	if (reader.ReadUInt32() != Stream::GetMagicNum("PUM0"))
 	{
-		Log::Error("Cannot initialize Plutonium Model from the stream (invalid magic number)!");
+		Raise("magic number mismatch");
 		return;
 	}
 
@@ -250,12 +255,12 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 	const uint32 materialCount = reader.ReadUInt32();
 	const uint32 textureCount = reader.ReadUInt32();
 
-	const uint64 nodeOffset = nodeCount ? reader.ReadUInt64() : 0;
-	const uint64 meshOffset = meshCount ? reader.ReadUInt64() : 0;
-	const uint64 animationOffset = animationCount ? reader.ReadUInt64() : 0;
-	const uint64 skeletonOffset = skeletonCount ? reader.ReadUInt64() : 0;
-	const uint64 materialOffset = materialCount ? reader.ReadUInt64() : 0;
-	const uint64 textureOffset = textureCount ? reader.ReadUInt64() : 0;
+	const uint64 nodeOffset = reader.ReadUInt64();
+	const uint64 meshOffset = reader.ReadUInt64();
+	const uint64 animationOffset = reader.ReadUInt64();
+	const uint64 skeletonOffset = reader.ReadUInt64();
+	const uint64 materialOffset = reader.ReadUInt64();
+	const uint64 textureOffset = reader.ReadUInt64();
 	const uint64 bufferOffset = reader.ReadUInt64();
 	const uint64 bufferSize = reader.ReadUInt64();
 
@@ -285,4 +290,184 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 
 	Buffer = new StagingBuffer(device, bufferSize);
 	Buffer->Load(reinterpret_cast<const byte*>(reader.GetData()) + bufferOffset);
+}
+
+Pu::PuMData Pu::PuMData::TexturesOnly(const wstring & path)
+{
+	FileReader reader{ path };
+
+	/* Read the header information. */
+	PuMData result;
+	if (!SetHeader(result, reader)) return result;
+
+	/* We can skip the first 5 counts. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint32) * 5);
+
+	/* Get the amount of textures. */
+	uint32 textureCount;
+	reader.Read(textureCount);
+	result.Textures.reserve(textureCount);
+
+	/* The first 5 offsets can be skipped. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint64) * 5);
+
+	/* Read the texture offset and seek to it. */
+	uint64 offset, end;
+	reader.Read(offset);
+	reader.Read(end);
+	reader.Seek(SeekOrigin::Begin, static_cast<int64>(offset));
+
+	/* Setup a binary reader for the texture part. */
+	const uint64 size = end - offset;
+	byte *data = reinterpret_cast<byte*>(malloc(size));
+	reader.Read(data, 0, size);
+	BinaryReader binary{ data, size, Endian::Little };
+
+	/* Read the texture data. */
+	for (uint32 i = 0; i < textureCount; i++) result.Textures.emplace_back(binary);
+	free(data);
+	return result;
+}
+
+Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path)
+{
+	FileReader reader{ path };
+
+	/* Read the header information. */
+	PuMData result;
+	if (!SetHeader(result, reader)) return result;
+
+	/* We can skip the node count. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint32));
+
+	/* Get the amount of meshes.. */
+	uint32 meshCount;
+	reader.Read(meshCount);
+	result.Geometry.reserve(meshCount);
+
+	/* The remaining counts can be skipped and the first offset. */
+	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2) + sizeof(uint64));
+
+	/* Read the mesh offset and the mesh end. */
+	uint64 offset, end;
+	reader.Read(offset);
+	reader.Read(end);
+
+	/* The remaining offsets can be skipped. */
+	reader.Seek(SeekOrigin::Current, (sizeof(uint64) * 3));
+
+	/* Read the GPU buffer offset and size. */
+	uint64 bufferOffset, bufferSize;
+	reader.Read(bufferOffset);
+	reader.Read(bufferSize);
+	reader.Seek(SeekOrigin::Begin, static_cast<int64>(offset));
+
+	/* Setup a binary reader for the mesh part. */
+	const uint64 size = end - offset;
+	byte *data = reinterpret_cast<byte*>(malloc(size));
+	reader.Read(data, 0, size);
+	BinaryReader binary{ data, size, Endian::Little };
+
+	/* Read the geometry data. */
+	for (uint32 i = 0; i < meshCount; i++) result.Geometry.emplace_back(binary);
+	free(data);
+
+	/* Read the GPU buffer data. */
+	reader.Seek(SeekOrigin::Begin, static_cast<int64>(bufferOffset));
+	result.Buffer = new StagingBuffer(device, bufferSize);
+	result.Buffer->BeginMemoryTransfer();
+	reader.Read(reinterpret_cast<byte*>(result.Buffer->GetHostMemory()), 0, bufferSize);
+	result.Buffer->EndMemoryTransfer();
+
+	return result;
+}
+
+Pu::PuMData Pu::PuMData::MaterialsOnly(const wstring & path)
+{
+	FileReader reader{ path };
+
+	/* Read the header information. */
+	PuMData result;
+	if (!SetHeader(result, reader)) return result;
+
+	/* We can skip the first 4 counts. */
+	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2));
+
+	/* Get the amount of materials. */
+	uint32 materialCount;
+	reader.Read(materialCount);
+	result.Materials.reserve(materialCount);
+
+	/* The first 4 offsets can be skipped and the texture count. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint32) + (sizeof(uint64) << 2));
+
+	/* Read the material offset and seek to it. */
+	uint64 offset, end;
+	reader.Read(offset);
+	reader.Read(end);
+	reader.Seek(SeekOrigin::Begin, static_cast<int64>(offset));
+
+	/* Setup a binary reader for the material part. */
+	const uint64 size = end - offset;
+	byte *data = reinterpret_cast<byte*>(malloc(size));
+	reader.Read(data, 0, size);
+	BinaryReader binary{ data, size, Endian::Little };
+
+	/* Read the material data. */
+	for (uint32 i = 0; i < materialCount; i++) result.Materials.emplace_back(binary);
+	free(data);
+	return result;
+}
+
+bool Pu::PuMData::SetHeader(PuMData & result, FileReader & reader)
+{
+	/* Check the magic number. */
+	uint32 value;
+	if (!reader.Read(value))
+	{
+		Raise("not enough bytes for magic number");
+		return false;
+	}
+
+	if (value != Stream::GetMagicNum("PUM0"))
+	{
+		Raise("magic number mismatch");
+		return false;
+	}
+
+	/* Set the version. */
+	if (!reader.Read(value))
+	{
+		Raise("not enough bytes for version");
+		return false;
+	}
+
+	result.Version = value;
+
+	/* Set the identifier. */
+	if (!reader.Read(value))
+	{
+		Raise("not engouh bytes for identifier length");
+		return false;
+	}
+
+	char32 c;
+	result.Identifier.reserve(value);
+	for (uint32 i = 0; i < value; i++)
+	{
+		if (!reader.Read(c))
+		{
+			Raise("corrupt identifier");
+			return false;
+		}
+
+		result.Identifier += c;
+	}
+
+	return true;
+}
+
+void Pu::PuMData::Raise(const char * reason)
+{
+	Log::Error("Unable to load Plutonium model (%s)!", reason);
 }

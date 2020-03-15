@@ -1,9 +1,12 @@
 #include "Content/AssetLoader.h"
 #include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Streams/FileReader.h"
+#include "Graphics/Lighting/DeferredRenderer.h"
+#include "Graphics/Lighting/LightProbeRenderer.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
-	: cache(cache), scheduler(scheduler), device(device), 
+	: cache(cache), scheduler(scheduler), device(device),
 	transferQueue(device.GetTransferQueue(0)), graphicsQueue(device.GetGraphicsQueue(0))
 {}
 
@@ -65,14 +68,14 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 			child->SetParent(*this);
 		}
 
-		virtual Result Execute(void) override
+		Result Execute(void) final
 		{
 			/* Just execute the texture load task. */
 			scheduler->Spawn(*child);
 			return Result::Default();
 		}
 
-		virtual Result Continue(void) override
+		Result Continue(void) final
 		{
 			/*
 			There are two stages after the texels are loaded.
@@ -103,7 +106,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override
+		bool ShouldContinue(void) const final
 		{
 			/* The texture is done staging if the buffer can begin again. */
 			if (staged) return cmdBuffer.CanBegin();
@@ -141,14 +144,14 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 			}
 		}
 
-		virtual Result Execute(void) override
+		Result Execute(void) final
 		{
 			/* Load all the 6 underlying textures. */
 			for (Texture::LoadTask *child : children) scheduler->Spawn(*child);
 			return Result::Default();
 		}
 
-		virtual Result Continue(void) override
+		Result Continue(void) final
 		{
 			/*
 			There are two stages after the texels are loaded.
@@ -190,7 +193,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override
+		bool ShouldContinue(void) const final
 		{
 			/* The texture is done staging if the buffer can begin again. */
 			if (staged) return cmdBuffer.CanBegin();
@@ -231,7 +234,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 			free(data);
 		}
 
-		virtual Result Execute(void) override
+		Result Execute(void) final
 		{
 			/* We allocate a new command buffer here to put less stress on the caller. */
 			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
@@ -252,7 +255,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 			return Result::CustomWait();
 		}
 
-		virtual Result Continue(void) override
+		Result Continue(void) final
 		{
 			/* We still need to create mipmaps for the texture so finalize it in another task. */
 			parent.FinalizeTexture(result, std::move(id));
@@ -260,7 +263,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override
+		bool ShouldContinue(void) const final
 		{
 			/* The texture is done staging if the buffer can begin again. */
 			return cmdBuffer.CanBegin();
@@ -290,7 +293,7 @@ void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
 			: result(texture.GetImage()), parent(parent), name(std::move(id))
 		{}
 
-		virtual Result Execute(void) override
+		Result Execute(void) final
 		{
 			/* We first generate all of the mip levels and then we move the entire image to it's final layout. */
 			cmdBuffer.Initialize(parent.device, parent.graphicsQueue.GetFamilyIndex());
@@ -335,14 +338,14 @@ void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
 			return Result::CustomWait();
 		}
 
-		virtual Result Continue(void) override
+		Result Continue(void) final
 		{
 			result.MarkAsLoaded(true, std::move(name));
 			return Result::AutoDelete();
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override
+		bool ShouldContinue(void) const final
 		{
 			/* The mipmaps are generated and the final layout is present when the command buffer can begin again. */
 			return cmdBuffer.CanBegin();
@@ -370,7 +373,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			: result(font), parent(parent), path(path), continuation(continuation)
 		{}
 
-		virtual Result Execute(void) override
+		Result Execute(void) final
 		{
 			/* We allocate a new command buffer here to put less stress on the caller. */
 			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
@@ -393,11 +396,11 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 			/* Make sure the atlas has the correct layout. */
 			cmdBuffer.Begin();
-			cmdBuffer.MemoryBarrier(*result.atlasImg, 
-				PipelineStageFlag::TopOfPipe, 
-				PipelineStageFlag::Transfer, 
-				ImageLayout::TransferDstOptimal, 
-				AccessFlag::TransferWrite, 
+			cmdBuffer.MemoryBarrier(*result.atlasImg,
+				PipelineStageFlag::TopOfPipe,
+				PipelineStageFlag::Transfer,
+				ImageLayout::TransferDstOptimal,
+				AccessFlag::TransferWrite,
 				result.atlasImg->GetFullRange(ImageAspectFlag::Color));
 
 			/* Copy actual data and end the buffer. */
@@ -408,7 +411,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 			return Result::CustomWait();
 		}
 
-		virtual Result Continue(void) override
+		Result Continue(void) final
 		{
 			/* Mark both the image and the font as loaded, font will delete the atlas so just mark it as not loaded via the loader. */
 			wstring name = L"Atlas ";
@@ -421,7 +424,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 		}
 
 	protected:
-		virtual bool ShouldContinue(void) const override
+		bool ShouldContinue(void) const final
 		{
 			/* The texture is done staging if the buffer can begin again. */
 			return cmdBuffer.CanBegin();
@@ -438,5 +441,135 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 	/* Simply create the task and spawn it. */
 	LoadTask *task = new LoadTask(*this, font, path, continuation);
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
+{
+	class LoadTask
+		: public Task
+	{
+	public:
+		LoadTask(AssetLoader &parent, Model &model, const wstring &path, const DeferredRenderer &deferred, const LightProbeRenderer &probes)
+			: result(model), parent(parent), path(path), deferred(deferred), probes(probes)
+		{}
+
+		Result Execute(void) final
+		{
+			/* Initialize the model, loading the meshes. */
+			const PuMData data = PuMData::MeshesOnly(parent.GetDevice(), path);
+			result.Initialize(parent.GetDevice(), data);
+
+			/* Stage the vertex and index buffer to the GPU on the graphics queue. */
+			parent.StageBuffer(*data.Buffer, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			return Result::CustomWait();
+		}
+
+		Result Continue(void) final
+		{
+			/* This means that the model initialization is done. */
+			if (cmdBuffer.IsInitialized())
+			{
+				result.MarkAsLoaded(true, path.fileNameWithoutExtension());
+				return Result::AutoDelete();
+			}
+
+			/* We only need the material information at this stage. */
+			const PuMData data = PuMData::MaterialsOnly(path);
+
+			/* Record the descriptor commands. */
+			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
+			cmdBuffer.Begin();
+			result.Finalize(cmdBuffer, deferred, probes, data);
+			cmdBuffer.End();
+
+			parent.graphicsQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+	protected:
+		bool ShouldContinue(void) const final
+		{
+			/* Finalization is done once the command buffer can begin again. */
+			if (cmdBuffer.IsInitialized()) return cmdBuffer.CanBegin();
+
+			/* 
+			We can only finalize the model once:
+			- All textures are loaded
+			- The GPU data is staged.
+			- The deferred and light probe renderer are usable.
+			*/
+			for (const Texture2D *cur : result.textures)
+			{
+				if (!cur->IsUsable()) return false;
+			}
+
+			if (!deferred.IsUsable()) return false;
+			if (!probes.IsUsable()) return false;
+
+			return result.gpuData->IsLoaded();
+		}
+
+	private:
+		Model &result;
+		AssetLoader &parent;
+		const wstring path;
+		const DeferredRenderer &deferred;
+		const LightProbeRenderer &probes;
+		SingleUseCommandBuffer cmdBuffer;
+	};
+
+	LoadTask *task = new LoadTask(*this, model, path, deferred, probes);
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlag dstStage, AccessFlag access)
+{
+	class StageTask
+		: public Task
+	{
+	public:
+		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlag dstStage, AccessFlag access)
+			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access)
+		{}
+
+		Result Execute(void) final
+		{
+			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
+
+			/* We need to copy the entire staging buffer to the destination buffer and move the destination buffer to the correct access. */
+			cmdBuffer.Begin();
+			cmdBuffer.CopyEntireBuffer(*source, destination);
+			cmdBuffer.MemoryBarrier(destination, PipelineStageFlag::Transfer, dstStage, access);
+			cmdBuffer.End();
+
+			/* The access might be graphics related, so perform this action on the graphics queue. */
+			parent.graphicsQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+		Result Continue(void) final
+		{
+			delete source;
+			destination.MarkAsLoaded(false, L"GPU Buffer");
+			return Result::AutoDelete();
+		}
+
+	protected:
+		bool ShouldContinue(void) const final
+		{
+			return cmdBuffer.CanBegin();
+		}
+
+	private:
+		AssetLoader &parent;
+		StagingBuffer *source;
+		Buffer &destination;
+		SingleUseCommandBuffer cmdBuffer;
+		PipelineStageFlag dstStage;
+		AccessFlag access;
+	};
+
+	StageTask *task = new StageTask(*this, source, destination, dstStage, access);
 	scheduler.Spawn(*task);
 }

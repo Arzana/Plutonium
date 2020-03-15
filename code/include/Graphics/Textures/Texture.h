@@ -66,6 +66,9 @@ namespace Pu
 			return Image->GetExtent();
 		}
 
+		/* Increases the reference count of the image and sampler. */
+		void Reference(void);
+
 	protected:
 		/* The sampler used to sample the texure. */
 		Sampler *Sampler;

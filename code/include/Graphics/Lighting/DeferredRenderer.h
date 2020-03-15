@@ -35,12 +35,26 @@ namespace Pu
 			return renderpass->IsLoaded();
 		}
 
-		/* Gets the renderpass used by the deferred renderer. */
+		/* Gets the renderpass associated with this deferred renderer. */
 		_Check_return_ inline const Renderpass& GetRenderpass(void) const
 		{
 			return *renderpass;
 		}
 
+		/* Gets the descriptor set layout for the materials used by the renderer. */
+		_Check_return_ inline const DescriptorSetLayout& GetMaterialLayout(void) const
+		{
+			return renderpass->GetSubpass(0).GetSetLayout(1);
+		}
+
+		/* Gets the descriptor set layout for the directional lights used by the renderer. */
+		_Check_return_ inline const DescriptorSetLayout& GetDirectionalLightLayout(void) const
+		{
+			return renderpass->GetSubpass(1).GetSetLayout(2);
+		}
+
+		/* Creates a new descriptor poiol for materials rendered through this deferred renderer. */
+		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the deferred rendering pipeline. */

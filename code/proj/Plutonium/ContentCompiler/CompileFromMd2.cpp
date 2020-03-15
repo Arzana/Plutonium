@@ -226,7 +226,7 @@ const md2_header_t readMd2Header(FileReader &reader)
 {
 	/* Attempt to read the file header. */
 	md2_header_t header;
-	if (!reader.Read(header, 0)) Log::Fatal("Unable to read MD2 file header");
+	if (!reader.Read(header)) Log::Fatal("Unable to read MD2 file header");
 
 	/* Check if the file is valid. */
 	if (header.magicNum != 844121161) Log::Fatal("File is not a valid MD2 file!");
@@ -286,7 +286,7 @@ void readMd2Triangles(FileReader &reader, const md2_header_t &header, Md2LoaderR
 	for (size_t i = 0; i < header.num_tris; i++)
 	{
 		/* Throw if we cannot read the full 6 shorts */
-		if (reader.Read(tris, 0)) result.shapes.emplace_back(tris);
+		if (reader.Read(tris)) result.shapes.emplace_back(tris);
 		else Log::Fatal("Unable to read traingle!");
 	}
 }
@@ -304,10 +304,10 @@ void readMd2Frames(FileReader &reader, const md2_header_t &header, Md2LoaderResu
 		md2_frame_t frame;
 
 		/* Attempt to read the frame scale. */
-		if (!reader.Read(frame.scale, 0)) Log::Fatal("Unable to read scale of frame!");
+		if (!reader.Read(frame.scale)) Log::Fatal("Unable to read scale of frame!");
 
 		/* Attempt to read the frame translation. */
-		if (!reader.Read(frame.translation, 0)) Log::Fatal("Unable to read translation of frame!");
+		if (!reader.Read(frame.translation)) Log::Fatal("Unable to read translation of frame!");
 
 		/* Attempt to read the frame name. */
 		if (reader.Read(reinterpret_cast<byte*>(name), 0, sizeof(name)) != sizeof(name)) Log::Fatal("Unable to read name of frame!");

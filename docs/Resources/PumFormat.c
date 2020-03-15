@@ -280,7 +280,7 @@ struct PUM
 		unsigned int TextureCount;
 	};
 
-	struct Offsets						// These are used to easily skip items if they are not needed they are only added to the file if the associated count > 0.
+	struct Offsets
 	{
 		unsigned long long NodeOffset;
 		unsigned long long MeshOffset;

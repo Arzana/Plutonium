@@ -627,19 +627,21 @@ namespace Pu
 namespace std
 {
 	/* Add the Plutonium string as a hashable value. */
-	template <>
-	struct hash<Pu::string>
+	template <typename char_t>
+	struct hash<Pu::basic_string<char_t>>
 	{
 	public:
 		/* Defines the argument type for a hash. */
-		using argument_type = Pu::string;
+		using argument_type = Pu::basic_string<char_t>;
+		/* Defines the underlying type for a hash. */
+		using underlying_type = std::basic_string<char_t>;
 		/* Defines the result type for a hash. */
 		using result_type = std::size_t;
 
 		/* Calculates the hash from the specified argument. */
 		_Check_return_ inline result_type operator ()(_In_ const argument_type &arg) const noexcept
 		{
-			return std::hash<std::string>{}(arg);
+			return std::hash<underlying_type>{}(arg);
 		}
 
 		/* Calculates the hash from the specified arguments. */
@@ -647,7 +649,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return std::hash<std::string>{}(str);
+			return std::hash<underlying_type>{}(str);
 		}
 
 		/* Calculates the hash from the specified arguments. */
@@ -655,40 +657,7 @@ namespace std
 		{
 			argument_type str;
 			for (const argument_type &cur : args) str += cur;
-			return std::hash<std::string>{}(str);
-		}
-	};
-
-	/* Add the Plutonium wide string as a hashable value. */
-	template <>
-	struct hash<Pu::wstring>
-	{
-	public:
-		/* Defines the argument type for a hash. */
-		using argument_type = Pu::wstring;
-		/* Defines the result type for a hash. */
-		using result_type = std::size_t;
-
-		/* Calculates the hash from the specified argument. */
-		_Check_return_ inline result_type operator ()(_In_ const argument_type &arg) const noexcept
-		{
-			return std::hash<std::wstring>{}(arg);
-		}
-
-		/* Calculates the hash from the specified arguments. */
-		_Check_return_ inline result_type operator ()(_In_ const vector<argument_type> &args) const noexcept
-		{
-			argument_type str;
-			for (const argument_type &cur : args) str += cur;
-			return std::hash<std::wstring>{}(str);
-		}
-
-		/* Calculates the hash from the specified arguments. */
-		_Check_return_ inline result_type operator ()(_In_ const std::initializer_list<argument_type> &args) const noexcept
-		{
-			argument_type str;
-			for (const argument_type &cur : args) str += cur;
-			return std::hash<std::wstring>{}(str);
+			return std::hash<underlying_type>{}(str);
 		}
 	};
 }

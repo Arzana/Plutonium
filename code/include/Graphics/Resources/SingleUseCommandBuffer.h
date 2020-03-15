@@ -28,6 +28,12 @@ namespace Pu
 		/* Initializes the command buffer. */
 		void Initialize(_In_ LogicalDevice &device, _In_ uint32 queueFamilyIndex);
 
+		/* Gets whether this single use command buffer is initialized. */
+		_Check_return_ inline bool IsInitialized(void) const
+		{
+			return pool;
+		}
+
 	private:
 		CommandPool *pool;
 

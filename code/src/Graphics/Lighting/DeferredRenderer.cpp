@@ -72,6 +72,18 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	CreateSizeDependentResources();
 }
 
+Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 maxMaterials) const
+{
+	if (!renderpass->IsLoaded())
+	{
+		Log::Error("Unable to create descriptor pool from deferred renderer when renderpas is not yet loaded!");
+		return nullptr;
+	}
+
+	/* Set 1 is the material set. */
+	return new DescriptorPool(*renderpass, maxMaterials, 0, 1);
+}
+
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 {
 	/* Update the profiler and reset the queries. */

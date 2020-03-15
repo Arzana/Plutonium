@@ -29,6 +29,12 @@ Pu::Texture::Texture(Pu::Sampler * sampler, Pu::Image & image, ImageViewType typ
 	view = new ImageView(*this, type, ImageAspectFlag::Color);
 }
 
+void Pu::Texture::Reference(void)
+{
+	if (Sampler) Sampler->Reference();
+	Image->Reference();
+}
+
 void Pu::Texture::Destroy(void)
 {
 	if (view) delete view;

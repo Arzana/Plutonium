@@ -55,9 +55,9 @@ namespace Pu
 		A false result should be considered an error.
 		*/
 		template <typename struct_t>
-		_Check_return_ inline bool Read(_Out_ struct_t &result, _In_ size_t offset)
+		_Check_return_ inline bool Read(_Out_ struct_t &result)
 		{
-			return Read(reinterpret_cast<byte*>(&result), offset, sizeof(struct_t)) == sizeof(struct_t);
+			return Read(reinterpret_cast<byte*>(&result), 0, sizeof(struct_t)) == sizeof(struct_t);
 		}
 		/*
 		Reads a specified amount of bytes from the file.

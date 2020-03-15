@@ -211,6 +211,33 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	return *result;
 }
 
+Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer)
+{
+	/* Solve for the model path. */
+	wstring mutablePath(path);
+	Solve(mutablePath);
+
+	/* Try to fetch the model, create a new one. */
+	const size_t hash = std::hash<wstring>{}(mutablePath);
+	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Model>(*cache);
+
+	/* Create a new model and fetch its textures. */
+	Model *result = new Model();
+	PuMData data = PuMData::TexturesOnly(mutablePath);
+	result->textures.reserve(data.Textures.size());
+	for (const PumTexture &texture : data.Textures) result->textures.emplace_back(&FetchTexture2D(texture));
+
+	/* Add the default textures to the models list. */
+	result->textures.emplace_back(&CreateTexture2D("Default_Diffuse", Color::White()));
+	result->textures.emplace_back(&CreateTexture2D("Default_SpecularGlossiness", Color::Black()));
+	result->textures.emplace_back(&CreateTexture2D("Default_Normal", Color::Malibu()));
+
+	/* Start the parallel initialization and return the model reference. */
+	loader->InitializeModel(*result, mutablePath, deferredRenderer, probeRenderer);
+	cache->Store(result);
+	return *result;
+}
+
 Pu::Texture2D & Pu::AssetFetcher::CreateTexture2D(const string & id, Color color)
 {
 	return CreateTexture2D(id, color.ToArray(), 1, 1, SamplerCreateInfo());
@@ -296,4 +323,11 @@ void Pu::AssetFetcher::Release(Font & font)
 {
 	Release(*font.atlasTex->Sampler);
 	cache->Release(font);
+}
+
+void Pu::AssetFetcher::Release(Model & model)
+{
+	/* Relaese the underlying textures. */
+	for (Texture2D *cur : model.textures) Release(*cur);
+	cache->Release(model);
 }

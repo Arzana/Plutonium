@@ -6,6 +6,8 @@
 
 namespace Pu
 {
+	class FileReader;
+
 	/* Defines the types of joints present in a mesh. */
 	enum class PumJointType
 	{
@@ -347,7 +349,20 @@ namespace Pu
 		/* Defines the vertex and index data for the model (requires delete)! */
 		StagingBuffer *Buffer;
 
+		/* Initializes an empty instance of a Plutonium model. */
+		PuMData(void);
 		/* Initializes a new instance of a Plutonium model from a binary stream. */
 		PuMData(_In_ LogicalDevice &device, _In_ BinaryReader &reader);
+
+		/* Returns a PuM data object with only the version, identifier set and textures set. */
+		_Check_return_ static PuMData TexturesOnly(_In_ const wstring &path);
+		/* Returns a PuM data object with only the version, identifier, geometry and GPU buffer set. */
+		_Check_return_ static PuMData MeshesOnly(_In_ LogicalDevice &device, _In_ const wstring &path);
+		/* Returns a PuM data object with only the version, identifier and materials set. */
+		_Check_return_ static PuMData MaterialsOnly(_In_ const wstring &path);
+
+	private:
+		static bool SetHeader(PuMData &result, FileReader &reader);
+		static void Raise(const char *reason);
 	};
 }
