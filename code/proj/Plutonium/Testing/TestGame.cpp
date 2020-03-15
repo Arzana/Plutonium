@@ -41,7 +41,7 @@ void TestGame::LoadContent(void)
 	environment->SetPosition(3.88f, 1.37f, 1.11f);
 
 	model = &GetContent().FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
-	skybox = &GetContent().FetchTextureCube(L"Skybox", SamplerCreateInfo{}, true, 
+	skybox = &GetContent().FetchSkybox(
 		{
 			L"{Textures}Skybox/right.jpg",
 			L"{Textures}Skybox/left.jpg",

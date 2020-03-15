@@ -104,6 +104,11 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	}
 }
 
+Pu::TextureCube & Pu::AssetFetcher::FetchSkybox(const vector<wstring>& paths)
+{
+	return FetchTextureCube(L"Skybox", SamplerCreateInfo{}, true, paths, 1);
+}
+
 Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels)
 {
 	/* Make sure the wildcards are solved. */

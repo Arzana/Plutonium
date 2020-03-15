@@ -27,6 +27,8 @@ namespace Pu
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const PumTexture &texture);
 		/* Fetches the desired 2D texture. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const wstring &path, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		/* Fetches the destired cube texture as a skybox. */
+		_Check_return_ TextureCube& FetchSkybox(_In_ const vector<wstring> &paths);
 		/* Fetches the desired cube texture. Texture order: right, left, top, bottom, front, back. */
 		_Check_return_ TextureCube& FetchTextureCube(_In_ const wstring &name, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_ const vector<wstring> &paths, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */
