@@ -39,6 +39,12 @@ namespace Pu
 			return format_channels(format);
 		}
 
+		/* Gets the size (in bytes) of a single pixel. */
+		_Check_return_ inline size_t GetElementSize(void) const
+		{
+			return format_size(format);
+		}
+
 		/* Gets the size of the image. */
 		_Check_return_ inline Extent3D GetExtent(void) const
 		{

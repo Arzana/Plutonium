@@ -116,9 +116,9 @@ namespace Pu
 		/* Initializes the global objects needed for the application to run. */
 		virtual void Initialize(void) = 0;
 		/* Initializes the content objects needed for the application to run. */
-		virtual void LoadContent(void) = 0;
+		virtual void LoadContent(_In_ AssetFetcher &content) = 0;
 		/* Finalizes the content objects loaded during LoadContent. */
-		virtual void UnLoadContent(void) = 0;
+		virtual void UnLoadContent(_In_ AssetFetcher &content) = 0;
 		/* Finalizes the global objects initialized during Initialize. */
 		virtual void Finalize(void) = 0;
 		/* Updates the application. */

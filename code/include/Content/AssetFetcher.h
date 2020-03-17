@@ -2,7 +2,7 @@
 #include "Patern.h"
 #include "PumLoader.h"
 #include "AssetLoader.h"
-#include "Graphics/Textures/TextureCube.h"
+#include "Graphics/Textures/TextureCube.h" 
 
 namespace Pu
 {
@@ -35,13 +35,13 @@ namespace Pu
 		_Check_return_ Sampler& FetchSampler(_In_ const SamplerCreateInfo &samplerInfo);
 		/* Fetches the desired font. */
 		_Check_return_ Font& FetchFont(_In_ const wstring &path, _In_ float size, _In_ const CodeChart &codeChart);
-		/* Fetchers the desired model. */
+		/* Fetches the desired model. */
 		_Check_return_ Model& FetchModel(_In_ const wstring &path, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer);
 
 		/* Creates a default 2D texture (1x1) from a specified color. */
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ Color color);
 		/* Creates a new 2D texture from the specified RGBA data. */
-		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const byte *data, _In_ uint32 width, _In_ uint32 height, _In_ const SamplerCreateInfo &samplerInfo);
+		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const void *data, _In_ uint32 width, _In_ uint32 height, _In_ Format format, _In_ const SamplerCreateInfo &samplerInfo);
 
 		/* Releases the renderpass. */
 		void Release(_In_ Renderpass &renderpass);
@@ -65,5 +65,9 @@ namespace Pu
 		AssetCache *cache;
 
 		vector<Texture*> textures;
+
+		Texture2D& GetDefaultDiffuse(void);
+		Texture2D& GetDefaultSpecGloss(void);
+		Texture2D& GetDefaultNormal(void);
 	};
 }

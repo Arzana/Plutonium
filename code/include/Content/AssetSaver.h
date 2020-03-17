@@ -35,7 +35,7 @@ namespace Pu
 
 		TaskScheduler &scheduler;
 		LogicalDevice &device;
-		Queue &transferQueue;
+		Queue &graphicsQueue;
 
 		static void SaveImageInternal(const void *data, int w, int h, int c, const wstring &path, ImageSaveFormats format);
 	};

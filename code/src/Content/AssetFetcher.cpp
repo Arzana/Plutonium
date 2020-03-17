@@ -148,6 +148,7 @@ Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const
 		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 6, SampleCountFlag::Pixel1Bit, usage);
 		createInfo.Flags = ImageCreateFlag::CubeCompatible;
 		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetDebugName(name.toUTF8());
 		image->SetHash(hash);
 		cache->Store(image);
 
@@ -234,9 +235,9 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 	for (const PumTexture &texture : data.Textures) result->textures.emplace_back(&FetchTexture2D(texture));
 
 	/* Add the default textures to the models list. */
-	result->textures.emplace_back(&CreateTexture2D("Default_Diffuse", Color::White()));
-	result->textures.emplace_back(&CreateTexture2D("Default_SpecularGlossiness", Color::Black()));
-	result->textures.emplace_back(&CreateTexture2D("Default_Normal", Color::Malibu()));
+	result->textures.emplace_back(&GetDefaultDiffuse());
+	result->textures.emplace_back(&GetDefaultSpecGloss());
+	result->textures.emplace_back(&GetDefaultNormal());
 
 	/* Start the parallel initialization and return the model reference. */
 	loader->InitializeModel(*result, mutablePath, deferredRenderer, probeRenderer);
@@ -246,10 +247,10 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 
 Pu::Texture2D & Pu::AssetFetcher::CreateTexture2D(const string & id, Color color)
 {
-	return CreateTexture2D(id, color.ToArray(), 1, 1, SamplerCreateInfo());
+	return CreateTexture2D(id, color.ToArray(), 1, 1, Format::R8G8B8A8_SRGB, SamplerCreateInfo());
 }
 
-Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte * data, uint32 width, uint32 height, const SamplerCreateInfo & samplerInfo)
+Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void * data, uint32 width, uint32 height, Format format, const SamplerCreateInfo & samplerInfo)
 {
 	/*
 	The texture itself is not an asset but the sampler and image it stores are.
@@ -271,19 +272,19 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const byte *
 	else
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const ImageInformation info(static_cast<int32>(width), static_cast<int32>(height), 4, false);
 		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height, 1);
 		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
-		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(false), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
+		const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetDebugName(id);
 		image->SetHash(hash);
 		cache->Store(image);
 
 		/* Create the final texture and start the load/stage process. */
 		Texture2D *result = new Texture2D(*image, sampler);
 		textures.emplace_back(result);
-		loader->InitializeTexture(*result, data, width * height * 4, std::move(id.toWide()));
+		loader->InitializeTexture(*result, reinterpret_cast<const byte*>(data), width * height * 4, std::move(id.toWide()));
 		return *result;
 	}
 }
@@ -336,4 +337,19 @@ void Pu::AssetFetcher::Release(Model & model)
 	/* Relaese the underlying textures. */
 	for (Texture2D *cur : model.textures) Release(*cur);
 	cache->Release(model);
+}
+
+Pu::Texture2D & Pu::AssetFetcher::GetDefaultDiffuse(void)
+{
+	return CreateTexture2D("Default_Diffuse", Color::White());
+}
+
+Pu::Texture2D & Pu::AssetFetcher::GetDefaultSpecGloss(void)
+{
+	return CreateTexture2D("Default_SpecularGlossiness", Color::Black());
+}
+
+Pu::Texture2D & Pu::AssetFetcher::GetDefaultNormal(void)
+{
+	return CreateTexture2D("Default_Normal", Color::Malibu());
 }

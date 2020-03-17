@@ -16,8 +16,8 @@
 #include <stb/stb/stb_image_write.h>
 
 Pu::AssetSaver::AssetSaver(TaskScheduler & scheduler, LogicalDevice & device)
-	: scheduler(scheduler), device(device), transferQueue(device.GetTransferQueue(0)),
-	OnAssetSaved("OnAssetSaved")
+	: scheduler(scheduler), device(device), OnAssetSaved("OnAssetSaved"),
+	graphicsQueue(device.GetGraphicsQueue(0))
 {}
 
 void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageSaveFormats format)
@@ -33,11 +33,11 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 		virtual Result Execute(void) override
 		{
 			/* Create the command buffer, it's better for the caller to do it here than the ctor. */
-			cmdBuffer.Initialize(parent.device, parent.transferQueue.GetFamilyIndex());
+			cmdBuffer.Initialize(parent.device, parent.graphicsQueue.GetFamilyIndex());
 
 			/* Creat the buffer needed as a result for the image data. */
 			const Extent3D extent = image.GetExtent();
-			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetChannels();
+			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetElementSize();
 			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, true);
 
 			/*
@@ -46,14 +46,15 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			The buffer on the other hand has no access flag set so we can do it at the top of pipe already.
 			*/
 			cmdBuffer.Begin();
-			cmdBuffer.MemoryBarrier(image, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, image.GetFullRange(ImageAspectFlag::Color));
+			cmdBuffer.MemoryBarrier(image, PipelineStageFlag::FragmentShader, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, image.GetFullRange(ImageAspectFlag::Color));
 			cmdBuffer.MemoryBarrier(*destination, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
 
 			/* Copy the actual data and end the buffer. */
 			cmdBuffer.CopyEntireImage(image, *destination);
 			cmdBuffer.End();
 
-			parent.transferQueue.Submit(cmdBuffer);
+			/* We need to submit on the graphics queue as the origional image access fill most likely be shader read. */
+			parent.graphicsQueue.Submit(cmdBuffer);
 			return Result::CustomWait();
 		}
 

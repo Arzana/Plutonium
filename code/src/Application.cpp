@@ -55,7 +55,7 @@ void Pu::Application::Run(void)
 
 	/* Load content. */
 	prevTime = gameTime.SecondsAccurate();
-	LoadContent();
+	LoadContent(*content);
 	Log::Verbose("Finished initializing and loading content for '%ls', took %f seconds.", wnd->GetTitle().c_str(), gameTime.SecondsAccurate());
 
 	/* Run application loop. */
@@ -68,7 +68,7 @@ void Pu::Application::Run(void)
 	gameWnd->Finalize();
 
 	/* Finalize application. */
-	UnLoadContent();
+	UnLoadContent(*content);
 	DoFinalize();
 }
 

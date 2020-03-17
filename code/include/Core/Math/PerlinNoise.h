@@ -4,7 +4,15 @@
 
 namespace Pu
 {
-	/* Defines a pseudo random Perlin noise generator. */
+	/* 
+	Defines a pseudo random Perlin noise generator.
+	An octave defines a single slice of the Perlin noise algorithm, this is in the range [-1, 1].
+	Normalized options move this range from [-1, 1] to a [0, 1] range for ease of use.
+
+	You can also use multiple octaves in one function call, the frequency and amplitude are controlled by lacunarity and persistance respectively.
+	Lacunarity controlls the frequency as follows: lacunarity^octave, the range of the lacunarity should be [0, -]
+	Persistance controlls the amplitude as follows: persistance^octave, the range of persistance should be [0, 1]
+	*/
 	class PerlinNoise
 	{
 	public:
