@@ -9,7 +9,7 @@ git clone git@github.com:Arzana/Plutonium.git
 
 2. Check compiler versions<br/>
 The project uses C++17 with the MSVC compiler, certain extensions are using throughout the project like unnamed structs.
-It is also exclusive to Visual Studio and actively tested uing Visual Studio 2017
+It is also exclusive to Visual Studio and actively tested using Visual Studio 2017
 
 3. Installing Vulkan SDK<br/>
 The full [Vulkan SDK](https://vulkan.lunarg.com/) is not needed to run the project, but glslangValidator is needed to compile shaders.
