@@ -622,6 +622,21 @@ namespace Pu
 	using wstring = basic_string<wchar_t>;
 	/* Defines a string stored in 32-bit characters. */
 	using ustring = basic_string<char32_t>;
+
+	/* Creates a random alpha numeric string. */
+	_Check_return_ inline string random(_In_ size_t length)
+	{
+		constexpr const char lut[] =
+			"0123456789"
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			"abcdefghijklmnopqrstuvwxyz";
+
+		string result(length + 1);
+		for (size_t i = 0; i < length; ++i) result[i] = lut[random(0u, sizeof(lut) - 1u)];
+		result[length] = '\0';
+
+		return result;
+	}
 }
 
 namespace std

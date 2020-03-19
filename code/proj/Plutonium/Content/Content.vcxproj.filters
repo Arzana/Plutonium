@@ -19,6 +19,15 @@
     <Filter Include="Shaders\Forward">
       <UniqueIdentifier>{76bf7037-4d97-4098-af16-2ae52d81c67f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Deferred\Lighting">
+      <UniqueIdentifier>{4a635a3a-18ca-49e4-a5c0-bd506e95449e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred\Geometry">
+      <UniqueIdentifier>{a060fb11-37b8-4d5b-9ad5-f69d5dd5246d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred\Effects">
+      <UniqueIdentifier>{128159ad-474a-4dbc-8b8d-f15240b01d08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
@@ -36,16 +45,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert">
       <Filter>Shaders\Light Probes</Filter>
     </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\StaticGeometry.vert">
-      <Filter>Shaders\Deferred</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Geometry.frag">
-      <Filter>Shaders\Deferred</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\FullscreenQuad.vert">
-      <Filter>Shaders\Deferred</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag">
       <Filter>Shaders\Deferred</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.frag">
@@ -54,17 +54,32 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.vert">
       <Filter>Shaders\Forward</Filter>
     </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\CameraEffects.frag">
-      <Filter>Shaders\Deferred</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D_Unlit.frag">
       <Filter>Shaders\Forward</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag">
+      <Filter>Shaders\Deferred\Lighting</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\CameraEffects.frag">
+      <Filter>Shaders\Deferred\Effects</Filter>
+    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.frag">
-      <Filter>Shaders\Deferred</Filter>
+      <Filter>Shaders\Deferred\Effects</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.vert">
-      <Filter>Shaders\Deferred</Filter>
+      <Filter>Shaders\Deferred\Effects</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedStaticGeometry.vert">
+      <Filter>Shaders\Deferred\Geometry</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedGeometry.frag">
+      <Filter>Shaders\Deferred\Geometry</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\BasicGeometry.frag">
+      <Filter>Shaders\Deferred\Geometry</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\BasicStaticGeometry.vert">
+      <Filter>Shaders\Deferred\Geometry</Filter>
     </SPIRVShader>
   </ItemGroup>
   <ItemGroup>

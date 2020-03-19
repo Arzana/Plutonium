@@ -93,7 +93,7 @@ void main()
 	const float vdh = mdot(v, h);
 
 	// Specular
-	const vec3 f = fresnel(ndh, spec.xyz);
+	const vec3 f = fresnel(ndv, spec.xyz);
 	const float g = occlusion(ndl, ndv, ndh, vdh);
 	const float d = microfacet(ndh, diffA2.w, spec.w);
 	const vec3 envi = texture(Environment, reflect(-v, normal)).rgb;

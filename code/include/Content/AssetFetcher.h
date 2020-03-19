@@ -42,6 +42,8 @@ namespace Pu
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ Color color);
 		/* Creates a new 2D texture from the specified RGBA data. */
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const void *data, _In_ uint32 width, _In_ uint32 height, _In_ Format format, _In_ const SamplerCreateInfo &samplerInfo);
+		/* Creates a primitive model with optional textures. */
+		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer, _In_opt_ Texture2D *diffuse = nullptr, _In_opt_ Texture2D *specularGloss = nullptr);
 
 		/* Releases the renderpass. */
 		void Release(_In_ Renderpass &renderpass);
@@ -68,6 +70,5 @@ namespace Pu
 
 		Texture2D& GetDefaultDiffuse(void);
 		Texture2D& GetDefaultSpecGloss(void);
-		Texture2D& GetDefaultNormal(void);
 	};
 }

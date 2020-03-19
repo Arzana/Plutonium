@@ -38,10 +38,16 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Model& operator =(_In_ Model &&other);
 
-		/* Gets the meshes in this model. */
-		_Check_return_ inline const vector<Shape>& GetMeshes(void) const
+		/* Gets the meshes (with vertex format of Basic3D) in this model. */
+		_Check_return_ inline const vector<Shape>& GetBasicMeshes(void) const
 		{
-			return Meshes;
+			return BasicMeshes;
+		}
+
+		/* Gets the meshes (with vertex format of Advanced3D) in this model. */
+		_Check_return_ inline const vector<Shape>& GetAdvancedMeshes(void) const
+		{
+			return AdvancedMeshes;
 		}
 
 		/* Gets the material at the specified index. */
@@ -57,8 +63,10 @@ namespace Pu
 		}
 
 	protected:
-		/* Defines the meshes and their material indices. */
-		vector<Shape> Meshes;
+		/* Defines the basic meshes and their material index. */
+		vector<Shape> BasicMeshes;
+		/* Defines the advanced meshes and their material index. */
+		vector<Shape> AdvancedMeshes;
 		/* Defines the materials. */
 		vector<Material> Materials;
 		/* Defines the materials used in the light probes. */
@@ -75,8 +83,11 @@ namespace Pu
 		Buffer *gpuData;
 		vector<Texture2D*> textures;
 
+		void AllocBuffer(LogicalDevice &device, const StagingBuffer &buffer);
+		void AllocPools(const DeferredRenderer &deferred, const LightProbeRenderer &probes, size_t count);
 		void Initialize(LogicalDevice &device, const PuMData &data);
 		void Finalize(CommandBuffer &cmdBuffer, const DeferredRenderer &deferred, const LightProbeRenderer &probes, const PuMData &data);
+		Material& AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer &deferred, const LightProbeRenderer &probes);
 		void Destroy(void);
 	};
 }

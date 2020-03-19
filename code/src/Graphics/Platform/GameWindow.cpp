@@ -364,14 +364,6 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, range);
 }
 
-void Pu::GameWindow::MakeImagePresentable(void)
-{
-	static const ImageSubresourceRange range;
-
-	/* Transfer writable image back to present mode. */
-	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::BottomOfPipe, ImageLayout::PresentSrcKhr, AccessFlag::MemoryRead, range);
-}
-
 void Pu::GameWindow::BeginRender(void)
 {
 	/* Make sure that we don't work with an old swapchain. */
@@ -420,9 +412,6 @@ void Pu::GameWindow::EndRender(void)
 		cmdBuf.EndRenderPass();
 		cmdBuf.EndLabel();
 	}
-
-	/* Make swapchain image presentable again for the window. */
-	MakeImagePresentable();
 
 	/* End the command buffer gather. */
 	cmdBuf.End();

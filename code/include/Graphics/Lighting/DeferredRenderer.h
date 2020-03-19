@@ -16,6 +16,17 @@ namespace Pu
 	class DeferredRenderer
 	{
 	public:
+		/* Defines the index of the basic static geometry subpass. */
+		static constexpr uint32 SubpassBasicStaticGeometry = 0;
+		/* Defines the index of the advanced static geometry subpass. */
+		static constexpr uint32 SubpassAdvancedStaticGeometry = 1;
+		/* Defines the index of the directional light subpass. */
+		static constexpr uint32 SubpassDirectionalLight = 2;
+		/* Defines the index of the skybox subpass. */
+		static constexpr uint32 SubpassSkybox = 3;
+		/* Defines the index of the post-processing subpass. */
+		static constexpr uint32 SubpassPostProcessing = 4;
+
 		/* Initializes a new instance of a deferred renderer for the specified window. */
 		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
@@ -44,21 +55,23 @@ namespace Pu
 		/* Gets the descriptor set layout for the materials used by the renderer. */
 		_Check_return_ inline const DescriptorSetLayout& GetMaterialLayout(void) const
 		{
-			return renderpass->GetSubpass(0).GetSetLayout(1);
+			return renderpass->GetSubpass(SubpassAdvancedStaticGeometry).GetSetLayout(1);
 		}
 
 		/* Gets the descriptor set layout for the directional lights used by the renderer. */
 		_Check_return_ inline const DescriptorSetLayout& GetDirectionalLightLayout(void) const
 		{
-			return renderpass->GetSubpass(1).GetSetLayout(2);
+			return renderpass->GetSubpass(SubpassDirectionalLight).GetSetLayout(2);
 		}
 
 		/* Creates a new descriptor poiol for materials rendered through this deferred renderer. */
 		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
-		/* Starts the deferred rendering pipeline. */
+		/* Starts the deferred rendering pipeline (with basic static geometry). */
 		void BeginGeometry(_In_ const Camera &camera);
+		/* Starts the advanced section of the static geometry pipeline.s */
+		void BeginAdvanced(void);
 		/* Starts the second phase of the deferred rendering pipeline. */
 		void BeginLight(void);
 		/* End the deferred rendering pipeline. */
@@ -79,7 +92,7 @@ namespace Pu
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxGPass, *gfxLightPass, *gfxSkybox, *gfxTonePass;
+		GraphicsPipeline *gfxGPassBasic, *gfxGPassAdv, *gfxLightPass, *gfxSkybox, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
@@ -90,7 +103,7 @@ namespace Pu
 		QueryChain *geometryTimer, *lightingTimer, *postTimer;
 
 		float hdrSwapchain;
-		bool markNeeded;
+		bool markNeeded, advanced;
 
 		void DoSkybox(void);
 		void DoTonemap(void);
@@ -98,6 +111,7 @@ namespace Pu
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
 		void CreateSizeDependentResources(void);
+		void WriteDescriptors(void);
 		void CreateFramebuffer(void);
 		void DestroyWindowDependentResources(void);
 		void Destroy(void);

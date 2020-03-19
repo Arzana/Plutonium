@@ -4,6 +4,7 @@
 #include "Streams/FileReader.h"
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/Lighting/LightProbeRenderer.h"
+#include "Graphics/Models/ShapeCreator.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
 	: cache(cache), scheduler(scheduler), device(device),
@@ -520,6 +521,128 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 	};
 
 	LoadTask *task = new LoadTask(*this, model, path, deferred, probes);
+	scheduler.Spawn(*task);
+}
+
+void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
+{
+	constexpr uint16 divisions = 12;
+
+	class CreateTask
+		: public Task
+	{
+	public:
+		CreateTask(AssetLoader &parent, Model &model, ShapeType type, const DeferredRenderer &deferred, const LightProbeRenderer &probes)
+			: result(model), parent(parent), deferred(deferred), probes(probes), meshType(type)
+		{}
+
+		Result Execute(void) final
+		{
+			/* Get the required size of the staging buffer. */
+			size_t bufferSize = 0;
+			switch (meshType)
+			{
+			case ShapeType::Plane:
+				bufferSize = ShapeCreator::PlaneBufferSize;
+				break;
+			case ShapeType::Box:
+				bufferSize = ShapeCreator::BoxBufferSize;
+				break;
+			case ShapeType::Sphere:
+				bufferSize = ShapeCreator::GetSphereBufferSize(divisions);
+				break;
+			case ShapeType::Dome:
+				bufferSize = ShapeCreator::GetDomeBufferSize(divisions);
+				break;
+			default:
+				Log::Error("Cannot create mesh from shape type: '%s'!", to_string(meshType));
+				return Result::AutoDelete();
+			}
+
+			/* Allocate the source and destination buffer. */
+			StagingBuffer *src = new StagingBuffer(parent.GetDevice(), bufferSize);
+			result.AllocBuffer(parent.GetDevice(), *src);
+
+			/* Create the mesh. */
+			Mesh mesh;
+			switch (meshType)
+			{
+			case ShapeType::Plane:
+				mesh = std::move(ShapeCreator::Plane(*src, *result.gpuData));
+				break;
+			case ShapeType::Box:
+				mesh = std::move(ShapeCreator::Box(*src, *result.gpuData));
+				break;
+			case ShapeType::Sphere:
+				mesh = std::move(ShapeCreator::Sphere(*src, *result.gpuData, divisions));
+				break;
+			case ShapeType::Dome:
+				mesh = std::move(ShapeCreator::Dome(*src, *result.gpuData, divisions));
+				break;
+			}
+
+			/* Add the basic mesh to the model's list. */
+			parent.StageBuffer(*src, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			result.BasicMeshes.emplace_back(std::make_pair(0, std::move(mesh)));
+			return Result::CustomWait();
+		}
+
+		Result Continue(void) final
+		{
+			/* This means that the model initialization is done. */
+			if (cmdBuffer.IsInitialized())
+			{
+				result.MarkAsLoaded(true, string(to_string(meshType)).toWide());
+				return Result::AutoDelete();
+			}
+
+			/* Allocate the single material and create the material. */
+			result.AllocPools(deferred, probes, 1);
+			result.AddMaterial(0, 1, Model::DefaultMaterialIdx, deferred, probes).SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
+
+			/* Record the descriptor commands. */
+			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
+			cmdBuffer.Begin();
+			result.poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
+			cmdBuffer.End();
+
+			parent.graphicsQueue.Submit(cmdBuffer);
+			return Result::CustomWait();
+		}
+
+	protected:
+		bool ShouldContinue(void) const final
+		{
+			/* Finalization is done once the command buffer can begin again. */
+			if (cmdBuffer.IsInitialized()) return cmdBuffer.CanBegin();
+
+			/*
+			We can only finalize the model once:
+			- All textures are loaded
+			- The GPU data is staged.
+			- The deferred and light probe renderer are usable.
+			*/
+			for (const Texture2D *cur : result.textures)
+			{
+				if (!cur->IsUsable()) return false;
+			}
+
+			if (!deferred.IsUsable()) return false;
+			if (!probes.IsUsable()) return false;
+
+			return result.gpuData->IsLoaded();
+		}
+
+	private:
+		Model &result;
+		AssetLoader &parent;
+		const DeferredRenderer &deferred;
+		const LightProbeRenderer &probes;
+		SingleUseCommandBuffer cmdBuffer;
+		ShapeType meshType;
+	};
+
+	CreateTask *task = new CreateTask(*this, model, shape, deferred, probes);
 	scheduler.Spawn(*task);
 }
 

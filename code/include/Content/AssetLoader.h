@@ -4,6 +4,7 @@
 #include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 #include "Graphics/Text/Font.h"
 #include "Graphics/Models/Model.h"
+#include "Graphics/Models/ShapeType.h"
 
 namespace Pu
 {
@@ -41,6 +42,8 @@ namespace Pu
 		void InitializeFont(_In_ Font &font, _In_ const wstring &path, _In_ Task &continuation);
 		/* Loads and stages the meshes and materials. */
 		void InitializeModel(_In_ Model &model, _In_ const wstring &path, _In_ const DeferredRenderer &deferred, _In_ const LightProbeRenderer &probes);
+		/* Creates a model with one mesh of the specified shape. */
+		void CreateModel(_In_ Model &model, _In_ ShapeType shape, _In_ const DeferredRenderer &deferred, _In_ const LightProbeRenderer &probes);
 		/* Stages the contents of the source buffer into the destination buffer and deletes the source buffer once completed. */
 		void StageBuffer(_In_ StagingBuffer &source, _In_ Buffer &destination, _In_ PipelineStageFlag dstStage, _In_ AccessFlag access);
 

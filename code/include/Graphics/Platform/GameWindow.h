@@ -127,7 +127,6 @@ namespace Pu
 		void ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs &args);
 		void CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall);
 		void MakeSwapchainImageWritable(void);
-		void MakeImagePresentable(void);
 		void BeginRender(void);
 		void EndRender(void);
 		void DestroyImGui(void);

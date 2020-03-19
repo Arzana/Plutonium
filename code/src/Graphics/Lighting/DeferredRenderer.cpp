@@ -1,4 +1,5 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
+#include "Graphics/VertexLayouts/Advanced3D.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
 #include "Graphics/Diagnostics/QueryChain.h"
 #include "Core/Diagnostics/Profiler.h"
@@ -47,8 +48,9 @@
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
-	gfxGPass(nullptr), gfxLightPass(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr),
-	curCmd(nullptr), curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr)
+	gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr), gfxSkybox(nullptr),
+	gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr),
+	advanced(false)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -60,7 +62,8 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 
 	renderpass = &fetcher.FetchRenderpass(
 		{
-			{ L"{Shaders}StaticGeometry.vert.spv", L"{Shaders}Geometry.frag.spv" },
+			{ L"{Shaders}BasicStaticGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
+			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
 			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
@@ -82,7 +85,7 @@ Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 m
 	}
 
 	/* Set 1 is the material set. */
-	return new DescriptorPool(*renderpass, maxMaterials, 0, 1);
+	return new DescriptorPool(*renderpass, maxMaterials, SubpassAdvancedStaticGeometry, 1);
 }
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
@@ -116,13 +119,31 @@ void Pu::DeferredRenderer::BeginGeometry(const Camera & camera)
 	if (!curCmd) Log::Fatal("InitializeResources should be called before the geometry pass can start!");
 #endif
 
-	/* Start the geometry pass. */
+	advanced = false;
 	curCam = &camera;
-	curCmd->AddLabel("Deferred Renderer (Geometry)", Color::Blue());
+
+	/* Start the geometry pass. */
+	curCmd->AddLabel("Deferred Renderer (Basic Static Geometry)", Color::Blue());
 	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxGPass);
-	curCmd->BindGraphicsDescriptors(*gfxGPass, 0, camera);
+	curCmd->BindGraphicsPipeline(*gfxGPassBasic);
+	curCmd->BindGraphicsDescriptors(*gfxGPassBasic, SubpassAdvancedStaticGeometry, camera);
 	geometryTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
+}
+
+void Pu::DeferredRenderer::BeginAdvanced(void)
+{
+	/* Check for invalid state on debug. */
+#ifdef _DEBUG
+	if (!curCam) Log::Fatal("Basic geometry pass should be started before the light pass can start!");
+#endif
+
+	/* End the basic pass and start the advanced pass. */
+	advanced = true;
+	curCmd->EndLabel();
+	curCmd->AddLabel("Deferred Rendering (Advanced Static Geometry)", Color::Blue());
+	curCmd->NextSubpass(SubpassContents::Inline);
+	curCmd->BindGraphicsPipeline(*gfxGPassAdv);
+	curCmd->BindGraphicsDescriptors(*gfxGPassAdv, SubpassAdvancedStaticGeometry, *curCam);
 }
 
 void Pu::DeferredRenderer::BeginLight(void)
@@ -139,8 +160,8 @@ void Pu::DeferredRenderer::BeginLight(void)
 	curCmd->NextSubpass(SubpassContents::Inline);
 	lightingTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 	curCmd->BindGraphicsPipeline(*gfxLightPass);
-	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *curCam);
-	curCmd->BindGraphicsDescriptors(*gfxLightPass, 1, *descSetInput);
+	curCmd->BindGraphicsDescriptors(*gfxLightPass, SubpassDirectionalLight, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxLightPass, SubpassDirectionalLight, *descSetInput);
 }
 
 void Pu::DeferredRenderer::End(void)
@@ -165,12 +186,12 @@ void Pu::DeferredRenderer::End(void)
 
 void Pu::DeferredRenderer::SetModel(const Matrix & value)
 {
-	curCmd->PushConstants(*gfxGPass, ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
+	curCmd->PushConstants(*(advanced ?  gfxGPassAdv : gfxGPassBasic), ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
 }
 
 void Pu::DeferredRenderer::Render(const Mesh & mesh, const Material & material)
 {
-	curCmd->BindGraphicsDescriptor(*gfxGPass, material);
+	curCmd->BindGraphicsDescriptor(*(advanced ? gfxGPassAdv : gfxGPassBasic), material);
 	mesh.Bind(*curCmd, 0);
 	mesh.Draw(*curCmd);
 }
@@ -185,8 +206,8 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 {
 	if (descSetInput)
 	{
-		skybox = &renderpass->GetSubpass(2).GetDescriptor("Skybox");
-		descSetInput->Write(2, *skybox, texture);
+		skybox = &renderpass->GetSubpass(SubpassSkybox).GetDescriptor("Skybox");
+		descSetInput->Write(SubpassSkybox, *skybox, texture);
 	}
 	else Log::Fatal("Cannot set skybox when deferred rendering is not yet finalized!");
 }
@@ -199,8 +220,8 @@ void Pu::DeferredRenderer::DoSkybox(void)
 		curCmd->AddLabel("Deferred Renderer (Skybox)", Color::Blue());
 		curCmd->NextSubpass(SubpassContents::Inline);
 		curCmd->BindGraphicsPipeline(*gfxSkybox);
-		curCmd->BindGraphicsDescriptors(*gfxSkybox, 2, *curCam);
-		curCmd->BindGraphicsDescriptors(*gfxSkybox, 2, *descSetInput);
+		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *curCam);
+		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *descSetInput);
 		curCmd->Draw(3, 1, 0, 0);
 		curCmd->EndLabel();
 	}
@@ -213,8 +234,8 @@ void Pu::DeferredRenderer::DoTonemap(void)
 	curCmd->NextSubpass(SubpassContents::Inline);
 	postTimer->RecordTimestamp(*curCmd, PipelineStageFlag::TopOfPipe);
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
-	curCmd->BindGraphicsDescriptors(*gfxTonePass, 3, *curCam);
-	curCmd->BindGraphicsDescriptors(*gfxTonePass, 3, *descSetInput);
+	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *curCam);
+	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *descSetInput);
 	curCmd->PushConstants(*gfxTonePass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
@@ -241,9 +262,9 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 
 void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 {
-	/* Set all the options for the Geometry-Pass. */
+	/* Set all the options for the basic sattic Geometry-Pass. */
 	{
-		Subpass &gpass = renderpass->GetSubpass(0);
+		Subpass &gpass = renderpass->GetSubpass(SubpassBasicStaticGeometry);
 
 		Output &depth = gpass.AddDepthStencil();
 		depth.SetFormat(depthBuffer->GetFormat());
@@ -270,13 +291,46 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		norm.SetReference(3);
 
 		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Basic3D, Tangent));
 		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	}
+
+	/* Set all the options for the advanced static Geometry-Pass. */
+	{
+		Subpass &gpass = renderpass->GetSubpass(SubpassAdvancedStaticGeometry);
+		gpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+
+		Output &depth = gpass.AddDepthStencil();
+		depth.SetFormat(depthBuffer->GetFormat());
+		depth.SetClearValue({ 1.0f, 0 });
+		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
+		depth.SetReference(5);
+
+		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
+		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
+		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
+		diffA2.SetReference(1);
+
+		Output &spec = gpass.GetOutput("GBufferSpecular");
+		spec.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		spec.SetFormat(textures[1]->GetImage().GetFormat());
+		spec.SetStoreOperation(AttachmentStoreOp::DontCare);
+		spec.SetReference(2);
+
+		Output &norm = gpass.GetOutput("GBufferNormal");
+		norm.SetLayouts(ImageLayout::ColorAttachmentOptimal);
+		norm.SetFormat(textures[2]->GetImage().GetFormat());
+		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
+		norm.SetReference(3);
+
+		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Advanced3D, Normal));
+		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Advanced3D, Tangent));
+		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Advanced3D, TexCoord));
 	}
 
 	/* Set all the options for the directional light pass. */
 	{
-		Subpass &dlpass = renderpass->GetSubpass(1);
+		Subpass &dlpass = renderpass->GetSubpass(SubpassDirectionalLight);
 		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
 
 		Output &hdr = dlpass.GetOutput("L0");
@@ -289,8 +343,8 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 
 	/* Set all the options for the skybox pass. */
 	{
-		Subpass &skypass = renderpass->GetSubpass(2);
-		skypass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
+		Subpass &skypass = renderpass->GetSubpass(SubpassSkybox);
+		skypass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
 
 		Output &depth = skypass.AddDepthStencil();
 		depth.SetFormat(depthBuffer->GetFormat());
@@ -308,7 +362,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 
 	/* Set all the options for the camera pass. */
 	{
-		Subpass &fpass = renderpass->GetSubpass(3);
+		Subpass &fpass = renderpass->GetSubpass(SubpassPostProcessing);
 		fpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
 
 		Output &screen = fpass.GetOutput("FragColor");
@@ -316,14 +370,18 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		screen.SetLoadOperation(AttachmentLoadOp::DontCare);
 		screen.SetReference(0);
 	}
+
+	/* Make the swapchain image ready for the OS to present it. */
+	renderpass->AddDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::BottomOfPipe, AccessFlag::ColorAttachmentWrite, AccessFlag::MemoryRead, DependencyFlag::ByRegion);
 }
 
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 {
 	/* We need to delete the old pipelines if they are already created once. */
-	if (gfxGPass || gfxLightPass || gfxSkybox || gfxTonePass)
+	if (gfxGPassBasic || gfxGPassAdv || gfxLightPass || gfxSkybox || gfxTonePass)
 	{
-		delete gfxGPass;
+		delete gfxGPassBasic;
+		delete gfxGPassAdv;
 		delete gfxLightPass;
 		delete gfxSkybox;
 		delete gfxTonePass;
@@ -332,36 +390,42 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		/* We only need to create the descriptor set for the input attachments once. */
 		descPoolInput = new DescriptorPool(*renderpass);
-		descPoolInput->AddSet(1, 1, 1);
-		descPoolInput->AddSet(2, 1, 1);
-		descPoolInput->AddSet(3, 1, 1);
+		descPoolInput->AddSet(SubpassDirectionalLight, 1, 1);
+		descPoolInput->AddSet(SubpassSkybox, 1, 1);
+		descPoolInput->AddSet(SubpassPostProcessing, 1, 1);
 
 		descSetInput = new DescriptorSetGroup(*descPoolInput);
-		descSetInput->Add(1, renderpass->GetSubpass(1).GetSetLayout(1));
-		descSetInput->Add(2, renderpass->GetSubpass(2).GetSetLayout(1));
-		descSetInput->Add(3, renderpass->GetSubpass(3).GetSetLayout(1));
+		descSetInput->Add(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetSetLayout(1));
+		descSetInput->Add(SubpassSkybox, renderpass->GetSubpass(SubpassSkybox).GetSetLayout(1));
+		descSetInput->Add(SubpassPostProcessing, renderpass->GetSubpass(SubpassPostProcessing).GetSetLayout(1));
 
 		/* Write the input attachments to the descriptor set. */
-		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDiffuseA2"), *textures[0]);
-		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferSpecular"), *textures[1]);
-		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferNormal"), *textures[2]);
-		descSetInput->Write(1, renderpass->GetSubpass(1).GetDescriptor("GBufferDepth"), *depthBuffer);
-		descSetInput->Write(3, renderpass->GetSubpass(3).GetDescriptor("HdrBuffer"), *textures[3]);
+		WriteDescriptors();
 	}
 
-	/* Create the graphics pipeline for the static geometry pass. */
+	/* Create the graphics pipeline for the basic static geometry pass. */
 	{
-		gfxGPass = new GraphicsPipeline(*renderpass, 0);
-		gfxGPass->SetViewport(wnd->GetNative().GetClientBounds());
-		gfxGPass->SetTopology(PrimitiveTopology::TriangleList);
-		gfxGPass->EnableDepthTest(true, CompareOp::LessOrEqual);
-		gfxGPass->AddVertexBinding<Basic3D>(0);
-		gfxGPass->Finalize();
+		gfxGPassBasic = new GraphicsPipeline(*renderpass, SubpassBasicStaticGeometry);
+		gfxGPassBasic->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxGPassBasic->SetTopology(PrimitiveTopology::TriangleList);
+		gfxGPassBasic->EnableDepthTest(true, CompareOp::LessOrEqual);
+		gfxGPassBasic->AddVertexBinding<Basic3D>(0);
+		gfxGPassBasic->Finalize();
+	}
+
+	/* Create the graphics pipeline for the advanced static geometry pass. */
+	{
+		gfxGPassAdv = new GraphicsPipeline(*renderpass, SubpassAdvancedStaticGeometry);
+		gfxGPassAdv->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxGPassAdv->SetTopology(PrimitiveTopology::TriangleList);
+		gfxGPassAdv->EnableDepthTest(true, CompareOp::LessOrEqual);
+		gfxGPassAdv->AddVertexBinding<Advanced3D>(0);
+		gfxGPassAdv->Finalize();
 	}
 
 	/* Create the graphics pipeline for the directional light pass. */
 	{
-		gfxLightPass = new GraphicsPipeline(*renderpass, 1);
+		gfxLightPass = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
 		gfxLightPass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxLightPass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxLightPass->Finalize();
@@ -369,7 +433,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the skybox pass. */
 	{
-		gfxSkybox = new GraphicsPipeline(*renderpass, 2);
+		gfxSkybox = new GraphicsPipeline(*renderpass, SubpassSkybox);
 		gfxSkybox->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxSkybox->SetTopology(PrimitiveTopology::TriangleList);
 		gfxSkybox->EnableDepthTest(false, CompareOp::LessOrEqual);
@@ -378,7 +442,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the camera pass. */
 	{
-		gfxTonePass = new GraphicsPipeline(*renderpass, 3);
+		gfxTonePass = new GraphicsPipeline(*renderpass, SubpassPostProcessing);
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxTonePass->Finalize();
@@ -426,6 +490,18 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	gbuffAttach3->SetDebugName("G-Buffer World Normal");
 	tmpHdrAttach->SetDebugName("Deferred HDR Buffer");
 #endif
+
+	/* The descriptors are getting new images, so we need to update them (but not on the first frame). */
+	if (descPoolInput) WriteDescriptors();
+}
+
+void Pu::DeferredRenderer::WriteDescriptors(void)
+{
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDiffuseA2"), *textures[0]);
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferSpecular"), *textures[1]);
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferNormal"), *textures[2]);
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDepth"), *depthBuffer);
+	descSetInput->Write(SubpassPostProcessing, renderpass->GetSubpass(SubpassPostProcessing).GetDescriptor("HdrBuffer"), *textures[3]);
 }
 
 /*
@@ -459,7 +535,8 @@ void Pu::DeferredRenderer::Destroy(void)
 	DestroyWindowDependentResources();
 
 	/* Delete the graphics pipelines. */
-	if (gfxGPass) delete gfxGPass;
+	if (gfxGPassBasic) delete gfxGPassBasic;
+	if (gfxGPassAdv) delete gfxGPassAdv;
 	if (gfxLightPass) delete gfxLightPass;
 	if (gfxSkybox) delete gfxSkybox;
 	if (gfxTonePass) delete gfxTonePass;

@@ -17,13 +17,13 @@ public:
 	TestGame& operator =(TestGame&&) = delete;
 
 protected:
-	virtual void EnableFeatures(Pu::PhysicalDeviceFeatures &features) override;
-	virtual void Initialize(void);
-	virtual void LoadContent(void);
-	virtual void UnLoadContent(void);
-	virtual void Finalize(void) {}
-	virtual void Update(float) {}
-	virtual void Render(float dt, Pu::CommandBuffer &cmdBuffer);
+	void EnableFeatures(Pu::PhysicalDeviceFeatures &features) final;
+	void Initialize(void) final;
+	void LoadContent(Pu::AssetFetcher &content) final;
+	void UnLoadContent(Pu::AssetFetcher &content) final;
+	void Finalize(void) final {}
+	void Update(float) final {}
+	void Render(float dt, Pu::CommandBuffer &cmdBuffer) final;
 
 private:
 	Pu::FreeCamera *cam;
@@ -39,6 +39,7 @@ private:
 	Pu::Model *model;
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *light;
+	Pu::Texture2D *noiseTexture;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 };

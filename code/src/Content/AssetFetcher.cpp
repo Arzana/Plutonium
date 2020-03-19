@@ -237,7 +237,6 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 	/* Add the default textures to the models list. */
 	result->textures.emplace_back(&GetDefaultDiffuse());
 	result->textures.emplace_back(&GetDefaultSpecGloss());
-	result->textures.emplace_back(&GetDefaultNormal());
 
 	/* Start the parallel initialization and return the model reference. */
 	loader->InitializeModel(*result, mutablePath, deferredRenderer, probeRenderer);
@@ -287,6 +286,34 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 		loader->InitializeTexture(*result, reinterpret_cast<const byte*>(data), width * height * format_size(format), std::move(id.toWide()));
 		return *result;
 	}
+}
+
+Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, Texture2D * diffuse, Texture2D * specularGloss)
+{
+	/* Construct a new random hash for this model. */
+	const size_t hash = std::hash<string>{}(random(64));
+
+	/* Create a new model and add its textures. */
+	Model *result = new Model();
+
+	if (diffuse)
+	{
+		diffuse->Reference();
+		result->textures.emplace_back(diffuse);
+	}
+	else result->textures.emplace_back(&GetDefaultDiffuse());
+
+	if (specularGloss)
+	{
+		specularGloss->Reference();
+		result->textures.emplace_back(specularGloss);
+	}
+	else result->textures.emplace_back(&GetDefaultSpecGloss());
+
+	/* Create the model mesh and store it in out cache. */
+	loader->CreateModel(*result, type, deferredRenderer, probeRenderer);
+	cache->Store(result);
+	return *result;
 }
 
 void Pu::AssetFetcher::Release(Renderpass & renderpass)
@@ -341,15 +368,10 @@ void Pu::AssetFetcher::Release(Model & model)
 
 Pu::Texture2D & Pu::AssetFetcher::GetDefaultDiffuse(void)
 {
-	return CreateTexture2D("Default_Diffuse", Color::White());
+	return CreateTexture2D("white", Color::White());
 }
 
 Pu::Texture2D & Pu::AssetFetcher::GetDefaultSpecGloss(void)
 {
-	return CreateTexture2D("Default_SpecularGlossiness", Color::Black());
-}
-
-Pu::Texture2D & Pu::AssetFetcher::GetDefaultNormal(void)
-{
-	return CreateTexture2D("Default_Normal", Color::Malibu());
+	return CreateTexture2D("transparent white", Color{ 1.0f, 1.0f, 1.0f, 0.0f });
 }

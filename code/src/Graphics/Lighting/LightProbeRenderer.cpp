@@ -1,6 +1,6 @@
 #include "Graphics/Lighting/LightProbeRenderer.h"
 #include "Graphics/Lighting/LightProbeUniformBlock.h"
-#include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/VertexLayouts/Advanced3D.h"
 #include "Graphics/Diagnostics/QueryChain.h"
 #include "Core/Diagnostics/Profiler.h"
 
@@ -123,7 +123,7 @@ void Pu::LightProbeRenderer::InitializeRenderpass(Renderpass &)
 	subpass.AddDepthStencil().SetDepthDescription(Format::D16_UNORM);
 
 	/* We only handle the texture coordinate in this shader. */
-	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+	subpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Advanced3D, TexCoord));
 }
 
 void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
@@ -131,7 +131,7 @@ void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
 	/* We need to set the viewport for every individual light probe so that has to be a dynamic state. */
 	gfx = new GraphicsPipeline(*renderpass, 0);
 	gfx->SetTopology(PrimitiveTopology::TriangleList);
-	gfx->AddVertexBinding<Basic3D>(0);
+	gfx->AddVertexBinding<Advanced3D>(0);
 	gfx->EnableDepthTest(true, CompareOp::LessOrEqual);
 	gfx->AddDynamicState(DynamicState::ViewPort);
 	gfx->AddDynamicState(DynamicState::Scissor);

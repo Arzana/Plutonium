@@ -1,4 +1,5 @@
 #include "Graphics/Cameras/Camera.h"
+#include "Graphics/Lighting/DeferredRenderer.h"
 #include "Application.h"
 
 Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
@@ -9,10 +10,10 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Render
 	wnd.OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 
 	/* All of the camera descriptor sets use set ID 0. */
-	offsetSp1 = Add(0, renderpass.GetSubpass(0).GetSetLayout(0));
-	offsetSp2 = Add(1, renderpass.GetSubpass(1).GetSetLayout(0));
-	offsetSp3 = Add(2, renderpass.GetSubpass(2).GetSetLayout(0));
-	offsetSp4 = Add(3, renderpass.GetSubpass(3).GetSetLayout(0));
+	offsetSp1 = Add(DeferredRenderer::SubpassAdvancedStaticGeometry, renderpass.GetSubpass(DeferredRenderer::SubpassAdvancedStaticGeometry).GetSetLayout(0));
+	offsetSp2 = Add(DeferredRenderer::SubpassDirectionalLight , renderpass.GetSubpass(DeferredRenderer::SubpassDirectionalLight).GetSetLayout(0));
+	offsetSp3 = Add(DeferredRenderer::SubpassSkybox, renderpass.GetSubpass(DeferredRenderer::SubpassSkybox).GetSetLayout(0));
+	offsetSp4 = Add(DeferredRenderer::SubpassPostProcessing, renderpass.GetSubpass(DeferredRenderer::SubpassPostProcessing).GetSetLayout(0));
 }
 
 Pu::Camera::Camera(Camera && value)

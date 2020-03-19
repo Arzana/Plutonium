@@ -633,9 +633,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h">
-      <Filter>Header Files\Graphics\VertexLayouts</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
@@ -773,6 +770,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Models\Model.h">
       <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Models\ShapeType.h">
+      <Filter>Header Files\Graphics\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Advanced3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Basic3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

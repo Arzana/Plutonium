@@ -5,7 +5,7 @@
 layout (set = 1, binding = 0) uniform sampler2D Diffuse;
 layout (set = 1, binding = 1) uniform sampler2D SpecularGlossiness;
 layout (set = 1, binding = 2) uniform sampler2D Bump;
-layout (set = 1, binding = 4) uniform Material
+layout (set = 1, binding = 3) uniform Material
 {
 	vec4 F0Power;					// Stores the specular base (F0) and the specular power.
 	vec4 DiffuseFactorRoughness;	// Stores the diffuse factor and roughness.
@@ -13,8 +13,8 @@ layout (set = 1, binding = 4) uniform Material
 };
 
 layout (location = 0) in vec3 Position;
-layout (location = 1) in vec2 Uv;
-layout (location = 2) in mat3 TBN;
+layout (location = 1) in vec3 Normal;
+layout (location = 2) in vec2 Uv;
 
 layout (location = 0) out vec4 GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
@@ -24,9 +24,8 @@ layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical
 // Optimized to use as little space and transformations as possible.
 vec2 EncodeNormal()
 {
-	vec3 normal = normalize(TBN * normalize(texture(Bump, Uv).xyz * 2.0f - 1.0f));
-	float phi = atan(normal.y, normal.x);
-	return vec2(normal.z, phi);
+	float phi = atan(Normal.y, Normal.x);
+	return vec2(Normal.z, phi);
 }
 
 void main()

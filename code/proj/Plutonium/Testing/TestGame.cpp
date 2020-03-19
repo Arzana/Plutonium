@@ -1,9 +1,11 @@
 #include "TestGame.h"
 #include <Streams/FileReader.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Graphics/VertexLayouts/SkinnedAnimated.h>
+#include <Graphics/VertexLayouts/Advanced3D.h>
+#include <Graphics/VertexLayouts/Basic3D.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <Core/Diagnostics/Memory.h>
+#include <Core/Math/PerlinNoise.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -11,7 +13,7 @@ using namespace Pu;
 TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
-	light(nullptr), firstRun(true),
+	light(nullptr), firstRun(true), noiseTexture(nullptr),
 	updateCam(true), markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
@@ -32,16 +34,15 @@ void TestGame::Initialize(void)
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
-void TestGame::LoadContent(void)
+void TestGame::LoadContent(AssetFetcher & fetcher)
 {
-	renderer = new DeferredRenderer(GetContent(), GetWindow());
+	renderer = new DeferredRenderer(fetcher, GetWindow());
 
-	probeRenderer = new LightProbeRenderer(GetContent(), 1);
+	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
-	environment->SetPosition(3.88f, 1.37f, 1.11f);
 
-	model = &GetContent().FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
-	skybox = &GetContent().FetchSkybox(
+	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
+	skybox = &fetcher.FetchSkybox(
 		{
 			L"{Textures}Skybox/right.jpg",
 			L"{Textures}Skybox/left.jpg",
@@ -50,9 +51,25 @@ void TestGame::LoadContent(void)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
+
+	const uint32 w = 256, h = 256;
+	uint8 *buffer = reinterpret_cast<uint8*>(malloc(w * h * sizeof(uint8)));
+	PerlinNoise noise;
+
+	for (uint32 y = 0; y < h; y++)
+	{
+		for (uint32 x = 0; x < w; x++)
+		{
+			const float py = y / static_cast<float>(h);
+			const float px = x / static_cast<float>(w);
+			buffer[y * w + x] = static_cast<uint8>(noise.NormalizedScale(px, py, 4, 0.5f, 2.0f) * maxv<uint8>());
+		}
+	}
+
+	noiseTexture = &fetcher.CreateTexture2D("Noise", buffer, w, h, Format::R8_UINT, SamplerCreateInfo{});
 }
 
-void TestGame::UnLoadContent(void)
+void TestGame::UnLoadContent(AssetFetcher & fetcher)
 {
 	if (cam) delete cam;
 	if (light) delete light;
@@ -60,23 +77,26 @@ void TestGame::UnLoadContent(void)
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
 
-	GetContent().Release(*model);
-	GetContent().Release(*skybox);
+	fetcher.Release(*model);
+	fetcher.Release(*skybox);
+	fetcher.Release(*noiseTexture);
 	if (descPoolConst) delete descPoolConst;
 }
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
-	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
+	size_t drawCalls = 0;
+
+	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable() && model->IsLoaded())
 	{
 		firstRun = false;
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
-		descPoolConst->AddSet(0, 0, 1);	// First camera set
-		descPoolConst->AddSet(1, 0, 1); // Second camera set
-		descPoolConst->AddSet(2, 0, 1);	// Third camera set
-		descPoolConst->AddSet(3, 0, 1); // Forth camera sets
-		descPoolConst->AddSet(1, 2, 1);	// Light set
+		descPoolConst->AddSet(DeferredRenderer::SubpassAdvancedStaticGeometry, 0, 1);	// First camera set
+		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 0, 1);			// Second camera set
+		descPoolConst->AddSet(DeferredRenderer::SubpassSkybox, 0, 1);					// Third camera set
+		descPoolConst->AddSet(DeferredRenderer::SubpassPostProcessing, 0, 1);			// Forth camera sets
+		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 1);			// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
@@ -86,6 +106,17 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		light->SetEnvironment(environment->GetTexture());
 
 		renderer->SetSkybox(*skybox);
+
+		probeRenderer->Initialize(cmd);
+		probeRenderer->Start(*environment, cmd);
+		for (const auto &[matIdx, mesh] : model->GetAdvancedMeshes())
+		{
+			if (environment->Cull(mesh.GetBoundingBox() * mdlMtrx) || matIdx == -1) continue;
+
+			probeRenderer->Render(mesh, model->GetProbeMaterial(matIdx), mdlMtrx, cmd);
+			++drawCalls;
+		}
+		probeRenderer->End(*environment, cmd);
 	}
 	else if (!firstRun)
 	{
@@ -113,21 +144,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 	}
 
-	size_t drawCalls = 0;
-	if (model->IsLoaded())
+	if (model->IsLoaded() && cam)
 	{
-		probeRenderer->Initialize(cmd);
-		probeRenderer->Start(*environment, cmd);
-		size_t i = 0;
-		for (const auto &[matIdx, mesh] : model->GetMeshes())
-		{
-			if (environment->Cull(mesh.GetBoundingBox() * mdlMtrx) || matIdx == -1) continue;
-
-			probeRenderer->Render(mesh, model->GetProbeMaterial(matIdx), mdlMtrx, cmd);
-			++drawCalls;
-		}
-		probeRenderer->End(*environment, cmd);
-
 		renderer->InitializeResources(cmd);
 		cam->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
@@ -135,13 +153,23 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginGeometry(*cam);
 
 		cmd.AddLabel("Model", Color::Blue());
-		i = 0;
 		renderer->SetModel(mdlMtrx);
-		for (const auto[matIdx, mesh] : model->GetMeshes())
+		for (const auto[mat, mesh] : model->GetBasicMeshes())
 		{
-			if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && matIdx != Model::DefaultMaterialIdx)
+			if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
 			{
-				renderer->Render(mesh, model->GetMaterial(matIdx));
+				renderer->Render(mesh, model->GetMaterial(mat));
+				++drawCalls;
+			}
+		}
+
+		renderer->BeginAdvanced();
+		renderer->SetModel(mdlMtrx);
+		for (const auto[mat, mesh] : model->GetAdvancedMeshes())
+		{
+			if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
+			{
+				renderer->Render(mesh, model->GetMaterial(mat));
 				++drawCalls;
 			}
 		}

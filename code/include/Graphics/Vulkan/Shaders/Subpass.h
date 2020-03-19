@@ -25,6 +25,11 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Subpass& operator =(_In_ Subpass&&) = default;
 
+		/* Sets the dependency information for this subpass with both access flags set to none, indicating no resource transition. */
+		inline void SetNoDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_opt_ DependencyFlag flags = DependencyFlag::None)
+		{
+			SetDependency(srcStage, dstStage, AccessFlag::None, AccessFlag::None, flags);
+		}
 		/* Sets the dependency information for the this subpass. */
 		void SetDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None);
 		/* Adds a depth/stencil buffer to the subpass. */
