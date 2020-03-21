@@ -1262,7 +1262,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 
 				result.Data.Align(accessor.GetElementSize());
 				mesh.IndexViewStart = result.Data.GetSize();
-				mesh.IndexViewSize = view.Length - accessor.Start;
+				mesh.IndexViewSize = accessor.GetSize();
 
 				/* Set the index mode and do some error checking. */
 				if (accessor.Type != GlTfType::Scalar)
@@ -1350,7 +1350,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 				*/
 				if (increaseStride)
 				{
-					mesh.VertexViewSize += view.Length - accessor.Start;
+					mesh.VertexViewSize += accessor.GetSize();
 					vrtxStrideBytes += accessor.GetElementSize();
 				}
 			}
@@ -1810,4 +1810,9 @@ size_t GLTFAccessor::GetElementSize(void) const
 		Log::Error("Plutonium cannot handle accessor element type!");
 		return 0;
 	}
+}
+
+size_t GLTFAccessor::GetSize(void) const
+{
+	return GetElementSize() * Count;
 }

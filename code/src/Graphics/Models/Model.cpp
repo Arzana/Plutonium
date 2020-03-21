@@ -80,8 +80,11 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 			if (mesh.HasTangents) AdvancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, mesh }));
 			else BasicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, mesh }));
 		}
-		else Log::Warning("Mesh '%ls' is not used because its vertex format is invalid!", mesh.Identifier.c_str());
+		else Log::Warning("Mesh '%ls' is not used because its vertex format is invalid!", mesh.Identifier.toWide().c_str());
 	}
+
+	/* Calculate the bounding box for all underlying meshes. */
+	CalculateBoundingBox();
 }
 
 void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer & probes, const PuMData & data)
@@ -91,8 +94,8 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 	for (const PumMaterial &raw : data.Materials)
 	{
 		/* Get the indices of the textures to use, the last 3 are default textures. */
-		const size_t diffuseMap = raw.HasDiffuseTexture ? raw.DiffuseTexture : textures.size() - 3;
-		const size_t specGlossMap = raw.HasSpecGlossTexture ? raw.SpecGlossTexture : textures.size() - 2;
+		const size_t diffuseMap = raw.HasDiffuseTexture ? raw.DiffuseTexture : textures.size() - 2;
+		const size_t specGlossMap = raw.HasSpecGlossTexture ? raw.SpecGlossTexture : textures.size() - 1;
 		const size_t normalMap = raw.HasNormalTexture ? raw.NormalTexture : DefaultMaterialIdx;
 
 		AddMaterial(diffuseMap, specGlossMap, normalMap, deferred, probes).SetParameters(raw);
@@ -115,6 +118,19 @@ Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t nor
 	if (normal != DefaultMaterialIdx) material.SetNormal(*textures[normal]);
 
 	return material;
+}
+
+void Pu::Model::CalculateBoundingBox(void)
+{
+	for (const auto[mat, mesh] : BasicMeshes)
+	{
+		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
+	}
+
+	for (const auto[mat, mesh] : AdvancedMeshes)
+	{
+		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
+	}
 }
 
 void Pu::Model::Destroy(void)

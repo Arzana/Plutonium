@@ -584,6 +584,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			/* Add the basic mesh to the model's list. */
 			parent.StageBuffer(*src, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 			result.BasicMeshes.emplace_back(std::make_pair(0, std::move(mesh)));
+			result.CalculateBoundingBox();
 			return Result::CustomWait();
 		}
 

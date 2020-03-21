@@ -56,7 +56,6 @@ void Pu::Application::Run(void)
 	/* Load content. */
 	prevTime = gameTime.SecondsAccurate();
 	LoadContent(*content);
-	Log::Verbose("Finished initializing and loading content for '%ls', took %f seconds.", wnd->GetTitle().c_str(), gameTime.SecondsAccurate());
 
 	/* Run application loop. */
 	while (wnd->Update())

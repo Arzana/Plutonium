@@ -62,6 +62,12 @@ namespace Pu
 			return ProbeMaterials.at(idx);
 		}
 
+		/* Gets the bounding box of this model. */
+		_Check_return_ inline AABB GetBoundingBox(void) const
+		{
+			return boundingBox;
+		}
+
 	protected:
 		/* Defines the basic meshes and their material index. */
 		vector<Shape> BasicMeshes;
@@ -82,12 +88,14 @@ namespace Pu
 		DescriptorPool *poolMaterials, *poolProbes;
 		Buffer *gpuData;
 		vector<Texture2D*> textures;
+		AABB boundingBox;
 
 		void AllocBuffer(LogicalDevice &device, const StagingBuffer &buffer);
 		void AllocPools(const DeferredRenderer &deferred, const LightProbeRenderer &probes, size_t count);
 		void Initialize(LogicalDevice &device, const PuMData &data);
 		void Finalize(CommandBuffer &cmdBuffer, const DeferredRenderer &deferred, const LightProbeRenderer &probes, const PuMData &data);
 		Material& AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer &deferred, const LightProbeRenderer &probes);
+		void CalculateBoundingBox(void);
 		void Destroy(void);
 	};
 }

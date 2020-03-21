@@ -52,6 +52,8 @@
     <PuModel Include="..\..\..\assets\models\Sponza\Sponza.gltf">
       <BakeMeshesPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-b</BakeMeshesPum>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\Testing\MetalRough\MetalRoughSpheres.gltf" />
+    <PuModel Include="..\..\..\assets\models\Testing\Sampler\TextureSettingsTest.gltf" />
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

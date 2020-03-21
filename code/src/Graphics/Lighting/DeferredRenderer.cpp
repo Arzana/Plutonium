@@ -140,7 +140,7 @@ void Pu::DeferredRenderer::BeginAdvanced(void)
 	/* End the basic pass and start the advanced pass. */
 	advanced = true;
 	curCmd->EndLabel();
-	curCmd->AddLabel("Deferred Rendering (Advanced Static Geometry)", Color::Blue());
+	curCmd->AddLabel("Deferred Renderer (Advanced Static Geometry)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxGPassAdv);
 	curCmd->BindGraphicsDescriptors(*gfxGPassAdv, SubpassAdvancedStaticGeometry, *curCam);

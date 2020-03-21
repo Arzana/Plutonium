@@ -2,6 +2,7 @@
 #include <Application.h>
 #include <Graphics/Models/Model.h>
 #include <Graphics/Cameras/FreeCamera.h>
+#include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
 
@@ -28,6 +29,7 @@ protected:
 private:
 	Pu::FreeCamera *cam;
 	bool firstRun, markDepthBuffer, updateCam;
+	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;

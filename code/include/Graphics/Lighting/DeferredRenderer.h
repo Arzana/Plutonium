@@ -64,6 +64,12 @@ namespace Pu
 			return renderpass->GetSubpass(SubpassDirectionalLight).GetSetLayout(2);
 		}
 
+		/* Gets the depth buffer associated with the deferred renderer. */
+		_Check_return_ inline const DepthBuffer& GetDepthBuffer(void) const
+		{
+			return *depthBuffer;
+		}
+
 		/* Creates a new descriptor poiol for materials rendered through this deferred renderer. */
 		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
 		/* Performs needed resource transitions. */

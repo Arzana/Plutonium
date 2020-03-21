@@ -188,7 +188,9 @@ public:
 	{}
 
 	/* Gets the size (in bytes) of a single element. */
-	size_t GetElementSize(void) const;
+	_Check_return_ size_t GetElementSize(void) const;
+	/* Gets the size (in bytes) of the entire accessor. */
+	_Check_return_ size_t GetSize(void) const;
 };
 
 /* Defines the information about the buffers data. */

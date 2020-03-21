@@ -14,7 +14,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	light(nullptr), firstRun(true), noiseTexture(nullptr),
-	updateCam(true), markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
+	updateCam(true), markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.008f)*/)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -37,11 +37,12 @@ void TestGame::Initialize(void)
 void TestGame::LoadContent(AssetFetcher & fetcher)
 {
 	renderer = new DeferredRenderer(fetcher, GetWindow());
+	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 2.0f);
 
 	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
 
-	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
+	model = &fetcher.FetchModel(L"{Models}MetalRoughSpheres.pum", *renderer, *probeRenderer);
 	skybox = &fetcher.FetchSkybox(
 		{
 			L"{Textures}Skybox/right.jpg",
@@ -76,6 +77,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (renderer) delete renderer;
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
+	if (dbgRenderer) delete dbgRenderer;
 
 	fetcher.Release(*model);
 	fetcher.Release(*skybox);
@@ -103,7 +105,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		cam->Yaw = PI2;
 
 		light = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		light->SetEnvironment(environment->GetTexture());
+		//light->SetEnvironment(environment->GetTexture());
+		light->SetEnvironment(*skybox);
 
 		renderer->SetSkybox(*skybox);
 
@@ -152,32 +155,38 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		renderer->BeginGeometry(*cam);
 
-		cmd.AddLabel("Model", Color::Blue());
-		renderer->SetModel(mdlMtrx);
-		for (const auto[mat, mesh] : model->GetBasicMeshes())
+		if (cam->GetClip().IntersectionBox(model->GetBoundingBox() * mdlMtrx))
 		{
-			if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
+			renderer->SetModel(mdlMtrx);
+			for (const auto[mat, mesh] : model->GetBasicMeshes())
 			{
-				renderer->Render(mesh, model->GetMaterial(mat));
-				++drawCalls;
+				if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
+				{
+					renderer->Render(mesh, model->GetMaterial(mat));
+					++drawCalls;
+				}
 			}
 		}
 
 		renderer->BeginAdvanced();
-		renderer->SetModel(mdlMtrx);
-		for (const auto[mat, mesh] : model->GetAdvancedMeshes())
+
+		if (cam->GetClip().IntersectionBox(model->GetBoundingBox() * mdlMtrx))
 		{
-			if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
+			renderer->SetModel(mdlMtrx);
+			for (const auto[mat, mesh] : model->GetAdvancedMeshes())
 			{
-				renderer->Render(mesh, model->GetMaterial(mat));
-				++drawCalls;
+				if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
+				{
+					renderer->Render(mesh, model->GetMaterial(mat));
+					++drawCalls;
+				}
 			}
 		}
 
-		cmd.EndLabel();
 		renderer->BeginLight();
 		renderer->Render(*light);
 		renderer->End();
+		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 
 	if (ImGui::BeginMainMenuBar())
