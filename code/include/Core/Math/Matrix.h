@@ -125,7 +125,7 @@ namespace Pu
 		/* Creates a rotation matrix from euler angles. */
 		_Check_return_ static Matrix CreateRotation(_In_ float yaw, _In_ float pitch, _In_ float roll)
 		{
-			return CreateRotation(Quaternion::CreateRotation(yaw, pitch, roll));
+			return CreateRotation(Quaternion::Create(yaw, pitch, roll));
 		}
 
 		/* Creates a rotation matrix around the X axis with an angle of theta. */

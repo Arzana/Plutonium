@@ -47,6 +47,42 @@ void Pu::DebugRenderer::AddLine(Vector3 start, Vector3 end, Color color)
 	else culled += 2;
 }
 
+void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, float length, float headAngle)
+{
+	/* The length of the arrow head is always relative to the arrow shaft length. */
+	const float headLength = length * recip(4.0f);
+
+	/* Calculate the directions of the arrow head lines. */
+	const Vector3 right = Quaternion::Create(direction, Vector3::Up()) * Quaternion::Create(0.0f, PI + headAngle, 0.0f) * Vector3::Forward();
+	const Vector3 left = reflect(-right, direction);
+
+	/* Calculate the end points for the lines. */
+	const Vector3 head = start + direction * length;
+	const Vector3 end1 = head + right * headLength;
+	const Vector3 end2 = head + left * headLength;
+
+	/* Add the shaft line and head lines. */
+	AddLine(start, head, color);
+	AddLine(head, end1, color);
+	AddLine(head, end2, color);
+}
+
+void Pu::DebugRenderer::AddTransform(const Matrix & transform, float scale, Vector3 offset)
+{
+	const Vector3 start = transform.GetTranslation() + offset;
+	const Vector3 right = transform.GetRight();
+	const Vector3 up = transform.GetUp();
+	const Vector3 forward = transform.GetForward();
+
+	const float rl = right.Length();
+	const float ul = up.Length();
+	const float fl = forward.Length();
+
+	AddArrow(start, right / rl, Color::Red(), rl * scale);
+	AddArrow(start, up / ul, Color::Green(), ul * scale);
+	AddArrow(start, forward / fl, Color::Blue(), fl * scale);
+}
+
 void Pu::DebugRenderer::AddBox(const AABB & box, Color color)
 {
 	const Vector3 ftl = box[0];

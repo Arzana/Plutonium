@@ -1,6 +1,6 @@
 #include "Core/Math/Quaternion.h"
 
-Pu::Quaternion Pu::Quaternion::operator*(const Quaternion & q) const
+Pu::Quaternion Pu::Quaternion::operator*(Quaternion q) const
 {
 	return Quaternion(
 		r * q.r - (i * q.i + j * q.j + k * q.k),
@@ -9,14 +9,74 @@ Pu::Quaternion Pu::Quaternion::operator*(const Quaternion & q) const
 		k * q.r + q.k * r + (i * q.j - j * q.i));
 }
 
-Pu::Quaternion Pu::Quaternion::CreateRotation(float theta, Vector3 axis)
+Pu::Vector3 Pu::Quaternion::operator*(Vector3 v) const
+{
+	const Vector3 u{ i, j, k };
+	const Vector3 x = 2.0f * dot(u, v) * u;
+	const Vector3 y = (r * r - u.LengthSquared()) * v;
+	const Vector3 z = 2.0f * r * cross(u, v);
+	return x + y + z;
+}
+
+Pu::Quaternion Pu::Quaternion::Create(Vector3 forward, Vector3 up)
+{
+	const Vector3 axisX = normalize(cross(up, forward));
+	const Vector3 axisY = cross(forward, axisX);
+	const float t = axisX.X + axisY.Y + forward.Z;
+
+	float r, i, j, k, l;
+	if (t > 0.0f)
+	{
+		l = sqrtf(t + 1.0f);
+		r = l * 0.5f;
+		l = 0.5f / l;
+
+		i = (axisY.Z - forward.Y) * l;
+		j = (forward.X - axisX.Z) * l;
+		k = (axisX.Y - axisY.X) * l;
+	}
+	else if (axisX.X >= axisY.Y && axisX.X >= forward.Z)
+	{
+		l = sqrtf(1.0f + axisX.X - axisY.Y - forward.Z);
+		i = l * 0.5f;
+		l = 0.5f / l;
+		
+		j = (axisX.Y + axisY.X) * l;
+		k = (axisX.Z + forward.X) * l;
+		r = (axisY.Z - forward.Y) * l;
+	}
+	else if (axisY.Y > forward.Z)
+	{
+		l = sqrtf(1.0f + axisY.Y - axisX.X - forward.Z);
+		j = l * 0.5f;
+		l = 0.5f / l;
+
+		i = (axisY.X + axisX.Y) * l;
+		k = (forward.Y + axisY.Z) * l;
+		r = (forward.X - axisX.Z) * l;
+	}
+	else
+	{
+		l = sqrtf(1.0f + forward.Z - axisX.X - axisY.Y);
+		k = 0.5f * l;
+		l = 0.5f / l;
+
+		i = (forward.X + axisX.Z) * l;
+		j = (forward.Y + axisY.Z) * l;
+		r = (axisX.Y - axisY.X) * l;
+	}
+
+	return Quaternion(r, i, j, k);
+}
+
+Pu::Quaternion Pu::Quaternion::Create(float theta, Vector3 axis)
 {
 	theta *= 0.5f;
 	const float s = sinf(theta);
 	return Quaternion(cosf(theta), axis.X * s, axis.Y * s, axis.Z * s);
 }
 
-Pu::Quaternion Pu::Quaternion::CreateRotation(float yaw, float pitch, float roll)
+Pu::Quaternion Pu::Quaternion::Create(float yaw, float pitch, float roll)
 {
 	yaw *= 0.5f;
 	pitch *= 0.5f;

@@ -371,7 +371,7 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 
 	/* The Y of Md2 models is inverted from Plutoniums Y, so add a rotation global root node to fix it. */
 	pum_node root;
-	root.SetRotation(Quaternion::CreateRotation(0.0f, 0.0f, PI));
+	root.SetRotation(Quaternion::Create(0.0f, 0.0f, PI));
 	result.Nodes.emplace_back(root);
 
 	/* Convert the name to UTF-32 and enable linear for the filters. */

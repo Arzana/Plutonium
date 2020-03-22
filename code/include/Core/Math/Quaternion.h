@@ -36,7 +36,9 @@ namespace Pu
 		}
 
 		/* Multiplies a specified quaternion with the quaternion. */
-		_Check_return_ Quaternion operator *(_In_ const Quaternion &q) const;
+		_Check_return_ Quaternion operator *(_In_ Quaternion q) const;
+		/* Multiplies a specified vector with the quaternion. */
+		_Check_return_ Vector3 operator *(_In_ Vector3 v) const;
 
 		/* Multiplies the quaternion by a scalar value. */
 		inline Quaternion operator *=(_In_ float v)
@@ -97,10 +99,12 @@ namespace Pu
 			return operator/=(Length());
 		}
 
+		/* Creates a quaternion rotating towards the specified forward direction. */
+		_Check_return_ static Quaternion Create(_In_ Vector3 forward, _In_ Vector3 up);
 		/* Creates a quaternion rotating around a specified axis. */
-		_Check_return_ static Quaternion CreateRotation(_In_ float theta, _In_ Vector3 axis);
+		_Check_return_ static Quaternion Create(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a quaternion from euler angles. */
-		_Check_return_ static Quaternion CreateRotation(_In_ float yaw, _In_ float pitch, _In_ float roll);
+		_Check_return_ static Quaternion Create(_In_ float yaw, _In_ float pitch, _In_ float roll);
 		/* Performs nearest neightbor interpolation between two quaternions. */
 		_Check_return_ static Quaternion Near(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
 		/* Performs linear interpolation between two quaternions. */

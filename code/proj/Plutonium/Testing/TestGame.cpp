@@ -1,11 +1,8 @@
 #include "TestGame.h"
-#include <Streams/FileReader.h>
-#include <Core/Diagnostics/Stopwatch.h>
 #include <Graphics/VertexLayouts/Advanced3D.h>
 #include <Graphics/VertexLayouts/Basic3D.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <Core/Diagnostics/Memory.h>
-#include <Core/Math/PerlinNoise.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -13,8 +10,8 @@ using namespace Pu;
 TestGame::TestGame(void)
 	: Application(L"TestGame"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
-	light(nullptr), firstRun(true), noiseTexture(nullptr),
-	updateCam(true), markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.008f)*/)
+	light(nullptr), firstRun(true), updateCam(true),
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(/*0.008f*/0.4f) * Matrix::CreateRotation(0.0f, -PI2, 0.0f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -52,22 +49,6 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
-
-	const uint32 w = 256, h = 256;
-	uint8 *buffer = reinterpret_cast<uint8*>(malloc(w * h * sizeof(uint8)));
-	PerlinNoise noise;
-
-	for (uint32 y = 0; y < h; y++)
-	{
-		for (uint32 x = 0; x < w; x++)
-		{
-			const float py = y / static_cast<float>(h);
-			const float px = x / static_cast<float>(w);
-			buffer[y * w + x] = static_cast<uint8>(noise.NormalizedScale(px, py, 4, 0.5f, 2.0f) * maxv<uint8>());
-		}
-	}
-
-	noiseTexture = &fetcher.CreateTexture2D("Noise", buffer, w, h, Format::R8_UINT, SamplerCreateInfo{});
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -81,7 +62,6 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 
 	fetcher.Release(*model);
 	fetcher.Release(*skybox);
-	fetcher.Release(*noiseTexture);
 	if (descPoolConst) delete descPoolConst;
 }
 
@@ -145,6 +125,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			ImGui::End();
 		}
+
+		dbgRenderer->AddTransform(light->GetView(), 0.25f, Vector3::Forward());
 	}
 
 	if (model->IsLoaded() && cam)

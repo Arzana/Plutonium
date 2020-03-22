@@ -28,6 +28,10 @@ namespace Pu
 		void AddLine(_In_ const Line &line, _In_ Color color);
 		/* Adds a single line to the debug renderer queue. */
 		void AddLine(_In_ Vector3 start, _In_ Vector3 end, _In_ Color color);
+		/* Adds an arrow to the debug renderer queue. */
+		void AddArrow(_In_ Vector3 start, _In_ Vector3 direction, _In_ Color color, _In_opt_ float length = 1.0f, _In_opt_ float headAngle = PI / 8.0f);
+		/* Adds a matrix transform to the debug renderer queue. */
+		void AddTransform(_In_ const Matrix &transform, _In_opt_ float scale = 1.0f, _In_opt_ Vector3 offset = Vector3{});
 		/* Adds an axis aligned box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ Color color);
 		/* Adds a box to the debug renderer queue. */

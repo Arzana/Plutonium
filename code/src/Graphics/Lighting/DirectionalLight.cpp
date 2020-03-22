@@ -4,7 +4,7 @@
 Pu::DirectionalLight::DirectionalLight(DescriptorPool & pool, const DescriptorSetLayout & layout)
 	: DescriptorSet(pool, DeferredRenderer::SubpassDirectionalLight, layout), radiance(1.0f), intensity(1.0f), envi(&GetDescriptor(DeferredRenderer::SubpassDirectionalLight, "Environment"))
 {
-	const Vector3 dir = normalize(Vector3(0.7f));
+	const Vector3 dir = normalize(Vector3(-0.7f));
 	SetDirection(dir.X, dir.Y, dir.Z);
 }
 

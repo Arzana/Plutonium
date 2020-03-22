@@ -41,7 +41,6 @@ private:
 	Pu::Model *model;
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *light;
-	Pu::Texture2D *noiseTexture;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 };
