@@ -51,9 +51,10 @@ void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, 
 {
 	/* The length of the arrow head is always relative to the arrow shaft length. */
 	const float headLength = length * recip(4.0f);
+	const Quaternion base = Quaternion::Create(direction, direction != Vector3::Up() ? Vector3::Up() : Vector3::Right());
 
 	/* Calculate the directions of the arrow head lines. */
-	const Vector3 right = Quaternion::Create(direction, Vector3::Up()) * Quaternion::Create(0.0f, PI + headAngle, 0.0f) * Vector3::Forward();
+	const Vector3 right = base * Quaternion::Create(PI + headAngle, Vector3{ 1.0f, 0.0f,0.0f }) * Vector3::Forward();
 	const Vector3 left = reflect(-right, direction);
 
 	/* Calculate the end points for the lines. */

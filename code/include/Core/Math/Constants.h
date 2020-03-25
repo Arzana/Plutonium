@@ -33,13 +33,15 @@ namespace Pu
 	/* The circle constant. */
 	constexpr float PI = 3.14159265358979323846f;
 	/* PI multiplied by two. */
-	constexpr float TAU = PI * 2;
+	constexpr float TAU = PI * 2.0f;
 	/* PI divided by two. */
-	constexpr float PI2 = PI / 2;
+	constexpr float PI2 = PI / 2.0f;
 	/* PI divided by four */
-	constexpr float PI4 = PI / 4;
+	constexpr float PI4 = PI / 4.0f;
 	/* Pythagoras's constant. */
 	constexpr float SQRT2 = 1.41421356237309504880f;
+	/* SQRT2 divided by two. */
+	constexpr float SQRT05 = SQRT2 / 2.0f;
 	/*Convertes degrees to radians. */
 	constexpr float	DEG2RAD = PI / 180.0f;
 	/* Converts radians to degrees. */

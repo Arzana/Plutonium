@@ -17,6 +17,12 @@ namespace Pu
 			: r(r), i(i), j(j), k(k)
 		{}
 
+		/* Negates the quaternion. */
+		_Check_return_ inline Quaternion operator -(void) const
+		{
+			return Quaternion(-r, -i, -j, -k);
+		}
+
 		/* Adds the input vector to the quaternion. */
 		_Check_return_ inline Quaternion operator +(_In_ Quaternion q) const
 		{

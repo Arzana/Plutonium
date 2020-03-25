@@ -157,62 +157,9 @@ Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-/*
-Ken Shoemake 
-University of Pennsylvania
-*/
 Quaternion Pu::Matrix::GetOrientation(void) const
 {
-	/* Get normalizes orientation columns. */
-	const Vector3 aei = normalize(GetRight());
-	const Vector3 bfj = normalize(GetUp());
-	const Vector3 cgk = normalize(GetForward());
-
-	/* Protect against /0. */
-	const float t = aei.X + bfj.Y + cgk.Z;
-	float i, j, k, r, s;
-	if (t >= 0)
-	{
-		/* Divide by r. */
-		s = sqrtf(t + 1);
-		r = 0.5f * s;
-		s = 0.5f / s;
-		i = (cgk.Y - bfj.Z) * s;
-		j = (aei.Z - cgk.X) * s;
-		k = (bfj.X - aei.Y) * s;
-	}
-	else if (aei.X > bfj.Y && aei.X > cgk.Z)
-	{
-		/* Divide by i. */
-		s = sqrtf(1 + aei.X - bfj.Y - cgk.Z);
-		i = s * 0.5f;
-		s = 0.5f / s;
-		j = (bfj.X + aei.Y) * s;
-		k = (aei.Z + cgk.X) * s;
-		r = (cgk.Y - bfj.Z) * s;
-	}
-	else if (bfj.Y > cgk.Z)
-	{
-		/* Divide by j. */
-		s = sqrt(1.0f + bfj.Y - aei.X - cgk.Z);
-		j = s * 0.5f;
-		s = 0.5f / s;
-		i = (bfj.X + aei.Y) * s;
-		k = (cgk.Y + bfj.Z) * s;
-		r = (aei.Z - cgk.X) * s;
-	}
-	else
-	{
-		/* Divide by k. */
-		s = sqrt(1 + cgk.Z - aei.X - bfj.Y);
-		k = s * 0.5f;
-		s = 0.5f / s;
-		i = (aei.Z + cgk.X) * s;
-		j = (cgk.Y + bfj.Z) * s;
-		r = (bfj.X - aei.Y) * s;
-	}
-
-	return Quaternion(r, i, j, k);
+	return Quaternion::Create(normalize(GetRight()), normalize(GetUp()));
 }
 
 Vector3 Pu::Matrix::GetScale(void) const

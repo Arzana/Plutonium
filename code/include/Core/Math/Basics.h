@@ -384,6 +384,7 @@ namespace Pu
 	/* Modifies the input radians to be clamped from 0 to Tau. */
 	_Check_return_ inline float modrads(_In_ float rads)
 	{
+		while (rads < 0.0f) rads += TAU;
 		return fmodf(rads, TAU);
 	}
 

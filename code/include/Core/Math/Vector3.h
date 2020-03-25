@@ -211,7 +211,7 @@ namespace Pu
 		/* Gets the downwards direction. */
 		_Check_return_ static inline Vector3 Down(void)
 		{
-			return Vector3(0.0f, 1.0f, 0.0f);
+			return Vector3(0.0f, -1.0f, 0.0f);
 		}
 
 		/* Gets the forwards direction. */
@@ -312,6 +312,12 @@ namespace Pu
 	_Check_return_ inline Vector3 min(_In_ Vector3 v, _In_ Vector3 w)
 	{
 		return Vector3(min(v.X, w.X), min(v.Y, w.Y), min(v.Z, w.Z));
+	}
+
+	/* Modifies the input radians to be clamped from 0 to Tau. */
+	_Check_return_ inline Vector3 modrads(_In_ Vector3 rads)
+	{
+		return Vector3(modrads(rads.X), modrads(rads.Y), modrads(rads.Z));
 	}
 
 	/* Gets a vector with unit length that has the same direction as the input vector. */

@@ -18,6 +18,10 @@ Pu::Vector3 Pu::Quaternion::operator*(Vector3 v) const
 	return x + y + z;
 }
 
+/*
+Ken Shoemake
+University of Pennsylvania
+*/
 Pu::Quaternion Pu::Quaternion::Create(Vector3 forward, Vector3 up)
 {
 	const Vector3 axisX = normalize(cross(up, forward));
@@ -76,6 +80,10 @@ Pu::Quaternion Pu::Quaternion::Create(float theta, Vector3 axis)
 	return Quaternion(cosf(theta), axis.X * s, axis.Y * s, axis.Z * s);
 }
 
+/*
+This method works by creating 3 quaternions (for yaw, pitch and roll) and the multiplying them.
+The creation of the quaternions and their multiplication is inlined in order to perform less multiplications.
+*/
 Pu::Quaternion Pu::Quaternion::Create(float yaw, float pitch, float roll)
 {
 	yaw *= 0.5f;
