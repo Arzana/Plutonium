@@ -54,6 +54,10 @@
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Testing\MetalRough\MetalRoughSpheres.gltf" />
     <PuModel Include="..\..\..\assets\models\Testing\Sampler\TextureSettingsTest.gltf" />
+    <PuModel Include="..\..\..\assets\models\Testing\Tangents\NormalTangentTest.gltf">
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-t</RecalcTangentsPum>
+    </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

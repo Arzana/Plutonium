@@ -245,8 +245,9 @@ void Pu::BinaryReader::Seek(SeekOrigin from, int64 amount)
 	switch (from)
 	{
 	case SeekOrigin::Begin:
-		newPos = amount;
-		break;
+		/* Use the faster seek function. */
+		Seek(static_cast<size_t>(amount));
+		return;
 	case SeekOrigin::Current:
 		newPos = static_cast<int64>(position) + amount;
 		break;
@@ -254,13 +255,22 @@ void Pu::BinaryReader::Seek(SeekOrigin from, int64 amount)
 		newPos = static_cast<int64>(size) - amount;
 		break;
 	default:
-		Log::Error("BinaryReader doesn't support seek origin!");
+		Log::Error("BinaryReader doesn't support seek origin '%s'!", to_string(from));
 		return;
 	}
 
 	/* Check new position and set if correct. */
 	if (newPos < 0 || newPos > static_cast<int64>(size)) Log::Fatal("Cannot seek outside of buffer size!");
 	position = static_cast<size_t>(newPos);
+}
+
+void Pu::BinaryReader::Seek(size_t amount)
+{
+#ifdef _DEBUG
+	if (amount > size) Log::Fatal("Cannot seek outside of buffer size!");
+#endif
+
+	position = amount;
 }
 
 bool Pu::BinaryReader::CheckOverflow(size_t bytesNeeded, bool raise) const

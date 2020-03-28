@@ -123,6 +123,8 @@ namespace Pu
 		Seeks the stream, increasing it's read position by a sepcified amount.
 		*/
 		virtual void Seek(_In_ SeekOrigin from, _In_ int64 amount);
+		/* Seeks the stream, moving the read position to the specified index from the start of the start (faster than Seek(SeekOrigin::Begin, amount)). */
+		void Seek(_In_ size_t amount);
 		/* Advances the reading position as if reading a the specified type. */
 		template <typename _Ty>
 		inline void Advance(void)

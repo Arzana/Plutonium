@@ -21,7 +21,7 @@ PFN_vkEnumerateInstanceExtensionProperties Pu::VulkanInstance::vkEnumerateInstan
 PFN_vkEnumerateInstanceLayerProperties Pu::VulkanInstance::vkEnumerateInstanceLayerProperties = nullptr;
 PFN_vkCreateInstance Pu::VulkanInstance::vkCreateInstance = nullptr;
 
-Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initializer_list<const char*> extensions, std::initializer_list<const char*> optionalExtensions, int32 major, int32 minor, int32 patch)
+Pu::VulkanInstance::VulkanInstance(const char * applicationName, bool log, std::initializer_list<const char*> extensions, std::initializer_list<const char*> optionalExtensions, int32 major, int32 minor, int32 patch)
 	: hndl(nullptr), vkDestroyInstance(nullptr), vkEnumeratePhysicalDevices(nullptr),
 	OnDestroy("VulkanInstance::OnDestory")
 {
@@ -61,9 +61,10 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, std::initialize
 	LoadInstanceProcs();
 	GetPhysicalDevices();
 
+	if (log) LogAvailableExtensionsAndLayers();
+
 	/* If needed setup the debug layer. */
 #ifdef _DEBUG
-	if constexpr (LogAvailableVulkanExtensionsAndLayers) LogAvailableExtensionsAndLayers();
 	SetUpDebugLayer();
 #endif
 }

@@ -116,5 +116,8 @@
     <PuModel Include="..\..\..\assets\models\Testing\MetalRough\MetalRoughSpheres.gltf">
       <Filter>Models</Filter>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\Testing\Tangents\NormalTangentTest.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>

@@ -13,7 +13,7 @@ namespace Pu
 		EventBus<const VulkanInstance, EventArgs> OnDestroy;
 
 		/* Initializes a new instance of a Vulkan instance. */
-		VulkanInstance(_In_ const char *applicationName, _In_opt_ std::initializer_list<const char*> extensions = std::initializer_list<const char*>(), _In_opt_ std::initializer_list<const char*> optionalExtensions = std::initializer_list<const char*>(), _In_opt_ int32 major = 0, _In_opt_ int32 minor = 0, _In_opt_ int32 patch = 0);
+		VulkanInstance(_In_ const char *applicationName, _In_opt_ bool log = LogAvailableVulkanExtensionsAndLayers, _In_opt_ std::initializer_list<const char*> extensions = std::initializer_list<const char*>(), _In_opt_ std::initializer_list<const char*> optionalExtensions = std::initializer_list<const char*>(), _In_opt_ int32 major = 0, _In_opt_ int32 minor = 0, _In_opt_ int32 patch = 0);
 		VulkanInstance(_In_ const VulkanInstance&) = delete;
 		/* Move constructor. */
 		VulkanInstance(_In_ VulkanInstance &&value);

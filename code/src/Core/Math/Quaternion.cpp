@@ -104,6 +104,11 @@ Pu::Quaternion Pu::Quaternion::Create(float yaw, float pitch, float roll)
 		cy * cp * sr - sy * sp * cr);
 }
 
+Pu::Quaternion Pu::Quaternion::Delta(Quaternion q1, Quaternion q2)
+{
+	return q1 * q2.Inverse();
+}
+
 Pu::Quaternion Pu::Quaternion::Near(Quaternion q1, Quaternion q2, float a)
 {
 	return a < 0.5f ? q1 : q2;

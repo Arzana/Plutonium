@@ -265,7 +265,7 @@ size_t DiskCopyTextures(PumIntermediate &data, const wstring &wdir, const ustrin
 bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 {
 	/* Create the Vulkan instance. */
-	instance = new VulkanInstance("Plutonium Content Compiler");
+	instance = new VulkanInstance("Plutonium Content Compiler", false);
 	if (!instance->GetPhysicalDeviceCount())
 	{
 		Log::Error("Cannot compile textures without a Vulkan compatible physical device!");

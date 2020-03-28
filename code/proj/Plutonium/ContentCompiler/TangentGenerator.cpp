@@ -99,7 +99,7 @@ private:
 		if (idxReader)
 		{
 			/* We need to get the vertex offset from the index buffer. */
-			idxReader->Seek(SeekOrigin::Begin, static_cast<int64>((faceIdx * idxStride * 3) + (vertIdx * idxStride)));
+			idxReader->Seek(static_cast<size_t>((faceIdx * idxStride * 3) + (vertIdx * idxStride)));
 			const uint32 i = Mesh.IndexMode == 0 ? idxReader->ReadUInt16() : idxReader->ReadUInt32();
 
 			return i * oldStride;
@@ -113,8 +113,8 @@ private:
 
 	void Seek(int faceIdx, int vertIdx, size_t offset)
 	{
-		const size_t i = GetOffset(faceIdx, vertIdx) + offset;
-		vrtxReader.Seek(SeekOrigin::Begin, static_cast<int64>(i));
+		/* Use the faster seek option that the binary reader offers us. */
+		vrtxReader.Seek(GetOffset(faceIdx, vertIdx) + offset);
 	}
 
 	void WriteInternal(int faceIdx, int vertIdx, Vector4 tangent)
@@ -201,21 +201,22 @@ void PumGetPosition(const SMikkTSpaceContext *context, float posOut[3], int face
 	memcpy(posOut, pos.f, sizeof(Vector3));
 }
 
-void PumGetNormal(const SMikkTSpaceContext *context, float normalOut[3], const int faceIdx, const int vertIdx)
+void PumGetNormal(const SMikkTSpaceContext *context, float normalOut[3], int faceIdx, int vertIdx)
 {
 	const Vector3 normal = MikkTSpaceUserData::GetNormal(context, faceIdx, vertIdx);
 	memcpy(normalOut, normal.f, sizeof(Vector3));
 }
 
-void PumGetTexCoord(const SMikkTSpaceContext *context, float coordOut[2], const int faceIdx, const int vertIdx)
+void PumGetTexCoord(const SMikkTSpaceContext *context, float coordOut[2], int faceIdx, int vertIdx)
 {
 	const Vector2 coord = MikkTSpaceUserData::GetTexCoord(context, faceIdx, vertIdx);
 	memcpy(coordOut, coord.f, sizeof(Vector2));
 }
 
-void PumSetTangent(const SMikkTSpaceContext *context, const float tangent[3], const float sign, const int faceIdx, const int vertIdx)
+void PumSetTangent(const SMikkTSpaceContext *context, const float tangent[3], float sign, int faceIdx, int vertIdx)
 {
-	const Vector4 value{ tangent[0], tangent[1], tangent[2], sign };
+	/* We need to invert the sign because MikkTSpace has a left-handed coordinate system and we require a righ-handed one. */
+	const Vector4 value{ tangent[0], tangent[1], tangent[2], -sign };
 	MikkTSpaceUserData::WriteTangent(context, faceIdx, vertIdx, value);
 }
 
