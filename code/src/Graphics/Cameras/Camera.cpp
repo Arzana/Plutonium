@@ -8,6 +8,7 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Render
 	window(&wnd)
 {
 	wnd.OnSizeChanged.Add(*this, &Camera::OnWindowResize);
+	OnWindowResize(wnd, ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
 
 	/* All of the camera descriptor sets use set ID 0. */
 	offsetSp1 = Add(DeferredRenderer::SubpassAdvancedStaticGeometry, renderpass.GetSubpass(DeferredRenderer::SubpassAdvancedStaticGeometry).GetSetLayout(0));
@@ -57,8 +58,21 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 
 Pu::Vector3 Pu::Camera::ScreenToWorldRay(Vector2 v) const
 {
-	/* Convert the screen coordinates to normalized device coordinates. */
-	const Vector4 ndc = Vector4(ToNDC(v), 0.0f, 0.0f);
+	/* Just convert to NDC and then use the default function. */
+	return NDCToWorldRay(ToNDC(v));
+}
+
+Pu::Vector3 Pu::Camera::ScreenToWorld(Vector2 v, float z) const
+{
+	/* Just convert from screen space to normalized device coordinate and use the default function. */
+	const Vector2 ndc = ToNDC(v);
+	return NDCToWorld(Vector3(ndc.X, ndc.Y, z));
+}
+
+Pu::Vector3 Pu::Camera::NDCToWorldRay(Vector2 v) const
+{
+	/* Construct the full normalized device coordinate. */
+	const Vector4 ndc = Vector4(v, 0.0f, 0.0f);
 
 	/* Convert to eye space and perform perspective division. */
 	Vector4 eye = iproj * ndc;
@@ -69,10 +83,10 @@ Pu::Vector3 Pu::Camera::ScreenToWorldRay(Vector2 v) const
 	return normalize(world.XYZ - pos);
 }
 
-Pu::Vector3 Pu::Camera::ScreenToWorld(Vector2 v, float z) const
+Pu::Vector3 Pu::Camera::NDCToWorld(Vector3 v) const
 {
-	/* Convert from screen coordinates to normalized device coordinates. */
-	const Vector4 ndc = Vector4(ToNDC(v), z, 1.0f);
+	/* Construct the full normalized device coordinate. */
+	const Vector4 ndc = Vector4(v, 1.0f);
 
 	/* Convert to eye space and perform perspective division. */
 	Vector4 eye = iproj * ndc;

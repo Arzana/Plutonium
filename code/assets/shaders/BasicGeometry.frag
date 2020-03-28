@@ -16,7 +16,7 @@ layout (location = 0) in vec3 Position;
 layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec2 Uv;
 
-layout (location = 0) out vec4 GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
+layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
 layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical world coorinates.
 
@@ -37,8 +37,7 @@ void main()
 	// Set the first attachment.
 	const vec4 specGloss = texture(SpecularGlossiness, Uv);
 	const float roughness = (1.0f - specGloss.w) * DiffuseFactorRoughness.w;
-	const float a2 = roughness * roughness;
-	GBufferDiffuseA2 = vec4(diffuse.rgb, a2);
+	GBufferDiffuseRough = vec4(diffuse.rgb, roughness);
 
 	// Set the second attachment.
 	const vec3 specular = specGloss.rgb * F0Power.rgb;

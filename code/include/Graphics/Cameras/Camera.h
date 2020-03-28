@@ -31,6 +31,10 @@ namespace Pu
 		_Check_return_ Vector3 ScreenToWorldRay(_In_ Vector2 v) const;
 		/* Converts the specified screen coordinate to a world space position (z is in NDC space). */
 		_Check_return_ Vector3 ScreenToWorld(_In_ Vector2 v, _In_ float z) const;
+		/* Convertes the specified normalized device coordinate to a ray pointing from the camera's position into the world. */
+		_Check_return_ Vector3 NDCToWorldRay(_In_ Vector2 v) const;
+		/* Converts the specified normalized device coordinate to a world space position. */
+		_Check_return_ Vector3 NDCToWorld(_In_ Vector3 v) const;
 		/* Gets the camera's inverse view matrix. */
 		_Check_return_ const Matrix& GetInverseView(void) const;
 

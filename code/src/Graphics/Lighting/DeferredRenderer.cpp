@@ -26,7 +26,7 @@
 		Diffuse Factor / Roughness
 		Alpha Threshold
 	2: Input Attachments
-		Diffuse / Roughness^2
+		Diffuse / Roughness
 		Specular / Specular power
 		Normal
 		Emissive / AO
@@ -38,7 +38,7 @@
 
 	The framebuffer has several attachments:			G-Pass		Light-Pass		Sky-Pass	Post-Pass		Default Idx
 	0: Swapchain				[r, g, b, a]			-			-				-			Color			5
-	1: G-Buffer (Diffuse)		[r, g, b, a^2]			Color		Input			-			-				0
+	1: G-Buffer (Diffuse)		[r, g, b, r]			Color		Input			-			-				0
 	2: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-			-				1
 	3: G-Buffer (Normal)		[x, y]					Color		Input			-			-				2
 	4: HDR-Buffer				[r, g, b, a]			-			Color			Color		Input			0
@@ -272,7 +272,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
 		depth.SetReference(5);
 
-		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
+		Output &diffA2 = gpass.GetOutput("GBufferDiffuseRough");
 		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
 		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
@@ -305,7 +305,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		depth.SetLayouts(ImageLayout::DepthStencilAttachmentOptimal);
 		depth.SetReference(5);
 
-		Output &diffA2 = gpass.GetOutput("GBufferDiffuseA2");
+		Output &diffA2 = gpass.GetOutput("GBufferDiffuseRough");
 		diffA2.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		diffA2.SetFormat(textures[0]->GetImage().GetFormat());
 		diffA2.SetStoreOperation(AttachmentStoreOp::DontCare);
@@ -497,7 +497,7 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 
 void Pu::DeferredRenderer::WriteDescriptors(void)
 {
-	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDiffuseA2"), *textures[0]);
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDiffuseRough"), *textures[0]);
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferSpecular"), *textures[1]);
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferNormal"), *textures[2]);
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDepth"), *depthBuffer);

@@ -8,10 +8,10 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame"), cam(nullptr),
+	: Application(L"TestGame (Unlit!)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	light(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(/*0.008f*/0.4f) * Matrix::CreateRotation(0.0f, -PI2, 0.0f))
+	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -39,7 +39,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
 
-	model = &fetcher.FetchModel(L"{Models}MetalRoughSpheres.pum", *renderer, *probeRenderer);
+	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
 	skybox = &fetcher.FetchSkybox(
 		{
 			L"{Textures}Skybox/right.jpg",
@@ -85,8 +85,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		cam->Yaw = PI2;
 
 		light = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		//light->SetEnvironment(environment->GetTexture());
-		light->SetEnvironment(*skybox);
+		light->SetEnvironment(environment->GetTexture());
+		//light->SetEnvironment(*skybox);
 
 		renderer->SetSkybox(*skybox);
 
@@ -110,9 +110,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			Vector3 clr = light->GetRadiance();
 			if (ImGui::ColorPicker3("Radiance", clr.f)) light->SetRadiance(clr);
-
-			Vector3 dir = light->GetDirection();
-			if (ImGui::SliderFloat3("Direction", dir.f, 0.0f, 1.0f)) light->SetDirection(dir.X, dir.Y, dir.Z);
 
 			float contrast = cam->GetContrast();
 			if (ImGui::SliderFloat("Contrast", &contrast, 0.0f, 10.0f)) cam->SetContrast(contrast);

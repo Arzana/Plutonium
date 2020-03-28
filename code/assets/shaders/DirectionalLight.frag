@@ -12,7 +12,7 @@ layout (binding = 1) uniform Camera
 	vec3 CamPos;
 };
 
-layout (input_attachment_index = 1, set = 1, binding = 0) uniform subpassInput GBufferDiffuseA2;	// Stores the Diffuse color and Roughness^2.
+layout (input_attachment_index = 1, set = 1, binding = 0) uniform subpassInput GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (input_attachment_index = 2, set = 1, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
 layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
 layout (input_attachment_index = 5, set = 1, binding = 3) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
@@ -21,34 +21,71 @@ layout (set = 2, binding = 0) uniform samplerCube Environment;
 layout (set = 2, binding = 1) uniform Light
 {
 	vec3 Direction;
-	vec3 Radiance;
+	vec4 Radiance;
 };
 
 layout (location = 0) in vec2 Uv;
 layout (location = 0) out vec4 L0;
 
-// Schlick
-vec3 fresnel(in float ndh, in vec3 f0)
+float mdot(in vec3 a, in vec3 b)
 {
-	return f0 + (1.0f - f0) * pow(1.0f - ndh, 5);
+	return max(0.0f, dot(a, b));
 }
 
-// Cook-Torrance
-float occlusion(float ndl, float ndv, float ndh, float vdh)
+// F: Schlick
+vec3 fresnel(in float cosTheta, in vec3 f0)
 {
-	const float a = (2.0f * ndh * ndv) / vdh;
-	const float b = (2.0f * ndh * ndl) / vdh;
-	return min(1.0f, min(a, b));
+	return f0 + (1.0f - f0) * pow(1.0f - cosTheta, 5.0f);
 }
 
-// GTR
-float microfacet(float ndh, float a2, float power)
+// G: Smith Joint GGX (Vis)
+float occlusion(in float ndl, in float ndv, in float roughness)
 {
-	const float c2 = ndh * ndh;
-	const float s = sqrt(1.0f - c2);
-	const float s2 = s * s;
+	const float r = roughness + 1.0f;
+	const float k = r * r / 8.0f;
+	const float ggxl = ndl / (ndl * (1.0f - k) + k);
+	const float ggxv = ndv / (ndv * (1.0f - k) + k);
+	return ggxl * ggxv;
+}
 
-	return (a2 / PI) / pow(a2 * c2 + s2, power);
+// D: GTR
+float microfacet(in float ndh, in float a2, in float power)
+{
+	const float ia2 = 1.0f - a2;
+	const float denom = PI * pow((ndh * a2 - ndh) * ndh + 1.0f, power);
+	return a2 / denom;
+}
+
+// Specular BRDF
+vec3 brdf(in vec3 v, in vec3 n)
+{	
+	// Precalculate frequently used scalars.
+	const vec3 h = normalize(v + Direction);
+	const vec3 r = reflect(-v, n);
+	const float ndl = mdot(n, Direction);
+	const float ndv = mdot(n, v);
+	const float ndh = mdot(n, h);
+	const float vdh = dot(v, h);
+
+	// Get all of the material values out of our G-Buffer.
+	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
+	const vec4 spec = subpassLoad(GBufferSpecular);
+	const float alpha = diffRough.w * diffRough.w;
+	const float a2 = alpha * alpha;
+	const vec3 envi = texture(Environment, r).rgb;
+
+	// Specular
+	const vec3 f = fresnel(vdh, spec.xyz);
+	const float g = occlusion(ndl, ndv, diffRough.w);
+	const float d = microfacet(ndh, a2, spec.w);
+
+	// Temporary untill I figure out why my lighting doesn't work.
+	return diffRough.rgb + spec.rgb;
+
+	// Composition
+	const vec3 fd = (1.0f - f) * (diffRough.rgb / PI);
+	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * envi;
+	return (fd + fs) * Radiance.rgb * Radiance.w * ndl;
 }
 
 // Decodes the normal from optimzed spherical to a world normal.
@@ -71,35 +108,11 @@ vec3 DecodePosition()
 	return (IView * eye).xyz;
 }
 
-float mdot(in vec3 a, in vec3 b)
-{
-	return max(0.0f, dot(a, b));
-}
-
 void main()
 {
-	// Get all of the values out of our G-Buffer.
-	const vec4 diffA2 = subpassLoad(GBufferDiffuseA2);
-	const vec4 spec = subpassLoad(GBufferSpecular);
-	const vec3 position = DecodePosition();
-	const vec3 normal = DecodeNormal();
+	const vec3 p = DecodePosition();
+	const vec3 n = DecodeNormal();
+	const vec3 v = normalize(CamPos - p);
 
-	// Pre-calculate often used values values.
-	const vec3 v = normalize(CamPos - position);
-	const vec3 h = normalize(v + Direction);
-	const float ndl = mdot(normal, Direction);
-	const float ndv = mdot(normal, v);
-	const float ndh = mdot(normal, h);
-	const float vdh = mdot(v, h);
-
-	// Specular
-	const vec3 f = fresnel(ndv, spec.xyz);
-	const float g = occlusion(ndl, ndv, ndh, vdh);
-	const float d = microfacet(ndh, diffA2.w, spec.w);
-	const vec3 envi = texture(Environment, reflect(-v, normal)).rgb;
-
-	// Composition
-	const vec3 fd = (1.0f - f) * (diffA2.rgb / PI);
-	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * envi;
-	L0 = vec4((fd + fs) * Radiance, 1.0f);
+	L0 = vec4(brdf(v, n), 1.0f);
 }

@@ -47,13 +47,19 @@ namespace Pu
 		/* Gets the radiant color of the light. */
 		_Check_return_ inline Vector3 GetRadiance(void) const
 		{
-			return radiance;
+			return radiance.XYZ;
 		}
 
 		/* Gets the intensity of the light. */
 		_Check_return_ inline float GetIntensity(void) const
 		{
-			return intensity;
+			return radiance.W;
+		}
+
+		/* Sets the direction of the light from euler angles. */
+		inline void SetDirection(_In_ Vector3 euler)
+		{
+			SetDirection(euler.X, euler.Y, euler.Z);
 		}
 
 		/* Sets the direction of the light. */
@@ -71,13 +77,13 @@ namespace Pu
 		/* Sets the color of the light. */
 		inline void SetRadiance(_In_ Color value)
 		{
-			radiance = value.ToVector3();
+			radiance.XYZ = value.ToVector3();
 		}
 
 		/* Sets the intensity of the light. */
 		inline void SetIntensity(_In_ float value)
 		{
-			intensity = value;
+			radiance.W = value;
 		}
 
 		/* Sets the environment map used by this light source. */
@@ -92,8 +98,7 @@ namespace Pu
 
 	private:
 		Matrix orien;
-		Vector3 radiance;
-		float intensity;
+		Vector4 radiance;
 		const Descriptor *envi;
 	};
 }
