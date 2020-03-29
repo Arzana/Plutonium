@@ -102,6 +102,7 @@ namespace Pu
 		void Destroy(void);
 		void LoadInstanceProcs(void);
 		void GetPhysicalDevices(void);
+		void LogAvailableExtensionsAndLayers(void) const;
 		
 #ifdef _DEBUG
 		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
@@ -116,7 +117,7 @@ namespace Pu
 		static VKAPI_ATTR Bool32 VKAPI_CALL DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData *data, void*);
 		
 		void SetUpDebugLayer(void);
-		void LogAvailableExtensionsAndLayers(void) const;
 #endif
+		
 	};
 }

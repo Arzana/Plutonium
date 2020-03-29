@@ -184,6 +184,8 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdEndQuery);
 	LOAD_DEVICE_PROC(vkCmdBlitImage);
 	LOAD_DEVICE_PROC(vkCmdResetQueryPool);
+	LOAD_DEVICE_PROC(vkCmdDrawIndirect);
+	LOAD_DEVICE_PROC(vkCmdDrawIndexedIndirect);
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

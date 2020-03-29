@@ -85,7 +85,7 @@ namespace Pu
 		reportDir is only used if the mode is CrashReport. 
 		callback is only used if the mode is Custom.
 		*/
-		static void SetRaiseMode(_In_ RaiseMode mode, _In_opt_ const wstring &reportDir = nullptr, _In_opt_ RaiseCallback callback = nullptr);
+		static void SetRaiseMode(_In_ RaiseMode mode, _In_opt_ const wstring *reportDir = nullptr, _In_opt_ RaiseCallback callback = nullptr);
 		/* Set the details of the log messages. */
 		static void SetDetails(_In_  LogDetails details);
 		/* Sets a user defined string that should be logged with every future log entry. */

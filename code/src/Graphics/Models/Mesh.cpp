@@ -19,21 +19,11 @@ Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
 	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None),
 	boundingBox(mesh.Bounds)
 {
-	/* Calculate the stride of the vertices. */
-	size_t vertexStride = sizeof(Vector3);
-	vertexStride += mesh.HasNormals * sizeof(Vector3);
-	vertexStride += mesh.HasTangents * sizeof(Vector4);
-	vertexStride += mesh.HasTextureCoordinates * sizeof(Vector2);
-	vertexStride += mesh.HasColors * sizeof(uint32);
-	if (mesh.JointType == PumJointType::Byte) vertexStride += (sizeof(uint8) << 2) + sizeof(Vector4);
-	else if (mesh.JointType == PumJointType::UShort) vertexStride += (sizeof(uint16) << 2) + sizeof(Vector4);
-
 	/* Create the buffer views. */
-	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, vertexStride);
+	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, mesh.GetStride());
 	if (useIndexBuffer)
 	{
-		const size_t indexStride = type == IndexType::UInt16 ? sizeof(uint16) : sizeof(uint32);
-		index = new BufferView(buffer, mesh.IndexViewStart, mesh.IndexViewSize, indexStride);
+		index = new BufferView(buffer, mesh.IndexViewStart, mesh.IndexViewSize, mesh.GetIndexStride());
 	}
 	else index = nullptr;
 }

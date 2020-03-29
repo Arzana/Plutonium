@@ -313,7 +313,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 		initInfo.PhysicalDevice = device.parent->hndl;
 		initInfo.Device = device.hndl;
 		initInfo.QueueFamily = device.graphicsQueueFamily;
-		initInfo.Queue = device.GetGraphicsQueue(0).hndl;
+		initInfo.Queue = device.GetGraphicsQueue(1).hndl;
 		initInfo.PipelineCache = nullptr;
 		initInfo.DescriptorPool = imGuiDescriptorPool;
 		initInfo.Allocator = nullptr;
@@ -417,7 +417,7 @@ void Pu::GameWindow::EndRender(void)
 	cmdBuf.End();
 
 	/* Submit the command buffer to the render queue and present the queue. */
-	Queue &queue = device.GetGraphicsQueue(0);
+	Queue &queue = device.GetGraphicsQueue(1);
 	queue.BeginLabel(u8"GameWindow Render", Color::Blue());
 	queue.Submit(semaphores[0], cmdBuf, semaphores[1]);
 	swapchainOutOfDate = !queue.Present(semaphores[1], *swapchain, curImgIdx);

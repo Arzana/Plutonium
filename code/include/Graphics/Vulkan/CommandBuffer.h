@@ -114,7 +114,7 @@ namespace Pu
 		/* Appends a draw command to the command buffer. */
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 		/* Appends an indexed draw command to the command buffer. */
-		void Draw(_In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 firstInstance, _In_ uint32 vertexOffset);
+		void Draw(_In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 firstInstance, _In_ int32 vertexOffset);
 		/* Transitions to the next subpass of a render pass. */
 		void NextSubpass(_In_ SubpassContents contents);
 		/* Appends a render pass end command to the command buffer. */

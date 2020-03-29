@@ -1183,11 +1183,36 @@ void CopyNodesToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 		pum_node node;
 		node.Children = cur.Children.select<uint32>([](size_t in) {return static_cast<uint32>(in); });
 
-		if (cur.HasMesh) node.SetMesh(static_cast<uint32>(cur.Mesh));
 		if (cur.HasSkin) node.SetSkin(static_cast<uint32>(cur.Skin));
 		if (cur.Translation != Vector3()) node.SetTranslation(cur.Translation);
 		if (cur.Rotation != Quaternion()) node.SetRotation(cur.Rotation);
 		if (cur.Scale != Vector3()) node.SetScale(cur.Scale);
+		if (cur.HasMesh)
+		{
+			/* Calculate the initial mesh index of this mesh. */
+			size_t i = 0, j = 0;
+			for (const GLTFMesh &mesh : input.Meshes)
+			{
+				if (j++ == cur.Mesh) break;
+				i += mesh.Primitives.size();
+			}
+
+			const size_t k = result.Nodes.size();
+			result.Nodes.emplace_back(node);
+
+			/* We need to add a node for every primitive in the mesh. */
+			j = 0;
+			pum_node child;
+			for (const GLTFPrimitive &prim : input.Meshes[cur.Mesh].Primitives)
+			{
+				child.SetMesh(static_cast<uint32>(i + j++));
+				result.Nodes[k].Children.emplace_back(static_cast<uint32>(result.Nodes.size()));
+				result.Nodes.emplace_back(child);
+			}
+
+			/* Make sure to not add the node again. */
+			continue;
+		}
 
 		result.Nodes.emplace_back(node);
 	}

@@ -18,7 +18,7 @@ public:
 	TestGame& operator =(TestGame&&) = delete;
 
 protected:
-	void EnableFeatures(Pu::PhysicalDeviceFeatures &features) final;
+	void EnableFeatures(const Pu::PhysicalDeviceFeatures &supported, Pu::PhysicalDeviceFeatures &enabeled) final;
 	void Initialize(void) final;
 	void LoadContent(Pu::AssetFetcher &content) final;
 	void UnLoadContent(Pu::AssetFetcher &content) final;

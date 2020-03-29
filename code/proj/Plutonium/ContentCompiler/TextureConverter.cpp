@@ -672,6 +672,9 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 	const wstring wdir = GetOutputDirectory(args);
 	const ustring ldir = wdir.toUTF32();
 
+	/* Precreate the directory to avoid race conditions. */
+	if (data.Textures.size()) FileWriter::CreateDirectory(wdir);
+
 	/* Copy over all the finalized textures and log the amount of textures that will be parsed. */
 	const size_t parseCnt = DiskCopyTextures(data, wdir, ldir);
 	if (!parseCnt) return;

@@ -90,7 +90,11 @@ Pu::Profiler & Pu::Profiler::GetInstance(void)
 
 void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 thread)
 {
-	if (activeThreads.find(thread) != activeThreads.end()) Log::Fatal("Profiler doesn't support nested sections!");
+	if (activeThreads.find(thread) != activeThreads.end())
+	{
+		Log::Error("Profiler doesn't support nested sections!");
+		return;
+	}
 
 	/* Check if the category already exists, if so just start a stopwatch. */
 	size_t i = 0;
@@ -114,7 +118,11 @@ void Pu::Profiler::EndInternal(uint64 thread)
 {
 	/* Make sure that we throw if the profiler is misused. */
 	decltype(activeThreads)::iterator it = activeThreads.find(thread);
-	if (it == activeThreads.end()) Log::Fatal("Profiler cannot end a section that hasn't started!");
+	if (it == activeThreads.end())
+	{
+		Log::Error("Profiler cannot end a section that hasn't started!");
+		return;
+	}
 
 	/* Get the time and the category, then remove the entry.  */
 	const int64 time = it->second.second.Microseconds();

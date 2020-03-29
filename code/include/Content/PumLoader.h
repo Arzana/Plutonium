@@ -143,6 +143,11 @@ namespace Pu
 		PumMesh(void);
 		/* Initializes a new instance of a PuM mesh from a binary stream. */
 		PumMesh(_In_ BinaryReader &reader);
+
+		/* Gets the stride (in bytes) of the vertices in this mesh. */
+		_Check_return_ uint32 GetStride(void) const;
+		/* Gets the stride (in bytes) of the indices in this mesh. */
+		_Check_return_ uint32 GetIndexStride(void) const;
 	};
 
 	/* Defines a single skeletal animation frame for a specific node. */
@@ -356,7 +361,7 @@ namespace Pu
 
 		/* Returns a PuM data object with only the version, identifier set and textures set. */
 		_Check_return_ static PuMData TexturesOnly(_In_ const wstring &path);
-		/* Returns a PuM data object with only the version, identifier, geometry and GPU buffer set. */
+		/* Returns a PuM data object with only the version, identifier, nodes, geometry and GPU buffer set. */
 		_Check_return_ static PuMData MeshesOnly(_In_ LogicalDevice &device, _In_ const wstring &path);
 		/* Returns a PuM data object with only the version, identifier and materials set. */
 		_Check_return_ static PuMData MaterialsOnly(_In_ const wstring &path);

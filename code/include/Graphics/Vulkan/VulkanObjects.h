@@ -3475,6 +3475,56 @@ namespace Pu
 		}
 	};
 
+	/* Defines the parameters for an indirect draw call. */
+	struct DrawIndirectCommand
+	{
+		/* Defines the amount of vertices in the draw call. */
+		uint32 VertexCount;
+		/* Defines the amount of instances in the draw call. */
+		uint32 InstanceCount;
+		/* Defines the index of the first vertex to draw. */
+		uint32 FirstVertex;
+		/* Defines the instance ID of the first instrance to draw. */
+		uint32 FirstInstance;
+
+		/* Initializes an empty instance of the draw indirect command object. */
+		DrawIndirectCommand(void)
+			: DrawIndirectCommand(0, 0, 0)
+		{}
+
+		/* Initializes a new instance of the draw indirect command object. */
+		DrawIndirectCommand(_In_ uint32 firstVertex, _In_ uint32 vertexCnt, _In_ uint32 firstInstance)
+			: VertexCount(vertexCnt), InstanceCount(1),
+			FirstVertex(firstVertex), FirstInstance(firstInstance)
+		{}
+	};
+
+	/* Defines the parameters for an indexed indirect draw call. */
+	struct DrawIndexedIndirectCommand
+	{
+		/* Defines the amount of vertices to draw. */
+		uint32 IndexCount;
+		/* Defines the amount of instances to draw. */
+		uint32 InstanceCount;
+		/* Defines the base index within the index buffer. */
+		uint32 FirstIndex;
+		/* Specifies a value added to the vertex index before indexing into the vertex buffer. */
+		int32 VertexOffset;
+		/* Defines the first instance ID to draw. */
+		uint32 FirstInstance;
+
+		/* Initializes an empty instance of the indexed indirect draw command object. */
+		DrawIndexedIndirectCommand(void)
+			: DrawIndexedIndirectCommand(0, 0)
+		{}
+
+		/* Initializes a new instance of a indexed indirect draw command object. */
+		DrawIndexedIndirectCommand(_In_ uint32 firstIndex, _In_ uint32 indexCount)
+			: IndexCount(indexCount), InstanceCount(1), FirstIndex(firstIndex),
+			VertexOffset(0), FirstInstance(0)
+		{}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

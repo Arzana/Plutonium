@@ -120,6 +120,10 @@ namespace Pu
 	PFN_vkMergePipelineCaches vkMergePipelineCaches;
 	PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
 	PFN_vkGetPhysicalDeviceMemoryProperties2KHR vkGetPhysicalDeviceMemoryProperties2KHR;
+	PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
+	PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
+	PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
+	PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -235,6 +239,8 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkGetPipelineCacheData);
 	LOAD_INSTANCE_PROC(vkMergePipelineCaches);
 	LOAD_INSTANCE_PROC(vkCmdResetQueryPool);
+	LOAD_INSTANCE_PROC(vkCmdDrawIndirect);
+	LOAD_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{
@@ -254,6 +260,12 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR);
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR);
+	}
+
+	if (enabledExtensions.contains(u8"VK_EXT_full_screen_exclusive"))
+	{
+		LOAD_INSTANCE_PROC(vkAcquireFullScreenExclusiveModeEXT);
+		LOAD_INSTANCE_PROC(vkReleaseFullScreenExclusiveModeEXT);
 	}
 
 	if (enabledExtensions.contains(u8"VK_KHR_get_physical_device_properties2"))

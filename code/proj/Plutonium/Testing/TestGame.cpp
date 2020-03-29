@@ -16,18 +16,22 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
-void TestGame::EnableFeatures(PhysicalDeviceFeatures & features)
+void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::PhysicalDeviceFeatures & enabeled)
 {
-	features.LogicOp = true;			// Needed for blending
-	features.WideLines = true;			// Debug renderer
-	features.FillModeNonSolid = true;	// Easy wireframe mode
-	features.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
-	features.GeometryShader = true;		// Needed for the light probe renderer.
+	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
+	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
+	if (supported.MultiDrawIndirect) enabeled.MultiDrawIndirect = true;	// Allows for less draw calls.
+
+	enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
+	enabeled.GeometryShader = true;		// Needed for the light probe renderer.
 }
 
 void TestGame::Initialize(void)
 {
+#ifdef _DEBUG
 	GetWindow().SetMode(WindowMode::Borderless);
+#endif
+
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 

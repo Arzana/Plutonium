@@ -41,6 +41,12 @@ namespace Pu
 			return Quaternion(r * v, i * v, j * v, k * v);
 		}
 
+		/* Gets whether this quaternion should be sorted before the specified quaternion. */
+		_Check_return_ inline bool operator <(_In_ Quaternion q) const
+		{
+			return i < q.i || (!(q.i < i) && j < q.j) || (!(q.i < i) && !(q.j < j) && k < q.k) || (!(q.i < i) && !(q.j < j) && !(q.k < k) && r < q.r);
+		}
+
 		/* Multiplies a specified quaternion with the quaternion. */
 		_Check_return_ Quaternion operator *(_In_ Quaternion q) const;
 		/* Multiplies a specified vector with the quaternion. */

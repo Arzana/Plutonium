@@ -302,7 +302,7 @@ void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 fi
 	device->vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 firstInstance, uint32 vertexOffset)
+void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 firstInstance, int32 vertexOffset)
 {
 	DbgCheckIfRecording("draw");
 	device->vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);

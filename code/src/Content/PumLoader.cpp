@@ -72,6 +72,24 @@ Pu::PumMesh::PumMesh(BinaryReader & reader)
 	}
 }
 
+Pu::uint32 Pu::PumMesh::GetStride(void) const
+{
+	uint32 result = sizeof(Vector3);
+	result += HasNormals * sizeof(Vector3);
+	result += HasTangents * sizeof(Vector4);
+	result += HasTextureCoordinates * sizeof(Vector2);
+	result += HasColors * sizeof(uint32);
+	if (JointType == PumJointType::Byte) result += (sizeof(uint8) << 2) + sizeof(Vector4);
+	else if (JointType == PumJointType::UShort) result += (sizeof(uint16) << 2) + sizeof(Vector4);
+
+	return result;
+}
+
+Pu::uint32 Pu::PumMesh::GetIndexStride(void) const
+{
+	return IndexType == PumIndexType::None ? 0 : (IndexType == PumIndexType::UInt16 ? sizeof(uint16) : sizeof(uint32));
+}
+
 Pu::PumFrame::PumFrame(void)
 	: TimeStamp(0.0f)
 {}
@@ -337,16 +355,22 @@ Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path
 	PuMData result;
 	if (!SetHeader(result, reader)) return result;
 
-	/* We can skip the node count. */
-	reader.Seek(SeekOrigin::Current, sizeof(uint32));
+	/* Get the amount of nodes. */
+	uint32 nodeCount;
+	reader.Read(nodeCount);
+	result.Nodes.reserve(nodeCount);
 
-	/* Get the amount of meshes.. */
+	/* Get the amount of meshes. */
 	uint32 meshCount;
 	reader.Read(meshCount);
 	result.Geometry.reserve(meshCount);
 
-	/* The remaining counts can be skipped and the first offset. */
-	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2) + sizeof(uint64));
+	/* The remaining counts can be skipped. */
+	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2));
+
+	/* Read the node offset, ends at the mesh start. */
+	uint64 nodeOffset;
+	reader.Read(nodeOffset);
 
 	/* Read the mesh offset and the mesh end. */
 	uint64 offset, end;
@@ -360,15 +384,16 @@ Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path
 	uint64 bufferOffset, bufferSize;
 	reader.Read(bufferOffset);
 	reader.Read(bufferSize);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(offset));
+	reader.Seek(SeekOrigin::Begin, static_cast<int64>(nodeOffset));
 
-	/* Setup a binary reader for the mesh part. */
-	const uint64 size = end - offset;
+	/* Setup a binary reader for the node and mesh part. */
+	const uint64 size = end - nodeOffset;
 	byte *data = reinterpret_cast<byte*>(malloc(size));
 	reader.Read(data, 0, size);
 	BinaryReader binary{ data, size, Endian::Little };
 
-	/* Read the geometry data. */
+	/* Read the nodes and geometry data (nodes and meshes are tightly packed so we don't have to seek). */
+	for (uint32 i = 0; i < nodeCount; i++) result.Nodes.emplace_back(binary);
 	for (uint32 i = 0; i < meshCount; i++) result.Geometry.emplace_back(binary);
 	free(data);
 

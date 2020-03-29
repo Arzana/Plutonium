@@ -72,15 +72,18 @@ void Pu::Log::Fatal(const char * format, ...)
 	va_end(args);
 }
 
-void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring & reportDir, RaiseCallback callback)
+void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring * reportDir, RaiseCallback callback)
 {
 	GetInstance().mode = mode;
 
 	switch (mode)
 	{
 	case Pu::RaiseMode::CrashReport:
-		GetInstance().reportDir = reportDir;
-		if (reportDir.back() != L'\\') GetInstance().reportDir += L'\\';
+		if (reportDir)
+		{
+			GetInstance().reportDir = *reportDir;
+			if (reportDir->back() != L'\\') GetInstance().reportDir += L'\\';
+		}
 		break;
 	case Pu::RaiseMode::Custom:
 		if (!callback) Log::Error("Raise callback should not be null!");
@@ -294,6 +297,8 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 
 void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 {
+	if (suppressLogging) return;
+
 	/* Get last stack frame for file information. */
 	StackFrame frame;
 	StackFrame::GetCallerInfo(framesToSkip, frame);
@@ -396,6 +401,9 @@ void Pu::Log::Raise(const char * msg, va_list args)
 
 void Pu::Log::CreateCrashReport(void)
 {
+	/* We don't want the filewriter to log anything. */
+	suppressLogging = true;
+
 	/* Create the crash report file. */
 	const time_t now = std::time(nullptr);
 	char buffer[100];

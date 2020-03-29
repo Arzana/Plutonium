@@ -154,6 +154,8 @@ namespace Pu
 		PFN_vkCmdEndQuery vkCmdEndQuery;
 		PFN_vkCmdBlitImage vkCmdBlitImage;
 		PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
+		PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
+		PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

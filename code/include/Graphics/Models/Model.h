@@ -88,6 +88,7 @@ namespace Pu
 		DescriptorPool *poolMaterials, *poolProbes;
 		Buffer *gpuData;
 		vector<Texture2D*> textures;
+		vector<PumNode> nodes;
 		AABB boundingBox;
 
 		void AllocBuffer(LogicalDevice &device, const StagingBuffer &buffer);

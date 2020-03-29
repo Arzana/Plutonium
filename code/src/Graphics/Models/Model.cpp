@@ -70,6 +70,7 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 {
 	/* Allocate the GPU buffer. */
 	AllocBuffer(device, *data.Buffer);
+	nodes = data.Nodes;
 
 	/* Load all the meshes. */
 	for (const PumMesh &mesh : data.Geometry)

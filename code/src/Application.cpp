@@ -158,15 +158,20 @@ void Pu::Application::InitializeVulkan(void)
 	const uint32 transferQueueFamily = physicalDevice.GetBestTransferQueueFamily();
 	const uint32 same = graphicsQueueFamily == transferQueueFamily;
 
+	/*
+	Specify the amount of queues (adding one if they are the same family):
+	- At least 2 graphics queues, one used for rendering (1) and one for asset loading (0).
+	- 1 transfer queue, only used for asset streaming.
+	*/
 	const DeviceQueueCreateInfo queueCreateInfos[] =
 	{
-		DeviceQueueCreateInfo(graphicsQueueFamily, 1 + same, PRIORITIES),
+		DeviceQueueCreateInfo(graphicsQueueFamily, 2 + same, PRIORITIES),
 		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
 	};
 
 	/* Allow the user to enable specific physical device features. */
 	PhysicalDeviceFeatures features;
-	EnableFeatures(features);
+	EnableFeatures(physicalDevice.GetFeatures(), features);
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);

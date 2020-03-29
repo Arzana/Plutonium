@@ -89,7 +89,7 @@ namespace Pu
 	using PFN_vkUpdateDescriptorSets = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ uint32 descriptorWriteCount, _In_ const WriteDescriptorSet *descriptorWrites, _In_ uint32 descriptorCopyCount, _In_ const CopyDescriptorSet *descriptorCopies);
 	using PFN_vkCmdBindDescriptorSets = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineBindPoint pipelineBindPoint, _In_ PipelineLayoutHndl layout, _In_ uint32 firstSet, _In_ uint32 descriptorSetCount, _In_ const DescriptorSetHndl *descriptorSets, _In_ uint32 dynamicOffsetCount, _In_ const uint32 *dynamicOffsets);
 	using PFN_vkCmdBindIndexBuffer = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ IndexType indexType);
-	using PFN_vkCmdDrawIndexed = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 vertexOffset, _In_ uint32 firstInstance);
+	using PFN_vkCmdDrawIndexed = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ int32 vertexOffset, _In_ uint32 firstInstance);
 	using PFN_vkGetPhysicalDeviceFormatProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ Format format, _Out_ FormatProperties *formatProperties);
 	using PFN_vkGetPhysicalDeviceImageFormatProperties = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ Format format, _In_ ImageType type, _In_ ImageTiling tilling, _In_ ImageUsageFlag usage, _In_ ImageCreateFlag flags, _Out_ ImageFormatProperties *imageFormatProperties);
 	using PFN_vkCmdCopyImageToBuffer = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl srcImage, _In_ ImageLayout srcImageLayout, _In_ BufferHndl dstBuffer, _In_ uint32 regionCount, _In_ const BufferImageCopy *regions);
@@ -122,6 +122,8 @@ namespace Pu
 	using PFN_vkAcquireFullScreenExclusiveModeEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain);
 	using PFN_vkReleaseFullScreenExclusiveModeEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain);
 	using PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ const PhysicalDeviceSurfaceInfo2Khr *surfaceInfo, _Out_ SurfaceCapabilities2Khr *surfaceCapabilities);
+	using PFN_vkCmdDrawIndirect = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ uint32 drawCount, _In_ uint32 stride);
+	using PFN_vkCmdDrawIndexedIndirect = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ uint32 drawCount, _In_ uint32 stride);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);
