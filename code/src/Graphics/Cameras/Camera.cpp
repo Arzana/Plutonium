@@ -111,12 +111,14 @@ void Pu::Camera::SetView(const Matrix & value)
 {
 	view = value;
 	viewDirty = true;
+	frustum = Frustum{ proj * view };
 }
 
 void Pu::Camera::SetProjection(const Matrix & value)
 {
 	proj = value;
 	iproj = proj.GetInverse();
+	frustum = Frustum{ proj * view };
 }
 
 void Pu::Camera::Stage(DescriptorPool&, byte * dest)

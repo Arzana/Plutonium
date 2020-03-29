@@ -69,7 +69,7 @@ namespace Pu
 		{
 			return *depthBuffer;
 		}
-
+ 
 		/* Creates a new descriptor poiol for materials rendered through this deferred renderer. */
 		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
 		/* Performs needed resource transitions. */
@@ -82,14 +82,16 @@ namespace Pu
 		void BeginLight(void);
 		/* End the deferred rendering pipeline. */
 		void End(void);
-		/* Sets the model matrix for future meshes. */
-		void SetModel(_In_ const Matrix &value);
-		/* Renders the specified mesh with the specified material to the G-Buffer. */
-		void Render(_In_ const Mesh &mesh, _In_ const Material &material);
+		/* Renders the specified model to the G-Buffer. */
+		void Render(_In_ const Model &model, _In_ const Matrix &transform);
 		/* Renders the specified direction light onto the scene. */
 		void Render(_In_ const DirectionalLight &light);
 		/* Sets the skybox to use. */
 		void SetSkybox(_In_ const TextureCube &texture);
+		/* Gets the amount of context switches performed since the last call. */
+		_Check_return_ uint32 GetBindCount(void) const;
+		/* Gets the amount of draw calls performed since the last call. */
+		_Check_return_ uint32 GetDrawCount(void) const;
 
 	private:
 		DepthBuffer *depthBuffer;
@@ -107,6 +109,7 @@ namespace Pu
 		CommandBuffer *curCmd;
 		const Camera *curCam;
 		QueryChain *geometryTimer, *lightingTimer, *postTimer;
+		mutable uint32 binds, draws;
 
 		float hdrSwapchain;
 		bool markNeeded, advanced;

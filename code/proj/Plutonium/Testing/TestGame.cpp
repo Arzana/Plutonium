@@ -71,9 +71,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
-	size_t drawCalls = 0;
-
-	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable() && model->IsLoaded())
+	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
 
@@ -89,21 +87,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		cam->Yaw = PI2;
 
 		light = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		light->SetEnvironment(environment->GetTexture());
-		//light->SetEnvironment(*skybox);
+		light->SetEnvironment(*skybox);
 
 		renderer->SetSkybox(*skybox);
-
-		probeRenderer->Initialize(cmd);
-		probeRenderer->Start(*environment, cmd);
-		for (const auto &[matIdx, mesh] : model->GetAdvancedMeshes())
-		{
-			if (environment->Cull(mesh.GetBoundingBox() * mdlMtrx) || matIdx == -1) continue;
-
-			probeRenderer->Render(mesh, model->GetProbeMaterial(matIdx), mdlMtrx, cmd);
-			++drawCalls;
-		}
-		probeRenderer->End(*environment, cmd);
 	}
 	else if (!firstRun)
 	{
@@ -127,7 +113,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			ImGui::End();
 		}
 
-		dbgRenderer->AddTransform(light->GetView(), 0.25f, Vector3::Forward());
+		dbgRenderer->AddTransform(light->GetView(), 0.25f, Vector3::Up());
 	}
 
 	if (model->IsLoaded() && cam)
@@ -137,38 +123,15 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 		renderer->BeginGeometry(*cam);
-
-		if (cam->GetClip().IntersectionBox(model->GetBoundingBox() * mdlMtrx))
-		{
-			renderer->SetModel(mdlMtrx);
-			for (const auto[mat, mesh] : model->GetBasicMeshes())
-			{
-				if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
-				{
-					renderer->Render(mesh, model->GetMaterial(mat));
-					++drawCalls;
-				}
-			}
-		}
+		renderer->Render(*model, mdlMtrx);
 
 		renderer->BeginAdvanced();
-
-		if (cam->GetClip().IntersectionBox(model->GetBoundingBox() * mdlMtrx))
-		{
-			renderer->SetModel(mdlMtrx);
-			for (const auto[mat, mesh] : model->GetAdvancedMeshes())
-			{
-				if (cam->GetClip().IntersectionBox(mesh.GetBoundingBox() * mdlMtrx) && mat != Model::DefaultMaterialIdx)
-				{
-					renderer->Render(mesh, model->GetMaterial(mat));
-					++drawCalls;
-				}
-			}
-		}
+		renderer->Render(*model, mdlMtrx);
 
 		renderer->BeginLight();
 		renderer->Render(*light);
 		renderer->End();
+
 		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 
@@ -179,7 +142,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		ImGui::Text("FPS: %d", iround(recip(dt)));
 		ImGui::Separator();
-		ImGui::Text("Draw Calls: %zu", drawCalls);
+		ImGui::Text("Bind/Draw Calls: %u/%u", renderer->GetBindCount(), renderer->GetDrawCount());
 		ImGui::Separator();
 		ImGui::Text("CPU: %zu MB / %zu MB", b2mb(cpuStats.UsedVRam), b2mb(cpuStats.TotalVRam));
 		ImGui::Separator();

@@ -3,7 +3,7 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "Graphics/Textures/TextureCube.h"
-#include "Core/Math/Matrix.h"
+#include "Core/Math/Frustum.h"
 
 namespace Pu
 {
@@ -80,6 +80,12 @@ namespace Pu
 			return brightness;
 		}
 
+		/* Gets a frustum that can be used for frustum culling. */
+		_Check_return_ inline const Frustum& GetClip(void) const
+		{
+			return frustum;
+		}
+
 		/* Sets the position of the camera. */
 		inline virtual void SetPosition(_In_ Vector3 position)
 		{
@@ -137,6 +143,7 @@ namespace Pu
 		float exposure, brightness, contrast;
 		Vector2 wndSize;
 		const NativeWindow *window;
+		Frustum frustum;
 
 		DeviceSize offsetSp1, offsetSp2, offsetSp3, offsetSp4;
 

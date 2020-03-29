@@ -1,6 +1,5 @@
 #pragma once
 #include "Camera.h"
-#include "Core/Math/Frustum.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 
 namespace Pu
@@ -56,12 +55,6 @@ namespace Pu
 			return fov;
 		}
 
-		/* Gets a frustum that can be used for frustum culling. */
-		_Check_return_ inline const Frustum& GetClip(void) const
-		{
-			return frustum;
-		}
-
 		/* Gets the orientation of the camera. */
 		_Check_return_ inline const Matrix& GetOrientation(void) const
 		{
@@ -75,7 +68,6 @@ namespace Pu
 	private:
 		float near, far, fov, aspr;
 		Matrix orien;
-		Frustum frustum;
 
 		void UpdateProjection(void);
 	};

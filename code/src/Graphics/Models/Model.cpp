@@ -86,6 +86,11 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 
 	/* Calculate the bounding box for all underlying meshes. */
 	CalculateBoundingBox();
+
+	/* Sort the meshes based on their materials. */
+	const auto materialSort = [](const Shape &a, const Shape &b) { return a.first < b.first; };
+	std::sort(BasicMeshes.begin(), BasicMeshes.end(), materialSort);
+	std::sort(AdvancedMeshes.begin(), AdvancedMeshes.end(), materialSort);
 }
 
 void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer & probes, const PuMData & data)

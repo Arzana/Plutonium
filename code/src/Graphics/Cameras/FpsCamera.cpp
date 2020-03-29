@@ -33,7 +33,6 @@ void Pu::FpsCamera::Update(float dt)
 
 	/* Update the view matrix and the clipping frustum. */
 	SetView(Matrix::CreateLookIn(GetPosition(), orien.GetForward(), orien.GetUp()));
-	frustum = Frustum(GetProjection() * GetView());
 
 	Camera::Update(dt);
 }

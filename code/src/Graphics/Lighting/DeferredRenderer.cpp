@@ -50,7 +50,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr), gfxSkybox(nullptr),
 	gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr),
-	advanced(false)
+	advanced(false), binds(0), draws(0)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -184,16 +184,39 @@ void Pu::DeferredRenderer::End(void)
 	Profiler::End();
 }
 
-void Pu::DeferredRenderer::SetModel(const Matrix & value)
+void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 {
-	curCmd->PushConstants(*(advanced ?  gfxGPassAdv : gfxGPassBasic), ShaderStageFlag::Vertex, 0, sizeof(Matrix), value.GetComponents());
-}
+	/* Only render the model if it can be viewed by the camera. */
+	const Frustum frustum = curCam->GetClip();
+	if (frustum.IntersectionBox(model.GetBoundingBox() * transform))
+	{
+		/* Set the model matrix. */
+		const GraphicsPipeline &curPipeline = *(advanced ? gfxGPassAdv : gfxGPassBasic);
+		curCmd->PushConstants(curPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
 
-void Pu::DeferredRenderer::Render(const Mesh & mesh, const Material & material)
-{
-	curCmd->BindGraphicsDescriptor(*(advanced ? gfxGPassAdv : gfxGPassBasic), material);
-	mesh.Bind(*curCmd, 0);
-	mesh.Draw(*curCmd);
+		/* Try to render all the individual meshes. */
+		uint32 oldMatIdx = ~0u;
+		for (const auto &[matIdx, mesh] : advanced ? model.GetAdvancedMeshes() : model.GetBasicMeshes())
+		{
+			/* Only render meshes that are visible by the camera and have a material. */
+			if (frustum.IntersectionBox(mesh.GetBoundingBox() * transform) && matIdx != Model::DefaultMaterialIdx)
+			{
+				/* Update the bound material if needed. */
+				if (matIdx != oldMatIdx)
+				{
+					oldMatIdx = matIdx;
+					curCmd->BindGraphicsDescriptor(curPipeline, model.GetMaterial(matIdx));
+					++binds;
+				}
+
+				/* Render the mesh. */
+				mesh.Bind(*curCmd, 0);
+				mesh.Draw(*curCmd);
+				++draws;
+				++binds; // Binding a mesh is a context switch.
+			}
+		}
+	}
 }
 
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
@@ -210,6 +233,20 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 		descSetInput->Write(SubpassSkybox, *skybox, texture);
 	}
 	else Log::Fatal("Cannot set skybox when deferred rendering is not yet finalized!");
+}
+
+Pu::uint32 Pu::DeferredRenderer::GetBindCount(void) const
+{
+	const uint32 result = binds;
+	binds = 0;
+	return result;
+}
+
+Pu::uint32 Pu::DeferredRenderer::GetDrawCount(void) const
+{
+	const uint32 result = draws;
+	draws = 0;
+	return result;
 }
 
 void Pu::DeferredRenderer::DoSkybox(void)
