@@ -69,6 +69,16 @@ struct pum_node
 	}
 };
 
+struct pum_view
+{
+	size_t Offset;
+	size_t Size;
+
+	pum_view(size_t offset)
+		: Offset(offset)
+	{}
+};
+
 struct pum_mesh
 {
 	Pu::ustring Identifier;
@@ -83,9 +93,11 @@ struct pum_mesh
 	char IndexMode;
 	char Topology;
 
+	Pu::uint32 VertexView;
 	size_t VertexViewStart;
 	size_t VertexViewSize;
 	Pu::uint32 Material;
+	Pu::uint32 IndexView;
 	size_t IndexViewStart;
 	size_t IndexViewSize;
 
@@ -317,6 +329,7 @@ struct pum_texture
 struct PumIntermediate
 {
 	Pu::vector<pum_node> Nodes;
+	Pu::vector<pum_view> Views;
 	Pu::vector<pum_mesh> Geometry;
 	Pu::vector<pum_animation> Animations;
 	Pu::vector<pum_skeleton> Skeletons;

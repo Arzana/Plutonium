@@ -5,6 +5,8 @@
 #include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
 
+#include <Streams/FileReader.h>
+
 using namespace Pu;
 
 TestGame::TestGame(void)

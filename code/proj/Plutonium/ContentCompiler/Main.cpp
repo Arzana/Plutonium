@@ -11,7 +11,6 @@ void logHelp(void)
 		"--help				Displays this message.\n"
 		"-o <path>			Specifies the output file.\n"
 		"-dn <name>			Overrides the default model name.\n"
-		"-b					Bakes meshes with identical materials into one mesh.\n"
 		"-t					Calculate vertex tangents (MikkTSpace).\n"
 		"-at <path>;<path>;	Adds the specified textures to the output model.");
 }
@@ -47,10 +46,6 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 				Log::Error("Missing name for output file after -dn!");
 				state = EXIT_FAILURE;
 			}
-		}
-		else if (cur == "-b")		// Bake meshes.
-		{
-			result.BakeMeshes = true;
 		}
 		else if (cur == "-t")		// Generate tangents.
 		{

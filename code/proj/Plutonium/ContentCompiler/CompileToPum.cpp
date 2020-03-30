@@ -22,6 +22,7 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 	writer.Write(args.DisplayName.toUTF32());
 
 	writer.Write(static_cast<uint32>(data.Nodes.size()));
+	writer.Write(static_cast<uint32>(data.Views.size()));
 	writer.Write(static_cast<uint32>(data.Geometry.size()));
 	writer.Write(static_cast<uint32>(data.Animations.size()));
 	writer.Write(static_cast<uint32>(data.Skeletons.size()));
@@ -29,17 +30,16 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 	writer.Write(static_cast<uint32>(data.Textures.size()));
 
 	/* Base offsets are always writen. */
-	const size_t baseOffset = writer.GetSize() + (sizeof(size_t) << 3);
+	const size_t baseOffset = writer.GetSize() + (sizeof(size_t) * 9);
 
 	/* Start by writing part of the header the offsets will be added once we go over the items themselves. */
 	file.Write(writer.GetData(), 0, writer.GetSize());
 	writer.Reset();
 
 	size_t offset = baseOffset;
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Nodes.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_node &node : data.Nodes)
 		{
 			writer.Write(static_cast<uint32>(node.Children.size()));
@@ -56,24 +56,36 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
+	if (data.Views.size())
+	{
+		for (const pum_view &view : data.Views)
+		{
+			writer.Write(view.Offset);
+			writer.Write(view.Size);
+		}
+
+		offset = baseOffset + writer.GetSize();
+	}
+
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Geometry.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_mesh &mesh : data.Geometry)
 		{
 			writer.Write(mesh.Identifier);
 			writer.Write(mesh.GetFlags());
 			writer.Write(mesh.Bounds.LowerBound);
 			writer.Write(mesh.Bounds.UpperBound);
+			writer.Write(mesh.VertexView);
 			writer.Write(mesh.VertexViewStart);
 			writer.Write(mesh.VertexViewSize);
 
 			if (mesh.WriteMaterialIndex) writer.Write(mesh.Material);
 			if (mesh.IndexMode != 2)
 			{
+				writer.Write(mesh.IndexView);
 				writer.Write(mesh.IndexViewStart);
 				writer.Write(mesh.IndexViewSize);
 			}
@@ -81,12 +93,10 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Animations.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_animation &anim : data.Animations)
 		{
 			writer.Write(anim.Identifier);
@@ -126,12 +136,10 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Skeletons.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_skeleton &skeleton : data.Skeletons)
 		{
 			writer.Write(skeleton.Identifier);
@@ -147,12 +155,10 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Materials.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_material &material : data.Materials)
 		{
 			writer.Write(material.Identifier);
@@ -174,12 +180,10 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
+	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 	if (data.Textures.size())
 	{
-		file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
-
 		for (const pum_texture &texture : data.Textures)
 		{
 			writer.Write(texture.Identifier);
@@ -188,7 +192,6 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 
 		offset = baseOffset + writer.GetSize();
 	}
-	else file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
 
 	/* Write the last pieces of the header to the file. */
 	file.Write(reinterpret_cast<byte*>(&offset), 0, sizeof(size_t));
@@ -222,6 +225,7 @@ int CompileToPum(const CLArgs & args)
 		ObjLoaderResult raw;
 		LoadObjMtl(args.Input, raw);
 		ObjToPum(raw, data);
+		//TODO: make sure we always generate indices for OBJ models.
 	}
 	else
 	{
@@ -229,16 +233,14 @@ int CompileToPum(const CLArgs & args)
 		return EXIT_FAILURE;
 	}
 
-	if (args.BakeMeshes) BakeMeshes(data, args.DisplayName);
-
 	if (args.RecalcTangents)
 	{
 		/* Early out if the generation failed somehow. */
 		if (GenerateTangents(data, args) == EXIT_FAILURE) return EXIT_FAILURE;
 	}
 
+	BakeMeshes(data, args.DisplayName);
 	CopyAndConvertMaterials(data, args);
-
 	SavePumToFile(args, data);
 
 	Log::Message("Finishes converting '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());

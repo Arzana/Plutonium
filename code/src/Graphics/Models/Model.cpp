@@ -78,8 +78,8 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 		if (mesh.HasNormals && mesh.HasTextureCoordinates)
 		{
 			const uint32 matIdx = mesh.HasMaterial ? mesh.Material : DefaultMaterialIdx;
-			if (mesh.HasTangents) AdvancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, mesh }));
-			else BasicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, mesh }));
+			if (mesh.HasTangents) AdvancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, data, mesh }));
+			else BasicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, data, mesh }));
 		}
 		else Log::Warning("Mesh '%ls' is not used because its vertex format is invalid!", mesh.Identifier.toWide().c_str());
 	}

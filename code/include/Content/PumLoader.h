@@ -103,6 +103,20 @@ namespace Pu
 		_Check_return_ Matrix GetTransform(void) const;
 	};
 
+	/* Defines a buffer view (bind) into the model GPU buffer. */
+	struct PumView
+	{
+		/* Defines the offset (in bytes) from where the buffer view starts. */
+		size_t Offset;
+		/* Defines the size (in bytes) of the buffer view. */
+		size_t Size;
+
+		/* Default initializes a new instance of a PuM view. */
+		PumView(void);
+		/* Initializes a new instance of a PuM view from a binary data stream. */
+		PumView(_In_ BinaryReader &reader);
+	};
+
 	/* Defines static geometry in the model. */
 	struct PumMesh
 	{
@@ -130,13 +144,17 @@ namespace Pu
 
 		/* Defines the (optional) index to the material associated with this mesh. */
 		uint32 Material;
+		/* Defines the index of the vertex view that should be bound when rendering this model. */
+		uint32 VertexView;
+		/* Defines the index of the (optional) index view that should be bound when rendering this model. */
+		uint32 IndexView;
 		/* Defines where the vertex view starts (in bytes). */
 		size_t VertexViewStart;
-		/* Defines the size (in bytes) of the vertex view. */
-		size_t VertexViewSize;
 		/* Defines where the (optional) index view starts (in bytes). */
 		size_t IndexViewStart;
-		/* Defines the size (in bytes) of the (optional) index view. */
+		/* Defines the size (in bytes) of the vertex data. */
+		size_t VertexViewSize;
+		/* Defines the size (in bytes) of the index data. */
 		size_t IndexViewSize;
 
 		/* Default initializes a new instance of a PuM mesh. */
@@ -341,6 +359,8 @@ namespace Pu
 
 		/* Defines the nodes of the model. */
 		vector<PumNode> Nodes;
+		/* Defines the buffer views of the model. */
+		vector<PumView> Views;
 		/* Defines the static geometry of the model. */
 		vector<PumMesh> Geometry;
 		/* Defines the animations of the model. */
@@ -361,7 +381,7 @@ namespace Pu
 
 		/* Returns a PuM data object with only the version, identifier set and textures set. */
 		_Check_return_ static PuMData TexturesOnly(_In_ const wstring &path);
-		/* Returns a PuM data object with only the version, identifier, nodes, geometry and GPU buffer set. */
+		/* Returns a PuM data object with only the version, identifier, nodes, views, geometry and GPU buffer set. */
 		_Check_return_ static PuMData MeshesOnly(_In_ LogicalDevice &device, _In_ const wstring &path);
 		/* Returns a PuM data object with only the version, identifier and materials set. */
 		_Check_return_ static PuMData MaterialsOnly(_In_ const wstring &path);

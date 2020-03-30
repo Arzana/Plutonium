@@ -81,6 +81,18 @@ struct NODE
 };
 
 /*
+A buffer view is defined as part of the GPU buffer.
+The section starts at the buffer + offset and it's size is in bytes.
+An example of a buffer view would be all mesh vertices with the same format, or all indices with the same stride.
+This allows for less buffer bind calls and thusly less context switching.
+*/
+struct VIEW
+{
+	unsigned long long Offset;
+	unsigned long long Size;
+};
+
+/*
 A mesh contains the static geometry data for a model positions are required but al other data is optional.
 The flags currently contain the following values:
 	- 0x01: whether a material index is present.
@@ -116,9 +128,11 @@ struct MESH
 	unsigned short int Flags;
 	BOX Bounds;
 
+	unsigned int VertexView;
 	unsigned long long VertexViewStart;
 	unsigned long long VertexViewSize;
 	unsigned int Material;				// Optional
+	unsigned int IndexView;				// Optional
 	unsigned long long IndexViewStart;	// Optional
 	unsigned long long IndexViewSize;	// Optional
 };
@@ -273,6 +287,7 @@ struct PUM
 	struct Amounts						
 	{
 		unsigned int NodeCount;
+		unsigned int ViewCount;
 		unsigned int MeshCount;
 		unsigned int AnimationCount;
 		unsigned int SkeletonCount;
@@ -283,6 +298,7 @@ struct PUM
 	struct Offsets
 	{
 		unsigned long long NodeOffset;
+		unsigned long long ViewOffset;
 		unsigned long long MeshOffset;
 		unsigned long long AnimationOffset;
 		unsigned long long SkeletonOffset;
@@ -293,6 +309,7 @@ struct PUM
 	};
 
 	NODE Nodes[NodeCount];
+	VIEW Views[ViewCount];
 	MESH Geometry[MeshCount];
 	ANIM Animations[AnimationCount];
 	SKLT Skeletons[SkinCount];

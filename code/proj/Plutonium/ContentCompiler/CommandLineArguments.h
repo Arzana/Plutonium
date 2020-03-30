@@ -13,13 +13,12 @@ struct CLArgs
 	Pu::string Output;							// -o (optional)
 	Pu::string DisplayName;						// -dn (optional)
 	ContentType Type;							// Generated (required)
-	bool BakeMeshes;							// -b (optional)
 	bool RecalcTangents;						// -t (optional)
 	Pu::vector<Pu::string> AdditionalTextures;	// -at (optional)
 	Pu::TaskScheduler *Scheduluer;				// Just use a globally available scheduler, so we don't allocate it a few times.
 
 	CLArgs(void)
-		: Type(ContentType::Unknown), RecalcTangents(false), BakeMeshes(false)
+		: Type(ContentType::Unknown), RecalcTangents(false)
 	{
 		Scheduluer = new Pu::TaskScheduler();
 	}

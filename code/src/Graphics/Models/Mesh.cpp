@@ -15,15 +15,15 @@ Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexSize, size_t indexSize, size_
 	: Mesh(buffer, 0, vertexSize, vertexSize, indexSize, vertexStride, indexStride, indexType)
 {}
 
-Pu::Mesh::Mesh(const Buffer & buffer, const PumMesh & mesh)
+Pu::Mesh::Mesh(const Buffer & buffer, const PuMData & model, const PumMesh & mesh)
 	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None),
 	boundingBox(mesh.Bounds)
 {
 	/* Create the buffer views. */
-	vertex = new BufferView(buffer, mesh.VertexViewStart, mesh.VertexViewSize, mesh.GetStride());
+	vertex = new BufferView(buffer, model.Views[mesh.VertexView].Offset + mesh.VertexViewStart, mesh.VertexViewSize, mesh.GetStride());
 	if (useIndexBuffer)
 	{
-		index = new BufferView(buffer, mesh.IndexViewStart, mesh.IndexViewSize, mesh.GetIndexStride());
+		index = new BufferView(buffer, model.Views[mesh.IndexView].Offset + mesh.IndexViewStart, mesh.IndexViewSize, mesh.GetIndexStride());
 	}
 	else index = nullptr;
 }

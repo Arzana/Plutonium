@@ -475,7 +475,7 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 		}
 
 		/* Set the size of the mesh in bytes and add it to our result. */
-		mesh.VertexViewSize = static_cast<uint32>(result.Data.GetSize() - mesh.VertexViewStart);
+		mesh.VertexViewSize = result.Data.GetSize() - mesh.VertexViewStart;
 		result.Geometry.emplace_back(mesh);
 	}
 }

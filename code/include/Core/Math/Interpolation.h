@@ -163,4 +163,16 @@ namespace Pu
 	{
 		return lerp(a, b, fadein(v));
 	}
+
+	/* Gets a dampening factor the specified value of lamnda with the specific delta time. */
+	_Check_return_ inline float damp(_In_ float lambda, _In_ float dt)
+	{
+		return 1.0f - expf(-lambda * dt);
+	}
+
+	/* Gets a damped interpolation with specified bounds (a, b). */
+	_Check_return_ inline float damp(_In_ float a, _In_ float b, _In_ float lambda, _In_ float dt)
+	{
+		return lerp(a, b, damp(lambda, dt));
+	}
 }

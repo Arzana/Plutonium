@@ -37,14 +37,25 @@ Pu::Matrix Pu::PumNode::GetTransform(void) const
 	return result;
 }
 
+Pu::PumView::PumView(void)
+	: Offset(0), Size(0)
+{}
+
+Pu::PumView::PumView(BinaryReader & reader)
+{
+	Offset = reader.ReadUInt64();
+	Size = reader.ReadUInt64();
+}
+
 Pu::PumMesh::PumMesh(void)
 	: HasMaterial(false), HasNormals(false), HasTangents(false), HasTextureCoordinates(false),
 	HasColors(false), JointType(PumJointType::None), Topology(PrimitiveTopology::PointList),
-	Material(0), VertexViewStart(0), VertexViewSize(0)
+	Material(0), VertexView(0), IndexView(0), VertexViewStart(0), IndexViewStart(0),
+	VertexViewSize(0), IndexViewSize(0)
 {}
 
 Pu::PumMesh::PumMesh(BinaryReader & reader)
-	: Material(0), IndexViewStart(0), IndexViewSize(0)
+	: Material(0), IndexView(0), IndexViewStart(0)
 {
 	Identifier = reader.ReadUString();
 
@@ -61,12 +72,14 @@ Pu::PumMesh::PumMesh(BinaryReader & reader)
 	Bounds.LowerBound = reader.ReadVector3();
 	Bounds.UpperBound = reader.ReadVector3();
 
+	VertexView = reader.ReadUInt32();
 	VertexViewStart = reader.ReadUInt64();
 	VertexViewSize = reader.ReadUInt64();
 
 	if (HasMaterial) Material = reader.ReadUInt32();
 	if (IndexType != PumIndexType::None)
 	{
+		IndexView = reader.ReadUInt32();
 		IndexViewStart = reader.ReadUInt64();
 		IndexViewSize = reader.ReadUInt64();
 	}
@@ -267,6 +280,7 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 	Identifier = reader.ReadUString();
 
 	const uint32 nodeCount = reader.ReadUInt32();
+	const uint32 viewCount = reader.ReadUInt32();
 	const uint32 meshCount = reader.ReadUInt32();
 	const uint32 animationCount = reader.ReadUInt32();
 	const uint32 skeletonCount = reader.ReadUInt32();
@@ -274,6 +288,7 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 	const uint32 textureCount = reader.ReadUInt32();
 
 	const uint64 nodeOffset = reader.ReadUInt64();
+	const uint64 viewOffset = reader.ReadUInt64();
 	const uint64 meshOffset = reader.ReadUInt64();
 	const uint64 animationOffset = reader.ReadUInt64();
 	const uint64 skeletonOffset = reader.ReadUInt64();
@@ -283,27 +298,31 @@ Pu::PuMData::PuMData(LogicalDevice & device, BinaryReader & reader)
 	const uint64 bufferSize = reader.ReadUInt64();
 
 	Nodes.reserve(nodeCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(nodeOffset));
+	reader.Seek(nodeOffset);
 	for (uint32 i = 0; i < nodeCount; i++) Nodes.emplace_back(reader);
 
+	Views.reserve(viewCount);
+	reader.Seek(viewOffset);
+	for (uint32 i = 0; i < viewCount; i++) Views.emplace_back(reader);
+
 	Geometry.reserve(meshCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(meshOffset));
+	reader.Seek(meshOffset);
 	for (uint32 i = 0; i < meshCount; i++) Geometry.emplace_back(reader);
 
 	Animations.reserve(animationCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(animationOffset));
+	reader.Seek(animationOffset);
 	for (uint32 i = 0; i < animationCount; i++) Animations.emplace_back(reader);
 
 	Skeletons.reserve(skeletonCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(skeletonOffset));
+	reader.Seek(skeletonOffset);
 	for (uint32 i = 0; i < skeletonCount; i++) Skeletons.emplace_back(reader);
 
 	Materials.reserve(materialCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(materialOffset));
+	reader.Seek(materialOffset);
 	for (uint32 i = 0; i < materialCount; i++) Materials.emplace_back(reader);
 
 	Textures.reserve(textureCount);
-	reader.Seek(SeekOrigin::Begin, static_cast<int64>(textureOffset));
+	reader.Seek(textureOffset);
 	for (uint32 i = 0; i < textureCount; i++) Textures.emplace_back(reader);
 
 	Buffer = new StagingBuffer(device, bufferSize);
@@ -318,16 +337,16 @@ Pu::PuMData Pu::PuMData::TexturesOnly(const wstring & path)
 	PuMData result;
 	if (!SetHeader(result, reader)) return result;
 
-	/* We can skip the first 5 counts. */
-	reader.Seek(SeekOrigin::Current, sizeof(uint32) * 5);
+	/* We can skip the first 6 counts. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint32) * 6);
 
 	/* Get the amount of textures. */
 	uint32 textureCount;
 	reader.Read(textureCount);
 	result.Textures.reserve(textureCount);
 
-	/* The first 5 offsets can be skipped. */
-	reader.Seek(SeekOrigin::Current, sizeof(uint64) * 5);
+	/* The first 6 offsets can be skipped. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint64) * 6);
 
 	/* Read the texture offset and seek to it. */
 	uint64 offset, end;
@@ -360,6 +379,11 @@ Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path
 	reader.Read(nodeCount);
 	result.Nodes.reserve(nodeCount);
 
+	/* Get the amount of views. */
+	uint32 viewCount;
+	reader.Read(viewCount);
+	result.Views.reserve(viewCount);
+
 	/* Get the amount of meshes. */
 	uint32 meshCount;
 	reader.Read(meshCount);
@@ -368,9 +392,13 @@ Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path
 	/* The remaining counts can be skipped. */
 	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2));
 
-	/* Read the node offset, ends at the mesh start. */
+	/* Read the node offset, ends at the view start. */
 	uint64 nodeOffset;
 	reader.Read(nodeOffset);
+
+	/* Read the view offset, ends at the mesh start. */
+	uint64 viewOffset;
+	reader.Read(viewOffset);
 
 	/* Read the mesh offset and the mesh end. */
 	uint64 offset, end;
@@ -392,8 +420,9 @@ Pu::PuMData Pu::PuMData::MeshesOnly(LogicalDevice & device, const wstring & path
 	reader.Read(data, 0, size);
 	BinaryReader binary{ data, size, Endian::Little };
 
-	/* Read the nodes and geometry data (nodes and meshes are tightly packed so we don't have to seek). */
+	/* Read the nodes, views, and geometry data (nodes and meshes are tightly packed so we don't have to seek). */
 	for (uint32 i = 0; i < nodeCount; i++) result.Nodes.emplace_back(binary);
+	for (uint32 i = 0; i < viewCount; i++) result.Views.emplace_back(binary);
 	for (uint32 i = 0; i < meshCount; i++) result.Geometry.emplace_back(binary);
 	free(data);
 
@@ -415,16 +444,16 @@ Pu::PuMData Pu::PuMData::MaterialsOnly(const wstring & path)
 	PuMData result;
 	if (!SetHeader(result, reader)) return result;
 
-	/* We can skip the first 4 counts. */
-	reader.Seek(SeekOrigin::Current, (sizeof(uint32) << 2));
+	/* We can skip the first 5 counts. */
+	reader.Seek(SeekOrigin::Current, (sizeof(uint32) * 5));
 
 	/* Get the amount of materials. */
 	uint32 materialCount;
 	reader.Read(materialCount);
 	result.Materials.reserve(materialCount);
 
-	/* The first 4 offsets can be skipped and the texture count. */
-	reader.Seek(SeekOrigin::Current, sizeof(uint32) + (sizeof(uint64) << 2));
+	/* The first 5 offsets can be skipped and the texture count. */
+	reader.Seek(SeekOrigin::Current, sizeof(uint32) + (sizeof(uint64) * 5));
 
 	/* Read the material offset and seek to it. */
 	uint64 offset, end;
