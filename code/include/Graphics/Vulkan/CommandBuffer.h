@@ -1,5 +1,4 @@
 #pragma once
-#include "Graphics/Resources/BufferView.h"
 #include "Pipelines/GraphicsPipeline.h"
 #include "DescriptorSetGroup.h"
 #include "Graphics/Color.h"
@@ -102,9 +101,9 @@ namespace Pu
 		/* Appends a graphics pipeline bind command to the command buffer. */
 		void BindGraphicsPipeline(_In_ const GraphicsPipeline &pipeline);
 		/* Appends a vertex buffer bind command to the command buffer. */
-		void BindVertexBuffer(_In_ uint32 binding, _In_ const BufferView &view);
+		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_ DeviceSize offset);
 		/* Appends a index buffer bind command to the command buffer. */
-		void BindIndexBuffer(_In_ const BufferView &view, _In_ IndexType type);
+		void BindIndexBuffer(_In_ IndexType type, _In_ const Buffer &buffer, _In_ DeviceSize offset);
 		/* Appends a update for the push constrant to the command buffer. */
 		void PushConstants(_In_ const Pipeline &pipeline, _In_ ShaderStageFlag stage, _In_ uint32 offset, _In_ size_t size, _In_ const void *constants);
 		/* Appends a graphics descriptor bind command to the command buffer. */

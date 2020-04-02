@@ -194,8 +194,11 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 		const GraphicsPipeline &curPipeline = *(advanced ? gfxGPassAdv : gfxGPassBasic);
 		curCmd->PushConstants(curPipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
 
+		uint32 oldMatIdx = Model::DefaultMaterialIdx;
+		uint32 oldVrtxView = Mesh::DefaultViewIdx;
+		uint32 oldIdxView = Mesh::DefaultViewIdx;
+
 		/* Try to render all the individual meshes. */
-		uint32 oldMatIdx = ~0u;
 		for (const auto &[matIdx, mesh] : advanced ? model.GetAdvancedMeshes() : model.GetBasicMeshes())
 		{
 			/* Only render meshes that are visible by the camera and have a material. */
@@ -209,11 +212,25 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 					++binds;
 				}
 
+				/* Update the vertex binding if needed. */
+				if (mesh.GetVertexView() != oldVrtxView)
+				{
+					oldVrtxView = mesh.GetVertexView();
+					curCmd->BindVertexBuffer(0, model.GetBuffer(), model.GetViewOffset(oldVrtxView));
+					++binds;
+				}
+
+				/* Update the index binding if needed. */
+				if (mesh.GetIndexView() != oldIdxView)
+				{
+					oldIdxView = mesh.GetIndexView();
+					curCmd->BindIndexBuffer(mesh.GetIndexType(), model.GetBuffer(), model.GetViewOffset(oldIdxView));
+					++binds;
+				}
+
 				/* Render the mesh. */
-				mesh.Bind(*curCmd, 0);
-				mesh.Draw(*curCmd);
+				mesh.Draw(*curCmd, 1);
 				++draws;
-				++binds; // Binding a mesh is a context switch.
 			}
 		}
 	}

@@ -70,5 +70,6 @@ namespace Pu
 
 		Texture2D& GetDefaultDiffuse(void);
 		Texture2D& GetDefaultSpecGloss(void);
+		Texture2D& GetDefaultBump(void);
 	};
 }

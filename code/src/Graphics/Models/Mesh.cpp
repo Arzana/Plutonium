@@ -1,113 +1,43 @@
 #include "Graphics/Models/Mesh.h"
 
 Pu::Mesh::Mesh(void)
-	: vertex(nullptr), index(nullptr)
+	: stride(0), vertexView(DefaultViewIdx), offset(0),
+	indexView(DefaultViewIdx), first(0), count(0)
 {}
 
-Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexOffset, size_t vertexSize, size_t indexOffset, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
-	: type(indexType), useIndexBuffer(true)
-{
-	vertex = new BufferView(buffer, vertexOffset, vertexSize, vertexStride);
-	index = new BufferView(buffer, indexOffset, indexSize, indexStride);
-}
-
-Pu::Mesh::Mesh(const Buffer & buffer, size_t vertexSize, size_t indexSize, size_t vertexStride, size_t indexStride, IndexType indexType)
-	: Mesh(buffer, 0, vertexSize, vertexSize, indexSize, vertexStride, indexStride, indexType)
+Pu::Mesh::Mesh(uint32 indexCount, uint32 vertexView, uint32 indexView, uint32 firstIndex, size_t vertexStride, IndexType indexType)
+	: type(indexType), stride(static_cast<uint32>(vertexStride)), vertexView(vertexView), 
+	count(indexCount), indexView(indexView), first(firstIndex), offset(0)
 {}
 
-Pu::Mesh::Mesh(const Buffer & buffer, const PuMData & model, const PumMesh & mesh)
-	: type(static_cast<IndexType>(mesh.IndexType)), useIndexBuffer(mesh.IndexType != PumIndexType::None),
-	boundingBox(mesh.Bounds)
+Pu::Mesh::Mesh(uint32 elementCount, size_t vertexStride, IndexType indexType)
+	: Mesh(elementCount, 0, 0, 0, vertexStride, indexType)
+{}
+
+Pu::Mesh::Mesh(const PumMesh & mesh)
+	: type(static_cast<IndexType>(mesh.IndexType)), boundingBox(mesh.Bounds), 
+	stride(mesh.GetStride()), vertexView(mesh.VertexView)
 {
-	/* Create the buffer views. */
-	vertex = new BufferView(buffer, model.Views[mesh.VertexView].Offset + mesh.VertexViewStart, mesh.VertexViewSize, mesh.GetStride());
-	if (useIndexBuffer)
+	if (mesh.IndexType != PumIndexType::None)
 	{
-		index = new BufferView(buffer, model.Views[mesh.IndexView].Offset + mesh.IndexViewStart, mesh.IndexViewSize, mesh.GetIndexStride());
+		const uint32 idxStride = mesh.GetIndexStride();
+
+		indexView = mesh.IndexView;
+		offset = static_cast<int32>(mesh.VertexViewStart) / stride;
+		first = static_cast<uint32>(mesh.IndexViewStart) / idxStride;
+		count = static_cast<uint32>(mesh.IndexViewSize) / idxStride;
 	}
-	else index = nullptr;
-}
-
-Pu::Mesh::Mesh(const Mesh & value)
-	: type(value.type), useIndexBuffer(value.useIndexBuffer), boundingBox(value.boundingBox)
-{
-	vertex = new BufferView(*value.vertex);
-	index = useIndexBuffer ? new BufferView(*value.index) : nullptr;
-}
-
-Pu::Mesh::Mesh(Mesh && value)
-	: type(value.type), vertex(value.vertex),
-	index(value.index), useIndexBuffer(value.useIndexBuffer),
-	boundingBox(value.boundingBox)
-{
-	value.vertex = nullptr;
-	value.index = nullptr;
-}
-
-Pu::Mesh & Pu::Mesh::operator=(const Mesh & other)
-{
-	if (this != &other)
+	else
 	{
-		Destroy();
-
-		type = other.type;
-		useIndexBuffer = other.useIndexBuffer;
-		vertex = new BufferView(*other.vertex);
-		index = useIndexBuffer ? new BufferView(*other.index) : nullptr;
-		boundingBox = other.boundingBox;
+		indexView = DefaultViewIdx;
+		offset = 0;
+		first = static_cast<uint32>(mesh.VertexViewStart) / stride;
+		count = static_cast<uint32>(mesh.VertexViewSize) / stride;
 	}
-
-	return *this;
 }
 
-Pu::Mesh & Pu::Mesh::operator=(Mesh && other)
+void Pu::Mesh::Draw(CommandBuffer & cmdBuffer, uint32 instanceCount) const
 {
-	if (this != &other)
-	{
-		Destroy();
-
-		type = other.type;
-		useIndexBuffer = other.useIndexBuffer;
-		vertex = other.vertex;
-		index = other.index;
-		boundingBox = other.boundingBox;
-
-		other.vertex = nullptr;
-		other.index = nullptr;
-	}
-
-	return *this;
-}
-
-void Pu::Mesh::Bind(CommandBuffer & cmdBuffer, uint32 binding) const
-{
-	/* Only do this check on debug, should hardly occur. */
-#ifdef _DEBUG
-	Check();
-#endif
-
-	if (useIndexBuffer) cmdBuffer.BindIndexBuffer(*index, type);
-	cmdBuffer.BindVertexBuffer(binding, *vertex);
-}
-
-void Pu::Mesh::DrawInstanced(CommandBuffer & cmdBuffer, uint32 instanceCount) const
-{
-	/* Only do this check on debug, should hardly occur. */
-#ifdef _DEBUG
-	Check();
-#endif
-
-	if (useIndexBuffer) cmdBuffer.Draw(static_cast<uint32>(index->GetElementCount()), instanceCount, 0, 0, 0);
-	else cmdBuffer.Draw(static_cast<uint32>(vertex->GetElementCount()), instanceCount, 0, 0);
-}
-
-void Pu::Mesh::Check(void) const
-{
-	if (!vertex || (useIndexBuffer && !index)) Log::Fatal("Cannot bind invalid mesh!");
-}
-
-void Pu::Mesh::Destroy(void)
-{
-	if (vertex) delete vertex;
-	if (index) delete index;
+	if (indexView != DefaultViewIdx) cmdBuffer.Draw(count, instanceCount, first, 0, offset);
+	else cmdBuffer.Draw(count, instanceCount, first, 0);
 }

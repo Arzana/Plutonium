@@ -5,8 +5,6 @@
 #include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
 
-#include <Streams/FileReader.h>
-
 using namespace Pu;
 
 TestGame::TestGame(void)
@@ -22,7 +20,6 @@ void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::
 {
 	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
 	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
-	if (supported.MultiDrawIndirect) enabeled.MultiDrawIndirect = true;	// Allows for less draw calls.
 
 	enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
 	enabeled.GeometryShader = true;		// Needed for the light probe renderer.

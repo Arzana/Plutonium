@@ -2,16 +2,15 @@
 #include "Graphics/VertexLayouts/Image2D.h"
 
 Pu::TextBuffer::TextBuffer(LogicalDevice & device, size_t initialSize)
-	: device(&device), view(nullptr)
+	: device(&device), count(0)
 {
 	AllocBuffer(initialSize * sizeof(Image2D) * 6);
 }
 
 Pu::TextBuffer::TextBuffer(TextBuffer && value)
-	: device(value.device), buffer(value.buffer), view(value.view)
+	: device(value.device), buffer(value.buffer), count(value.count)
 {
 	value.buffer = nullptr;
-	value.view = nullptr;
 }
 
 Pu::TextBuffer & Pu::TextBuffer::operator=(TextBuffer && other)
@@ -22,10 +21,9 @@ Pu::TextBuffer & Pu::TextBuffer::operator=(TextBuffer && other)
 
 		device = other.device;
 		buffer = other.buffer;
-		view = other.view;
+		count = other.count;
 
 		other.buffer = nullptr;
-		other.view = nullptr;
 	}
 
 	return *this;
@@ -50,11 +48,11 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font & font, const GameW
 	Image2D *data = reinterpret_cast<Image2D*>(buffer->GetHostMemory());
 
 	Vector2 adder(0.0f, lh);
-	size_t i = 0;
 
 	bool firstChar = true;
 	char32 old = U'\0';
 
+	count = 0;
 	for (char32 key : str)
 	{
 		/* Add kerning advance. */
@@ -76,21 +74,17 @@ void Pu::TextBuffer::SetText(const ustring & str, const Font & font, const GameW
 		const Vector2 br = wnd.ToLinearClipSpace(Vector4(adder + glyph.Bearing + glyph.Size, 0.0f, 1.0f)).XY;
 
 		/* Copy the vertex data to the buffer. */
-		data[i++] = Image2D(tl, glyph.U);
-		data[i++] = Image2D(tl.X, br.Y, glyph.U.X, glyph.V.Y);
-		data[i++] = Image2D(br, glyph.V);
-		data[i++] = Image2D(tl, glyph.U);
-		data[i++] = Image2D(br, glyph.V);
-		data[i++] = Image2D(br.X, tl.Y, glyph.V.X, glyph.U.Y);
+		data[count++] = Image2D(tl, glyph.U);
+		data[count++] = Image2D(tl.X, br.Y, glyph.U.X, glyph.V.Y);
+		data[count++] = Image2D(br, glyph.V);
+		data[count++] = Image2D(tl, glyph.U);
+		data[count++] = Image2D(br, glyph.V);
+		data[count++] = Image2D(br.X, tl.Y, glyph.V.X, glyph.U.Y);
 
 		adder.X += static_cast<float>(glyph.Advance);
 	}
 
 	buffer->EndMemoryTransfer();
-
-	/* Delete the old buffer view if needed and create a new buffer view for rendering. */
-	if (view) delete view;
-	view = new BufferView(*buffer, 0, i * sizeof(Image2D), sizeof(Image2D));
 }
 
 void Pu::TextBuffer::ReallocBuffer(size_t newSize)
@@ -110,5 +104,4 @@ void Pu::TextBuffer::AllocBuffer(size_t size)
 void Pu::TextBuffer::Destroy(void)
 {
 	if (buffer) delete buffer;
-	if (view) delete view;
 }

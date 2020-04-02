@@ -41,25 +41,25 @@ namespace Pu
 		/* Gets the meshes (with vertex format of Basic3D) in this model. */
 		_Check_return_ inline const vector<Shape>& GetBasicMeshes(void) const
 		{
-			return BasicMeshes;
+			return basicMeshes;
 		}
 
 		/* Gets the meshes (with vertex format of Advanced3D) in this model. */
 		_Check_return_ inline const vector<Shape>& GetAdvancedMeshes(void) const
 		{
-			return AdvancedMeshes;
+			return advancedMeshes;
 		}
 
 		/* Gets the material at the specified index. */
 		_Check_return_ inline const Material& GetMaterial(_In_ uint32 idx) const
 		{
-			return Materials.at(idx);
+			return materials.at(idx);
 		}
 
 		/* Gets the material used to render the light probes at the specified index. */
 		_Check_return_ inline const DescriptorSet& GetProbeMaterial(_In_ uint32 idx) const
 		{
-			return ProbeMaterials.at(idx);
+			return probeMaterials.at(idx);
 		}
 
 		/* Gets the bounding box of this model. */
@@ -68,16 +68,19 @@ namespace Pu
 			return boundingBox;
 		}
 
-	protected:
-		/* Defines the basic meshes and their material index. */
-		vector<Shape> BasicMeshes;
-		/* Defines the advanced meshes and their material index. */
-		vector<Shape> AdvancedMeshes;
-		/* Defines the materials. */
-		vector<Material> Materials;
-		/* Defines the materials used in the light probes. */
-		vector<DescriptorSet> ProbeMaterials;
+		/* Gets the offset into the GPU data at which the specified view starts. */
+		_Check_return_ inline DeviceSize GetViewOffset(_In_ uint32 idx) const
+		{
+			return views.at(idx).Offset;
+		}
 
+		/* Gets the GPU data buffer. */
+		_Check_return_ inline const Buffer& GetBuffer(void) const
+		{
+			return *gpuData;
+		}
+
+	protected:
 		/* Increases the reference counter by one and returns itself. */
 		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache&);
 
@@ -87,9 +90,15 @@ namespace Pu
 
 		DescriptorPool *poolMaterials, *poolProbes;
 		Buffer *gpuData;
-		vector<Texture2D*> textures;
-		vector<PumNode> nodes;
 		AABB boundingBox;
+
+		vector<PumNode> nodes;
+		vector<Shape> basicMeshes;
+		vector<Shape> advancedMeshes;
+		vector<Material> materials;
+		vector<DescriptorSet> probeMaterials;
+		vector<Texture2D*> textures;
+		vector<PumView> views;
 
 		void AllocBuffer(LogicalDevice &device, const StagingBuffer &buffer);
 		void AllocPools(const DeferredRenderer &deferred, const LightProbeRenderer &probes, size_t count);

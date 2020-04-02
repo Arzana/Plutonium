@@ -100,7 +100,7 @@ Pu::uint32 Pu::PumMesh::GetStride(void) const
 
 Pu::uint32 Pu::PumMesh::GetIndexStride(void) const
 {
-	return IndexType == PumIndexType::None ? 0 : (IndexType == PumIndexType::UInt16 ? sizeof(uint16) : sizeof(uint32));
+	return (_CrtEnum2Int(IndexType) * 2 + 2) * (IndexType != PumIndexType::None);
 }
 
 Pu::PumFrame::PumFrame(void)

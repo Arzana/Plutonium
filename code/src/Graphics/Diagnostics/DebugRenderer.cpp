@@ -8,7 +8,6 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
-	bufferView = new BufferView(*buffer, sizeof(ColoredVertex3D));
 	queue = reinterpret_cast<ColoredVertex3D*>(malloc(sizeof(ColoredVertex3D) * MaxDebugRendererVertices));
 
 	renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
@@ -27,7 +26,6 @@ Pu::DebugRenderer::~DebugRenderer(void)
 	loader.Release(*renderpass);
 
 	delete buffer;
-	delete bufferView;
 	delete queue;
 }
 
@@ -242,7 +240,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 			cmdBuffer.PushConstants(*pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix) << 1, constants);
 
 			/* Render the debug lines. */
-			cmdBuffer.BindVertexBuffer(0, *bufferView);
+			cmdBuffer.BindVertexBuffer(0, *buffer, 0);
 			cmdBuffer.Draw(size, 1, 0, 0);
 
 			/* End the renderpass. */

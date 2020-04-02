@@ -9,9 +9,10 @@ Pu::Model::Model(void)
 
 Pu::Model::Model(Model && value)
 	: Asset(std::move(value)), Category(value.Category), gpuData(value.gpuData),
-	BasicMeshes(std::move(value.BasicMeshes)), AdvancedMeshes(std::move(value.AdvancedMeshes)),
-	Materials(std::move(value.Materials)), ProbeMaterials(std::move(value.ProbeMaterials)),
-	poolMaterials(value.poolMaterials), poolProbes(value.poolProbes), textures(value.textures)
+	basicMeshes(std::move(value.basicMeshes)), advancedMeshes(std::move(value.advancedMeshes)),
+	materials(std::move(value.materials)), probeMaterials(std::move(value.probeMaterials)),
+	poolMaterials(value.poolMaterials), poolProbes(value.poolProbes), textures(value.textures),
+	nodes(std::move(value.nodes)), views(std::move(value.views))
 {
 	value.gpuData = nullptr;
 	value.poolMaterials = nullptr;
@@ -26,14 +27,16 @@ Pu::Model & Pu::Model::operator=(Model && other)
 		Asset::operator=(std::move(other));
 
 		Category = other.Category;
-		BasicMeshes = std::move(other.BasicMeshes);
-		AdvancedMeshes = std::move(other.AdvancedMeshes);
-		Materials = std::move(other.Materials);
+		basicMeshes = std::move(other.basicMeshes);
+		advancedMeshes = std::move(other.advancedMeshes);
+		materials = std::move(other.materials);
 		gpuData = other.gpuData;
-		ProbeMaterials = std::move(other.ProbeMaterials);
+		probeMaterials = std::move(other.probeMaterials);
 		poolMaterials = other.poolMaterials;
 		poolProbes = other.poolProbes;
 		textures = std::move(other.textures);
+		nodes = std::move(other.nodes);
+		views = std::move(other.views);
 
 		other.gpuData = nullptr;
 		other.poolMaterials = nullptr;
@@ -58,8 +61,8 @@ void Pu::Model::AllocBuffer(LogicalDevice & device, const StagingBuffer & buffer
 void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer & probes, size_t count)
 {
 	/* Reserve the material vectors to decrease allocations. */
-	Materials.reserve(count);
-	ProbeMaterials.reserve(count);
+	materials.reserve(count);
+	probeMaterials.reserve(count);
 
 	/* Allocate the required descriptor pools. */
 	poolMaterials = deferred.CreateMaterialDescriptorPool(static_cast<uint32>(count));
@@ -71,6 +74,7 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 	/* Allocate the GPU buffer. */
 	AllocBuffer(device, *data.Buffer);
 	nodes = data.Nodes;
+	views = data.Views;
 
 	/* Load all the meshes. */
 	for (const PumMesh &mesh : data.Geometry)
@@ -78,19 +82,14 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 		if (mesh.HasNormals && mesh.HasTextureCoordinates)
 		{
 			const uint32 matIdx = mesh.HasMaterial ? mesh.Material : DefaultMaterialIdx;
-			if (mesh.HasTangents) AdvancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, data, mesh }));
-			else BasicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ *gpuData, data, mesh }));
+			if (mesh.HasTangents) advancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ mesh }));
+			else basicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ mesh }));
 		}
 		else Log::Warning("Mesh '%ls' is not used because its vertex format is invalid!", mesh.Identifier.toWide().c_str());
 	}
 
 	/* Calculate the bounding box for all underlying meshes. */
 	CalculateBoundingBox();
-
-	/* Sort the meshes based on their materials. */
-	const auto materialSort = [](const Shape &a, const Shape &b) { return a.first < b.first; };
-	std::sort(BasicMeshes.begin(), BasicMeshes.end(), materialSort);
-	std::sort(AdvancedMeshes.begin(), AdvancedMeshes.end(), materialSort);
 }
 
 void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer & probes, const PuMData & data)
@@ -100,9 +99,9 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 	for (const PumMaterial &raw : data.Materials)
 	{
 		/* Get the indices of the textures to use, the last 3 are default textures. */
-		const size_t diffuseMap = raw.HasDiffuseTexture ? raw.DiffuseTexture : textures.size() - 2;
-		const size_t specGlossMap = raw.HasSpecGlossTexture ? raw.SpecGlossTexture : textures.size() - 1;
-		const size_t normalMap = raw.HasNormalTexture ? raw.NormalTexture : DefaultMaterialIdx;
+		const size_t diffuseMap = raw.HasDiffuseTexture ? raw.DiffuseTexture : textures.size() - 3;
+		const size_t specGlossMap = raw.HasSpecGlossTexture ? raw.SpecGlossTexture : textures.size() - 2;
+		const size_t normalMap = raw.HasNormalTexture ? raw.NormalTexture : textures.size() - 1;
 
 		AddMaterial(diffuseMap, specGlossMap, normalMap, deferred, probes).SetParameters(raw);
 	}
@@ -114,26 +113,26 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
 {
 	/* Create the light probe material for this material. */
-	DescriptorSet &set = ProbeMaterials.emplace_back(*poolProbes, 0, probes.GetLayout());
+	DescriptorSet &set = probeMaterials.emplace_back(*poolProbes, 0, probes.GetLayout());
 	set.Write(probes.GetDiffuseDescriptor(), *textures[diffuse]);
 
 	/* Create the deferred material for this material. */
-	Material &material = Materials.emplace_back(*poolMaterials, deferred.GetMaterialLayout());
+	Material &material = materials.emplace_back(*poolMaterials, deferred.GetMaterialLayout());
 	material.SetDiffuse(*textures[diffuse]);
 	material.SetSpecular(*textures[specular]);
-	if (normal != DefaultMaterialIdx) material.SetNormal(*textures[normal]);
+	material.SetNormal(*textures[normal]);
 
 	return material;
 }
 
 void Pu::Model::CalculateBoundingBox(void)
 {
-	for (const auto[mat, mesh] : BasicMeshes)
+	for (const auto[mat, mesh] : basicMeshes)
 	{
 		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
 	}
 
-	for (const auto[mat, mesh] : AdvancedMeshes)
+	for (const auto[mat, mesh] : advancedMeshes)
 	{
 		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
 	}
@@ -146,14 +145,14 @@ void Pu::Model::Destroy(void)
 	/* Delete the material descriptors in one go, and the delete their parent pool. */
 	if (poolMaterials)
 	{
-		for (Material &cur : Materials) cur.Free();
+		for (Material &cur : materials) cur.Free();
 		delete poolMaterials;
 	}
 
 	/* Delete the material descriptors in one go, and the delete their parent pool. */
 	if (poolProbes)
 	{
-		for (DescriptorSet &cur : ProbeMaterials) cur.Free();
+		for (DescriptorSet &cur : probeMaterials) cur.Free();
 		delete poolProbes;
 	}
 }

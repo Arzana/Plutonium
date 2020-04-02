@@ -176,7 +176,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Platform\SwapchainReCreatedEventArgs.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\WindowMode.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Windows\Win32Window.h" />
-    <ClInclude Include="..\..\..\include\Graphics\Resources\BufferView.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\DynamicBuffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\ImageHandler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Resources\SingleUseCommandBuffer.h" />
@@ -341,7 +340,6 @@
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Windows\Win32Window.cpp" />
-    <ClCompile Include="..\..\..\src\Graphics\Resources\BufferView.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\DynamicBuffer.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\ImageHandler.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Resources\SingleUseCommandBuffer.cpp" />

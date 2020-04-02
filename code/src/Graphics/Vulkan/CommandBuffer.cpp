@@ -256,16 +256,16 @@ void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.Hndl);
 }
 
-void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const BufferView & view)
+void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, DeviceSize offset)
 {
 	DbgCheckIfRecording("bind vertex buffer");
-	device->vkCmdBindVertexBuffers(hndl, binding, 1, &view.buffer->bufferHndl, static_cast<const DeviceSize*>(&view.offset));
+	device->vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, &offset);
 }
 
-void Pu::CommandBuffer::BindIndexBuffer(const BufferView & view, IndexType type)
+void Pu::CommandBuffer::BindIndexBuffer(IndexType type, const Buffer & buffer, DeviceSize offset)
 {
 	DbgCheckIfRecording("bind index buffer");
-	device->vkCmdBindIndexBuffer(hndl, view.buffer->bufferHndl, static_cast<DeviceSize>(view.offset), type);
+	device->vkCmdBindIndexBuffer(hndl, buffer.bufferHndl, offset, type);
 }
 
 void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)

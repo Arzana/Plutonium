@@ -562,28 +562,29 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			/* Allocate the source and destination buffer. */
 			StagingBuffer *src = new StagingBuffer(parent.GetDevice(), bufferSize);
 			result.AllocBuffer(parent.GetDevice(), *src);
+			//TODO: add the views here.
 
 			/* Create the mesh. */
 			Mesh mesh;
 			switch (meshType)
 			{
 			case ShapeType::Plane:
-				mesh = std::move(ShapeCreator::Plane(*src, *result.gpuData));
+				mesh = std::move(ShapeCreator::Plane(*src));
 				break;
 			case ShapeType::Box:
-				mesh = std::move(ShapeCreator::Box(*src, *result.gpuData));
+				mesh = std::move(ShapeCreator::Box(*src));
 				break;
 			case ShapeType::Sphere:
-				mesh = std::move(ShapeCreator::Sphere(*src, *result.gpuData, divisions));
+				mesh = std::move(ShapeCreator::Sphere(*src, divisions));
 				break;
 			case ShapeType::Dome:
-				mesh = std::move(ShapeCreator::Dome(*src, *result.gpuData, divisions));
+				mesh = std::move(ShapeCreator::Dome(*src, divisions));
 				break;
 			}
 
 			/* Add the basic mesh to the model's list. */
 			parent.StageBuffer(*src, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-			result.BasicMeshes.emplace_back(std::make_pair(0, std::move(mesh)));
+			result.basicMeshes.emplace_back(std::make_pair(0, std::move(mesh)));
 			result.CalculateBoundingBox();
 			return Result::CustomWait();
 		}

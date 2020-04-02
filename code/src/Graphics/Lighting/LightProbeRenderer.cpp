@@ -75,12 +75,40 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 	cmdBuffer.SetViewportAndScissor(probe.GetViewport());
 }
 
-void Pu::LightProbeRenderer::Render(const Mesh & mesh, const DescriptorSet & material, const Matrix &model, CommandBuffer & cmdBuffer)
+void Pu::LightProbeRenderer::Render(CommandBuffer & cmdBuffer, const Model & model, const Matrix & transform)
 {
-	cmdBuffer.PushConstants(*gfx, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &model);
-	cmdBuffer.BindGraphicsDescriptor(*gfx, material);
-	mesh.Bind(cmdBuffer, 0);
-	mesh.Draw(cmdBuffer);
+	cmdBuffer.PushConstants(*gfx, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &transform);
+
+	uint32 oldMatIdx = Model::DefaultMaterialIdx;
+	uint32 oldVrtxView = Mesh::DefaultViewIdx;
+	uint32 oldIdxView = Mesh::DefaultViewIdx;
+
+	/* Try to render all the individual meshes. */
+	for (const auto &[matIdx, mesh] : model.GetAdvancedMeshes())
+	{
+		/* Update the bound material if needed. */
+		if (matIdx != oldMatIdx)
+		{
+			oldMatIdx = matIdx;
+			cmdBuffer.BindGraphicsDescriptor(*gfx, model.GetProbeMaterial(matIdx));
+		}
+
+		/* Update the vertex binding if needed. */
+		if (mesh.GetVertexView() != oldVrtxView)
+		{
+			oldVrtxView = mesh.GetVertexView();
+			cmdBuffer.BindVertexBuffer(0, model.GetBuffer(), model.GetViewOffset(oldVrtxView));
+		}
+
+		/* Update the index binding if needed. */
+		if (mesh.GetIndexView() != oldIdxView)
+		{
+			oldIdxView = mesh.GetIndexView();
+			cmdBuffer.BindIndexBuffer(mesh.GetIndexType(), model.GetBuffer(), model.GetViewOffset(oldIdxView));
+		}
+
+		mesh.Draw(cmdBuffer, 1);
+	}
 }
 
 void Pu::LightProbeRenderer::End(LightProbe & probe, CommandBuffer & cmdBuffer) const

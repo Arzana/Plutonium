@@ -14,11 +14,6 @@
 
     <StringProperty Name="DisplayNamePum" DisplayName="Display Name" Description="Overrides the default ebug display name of the model."/>
 
-    <EnumProperty Name="BakeMeshesPum" DisplayName="Statically Bake Meshes" Description="Bakes all compatible meshes with the same material into one mesh.">
-      <EnumValue Name="-b" DisplayName="Yes (-b)"/>
-      <EnumValue DisplayName="No"/>
-    </EnumProperty>
-
     <EnumProperty Name="RecalcTangentsPum" DisplayName="Calculate Tangents" Description="Forces the use of tangents in the output model and calculates them if they are not defined.">
       <EnumValue Name="-t" DisplayName="Yes (-t)"/>
       <EnumValue DisplayName="No"/>

@@ -60,7 +60,6 @@ namespace Pu
 		GraphicsPipeline *pipeline;
 
 		DynamicBuffer *buffer;
-		BufferView *bufferView;
 		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
 		uint32 size, culled, invalidated;

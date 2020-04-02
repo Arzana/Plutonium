@@ -30,8 +30,8 @@ namespace Pu
 		void Initialize(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the render process for a specific light probe. */
 		void Start(_In_ LightProbe &probe, _In_ CommandBuffer &cmdBuffer) const;
-		/* Renders a single mesh with a specified texture to the bound light probe. */
-		void Render(_In_ const Mesh &mesh, _In_ const DescriptorSet &material, _In_ const Matrix &model, _In_ CommandBuffer &cmdBuffer);
+		/* Renders a model to the light probe. */
+		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Model &model, _In_ const Matrix &transform);
 		/* Finalizes the render process for a specific light probe. */
 		void End(_In_ LightProbe &probe, _In_ CommandBuffer &cmdBuffer) const;
 		/* Creates a new descriptor pool for materials rendered through this light probe renderer. */

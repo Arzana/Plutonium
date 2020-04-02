@@ -39,7 +39,8 @@
       <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Monster\Monster.gltf">
-      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </RecalcTangentsPum>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Phoenix\Phoenix.gltf">
       <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-t</RecalcTangentsPum>

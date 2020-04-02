@@ -237,6 +237,7 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 	/* Add the default textures to the models list. */
 	result->textures.emplace_back(&GetDefaultDiffuse());
 	result->textures.emplace_back(&GetDefaultSpecGloss());
+	result->textures.emplace_back(&GetDefaultBump());
 
 	/* Start the parallel initialization and return the model reference. */
 	loader->InitializeModel(*result, mutablePath, deferredRenderer, probeRenderer);
@@ -309,6 +310,7 @@ Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer
 		result->textures.emplace_back(specularGloss);
 	}
 	else result->textures.emplace_back(&GetDefaultSpecGloss());
+	result->textures.emplace_back(&GetDefaultBump());
 
 	/* Create the model mesh and store it in out cache. */
 	loader->CreateModel(*result, type, deferredRenderer, probeRenderer);
@@ -374,4 +376,9 @@ Pu::Texture2D & Pu::AssetFetcher::GetDefaultDiffuse(void)
 Pu::Texture2D & Pu::AssetFetcher::GetDefaultSpecGloss(void)
 {
 	return CreateTexture2D("transparent white", Color{ 1.0f, 1.0f, 1.0f, 0.0f });
+}
+
+Pu::Texture2D & Pu::AssetFetcher::GetDefaultBump(void)
+{
+	return CreateTexture2D("malibu", Color::Malibu());
 }

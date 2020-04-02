@@ -8,38 +8,29 @@ namespace Pu
 	class Mesh
 	{
 	public:
+		/* Defines the view index used if no view is used. */
+		static constexpr uint32 DefaultViewIdx = ~0u;
+
 		/* Default initializes the mesh. */
 		Mesh(void);
 		/* Initializes a new instance of a mesh with a specific vertex and index buffer. */
-		Mesh(_In_ const Buffer &buffer, _In_ size_t vertexOffset, _In_ size_t vertexSize, _In_ size_t indexOffset, _In_ size_t indexSize, _In_ size_t vertexStride, _In_ size_t indexStride, _In_ IndexType indexType);
-		/* Initializes a new instance of a mesh with a specific vertex and index buffer (vertex offset is zero and index offset is vertex size). */
-		Mesh(_In_ const Buffer &buffer, _In_ size_t vertexSize, _In_ size_t indexSize, _In_ size_t vertexStride, _In_ size_t indexStride, _In_ IndexType indexType);
+		Mesh(_In_ uint32 indexCount, _In_ uint32 vertexView, _In_ uint32 indexView, _In_ uint32 firstIndex, _In_ size_t vertexStride, _In_ IndexType indexType);
+		/* Initializes a new instance of a mesh with a specific stride and type (views will be set to zero). */
+		Mesh(_In_ uint32 indexCount, _In_ size_t vertexStride, _In_ IndexType indexType);
 		/* Initializes a new instance of a mesh from a PuM mesh. */
-		Mesh(_In_ const Buffer &buffer, _In_ const PuMData &model, _In_ const PumMesh &mesh);
+		Mesh(_In_ const PumMesh &mesh);
 		/* Copy constructor. */
-		Mesh(_In_ const Mesh &value);
+		Mesh(_In_ const Mesh &value) = default;
 		/* Move constructor. */
-		Mesh(_In_ Mesh &&value);
-		/* Releases the resources allocated by the mesh. */
-		~Mesh(void)
-		{
-			Destroy();
-		}
+		Mesh(_In_ Mesh &&value) = default;
 
 		/* Copy assignment. */
-		_Check_return_ Mesh& operator =(_In_ const Mesh &other);
+		_Check_return_ Mesh& operator =(_In_ const Mesh &other) = default;
 		/* Move assignment. */
-		_Check_return_ Mesh& operator =(_In_ Mesh &&other);
+		_Check_return_ Mesh& operator =(_In_ Mesh &&other) = default;
 
-		/* Binds the vertex buffer to the specific binding and binds the index buffer. */
-		void Bind(_In_ CommandBuffer &cmdBuffer, _In_ uint32 binding) const;
 		/* Draws the mesh a specified amount of times. */
-		void DrawInstanced(_In_ CommandBuffer &cmdBuffer, _In_ uint32 instanceCount) const;
-		/* Draws the mesh once. */
-		inline void Draw(_In_ CommandBuffer &cmdBuffer) const
-		{
-			DrawInstanced(cmdBuffer, 1);
-		}
+		void Draw(_In_ CommandBuffer &cmdBuffer, _In_ uint32 instanceCount) const;
 
 		/* Sets the bounding box of this mesh (automatically set when using PuM). */
 		inline void SetBoundingBox(_In_ AABB bb)
@@ -56,17 +47,32 @@ namespace Pu
 		/* Gets the stride (in bytes) of the vertices in this mesh. */
 		_Check_return_ inline uint32 GetStride(void) const
 		{
-			return static_cast<uint32>(vertex->GetStride());
+			return stride;
+		}
+
+		/* Gets the type of indices used by this mesh. */
+		_Check_return_ inline IndexType GetIndexType(void) const
+		{
+			return type;
+		}
+
+		/* Gets the index of the vertex view used by the mesh. */
+		_Check_return_ inline uint32 GetVertexView(void) const
+		{
+			return vertexView;
+		}
+
+		/* Gets the index of the index view used by the mesh. */
+		_Check_return_ inline uint32 GetIndexView(void) const
+		{
+			return indexView;
 		}
 
 	private:
-		const BufferView *vertex;
-		const BufferView *index;
 		IndexType type;
-		bool useIndexBuffer;
 		AABB boundingBox;
-
-		void Check(void) const;
-		void Destroy(void);
+		int32 offset;
+		uint32 stride, count, first;
+		uint32 vertexView, indexView;
 	};
 }

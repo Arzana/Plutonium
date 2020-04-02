@@ -3,6 +3,37 @@
 
 using namespace Pu;
 
+/* 
+Converts the specified indices to normalized indices (always starts at 0).
+This makes them relative to the mesh indead of all the vertices.
+We can simply do this by subtracting the minimum index from all the indices.
+*/
+template <typename index_type>
+void NormalizeIndices(BinaryWriter &writer, const void *raw, size_t size)
+{
+	const index_type *indices = reinterpret_cast<const index_type*>(raw);
+	const size_t count = size / sizeof(index_type);
+	
+	index_type min = maxv<index_type>();
+	for (size_t i = 0; i < count; i++)
+	{
+		const index_type cur = indices[i];
+		if (cur < min) min = cur;
+	}
+
+	for (size_t i = 0; i < count; i++)
+	{
+		writer.Write(static_cast<index_type>(indices[i] - min));
+	}
+}
+
+/* We need to move the indices from their default offset to a normalized offset. */
+void ProcessIndices(BinaryWriter &writer, const void *raw, size_t size, char type)
+{
+	if (type == 0) NormalizeIndices<uint16>(writer, raw, size);
+	else NormalizeIndices<uint32>(writer, raw, size);
+}
+
 /* Baking meshes just means that we sort all of the meshes on their material and orgazite their buffers views to allow for minimal bind calls. */
 void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 {
@@ -67,6 +98,7 @@ void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 		/* Make sure we start at an aligned offset. */
 		writer.Align(stride);
 		pum_view view{ writer.GetSize() };
+		size_t base = 0;
 
 		/* Copy all the mesh indices. */
 		for (uint32 j : meshes)
@@ -75,7 +107,7 @@ void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 			if (mesh.IndexMode == 2) continue;
 
 			const size_t newStart = writer.GetSize() - view.Offset;
-			writer.Write(data.Data.GetData(), mesh.IndexViewStart, mesh.IndexViewSize);
+			ProcessIndices(writer, data.Data.GetData() + mesh.IndexViewStart, mesh.IndexViewSize, mesh.IndexMode);
 
 			/* Update the view index and the new offset into the buffer. */
 			mesh.IndexViewStart = newStart;

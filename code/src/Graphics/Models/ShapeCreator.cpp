@@ -32,7 +32,7 @@ size_t Pu::ShapeCreator::GetDomeBufferSize(size_t divisions)
 	return (1 + sqr(divisions)) * sizeof(Basic3D) + (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, const Buffer & dst)
+Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 {
 	/* Begin the memory transfer operation. */
 	if (CheckSrcBuffer(src, PlaneBufferSize)) return Mesh();
@@ -73,10 +73,10 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, const Buffer & dst)
 	indices[5] = 3;
 
 	src.EndMemoryTransfer();
-	return Mesh(dst, 4 * sizeof(Basic3D), 6 * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
+	return Mesh(6, sizeof(Basic3D), IndexType::UInt16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, const Buffer & dst)
+Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 {
 	/* Begin the memory transfer operation. */
 	if (CheckSrcBuffer(src, BoxBufferSize)) return Mesh();
@@ -249,11 +249,11 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, const Buffer & dst)
 	indices[35] = 20;
 
 	src.EndMemoryTransfer();
-	return Mesh(dst, 24 * sizeof(Basic3D), 36 * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
+	return Mesh(36, sizeof(Basic3D), IndexType::UInt16);
 }
 
 /* https://github.com/caosdoar/spheres */
-Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, const Buffer & dst, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 {
 	static const Vector3 origins[6] =
 	{
@@ -366,10 +366,10 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, const Buffer & dst, uint16 divis
 	}
 
 	src.EndMemoryTransfer();
-	return Mesh(dst, 6 * sqr(divisions + 1) * sizeof(Basic3D), 36 * sqr(divisions) * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
+	return Mesh(36 * sqr(divisions), sizeof(Basic3D), IndexType::UInt16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, const Buffer & dst, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 {
 	/* Begin the memory transfer operation. */
 	if (CheckSrcBuffer(src, GetDomeBufferSize(divisions))) return Mesh();
@@ -436,7 +436,7 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, const Buffer & dst, uint16 divisio
 	}
 
 	src.EndMemoryTransfer();
-	return Mesh(dst, (1 + sqr(divisions)) * sizeof(Basic3D), (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16), sizeof(Basic3D), sizeof(uint16), IndexType::UInt16);
+	return Mesh((3 * divisions + 6 * sqr(divisions - 1)), sizeof(Basic3D), IndexType::UInt16);
 }
 
 bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)

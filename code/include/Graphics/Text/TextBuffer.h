@@ -29,16 +29,16 @@ namespace Pu
 		/* Updates the text mesh of the text buffer to the specific string for a specific viewport. */
 		void SetText(_In_ const ustring &str, _In_ const Font &font, _In_ const GameWindow &wnd);
 
-		/* Gets the view used for rendering the text mesh. */
-		_Check_return_ inline const BufferView& GetView(void) const
+		/* Gets the amount of vertices in the buffer. */
+		_Check_return_ inline uint32 GetCount(void) const
 		{
-			return *view;
+			return count;
 		}
 
 	private:
 		LogicalDevice *device;
 		DynamicBuffer *buffer;
-		BufferView *view;
+		uint32 count;
 
 		void ReallocBuffer(size_t newSize);
 		void AllocBuffer(size_t size);
