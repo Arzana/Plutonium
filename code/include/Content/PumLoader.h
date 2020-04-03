@@ -113,6 +113,8 @@ namespace Pu
 
 		/* Default initializes a new instance of a PuM view. */
 		PumView(void);
+		/* Initializes a new instance of a PuM view with the specified values. */
+		PumView(_In_ size_t offset, _In_ size_t size);
 		/* Initializes a new instance of a PuM view from a binary data stream. */
 		PumView(_In_ BinaryReader &reader);
 	};

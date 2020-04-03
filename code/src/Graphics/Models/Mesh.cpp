@@ -11,7 +11,7 @@ Pu::Mesh::Mesh(uint32 indexCount, uint32 vertexView, uint32 indexView, uint32 fi
 {}
 
 Pu::Mesh::Mesh(uint32 elementCount, size_t vertexStride, IndexType indexType)
-	: Mesh(elementCount, 0, 0, 0, vertexStride, indexType)
+	: Mesh(elementCount, 0, 1, 0, vertexStride, indexType)
 {}
 
 Pu::Mesh::Mesh(const PumMesh & mesh)

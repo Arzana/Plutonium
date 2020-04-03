@@ -41,6 +41,10 @@ Pu::PumView::PumView(void)
 	: Offset(0), Size(0)
 {}
 
+Pu::PumView::PumView(size_t offset, size_t size)
+	: Offset(offset), Size(size)
+{}
+
 Pu::PumView::PumView(BinaryReader & reader)
 {
 	Offset = reader.ReadUInt64();

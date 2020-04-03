@@ -1,6 +1,27 @@
 #include "Graphics/Models/ShapeCreator.h"
 
-size_t Pu::ShapeCreator::GetSphereBufferSize(size_t divisions)
+#ifdef _DEBUG
+#define DBG_CHECK_BUFFER_SIZE(size)	if (CheckSrcBuffer(src, size)) return Mesh()
+#else
+#define DBG_CHECK_BUFFER_SIZE(...)
+#endif
+
+Pu::uint32 Pu::ShapeCreator::GetSphereVertexSize(uint16 divisions)
+{
+	return 6 * sqr(divisions + 1) * sizeof(Basic3D);
+}
+
+Pu::uint32 Pu::ShapeCreator::GetDomeVertexSize(uint16 divisions)
+{
+	return sqr(divisions + 1) * sizeof(Basic3D);
+}
+
+Pu::uint32 Pu::ShapeCreator::GetTorusVertexSize(uint16 divisions)
+{
+	return sqr(divisions + 1) * sizeof(Basic3D);
+}
+
+size_t Pu::ShapeCreator::GetSphereBufferSize(uint16 divisions)
 {
 	/*
 	for 6 faces
@@ -9,15 +30,15 @@ size_t Pu::ShapeCreator::GetSphereBufferSize(size_t divisions)
 				1 vertex
 				if (i != divisions && j != divisions) 6 indices
 	*/
-	return 6 * sqr(divisions + 1) * sizeof(Basic3D) + 36 * sqr(divisions) * sizeof(uint16);
+	return GetSphereVertexSize(divisions) + 36 * sqr(divisions) * sizeof(uint16);
 }
 
-size_t Pu::ShapeCreator::GetDomeBufferSize(size_t divisions)
+size_t Pu::ShapeCreator::GetDomeBufferSize(uint16 divisions)
 {
 	/*
 	north pole = 1 vertex
 
-	for i divisions
+	for i in divisions
 		for j in divisions
 			1 vertex
 
@@ -29,13 +50,27 @@ size_t Pu::ShapeCreator::GetDomeBufferSize(size_t divisions)
 		for j in divisions
 			6 indices (face)
 	*/
-	return (1 + sqr(divisions)) * sizeof(Basic3D) + (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16);
+	return GetDomeVertexSize(divisions) + (3 * divisions + 6 * sqr(divisions - 1)) * sizeof(uint16);
+}
+
+size_t Pu::ShapeCreator::GetTorusBufferSize(uint16 divisions)
+{
+	/*
+	for i divisions
+		for j in divisions
+			1 vertex
+			6 indices (face)
+
+	We will have 1 more division than indices so add one to divisions for vertex part.
+	*/
+	return GetTorusVertexSize(divisions) + sqr(divisions) * 6 * sizeof(uint16);
 }
 
 Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 {
+	DBG_CHECK_BUFFER_SIZE(PlaneBufferSize);
+
 	/* Begin the memory transfer operation. */
-	if (CheckSrcBuffer(src, PlaneBufferSize)) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
@@ -78,8 +113,9 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 
 Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 {
+	DBG_CHECK_BUFFER_SIZE(BoxBufferSize);
+
 	/* Begin the memory transfer operation. */
-	if (CheckSrcBuffer(src, BoxBufferSize)) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
@@ -285,8 +321,9 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 		Vector3(0.0, 0.0, -2.0)
 	};
 
+	DBG_CHECK_BUFFER_SIZE(GetSphereBufferSize(divisions));
+
 	/* Begin the memory transfer operation. */
-	if (CheckSrcBuffer(src, GetSphereBufferSize(divisions))) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
@@ -371,8 +408,9 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 
 Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 {
+	DBG_CHECK_BUFFER_SIZE(GetDomeBufferSize(divisions));
+
 	/* Begin the memory transfer operation. */
-	if (CheckSrcBuffer(src, GetDomeBufferSize(divisions))) return Mesh();
 	src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
@@ -439,10 +477,67 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 	return Mesh((3 * divisions + 6 * sqr(divisions - 1)), sizeof(Basic3D), IndexType::UInt16);
 }
 
+Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
+{
+	DBG_CHECK_BUFFER_SIZE(GetTorusBufferSize(divisions));
+
+	/* Precast often used values. */
+	const float divs = static_cast<float>(divisions);
+	const float step = TAU / divs;
+	constexpr float iTau = recip(TAU);
+
+	src.BeginMemoryTransfer();
+	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+
+	for (float theta = 0.0f; theta < TAU; theta += step)
+	{
+		const float ct = cosf(theta);
+		const float st = sinf(theta);
+		const float cr = ct * ratio;
+		const float sr = st * ratio;
+		const float u = theta * iTau;
+
+		for (float phi = 0.0f; phi < TAU; phi += step, ++vertices)
+		{
+			const float cp = cosf(phi);
+			const float sp = sinf(phi);
+
+			const float x = ct + cp * cr;
+			const float y = st + cp * sr;
+			const float z = cp + sp * ratio;
+			const float v = phi * iTau;
+
+			vertices->Position = Vector3(x, y, z);
+			vertices->Normal = normalize(Vector3(cp * ct, cp * st, st * ratio));
+			vertices->TexCoord = Vector2(u, v);
+		}
+	}
+
+	uint16 *indices = reinterpret_cast<uint16*>(vertices);
+	const uint16 d2 = divisions + 1;
+	for (uint16 i = 0; i < divisions; i++)
+	{
+		const uint16 i2 = i + 1;
+		for (uint16 j = 0; j < divisions; j++)
+		{
+			const uint16 j2 = j + 1;
+
+			indices[0] = i * d2 + j;
+			indices[1] = i * d2 + j2;
+			indices[2] = i2 * d2 + j;
+			indices[3] = i2 * d2 + j2;
+			indices[4] = i2 * d2 + j;
+			indices[5] = i * d2 + j2;
+		}
+	}
+
+	src.EndMemoryTransfer();
+	return Mesh(6 * sqr(divisions), sizeof(Basic3D), IndexType::UInt16);
+}
+
+#ifdef _DEBUG
 bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)
 {
-	/* Only check for if the input buffer is correct on debug mode. */
-#ifdef _DEBUG
 	if (buffer.GetSize() < requiredSize)
 	{
 		Log::Error("Buffer is not large enough to accommodate the primitive!");
@@ -454,10 +549,7 @@ bool Pu::ShapeCreator::CheckSrcBuffer(Buffer & buffer, size_t requiredSize)
 		Log::Error("Source buffer for plane is not has accessible!");
 		return true;
 	}
-#else
-	(void)buffer;
-	(void)requiredSize;
-#endif
 
 	return false;
 }
+#endif

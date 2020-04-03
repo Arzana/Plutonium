@@ -540,19 +540,28 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 		{
 			/* Get the required size of the staging buffer. */
 			size_t bufferSize = 0;
+			uint32 vrtxSize = 0;
 			switch (meshType)
 			{
 			case ShapeType::Plane:
 				bufferSize = ShapeCreator::PlaneBufferSize;
+				vrtxSize = ShapeCreator::PlaneVertexSize;
 				break;
 			case ShapeType::Box:
 				bufferSize = ShapeCreator::BoxBufferSize;
+				vrtxSize = ShapeCreator::BoxVertexSize;
 				break;
 			case ShapeType::Sphere:
 				bufferSize = ShapeCreator::GetSphereBufferSize(divisions);
+				vrtxSize = ShapeCreator::GetSphereVertexSize(divisions);
 				break;
 			case ShapeType::Dome:
 				bufferSize = ShapeCreator::GetDomeBufferSize(divisions);
+				vrtxSize = ShapeCreator::GetDomeVertexSize(divisions);
+				break;
+			case ShapeType::Torus:
+				bufferSize = ShapeCreator::GetTorusBufferSize(divisions);
+				vrtxSize = ShapeCreator::GetTorusVertexSize(divisions);
 				break;
 			default:
 				Log::Error("Cannot create mesh from shape type: '%s'!", to_string(meshType));
@@ -562,7 +571,8 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			/* Allocate the source and destination buffer. */
 			StagingBuffer *src = new StagingBuffer(parent.GetDevice(), bufferSize);
 			result.AllocBuffer(parent.GetDevice(), *src);
-			//TODO: add the views here.
+			result.views.emplace_back(0, vrtxSize);
+			result.views.emplace_back(vrtxSize, bufferSize - vrtxSize);
 
 			/* Create the mesh. */
 			Mesh mesh;
@@ -579,6 +589,9 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				break;
 			case ShapeType::Dome:
 				mesh = std::move(ShapeCreator::Dome(*src, divisions));
+				break;
+			case ShapeType::Torus: 
+				mesh = std::move(ShapeCreator::Torus(*src, divisions, 0.5f));
 				break;
 			}
 
@@ -600,7 +613,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 
 			/* Allocate the single material and create the material. */
 			result.AllocPools(deferred, probes, 1);
-			result.AddMaterial(0, 1, Model::DefaultMaterialIdx, deferred, probes).SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
+			result.AddMaterial(0, 1, 2, deferred, probes).SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
 
 			/* Record the descriptor commands. */
 			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
