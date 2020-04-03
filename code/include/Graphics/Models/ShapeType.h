@@ -12,7 +12,7 @@ namespace Pu
 		Box,
 		/* Defines a 3D sphere with 12 divisions. */
 		Sphere,
-		/* Defines a 3D hemisphere with 12 divisions. */
+		/* Defines a 3D hemisphere with 24 divisions. */
 		Dome,
 		/* Defines a 3D revloution of a circle with 12 divisions and a ratio of 0.5. */
 		Torus

@@ -526,7 +526,9 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 
 void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
 {
-	constexpr uint16 divisions = 12;
+	constexpr uint16 SPHERE_DIVS = 12;
+	constexpr uint16 DOME_DIVS = 24;
+	constexpr uint16 TORUS_DIVS = 12;
 
 	class CreateTask
 		: public Task
@@ -552,16 +554,16 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				vrtxSize = ShapeCreator::BoxVertexSize;
 				break;
 			case ShapeType::Sphere:
-				bufferSize = ShapeCreator::GetSphereBufferSize(divisions);
-				vrtxSize = ShapeCreator::GetSphereVertexSize(divisions);
+				bufferSize = ShapeCreator::GetSphereBufferSize(SPHERE_DIVS);
+				vrtxSize = ShapeCreator::GetSphereVertexSize(SPHERE_DIVS);
 				break;
 			case ShapeType::Dome:
-				bufferSize = ShapeCreator::GetDomeBufferSize(divisions);
-				vrtxSize = ShapeCreator::GetDomeVertexSize(divisions);
+				bufferSize = ShapeCreator::GetDomeBufferSize(DOME_DIVS);
+				vrtxSize = ShapeCreator::GetDomeVertexSize(DOME_DIVS);
 				break;
 			case ShapeType::Torus:
-				bufferSize = ShapeCreator::GetTorusBufferSize(divisions);
-				vrtxSize = ShapeCreator::GetTorusVertexSize(divisions);
+				bufferSize = ShapeCreator::GetTorusBufferSize(TORUS_DIVS);
+				vrtxSize = ShapeCreator::GetTorusVertexSize(TORUS_DIVS);
 				break;
 			default:
 				Log::Error("Cannot create mesh from shape type: '%s'!", to_string(meshType));
@@ -585,13 +587,13 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				mesh = std::move(ShapeCreator::Box(*src));
 				break;
 			case ShapeType::Sphere:
-				mesh = std::move(ShapeCreator::Sphere(*src, divisions));
+				mesh = std::move(ShapeCreator::Sphere(*src, SPHERE_DIVS));
 				break;
 			case ShapeType::Dome:
-				mesh = std::move(ShapeCreator::Dome(*src, divisions));
+				mesh = std::move(ShapeCreator::Dome(*src, DOME_DIVS));
 				break;
 			case ShapeType::Torus: 
-				mesh = std::move(ShapeCreator::Torus(*src, divisions, 0.5f));
+				mesh = std::move(ShapeCreator::Torus(*src, TORUS_DIVS, 0.5f));
 				break;
 			}
 

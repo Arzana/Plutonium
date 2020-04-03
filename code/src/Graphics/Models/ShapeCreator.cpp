@@ -13,7 +13,7 @@ Pu::uint32 Pu::ShapeCreator::GetSphereVertexSize(uint16 divisions)
 
 Pu::uint32 Pu::ShapeCreator::GetDomeVertexSize(uint16 divisions)
 {
-	return sqr(divisions + 1) * sizeof(Basic3D);
+	return (1 + sqr(divisions)) * sizeof(Basic3D);
 }
 
 Pu::uint32 Pu::ShapeCreator::GetTorusVertexSize(uint16 divisions)
@@ -107,8 +107,12 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 	indices[4] = 0;
 	indices[5] = 3;
 
+	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
-	return Mesh(6, sizeof(Basic3D), IndexType::UInt16);
+	Mesh result{ 6, sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f });
+
+	return result;
 }
 
 Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
@@ -204,43 +208,43 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 	++vertices;
 
 	/* Top face. */
-	vertices->Position = Vector3(-0.5f, -0.5f, -0.5f);
+	vertices->Position = Vector3(-0.5f, 0.5f, -0.5f);
 	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(0.0f, 1.0f);
 	++vertices;
 
-	vertices->Position = Vector3(-0.5f, -0.5f, 0.5f);
+	vertices->Position = Vector3(-0.5f, 0.5f, 0.5f);
 	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(0.0f);
 	++vertices;
 
-	vertices->Position = Vector3(0.5f, -0.5f, 0.5f);
+	vertices->Position = Vector3(0.5f, 0.5f, 0.5f);
 	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(1.0f, 0.0f);
 	++vertices;
 
-	vertices->Position = Vector3(0.5f, -0.5f, -0.5f);
+	vertices->Position = Vector3(0.5f, 0.5f, -0.5f);
 	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(1.0f);
 	++vertices;
 
 	/* Bottom face. */
-	vertices->Position = Vector3(-0.5f, 0.5f, -0.5f);
+	vertices->Position = Vector3(-0.5f, -0.5f, -0.5f);
 	vertices->Normal = Vector3::Down();
 	vertices->TexCoord = Vector2(0.0f);
 	++vertices;
 
-	vertices->Position = Vector3(-0.5f, 0.5f, 0.5f);
+	vertices->Position = Vector3(-0.5f, -0.5f, 0.5f);
 	vertices->Normal = Vector3::Down();
 	vertices->TexCoord = Vector2(0.0f, 1.0f);
 	++vertices;
 
-	vertices->Position = Vector3(0.5f, 0.5f, 0.5f);
+	vertices->Position = Vector3(0.5f, -0.5f, 0.5f);
 	vertices->Normal = Vector3::Down();
 	vertices->TexCoord = Vector2(1.0f);
 	++vertices;
 
-	vertices->Position = Vector3(0.5f, 0.5f, -0.5f);
+	vertices->Position = Vector3(0.5f, -0.5f, -0.5f);
 	vertices->Normal = Vector3::Down();
 	vertices->TexCoord = Vector2(1.0f, 0.0f);
 	++vertices;
@@ -284,8 +288,12 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 	indices[34] = 23;
 	indices[35] = 20;
 
+	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
-	return Mesh(36, sizeof(Basic3D), IndexType::UInt16);
+	Mesh result{ 36, sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f });
+
+	return result;
 }
 
 /* https://github.com/caosdoar/spheres */
@@ -339,15 +347,15 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 		/* Divide the box into subdivisions. */
 		for (float x = 0; x < divs; x++)
 		{
-			for (float y = 0; y < divs; y++)
+			for (float y = 0; y < divs; y++, ++vertices)
 			{
 				vertices->Position = origin + step * (x * right + y * up);
 				const Vector3 p2 = sqr(vertices->Position);
 
-				/* Set the position. */
-				vertices->Position.X *= sqrtf(1.0f - 0.5f * (p2.Y + p2.Z) + p2.Y * p2.Z / 3.0f);
-				vertices->Position.Y *= sqrtf(1.0f - 0.5f * (p2.Z + p2.X) + p2.Z * p2.X / 3.0f);
-				vertices->Position.Z *= sqrtf(1.0f - 0.5f * (p2.X + p2.Y) + p2.X * p2.Y / 3.0f);
+				/* Set the position, scale down by 2 to get a uniform diameter. */
+				vertices->Position.X *= sqrtf(1.0f - 0.5f * (p2.Y + p2.Z) + p2.Y * p2.Z / 3.0f) * 0.5f;
+				vertices->Position.Y *= sqrtf(1.0f - 0.5f * (p2.Z + p2.X) + p2.Z * p2.X / 3.0f) * 0.5f;
+				vertices->Position.Z *= sqrtf(1.0f - 0.5f * (p2.X + p2.Y) + p2.X * p2.Y / 3.0f) * 0.5f;
 
 				/*
 				The normal is simply the position normalized because we're centering this sphere around the origin.
@@ -355,7 +363,6 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 				*/
 				vertices->Normal = normalize(vertices->Position);
 				vertices->TexCoord = Vector2(x * step, y * step);
-				++vertices;
 			}
 		}
 	}
@@ -402,8 +409,12 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 		}
 	}
 
+	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
-	return Mesh(36 * sqr(divisions), sizeof(Basic3D), IndexType::UInt16);
+	Mesh result{ 36u * sqr(divisions), sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f });
+
+	return result;
 }
 
 Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
@@ -425,21 +436,20 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 		const float ct = cosf(theta);
 		const float st = sinf(theta);
 
-		for (float meridian = 0; meridian < divs; meridian++)
+		for (float meridian = 0; meridian < divs; meridian++, ++vertices)
 		{
 			const float uvy = (meridian + 1.0f) * step;
-			const float phi = ((1.0f - uvy) * 0.5f) * -PI;
+			const float phi = ((1.0f - uvy) * 0.5f) * PI;
 			const float cp = cosf(phi);
 
-			vertices->Position = Vector3(cp * ct, sinf(phi), cp * st);
+			vertices->Position = Vector3(cp * ct, sinf(phi), cp * st) * 0.5f;
 			vertices->Normal = normalize(vertices->Position);
 			vertices->TexCoord = Vector2(uvx, uvy);
-			++vertices;
 		}
 	}
 
 	/* Add the noth pole. */
-	vertices->Position = Vector3::Up();
+	vertices->Position = Vector3{ 0.0f, 0.5f, 0.0f };
 	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(0.5f, 1.0f);
 
@@ -473,8 +483,12 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 		indices[2] = (meridian + 1) * divisions;
 	}
 
+	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
-	return Mesh((3 * divisions + 6 * sqr(divisions - 1)), sizeof(Basic3D), IndexType::UInt16);
+	Mesh result{ (3u * divisions + 6u * sqr(divisions - 1)), sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 0.5f, 1.0f });
+
+	return result;
 }
 
 Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)

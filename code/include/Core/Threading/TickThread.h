@@ -34,7 +34,7 @@ namespace Pu
 
 	protected:
 		/* Entry point for the thread. */
-		virtual void _CrtPuThreadMain(void) final override;
+		void _CrtPuThreadMain(void) final;
 
 	private:
 		mutable std::atomic_bool allow;
