@@ -495,58 +495,73 @@ Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
 {
 	DBG_CHECK_BUFFER_SIZE(GetTorusBufferSize(divisions));
 
-	/* Precast often used values. */
+	/* Begin the memory transfer operation. */
+	src.BeginMemoryTransfer();
+	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+
 	const float divs = static_cast<float>(divisions);
 	const float step = TAU / divs;
 	constexpr float iTau = recip(TAU);
 
-	src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
-
+	/* Loop through all circle segments. */
 	for (float theta = 0.0f; theta < TAU; theta += step)
 	{
 		const float ct = cosf(theta);
 		const float st = sinf(theta);
-		const float cr = ct * ratio;
-		const float sr = st * ratio;
-		const float u = theta * iTau;
 
+		/* Loop through all ring seqments. */
 		for (float phi = 0.0f; phi < TAU; phi += step, ++vertices)
 		{
 			const float cp = cosf(phi);
 			const float sp = sinf(phi);
 
-			const float x = ct + cp * cr;
-			const float y = st + cp * sr;
-			const float z = cp + sp * ratio;
-			const float v = phi * iTau;
+			const float nx = ct * cp * ratio;
+			const float ny = st * cp * ratio;
+			const float nz = sp * ratio;
 
-			vertices->Position = Vector3(x, y, z);
-			vertices->Normal = normalize(Vector3(cp * ct, cp * st, st * ratio));
-			vertices->TexCoord = Vector2(u, v);
+			vertices->Position = Vector3(ct + nx, st + ny, nz);
+			vertices->Normal = normalize(Vector3(nx, ny, nz));
+			vertices->TexCoord = Vector2(theta, phi) * iTau;
 		}
 	}
 
+	/* Indices. */
 	uint16 *indices = reinterpret_cast<uint16*>(vertices);
-	const uint16 d2 = divisions + 1;
+	const uint16 d1 = divisions + 1;
 	for (uint16 i = 0; i < divisions; i++)
 	{
-		const uint16 i2 = i + 1;
-		for (uint16 j = 0; j < divisions; j++)
+		const uint16 i1 = i * d1;
+		const uint16 i2 = (i + 1) * d1;
+
+		for (uint16 j = 0; j < divisions; j++, indices += 6)
 		{
 			const uint16 j2 = j + 1;
 
-			indices[0] = i * d2 + j;
-			indices[1] = i * d2 + j2;
-			indices[2] = i2 * d2 + j;
-			indices[3] = i2 * d2 + j2;
-			indices[4] = i2 * d2 + j;
-			indices[5] = i * d2 + j2;
+			indices[0] = i1 + j;
+			indices[1] = i1 + j2;
+			indices[2] = i2 + j;
+			indices[3] = i2 + j2;
+			indices[4] = i2 + j;
+			indices[5] = i1 + j2;
 		}
 	}
 
+	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
-	return Mesh(6 * sqr(divisions), sizeof(Basic3D), IndexType::UInt16);
+	Mesh result{ 6u * sqr(divisions), sizeof(Basic3D), IndexType::UInt16 };
+
+	/* 
+	The X & Y maximum is equal to the radius of the circle (1) with the radius of the ring added (ratio). 
+	This is multiplied by 2 to get the total size.
+	The Z only scales with the ring as the circle is 2D and thusly has Z = 0.
+	*/
+	const float sizeXY = (1.0f + ratio) * 2.0f;
+	const float sizeZ = ratio * 2.0f;
+	const float baseXY = -sizeXY * 0.5f;
+	const float baseZ = -sizeZ * 0.5f;
+	result.SetBoundingBox(AABB{ baseXY, baseXY, baseZ, sizeXY, sizeXY, sizeZ });
+
+	return result;
 }
 
 #ifdef _DEBUG

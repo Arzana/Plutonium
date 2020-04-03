@@ -131,6 +131,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*light);
 		renderer->End();
 
+		dbgRenderer->AddBox(model->GetBoundingBox(), mdlMtrx, Color::Yellow());
 		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 

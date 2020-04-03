@@ -80,7 +80,7 @@ vec3 brdf(in vec3 v, in vec3 n)
 	const float d = microfacet(ndh, a2, spec.w);
 
 	// Temporary untill I figure out why my lighting doesn't work.
-	return diffRough.rgb + spec.rgb;
+	return (diffRough.rgb + spec.rgb) * max(0.3f, ndl);
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffRough.rgb / PI);

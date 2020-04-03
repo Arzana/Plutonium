@@ -528,7 +528,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 {
 	constexpr uint16 SPHERE_DIVS = 12;
 	constexpr uint16 DOME_DIVS = 24;
-	constexpr uint16 TORUS_DIVS = 12;
+	constexpr uint16 TORUS_DIVS = 24;
 
 	class CreateTask
 		: public Task
