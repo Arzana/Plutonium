@@ -715,18 +715,39 @@ namespace Pu
 		ISrc1Alpha = 18
 	};
 
-	/* Defines the types of color blending operations. */
+	/* 
+	Defines the types of color blending operations. 
+	src is the source color/alpha.
+	dst is the destination color/alpha.
+	fs is source factor.
+	fd is the destination factor.
+	*/
 	enum class BlendOp
 	{
-		/* Adds the components together. */
+		/*
+		Adds the components together. 
+		Output = src * fs + dst * fd
+		*/
 		Add = 0,
-		/* Subtracts the destination from the source. */
+		/* 
+		Subtracts the destination from the source. 
+		Output = src * fs - dst * fd
+		*/
 		Subtract = 1,
-		/* Subtracts the source from the destination. */
+		/* 
+		Subtracts the source from the destination. 
+		Output = dst * fd - src * fs
+		*/
 		ReverseSubtract = 2,
-		/* Sets the components to the minimum value. */
+		/* 
+		Sets the components to the minimum value.
+		Output = min(src, dst)
+		*/
 		Min = 3,
-		/* Sets the components to the maximum value. */
+		/* 
+		Sets the components to the maximum value. 
+		Output = max(src, dst)
+		*/
 		Max = 4
 	};
 

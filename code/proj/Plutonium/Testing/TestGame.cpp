@@ -10,7 +10,7 @@ using namespace Pu;
 TestGame::TestGame(void)
 	: Application(L"TestGame (Unlit!)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
-	light(nullptr), firstRun(true), updateCam(true),
+	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
 	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
@@ -41,6 +41,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 
 	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
+	environment->SetPosition(0.0f, 1.0f, 0.0f);
 
 	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
 	skybox = &fetcher.FetchSkybox(
@@ -57,7 +58,8 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
 {
 	if (cam) delete cam;
-	if (light) delete light;
+	if (lightMain) delete lightMain;
+	if (lightFill) delete lightFill;
 	if (renderer) delete renderer;
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
@@ -79,14 +81,19 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 0, 1);			// Second camera set
 		descPoolConst->AddSet(DeferredRenderer::SubpassSkybox, 0, 1);					// Third camera set
 		descPoolConst->AddSet(DeferredRenderer::SubpassPostProcessing, 0, 1);			// Forth camera sets
-		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 1);			// Light set
+		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);			// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
 		cam->Yaw = PI2;
 
-		light = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		light->SetEnvironment(*skybox);
+		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+		lightMain->SetEnvironment(environment->GetTexture());
+
+		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+		lightFill->SetDirection(normalize(Vector3(0.7f)));
+		lightFill->SetIntensity(0.5f);
+		lightFill->SetEnvironment(environment->GetTexture());
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -94,11 +101,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		if (ImGui::Begin("Light Editor"))
 		{
-			float intensity = light->GetIntensity();
-			if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 5.0f)) light->SetIntensity(intensity);
+			float intensity = lightMain->GetIntensity();
+			if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 5.0f)) lightMain->SetIntensity(intensity);
 
-			Vector3 clr = light->GetRadiance();
-			if (ImGui::ColorPicker3("Radiance", clr.f)) light->SetRadiance(clr);
+			Vector3 clr = lightMain->GetRadiance();
+			if (ImGui::ColorPicker3("Radiance", clr.f)) lightMain->SetRadiance(clr);
 
 			float contrast = cam->GetContrast();
 			if (ImGui::SliderFloat("Contrast", &contrast, 0.0f, 10.0f)) cam->SetContrast(contrast);
@@ -111,12 +118,15 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			ImGui::End();
 		}
-
-		dbgRenderer->AddTransform(light->GetView(), 0.25f, Vector3::Up());
 	}
 
 	if (model->IsLoaded() && cam)
 	{
+		probeRenderer->Initialize(cmd);
+		probeRenderer->Start(*environment, cmd);
+		probeRenderer->Render(cmd, *model, mdlMtrx);
+		probeRenderer->End(*environment, cmd);
+
 		renderer->InitializeResources(cmd);
 		cam->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
@@ -128,7 +138,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*model, mdlMtrx);
 
 		renderer->BeginLight();
-		renderer->Render(*light);
+		renderer->Render(*lightMain);
+		renderer->Render(*lightFill);
 		renderer->End();
 
 		dbgRenderer->AddBox(model->GetBoundingBox(), mdlMtrx, Color::Yellow());

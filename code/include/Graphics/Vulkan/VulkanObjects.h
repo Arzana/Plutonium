@@ -2121,7 +2121,7 @@ namespace Pu
 		Flags Flags;
 		/* Specifies whether depth testing is enabled. */
 		Bool32 DepthTestEnable;
-		/* Specifies whether writing depth values is enabled (this is always disabled is DepthTestEnable is false). */
+		/* Specifies whether writing depth values is enabled. */
 		Bool32 DepthWriteEnable;
 		/* Specifies the comparison operator used in depth testing. */
 		CompareOp DepthCompareOp;
@@ -2141,7 +2141,7 @@ namespace Pu
 		/* Initializes an empty instance of the pipeline depth/stencil state create info object. */
 		PipelineDepthStencilStateCreateInfo(void)
 			: Type(StructureType::PipelineDepthStencilStateCreateInfo), Next(nullptr), Flags(0),
-			DepthTestEnable(true), DepthWriteEnable(true), DepthCompareOp(CompareOp::LessOrEqual),
+			DepthTestEnable(false), DepthWriteEnable(false), DepthCompareOp(CompareOp::LessOrEqual),
 			DepthBoundsTestEnable(false), StencilTestEnable(false), MinDepthBounds(0.0f), MaxDepthBounds(0.0f)
 		{}
 
@@ -2200,6 +2200,16 @@ namespace Pu
 			SrcColorBlendFactor(BlendFactor::One), DstColorBlendFactor(BlendFactor::Zero), ColorBlendOp(BlendOp::Add),
 			SrcAlphaBlendFactor(BlendFactor::One), DstAlphaBlendFactor(BlendFactor::Zero), AlphaBlendOp(BlendOp::Add)
 		{}
+
+		/* Enables blending and sets all the blend factors for this attachment. */
+		inline void SetBlendFactors(_In_ BlendFactor srcClr, _In_ BlendFactor srcAlpha, _In_ BlendFactor dstClr, _In_ BlendFactor dstAlpha)
+		{
+			BlendEnable = true;
+			SrcColorBlendFactor = srcClr;
+			SrcAlphaBlendFactor = srcAlpha;
+			DstColorBlendFactor = dstClr;
+			DstAlphaBlendFactor = dstAlpha;
+		}
 	};
 
 	/* Defines the information for a pipeline color blend state. */

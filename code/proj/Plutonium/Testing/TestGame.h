@@ -40,7 +40,7 @@ private:
 
 	Pu::Model *model;
 	Pu::Matrix mdlMtrx;
-	Pu::DirectionalLight *light;
+	Pu::DirectionalLight *lightMain, *lightFill;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 };

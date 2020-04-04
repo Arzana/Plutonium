@@ -409,7 +409,6 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		Output &hdr = skypass.GetOutput("Hdr");
 		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		hdr.SetFormat(textures[3]->GetImage().GetFormat());
-		hdr.SetLoadOperation(AttachmentLoadOp::DontCare);
 		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);
 		hdr.SetReference(4);
 	}
@@ -482,6 +481,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxLightPass = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
 		gfxLightPass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxLightPass->SetTopology(PrimitiveTopology::TriangleList);
+		gfxLightPass->GetBlendState("L0").SetBlendFactors(BlendFactor::One, BlendFactor::One, BlendFactor::One, BlendFactor::One);
 		gfxLightPass->Finalize();
 	}
 

@@ -306,6 +306,8 @@ void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, Verte
 
 Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(const string & name)
 {
+	static PipelineColorBlendAttachmentState def;
+
 	uint32 index = 0;
 	for (const Output &output : renderpass->subpasses[subpass].outputs)
 	{
@@ -317,6 +319,9 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(cons
 
 		++index;
 	}
+
+	Log::Error("Could not get blend state for unknown output '%s'!", name.c_str());
+	return def;
 }
 
 const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareSupport(void) const

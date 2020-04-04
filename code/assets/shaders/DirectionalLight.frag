@@ -70,21 +70,16 @@ vec3 brdf(in vec3 v, in vec3 n)
 	// Get all of the material values out of our G-Buffer.
 	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
 	const vec4 spec = subpassLoad(GBufferSpecular);
-	const float alpha = diffRough.w * diffRough.w;
-	const float a2 = alpha * alpha;
 	const vec3 envi = texture(Environment, r).rgb;
 
 	// Specular
 	const vec3 f = fresnel(vdh, spec.xyz);
 	const float g = occlusion(ndl, ndv, diffRough.w);
-	const float d = microfacet(ndh, a2, spec.w);
-
-	// Temporary untill I figure out why my lighting doesn't work.
-	return (diffRough.rgb + spec.rgb) * max(0.3f, ndl);
+	const float d = microfacet(ndh, diffRough.w, spec.w);
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffRough.rgb / PI);
-	const vec3 fs = (f * g * d) / (4.0f * ndl * ndv + EPSLION) * envi;
+	const vec3 fs = (f * g * d) * envi;
 	return (fd + fs) * Radiance.rgb * Radiance.w * ndl;
 }
 
