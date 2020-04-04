@@ -19,8 +19,6 @@ namespace Pu
 		_Check_return_ PuThread& operator =(_In_ const PuThread &other) = delete;
 		_Check_return_ PuThread& operator =(_In_ PuThread &&other) = delete;
 
-		/* Starts the excecution of this thread. */
-		virtual void Start(void);
 		/*
 		Waits for the thread to stop excecution.
 		Returns true if the thread was safely stopped.
@@ -47,7 +45,7 @@ namespace Pu
 		friend void _CrtPuThreadStart(uint32, const wstring&);
 
 		std::thread *thread;
-		std::atomic_bool started, stopped;
 		const uint32 id;
+		mutable bool stopped;
 	};
 }

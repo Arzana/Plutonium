@@ -9,6 +9,10 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 	{
 		Log::Warning("Attempting to create %zu worker threads, hardware only supports %u!", threadCnt, std::thread::hardware_concurrency());
 	}
+
+	threads.reserve(threadCnt);
+	tasks.resize(threadCnt);
+	waits.resize(threadCnt);
  
 	/* Create the amount of threads specified. */
 	for (size_t i = 0; i < threadCnt; i++)
@@ -22,12 +26,7 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
 
 		/* Push threads to buffers. */
-		tasks.emplace_back();
-		waits.emplace_back();
 		threads.emplace_back(worker);
-
-		/* Start thread. */
-		worker->Start();
 	}
 }
 

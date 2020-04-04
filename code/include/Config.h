@@ -9,8 +9,6 @@ namespace Pu
 {
 	/* Defines the interval (in milliseconds) to check whether a PuThread has completed. */
 	constexpr uint64 ThreadWaitSleepTime = 100;
-	/* Defines the time (in milliseconds) before the PuThread wait will timeout. */
-	constexpr uint64 ThreadWaitMax = 5000;
 	/* Defines the interval (in milliseconds) to check whether a PuThread has started. */
 	constexpr uint64 ThreadStartWaitInterval = 100;
 	/* Defines whether the task scheduler is allowed to steal tasks. */
