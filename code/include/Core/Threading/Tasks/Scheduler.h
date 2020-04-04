@@ -25,6 +25,8 @@ namespace Pu
 
 		/* Adds a task to the scheduler, this task will be executed at an unspecified time and by an unspecified thread. */
 		void Spawn(_In_ Task &task);
+		/* Adds a high priority task to the scheduler, this task will be executed as soon as possible by an unspecified thread. */
+		void Force(_In_ Task &task);
 
 	private: 
 		vector<TickThread*> threads;

@@ -53,7 +53,7 @@ void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<v
 
 	/* The load task is deleted by the scheduler as the continue has an auto delete set. */
 	Renderpass::LoadTask *task = new Renderpass::LoadTask(renderpass, toLoad);
-	scheduler.Spawn(*task);
+	scheduler.Force(*task);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)

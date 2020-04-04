@@ -53,9 +53,16 @@ Pu::TaskScheduler::~TaskScheduler(void)
 
 void Pu::TaskScheduler::Spawn(Task & task)
 {
-	/* Set the scheduler and push the task to the lowest queue. */
+	/* Set the scheduler and push the task to the back of the lowest queue. */
 	task.scheduler = this;
 	tasks[ChooseThread()].push_back(&task);
+}
+
+void Pu::TaskScheduler::Force(Task & task)
+{
+	/* Set the scheduler and push the task to the front of the lowest queue */
+	task.scheduler = this;
+	tasks[ChooseThread()].push_front(&task);
 }
 
 size_t Pu::TaskScheduler::ChooseThread(void) const
@@ -175,7 +182,7 @@ bool Pu::TaskScheduler::ThreadTrySteal(size_t idx)
 void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result result)
 {
 	/* If an immediate continuation task is set then just append that to our queue. */
-	if (result.Continuation) tasks[idx].push_back(result.Continuation);
+	if (result.Continuation) tasks[idx].push_front(result.Continuation);
 
 	/* If the tasks has childs that needs waiting upon, push it to the wait list. */
 	if (result.Wait || task->GetChildCount() > 0) waits[idx].emplace(task, result);

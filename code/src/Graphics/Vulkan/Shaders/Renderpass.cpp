@@ -310,10 +310,11 @@ Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<
 
 Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 {
+	/* Shader load tasks are important as other tasks depend on them, so force their loading. */
 	for (Shader::LoadTask *task : children)
 	{
 		task->SetParent(*this);
-		scheduler->Spawn(*task);
+		scheduler->Force(*task);
 	}
 
 	return Result::CustomWait();
