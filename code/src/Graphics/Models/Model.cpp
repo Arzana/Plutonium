@@ -1,6 +1,8 @@
 #include "Graphics/Models/Model.h"
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/Lighting/LightProbeRenderer.h"
+#include "Graphics/VertexLayouts/Advanced3D.h"
+#include "Graphics/VertexLayouts/Basic3D.h"
 
 Pu::Model::Model(void)
 	: Asset(true), Category(ModelCategory::Static), gpuData(nullptr),
@@ -79,13 +81,13 @@ void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
 	/* Load all the meshes. */
 	for (const PumMesh &mesh : data.Geometry)
 	{
-		if (mesh.HasNormals && mesh.HasTextureCoordinates)
-		{
-			const uint32 matIdx = mesh.HasMaterial ? mesh.Material : DefaultMaterialIdx;
-			if (mesh.HasTangents) advancedMeshes.emplace_back(std::make_pair(matIdx, Mesh{ mesh }));
-			else basicMeshes.emplace_back(std::make_pair(matIdx, Mesh{ mesh }));
-		}
-		else Log::Warning("Mesh '%ls' is not used because its vertex format is invalid!", mesh.Identifier.toWide().c_str());
+		const uint32 matIdx = mesh.HasMaterial ? mesh.Material : DefaultMaterialIdx;
+		const Shape shape = std::make_pair(matIdx, Mesh{ mesh });
+		const uint32 stride = mesh.GetStride();
+
+		if (stride == sizeof(Advanced3D)) advancedMeshes.emplace_back(shape);
+		else if (stride == sizeof(Basic3D)) basicMeshes.emplace_back(shape);
+		else Log::Warning("Mesh '%s' in model '%s' cannot be rendered currently (invalid vertex format), skipping mesh!", mesh.Identifier.toUTF8().c_str(), data.Identifier.toUTF8().c_str());
 	}
 
 	/* Calculate the bounding box for all underlying meshes. */
