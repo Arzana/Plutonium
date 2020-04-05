@@ -59,6 +59,60 @@ namespace Pu
 		return Vector4(lerp(a.X, b.X, v), lerp(a.Y, b.Y, v), lerp(a.Z, b.Z, v), lerp(a.W, b.W, v));
 	}
 
+	/* Performs cubic interpolation between two specified points (a, c) with a specified amount (v) and a control point (b). */
+	_Check_return_ inline constexpr float cubic(_In_ float a, _In_ float b, _In_ float c, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		return sqr(iv) * a + 2.0f * iv * v * b + sqr(v) * c;
+	}
+
+	/* Performs cubic interpolation between two specified points (a, c) with a specified amount (v) and a control point (b). */
+	_Check_return_ inline Vector2 cubic(_In_ Vector2 a, _In_ Vector2 b, _In_ Vector2 c, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		return sqr(iv) * a + 2.0f * iv * v * b + sqr(v) * c;
+	}
+
+	/* Performs cubic interpolation between two specified points (a, c) with a specified amount (v) and a control point (b). */
+	_Check_return_ inline Vector3 cubic(_In_ Vector3 a, _In_ Vector3 b, _In_ Vector3 c, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		return sqr(iv) * a + 2.0f * iv * v * b + sqr(v) * c;
+	}
+
+	/* Performs quadratic interpolation between two specified points (a, d) with the specified amount (v) and two control points (b, c). */
+	_Check_return_ inline constexpr float quadratic(_In_ float a, _In_ float b, _In_ float c, _In_ float d, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		const float iv2 = sqr(iv);
+		const float iv3 = iv2 * iv;
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return iv3 * a + 3.0f * iv2 * v * b + 3.0f * iv * v2 * c + v3 * d;
+	}
+
+	/* Performs quadratic interpolation between two specified points (a, d) with the specified amount (v) and two control points (b, c). */
+	_Check_return_ inline Vector2 quadratic(_In_ Vector2 a, _In_ Vector2 b, _In_ Vector2 c, _In_ Vector2 d, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		const float iv2 = sqr(iv);
+		const float iv3 = iv2 * iv;
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return iv3 * a + 3.0f * iv2 * v * b + 3.0f * iv * v2 * c + v3 * d;
+	}
+
+	/* Performs quadratic interpolation between two specified points (a, d) with the specified amount (v) and two control points (b, c). */
+	_Check_return_ inline Vector3 quadratic(_In_ Vector3 a, _In_ Vector3 b, _In_ Vector3 c, _In_ Vector3 d, _In_ float v)
+	{
+		const float iv = 1.0f - v;
+		const float iv2 = sqr(iv);
+		const float iv3 = iv2 * iv;
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return iv3 * a + 3.0f * iv2 * v * b + 3.0f * iv * v2 * c + v3 * d;
+	}
+
 	/* Performs inverse linear interpolation between two specified points (a, b) with a specified point (v). */
 	_Check_return_ inline constexpr float ilerp(_In_ float a, _In_ float b, _In_ float v)
 	{
@@ -122,10 +176,20 @@ namespace Pu
 		return sclamp(lerp(a, b, ilerp(c, d, v)), a, b);
 	}
 
+	/* Performs cubic hermite spline interpolation with specified bounds (0, 1) and derivatives (ad, bd). */
+	_Check_return_ inline constexpr float hermite(_In_ float ad, _In_ float bd, _In_ float v)
+	{
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return (v3 - 2.0f * v2 + v) * ad + (-2.0f * v3 + 3.0f * v2) + (v3 - v2) * bd;
+	}
+
 	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and derivatives (ad, bd). */
 	_Check_return_ inline constexpr float hermite(_In_ float a, _In_ float ad, _In_ float b, _In_ float bd, _In_ float v)
 	{
-		return a + (2.0f * a - 2.0f * b + bd + ad) * cube(v) + (3.0f * b - 3.0f * a - 2.0f * ad - bd) * sqr(v) + ad * v;
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return (2.0f * v3 - 3.0f * v2 + 1.0f) * a + (v3 - 2.0f * v2 + v) * ad + (-2.0f * v3 + 3.0f * v2) * b + (v3 - v2) * bd;
 	}
 
 	/* Performs cubic hermite spline interpolation with zero for derivatives. */
@@ -137,19 +201,22 @@ namespace Pu
 	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
 	_Check_return_ inline constexpr float smoothstep(_In_ float a, _In_ float b, _In_ float v)
 	{
-		return lerp(a, b, smoothstep(v));
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return -2.0f * v3 + 3.0f * b * v2 + a * (2.0f * v3 - 3.0f * v2 + 1.0f);
 	}
 
-	/* Performs cubic hermite spline interpolation with one for the first derivative and zero for the second. */
-	_Check_return_ inline constexpr float fadeout(_In_ float v)
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
+	_Check_return_ inline Vector2 smoothstep(_In_ Vector2 a, _In_ Vector2 b, _In_ float v)
 	{
-		return sqr(v) * (1.0f - 3.0f * v) + v;
+		return Vector2(smoothstep(a.X, b.X, v), smoothstep(a.Y, b.Y, v));
 	}
 
-	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with one for the first derivative and zero for the second. */
-	_Check_return_ inline constexpr float fadeout(_In_ float a, _In_ float b, _In_ float v)
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
+	_Check_return_ inline Vector3 smoothstep(_In_ Vector3 a, _In_ Vector3 b, _In_ float v)
 	{
-		return lerp(a, b, fadeout(v));
+		return Vector3(hermite(a.X, 0.0f, b.X, 0.0f, v), hermite(a.Y, 0.0f, b.Y, 0.0f, v), hermite(a.Z, 0.0f, b.Z, 0.0f, v));
+		//return Vector3(smoothstep(a.X, b.X, v), smoothstep(a.Y, b.Y, v), smoothstep(a.Z, b.Z, v));
 	}
 
 	/* Performs cubic hermite spline interpolation with zero for the first derivative and one for the second. */
@@ -161,7 +228,23 @@ namespace Pu
 	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for the first derivative and one for the second. */
 	_Check_return_ inline constexpr float fadein(_In_ float a, _In_ float b, _In_ float v)
 	{
-		return lerp(a, b, fadein(v));
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return -v3 + 3.0f * b * v2 - v2 + 2.0f * a * v3 - 3.0f * a * v2 + a;
+	}
+
+	/* Performs cubic hermite spline interpolation with one for the first derivative and zero for the second. */
+	_Check_return_ inline constexpr float fadeout(_In_ float v)
+	{
+		return v - cube(v) + sqr(v);
+	}
+
+	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with one for the first derivative and zero for the second. */
+	_Check_return_ inline constexpr float fadeout(_In_ float a, _In_ float b, _In_ float v)
+	{
+		const float v2 = sqr(v);
+		const float v3 = v2 * v;
+		return -v3 + 3.0f * b * v2 - 2.0f * v2 + v + 2.0f * a * v3 - 3.0f * a * v2 + a;
 	}
 
 	/* Gets a dampening factor the specified value of lamnda with the specific delta time. */

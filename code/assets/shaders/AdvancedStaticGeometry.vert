@@ -16,16 +16,13 @@ layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec4 Tangent;
 layout (location = 3) in vec2 TexCoord;
 
-layout (location = 0) out vec3 WorldPos;
-layout (location = 1) out vec2 Uv;
-layout (location = 2) out mat3 TBN;
+layout (location = 0) out vec2 Uv;
+layout (location = 1) out mat3 TBN;
 
 void main()
 {
 	// Set the position.
-	const vec4 pos = Model * vec4(Position, 1.0f);
-	WorldPos = pos.xyz;
-	gl_Position = Projection * View * pos;
+	gl_Position = Projection * View * Model * vec4(Position, 1.0f);
 
 	// Set the texture coordinate.
 	Uv = TexCoord;

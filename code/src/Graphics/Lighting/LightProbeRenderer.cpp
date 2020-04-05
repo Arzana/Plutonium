@@ -5,7 +5,7 @@
 #include "Core/Diagnostics/Profiler.h"
 
 Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProbeCount)
-	: loader(&loader), gfx(nullptr), pool(nullptr), maxSets(maxProbeCount)
+	: loader(&loader), gfx(nullptr), pool(nullptr), maxSets(maxProbeCount), usable(false)
 {
 	/* Load the renderpass and initialize it if needed. */
 	renderpass = &loader.FetchRenderpass({ { L"{Shaders}LightProbe.vert.spv", L"{Shaders}LightProbe.geom.spv", L"{Shaders}LightProbe.frag.spv" } });
@@ -18,7 +18,7 @@ Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProb
 
 Pu::LightProbeRenderer::LightProbeRenderer(LightProbeRenderer && value)
 	: loader(value.loader), renderpass(value.renderpass), gfx(value.gfx),
-	pool(value.pool), maxSets(value.maxSets), timer(value.timer)
+	pool(value.pool), maxSets(value.maxSets), timer(value.timer), usable(value.usable.load())
 {
 	value.renderpass = nullptr;
 	value.gfx = nullptr;
@@ -38,6 +38,7 @@ Pu::LightProbeRenderer & Pu::LightProbeRenderer::operator=(LightProbeRenderer &&
 		pool = other.pool;
 		maxSets = other.maxSets;
 		timer = other.timer;
+		usable = other.usable.load();
 
 		other.renderpass = nullptr;
 		other.gfx = nullptr;
@@ -167,6 +168,7 @@ void Pu::LightProbeRenderer::InitializePipeline(Renderpass &)
 
 	/* This descriptor pool is for the view transformations. */
 	pool = new DescriptorPool(*renderpass, maxSets, 0, 0);
+	usable.store(true);
 }
 
 void Pu::LightProbeRenderer::Destroy(void)

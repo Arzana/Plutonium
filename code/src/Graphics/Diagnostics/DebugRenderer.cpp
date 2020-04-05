@@ -1,6 +1,7 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
 #include "Graphics/Resources/DynamicBuffer.h"
+#include "Core/Math/Interpolation.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
 	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0),
@@ -43,6 +44,28 @@ void Pu::DebugRenderer::AddLine(Vector3 start, Vector3 end, Color color)
 		AddVertex(end, color);
 	}
 	else culled += 2;
+}
+
+void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control, Vector3 end, Color color, float segments)
+{
+	Vector3 a = start;
+	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	{
+		const Vector3 b = cubic(start, control, end, v);
+		AddLine(a, b, color);
+		a = b;
+	}
+}
+
+void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control1, Vector3 control2, Vector3 end, Color color, float segments)
+{
+	Vector3 a = start;
+	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	{
+		const Vector3 b = quadratic(start, control1, control2, end, v);
+		AddLine(a, b, color);
+		a = b;
+	}
 }
 
 void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, float length, float headAngle)

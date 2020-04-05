@@ -12,9 +12,8 @@ layout (set = 1, binding = 3) uniform Material
 	float AlphaTheshold;			// Defines the point at which partially transparent pixels should be discarded.
 };
 
-layout (location = 0) in vec3 Position;
-layout (location = 1) in vec2 Uv;
-layout (location = 2) in mat3 TBN;
+layout (location = 0) in vec2 Uv;
+layout (location = 1) in mat3 TBN;
 
 layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.

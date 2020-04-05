@@ -39,7 +39,7 @@ namespace Pu
 		}
 	};
 
-	/* Gets the direction from a to b. */
+	/* Gets the direction from the start of the line to the end. */
 	_Check_return_ inline Vector3 dir(_In_ const Line &line)
 	{
 		return normalize(line.Delta());

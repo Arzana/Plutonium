@@ -298,6 +298,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 {
 	if (suppressLogging) return;
+	suppressLogging = true;
 
 	/* Get last stack frame for file information. */
 	StackFrame frame;
