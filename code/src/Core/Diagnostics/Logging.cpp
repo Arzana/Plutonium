@@ -252,7 +252,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 
 	/* Log table header. */
 	const string offset1(maxFunctionNameLength / 2, ' ');
-	const string offset2((maxFunctionNameLength / 2 - 8) + maxLineLength / 2, ' ');
+	const string offset2((maxFunctionNameLength / 2 - 4) + maxLineLength / 2, ' ');
 	const string offset3((maxLineLength / 2 - 2) + maxModuleNameLength / 2, ' ');
 	const string offset4((maxModuleNameLength / 2 - 3) + maxFileNameLength / 2, ' ');
 

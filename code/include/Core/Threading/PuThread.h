@@ -42,10 +42,9 @@ namespace Pu
 		virtual void _CrtPuThreadMain(void) = 0;
 
 	private:
-		friend void _CrtPuThreadStart(uint32, const wstring&);
+		friend void _CrtPuThreadStart(PuThread *thread, const wstring&);
 
 		std::thread *thread;
-		const uint32 id;
 		mutable bool stopped;
 	};
 }

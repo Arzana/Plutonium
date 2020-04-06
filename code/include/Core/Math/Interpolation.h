@@ -203,7 +203,7 @@ namespace Pu
 	{
 		const float v2 = sqr(v);
 		const float v3 = v2 * v;
-		return -2.0f * v3 + 3.0f * b * v2 + a * (2.0f * v3 - 3.0f * v2 + 1.0f);
+		return a * (2.0f * v3 - 3.0f * v2 + 1.0f) + b * (-2.0f * v3 + 3.0f * v2);
 	}
 
 	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
@@ -215,8 +215,7 @@ namespace Pu
 	/* Performs cubic hermite spline interpolation with specified bounds (a, b) and with zero for derivatives. */
 	_Check_return_ inline Vector3 smoothstep(_In_ Vector3 a, _In_ Vector3 b, _In_ float v)
 	{
-		return Vector3(hermite(a.X, 0.0f, b.X, 0.0f, v), hermite(a.Y, 0.0f, b.Y, 0.0f, v), hermite(a.Z, 0.0f, b.Z, 0.0f, v));
-		//return Vector3(smoothstep(a.X, b.X, v), smoothstep(a.Y, b.Y, v), smoothstep(a.Z, b.Z, v));
+		return Vector3(smoothstep(a.X, b.X, v), smoothstep(a.Y, b.Y, v), smoothstep(a.Z, b.Z, v));
 	}
 
 	/* Performs cubic hermite spline interpolation with zero for the first derivative and one for the second. */
