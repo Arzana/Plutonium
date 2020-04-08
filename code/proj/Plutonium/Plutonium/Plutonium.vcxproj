@@ -129,6 +129,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Basics.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Constants.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Conversion.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Spline.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Frustum.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Line.h" />
@@ -311,6 +312,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\PerlinNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Spline.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\SquareDiamondNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Triangulation.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\DynamicLibLoader.cpp" />

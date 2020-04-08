@@ -41,7 +41,7 @@ void Pu::TickThread::_CrtPuThreadMain(void)
 		Tick.Post(self, args);
 
 		/* Make sure we don't update too often. */
-		if (cooldown) std::this_thread::sleep_for(std::chrono::milliseconds(cooldown));
+		if (cooldown) PuThread::Sleep(cooldown);
 	}
 
 	/* Finalize running thread. */

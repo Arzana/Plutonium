@@ -20,6 +20,8 @@ void Pu::_CrtPuThreadStart(PuThread *thread, const wstring & name)
 	(void)name;
 #endif
 
+	/* Sleep for one millisecond to allow the constructor to finish execution. */
+	PuThread::Sleep(1ull);
 	thread->_CrtPuThreadMain();
 }
 

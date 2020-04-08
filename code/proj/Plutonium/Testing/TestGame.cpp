@@ -11,7 +11,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame (Unlit!)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
+	markDepthBuffer(true), mdlMtrx(/*Matrix::CreateScalar(0.008f)*/)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -43,7 +43,6 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
 	environment->SetPosition(0.0f, 1.0f, 0.0f);
 
-	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
 	skybox = &fetcher.FetchSkybox(
 		{
 			L"{Textures}Skybox/right.jpg",
@@ -53,6 +52,13 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
+
+	//model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
+	model = &fetcher.CreateModel(ShapeType::Torus, *renderer, *probeRenderer);
+	spline.Add(Vector3{}, Quaternion{});
+	spline.Add(Vector3{ 20.0f, 10.0f, 0.0f }, Quaternion{ 0.0f, 0.0f, 1.0f, 0.0f });
+	spline.Add(Vector3{ 0.0f, 0.0f, 20.0f }, Quaternion{});
+	a = 0.0f, dir = 1.0f;
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -70,9 +76,20 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (descPoolConst) delete descPoolConst;
 }
 
+void TestGame::Update(float dt)
+{
+	if (a < 0.0f || a > 1.0f) dir *= -1.0f;
+	a += dir * dt;
+
+	const SplineTransform transform = spline.GetCubic(a);
+	mdlMtrx = Matrix::CreateTranslation(transform.Location) * Matrix::CreateRotation(transform.Orientation);
+	dbgRenderer->AddArrow(transform.Location, spline.GetDirectionCubic(a), Color::Yellow(), 3.0f);
+	dbgRenderer->AddBezier(Vector3{}, Vector3{ 20.0f, 10.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 20.0f }, Color::Green(), 100.0f);
+}
+
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
-	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
+	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
 
@@ -86,6 +103,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
 		cam->Yaw = PI2;
+		cam->SetExposure(2.5f);
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightMain->SetEnvironment(environment->GetTexture());
@@ -120,11 +138,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 	}
 
-	if (model->IsLoaded() && cam)
+	if (cam)
 	{
 		probeRenderer->Initialize(cmd);
 		probeRenderer->Start(*environment, cmd);
-		probeRenderer->Render(cmd, *model, mdlMtrx);
+		if (model->IsLoaded()) probeRenderer->Render(cmd, *model, mdlMtrx);
 		probeRenderer->End(*environment, cmd);
 
 		renderer->InitializeResources(cmd);
@@ -132,17 +150,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 		renderer->BeginGeometry(*cam);
-		renderer->Render(*model, mdlMtrx);
+		if (model->IsLoaded()) renderer->Render(*model, mdlMtrx);
 
 		renderer->BeginAdvanced();
-		renderer->Render(*model, mdlMtrx);
+		if (model->IsLoaded()) renderer->Render(*model, mdlMtrx);
 
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();
 
-		dbgRenderer->AddBox(model->GetBoundingBox(), mdlMtrx, Color::Yellow());
 		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 
