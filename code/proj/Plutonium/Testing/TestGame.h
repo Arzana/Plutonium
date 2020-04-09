@@ -5,7 +5,6 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Core/Math/Spline.h>
 
 class TestGame
 	: public Pu::Application

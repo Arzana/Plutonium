@@ -55,10 +55,18 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 
 	//model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
 	model = &fetcher.CreateModel(ShapeType::Torus, *renderer, *probeRenderer);
-	spline.Add(Vector3{}, Quaternion{});
-	spline.Add(Vector3{ 20.0f, 10.0f, 0.0f }, Quaternion{ 0.0f, 0.0f, 1.0f, 0.0f });
-	spline.Add(Vector3{ 0.0f, 0.0f, 20.0f }, Quaternion{});
+
 	a = 0.0f, dir = 1.0f;
+	Vector3 oldPos{};
+	for (float i = 0; i < 33.0f; i++)
+	{
+		const float x = random() * 20.0f - 10.0f;
+		const float y = random() * 20.0f - 10.0f;
+		const float z = random() * 20.0f - 10.0f;
+		const Vector3 adder{ x, y, z };
+		spline.Add(oldPos + adder, Quaternion{});
+		oldPos += adder;
+	}
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -78,13 +86,17 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 
 void TestGame::Update(float dt)
 {
-	if (a < 0.0f || a > 1.0f) dir *= -1.0f;
-	a += dir * dt;
+	if (a < 0.0f || a > 1.0f)
+	{
+		a = saturate(a);
+		dir *= -1.0f;
+	}
+	a += dir * dt * 0.1f;
 
 	const SplineTransform transform = spline.GetCubic(a);
 	mdlMtrx = Matrix::CreateTranslation(transform.Location) * Matrix::CreateRotation(transform.Orientation);
-	dbgRenderer->AddArrow(transform.Location, spline.GetDirectionCubic(a), Color::Yellow(), 3.0f);
-	dbgRenderer->AddBezier(Vector3{}, Vector3{ 20.0f, 10.0f, 0.0f }, Vector3{ 0.0f, 0.0f, 20.0f }, Color::Green(), 100.0f);
+	dbgRenderer->AddArrow(transform.Location, spline.GetDirectionCubic(a) * dir, Color::Yellow(), 3.0f);
+	dbgRenderer->AddSpline(spline, Color::Green(), 1000.0f);
 }
 
 void TestGame::Render(float dt, CommandBuffer &cmd)

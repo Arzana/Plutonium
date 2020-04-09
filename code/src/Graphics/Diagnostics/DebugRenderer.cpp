@@ -68,6 +68,17 @@ void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control1, Vector3 contr
 	}
 }
 
+void Pu::DebugRenderer::AddSpline(const Spline & spline, Color color, float segments)
+{
+	Vector3 a = spline.GetLocation(0.0f);
+	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	{
+		const Vector3 b = spline.GetLocation(v);
+		AddLine(a, b, color);
+		a = b;
+	}
+}
+
 void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, float length, float headAngle)
 {
 	/* The length of the arrow head is always relative to the arrow shaft length. */

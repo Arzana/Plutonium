@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Math/Line.h"
+#include "Core/Math/Spline.h"
 #include "Core/Math/Frustum.h"
 #include "Content/AssetFetcher.h"
 #include "Graphics/Platform/GameWindow.h"
@@ -32,6 +33,8 @@ namespace Pu
 		void AddBezier(_In_ Vector3 start, _In_ Vector3 control, _In_ Vector3 end, _In_ Color color, _In_ float segments);
 		/* Adds a quadratic bezier curve to the debug renderer queue, with a specified amount of segments. */
 		void AddBezier(_In_ Vector3 start, _In_ Vector3 control1, _In_ Vector3 control2, _In_ Vector3 end, _In_ Color color, _In_ float segments);
+		/* Adds a spline to the debug renderer queue, with a specified amount of segments. */
+		void AddSpline(_In_ const Spline &spline, _In_ Color color, _In_ float segments);
 		/* Adds an arrow to the debug renderer queue. */
 		void AddArrow(_In_ Vector3 start, _In_ Vector3 direction, _In_ Color color, _In_opt_ float length = 1.0f, _In_opt_ float headAngle = PI / 8.0f);
 		/* Adds a matrix transform to the debug renderer queue. */

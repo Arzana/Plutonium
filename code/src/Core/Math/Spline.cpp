@@ -182,9 +182,9 @@ Pu::Spline::Factors Pu::Spline::GetStart(float a, size_t ppt) const
 	The normal start point is defined by the amount of points per type (ppt).
 	And the interpolation between those points is just the fractional part of our input scale.
 	*/
-	a *= len - (ppt - 1);
+	a *= len / ppt;
 	const size_t i = static_cast<size_t>(a);
-	return std::make_pair(i, a - i);
+	return std::make_pair(i * (ppt - 1), a - i);
 }
 
 Pu::Vector3 Pu::Spline::LocationNear(Factors factors) const
@@ -219,12 +219,11 @@ Pu::Quaternion Pu::Spline::OrientationLinear(Factors factors) const
 
 Pu::Quaternion Pu::Spline::OrientationCubic(Factors factors) const
 {
-	//TODO: Add cubic spherical interpolation.
-	return OrientationLinear(factors);
+	return Quaternion::CLerp(orientations[factors.first], orientations[factors.first + 1], orientations[factors.first + 2], factors.second);
 }
 
 Pu::Quaternion Pu::Spline::OrientationQuadratic(Factors factors) const
 {
 	//TODO: Add quadratic spherical interpolation.
-	return OrientationLinear(factors);
+	return OrientationCubic(factors);
 }

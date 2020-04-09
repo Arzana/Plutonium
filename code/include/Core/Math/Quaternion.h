@@ -125,6 +125,8 @@ namespace Pu
 		_Check_return_ static Quaternion Lerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
 		/* Performs spherical linear interpolation between two quaternions. */
 		_Check_return_ static Quaternion SLerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
+		/* Performs cubic spherical interpolation between two quaternions and a control quaternion. */
+		_Check_return_ static Quaternion CLerp(_In_ Quaternion q1, _In_ Quaternion q2, _In_ Quaternion q3, _In_ float a);
 		/* Unpacks the quaterion from the first 63-bits. */
 		_Check_return_ static Quaternion Unpack(_In_ int64 packed);
 		/* Gets the inverse rotation specified by the quaternion. */
