@@ -1701,7 +1701,7 @@ namespace Pu
 		/* Reserved. */
 		Flags Flags;
 		/* The number of control points per patch. */
-		uint32 PathControlPoints;
+		uint32 PatchControlPoints;
 
 		/* Initializes an empty instance of the pipeline tessellation state create info object. */
 		PipelineTessellationStateCreateInfo(void)
@@ -1711,13 +1711,13 @@ namespace Pu
 		/* Initializes a new instance of a pipline tessellation state create info object. */
 		PipelineTessellationStateCreateInfo(_In_ uint32 pathControlPoints)
 			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(nullptr),
-			Flags(0), PathControlPoints(pathControlPoints)
+			Flags(0), PatchControlPoints(pathControlPoints)
 		{}
 
 		/* Copy constructor. */
 		PipelineTessellationStateCreateInfo(_In_ const PipelineTessellationStateCreateInfo &value)
 			: Type(StructureType::PipelineTessellationStateCreateInfo), Next(value.Next),
-			Flags(value.Flags), PathControlPoints(value.PathControlPoints)
+			Flags(value.Flags), PatchControlPoints(value.PatchControlPoints)
 		{}
 
 		/* Copy assignment. */
@@ -1727,7 +1727,7 @@ namespace Pu
 			{
 				Next = other.Next;
 				Flags = other.Flags;
-				PathControlPoints = other.PathControlPoints;
+				PatchControlPoints = other.PatchControlPoints;
 			}
 
 			return *this;

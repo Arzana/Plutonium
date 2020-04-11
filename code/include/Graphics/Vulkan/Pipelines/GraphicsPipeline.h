@@ -30,8 +30,8 @@ namespace Pu
 		void Finalize(void);
 		/* Sets how the input assembler should assemble the vertices passed to this graphics pipeline. */
 		void SetTopology(_In_ PrimitiveTopology topology);
-		/* Sets the amount of path control points, if it's supported by the hardware. */
-		_Check_return_ bool SetPathControlPoints(_In_ uint32 points);
+		/* Sets the amount of patch control points, if it's supported by the hardware. */
+		_Check_return_ bool SetPatchControlPoints(_In_ uint32 points);
 		/* Sets the viewport of the graphics pipeline. */
 		void SetViewport(_In_ const Viewport &viewport);
 		/* Sets the viewport and the scissor rectangle of the graphics pipeline. */

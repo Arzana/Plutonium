@@ -50,6 +50,13 @@ Output & Subpass::AddDepthStencil(void)
 	return outputs.back();
 }
 
+void Pu::Subpass::CloneDepthStencil(uint32 referenceIndex)
+{
+	Output &output = AddDepthStencil();
+	output.SetReference(referenceIndex);
+	output.clone = true;
+}
+
 Output & Pu::Subpass::GetOutput(const string & name)
 {
 	for (Output &cur : outputs)
@@ -70,6 +77,13 @@ const Output & Pu::Subpass::GetOutput(const string & name) const
 
 	Log::Error("Unable to find output field '%s'!", name.c_str());
 	return defOutput;
+}
+
+void Pu::Subpass::CloneOutput(const string & name, uint32 referenceIndex)
+{
+	Output &output = GetOutput(name);
+	output.SetReference(referenceIndex);
+	output.clone = true;
 }
 
 Attribute & Pu::Subpass::GetAttribute(const string & name)

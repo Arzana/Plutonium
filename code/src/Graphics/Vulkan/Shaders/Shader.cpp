@@ -276,6 +276,7 @@ void Pu::Shader::HandleDecoration(SPIRVReader & reader, spv::Id target, spv::Wor
 	case (spv::Decoration::Block):					// Used for uniform blocks we don't have to define what is in which block.
 	case (spv::Decoration::Flat):					// Used for internal shader inputs (should not be interpolated), we cannot access this variable anyway.
 	case (spv::Decoration::BuiltIn):				// Used to indicate build in variables, they'll not be used.
+	case (spv::Decoration::Patch):					// Used to indicate that the I/O field uses patches (we don't care about this).
 	case (spv::Decoration::ArrayStride):			// Used to specify the stride of arrays, this is currently only used in geometry shading.
 	case (spv::Decoration::ColMajor):				// Plutonium expects column major matrices.
 	case (spv::Decoration::MatrixStride):			// Matrix stride is determined when a matrix type if found.

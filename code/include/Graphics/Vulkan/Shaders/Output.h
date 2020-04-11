@@ -97,6 +97,7 @@ namespace Pu
 		friend class Renderpass;
 		friend class GraphicsPipeline;
 
+		bool clone;
 		uint32 subpass;
 		OutputUsage type;
 		ClearValue clear;

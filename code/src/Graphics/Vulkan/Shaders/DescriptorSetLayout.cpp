@@ -28,11 +28,20 @@ Pu::DescriptorSetLayout::DescriptorSetLayout(LogicalDevice & device, const vecto
 		}
 #endif
 
-		/* Only add a new binding if it was not yet defined. */
-		if (!bindings.contains([binding](const DescriptorSetLayoutBinding &cur) { return cur.Binding == binding; }))
+		/* Make sure that the descriptor is accessible in all of the defined shader stages. */
+		bool emplace = true;
+		for (DescriptorSetLayoutBinding &cur : bindings)
 		{
-			bindings.emplace_back(descriptor->layoutBinding);
+			if (cur.Binding == binding)
+			{
+				emplace = false;
+				cur.StageFlags |= descriptor->layoutBinding.StageFlags;
+				break;
+			}
 		}
+
+		/* Only add a new binding if it was not yet defined. */
+		if (emplace) bindings.emplace_back(descriptor->layoutBinding);
 
 		/* Increase the stride if this is descriptor is part of a uniform block. */
 		if (descriptor->GetType() == DescriptorType::UniformBuffer)

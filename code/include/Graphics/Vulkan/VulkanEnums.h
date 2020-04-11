@@ -1637,6 +1637,12 @@ namespace Pu
 		return _CrtEnumBitOr(a, b);
 	}
 
+	/* Appends the flag bits of an shader stage flag. */
+	_Check_return_ inline ShaderStageFlag operator |=(_In_ ShaderStageFlag &a, _In_ ShaderStageFlag b)
+	{
+		return a = _CrtEnumBitOr(a, b);
+	}
+
 	/* Appends the flag bits of an query result flag. */
 	_Check_return_ inline QueryResultFlag operator |=(_In_ QueryResultFlag &a, _In_ QueryResultFlag b)
 	{

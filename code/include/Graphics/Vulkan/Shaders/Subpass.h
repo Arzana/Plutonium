@@ -34,10 +34,14 @@ namespace Pu
 		void SetDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None);
 		/* Adds a depth/stencil buffer to the subpass. */
 		_Check_return_ Output& AddDepthStencil(void);
+		/* Adds a clone of a depth/stencil buffer to the subpass. */
+		void CloneDepthStencil(_In_ uint32 referenceIndex);
 		/* Gets the specified shader output. */
 		_Check_return_ Output& GetOutput(_In_ const string &name);
 		/* Gets the specified shader output. */
 		_Check_return_ const Output& GetOutput(_In_ const string &name) const;
+		/* Marks the specified shader output as a clone of an already used output. */
+		void CloneOutput(_In_ const string &name, _In_ uint32 referenceIndex);
 		/* Gets the specified shader input attribute. */
 		_Check_return_ Attribute& GetAttribute(_In_ const string &name);
 		/* Gets the specified shader input attribute. */

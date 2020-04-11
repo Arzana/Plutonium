@@ -44,7 +44,7 @@ Pu::Renderpass::Renderpass(LogicalDevice & device, vector<Subpass>&& subpasses)
 
 Pu::Renderpass::Renderpass(Renderpass && value)
 	: Asset(std::move(value)), device(value.device), hndl(value.hndl), ownsShaders(value.ownsShaders),
-	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)), 
+	outputDependency(value.outputDependency), subpasses(std::move(value.subpasses)),
 	clearValues(std::move(value.clearValues)), usesDependency(value.usesDependency),
 	PreCreate(std::move(value.PreCreate)), PostCreate(std::move(value.PostCreate))
 {
@@ -157,8 +157,8 @@ void Pu::Renderpass::CreateRenderpass(void)
 	/* We aren't going to use the old clear values anymore. */
 	clearValues.clear();
 
-	/* 
-	Pre-set the size of the attachment descriptions. 
+	/*
+	Pre-set the size of the attachment descriptions.
 	The order of the descriptions is based on the references set by the user (or kept as default).
 	*/
 	size_t reserveSize = 0;
@@ -187,20 +187,45 @@ void Pu::Renderpass::CreateRenderpass(void)
 		*/
 		for (const Output &output : subpass.outputs)
 		{
-			if (output.type == OutputUsage::Color) colorAttachments[i].emplace_back(output.reference);
-			else if (output.type == OutputUsage::Resolve) resolveAttachments[i].emplace_back(output.reference);
-			else if (output.type == OutputUsage::DepthStencil)
+#ifdef _DEBUG
+			/* Log a warning if the user is overriding the previous depth/stencil attachment. */
+			if (output.type == OutputUsage::DepthStencil && depthStencil)
 			{
-				if (depthStencil) Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
-				depthStencil = &output.reference;
+				Log::Warning("A depth/stencil attachment is already set for subpass %zu, overriding attachment!", i);
+			}
+#endif
+
+			/* Clones are just previously defined references that need to be added again. */
+			if (output.clone)
+			{
+				if (output.type == OutputUsage::Color) CopyReference(colorAttachments, i, output.reference.Attachment);
+				else if (output.type == OutputUsage::Resolve) CopyReference(resolveAttachments, i, output.reference.Attachment);
+				else if (output.type == OutputUsage::DepthStencil)
+				{
+					for (const SubpassDescription &cur : subpassDescriptions)
+					{
+						if (cur.DepthStencilAttachment && cur.DepthStencilAttachment->Attachment == output.reference.Attachment)
+						{
+							depthStencil = cur.DepthStencilAttachment;
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				/* Just add the attachment reference to the correct list. */
+				if (output.type == OutputUsage::Color) colorAttachments[i].emplace_back(output.reference);
+				else if (output.type == OutputUsage::Resolve) resolveAttachments[i].emplace_back(output.reference);
+				else if (output.type == OutputUsage::DepthStencil) depthStencil = &output.reference;
+
+				/* Set the correct attachment description and clear value. */
+				attachmentDescriptions[output.reference.Attachment] = output.description;
+				clearValues[output.reference.Attachment] = output.clear;
 			}
 
 			/* This is used to scale down the attachments that are used in multiple subpasses. */
 			maxReference = max(maxReference, output.reference.Attachment);
-
-			/* Set the correct attachment description and clear value. */
-			attachmentDescriptions[output.reference.Attachment] = output.description;
-			clearValues[output.reference.Attachment] = output.clear;
 		}
 
 		/* Add the input attachments from the descriptors. */
@@ -284,6 +309,23 @@ void Pu::Renderpass::CreateRenderpass(void)
 	VK_VALIDATE(device->vkCreateRenderPass(device->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateRenderPass);
 }
 
+void Pu::Renderpass::CopyReference(vector<vector<AttachmentReference>>& references, size_t i, uint32 refIdx)
+{
+	for (size_t j = 0; j < i; j++)
+	{
+		for (const AttachmentReference &ref : references[j])
+		{
+			if (ref.Attachment == refIdx)
+			{
+				references[i].emplace_back(ref);
+				return;
+			}
+		}
+	}
+
+	Log::Error("Cannot clone attachment referece %u for subpass %zu (parent attachment could not be found in previous subpasses)!", refIdx, i);
+}
+
 void Pu::Renderpass::Destroy(void)
 {
 	if (hndl) device->vkDestroyRenderPass(device->hndl, hndl, nullptr);
@@ -322,8 +364,8 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 
 bool Pu::Renderpass::LoadTask::ShouldContinue(void) const
 {
-	/* 
-	We want to check if all shaders are loaded before we continue. 
+	/*
+	We want to check if all shaders are loaded before we continue.
 	We can have a race if two renderpasses use the same shader and are loaded at the same time.
 	*/
 	for (const Subpass &subpass : renderpass.subpasses)

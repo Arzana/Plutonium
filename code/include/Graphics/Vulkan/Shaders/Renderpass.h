@@ -96,6 +96,7 @@ namespace Pu
 
 		void Create(bool viaLoader);
 		void CreateRenderpass(void);
+		void CopyReference(vector<vector<AttachmentReference>> &references, size_t i, uint32 refIdx);
 		void Destroy(void);
 	};
 }

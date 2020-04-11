@@ -117,12 +117,12 @@ void Pu::GraphicsPipeline::SetTopology(PrimitiveTopology topology)
 	inputAssemblyState.Topology = topology;
 }
 
-bool Pu::GraphicsPipeline::SetPathControlPoints(uint32 points)
+bool Pu::GraphicsPipeline::SetPatchControlPoints(uint32 points)
 {
 	/* Make sure our hardware supports tessellation shaders. */
 	if (GetHardwareSupport().TessellationShader)
 	{
-		tessellationState.PathControlPoints = points;
+		tessellationState.PatchControlPoints = points;
 		return true;
 	}
 

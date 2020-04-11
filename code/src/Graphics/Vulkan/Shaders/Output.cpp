@@ -46,10 +46,12 @@ void Pu::Output::SetDepthDescription(Format format)
 
 Pu::Output::Output(const FieldInfo & data, uint32 attachment, OutputUsage type)
 	: Field(data), type(type), clear{0.0f, 0.0f, 0.0f, 0.0f}, reference(attachment, ImageLayout::General),
-	description(Format::Undefined, ImageLayout::General, ImageLayout::General)
+	description(Format::Undefined, ImageLayout::General, ImageLayout::General), clone(false)
 {
+#ifdef _DEBUG
 	if (!data.Name.empty())
 	{
 		if (data.Storage != spv::StorageClass::Output) Log::Fatal("The output class cannot be used to store '%s'!", to_string(data.Storage));
 	}
+#endif
 }
