@@ -176,33 +176,38 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	AddLine(fbl, bbl, color);
 }
 
-void Pu::DebugRenderer::AddSphere(Vector3 center, float radius, Color xzColor, Color xyColor, Color yzColor)
+void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadius, float zRadius, Color color)
 {
-	constexpr float delta = PI / SphereDivs;
-	constexpr float phi = TAU + delta;
+	/* Ellipsoid is a UV sphere with different radii for each dimension. */
+	constexpr float delta = PI / EllipsiodDivs;
+	constexpr float end = TAU + delta;
+	const Vector3 scalar{ xRadius, yRadius, zRadius };
 
-	/* Start positions of the lines at theta = 0 */
-	Vector3 v0x = center + Vector3(radius, 0.0f, 0.0f);
-	Vector3 v0y = center + Vector3(radius, 0.0f, 0.0f);
-	Vector3 v0z = center + Vector3(0.0f, 0.0f, radius);
-
-	for (float theta = delta; theta < phi; theta += delta)
+	/* We're calculating the meridian and parallel in one loop to save on trig calls. */
+	for (float theta = 0.0f; theta < TAU; theta += delta)
 	{
-		const float c = cosf(theta) * radius;
-		const float s = sinf(theta) * radius;
+		const float ct = cosf(theta);
+		const float st = sinf(theta);
 
-		/* End points of the lines. */
-		const Vector3 v1x = center + Vector3(c, 0.0f, s);
-		const Vector3 v1y = center + Vector3(c, s, 0.0f);
-		const Vector3 v1z = center + Vector3(0.0f, s, c);
+		/* Start point for the parallel and meridian. */
+		Vector3 startP = center + Vector3(st, ct, 0.0f) * scalar;
+		Vector3 startM = center + Vector3(ct, 0.0f, st) * scalar;
 
-		AddLine(v0x, v1x, xzColor);
-		AddLine(v0y, v1y, xyColor);
-		AddLine(v0z, v1z, yzColor);
+		/* Create one meridian and parallel line. */
+		for (float phi = delta; phi < end; phi += delta)
+		{
+			const float cp = cosf(phi);
+			const float sp = sinf(phi);
 
-		v0x = v1x;
-		v0y = v1y;
-		v0z = v1z;
+			const Vector3 endP = center + Vector3{ cp * st, ct, sp * st } * scalar;
+			const Vector3 endM = center + Vector3{ cp * ct, sp, st * cp } * scalar;
+
+			AddLine(startP, endP, color);
+			AddLine(startM, endM, color);
+
+			startP = endP;
+			startM = endM;
+		}
 	}
 }
 

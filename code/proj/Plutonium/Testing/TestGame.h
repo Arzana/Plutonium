@@ -23,7 +23,7 @@ protected:
 	void LoadContent(Pu::AssetFetcher &content) final;
 	void UnLoadContent(Pu::AssetFetcher &content) final;
 	void Finalize(void) final {}
-	void Update(float dt) final;
+	void Update(float) final {}
 	void Render(float dt, Pu::CommandBuffer &cmdBuffer) final;
 
 private:
@@ -41,8 +41,6 @@ private:
 	Pu::Model *model;
 	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *lightMain, *lightFill;
-	Pu::Spline spline;
-	float a, dir;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 };

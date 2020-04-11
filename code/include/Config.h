@@ -49,6 +49,6 @@ namespace Pu
 	constexpr size_t MaxDebugRendererVertices = 0x100000;
 	/* Defines whether to log warnings about wasted GPU memory due to allignment or minimum buffer sizes. */
 	constexpr bool LogWastedMemory = false;
-	/* Defines the amount of lines that should be used to draw a single circle in a sphere. */
-	constexpr uint32 SphereDivs = 12;
+	/* Defines the amount of lines that should be used to draw a single ellipse in an ellipsoid. */
+	constexpr uint32 EllipsiodDivs = 12;
 }
