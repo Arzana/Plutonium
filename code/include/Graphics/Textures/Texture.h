@@ -109,6 +109,7 @@ namespace Pu
 		};
 
 		ImageView *view;
+		uint32 refCnt;
 
 		void Destroy(void);
 	};

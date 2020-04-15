@@ -53,7 +53,7 @@ void Pu::LightProbeRenderer::Initialize(CommandBuffer & cmdBuffer)
 {
 	/* We need to initialize the transforms pool at least once. */
 	pool->Update(cmdBuffer, PipelineStageFlag::GeometryShader);
-	Profiler::Add("Light Probe Update", Color::Blue(), timer->GetProfilerTimeDelta());
+	Profiler::Add("Light Probe Update", Color::Blue(), timer->GetProfilerTimeDelta(0));
 	timer->Reset(cmdBuffer);
 }
 
@@ -70,7 +70,7 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 	probe.depth->MakeWritable(cmdBuffer);
 
 	cmdBuffer.BeginRenderPass(*renderpass, *probe.framebuffer, SubpassContents::Inline);
-	timer->RecordTimestamp(cmdBuffer, PipelineStageFlag::TopOfPipe);
+	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::TopOfPipe);
 	cmdBuffer.BindGraphicsPipeline(*gfx);
 	cmdBuffer.BindGraphicsDescriptor(*gfx, *probe.block);
 	cmdBuffer.SetViewportAndScissor(probe.GetViewport());
@@ -80,15 +80,19 @@ void Pu::LightProbeRenderer::Render(CommandBuffer & cmdBuffer, const Model & mod
 {
 	cmdBuffer.PushConstants(*gfx, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &transform);
 
-	uint32 oldMatIdx = Model::DefaultMaterialIdx;
+	const MeshCollection &meshes = model.GetMeshes();
+	uint32 oldMatIdx = MeshCollection::DefaultMaterialIdx;
 	uint32 oldVrtxView = Mesh::DefaultViewIdx;
 	uint32 oldIdxView = Mesh::DefaultViewIdx;
 
 	/* Try to render all the individual meshes. */
-	for (const auto &[matIdx, mesh] : model.GetAdvancedMeshes())
+	for (const auto &[matIdx, mesh] : meshes)
 	{
+		if (mesh.GetStride() != sizeof(Advanced3D)) continue;
+		if (matIdx == MeshCollection::DefaultMaterialIdx) continue;
+
 		/* Update the bound material if needed. */
-		if (matIdx != oldMatIdx)
+		if (matIdx != oldMatIdx && matIdx)
 		{
 			oldMatIdx = matIdx;
 			cmdBuffer.BindGraphicsDescriptor(*gfx, model.GetProbeMaterial(matIdx));
@@ -98,14 +102,14 @@ void Pu::LightProbeRenderer::Render(CommandBuffer & cmdBuffer, const Model & mod
 		if (mesh.GetVertexView() != oldVrtxView)
 		{
 			oldVrtxView = mesh.GetVertexView();
-			cmdBuffer.BindVertexBuffer(0, model.GetBuffer(), model.GetViewOffset(oldVrtxView));
+			cmdBuffer.BindVertexBuffer(0, meshes.GetBuffer(), meshes.GetViewOffset(oldVrtxView));
 		}
 
 		/* Update the index binding if needed. */
 		if (mesh.GetIndexView() != oldIdxView)
 		{
 			oldIdxView = mesh.GetIndexView();
-			cmdBuffer.BindIndexBuffer(mesh.GetIndexType(), model.GetBuffer(), model.GetViewOffset(oldIdxView));
+			cmdBuffer.BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(oldIdxView));
 		}
 
 		mesh.Draw(cmdBuffer, 1);
@@ -117,7 +121,7 @@ void Pu::LightProbeRenderer::End(LightProbe & probe, CommandBuffer & cmdBuffer) 
 	if (probe.cycleMode == LightProbe::CycleMode::Baked) return;
 
 	/* We need the shader read access to use it as an environment map. */
-	timer->RecordTimestamp(cmdBuffer, PipelineStageFlag::BottomOfPipe);
+	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::BottomOfPipe);
 	cmdBuffer.EndRenderPass();
 	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, probe.texture->GetFullRange());
 	cmdBuffer.EndLabel();

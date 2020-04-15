@@ -11,6 +11,7 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Render
 	OnWindowResize(wnd, ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
 
 	/* All of the camera descriptor sets use set ID 0. */
+	offsetSp0 = Add(DeferredRenderer::SubpassTerrain, renderpass.GetSubpass(DeferredRenderer::SubpassTerrain).GetSetLayout(0));
 	offsetSp1 = Add(DeferredRenderer::SubpassAdvancedStaticGeometry, renderpass.GetSubpass(DeferredRenderer::SubpassAdvancedStaticGeometry).GetSetLayout(0));
 	offsetSp2 = Add(DeferredRenderer::SubpassDirectionalLight , renderpass.GetSubpass(DeferredRenderer::SubpassDirectionalLight).GetSetLayout(0));
 	offsetSp3 = Add(DeferredRenderer::SubpassSkybox, renderpass.GetSubpass(DeferredRenderer::SubpassSkybox).GetSetLayout(0));
@@ -21,7 +22,8 @@ Pu::Camera::Camera(Camera && value)
 	: DescriptorSetGroup(std::move(value)), pos(value.pos), window(value.window),
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
-	wndSize(value.wndSize), viewDirty(value.viewDirty), offsetSp1(value.offsetSp1),
+	wndSize(value.wndSize), viewDirty(value.viewDirty), 
+	offsetSp0(value.offsetSp0), offsetSp1(value.offsetSp1),
 	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3), offsetSp4(value.offsetSp4)
 {
 	window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
@@ -45,6 +47,7 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 		wndSize = other.wndSize;
 		window = other.window;
 		viewDirty = other.viewDirty;
+		offsetSp0 = other.offsetSp0;
 		offsetSp1 = other.offsetSp1;
 		offsetSp2 = other.offsetSp2;
 		offsetSp3 = other.offsetSp3;
@@ -107,6 +110,11 @@ const Pu::Matrix & Pu::Camera::GetInverseView(void) const
 	return iview;
 }
 
+bool Pu::Camera::Cull(const AABB && boundingBox, const Matrix & transform) const
+{
+	return !frustum.IntersectionBox(boundingBox * transform);
+}
+
 void Pu::Camera::SetView(const Matrix & value)
 {
 	view = value;
@@ -123,20 +131,27 @@ void Pu::Camera::SetProjection(const Matrix & value)
 
 void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 {
-	/* Stage the view and projection matrix for the first subpass. */
+	/* Stage the view, projection, viewport and frustum for the terrain subpass. */
+	Copy(dest + offsetSp0, &proj);
+	Copy(dest + offsetSp0 + sizeof(Matrix), &view);
+	Copy(dest + offsetSp0 + (sizeof(Matrix) << 1), &frustum);
+	Copy(dest + offsetSp0 + (sizeof(Matrix) << 1) + sizeof(Frustum), &wndSize);
+
+	/* Stage the view and projection matrix for the static subpass. */
 	Copy(dest + offsetSp1, &proj);
 	Copy(dest + offsetSp1 + sizeof(Matrix), &view);
 
-	/* Stage the inverse view, projection, and the camera position to the second subpass. */
+	/* Stage the inverse view, projection, and the camera position to the light. */
 	Copy(dest + offsetSp2, &iproj);
 	Copy(dest + offsetSp2 + sizeof(Matrix), &GetInverseView());
 	Copy(dest + offsetSp2 + (sizeof(Matrix) << 1), &pos);
 
-	/* Stage the inverse projection matrix for the third subpass. */
+	/* Stage the inverse projection matrix for the skybox subpass. */
 	Copy(dest + offsetSp3, &iproj);
 	Copy(dest + offsetSp3 + sizeof(Matrix), &GetInverseView());
+	Copy(dest + offsetSp3 + (sizeof(Matrix) << 1), &pos);
 
-	/* Stage the exposure, brightness and contrast to the fourth and final subpass. */
+	/* Stage the exposure, brightness and contrast to the camera and final subpass. */
 	Copy(dest + offsetSp4, &exposure);
 	Copy(dest + offsetSp4 + sizeof(float), &brightness);
 	Copy(dest + offsetSp4 + sizeof(Vector2), &contrast);

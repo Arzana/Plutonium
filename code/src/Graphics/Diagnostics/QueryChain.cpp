@@ -8,64 +8,75 @@ inline constexpr Pu::byte queryCountPerType(Pu::QueryType type)
 constexpr Pu::byte MASK_RESET = 0x7F;
 constexpr Pu::byte MASK_SET = 0x80;
 
-Pu::QueryChain::QueryChain(LogicalDevice & device, QueryType type, size_t bufferCount)
-	: QueryPool(device, type, queryCountPerType(type) * bufferCount), 
-	flags(queryCountPerType(type))
+Pu::QueryChain::QueryChain(LogicalDevice & device, QueryType type, size_t chainCount, size_t bufferCount)
+	: QueryPool(device, type, queryCountPerType(type) * bufferCount * chainCount)
 #ifdef _DEBUG
 	, logged(false)
 #endif
 {
+	/* Allocate the chain buffer. */
+	chains.reserve(chainCount);
+	for (size_t i = 0; i < chainCount; i++) chains.emplace_back(type, bufferCount, i);
+
 	/* Check for invalid arguments on debug mode. */
 #ifdef _DEBUG
+	if (chainCount < 1) Log::Fatal("Chain count must be greater than 0!");
 	if (bufferCount < 1) Log::Fatal("Buffer count must be greater than 0!");
 #endif
 }
 
 void Pu::QueryChain::Reset(CommandBuffer & cmdBuffer)
 {
-	const uint32 start = GetNext();
-	cmdBuffer.ResetQueries(*this, start, flags & MASK_RESET);
+	for (const Chain &chain : chains)
+	{
+		const uint32 start = chain.GetNext();
+		cmdBuffer.ResetQueries(*this, start, chain.flags & MASK_RESET);
+	}
 }
 
-void Pu::QueryChain::RecordTimestamp(CommandBuffer & cmdBuffer, PipelineStageFlag stage)
+void Pu::QueryChain::RecordTimestamp(CommandBuffer & cmdBuffer, uint32 chain, PipelineStageFlag stage)
 {
+	Chain &ref = chains[chain];
+
 	/* Get the index of the current set of queries. */
-	const uint32 i = GetNext();
+	const uint32 i = ref.GetNext();
 
 	/* Use the correct index for the query. */
-	if (flags & MASK_SET)
+	if (ref.flags & MASK_SET)
 	{
-		flags &= ~MASK_SET;
+		ref.flags &= ~MASK_SET;
 
 		/* Add the timestamp to the chain if it was the second one. */
-		chain.emplace(i);
+		ref.chain.emplace(i);
 		cmdBuffer.WriteTimestamp(stage, *this, i + 1);
 	}
 	else
 	{
-		flags |= MASK_SET;
+		ref.flags |= MASK_SET;
 		cmdBuffer.WriteTimestamp(stage, *this, i);
 	}
 }
 
-float Pu::QueryChain::GetTimeDelta(void) const
+float Pu::QueryChain::GetTimeDelta(uint32 chain) const
 {
+	Chain &ref = chains[chain];
+
 	/* Check for valid use on debug. */
 #ifdef _DEBUG
-	if (flags & MASK_SET) Log::Fatal("Only one of the two timestamps needed to get the time delta has been set!");
+	if (ref.flags & MASK_SET) Log::Fatal("Only one of the two timestamps needed to get the time delta has been set!");
 #endif
 
 	/* Early out if nothing has been recorded yet. */
-	if (chain.size())
+	if (ref.chain.size())
 	{
 		/* Get the first index in our queue, this is the one we'll try to get. */
-		const uint32 i = chain.front();
+		const uint32 i = ref.chain.front();
 		float result = 0.0f;
 
 		if (TryGetTimeDelta(i, result))
 		{
 			/* Remove the old index from our queue if we've got it and return the result. */
-			chain.pop();
+			ref.chain.pop();
 			return result;
 		}
 	}
@@ -73,8 +84,18 @@ float Pu::QueryChain::GetTimeDelta(void) const
 	return 0.0f;
 }
 
-Pu::uint32 Pu::QueryChain::GetNext(void) const
+Pu::QueryChain::Chain::Chain(QueryType type, size_t bufferCount, size_t idx)
+	: flags(queryCountPerType(type))
 {
-	/* We use the chain as a circular buffer, so modulo loop back to the start. */
-	return chain.empty() ? 0 : ((chain.back() + (flags & MASK_RESET)) % GetPoolSize());
+	first = static_cast<uint32>(idx * bufferCount * flags);
+	last = first + static_cast<uint32>(bufferCount * flags);
+}
+
+Pu::uint32 Pu::QueryChain::Chain::GetNext(void) const
+{
+	if (chain.empty()) return first;
+
+	/* We use the chain as a ring buffer, so modulo back to zero once we reach the end. */
+	const uint32 result = chain.back() + (flags & MASK_RESET);
+	return result >= last ? first + result % last : result;
 }

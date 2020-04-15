@@ -74,6 +74,8 @@ namespace Pu
 		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate rate = VertexInputRate::Vertex);
 		/* Gets the blend state for a specific output attachent. */
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendState(_In_ const string &output);
+		/* Gets the stride of the vertex binding at the specified binding. */
+		_Check_return_ uint32 GetVertexStride(_In_ uint32 binding) const;
 
 	private:
 		const Renderpass *renderpass;

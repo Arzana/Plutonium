@@ -1,9 +1,10 @@
 #include "TestGame.h"
-#include <Graphics/VertexLayouts/Advanced3D.h>
-#include <Graphics/VertexLayouts/Basic3D.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
+
+#include <Graphics/Models/ShapeCreator.h>
+#include <Core/Math/PerlinNoise.h>
 
 using namespace Pu;
 
@@ -11,7 +12,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame (Unlit!)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), mdlMtrx(Matrix::CreateScalar(0.008f))
+	markDepthBuffer(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -23,14 +24,11 @@ void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::
 
 	enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
 	enabeled.GeometryShader = true;		// Needed for the light probe renderer.
+	enabeled.TessellationShader = true;	// Needed for terrain rendering.
 }
 
 void TestGame::Initialize(void)
 {
-#ifdef _DEBUG
-	GetWindow().SetMode(WindowMode::Borderless);
-#endif
-
 	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
@@ -53,7 +51,38 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	model = &fetcher.FetchModel(L"{Models}Sponza.pum", *renderer, *probeRenderer);
+	srcBuffer = new StagingBuffer(GetDevice(), ShapeCreator::GetPatchPlaneBufferSize(64));
+	terrainMesh.Initialize(GetDevice(), *srcBuffer, ShapeCreator::GetPatchPlaneVertexSize(64), ShapeCreator::PatchPlane(*srcBuffer, 64));
+
+	mask = &fetcher.CreateTexture2D("Mask", Color::Black());
+	textures = &fetcher.FetchTexture2DArray("Terrain", SamplerCreateInfo{}, true,
+		{
+			L"{Textures}Terrain/lava.png",
+			L"{Textures}Terrain/stone.png",
+			L"{Textures}Terrain/water.png",
+			L"{Textures}Terrain/stone.png"
+		});
+
+	constexpr uint16 size = 1024;
+	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{});
+	heightImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D{size, 1}, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled });
+	height = new Texture2D(*heightImg, *heightSampler);
+
+	heightBuffer = new StagingBuffer(GetDevice(), sqr(size) * sizeof(float));
+	heightBuffer->BeginMemoryTransfer();
+	float *pixels = reinterpret_cast<float*>(heightBuffer->GetHostMemory());
+
+	PerlinNoise noise{};
+	for (size_t y = 0; y < size; y++)
+	{
+		for (size_t x = 0; x < size; x++)
+		{
+			constexpr float isize = recip(size);
+			*pixels++ = noise.NormalizedScale(x * isize, y * isize, 3, 4.0f, 0.2f);
+		}
+	}
+
+	heightBuffer->EndMemoryTransfer();
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -65,8 +94,15 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
 	if (dbgRenderer) delete dbgRenderer;
+	if (srcBuffer) delete srcBuffer;
+	if (terrainMat) delete terrainMat;
+	if (height) delete height;
+	if (heightImg) delete heightImg;
+	if (heightBuffer) delete heightBuffer;
 
-	fetcher.Release(*model);
+	fetcher.Release(*heightSampler);
+	fetcher.Release(*mask);
+	fetcher.Release(*textures);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
@@ -76,13 +112,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
+		cmd.CopyEntireBuffer(*srcBuffer, terrainMesh.GetBuffer());
+
+		cmd.MemoryBarrier(*heightImg, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, height->GetFullRange());
+		cmd.CopyEntireBuffer(*heightBuffer, *heightImg);
+		cmd.MemoryBarrier(*heightImg, PipelineStageFlag::Transfer, PipelineStageFlag::TessellationControlShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, height->GetFullRange());
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
-		descPoolConst->AddSet(DeferredRenderer::SubpassAdvancedStaticGeometry, 0, 1);	// First camera set
-		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 0, 1);			// Second camera set
-		descPoolConst->AddSet(DeferredRenderer::SubpassSkybox, 0, 1);					// Third camera set
-		descPoolConst->AddSet(DeferredRenderer::SubpassPostProcessing, 0, 1);			// Forth camera sets
-		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);			// Light set
+		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
+		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
+		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 1);			// Terrain set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
@@ -96,6 +135,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		lightFill->SetDirection(normalize(Vector3(0.7f)));
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(environment->GetTexture());
+
+		terrainMat = new Terrain(*descPoolConst, renderer->GetTerrainLayout());
+		terrainMat->SetHeight(*height);
+		terrainMat->SetMask(*mask);
+		terrainMat->SetTextures(*textures);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -120,32 +164,47 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			ImGui::End();
 		}
+
+		if (ImGui::Begin("Terrain Editor"))
+		{
+			float displ = terrainMat->GetDisplacement();
+			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 10.0f)) terrainMat->SetDisplacement(displ);
+
+			float tess = terrainMat->GetTessellation();
+			if (ImGui::SliderFloat("Tessellation", &tess, 0.0f, 2.0f)) terrainMat->SetTessellation(tess);
+
+			float edge = terrainMat->GetEdgeSize();
+			if (ImGui::SliderFloat("Edge Size", &edge, 0.0f, 40.0f)) terrainMat->SetEdgeSize(edge);
+
+			dbgRenderer->AddBox(terrainMesh.GetBoundingBox(), terrainMat->GetTransform(), Color::Yellow());
+			ImGui::End();
+		}
 	}
 
 	if (cam)
 	{
-		probeRenderer->Initialize(cmd);
-		probeRenderer->Start(*environment, cmd);
-		if (model->IsLoaded()) probeRenderer->Render(cmd, *model, mdlMtrx);
-		probeRenderer->End(*environment, cmd);
-
-		renderer->InitializeResources(cmd);
 		cam->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
-		renderer->BeginGeometry(*cam);
-		if (model->IsLoaded()) renderer->Render(*model, mdlMtrx);
+		if (environment->ShouldUpdate(dt))
+		{
+			probeRenderer->Initialize(cmd);
+			probeRenderer->Start(*environment, cmd);
+			probeRenderer->End(*environment, cmd);
+		}
 
+		renderer->InitializeResources(cmd);
+		renderer->BeginTerrain(*cam);
+		renderer->Render(terrainMesh, *terrainMat);
+		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
-		if (model->IsLoaded()) renderer->Render(*model, mdlMtrx);
-
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();
-
-		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
+
+	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 
 	if (ImGui::BeginMainMenuBar())
 	{

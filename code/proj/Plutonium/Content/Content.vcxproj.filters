@@ -28,6 +28,15 @@
     <Filter Include="Shaders\Deferred\Effects">
       <UniqueIdentifier>{128159ad-474a-4dbc-8b8d-f15240b01d08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Deferred\Geometry\Terrain">
+      <UniqueIdentifier>{29f7956c-31be-47ec-96f9-1cb46fd1f048}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred\Geometry\Basic">
+      <UniqueIdentifier>{84476702-e0a4-40ce-8681-da2b301dbc53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred\Geometry\Advanced">
+      <UniqueIdentifier>{5b601958-52f6-4749-82fd-a7e26a7e8358}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
@@ -69,17 +78,29 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.vert">
       <Filter>Shaders\Deferred\Effects</Filter>
     </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedStaticGeometry.vert">
-      <Filter>Shaders\Deferred\Geometry</Filter>
-    </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedGeometry.frag">
-      <Filter>Shaders\Deferred\Geometry</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\BasicGeometry.frag">
-      <Filter>Shaders\Deferred\Geometry</Filter>
+      <Filter>Shaders\Deferred\Geometry\Basic</Filter>
     </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\BasicStaticGeometry.vert">
-      <Filter>Shaders\Deferred\Geometry</Filter>
+      <Filter>Shaders\Deferred\Geometry\Basic</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedGeometry.frag">
+      <Filter>Shaders\Deferred\Geometry\Advanced</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\AdvancedStaticGeometry.vert">
+      <Filter>Shaders\Deferred\Geometry\Advanced</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.frag">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.tesc">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.tese">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.vert">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
     </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +138,9 @@
       <Filter>Models</Filter>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Testing\Tangents\NormalTangentTest.gltf">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel.obj">
       <Filter>Models</Filter>
     </PuModel>
   </ItemGroup>

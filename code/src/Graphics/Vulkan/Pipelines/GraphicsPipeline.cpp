@@ -79,7 +79,6 @@ void Pu::GraphicsPipeline::Finalize(void)
 	*/
 	if (Hndl)
 	{
-		Log::Warning("Recreating graphics pipeline, this may cause lag!");
 		renderpass->device->WaitIdle();
 		Destroy();
 	}
@@ -322,6 +321,17 @@ Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(cons
 
 	Log::Error("Could not get blend state for unknown output '%s'!", name.c_str());
 	return def;
+}
+
+Pu::uint32 Pu::GraphicsPipeline::GetVertexStride(uint32 binding) const
+{
+	for (const VertexInputBindingDescription &cur : bindingDescriptions)
+	{
+		if (cur.Binding == binding) return cur.Stride;
+	}
+
+	Log::Error("Could not get vertex stride for graphics pipeline (binding %u not found)!", binding);
+	return 0;
 }
 
 const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareSupport(void) const

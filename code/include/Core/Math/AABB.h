@@ -105,6 +105,8 @@ namespace Pu
 		_Check_return_ AABB Merge(_In_ const AABB &second) const;
 		/* Creates a box that contains the input box and the specified point. */
 		_Check_return_ AABB Merge(_In_ Vector3 point) const;
+		/* Merges the specified box into this box. */
+		void MergeInto(_In_ const AABB &second);
 		/* Clamps a specified point within the bounds of the box. */
 		_Check_return_ Vector3 Clamp(_In_ Vector3 point) const;
 		/* Checks whether a point is within the box. */

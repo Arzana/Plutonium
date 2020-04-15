@@ -15,36 +15,6 @@ Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout
 	SetParameters(parameters);
 }
 
-Pu::Material::Material(Material && value)
-	: DescriptorSet(std::move(value)), diffuseMap(value.diffuseMap),  specular(value.specular),
-	specularMap(value.specularMap), threshold(value.threshold), diffuse(value.diffuse),
-	normalMap(value.normalMap)
-{
-	value.diffuseMap = nullptr;
-	value.specularMap = nullptr;
-	value.normalMap = nullptr;
-}
-
-Pu::Material & Pu::Material::operator=(Material && other)
-{
-	if (this != &other)
-	{
-		DescriptorSet::operator=(std::move(other));
-		diffuseMap = other.diffuseMap;
-		specularMap = other.specularMap;
-		normalMap = other.normalMap;
-		threshold = other.threshold;
-		specular = other.specular;
-		diffuse = other.diffuse;
-
-		other.diffuseMap = nullptr;
-		other.specularMap = nullptr;
-		other.normalMap = nullptr;
-	}
-
-	return *this;
-}
-
 /* Diffuse hides class member. */
 #pragma warning(push)
 #pragma warning(disable:4458)

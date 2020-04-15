@@ -37,6 +37,8 @@ namespace Pu
 		_Check_return_ Vector3 NDCToWorld(_In_ Vector3 v) const;
 		/* Gets the camera's inverse view matrix. */
 		_Check_return_ const Matrix& GetInverseView(void) const;
+		/* Gets whether the specified AABB with the specified transform applied is outside the camera's view frustum. */
+		_Check_return_ bool Cull(_In_ const AABB &&boundingBox, _In_ const Matrix &transform) const;
 
 		/* Gets the position of the camera. */
 		_Check_return_ inline Vector3 GetPosition(void) const
@@ -145,7 +147,7 @@ namespace Pu
 		const NativeWindow *window;
 		Frustum frustum;
 
-		DeviceSize offsetSp1, offsetSp2, offsetSp3, offsetSp4;
+		DeviceSize offsetSp0, offsetSp1, offsetSp2, offsetSp3, offsetSp4;
 
 		mutable Matrix iview;
 		mutable bool viewDirty;

@@ -30,7 +30,9 @@ namespace Pu
 		/* Fetches the destired cube texture as a skybox. */
 		_Check_return_ TextureCube& FetchSkybox(_In_ const vector<wstring> &paths);
 		/* Fetches the desired cube texture. Texture order: right, left, top, bottom, front, back. */
-		_Check_return_ TextureCube& FetchTextureCube(_In_ const wstring &name, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_ const vector<wstring> &paths, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		_Check_return_ TextureCube& FetchTextureCube(_In_ const string &name, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_ const vector<wstring> &paths, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
+		/* Fetches the desired textures togething into a 2D array texture. */
+		_Check_return_ Texture2DArray& FetchTexture2DArray(_In_ const string &name, _In_ const SamplerCreateInfo &samplerInfo, _In_ bool sRGB, _In_ const vector<wstring> &paths, _In_opt_ uint32 mipMapLevels = DefaultMipLevels);
 		/* Fetches the desired sampler. */
 		_Check_return_ Sampler& FetchSampler(_In_ const SamplerCreateInfo &samplerInfo);
 		/* Fetches the desired font. */
@@ -42,6 +44,8 @@ namespace Pu
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ Color color);
 		/* Creates a new 2D texture from the specified RGBA data. */
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const void *data, _In_ uint32 width, _In_ uint32 height, _In_ Format format, _In_ const SamplerCreateInfo &samplerInfo);
+		/* Creates a primitive model with a diffuse texture. */
+		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer, _In_ const wstring &diffuse);
 		/* Creates a primitive model with optional textures. */
 		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer, _In_opt_ Texture2D *diffuse = nullptr, _In_opt_ Texture2D *specularGloss = nullptr);
 
@@ -68,6 +72,7 @@ namespace Pu
 
 		vector<Texture*> textures;
 
+		Texture2DArray& FetchMultiTexture(const string &name, const SamplerCreateInfo &samplerInfo, bool sRGB, const vector<wstring> &paths, uint32 mipMapLevels, ImageViewType view);
 		Texture2D& GetDefaultDiffuse(void);
 		Texture2D& GetDefaultSpecGloss(void);
 		Texture2D& GetDefaultBump(void);

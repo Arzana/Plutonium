@@ -5,6 +5,7 @@ layout (binding = 0) uniform Camera
 {
 	mat4 IProjection;
 	mat4 IView;
+	vec3 CamPos;
 };
 
 layout (location = 0) out vec3 Angle;
@@ -17,5 +18,5 @@ void main()
 
 	// The viewing angle can be easily calculated using the inverse matrices.
 	const vec4 eye = IProjection * gl_Position;
-	Angle = (IView * (eye / eye.w)).xyz;
+	Angle = (IView * (eye / eye.w)).xyz  - CamPos;
 }

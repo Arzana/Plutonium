@@ -5,18 +5,16 @@
 #include "Graphics/VertexLayouts/Basic3D.h"
 
 Pu::Model::Model(void)
-	: Asset(true), Category(ModelCategory::Static), gpuData(nullptr),
+	: Asset(true), Category(ModelCategory::Static),
 	poolMaterials(nullptr), poolProbes(nullptr)
 {}
 
 Pu::Model::Model(Model && value)
-	: Asset(std::move(value)), Category(value.Category), gpuData(value.gpuData),
-	basicMeshes(std::move(value.basicMeshes)), advancedMeshes(std::move(value.advancedMeshes)),
+	: Asset(std::move(value)), Category(value.Category), meshes(std::move(value.meshes)),
 	materials(std::move(value.materials)), probeMaterials(std::move(value.probeMaterials)),
 	poolMaterials(value.poolMaterials), poolProbes(value.poolProbes), textures(value.textures),
-	nodes(std::move(value.nodes)), views(std::move(value.views))
+	nodes(std::move(value.nodes))
 {
-	value.gpuData = nullptr;
 	value.poolMaterials = nullptr;
 	value.poolProbes = nullptr;
 }
@@ -29,18 +27,13 @@ Pu::Model & Pu::Model::operator=(Model && other)
 		Asset::operator=(std::move(other));
 
 		Category = other.Category;
-		basicMeshes = std::move(other.basicMeshes);
-		advancedMeshes = std::move(other.advancedMeshes);
 		materials = std::move(other.materials);
-		gpuData = other.gpuData;
 		probeMaterials = std::move(other.probeMaterials);
 		poolMaterials = other.poolMaterials;
 		poolProbes = other.poolProbes;
 		textures = std::move(other.textures);
 		nodes = std::move(other.nodes);
-		views = std::move(other.views);
 
-		other.gpuData = nullptr;
 		other.poolMaterials = nullptr;
 		other.poolProbes = nullptr;
 	}
@@ -55,11 +48,6 @@ Pu::Asset & Pu::Model::Duplicate(AssetCache&)
 	return *this;
 }
 
-void Pu::Model::AllocBuffer(LogicalDevice & device, const StagingBuffer & buffer)
-{
-	gpuData = new Buffer(device, buffer.GetSize(), BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
-}
-
 void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer & probes, size_t count)
 {
 	/* Reserve the material vectors to decrease allocations. */
@@ -69,29 +57,6 @@ void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRe
 	/* Allocate the required descriptor pools. */
 	poolMaterials = deferred.CreateMaterialDescriptorPool(static_cast<uint32>(count));
 	poolProbes = probes.CreateDescriptorPool(static_cast<uint32>(count));
-}
-
-void Pu::Model::Initialize(LogicalDevice & device, const PuMData & data)
-{
-	/* Allocate the GPU buffer. */
-	AllocBuffer(device, *data.Buffer);
-	nodes = data.Nodes;
-	views = data.Views;
-
-	/* Load all the meshes. */
-	for (const PumMesh &mesh : data.Geometry)
-	{
-		const uint32 matIdx = mesh.HasMaterial ? mesh.Material : DefaultMaterialIdx;
-		const Shape shape = std::make_pair(matIdx, Mesh{ mesh });
-		const uint32 stride = mesh.GetStride();
-
-		if (stride == sizeof(Advanced3D)) advancedMeshes.emplace_back(shape);
-		else if (stride == sizeof(Basic3D)) basicMeshes.emplace_back(shape);
-		else Log::Warning("Mesh '%s' in model '%s' cannot be rendered currently (invalid vertex format), skipping mesh!", mesh.Identifier.toUTF8().c_str(), data.Identifier.toUTF8().c_str());
-	}
-
-	/* Calculate the bounding box for all underlying meshes. */
-	CalculateBoundingBox();
 }
 
 void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer & probes, const PuMData & data)
@@ -127,23 +92,8 @@ Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t nor
 	return material;
 }
 
-void Pu::Model::CalculateBoundingBox(void)
-{
-	for (const auto[mat, mesh] : basicMeshes)
-	{
-		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
-	}
-
-	for (const auto[mat, mesh] : advancedMeshes)
-	{
-		boundingBox = boundingBox.Merge(mesh.GetBoundingBox());
-	}
-}
-
 void Pu::Model::Destroy(void)
 {
-	if (gpuData) delete gpuData;
-
 	/* Delete the material descriptors in one go, and the delete their parent pool. */
 	if (poolMaterials)
 	{

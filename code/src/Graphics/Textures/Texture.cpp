@@ -2,7 +2,8 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 
 Pu::Texture::Texture(Texture && value)
-	: Image(value.Image), Sampler(value.Sampler), view(value.view)
+	: Image(value.Image), Sampler(value.Sampler), 
+	view(value.view), refCnt(value.refCnt)
 {
 	value.view = nullptr;
 }
@@ -16,6 +17,7 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 		Image = other.Image;
 		Sampler = other.Sampler;
 		view = other.view;
+		refCnt = other.refCnt;
 
 		other.view = nullptr;
 	}
@@ -24,15 +26,16 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 }
 
 Pu::Texture::Texture(Pu::Sampler * sampler, Pu::Image & image, ImageViewType type)
-	: Image(&image), Sampler(sampler)
+	: Image(&image), Sampler(sampler), refCnt(1)
 {
-	view = new ImageView(*this, type, ImageAspectFlag::Color);
+	view = type != ImageViewType::None ? new ImageView(*this, type, ImageAspectFlag::Color) : nullptr;
 }
 
 void Pu::Texture::Reference(void)
 {
 	if (Sampler) Sampler->Reference();
 	Image->Reference();
+	++refCnt;
 }
 
 void Pu::Texture::Destroy(void)

@@ -1,16 +1,16 @@
 #pragma once
-#include "Texture.h"
+#include "Texture2DArray.h"
 
 namespace Pu
 {
 	/* Defines a texture made up of 6 2D textures. */
 	class TextureCube 
-		: public Texture
+		: public Texture2DArray
 	{
 	public:
 		/* Initializes a new instance of a cube texture. */
 		TextureCube(_In_ Pu::Image &image, _In_ Pu::Sampler &sampler)
-			: Texture(&sampler, image, ImageViewType::ImageCube)
+			: Texture2DArray(image, sampler, ImageViewType::ImageCube)
 		{}
 
 		TextureCube(_In_ const TextureCube&) = delete;

@@ -6,6 +6,11 @@
 #define DBG_CHECK_BUFFER_SIZE(...)
 #endif
 
+Pu::uint32 Pu::ShapeCreator::GetPatchPlaneVertexSize(uint16 divisions)
+{
+	return sqr(divisions) * sizeof(Basic3D);
+}
+
 Pu::uint32 Pu::ShapeCreator::GetSphereVertexSize(uint16 divisions)
 {
 	return 6 * sqr(divisions + 1) * sizeof(Basic3D);
@@ -19,6 +24,11 @@ Pu::uint32 Pu::ShapeCreator::GetDomeVertexSize(uint16 divisions)
 Pu::uint32 Pu::ShapeCreator::GetTorusVertexSize(uint16 divisions)
 {
 	return sqr(divisions + 1) * sizeof(Basic3D);
+}
+
+size_t Pu::ShapeCreator::GetPatchPlaneBufferSize(uint16 divisions)
+{
+	return GetPatchPlaneVertexSize(divisions) + 4 * sqr(divisions) * sizeof(uint16);
 }
 
 size_t Pu::ShapeCreator::GetSphereBufferSize(uint16 divisions)
@@ -111,6 +121,50 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 	src.EndMemoryTransfer();
 	Mesh result{ 6, sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f });
+
+	return result;
+}
+
+Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
+{
+	DBG_CHECK_BUFFER_SIZE(GetPatchPlaneBufferSize(divisions));
+
+	/* Begin the memory transfer operation. */
+	src.BeginMemoryTransfer();
+	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
+
+	const Vector2 tl{ (divisions - 1) * -0.5f };
+	const float idivs = recip(static_cast<float>(divisions));
+	const uint16 end = divisions - 1;
+
+	for (uint16 z = 0, i = 0; z < divisions; z++)
+	{
+		for (uint16 x = 0; x < divisions; x++, i++)
+		{
+			vertices[i].Position = Vector3{ tl.X + x, 0.0f, tl.Y + z };
+			vertices[i].Normal = Vector3::Up();
+			vertices[i].TexCoord = Vector2(x * idivs, z * idivs);
+
+			if (x < end && z < end)
+			{
+				indices[0] = i;
+				indices[1] = i + divisions;
+				indices[2] = i + divisions + 1;
+				indices[3] = i + 1;
+				indices += 4;
+			}
+		}
+	}
+
+	/* Finalize the memory transfer. */
+	src.EndMemoryTransfer();
+	Mesh result{ sqr(divisions) * 4u, sizeof(Basic3D), IndexType::UInt16 };
+	
+	/* Set the bounding box. */
+	const float size = static_cast<float>(divisions);
+	const float ihalfSize = size * -0.5f;
+	result.SetBoundingBox(AABB{ ihalfSize, 0.0f, ihalfSize, size, 0.0f, size });
 
 	return result;
 }

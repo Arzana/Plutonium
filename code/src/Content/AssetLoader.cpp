@@ -147,7 +147,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 
 		Result Execute(void) final
 		{
-			/* Load all the 6 underlying textures. */
+			/* Load all the underlying textures. */
 			for (Texture::LoadTask *child : children) scheduler->Spawn(*child);
 			return Result::Default();
 		}
@@ -173,7 +173,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 				cmdBuffer.Begin();
 				ImageSubresourceRange range{ ImageAspectFlag::Color };
-				range.LayerCount = 6;
+				range.LayerCount = static_cast<uint32>(children.size());
 				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, range);
 
 				/* Copy actual data and end the buffer. */
@@ -459,10 +459,10 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 		{
 			/* Initialize the model, loading the meshes. */
 			const PuMData data = PuMData::MeshesOnly(parent.GetDevice(), path);
-			result.Initialize(parent.GetDevice(), data);
+			result.meshes.Initialize(parent.GetDevice(), data);
 
 			/* Stage the vertex and index buffer to the GPU on the graphics queue. */
-			parent.StageBuffer(*data.Buffer, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 			return Result::CustomWait();
 		}
 
@@ -508,7 +508,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 			if (!deferred.IsUsable()) return false;
 			if (!probes.IsUsable()) return false;
 
-			return result.gpuData->IsLoaded();
+			return result.meshes.GetBuffer().IsLoaded();
 		}
 
 	private:
@@ -572,9 +572,6 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 
 			/* Allocate the source and destination buffer. */
 			StagingBuffer *src = new StagingBuffer(parent.GetDevice(), bufferSize);
-			result.AllocBuffer(parent.GetDevice(), *src);
-			result.views.emplace_back(0, vrtxSize);
-			result.views.emplace_back(vrtxSize, bufferSize - vrtxSize);
 
 			/* Create the mesh. */
 			Mesh mesh;
@@ -598,9 +595,8 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			}
 
 			/* Add the basic mesh to the model's list. */
-			parent.StageBuffer(*src, *result.gpuData, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-			result.basicMeshes.emplace_back(std::make_pair(0, std::move(mesh)));
-			result.CalculateBoundingBox();
+			result.meshes.Initialize(parent.GetDevice(), *src, vrtxSize, std::move(mesh));
+			parent.StageBuffer(*src, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
 			return Result::CustomWait();
 		}
 
@@ -647,7 +643,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			if (!deferred.IsUsable()) return false;
 			if (!probes.IsUsable()) return false;
 
-			return result.gpuData->IsLoaded();
+			return result.meshes.GetBuffer().IsLoaded();
 		}
 
 	private:

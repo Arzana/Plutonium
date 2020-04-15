@@ -293,7 +293,9 @@ void Pu::Application::DoInitialize(void)
 	_CrtMoveDebugTerminal(*wnd);
 #endif
 
+	/* Window is shown a second time to give it focus. */
 	Initialize();
+	wnd->Show();
 	
 	/* Initialize and sort the components. */
 	for (Component *cur : components) cur->DoInitialize();

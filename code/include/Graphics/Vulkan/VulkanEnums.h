@@ -507,6 +507,8 @@ namespace Pu
 	/* Defines the types of image views that can be created. */
 	enum class ImageViewType
 	{
+		/* No image view (non-Vulkan value). */
+		None = -1,
 		/* A one-dimensional image. */
 		Image1D = 0,
 		/* A two-dimensional image. */

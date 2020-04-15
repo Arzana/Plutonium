@@ -1,8 +1,7 @@
 #pragma once
 #include "Graphics/Platform/GameWindow.h"
-#include "Graphics/Models/Material.h"
 #include "Graphics/Cameras/Camera.h"
-#include "Graphics/Models/Mesh.h"
+#include "Graphics/Models/Terrain.h"
 #include "Content/AssetFetcher.h"
 #include "DirectionalLight.h"
 
@@ -16,16 +15,18 @@ namespace Pu
 	class DeferredRenderer
 	{
 	public:
+		/* Defines the index of the terrain subpass. */
+		static constexpr uint32 SubpassTerrain = 0;
 		/* Defines the index of the basic static geometry subpass. */
-		static constexpr uint32 SubpassBasicStaticGeometry = 0;
+		static constexpr uint32 SubpassBasicStaticGeometry = 1;
 		/* Defines the index of the advanced static geometry subpass. */
-		static constexpr uint32 SubpassAdvancedStaticGeometry = 1;
+		static constexpr uint32 SubpassAdvancedStaticGeometry = 2;
 		/* Defines the index of the directional light subpass. */
-		static constexpr uint32 SubpassDirectionalLight = 2;
+		static constexpr uint32 SubpassDirectionalLight = 3;
 		/* Defines the index of the skybox subpass. */
-		static constexpr uint32 SubpassSkybox = 3;
+		static constexpr uint32 SubpassSkybox = 4;
 		/* Defines the index of the post-processing subpass. */
-		static constexpr uint32 SubpassPostProcessing = 4;
+		static constexpr uint32 SubpassPostProcessing = 5;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
 		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd);
@@ -52,6 +53,12 @@ namespace Pu
 			return *renderpass;
 		}
 
+		/* Gets the descriptor set layout for the terrain details. */
+		_Check_return_ inline const DescriptorSetLayout& GetTerrainLayout(void) const
+		{
+			return renderpass->GetSubpass(SubpassTerrain).GetSetLayout(1);
+		}
+
 		/* Gets the descriptor set layout for the materials used by the renderer. */
 		_Check_return_ inline const DescriptorSetLayout& GetMaterialLayout(void) const
 		{
@@ -70,18 +77,26 @@ namespace Pu
 			return *depthBuffer;
 		}
  
-		/* Creates a new descriptor poiol for materials rendered through this deferred renderer. */
+		/* Creates a new descriptor pool for terrains. */
+		_Check_return_ DescriptorPool* CreateTerrainDescriptorPool(_In_ uint32 maxTerrains) const;
+		/* Creates a new descriptor pool for materials rendered through this deferred renderer. */
 		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
+		/* Initializes a descriptor pool for use with the deferred renderer cameras. */
+		void InitializeCameraPool(_In_ DescriptorPool &pool, _In_ uint32 maxSets) const;
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
-		/* Starts the deferred rendering pipeline (with basic static geometry). */
-		void BeginGeometry(_In_ const Camera &camera);
-		/* Starts the advanced section of the static geometry pipeline.s */
+		/* Started the deferred rendering pipeline (with terrain rendering). */
+		void BeginTerrain(_In_ const Camera &camera);
+		/* Starts the basic section of the static geometry pipeline. */
+		void BeginGeometry(void);
+		/* Starts the advanced section of the static geometry pipeline. */
 		void BeginAdvanced(void);
 		/* Starts the second phase of the deferred rendering pipeline. */
 		void BeginLight(void);
 		/* End the deferred rendering pipeline. */
 		void End(void);
+		/* Renders the specified terrain piece to the G-Buffer. */
+		void Render(_In_ const MeshCollection &meshes, const Terrain &terrain);
 		/* Renders the specified model to the G-Buffer. */
 		void Render(_In_ const Model &model, _In_ const Matrix &transform);
 		/* Renders the specified direction light onto the scene. */
@@ -100,7 +115,7 @@ namespace Pu
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxGPassBasic, *gfxGPassAdv, *gfxLightPass, *gfxSkybox, *gfxTonePass;
+		GraphicsPipeline *gfxTerrain, *gfxGPassBasic, *gfxGPassAdv, *gfxLightPass, *gfxSkybox, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
@@ -108,7 +123,7 @@ namespace Pu
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
-		QueryChain *geometryTimer, *lightingTimer, *postTimer;
+		QueryChain *timer;
 		mutable uint32 binds, draws;
 
 		float hdrSwapchain;
@@ -123,6 +138,7 @@ namespace Pu
 		void WriteDescriptors(void);
 		void CreateFramebuffer(void);
 		void DestroyWindowDependentResources(void);
+		void DestroyPipelines(void);
 		void Destroy(void);
 	};
 }

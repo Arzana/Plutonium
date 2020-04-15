@@ -36,7 +36,7 @@ Pu::LightProbe::LightProbe(LightProbe && value)
 }
 
 Pu::LightProbe::LightProbe(LightProbeRenderer & renderer, Extent2D resolution)
-	: fetcher(renderer.loader), cycleMode(CycleMode::OnCommand), time(0.0f),
+	: fetcher(renderer.loader), cycleMode(CycleMode::OnCommand), time(1.0f),
 	near(0.1f), far(100.0f), interval(1.0f), locked(true), renderer(&renderer)
 {
 	/* The output image is just a 2D cube map image, but we render to it like it's a 2D texture array, so we only have to do 1 draw call per object. */

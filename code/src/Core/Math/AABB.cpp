@@ -55,6 +55,12 @@ AABB Pu::AABB::Merge(Vector3 point) const
 	return AABB(min(LowerBound, point), max(UpperBound, point));
 }
 
+void Pu::AABB::MergeInto(const AABB & second)
+{
+	LowerBound = min(LowerBound, second.LowerBound);
+	UpperBound = max(UpperBound, second.UpperBound);
+}
+
 Vector3 Pu::AABB::Clamp(Vector3 point) const
 {
 	return clamp(point, LowerBound, UpperBound);

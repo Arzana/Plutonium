@@ -168,9 +168,11 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\Category.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Material.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Mesh.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\MeshCollection.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\Model.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeCreator.h" />
     <ClInclude Include="..\..\..\include\Graphics\Models\ShapeType.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Models\Terrain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\Display.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\GameWindow.h" />
     <ClInclude Include="..\..\..\include\Graphics\Platform\NativeWindow.h" />
@@ -186,6 +188,8 @@
     <ClInclude Include="..\..\..\include\Graphics\Textures\Sampler.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2D.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\Texture2DArray.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureArray.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureCube.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput.h" />
     <ClInclude Include="..\..\..\include\Graphics\Textures\TextureInput2D.h" />
@@ -336,8 +340,10 @@
     <ClCompile Include="..\..\..\src\Graphics\Lighting\LightProbeUniformBlock.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Material.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Mesh.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\MeshCollection.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\Model.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Models\ShapeCreator.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Models\Terrain.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\Display.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\GameWindow.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Platform\NativeWindow.cpp" />

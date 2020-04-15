@@ -106,58 +106,17 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 
 Pu::TextureCube & Pu::AssetFetcher::FetchSkybox(const vector<wstring>& paths)
 {
-	return FetchTextureCube(L"Skybox", SamplerCreateInfo{}, true, paths, 1);
+	return FetchTextureCube("Skybox", SamplerCreateInfo{}, true, paths, 1);
 }
 
-Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const wstring & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels)
+Pu::TextureCube & Pu::AssetFetcher::FetchTextureCube(const string & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring> & paths, uint32 mipMapLevels)
 {
-	/* Make sure the wildcards are solved. */
-	vector<wstring> mutableImages;
-	wstring hashParameter;
-	for (const wstring &path : paths)
-	{
-		mutableImages.emplace_back(path);
-		Solve(mutableImages.back());
-		hashParameter += mutableImages.back();
-	}
+	return reinterpret_cast<TextureCube&>(FetchMultiTexture(name, samplerInfo, sRGB, paths, mipMapLevels, ImageViewType::ImageCube));
+}
 
-	/*
-	The texture itself is not an asset but the sampler and image it stores are.
-	So first get the sampler and then get the image.
-	*/
-	Sampler &sampler = FetchSampler(samplerInfo);
-
-	/* Create the hash and check if the cache contains the requested asset. */
-	const size_t hash = std::hash<wstring>{}(hashParameter);
-	if (cache->Contains(hash))
-	{
-		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
-
-		/* Create the final texture and return it. */
-		TextureCube *result = new TextureCube(image, sampler);
-		textures.emplace_back(result);
-		return *result;
-	}
-	else
-	{
-		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
-		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
-		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
-
-		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 6, SampleCountFlag::Pixel1Bit, usage);
-		createInfo.Flags = ImageCreateFlag::CubeCompatible;
-		Image *image = new Image(loader->GetDevice(), createInfo);
-		image->SetDebugName(name.toUTF8());
-		image->SetHash(hash);
-		cache->Store(image);
-
-		/* Create the final texture and start the load/stage process. */
-		TextureCube *result = new TextureCube(*image, sampler);
-		textures.emplace_back(result);
-		loader->InitializeTexture(*result, mutableImages, info, name);
-		return *result;
-	}
+Pu::Texture2DArray & Pu::AssetFetcher::FetchTexture2DArray(const string & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels)
+{
+	return FetchMultiTexture(name, samplerInfo, sRGB, paths, mipMapLevels, ImageViewType::Image2DArray);
 }
 
 Pu::Sampler & Pu::AssetFetcher::FetchSampler(const SamplerCreateInfo & samplerInfo)
@@ -165,13 +124,11 @@ Pu::Sampler & Pu::AssetFetcher::FetchSampler(const SamplerCreateInfo & samplerIn
 	/* Try to fetch the sampler, otherwise just create a new one. */
 	size_t hash = Sampler::CreateHash(samplerInfo);
 	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Sampler>(*cache);
-	else
-	{
-		Sampler *result = new Sampler(loader->GetDevice(), samplerInfo);
-		result->loadedViaLoader = true;
-		cache->Store(result);
-		return *result;
-	}
+
+	Sampler *result = new Sampler(loader->GetDevice(), samplerInfo);
+	result->loadedViaLoader = true;
+	cache->Store(result);
+	return *result;
 }
 
 Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const CodeChart & codeChart)
@@ -289,6 +246,16 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 	}
 }
 
+Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, const wstring & diffuse)
+{
+	/* The texture is references in the model, but we won't use it afterwards so immediately release it. */
+	Texture2D &texture = FetchTexture2D(diffuse, SamplerCreateInfo{}, true);
+	Model &result = CreateModel(type, deferredRenderer, probeRenderer, &texture);
+	Release(texture);
+
+	return result;
+}
+
 Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, Texture2D * diffuse, Texture2D * specularGloss)
 {
 	/* Construct a new random hash for this model. */
@@ -343,8 +310,12 @@ void Pu::AssetFetcher::Release(Texture & texture)
 	{
 		if (&texture == cur)
 		{
-			textures.remove(cur);
-			delete cur;
+			if (--texture.refCnt < 1)
+			{
+				textures.remove(cur);
+				delete cur;
+			}
+
 			return;
 		}
 	}
@@ -366,6 +337,70 @@ void Pu::AssetFetcher::Release(Model & model)
 	/* Relaese the underlying textures. */
 	for (Texture2D *cur : model.textures) Release(*cur);
 	cache->Release(model);
+}
+
+Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels, ImageViewType view)
+{
+	/* Make sure the wildcards are solved. */
+	vector<wstring> mutableImages;
+	wstring hashParameter;
+	for (const wstring &path : paths)
+	{
+		mutableImages.emplace_back(path);
+		Solve(mutableImages.back());
+		hashParameter += mutableImages.back();
+	}
+
+	/*
+	The texture itself is not an asset but the sampler and image it stores are.
+	So first get the sampler and then get the image.
+	*/
+	Sampler &sampler = FetchSampler(samplerInfo);
+
+	/* Create the hash and check if the cache contains the requested asset. */
+	const size_t hash = std::hash<wstring>{}(hashParameter);
+	if (cache->Contains(hash))
+	{
+		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
+
+		/* Create the final texture and return it. */
+		Texture2DArray *result = new Texture2DArray(image, sampler, view);
+		textures.emplace_back(result);
+		return *result;
+	}
+	else
+	{
+		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
+		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
+		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
+		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		const uint32 layers = static_cast<uint32>(paths.size());
+
+		/* Do an expensive check on debug to see if all image extends are the same. */
+#ifdef _DEBUG
+		for (const wstring &imgPath : mutableImages)
+		{
+			const ImageInformation imgInfo = _CrtGetImageInfo(imgPath);
+			if (imgInfo.Height != info.Height || imgInfo.Width != info.Width)
+			{
+				Log::Fatal("Unable to load multi-image (image sizes are not equal)!");
+			}
+		}
+#endif
+
+		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, layers, SampleCountFlag::Pixel1Bit, usage);
+		if (view == ImageViewType::ImageCube) createInfo.Flags = ImageCreateFlag::CubeCompatible;
+		Image *image = new Image(loader->GetDevice(), createInfo);
+		image->SetDebugName(name.toUTF8());
+		image->SetHash(hash);
+		cache->Store(image);
+
+		/* Create the final texture and start the load/stage process. */
+		Texture2DArray *result = new Texture2DArray(*image, sampler, view);
+		textures.emplace_back(result);
+		loader->InitializeTexture(*result, mutableImages, info, name.toWide());
+		return *result;
+	}
 }
 
 Pu::Texture2D & Pu::AssetFetcher::GetDefaultDiffuse(void)

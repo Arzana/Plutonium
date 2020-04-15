@@ -37,10 +37,15 @@ private:
 	Pu::LightProbeRenderer *probeRenderer;
 	Pu::LightProbe *environment;
 	Pu::TextureCube *skybox;
-
-	Pu::Model *model;
-	Pu::Matrix mdlMtrx;
 	Pu::DirectionalLight *lightMain, *lightFill;
+
+	Pu::MeshCollection terrainMesh;
+	Pu::Terrain *terrainMat;
+	Pu::StagingBuffer *srcBuffer, *heightBuffer;
+	Pu::Image *heightImg;
+	Pu::Sampler *heightSampler;
+	Pu::Texture2D *height, *mask;
+	Pu::Texture2DArray *textures;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 };
