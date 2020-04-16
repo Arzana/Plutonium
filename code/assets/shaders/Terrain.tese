@@ -1,7 +1,7 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
 #extension GL_ARB_tessellation_shader : require
-layout (quads, equal_spacing, cw) in;
+layout (quads, equal_spacing, ccw) in;
 
 layout (binding = 0) uniform Camera
 {
@@ -18,6 +18,7 @@ layout (set = 1, binding = 3) uniform Terrain
 	float Displacement;
 	float Tessellation;
 	float EdgeSize;
+	float PatchSize;
 };
 
 layout (location = 0) in vec3 Normals[];

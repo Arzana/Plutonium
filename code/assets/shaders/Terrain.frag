@@ -1,5 +1,6 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
+layout (early_fragment_tests) in;
 
 layout (set = 1, binding = 0) uniform sampler2D Height;
 layout (set = 1, binding = 1) uniform sampler2D TextureMask;
@@ -11,6 +12,7 @@ layout (set = 1, binding = 3) uniform Terrain
 	float Displacement;
 	float Tessellation;
 	float EdgeSize;
+	float PatchSize;
 };
 
 layout (location = 0) in vec3 Normal;

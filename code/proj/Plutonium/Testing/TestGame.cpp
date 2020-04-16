@@ -8,8 +8,11 @@
 
 using namespace Pu;
 
+constexpr uint16 patchSize = 16;
+constexpr uint16 imgSize = patchSize << 6;
+
 TestGame::TestGame(void)
-	: Application(L"TestGame (Unlit!)"), cam(nullptr),
+	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
 	markDepthBuffer(true)
@@ -36,6 +39,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 {
 	renderer = new DeferredRenderer(fetcher, GetWindow());
 	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 2.0f);
+	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	probeRenderer = new LightProbeRenderer(fetcher, 1);
 	environment = new LightProbe(*probeRenderer, Extent2D(256));
@@ -51,8 +55,8 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	srcBuffer = new StagingBuffer(GetDevice(), ShapeCreator::GetPatchPlaneBufferSize(64));
-	terrainMesh.Initialize(GetDevice(), *srcBuffer, ShapeCreator::GetPatchPlaneVertexSize(64), ShapeCreator::PatchPlane(*srcBuffer, 64));
+	srcBuffer = new StagingBuffer(GetDevice(), ShapeCreator::GetPatchPlaneBufferSize(patchSize));
+	terrainMesh.Initialize(GetDevice(), *srcBuffer, ShapeCreator::GetPatchPlaneVertexSize(patchSize), ShapeCreator::PatchPlane(*srcBuffer, patchSize));
 
 	mask = &fetcher.CreateTexture2D("Mask", Color::Black());
 	textures = &fetcher.FetchTexture2DArray("Terrain", SamplerCreateInfo{}, true,
@@ -63,24 +67,29 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Terrain/stone.png"
 		});
 
-	constexpr uint16 size = 1024;
 	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{});
-	heightImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D{size, 1}, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled });
+	heightImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D{imgSize, 1}, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled });
 	height = new Texture2D(*heightImg, *heightSampler);
 
-	heightBuffer = new StagingBuffer(GetDevice(), sqr(size) * sizeof(float));
+	heightBuffer = new StagingBuffer(GetDevice(), sqr(imgSize) * sizeof(float));
 	heightBuffer->BeginMemoryTransfer();
 	float *pixels = reinterpret_cast<float*>(heightBuffer->GetHostMemory());
 
+	float mi = maxv<float>(), ma = minv<float>();
 	PerlinNoise noise{};
-	for (size_t y = 0; y < size; y++)
+	for (size_t y = 0, i = 0; y < imgSize; y++)
 	{
-		for (size_t x = 0; x < size; x++)
+		for (size_t x = 0; x < imgSize; x++, i++)
 		{
-			constexpr float isize = recip(size);
-			*pixels++ = noise.NormalizedScale(x * isize, y * isize, 3, 4.0f, 0.2f);
+			constexpr float isize = recip(imgSize);
+			pixels[i] = noise.NormalizedScale(x * isize, y * isize, 4, 0.5f, 2.0f);
+
+			mi = min(mi, pixels[i]);
+			ma = max(ma, pixels[i]);
 		}
 	}
+
+	for (size_t i = 0; i < sqr(imgSize); i++) pixels[i] = ilerp(mi, ma, pixels[i]);
 
 	heightBuffer->EndMemoryTransfer();
 }
@@ -140,6 +149,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		terrainMat->SetHeight(*height);
 		terrainMat->SetMask(*mask);
 		terrainMat->SetTextures(*textures);
+		terrainMat->SetPatchSize(patchSize);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -168,7 +178,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		if (ImGui::Begin("Terrain Editor"))
 		{
 			float displ = terrainMat->GetDisplacement();
-			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 10.0f)) terrainMat->SetDisplacement(displ);
+			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 50.0f)) terrainMat->SetDisplacement(displ);
 
 			float tess = terrainMat->GetTessellation();
 			if (ImGui::SliderFloat("Tessellation", &tess, 0.0f, 2.0f)) terrainMat->SetTessellation(tess);
@@ -250,4 +260,9 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 	{
 		if (args.Key == Keys::XBoxB) Exit();
 	}
+}
+
+void TestGame::OnSwapchainRecreated(const Pu::GameWindow &, const Pu::SwapchainReCreatedEventArgs &)
+{
+	if (dbgRenderer) dbgRenderer->Reset(renderer->GetDepthBuffer());
 }

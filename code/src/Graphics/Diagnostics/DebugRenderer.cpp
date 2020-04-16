@@ -359,11 +359,16 @@ void Pu::DebugRenderer::InitializeRenderpass(Renderpass &)
 
 void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 {
+	CreatePipeline();
+	CreateFrameBuffers();
+}
+
+void Pu::DebugRenderer::CreatePipeline(void)
+{
 	/* Delete the old pipeline if needed. */
-	if (pipeline) delete pipeline;
+	if (!pipeline) pipeline = new GraphicsPipeline(*renderpass, 0);
 
 	/* Initialize the pipeline. */
-	pipeline = new GraphicsPipeline(*renderpass, 0);
 	pipeline->SetViewport(wnd.GetNative().GetClientBounds());
 	pipeline->SetTopology(PrimitiveTopology::LineList);
 	pipeline->AddVertexBinding<ColoredVertex3D>(0);
@@ -378,7 +383,6 @@ void Pu::DebugRenderer::InitializePipeline(Renderpass &)
 	}
 
 	pipeline->Finalize();
-	CreateFrameBuffers();
 }
 
 void Pu::DebugRenderer::CreateFrameBuffers(void)
@@ -403,10 +407,13 @@ void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReC
 	But we need to invalidate the debug renderer if the area changed, this is because the depth buffer will need to be recreated.
 	So if we're using a depth buffer then invalidate the debug renderer and wait for the user to set a new depth buffer, otherwise;
 	Just recreate the framebuffer.
+
+	We could set the viewport and scissor as dynamic state, but I opted to just recreate the pipeline if the area changes.
 	*/
 	if (args.FormatChanged) renderpass->Recreate();
 	else if (args.AreaChanged)
 	{
+		CreatePipeline();
 		if (depthBuffer && !invalidated) invalidated = 1;
 		else if (invalidated != 1) CreateFrameBuffers();
 	}

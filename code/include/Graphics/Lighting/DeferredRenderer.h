@@ -29,7 +29,7 @@ namespace Pu
 		static constexpr uint32 SubpassPostProcessing = 5;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
-		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd);
+		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_opt_ bool wireframe = false);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
 		DeferredRenderer(_In_ DeferredRenderer&&) = delete;
 		/* Releases the resources allocated by the deferred renderer. */
@@ -127,7 +127,7 @@ namespace Pu
 		mutable uint32 binds, draws;
 
 		float hdrSwapchain;
-		bool markNeeded, advanced;
+		bool markNeeded, advanced, wireframe;
 
 		void DoSkybox(void);
 		void DoTonemap(void);

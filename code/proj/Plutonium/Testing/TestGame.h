@@ -48,4 +48,5 @@ private:
 	Pu::Texture2DArray *textures;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
+	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
 };

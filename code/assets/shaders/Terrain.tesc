@@ -18,6 +18,7 @@ layout (set = 1, binding = 3) uniform Terrain
 	float Displacement;
 	float Tessellation;
 	float EdgeSize;
+	float PatchSize;
 };
 
 layout (location = 0) in vec3 Normals[];
@@ -49,15 +50,14 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 
 bool cull()
 {
-	const float r = 8.0f; //TODO: change this.
-
 	vec4 pos = gl_in[gl_InvocationID].gl_Position;
 	pos.y += texture(Height, TexCoords[0]).r * Displacement;
 
 	// Check the sphere against the frustum planes.
 	for (uint i = 0; i < 6; i++)
 	{
-		if (dot(pos, Frustum[i]) + r < 0.0f) return true;
+		// The patch size if the square root of the width and height.
+		if (dot(pos, Frustum[i]) + PatchSize < 0.0f) return true;
 	}
 
 	// Sphere is on the correct side of all the planes, so don't cull.

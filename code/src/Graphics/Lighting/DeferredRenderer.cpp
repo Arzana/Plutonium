@@ -62,10 +62,10 @@ constexpr Pu::uint32 PostTimer = 4;
 
 	We need to override the attachment reference in most of the subpasses.
 */
-Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
+Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, bool wireframe)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr),
-	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
+	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
 	descPoolInput(nullptr), descSetInput(nullptr), advanced(false), binds(0), draws(0)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
@@ -517,9 +517,12 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the terrain pass. */
 	{
+		if (wireframe) gfxTerrain->SetPolygonMode(PolygonMode::Line);
+
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
+		gfxTerrain->SetCullMode(CullModeFlag::Back);
 		gfxTerrain->AddVertexBinding<Basic3D>(0);
 		gfxTerrain->SetPatchControlPoints(4);
 		gfxTerrain->Finalize();
@@ -527,6 +530,8 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the basic static geometry pass. */
 	{
+		if (wireframe) gfxGPassBasic->SetPolygonMode(PolygonMode::Line);
+
 		gfxGPassBasic->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPassBasic->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPassBasic->EnableDepthTest(true, CompareOp::LessOrEqual);
@@ -536,6 +541,8 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the advanced static geometry pass. */
 	{
+		if (wireframe) gfxGPassAdv->SetPolygonMode(PolygonMode::Line);
+
 		gfxGPassAdv->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPassAdv->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPassAdv->EnableDepthTest(true, CompareOp::LessOrEqual);

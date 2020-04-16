@@ -753,17 +753,26 @@ namespace Pu
 		Max = 4
 	};
 
-	/* Defines the locations avialble for dynamic changes in a pipelne. */
+	/* Defines the available options to dynamically set after pipeline creation. */
 	enum class DynamicState
 	{
+		/* Defines the viewport rectangle as dynamic. */
 		ViewPort = 0,
+		/* Defines the scissor rectangle as dynamic. */
 		Scissor = 1,
+		/* Defines the width of lines as dynamic (only usable when topology is line list or line strip). */
 		LineWidth = 2,
+		/* Defines the depth bias constant is dynamic. */
 		DepthBias = 3,
+		/* Defines the blend constant as dynamic. */
 		BlendConstants = 4,
+		/* Defines the depth bounds as dynamic. */
 		DepthBounds = 5,
+		/* Defines the stencil comparison mask as dynamic. */
 		StencilCompareMask = 6,
+		/* Defines the stencil write mask as dynamic. */
 		StencilWriteMask = 7,
+		/* Defines the stencil reference value as dynamic. */
 		StencilReference = 8,
 	};
 

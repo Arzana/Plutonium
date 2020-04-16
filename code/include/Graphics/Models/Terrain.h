@@ -45,6 +45,12 @@ namespace Pu
 			factors.Z = value;
 		}
 
+		/* Sets the width/height of the terrain patch. */
+		inline void SetPatchSize(_In_ float value)
+		{
+			factors.W = sqrtf(value);
+		}
+
 		/* Sets the height map for this terrain. */
 		inline void SetHeight(_In_ const Texture2D &value)
 		{
@@ -87,13 +93,19 @@ namespace Pu
 			return factors.Z;
 		}
 
+		/* Gets the width/height of the terrain patch. */
+		_Check_return_ inline float GetPatchSize(void) const
+		{
+			return factors.W;
+		}
+
 	protected:
 		/* Stages the buffer data for the uniform buffer. */
 		void Stage(_In_ byte *dest) final;
 
 	private:
 		Matrix mdl;
-		Vector3 factors;
+		Vector4 factors;
 		const Descriptor *height, *mask, *textures;
 	};
 }
