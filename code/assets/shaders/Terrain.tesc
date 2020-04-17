@@ -21,11 +21,11 @@ layout (set = 1, binding = 3) uniform Terrain
 	float PatchSize;
 };
 
-layout (location = 0) in vec3 Normals[];
-layout (location = 1) in vec2 TexCoords[];
+layout (location = 0) in vec2 TexCoords1[];
+layout (location = 1) in vec2 TexCoords2[];
 
-layout (location = 0) out vec3 WorldNormals[4];
-layout (location = 1) out vec2 Uvs[4];
+layout (location = 0) out vec2 Uvs1[4];
+layout (location = 1) out vec2 Uvs2[4];
 
 // Calculates the tessellation factor based on scrren space dimensions of the edge.
 float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
@@ -51,7 +51,8 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 bool cull()
 {
 	vec4 pos = gl_in[gl_InvocationID].gl_Position;
-	pos.y += texture(Height, TexCoords[0]).r * Displacement;
+	pos.y += texture(Height, TexCoords2[0]).r * Displacement;
+	pos = Model * pos;
 
 	// Check the sphere against the frustum planes.
 	for (uint i = 0; i < 6; i++)
@@ -93,8 +94,8 @@ void main()
 		}
 	}
 
-	// Pass through position, normal and texture coordinates.
+	// Pass through position and texture coordinates.
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-	WorldNormals[gl_InvocationID] = Normals[gl_InvocationID];
-	Uvs[gl_InvocationID] = TexCoords[gl_InvocationID];
+	Uvs1[gl_InvocationID] = TexCoords1[gl_InvocationID];
+	Uvs2[gl_InvocationID] = TexCoords2[gl_InvocationID];
 }

@@ -1,9 +1,10 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/VertexLayouts/Advanced3D.h"
-#include "Graphics/VertexLayouts/Basic3D.h"
-#include "Graphics/Diagnostics/QueryChain.h"
-#include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Textures/TextureInput2D.h"
+#include "Graphics/VertexLayouts/Patched3D.h"
+#include "Graphics/Diagnostics/QueryChain.h"
+#include "Graphics/VertexLayouts/Basic3D.h"
+#include "Core/Diagnostics/Profiler.h"
 
 constexpr Pu::uint32 TerrainTimer = 0;
 constexpr Pu::uint32 GeometryTimer = 1;
@@ -411,8 +412,8 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 		norm.SetReference(3);
 
-		tpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-		tpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+		tpass.GetAttribute("TexCoord1").SetOffset(vkoffsetof(Patched3D, TexCoord1));
+		tpass.GetAttribute("TexCoord2").SetOffset(vkoffsetof(Patched3D, TexCoord2));
 	}
 
 	/* Set all the options for the basic static Geometry-Pass. */
@@ -523,7 +524,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxTerrain->SetCullMode(CullModeFlag::Back);
-		gfxTerrain->AddVertexBinding<Basic3D>(0);
+		gfxTerrain->AddVertexBinding<Patched3D>(0);
 		gfxTerrain->SetPatchControlPoints(4);
 		gfxTerrain->Finalize();
 	}

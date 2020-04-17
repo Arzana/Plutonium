@@ -8,7 +8,7 @@
 
 Pu::uint32 Pu::ShapeCreator::GetPatchPlaneVertexSize(uint16 divisions)
 {
-	return sqr(divisions) * sizeof(Basic3D);
+	return sqr(divisions) * sizeof(Patched3D);
 }
 
 Pu::uint32 Pu::ShapeCreator::GetSphereVertexSize(uint16 divisions)
@@ -131,7 +131,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 
 	/* Begin the memory transfer operation. */
 	src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Patched3D *vertices = reinterpret_cast<Patched3D*>(src.GetHostMemory());
 	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
 
 	const Vector2 tl{ (divisions - 1) * -0.5f };
@@ -143,8 +143,8 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 		for (uint16 x = 0; x < divisions; x++, i++)
 		{
 			vertices[i].Position = Vector3{ tl.X + x, 0.0f, tl.Y + z };
-			vertices[i].Normal = Vector3::Up();
-			vertices[i].TexCoord = Vector2(x * idivs, z * idivs);
+			vertices[i].TexCoord1 = Vector2(x, z);
+			vertices[i].TexCoord2 = Vector2(x * idivs, z * idivs);
 
 			if (x < end && z < end)
 			{
@@ -159,7 +159,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 
 	/* Finalize the memory transfer. */
 	src.EndMemoryTransfer();
-	Mesh result{ sqr(divisions) * 4u, sizeof(Basic3D), IndexType::UInt16 };
+	Mesh result{ sqr(divisions) * 4u, sizeof(Patched3D), IndexType::UInt16 };
 	
 	/* Set the bounding box. */
 	const float size = static_cast<float>(divisions);

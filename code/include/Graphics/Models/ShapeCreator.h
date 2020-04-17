@@ -1,6 +1,7 @@
 #pragma once
 #include "Mesh.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/VertexLayouts/Patched3D.h"
 
 namespace Pu
 {

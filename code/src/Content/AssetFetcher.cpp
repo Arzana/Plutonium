@@ -383,7 +383,7 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 			const ImageInformation imgInfo = _CrtGetImageInfo(imgPath);
 			if (imgInfo.Height != info.Height || imgInfo.Width != info.Width)
 			{
-				Log::Fatal("Unable to load multi-image (image sizes are not equal)!");
+				Log::Fatal("Unable to load multi-image '%s' (image sizes are not equal)!", name.c_str());
 			}
 		}
 #endif

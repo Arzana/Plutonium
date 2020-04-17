@@ -792,6 +792,9 @@
     <ClInclude Include="..\..\..\include\Graphics\Models\MeshCollection.h">
       <Filter>Header Files\Graphics\Models</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Patched3D.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">

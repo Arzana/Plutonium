@@ -15,8 +15,9 @@ layout (set = 1, binding = 3) uniform Terrain
 	float PatchSize;
 };
 
-layout (location = 0) in vec3 Normal;
-layout (location = 1) in vec2 Uv;
+layout (location = 0) in vec2 Uv1;
+layout (location = 1) in vec2 Uv2;
+layout (location = 2) in vec3 Normal;
 
 layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
@@ -33,14 +34,14 @@ vec2 EncodeNormal()
 void main()
 {
 	// Get the normalized height of the terrain.
-	const float h = texture(Height, Uv).r;
-	const vec4 weights = texture(TextureMask, Uv);
+	const float h = texture(Height, Uv2).r;
+	const vec4 weights = texture(TextureMask, Uv2);
 
 	// Calculate the diffuse based on the mask
 	vec3 diffuse = vec3(0.0f);
 	for (uint i = 0; i < 4; i++)
 	{
-		diffuse += weights[i] * texture(Textures, vec3(Uv, i)).rgb;
+		diffuse += weights[i] * texture(Textures, vec3(Uv1, i)).rgb;
 	}
 
 	// Roughness of terrain is always max, with no specular.

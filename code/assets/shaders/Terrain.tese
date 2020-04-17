@@ -21,28 +21,31 @@ layout (set = 1, binding = 3) uniform Terrain
 	float PatchSize;
 };
 
-layout (location = 0) in vec3 Normals[];
-layout (location = 1) in vec2 TexCoords[];
+layout (location = 0) in vec2 TexCoords1[];
+layout (location = 1) in vec2 TexCoords2[];
 
-layout (location = 0) out vec3 Normal;
-layout (location = 1) out vec2 TexCoord;
+layout (location = 0) out vec2 TexCoord1;
+layout (location = 1) out vec2 TexCoord2;
+layout (location = 2) out vec3 Normal;
 
 void main()
 {
-	// Set the final texture coordinate. 
-	const vec2 uv1 = mix(TexCoords[0], TexCoords[1], gl_TessCoord.x);
-	const vec2 uv2 = mix(TexCoords[3], TexCoords[2], gl_TessCoord.x);
-	TexCoord = mix(uv1, uv2, gl_TessCoord.y);
+	// Set the first texture coordinate. 
+	vec2 uv1 = mix(TexCoords1[0], TexCoords1[1], gl_TessCoord.x);
+	vec2 uv2 = mix(TexCoords1[3], TexCoords1[2], gl_TessCoord.x);
+	TexCoord1 = mix(uv1, uv2, gl_TessCoord.y);
 
-	// Set the final normal.
-	const vec3 n1 = mix(Normals[0], Normals[1], gl_TessCoord.x);
-	const vec3 n2 = mix(Normals[3], Normals[2], gl_TessCoord.x);
-	Normal = mix(n1, n2, gl_TessCoord.y);
+	// Set the second texture coordinate. 
+	uv1 = mix(TexCoords2[0], TexCoords2[1], gl_TessCoord.x);
+	uv2 = mix(TexCoords2[3], TexCoords2[2], gl_TessCoord.x);
+	TexCoord2 = mix(uv1, uv2, gl_TessCoord.y);
+
+	Normal = vec3(0.0f, 1.0f, 0.0f);
 
 	// Set the final position.
 	const vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
 	const vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
-	pos.y += texture(Height, TexCoord).r * Displacement;
+	pos.y += texture(Height, TexCoord2).r * Displacement;
 	gl_Position = Projection * View * Model * pos;
 }

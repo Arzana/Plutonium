@@ -204,6 +204,7 @@
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\ColoredVertex2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Image3D.h" />
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\Patched3D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\SkinnedAnimated.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Buffer.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\CommandBuffer.h" />

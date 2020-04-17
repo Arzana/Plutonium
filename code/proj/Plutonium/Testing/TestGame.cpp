@@ -58,13 +58,13 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	srcBuffer = new StagingBuffer(GetDevice(), ShapeCreator::GetPatchPlaneBufferSize(patchSize));
 	terrainMesh.Initialize(GetDevice(), *srcBuffer, ShapeCreator::GetPatchPlaneVertexSize(patchSize), ShapeCreator::PatchPlane(*srcBuffer, patchSize));
 
-	mask = &fetcher.CreateTexture2D("Mask", Color::Black());
+	mask = &fetcher.CreateTexture2D("Mask", Color{ (byte)0, 255, 0, 0 });
 	textures = &fetcher.FetchTexture2DArray("Terrain", SamplerCreateInfo{}, true,
 		{
-			L"{Textures}Terrain/lava.png",
-			L"{Textures}Terrain/stone.png",
-			L"{Textures}Terrain/water.png",
-			L"{Textures}Terrain/stone.png"
+			L"{Textures}Terrain/Water.jpg",
+			L"{Textures}Terrain/Grass.jpg",
+			L"{Textures}Terrain/Dirt.jpg",
+			L"{Textures}Terrain/Snow.jpg"
 		});
 
 	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{});
@@ -149,7 +149,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		terrainMat->SetHeight(*height);
 		terrainMat->SetMask(*mask);
 		terrainMat->SetTextures(*textures);
-		terrainMat->SetPatchSize(patchSize);
+		terrainMat->SetPatchSize(patchSize * 8.0f);
+		terrainMat->SetTransform(Matrix::CreateScalar(8.0f));
 
 		renderer->SetSkybox(*skybox);
 	}
