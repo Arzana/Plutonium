@@ -67,7 +67,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Terrain/Snow.jpg"
 		});
 
-	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{});
+	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge });
 	heightImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D{imgSize, 1}, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled });
 	height = new Texture2D(*heightImg, *heightSampler);
 
@@ -149,8 +149,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		terrainMat->SetHeight(*height);
 		terrainMat->SetMask(*mask);
 		terrainMat->SetTextures(*textures);
-		terrainMat->SetPatchSize(patchSize * 8.0f);
-		terrainMat->SetTransform(Matrix::CreateScalar(8.0f));
+		terrainMat->SetScale(8.0f);
 
 		renderer->SetSkybox(*skybox);
 	}

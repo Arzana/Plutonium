@@ -3,6 +3,7 @@
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Graphics/Platform/Windows/Win32Window.h"
+#include <imgui/include/imgui.h>
 
 const Pu::NativeWindow* Pu::Mouse::lockedWnd = nullptr;
 Pu::ButtonInformation Pu::Mouse::buttonInfo = Pu::ButtonInformation(Pu::HIDUsageGenericDesktop::Mouse);
@@ -46,6 +47,12 @@ void Pu::Mouse::HideCursor(void)
 {
 	if (!IsCursorVisible()) return;
 
+	/* It's quite annoying to be able to control ImGui with an invisible cursor, so disable cursor contol. */
+	if constexpr (ImGuiAvailable)
+	{
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+	}
+
 #ifdef _WIN32
 	::ShowCursor(false);
 #else
@@ -56,6 +63,12 @@ void Pu::Mouse::HideCursor(void)
 void Pu::Mouse::ShowCursor(void)
 {
 	if (IsCursorVisible()) return;
+
+	/* Make sure to enable cursor control if the cursor is visible again. */
+	if constexpr (ImGuiAvailable)
+	{
+		ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+	}
 
 #ifdef _WIN32
 	::ShowCursor(true);

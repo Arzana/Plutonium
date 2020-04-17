@@ -48,11 +48,11 @@ vec3 sobel(in vec2 uv)
 
 	// Construct sobel matrix.
 	mat3 mat;
-	for (uint y = 0; y < 3; y++)
+	for (int y = 0; y < 3; y++)
 	{
-		for (uint x = 0; x < 3; x++)
+		for (int x = 0; x < 3; x++)
 		{
-			mat[y][x] = sampleHeight(uv + vec2(x, y) * tex2uv);
+			mat[y][x] = sampleHeight(uv + vec2(x - 1, y - 1) * tex2uv);
 		}
 	}
 

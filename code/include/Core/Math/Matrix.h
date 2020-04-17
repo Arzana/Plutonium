@@ -117,6 +117,8 @@ namespace Pu
 			return Matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
+		/* Creates a scale and translation matrix. */
+		_Check_return_ static Matrix CreateScaledTranslation(_In_ Vector3 translation, _In_ float scalar);
 		/* Creates a rotation matrix around a specified axis. */
 		_Check_return_ static Matrix CreateRotation(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a rotation matrix from a quaternion. */

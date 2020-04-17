@@ -21,11 +21,12 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Terrain& operator =(_In_ Terrain &&other) = default;
 
-		/* Sets the transform of the terrain. */
-		inline void SetTransform(_In_ const Matrix &value)
-		{
-			mdl = value;
-		}
+		/* Gets the transformation matrix of this terain. */
+		_Check_return_ const Matrix& GetTransform(void) const;
+		/* Sets the location of the terrain. */
+		void SetPosition(_In_ Vector3 value);
+		/* Sets the scale of the terrain. */
+		void SetScale(_In_ float value);
 
 		/* Sets the displacement factor for the terrain. */
 		inline void SetDisplacement(_In_ float value)
@@ -45,10 +46,10 @@ namespace Pu
 			factors.Z = value;
 		}
 
-		/* Sets the width/height of the terrain patch. */
+		/* Sets the width/height of a single terrain patch. */
 		inline void SetPatchSize(_In_ float value)
 		{
-			factors.W = sqrtf(value);
+			factors.W = 1.5f * value;
 		}
 
 		/* Sets the height map for this terrain. */
@@ -69,12 +70,6 @@ namespace Pu
 			Write(*textures, value);
 		}
 
-		/* Gets the transformation matrix of this terain. */
-		_Check_return_ inline const Matrix& GetTransform(void) const
-		{
-			return mdl;
-		}
-
 		/* Gets the displacement factor of this terrain. */
 		_Check_return_ inline float GetDisplacement(void) const
 		{
@@ -93,19 +88,16 @@ namespace Pu
 			return factors.Z;
 		}
 
-		/* Gets the width/height of the terrain patch. */
-		_Check_return_ inline float GetPatchSize(void) const
-		{
-			return factors.W;
-		}
-
 	protected:
 		/* Stages the buffer data for the uniform buffer. */
 		void Stage(_In_ byte *dest) final;
 
 	private:
-		Matrix mdl;
+		Vector4 transform;
 		Vector4 factors;
+
+		mutable bool dirty;
+		mutable Matrix mdl;
 		const Descriptor *height, *mask, *textures;
 	};
 }

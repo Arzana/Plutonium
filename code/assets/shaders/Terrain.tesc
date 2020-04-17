@@ -58,7 +58,7 @@ bool cull()
 	for (uint i = 0; i < 6; i++)
 	{
 		// The patch size if the square root of the width and height.
-		if (dot(pos, Frustum[i]) + PatchSize < 0.0f) return true;
+		if (dot(pos, Frustum[i]) < -PatchSize) return true;
 	}
 
 	// Sphere is on the correct side of all the planes, so don't cull.
@@ -80,7 +80,7 @@ void main()
 			gl_TessLevelInner[0] = 0.0f;
 			gl_TessLevelInner[1] = 0.0f;
 		}
-		else
+		else if (Tessellation > 0.0f)
 		{
 			// Set the outer factors based on their screen space distance.
 			gl_TessLevelOuter[0] = screenSpaceTessellationFactor(gl_in[3].gl_Position, gl_in[0].gl_Position);
@@ -91,6 +91,17 @@ void main()
 			// Set the inner factors to the average of the two outer factors (linear scaling).
 			gl_TessLevelInner[0] = mix(gl_TessLevelOuter[0], gl_TessLevelOuter[3], 0.5f);
 			gl_TessLevelInner[1] = mix(gl_TessLevelOuter[2], gl_TessLevelOuter[1], 0.5f);
+		}
+		else
+		{
+			// Simple passthrough.
+			gl_TessLevelOuter[0] = 1.0f;
+			gl_TessLevelOuter[1] = 1.0f;
+			gl_TessLevelOuter[2] = 1.0f;
+			gl_TessLevelOuter[3] = 1.0f;
+
+			gl_TessLevelInner[0] = 1.0f;
+			gl_TessLevelInner[1] = 1.0f;
 		}
 	}
 
