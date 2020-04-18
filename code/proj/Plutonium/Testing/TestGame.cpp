@@ -186,7 +186,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			float edge = terrainMat->GetEdgeSize();
 			if (ImGui::SliderFloat("Edge Size", &edge, 0.0f, 40.0f)) terrainMat->SetEdgeSize(edge);
 
-			dbgRenderer->AddBox(terrainMesh.GetBoundingBox(), terrainMat->GetTransform(), Color::Yellow());
+			AABB terrain = terrainMesh.GetBoundingBox();
+			terrain.UpperBound.Y += displ;
+			dbgRenderer->AddBox(terrain, terrainMat->GetTransform(), Color::Yellow());
 			ImGui::End();
 		}
 	}

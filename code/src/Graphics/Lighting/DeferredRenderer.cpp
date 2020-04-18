@@ -518,7 +518,11 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the terrain pass. */
 	{
-		if (wireframe) gfxTerrain->SetPolygonMode(PolygonMode::Line);
+		if (wireframe)
+		{
+			gfxTerrain->SetPolygonMode(PolygonMode::Line);
+			gfxTerrain->SetLineWidth(2.0f);
+		}
 
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
