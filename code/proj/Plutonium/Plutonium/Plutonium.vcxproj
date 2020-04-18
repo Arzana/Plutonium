@@ -129,6 +129,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Basics.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Constants.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Conversion.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\HeightMap.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Spline.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Frustum.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h" />
@@ -313,6 +314,7 @@
     <ClCompile Include="..\..\..\src\Core\Diagnostics\StackTrace.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Conversion.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\HeightMap.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\PerlinNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp" />

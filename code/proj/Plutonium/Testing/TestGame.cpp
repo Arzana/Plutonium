@@ -8,6 +8,7 @@
 
 using namespace Pu;
 
+constexpr float pathScale = 8.0f;
 constexpr uint16 patchSize = 16;
 constexpr uint16 imgSize = patchSize << 6;
 
@@ -15,7 +16,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true)
+	markDepthBuffer(true), heightMap(imgSize, recip(pathScale))
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -83,6 +84,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 		{
 			constexpr float isize = recip(imgSize);
 			pixels[i] = noise.NormalizedScale(x * isize, y * isize, 4, 0.5f, 2.0f);
+			heightMap.SetHeight(i, pixels[i]);
 
 			mi = min(mi, pixels[i]);
 			ma = max(ma, pixels[i]);
@@ -149,7 +151,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		terrainMat->SetHeight(*height);
 		terrainMat->SetMask(*mask);
 		terrainMat->SetTextures(*textures);
-		terrainMat->SetScale(8.0f);
+		terrainMat->SetScale(pathScale);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -186,10 +188,19 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			float edge = terrainMat->GetEdgeSize();
 			if (ImGui::SliderFloat("Edge Size", &edge, 0.0f, 40.0f)) terrainMat->SetEdgeSize(edge);
 
+			ImGui::End();
+
 			AABB terrain = terrainMesh.GetBoundingBox();
 			terrain.UpperBound.Y += displ;
 			dbgRenderer->AddBox(terrain, terrainMat->GetTransform(), Color::Yellow());
-			ImGui::End();
+
+			const Vector2 pos = Vector2{ cam->GetPosition().X, cam->GetPosition().Z };
+			const Vector2 relPos = pos + Vector2{ patchSize / 2 * pathScale };
+			float h;
+			if (heightMap.TryGetHeight(relPos, h))
+			{
+				dbgRenderer->AddSphere(Vector3{ pos.X, h * displ * pathScale, pos.Y }, 1.0f, Color::Red());
+			}
 		}
 	}
 

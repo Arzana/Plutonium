@@ -417,12 +417,6 @@ namespace Pu
 	{
 		return a > b || nrlyeql(a, b, tolerance);
 	}
-
-	/* Calculates the cartesian coordinate of a point defined by a triangle and two normalized coordinates. */
-	_Check_return_ constexpr inline float barycentric(_In_ float p1, _In_ float p2, _In_ float p3, _In_ float a1, _In_ float a2)
-	{
-		return (1.0f - a1 - a2) * p1 + p2 * a1 + p3 * a2;
-	}
 #pragma endregion
 #pragma region byte conversion
 	/* Converts kilobytes to bytes. */

@@ -5,6 +5,7 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
+#include <Core/Math/HeightMap.h>
 
 class TestGame
 	: public Pu::Application
@@ -46,6 +47,7 @@ private:
 	Pu::Sampler *heightSampler;
 	Pu::Texture2D *height, *mask;
 	Pu::Texture2DArray *textures;
+	Pu::HeightMap heightMap;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);

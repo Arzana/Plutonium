@@ -257,4 +257,22 @@ namespace Pu
 	{
 		return lerp(a, b, damp(lambda, dt));
 	}
+
+	/* Calculates the cartesian coordinate of a point defined by a triangle and two normalized coordinates. */
+	_Check_return_ constexpr inline float barycentric(_In_ float p1, _In_ float p2, _In_ float p3, _In_ float a1, _In_ float a2)
+	{
+		return (1.0f - a1 - a2) * p1 + p2 * a1 + p3 * a2;
+	}
+
+	/* Calculates the cartesian coordinate of a point defined by a triangle and two normalized coordinates. */
+	_Check_return_ inline Vector2 barycentric(_In_ Vector2 p1, _In_ Vector2 p2, _In_ Vector2 p3, _In_ float a1, _In_ float a2)
+	{
+		return (1.0f - a1 - a2) * p1 + p2 * a1 + p3 * a2;
+	}
+
+	/* Calculates the cartesian coordinate of a point defined by a triangle and two normalized coordinates. */
+	_Check_return_ inline Vector3 barycentric(_In_ Vector3 p1, _In_ Vector3 p2, _In_ Vector3 p3, _In_ float a1, _In_ float a2)
+	{
+		return (1.0f - a1 - a2) * p1 + p2 * a1 + p3 * a2;
+	}
 }
