@@ -6,14 +6,16 @@ Pu::HeightMap::HeightMap(size_t dimensions, float patchSize)
 	: HeightMap(dimensions, dimensions, patchSize)
 {}
 
-Pu::HeightMap::HeightMap(size_t width, size_t height, float patchSize)
-	: width(width), height(height), patchSize(patchSize)
+Pu::HeightMap::HeightMap(size_t width, size_t height, float scale)
+	: width(width), height(height), scale(scale), iscale(recip(scale)),
+	boundX(width - 1), boundY(height - 1)
 {
 	Alloc();
 }
 
 Pu::HeightMap::HeightMap(const HeightMap & value)
-	: width(value.width), height(value.height), patchSize(value.patchSize)
+	: width(value.width), height(value.height), scale(value.scale),
+	boundX(value.boundX), boundY(value.boundY), iscale(value.iscale)
 {
 	Alloc();
 	Copy(value.data);
@@ -21,7 +23,9 @@ Pu::HeightMap::HeightMap(const HeightMap & value)
 
 Pu::HeightMap::HeightMap(HeightMap && value)
 	: width(value.width), height(value.height),
-	patchSize(value.patchSize), data(value.data)
+	scale(value.scale), iscale(value.iscale),
+	boundX(value.boundX), boundY(value.boundY),
+	data(value.data)
 {
 	value.data = nullptr;
 }
@@ -32,7 +36,10 @@ Pu::HeightMap & Pu::HeightMap::operator=(const HeightMap & other)
 	{
 		width = other.width;
 		height = other.height;
-		patchSize = other.patchSize;
+		boundX = other.boundX;
+		boundY = other.boundY;
+		scale = other.scale;
+		iscale = other.iscale;
 
 		data = reinterpret_cast<float*>(realloc(data, other.width * other.height * sizeof(float)));
 		Copy(other.data);
@@ -47,8 +54,11 @@ Pu::HeightMap & Pu::HeightMap::operator=(HeightMap && other)
 	{
 		width = other.width;
 		height = other.height;
-		patchSize = other.patchSize;
+		boundX = other.boundX;
+		boundY = other.boundY;
+		scale = other.scale;
 		data = other.data;
+		iscale = other.iscale;
 
 		other.data = nullptr;
 	}
@@ -87,7 +97,7 @@ bool Pu::HeightMap::Contains(size_t x, size_t y) const
 
 bool Pu::HeightMap::Contains(Vector2 pos) const
 {
-	return pos.X < width * patchSize && pos.Y < height * patchSize && pos.X > 0.0f && pos.Y > 0.0f;
+	return pos.X < width * iscale && pos.Y < height * iscale && pos.X > 0.0f && pos.Y > 0.0f;
 }
 
 float Pu::HeightMap::GetHeight(size_t x, size_t y) const
@@ -108,20 +118,20 @@ float Pu::HeightMap::GetHeight(Vector2 pos) const
 #ifdef _DEBUG
 	if (!Contains(pos))
 	{
-		Log::Fatal("Cannot get height at [%f, %f] in heightmap (out of [%f, %f] range)!", pos.X, pos.Y, width * patchSize, height * patchSize);
+		Log::Fatal("Cannot get height at [%f, %f] in heightmap (out of [%f, %f] range)!", pos.X, pos.Y, width * iscale, height * iscale);
 	}
 #endif
 
 	/* Get the patch location from the terrain position. */
-	const size_t px = ipart(pos.X / patchSize);
-	const size_t py = ipart(pos.Y / patchSize);
+	const size_t px = ipart(pos.X * scale);
+	const size_t py = ipart(pos.Y * scale);
 
 	/* Get the relative position on the patch. */
-	const float x = fmodf(pos.X, patchSize) / patchSize;
-	const float y = fmodf(pos.Y, patchSize) / patchSize;
+	const float x = fmodf(pos.X, iscale) * scale;
+	const float y = fmodf(pos.Y, iscale) * scale;
 
 	/* We might be on the edge, if this is the case; just return a non interpolated value. */
-	if (px >= width -1 || py >= height - 1) return GetHeight(min(px, width - 1), min(py, height - 1));
+	if (px >= boundX || py >= boundY) return GetHeight(min(px, boundX), min(py, boundY));
 
 	/* Calculate the barycentric location from the correct traingle in the heightmap. */
 	float a, b, c = GetHeight(px, py + 1);
@@ -137,7 +147,7 @@ float Pu::HeightMap::GetHeight(Vector2 pos) const
 	}
 
 	/* Return the interpolated position. */
-	return barycentric(a, b, c, x, y);
+	return barycentric(a, b, c, x, -x - (y - 1.0f));
 }
 
 bool Pu::HeightMap::TryGetHeight(size_t x, size_t y, float & output) const
@@ -153,7 +163,7 @@ bool Pu::HeightMap::TryGetHeight(size_t x, size_t y, float & output) const
 
 bool Pu::HeightMap::TryGetHeight(Vector2 pos, float & output) const
 {
-	if (Contains(pos) && Contains(pos))
+	if (Contains(pos))
 	{
 		output = GetHeight(pos);
 		return true;

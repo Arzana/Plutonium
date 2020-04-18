@@ -8,7 +8,7 @@
 
 using namespace Pu;
 
-constexpr float pathScale = 8.0f;
+constexpr float patchScale = 1.0f;
 constexpr uint16 patchSize = 16;
 constexpr uint16 imgSize = patchSize << 6;
 
@@ -16,7 +16,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), heightMap(imgSize, recip(pathScale))
+	markDepthBuffer(true), heightMap(imgSize, 1 << 6)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -84,14 +84,18 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 		{
 			constexpr float isize = recip(imgSize);
 			pixels[i] = noise.NormalizedScale(x * isize, y * isize, 4, 0.5f, 2.0f);
-			heightMap.SetHeight(i, pixels[i]);
 
 			mi = min(mi, pixels[i]);
 			ma = max(ma, pixels[i]);
 		}
 	}
 
-	for (size_t i = 0; i < sqr(imgSize); i++) pixels[i] = ilerp(mi, ma, pixels[i]);
+	for (size_t i = 0; i < sqr(imgSize); i++)
+	{
+		const float h = ilerp(mi, ma, pixels[i]);
+		pixels[i] = h;
+		heightMap.SetHeight(i, h);
+	}
 
 	heightBuffer->EndMemoryTransfer();
 }
@@ -151,7 +155,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		terrainMat->SetHeight(*height);
 		terrainMat->SetMask(*mask);
 		terrainMat->SetTextures(*textures);
-		terrainMat->SetScale(pathScale);
+		terrainMat->SetScale(patchScale);
+		terrainMat->SetDisplacement(1.0f);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -188,19 +193,21 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			float edge = terrainMat->GetEdgeSize();
 			if (ImGui::SliderFloat("Edge Size", &edge, 0.0f, 40.0f)) terrainMat->SetEdgeSize(edge);
 
-			ImGui::End();
-
 			AABB terrain = terrainMesh.GetBoundingBox();
 			terrain.UpperBound.Y += displ;
 			dbgRenderer->AddBox(terrain, terrainMat->GetTransform(), Color::Yellow());
 
 			const Vector2 pos = Vector2{ cam->GetPosition().X, cam->GetPosition().Z };
-			const Vector2 relPos = pos + Vector2{ patchSize / 2 * pathScale };
+			const Vector2 relPos = pos + Vector2{ patchSize / 2 * patchScale };
 			float h;
 			if (heightMap.TryGetHeight(relPos, h))
 			{
-				dbgRenderer->AddSphere(Vector3{ pos.X, h * displ * pathScale, pos.Y }, 1.0f, Color::Red());
+				ImGui::Text("Height: %f", h * displ * patchScale);
+				const Vector3 groundPos = terrainMat->GetTransform() * Vector3 { 0.0f, h * displ, 0.0f };
+				dbgRenderer->AddSphere(groundPos + Vector3{ pos.X, 0.5f, pos.Y }, 0.5f, Color::Red());
 			}
+
+			ImGui::End();
 		}
 	}
 
