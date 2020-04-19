@@ -8,7 +8,8 @@
 
 using namespace Pu;
 
-constexpr float patchScale = 1.0f;
+constexpr float patchScale = 8.0f;
+constexpr float imgScale = 64.0f;
 constexpr uint16 patchSize = 16;
 constexpr uint16 imgSize = patchSize << 6;
 
@@ -16,7 +17,7 @@ TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
 	renderer(nullptr), descPoolConst(nullptr),
 	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), heightMap(imgSize, 1 << 6)
+	markDepthBuffer(true), heightMap(imgSize, imgScale)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -97,6 +98,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 		heightMap.SetHeight(i, h);
 	}
 
+	heightMap.CalculateNormals(1.0f);
 	heightBuffer->EndMemoryTransfer();
 }
 
@@ -185,7 +187,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		if (ImGui::Begin("Terrain Editor"))
 		{
 			float displ = terrainMat->GetDisplacement();
-			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 50.0f)) terrainMat->SetDisplacement(displ);
+			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 50.0f))
+			{
+				terrainMat->SetDisplacement(displ);
+				heightMap.CalculateNormals(displ);
+			}
 
 			float tess = terrainMat->GetTessellation();
 			if (ImGui::SliderFloat("Tessellation", &tess, 0.0f, 2.0f)) terrainMat->SetTessellation(tess);
@@ -199,12 +205,14 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			const Vector2 pos = Vector2{ cam->GetPosition().X, cam->GetPosition().Z };
 			const Vector2 relPos = pos + Vector2{ patchSize / 2 * patchScale };
+
 			float h;
-			if (heightMap.TryGetHeight(relPos, h))
+			Vector3 n;
+			if (heightMap.TryGetHeightAndNormal(relPos / patchScale, h, n))
 			{
-				ImGui::Text("Height: %f", h * displ * patchScale);
+				ImGui::Text("Normal: %s", n.operator Pu::string().c_str());
 				const Vector3 groundPos = terrainMat->GetTransform() * Vector3 { 0.0f, h * displ, 0.0f };
-				dbgRenderer->AddSphere(groundPos + Vector3{ pos.X, 0.5f, pos.Y }, 0.5f, Color::Red());
+				dbgRenderer->AddArrow(groundPos + Vector3{ pos.X, 0.0f, pos.Y }, n, Color::Red());
 			}
 
 			ImGui::End();
