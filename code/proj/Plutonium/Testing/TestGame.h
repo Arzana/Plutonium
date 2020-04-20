@@ -5,7 +5,6 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
-#include <Core/Math/HeightMap.h>
 
 class TestGame
 	: public Pu::Application
@@ -29,25 +28,17 @@ protected:
 
 private:
 	Pu::FreeCamera *cam;
-	bool firstRun, markDepthBuffer, updateCam;
+	bool firstRun, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
-
 	Pu::LightProbeRenderer *probeRenderer;
 	Pu::LightProbe *environment;
+
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
-
-	Pu::MeshCollection terrainMesh;
-	Pu::Terrain *terrainMat;
-	Pu::StagingBuffer *srcBuffer, *heightBuffer;
-	Pu::Image *heightImg;
-	Pu::Sampler *heightSampler;
-	Pu::Texture2D *height, *mask;
-	Pu::Texture2DArray *textures;
-	Pu::HeightMap heightMap;
+	Pu::Model *ground, *ball;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);

@@ -263,6 +263,7 @@ Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer
 
 	/* Create a new model and add its textures. */
 	Model *result = new Model();
+	result->SetHash(hash);
 
 	if (diffuse)
 	{

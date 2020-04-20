@@ -24,6 +24,6 @@ void main()
 	gl_Position = Projection * View * Model * vec4(Position, 1.0f);
 
 	// Set the primitive properties.
-	WorldNormal = Normal;
+	WorldNormal = normalize(Model * vec4(Normal, 0.0f)).xyz;
 	Uv = TexCoord;
 }

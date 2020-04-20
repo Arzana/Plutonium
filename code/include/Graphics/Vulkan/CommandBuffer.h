@@ -57,6 +57,17 @@ namespace Pu
 			return other.hndl != hndl;
 		}
 
+		/* Gets the amount of draw calls current handled by Plutonium. */
+		_Check_return_ static uint32 GetDrawCalls(void);
+		/* Gets the amount of bind calls current handled by Plutonium */
+		_Check_return_ static uint32 GetBindCalls(void);
+		/* Gets the amount of transfer calls currently handled by Plutonium. */
+		_Check_return_ static uint32 GetTransferCalls(void);
+		/* Gets the amount of barrier calls curently handled by Plutonium. */
+		_Check_return_ static uint32 GetBarrierCalls(void);
+		/* Resets all the command counters back to zero. */
+		static void ResetCounters(void);
+
 		/* Starts the recording on the command buffer. */
 		void Begin(void);
 		/* End the recording on the command buffer. */

@@ -3,11 +3,44 @@
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Config.h"
+#include <cstring>
+#include <intrin.h>
 
 float Pu::CPU::lastUsage = 0.0f;
 Pu::uint64 Pu::CPU::prevTotalTicks = 0;
 Pu::uint64 Pu::CPU::prevIdleTicks = 0;
 std::mutex Pu::CPU::lock;
+Pu::string Pu::CPU::name;
+
+const char * Pu::CPU::GetName(void)
+{
+	/* We don't have to query again if it's already set. */
+	if (name.length()) return name.c_str();
+
+#ifdef _WIN32
+	int32 info[4]{ -1 };
+	__cpuid(info, 0x80000000);
+	uint32 nExIds = info[0];
+
+	char brandString[0x40] = { 0 };
+	for (uint32 i = 0x80000000; i <= nExIds; i++)
+	{
+		__cpuid(info, i);
+
+		/* The brand string is formed from 3 parts in EAX, EBX ECX and EDX. */
+		if (i == 0x80000002) memcpy(brandString, info, sizeof(info));
+		else if (i == 0x80000003) memcpy(brandString + 0x10, info, sizeof(info));
+		else if (i == 0x80000004) memcpy(brandString + 0x20, info, sizeof(info));
+	}
+
+	name = brandString;
+
+#else
+	Log::Warning("Querying the CPU name is not suppoerted on this platform!");
+#endif
+
+	return name.c_str();
+}
 
 float Pu::CPU::GetCurrentProcessUsage(void)
 {

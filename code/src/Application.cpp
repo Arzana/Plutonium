@@ -145,6 +145,8 @@ void Pu::Application::InitializeVulkan(void)
 			u8"VK_KHR_get_surface_capabilities2"
 		});
 
+	Profiler::GetInstance().vkInstance = instance;
+
 	/* Create the native window. */
 #ifdef _WIN32
 	wnd = new Win32Window(*instance, name);
@@ -188,18 +190,20 @@ const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
 {
 	/* Get window surface to check for presenting. */
 	const Surface &surface = wnd->GetSurface();
+	const PhysicalDevice *choosen = nullptr;
+	uint32 highscore = 0;
 
 	/* Loop through all physical devices to find the best one. */
-	size_t choosen = 0;
-	for (size_t i = 0, highscore = 0, score = 0; i < instance->GetPhysicalDeviceCount(); i++, score = 0)
+	for(const PhysicalDevice &physicalDevice : instance->GetPhysicalDevices())
 	{
 		/* Check if the physical device supports our framework. */
-		const PhysicalDevice &physicalDevice = instance->GetPhysicalDevice(i);
 		if (physicalDevice.SupportsPlutonium(surface))
 		{
 			/* Ask user if the current physical device is usable. */
 			if (GpuPredicate(physicalDevice))
 			{
+				uint32 score = 1;
+
 				/* For more information about scoring see document 'Scoring'. */
 				if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu) score += 6;
 				else if (physicalDevice.GetType() == PhysicalDeviceType::IntegratedGpu) score += 3;
@@ -214,14 +218,15 @@ const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
 				if (score > highscore)
 				{
 					highscore = score;
-					choosen = i;
+					choosen = &physicalDevice;
 				}
 			}
 		}
 	}
 
-	/* Return the physical device at the choosen index or simply the first if non passed the test. */
-	return instance->GetPhysicalDevice(choosen);
+	/* We cannot return a random physical device as that would not satisfy the conditions. */
+	if (!choosen) Log::Fatal("No Vulkan/Plutonium compatible physical device could be found!");
+	return *choosen;
 }
 
 bool Pu::Application::Tick(void)

@@ -1,6 +1,6 @@
 #pragma once
 #include <mutex>
-#include "Core/Math/Constants.h"
+#include "Core/String.h"
 #include "Core/Platform/Windows/Windows.h"
 
 namespace Pu
@@ -16,6 +16,8 @@ namespace Pu
 		_Check_return_ CPU& operator =(_In_ const CPU&) = delete;
 		_Check_return_ CPU& operator =(_In_ CPU&&) = delete;
 
+		/* Gets the name of the currently used logical processor. */
+		_Check_return_ static const char* GetName(void);
 		/* Gets the CPU usage of the current process. */
 		_Check_return_ static float GetCurrentProcessUsage(void);
 
@@ -24,6 +26,7 @@ namespace Pu
 		static uint64 prevTotalTicks;
 		static uint64 prevIdleTicks;
 		static std::mutex lock;
+		static string name;
 
 		static void QueryUsage();
 		static void CalculateLoad(uint64 idle, uint64 total);

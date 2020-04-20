@@ -2,13 +2,13 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 
 Pu::DescriptorSet::DescriptorSet(DescriptorPool & pool, uint32 subpass, const DescriptorSetLayout & setLayout)
-	: DescriptorSetBase(pool), set(setLayout.GetSet())
+	: DescriptorSetBase(pool), set(setLayout.GetSet()), subscribe(setLayout.HasUniformBufferMemory())
 {
 	/* Allocate the new buffer and get the base offset into the pools buffer. */
 	baseOffset = pool.Alloc(subpass, setLayout, &hndl);
 
 	/* Write the descriptors in the layout to the parent pool if it is a uniform block. */
-	if (subscribe = setLayout.HasUniformBufferMemory())
+	if (subscribe)
 	{
 		DescriptorSetBase::Write(hndl, setLayout, baseOffset);
 		pool.OnStage.Add(*this, &DescriptorSet::StageInternal);

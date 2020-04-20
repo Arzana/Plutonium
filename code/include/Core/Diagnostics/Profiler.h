@@ -7,6 +7,7 @@ struct ImDrawList;
 namespace Pu
 {
 	class FileWriter;
+	class VulkanInstance;
 
 	/* Defines an application global interface used to record timed events. */
 	class Profiler
@@ -34,10 +35,13 @@ namespace Pu
 		static void SetInterval(_In_ float value);
 
 	private:
+		friend class Application;
+
 		using Section = std::tuple<string, Color, int64>;
 		using Timer = std::pair<size_t, Stopwatch>;
 
 		std::map<uint64, Timer> activeThreads;
+		VulkanInstance *vkInstance;
 
 		vector<Section> cpuSections;
 		vector<Section> gpuSections;

@@ -59,7 +59,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, bool log, std::
 	/* Load the procedures needed for the instance and get all physical devices. */
 	vkInit(hndl, enabledExtensions);
 	LoadInstanceProcs();
-	GetPhysicalDevices();
+	QueryPhysicalDevices();
 
 	if (log) LogAvailableExtensionsAndLayers();
 
@@ -206,7 +206,7 @@ bool Pu::VulkanInstance::AreLayersSupported(std::initializer_list<const char*> l
 	return found >= layers.size();
 }
 
-void Pu::VulkanInstance::GetPhysicalDevices(void)
+void Pu::VulkanInstance::QueryPhysicalDevices(void)
 {
 	/* Query the amount of physical devices available. */
 	uint32 count;

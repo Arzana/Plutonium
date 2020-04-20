@@ -27,6 +27,11 @@ const char* to_string(Pu::CommandBuffer::State state)
 #define DbgCheckIfRecording(...)
 #endif
 
+static Pu::uint32 bindCalls = 0;
+static Pu::uint32 drawCalls = 0;
+static Pu::uint32 transferCalls = 0;
+static Pu::uint32 barrierCalls = 0;
+
 Pu::CommandBuffer::CommandBuffer(void)
 	: parent(nullptr), device(nullptr), hndl(nullptr), 
 	state(State::Invalid), submitFence(nullptr), Usage(CommandBufferUsageFlag::None)
@@ -111,6 +116,7 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destinat
 void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destination)
 {
 	DbgCheckIfRecording("copt image to buffer");
+	++transferCalls;
 
 	const BufferImageCopy region(source.GetExtent());
 	device->vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, 1, &region);
@@ -119,6 +125,7 @@ void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destinati
 void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Buffer & destination, const vector<BufferCopy>& regions)
 {
 	DbgCheckIfRecording("copy buffer");
+	++transferCalls;
 
 	/* Append command to the command buffer and set the new element count for the buffer. */
 	device->vkCmdCopyBuffer(hndl, source.bufferHndl, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
@@ -127,42 +134,55 @@ void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Buffer & destination, 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, const vector<BufferImageCopy>& regions)
 {
 	DbgCheckIfRecording("copy buffer to image");
+	++transferCalls;
+
 	device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, static_cast<uint32>(regions.size()), regions.data());
 }
 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Buffer & destination, const BufferCopy & region)
 {
 	DbgCheckIfRecording("copy buffer");
+	++transferCalls;
+
 	device->vkCmdCopyBuffer(hndl, source.bufferHndl, destination.bufferHndl, 1, &region);
 }
 
 void Pu::CommandBuffer::CopyBuffer(const Buffer & source, Image & destination, const BufferImageCopy & region)
 {
 	DbgCheckIfRecording("copy buffer to image");
+	++transferCalls;
+
 	device->vkCmdCopyBufferToImage(hndl, source.bufferHndl, destination.imageHndl, destination.layout, 1, &region);
 }
 
 void Pu::CommandBuffer::CopyImage(const Image & source, Buffer & destination, const vector<BufferImageCopy>& regions)
 {
 	DbgCheckIfRecording("copy image to buffer");
+	++transferCalls;
+
 	device->vkCmdCopyImageToBuffer(hndl, source.imageHndl, source.layout, destination.bufferHndl, static_cast<uint32>(regions.size()), regions.data());
 }
 
 void Pu::CommandBuffer::BlitImage(const Image & source, Image & destination, const ImageBlit & region, Filter filter)
 {
 	DbgCheckIfRecording("blit image");
+	++transferCalls;
+
 	device->vkCmdBlitImage(hndl, source.imageHndl, source.layout, destination.imageHndl, destination.layout, 1, &region, filter);
 }
 
 void Pu::CommandBuffer::BlitImage(const Image & source, ImageLayout srcLayout, Image & destination, ImageLayout dstLayout, const ImageBlit & region, Filter filter)
 {
 	DbgCheckIfRecording("blit image");
+	++transferCalls;
+
 	device->vkCmdBlitImage(hndl, source.imageHndl, srcLayout, destination.imageHndl, dstLayout, 1, &region, filter);
 }
 
 void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, AccessFlag dstAccess, DependencyFlag dependencyFlags)
 {
 	DbgCheckIfRecording("setup buffer pipeline barrier");
+	++barrierCalls;
 
 	/* Create buffer memory barrier. */
 	BufferMemoryBarrier barrier(buffer.bufferHndl);
@@ -181,6 +201,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 	/* We can skip memory barriers that change no resources. */
 	if (image.layout == newLayout && image.access == dstAccess) return;
 	DbgCheckIfRecording("setup image pipeline barrier");
+	++barrierCalls;
 
 	/* Create the memory barrier. */
 	ImageMemoryBarrier barrier(image.imageHndl, queueFamilyIndex);
@@ -201,6 +222,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 void Pu::CommandBuffer::MemoryBarrier(const vector<std::pair<const Image*, ImageSubresourceRange>>& images, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, DependencyFlag dependencyFlags, uint32 queueFamiltyIndex)
 {
 	DbgCheckIfRecording("setup image pipeline barriers");
+	++barrierCalls;
 
 	/* Pre-allocate a buffer for the barriers. */
 	vector<ImageMemoryBarrier> barriers;
@@ -253,18 +275,24 @@ void Pu::CommandBuffer::BeginRenderPass(const Renderpass & renderPass, const Fra
 void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 {
 	DbgCheckIfRecording("bind graphics pipeline");
+	++bindCalls;
+
 	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.Hndl);
 }
 
 void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, DeviceSize offset)
 {
 	DbgCheckIfRecording("bind vertex buffer");
+	++bindCalls;
+
 	device->vkCmdBindVertexBuffers(hndl, binding, 1, &buffer.bufferHndl, &offset);
 }
 
 void Pu::CommandBuffer::BindIndexBuffer(IndexType type, const Buffer & buffer, DeviceSize offset)
 {
 	DbgCheckIfRecording("bind index buffer");
+	++bindCalls;
+
 	device->vkCmdBindIndexBuffer(hndl, buffer.bufferHndl, offset, type);
 }
 
@@ -277,6 +305,8 @@ void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag
 void Pu::CommandBuffer::BindGraphicsDescriptor(const Pipeline & pipeline, const DescriptorSet & descriptor)
 {
 	DbgCheckIfRecording("bind descriptor to graphics bind point");
+	++bindCalls;
+
 	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
 }
 
@@ -292,6 +322,7 @@ void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint3
 		{
 			const uint32 set = static_cast<uint32>(id & 0xFFFFFFFF);
 			device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, set, 1, &setHndl, 0, nullptr);
+			++bindCalls;
 		}
 	}
 }
@@ -299,12 +330,16 @@ void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint3
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
 {
 	DbgCheckIfRecording("draw");
+	++drawCalls;
+
 	device->vkCmdDraw(hndl, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, uint32 firstInstance, int32 vertexOffset)
 {
 	DbgCheckIfRecording("draw");
+	++drawCalls;
+
 	device->vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
@@ -415,6 +450,34 @@ void Pu::CommandBuffer::BeginRenderPassInternal(RenderPassHndl renderPass, const
 	info.ClearValues = clearValues.data();
 
 	device->vkCmdBeginRenderPass(hndl, &info, contents);
+}
+
+Pu::uint32 Pu::CommandBuffer::GetDrawCalls(void)
+{
+	return drawCalls;
+}
+
+Pu::uint32 Pu::CommandBuffer::GetBindCalls(void)
+{
+	return bindCalls;
+}
+
+Pu::uint32 Pu::CommandBuffer::GetTransferCalls(void)
+{
+	return transferCalls;
+}
+
+Pu::uint32 Pu::CommandBuffer::GetBarrierCalls(void)
+{
+	return barrierCalls;
+}
+
+void Pu::CommandBuffer::ResetCounters(void)
+{
+	drawCalls = 0;
+	bindCalls = 0;
+	transferCalls = 0;
+	barrierCalls = 0;
 }
 
 void Pu::CommandBuffer::Begin(void)

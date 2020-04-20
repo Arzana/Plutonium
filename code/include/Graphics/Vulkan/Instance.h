@@ -48,16 +48,16 @@ namespace Pu
 			return enabledExtensions.contains(extension);
 		}
 
-		/* Gets the amount of physical devices capable of Vulkan on this machine. */
+		/* Gets the amount of physical devices visible to this Vulkan instance. */
 		_Check_return_ inline size_t GetPhysicalDeviceCount(void) const
 		{
 			return physicalDevices.size();
 		}
 
-		/* Gets the physical device at the specified index. */
-		_Check_return_ inline const PhysicalDevice& GetPhysicalDevice(_In_ size_t idx) const
+		/* Gets all the physical devices visible to this Vulkan instance. */
+		_Check_return_ inline const vector<PhysicalDevice>& GetPhysicalDevices(void) const
 		{
-			return physicalDevices.at(idx);
+			return physicalDevices;
 		}
 
 	private:
@@ -101,7 +101,7 @@ namespace Pu
 
 		void Destroy(void);
 		void LoadInstanceProcs(void);
-		void GetPhysicalDevices(void);
+		void QueryPhysicalDevices(void);
 		void LogAvailableExtensionsAndLayers(void) const;
 		
 #ifdef _DEBUG

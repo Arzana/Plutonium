@@ -67,7 +67,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr),
 	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
-	descPoolInput(nullptr), descSetInput(nullptr), advanced(false), binds(0), draws(0)
+	descPoolInput(nullptr), descSetInput(nullptr), advanced(false)
 {
 	/* We need to know if we'll be doing tone mapping or not. */
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
@@ -236,16 +236,12 @@ void Pu::DeferredRenderer::End(void)
 void Pu::DeferredRenderer::Render(const MeshCollection & meshes, const Terrain & terrain)
 {
 	curCmd->BindGraphicsDescriptor(*gfxTerrain, terrain);
-	++binds;
 
 	for (const auto &[_, mesh] : meshes)
 	{
 		curCmd->BindVertexBuffer(0, meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetVertexView()));
 		curCmd->BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetIndexView()));
 		mesh.Draw(*curCmd, 1);
-
-		binds += 2;
-		++draws;
 	}
 }
 
@@ -277,7 +273,6 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 		{
 			oldMatIdx = matIdx;
 			curCmd->BindGraphicsDescriptor(pipeline, model.GetMaterial(matIdx));
-			++binds;
 		}
 
 		/* Update the vertex binding if needed. */
@@ -285,7 +280,6 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 		{
 			oldVrtxView = mesh.GetVertexView();
 			curCmd->BindVertexBuffer(0, meshes.GetBuffer(), meshes.GetViewOffset(oldVrtxView));
-			++binds;
 		}
 
 		/* Update the index binding if needed. */
@@ -293,12 +287,10 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 		{
 			oldIdxView = mesh.GetIndexView();
 			curCmd->BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(oldIdxView));
-			++binds;
 		}
 
 		/* Render the mesh. */
 		mesh.Draw(*curCmd, 1);
-		++draws;
 	}
 }
 
@@ -316,20 +308,6 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 		descSetInput->Write(SubpassSkybox, *skybox, texture);
 	}
 	else Log::Fatal("Cannot set skybox when deferred rendering is not yet finalized!");
-}
-
-Pu::uint32 Pu::DeferredRenderer::GetBindCount(void) const
-{
-	const uint32 result = binds;
-	binds = 0;
-	return result;
-}
-
-Pu::uint32 Pu::DeferredRenderer::GetDrawCount(void) const
-{
-	const uint32 result = draws;
-	draws = 0;
-	return result;
 }
 
 void Pu::DeferredRenderer::DoSkybox(void)

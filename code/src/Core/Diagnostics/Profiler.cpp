@@ -1,7 +1,11 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 
 #include "Core/Diagnostics/Profiler.h"
+#include "Graphics/Vulkan/CommandBuffer.h"
 #include "Core/Threading/ThreadUtils.h"
+#include "Graphics/Vulkan/Instance.h"
+#include "Core/Diagnostics/Memory.h"
+#include "Core/Diagnostics/CPU.h"
 #include "imgui/include/imgui.h"
 #include "Streams/FileWriter.h"
 #include <ctime>
@@ -163,7 +167,28 @@ void Pu::Profiler::VisualizeInternal(void)
 		{
 			RenderSections(gpuSections, "GPU", false);
 		}
-		
+
+
+		ImGui::Separator();
+		ImGui::Text("Draw Calls: %u", CommandBuffer::GetDrawCalls());
+		ImGui::Text("Bind Calls: %u", CommandBuffer::GetBindCalls());
+		ImGui::Text("Transfers:  %u", CommandBuffer::GetTransferCalls());
+		ImGui::Text("Barriers:   %u", CommandBuffer::GetBarrierCalls());
+		CommandBuffer::ResetCounters();
+
+		ImGui::Separator();
+		const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();
+		ImGui::Text("%s: %zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
+
+		if (vkInstance)
+		{
+			for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
+			{
+				const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
+				ImGui::Text("%s: %zu MB / %zu MB", device.GetName(), b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam));
+			}
+		}
+
 		ImGui::End();
 	}
 
@@ -178,7 +203,7 @@ void Pu::Profiler::SaveInternal(const wstring & path)
 	const time_t now = std::time(nullptr);
 	char buffer[100];
 	size_t end;
-	if ((end  = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))))
+	if ((end = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))))
 	{
 		writer.Write("Profiler log for: ");
 		writer.Write(string::from(ticks));

@@ -103,10 +103,6 @@ namespace Pu
 		void Render(_In_ const DirectionalLight &light);
 		/* Sets the skybox to use. */
 		void SetSkybox(_In_ const TextureCube &texture);
-		/* Gets the amount of context switches performed since the last call. */
-		_Check_return_ uint32 GetBindCount(void) const;
-		/* Gets the amount of draw calls performed since the last call. */
-		_Check_return_ uint32 GetDrawCount(void) const;
 
 	private:
 		DepthBuffer *depthBuffer;
@@ -124,7 +120,6 @@ namespace Pu
 		CommandBuffer *curCmd;
 		const Camera *curCam;
 		QueryChain *timer;
-		mutable uint32 binds, draws;
 
 		float hdrSwapchain;
 		bool markNeeded, advanced, wireframe;

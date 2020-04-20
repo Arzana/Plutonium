@@ -69,7 +69,7 @@ namespace Pu
 			size_t cnt = CORNER_CNT;
 			for (size_t i = 0; i < CORNER_CNT; i++)
 			{
-				if (HalfSpace(aabb[i]) < 0.0f) --cnt;
+				cnt -= HalfSpace(aabb[i]) < 0.0f;
 			}
 
 			return cnt > 0;

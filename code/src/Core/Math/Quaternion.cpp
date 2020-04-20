@@ -162,7 +162,7 @@ Pu::Quaternion Pu::Quaternion::SLerp(Quaternion q1, Quaternion q2, float a)
 Pu::Quaternion Pu::Quaternion::CLerp(Quaternion q1, Quaternion q2, Quaternion q3, float a)
 {
 	const float b = 2.0f * a * (1.0f - a);
-	return Quaternion::SLerp(Quaternion::SLerp(q1, q2, a), Quaternion::SLerp(q1, q2, a), b);
+	return Quaternion::SLerp(Quaternion::SLerp(q1, q2, a), Quaternion::SLerp(q1, q3, a), b);
 }
 
 Pu::Quaternion Pu::Quaternion::Unpack(int64 packed)

@@ -3,21 +3,12 @@
 #include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
 
-#include <Graphics/Models/ShapeCreator.h>
-#include <Core/Math/PerlinNoise.h>
-
 using namespace Pu;
-
-constexpr float patchScale = 8.0f;
-constexpr float imgScale = 64.0f;
-constexpr uint16 patchSize = 16;
-constexpr uint16 imgSize = patchSize << 6;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
-	renderer(nullptr), descPoolConst(nullptr),
-	lightMain(nullptr), lightFill(nullptr), firstRun(true), updateCam(true),
-	markDepthBuffer(true), heightMap(imgSize, imgScale)
+	renderer(nullptr), descPoolConst(nullptr), updateCam(true),
+	lightMain(nullptr), lightFill(nullptr), firstRun(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
@@ -57,49 +48,8 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	srcBuffer = new StagingBuffer(GetDevice(), ShapeCreator::GetPatchPlaneBufferSize(patchSize));
-	terrainMesh.Initialize(GetDevice(), *srcBuffer, ShapeCreator::GetPatchPlaneVertexSize(patchSize), ShapeCreator::PatchPlane(*srcBuffer, patchSize));
-
-	mask = &fetcher.CreateTexture2D("Mask", Color{ (byte)0, 255, 0, 0 });
-	textures = &fetcher.FetchTexture2DArray("Terrain", SamplerCreateInfo{}, true,
-		{
-			L"{Textures}Terrain/Water.jpg",
-			L"{Textures}Terrain/Grass.jpg",
-			L"{Textures}Terrain/Dirt.jpg",
-			L"{Textures}Terrain/Snow.jpg"
-		});
-
-	heightSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge });
-	heightImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D{imgSize, 1}, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled });
-	height = new Texture2D(*heightImg, *heightSampler);
-
-	heightBuffer = new StagingBuffer(GetDevice(), sqr(imgSize) * sizeof(float));
-	heightBuffer->BeginMemoryTransfer();
-	float *pixels = reinterpret_cast<float*>(heightBuffer->GetHostMemory());
-
-	float mi = maxv<float>(), ma = minv<float>();
-	PerlinNoise noise{};
-	for (size_t y = 0, i = 0; y < imgSize; y++)
-	{
-		for (size_t x = 0; x < imgSize; x++, i++)
-		{
-			constexpr float isize = recip(imgSize);
-			pixels[i] = noise.NormalizedScale(x * isize, y * isize, 4, 0.5f, 2.0f);
-
-			mi = min(mi, pixels[i]);
-			ma = max(ma, pixels[i]);
-		}
-	}
-
-	for (size_t i = 0; i < sqr(imgSize); i++)
-	{
-		const float h = ilerp(mi, ma, pixels[i]);
-		pixels[i] = h;
-		heightMap.SetHeight(i, h);
-	}
-
-	heightMap.CalculateNormals(1.0f);
-	heightBuffer->EndMemoryTransfer();
+	ground = &fetcher.CreateModel(ShapeType::Plane, *renderer, *probeRenderer);
+	ball = &fetcher.CreateModel(ShapeType::Sphere, *renderer, *probeRenderer, L"{Textures}uv.png");
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -111,15 +61,9 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (environment) delete environment;
 	if (probeRenderer) delete probeRenderer;
 	if (dbgRenderer) delete dbgRenderer;
-	if (srcBuffer) delete srcBuffer;
-	if (terrainMat) delete terrainMat;
-	if (height) delete height;
-	if (heightImg) delete heightImg;
-	if (heightBuffer) delete heightBuffer;
 
-	fetcher.Release(*heightSampler);
-	fetcher.Release(*mask);
-	fetcher.Release(*textures);
+	fetcher.Release(*ball);
+	fetcher.Release(*ground);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
@@ -129,20 +73,13 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
-		cmd.CopyEntireBuffer(*srcBuffer, terrainMesh.GetBuffer());
-
-		cmd.MemoryBarrier(*heightImg, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, height->GetFullRange());
-		cmd.CopyEntireBuffer(*heightBuffer, *heightImg);
-		cmd.MemoryBarrier(*heightImg, PipelineStageFlag::Transfer, PipelineStageFlag::TessellationControlShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, height->GetFullRange());
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
-		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 1);			// Terrain set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		cam->Move(0.0f, 1.0f, -1.0f);
-		cam->Yaw = PI2;
 		cam->SetExposure(2.5f);
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
@@ -152,13 +89,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		lightFill->SetDirection(normalize(Vector3(0.7f)));
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(environment->GetTexture());
-
-		terrainMat = new Terrain(*descPoolConst, renderer->GetTerrainLayout());
-		terrainMat->SetHeight(*height);
-		terrainMat->SetMask(*mask);
-		terrainMat->SetTextures(*textures);
-		terrainMat->SetScale(patchScale);
-		terrainMat->SetDisplacement(1.0f);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -183,40 +113,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			ImGui::End();
 		}
-
-		if (ImGui::Begin("Terrain Editor"))
-		{
-			float displ = terrainMat->GetDisplacement();
-			if (ImGui::SliderFloat("Displacement", &displ, 0.0f, 50.0f))
-			{
-				terrainMat->SetDisplacement(displ);
-				heightMap.CalculateNormals(displ);
-			}
-
-			float tess = terrainMat->GetTessellation();
-			if (ImGui::SliderFloat("Tessellation", &tess, 0.0f, 2.0f)) terrainMat->SetTessellation(tess);
-
-			float edge = terrainMat->GetEdgeSize();
-			if (ImGui::SliderFloat("Edge Size", &edge, 0.0f, 40.0f)) terrainMat->SetEdgeSize(edge);
-
-			AABB terrain = terrainMesh.GetBoundingBox();
-			terrain.UpperBound.Y += displ;
-			dbgRenderer->AddBox(terrain, terrainMat->GetTransform(), Color::Yellow());
-
-			const Vector2 pos = Vector2{ cam->GetPosition().X, cam->GetPosition().Z };
-			const Vector2 relPos = pos + Vector2{ patchSize / 2 * patchScale };
-
-			float h;
-			Vector3 n;
-			if (heightMap.TryGetHeightAndNormal(relPos / patchScale, h, n))
-			{
-				ImGui::Text("Normal: %s", n.operator Pu::string().c_str());
-				const Vector3 groundPos = terrainMat->GetTransform() * Vector3 { 0.0f, h * displ, 0.0f };
-				dbgRenderer->AddArrow(groundPos + Vector3{ pos.X, 0.0f, pos.Y }, n, Color::Red());
-			}
-
-			ImGui::End();
-		}
 	}
 
 	if (cam)
@@ -233,31 +129,16 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		renderer->InitializeResources(cmd);
 		renderer->BeginTerrain(*cam);
-		renderer->Render(terrainMesh, *terrainMat);
 		renderer->BeginGeometry();
+		if (ground->IsLoaded()) renderer->Render(*ground, Matrix::CreatePitch(PI2) * Matrix::CreateScalar(10.0f));
+		if (ball->IsLoaded()) renderer->Render(*ball, Matrix::CreateTranslation(0.0f, 5.0f, 0.0f));
 		renderer->BeginAdvanced();
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();
-	}
 
-	dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
-
-	if (ImGui::BeginMainMenuBar())
-	{
-		const MemoryFrame cpuStats = MemoryFrame::GetCPUMemStats();
-		const MemoryFrame gpuStats = MemoryFrame::GetGPUMemStats(GetDevice().GetPhysicalDevice());
-
-		ImGui::Text("FPS: %d", iround(recip(dt)));
-		ImGui::Separator();
-		ImGui::Text("Bind/Draw Calls: %u/%u", renderer->GetBindCount(), renderer->GetDrawCount());
-		ImGui::Separator();
-		ImGui::Text("CPU: %zu MB / %zu MB", b2mb(cpuStats.UsedVRam), b2mb(cpuStats.TotalVRam));
-		ImGui::Separator();
-		ImGui::Text("GPU %zu MB / %zu MB", b2mb(gpuStats.UsedVRam), b2mb(gpuStats.TotalVRam));
-
-		ImGui::EndMainMenuBar();
+		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 
 	Profiler::Visualize();

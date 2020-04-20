@@ -273,15 +273,15 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	}
 
 	/* Create a logical device. */
-	for (size_t i = 0; i < instance->GetPhysicalDeviceCount(); i++)
+	uint32 i = 0;
+	for (const PhysicalDevice &physicalDevice : instance->GetPhysicalDevices())
 	{
 		/* Choose either the first discrete GPU or the last Vulkan device available. */
-		const PhysicalDevice &pdevice = instance->GetPhysicalDevice(i);
-		if (pdevice.GetType() == PhysicalDeviceType::DiscreteGpu || i + 1 == instance->GetPhysicalDeviceCount())
+		if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu || i + 1 == instance->GetPhysicalDeviceCount())
 		{
 			/* Get the graphics and transfer queue families that we'll be using. */
-			const uint32 graphicsQueueFamily = pdevice.GetBestGraphicsQueueFamily();
-			const uint32 transferQueueFamily = pdevice.GetBestTransferQueueFamily();
+			const uint32 graphicsQueueFamily = physicalDevice.GetBestGraphicsQueueFamily();
+			const uint32 transferQueueFamily = physicalDevice.GetBestTransferQueueFamily();
 			const uint32 same = graphicsQueueFamily == transferQueueFamily;
 
 			/* Create the logical device. */
@@ -293,10 +293,12 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 			};
 
 			const DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos };
-			device = pdevice.CreateLogicalDevice(deviceCreateInfo);
+			device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
 			device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 			break;
 		}
+
+		++i;
 	}
 
 	/* Create the asset loader for the image load process. */
