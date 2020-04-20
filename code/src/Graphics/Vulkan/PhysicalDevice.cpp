@@ -6,8 +6,9 @@ using namespace Pu;
 
 Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
 	: parent(value.parent), hndl(value.hndl), properties(std::move(value.properties)),
-	features(std::move(value.features)), memory(std::move(value.memory)), 
-	canQueryMemoryUsage(value.canQueryMemoryUsage)
+	supportedFeatures(std::move(value.supportedFeatures)), memory(std::move(value.memory)),
+	enabledFeatures(std::move(value.enabledFeatures)), canQueryMemoryUsage(value.canQueryMemoryUsage),
+	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported)
 {
 	value.hndl = nullptr;
 }
@@ -26,9 +27,11 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 		parent = other.parent;
 		hndl = other.hndl;
 		properties = std::move(other.properties);
-		features = std::move(other.features);
+		supportedFeatures = std::move(other.supportedFeatures);
+		enabledFeatures = std::move(other.enabledFeatures);
 		memory = std::move(other.memory);
 		canQueryMemoryUsage = other.canQueryMemoryUsage;
+		exclusiveFullScreenSupported = other.exclusiveFullScreenSupported;
 
 		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 		other.hndl = nullptr;
@@ -131,7 +134,7 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 	parent.vkGetPhysicalDeviceProperties(hndl, &properties);
-	parent.vkGetPhysicalDeviceFeatures(hndl, &features);
+	parent.vkGetPhysicalDeviceFeatures(hndl, &supportedFeatures);
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 
 	/* Querying whether the extensions are supported is slow, so just query it on creation. */

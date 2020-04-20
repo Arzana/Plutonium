@@ -262,9 +262,6 @@ Pu::SamplerCreateInfo Pu::PumTexture::GetSamplerCreateInfo(void) const
 	info.MipmapMode = MipMap;
 	info.AddressModeU = AddressModeU;
 	info.AddressModeV = AddressModeV;
-	info.AnisotropyEnable = true;
-	info.MaxAnisotropy = 4.0f;
-	info.MaxLoD = static_cast<float>(DefaultMipLevels);
 	return info;
 }
 

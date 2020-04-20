@@ -18,6 +18,7 @@ public:
 	TestGame& operator =(TestGame&&) = delete;
 
 protected:
+	bool GpuPredicate(_In_ const Pu::PhysicalDevice &physicalDevice) final;
 	void EnableFeatures(const Pu::PhysicalDeviceFeatures &supported, Pu::PhysicalDeviceFeatures &enabeled) final;
 	void Initialize(void) final;
 	void LoadContent(Pu::AssetFetcher &content) final;

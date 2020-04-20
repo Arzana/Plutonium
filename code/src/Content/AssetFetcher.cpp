@@ -57,7 +57,12 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::in
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const PumTexture & texture)
 {
-	return FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), texture.IsSRGB);
+	/* We have to set the maximum usable level of detail ourselves. */
+	SamplerCreateInfo sampler = texture.GetSamplerCreateInfo();
+	sampler.MaxLoD = static_cast<float>(DefaultMipLevels);
+	TryAddAnisotropy(sampler);
+
+	return FetchTexture2D(texture.Path.toWide(), sampler, texture.IsSRGB);
 }
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const SamplerCreateInfo & samplerInfo, bool sRGB, uint32 mipMapLevels)
@@ -87,12 +92,12 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const ImageInformation info = _CrtGetImageInfo(mutablePath);
-		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
+		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height));
 		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
-		image->SetDebugName(path.toUTF8().fileNameWithoutExtension());
+		image->SetDebugName(mutablePath.toUTF8().fileNameWithoutExtension());
 		image->SetHash(hash);
 		cache->Store(image);
 
@@ -106,6 +111,11 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 
 Pu::TextureCube & Pu::AssetFetcher::FetchSkybox(const vector<wstring>& paths)
 {
+	/*
+	The skybox as reduced sampler information.
+	- We need no anisotropic filtering.
+	- We only have 1 level of detail.
+	*/
 	return FetchTextureCube("Skybox", SamplerCreateInfo{}, true, paths, 1);
 }
 
@@ -204,7 +214,12 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 
 Pu::Texture2D & Pu::AssetFetcher::CreateTexture2D(const string & id, Color color)
 {
-	return CreateTexture2D(id, color.ToArray(), 1, 1, Format::R8G8B8A8_SRGB, SamplerCreateInfo());
+	/*
+	The sampler informatiom is reducer for this type texture.
+	- We need no anisotropic filtering.
+	- We only have 1 level of detail.
+	*/
+	return CreateTexture2D(id, color.ToArray(), 1, 1, Format::R8G8B8A8_SRGB, SamplerCreateInfo{});
 }
 
 Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void * data, uint32 width, uint32 height, Format format, const SamplerCreateInfo & samplerInfo)
@@ -229,7 +244,7 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 	else
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height, 1);
+		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height);
 		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
 		const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
@@ -248,8 +263,12 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 
 Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, const wstring & diffuse)
 {
+	SamplerCreateInfo sampler;
+	sampler.MaxLoD = static_cast<float>(DefaultMipLevels);
+	TryAddAnisotropy(sampler);
+
 	/* The texture is references in the model, but we won't use it afterwards so immediately release it. */
-	Texture2D &texture = FetchTexture2D(diffuse, SamplerCreateInfo{}, true);
+	Texture2D &texture = FetchTexture2D(diffuse, sampler, true);
 	Model &result = CreateModel(type, deferredRenderer, probeRenderer, &texture);
 	Release(texture);
 
@@ -338,6 +357,16 @@ void Pu::AssetFetcher::Release(Model & model)
 	/* Relaese the underlying textures. */
 	for (Texture2D *cur : model.textures) Release(*cur);
 	cache->Release(model);
+}
+
+void Pu::AssetFetcher::TryAddAnisotropy(SamplerCreateInfo & sampler) const
+{
+	/* We can only set anisotropic filtering if it's enabled on the physical device. */
+	if (loader->GetDevice().GetPhysicalDevice().GetEnabledFeatures().SamplerAnisotropy)
+	{
+		sampler.AnisotropyEnable = true;
+		sampler.MaxAnisotropy = 4.0f;
+	}
 }
 
 Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels, ImageViewType view)

@@ -172,11 +172,10 @@ void Pu::Application::InitializeVulkan(void)
 	};
 
 	/* Allow the user to enable specific physical device features. */
-	PhysicalDeviceFeatures features;
-	EnableFeatures(physicalDevice.GetFeatures(), features);
+	EnableFeatures(physicalDevice.GetSupportedFeatures(), const_cast<PhysicalDeviceFeatures&>(physicalDevice.enabledFeatures));
 
 	/* Create logical device. */
-	DeviceCreateInfo deviceCreateInfo(2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &features);
+	DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &physicalDevice.enabledFeatures };
 	device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 

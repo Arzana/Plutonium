@@ -90,9 +90,15 @@ namespace Pu
 		}
 
 		/* Gets the capabilities of the physical device.  */
-		_Check_return_ inline const PhysicalDeviceFeatures& GetFeatures(void) const
+		_Check_return_ inline const PhysicalDeviceFeatures& GetSupportedFeatures(void) const
 		{
-			return features;
+			return supportedFeatures;
+		}
+
+		/* Gets the features that were enabled on the physical device. */
+		_Check_return_ inline const PhysicalDeviceFeatures& GetEnabledFeatures(void) const
+		{
+			return enabledFeatures;
 		}
 
 		/* Gets the capabilities of all memory types supported by this physical device. */
@@ -156,7 +162,7 @@ namespace Pu
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
-		PhysicalDeviceFeatures features;
+		PhysicalDeviceFeatures supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
 		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
 

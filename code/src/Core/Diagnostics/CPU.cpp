@@ -18,22 +18,27 @@ const char * Pu::CPU::GetName(void)
 	if (name.length()) return name.c_str();
 
 #ifdef _WIN32
-	int32 info[4]{ -1 };
-	__cpuid(info, 0x80000000);
-	uint32 nExIds = info[0];
+	/*
+	Define the EAX, EBX, ECX and EDX registers.
+	And query the highest extended function implemented (sets only EAX).
+	*/
+	int32 registers[4];
+	__cpuid(registers, 0x80000000);
 
-	char brandString[0x40] = { 0 };
-	for (uint32 i = 0x80000000; i <= nExIds; i++)
+	/* 
+	We can only query the brand string if it's supported.
+	Brand string is always 48 bytes in size.
+	*/
+	if (registers[0] >= 0x80000004)
 	{
-		__cpuid(info, i);
-
-		/* The brand string is formed from 3 parts in EAX, EBX ECX and EDX. */
-		if (i == 0x80000002) memcpy(brandString, info, sizeof(info));
-		else if (i == 0x80000003) memcpy(brandString + 0x10, info, sizeof(info));
-		else if (i == 0x80000004) memcpy(brandString + 0x20, info, sizeof(info));
+		name.resize(48u);
+		for (uint32 start = 0x80000002, i = 0; i <= 2; i++)
+		{
+			/* Query the 3 parts of the brand string, every part spans the entire register range. */
+			__cpuid(registers, start + i);
+			memcpy(name.data() + (i << 4), registers, 0x10);
+		}
 	}
-
-	name = brandString;
 
 #else
 	Log::Warning("Querying the CPU name is not suppoerted on this platform!");

@@ -27,6 +27,8 @@ namespace Pu
 		/* Gets the maximum amount of mipmap layers available for a specific image size. */
 		_Check_return_ static uint32 GetMaxMipLayers(_In_ Extent3D extent);
 		/* Gets the maximum amount of mipmap layers available for a specific image size. */
+		_Check_return_ static uint32 GetMaxMipLayers(_In_ uint32 width, _In_ uint32 height);
+		/* Gets the maximum amount of mipmap layers available for a specific image size. */
 		_Check_return_ static uint32 GetMaxMipLayers(_In_ uint32 width, _In_ uint32 height, _In_ uint32 depth);
 		/* Gets the amount of lazily-allocated bytes that are committed for the image. */
 		_Check_return_ DeviceSize GetLazyMemory(void) const;

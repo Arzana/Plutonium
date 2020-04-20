@@ -73,6 +73,16 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
 	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
 
+	/* Make sure that we can actually run wireframe mode. */
+	if (wireframe)
+	{
+		if (!wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().FillModeNonSolid)
+		{
+			Log::Warning("Cannot use DeferredRenderer in wireframe mode (FillModeNonSolid was not enabled)!");
+			wireframe = false;
+		}
+	}
+
 	renderpass = &fetcher.FetchRenderpass(
 		{
 			{ L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" },

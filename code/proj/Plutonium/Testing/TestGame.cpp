@@ -1,6 +1,5 @@
 #include "TestGame.h"
 #include <Core/Diagnostics/Profiler.h>
-#include <Core/Diagnostics/Memory.h>
 #include <imgui.h>
 
 using namespace Pu;
@@ -13,14 +12,20 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
+bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
+{
+	const PhysicalDeviceFeatures &features = physicalDevice.GetSupportedFeatures();
+	return features.GeometryShader && features.TessellationShader;
+}
+
 void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::PhysicalDeviceFeatures & enabeled)
 {
-	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
-	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
-
-	enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
 	enabeled.GeometryShader = true;		// Needed for the light probe renderer.
 	enabeled.TessellationShader = true;	// Needed for terrain rendering.
+
+	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
+	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
+	if (supported.SamplerAnisotropy) enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
 }
 
 void TestGame::Initialize(void)

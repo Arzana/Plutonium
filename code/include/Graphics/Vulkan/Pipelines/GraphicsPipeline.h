@@ -98,6 +98,6 @@ namespace Pu
 		Rect2D scissor;
 		SampleMask sampleMask;
 
-		const PhysicalDeviceFeatures& GetHardwareSupport(void) const;
+		const PhysicalDeviceFeatures& GetHardwareEnabled(void) const;
 	};
 }

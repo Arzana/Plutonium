@@ -49,6 +49,11 @@ Pu::uint32 Pu::Image::GetMaxMipLayers(Extent3D extent)
 	return static_cast<uint32>(floor(log2(min(extent.Width, extent.Height, extent.Depth))) + 1);
 }
 
+Pu::uint32 Pu::Image::GetMaxMipLayers(uint32 width, uint32 height)
+{
+	return static_cast<uint32>(floor(log2(min(width, height))) + 1);
+}
+
 Pu::uint32 Pu::Image::GetMaxMipLayers(uint32 width, uint32 height, uint32 depth)
 {
 	return static_cast<uint32>(floor(log2(min(width, height, depth))) + 1);

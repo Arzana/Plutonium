@@ -157,17 +157,9 @@ void Pu::Profiler::VisualizeInternal(void)
 {
 	if (ImGui::Begin("Profiler"))
 	{
-		if (cpuSections.size())
-		{
-			RenderSections(cpuSections, "CPU", true);
-			ImGui::Separator();
-		}
-
-		if (gpuSections.size())
-		{
-			RenderSections(gpuSections, "GPU", false);
-		}
-
+		RenderSections(cpuSections, "CPU", true);
+		ImGui::Separator();
+		RenderSections(gpuSections, "GPU", false);
 
 		ImGui::Separator();
 		ImGui::Text("Draw Calls: %u", CommandBuffer::GetDrawCalls());
@@ -178,14 +170,14 @@ void Pu::Profiler::VisualizeInternal(void)
 
 		ImGui::Separator();
 		const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();
-		ImGui::Text("%s: %zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
+		ImGui::Text("%s:\n%zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
 
 		if (vkInstance)
 		{
 			for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
 			{
 				const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
-				ImGui::Text("%s: %zu MB / %zu MB", device.GetName(), b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam));
+				ImGui::Text("%s:\n%zu MB / %zu MB", device.GetName(), b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam));
 			}
 		}
 

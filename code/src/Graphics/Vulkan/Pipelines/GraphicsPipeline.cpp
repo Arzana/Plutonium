@@ -119,7 +119,7 @@ void Pu::GraphicsPipeline::SetTopology(PrimitiveTopology topology)
 bool Pu::GraphicsPipeline::SetPatchControlPoints(uint32 points)
 {
 	/* Make sure our hardware supports tessellation shaders. */
-	if (GetHardwareSupport().TessellationShader)
+	if (GetHardwareEnabled().TessellationShader)
 	{
 		tessellationState.PatchControlPoints = points;
 		return true;
@@ -146,7 +146,7 @@ void Pu::GraphicsPipeline::SetViewport(const Viewport & viewport, Rect2D scissor
 
 bool Pu::GraphicsPipeline::EnableDepthClamp(void)
 {
-	if (GetHardwareSupport().DepthClamp)
+	if (GetHardwareEnabled().DepthClamp)
 	{
 		rasterizationState.DepthClampEnable = true;
 		return true;
@@ -158,7 +158,7 @@ bool Pu::GraphicsPipeline::EnableDepthClamp(void)
 bool Pu::GraphicsPipeline::SetPolygonMode(PolygonMode mode)
 {
 	/* Fill mode is always supported but line and point might not be. */
-	if ((mode != PolygonMode::Fill && GetHardwareSupport().FillModeNonSolid) || mode == PolygonMode::Fill)
+	if ((mode != PolygonMode::Fill && GetHardwareEnabled().FillModeNonSolid) || mode == PolygonMode::Fill)
 	{
 		rasterizationState.PolygonMode = mode;
 		return true;
@@ -184,7 +184,7 @@ bool Pu::GraphicsPipeline::EnableDepthBias(float constant, float clamp, float sl
 	rasterizationState.DepthBiasSlopeFactor = slope;
 
 	/* Only the clamp for the depth bias is hardware dependent. */
-	if (GetHardwareSupport().DepthBiasClamp)
+	if (GetHardwareEnabled().DepthBiasClamp)
 	{
 		rasterizationState.DepthBiasClamp = clamp;
 		return true;
@@ -195,7 +195,7 @@ bool Pu::GraphicsPipeline::EnableDepthBias(float constant, float clamp, float sl
 
 bool Pu::GraphicsPipeline::SetLineWidth(float width)
 {
-	if (GetHardwareSupport().WideLines)
+	if (GetHardwareEnabled().WideLines)
 	{
 		rasterizationState.LineWidth = width;
 		return true;
@@ -228,7 +228,7 @@ void Pu::GraphicsPipeline::EnableAlphaToCoverage(void)
 
 bool Pu::GraphicsPipeline::EnableAlphaToOne(void)
 {
-	if (GetHardwareSupport().AlphaToOne)
+	if (GetHardwareEnabled().AlphaToOne)
 	{
 		multisampleState.AlphaToOneEnable = true;
 		return true;
@@ -246,7 +246,7 @@ void Pu::GraphicsPipeline::EnableDepthTest(bool enableWrites, CompareOp operatio
 
 bool Pu::GraphicsPipeline::EnableDepthBoundsTest(float min, float max)
 {
-	if (GetHardwareSupport().DepthBounds)
+	if (GetHardwareEnabled().DepthBounds)
 	{
 		depthStencilState.DepthBoundsTestEnable = true;
 		depthStencilState.MinDepthBounds = min;
@@ -266,7 +266,7 @@ void Pu::GraphicsPipeline::EnableStencilTest(const StencilOpState & front, const
 
 bool Pu::GraphicsPipeline::SetBlendOperation(LogicOp operation)
 {
-	if (GetHardwareSupport().LogicOp)
+	if (GetHardwareEnabled().LogicOp)
 	{
 		colorBlendState.LogicOpEnable = true;
 		colorBlendState.LogicOp = operation;
@@ -334,7 +334,7 @@ Pu::uint32 Pu::GraphicsPipeline::GetVertexStride(uint32 binding) const
 	return 0;
 }
 
-const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareSupport(void) const
+const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareEnabled(void) const
 {
-	return renderpass->device->GetPhysicalDevice().GetFeatures();
+	return renderpass->device->GetPhysicalDevice().GetEnabledFeatures();
 }
