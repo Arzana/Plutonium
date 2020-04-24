@@ -40,7 +40,7 @@ namespace Pu
 		/* Gets whether the light probe renderer can be used. */
 		_Check_return_ inline bool IsUsable(void) const
 		{
-			return usable.load();
+			return renderpass->IsLoaded();
 		}
 
 		/* Gets the descriptor for the diffuse texture. */
@@ -61,7 +61,6 @@ namespace Pu
 		AssetFetcher *loader;
 		uint32 maxSets;
 		QueryChain *timer;
-		std::atomic_bool usable;
 
 		Renderpass *renderpass;
 		GraphicsPipeline *gfx;

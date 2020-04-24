@@ -7,44 +7,53 @@ namespace Pu
 	struct Quaternion
 	{
 	public:
+		/* Defines the first imaginary component of the quaternion. */
+		float I;
+		/* Defines the second imaginary component of the quaternion. */
+		float J;
+		/* Defines the third imaginary component of the quaternion. */
+		float K;
+		/* Defnes the real component of the quaternion. */
+		float R;
+
 		/* Initializes a new instance of a quaternion that does nothing. */
 		Quaternion(void)
-			: r(1.0f), i(0.0f), j(0.0f), k(0.0f)
+			: R(1.0f), I(0.0f), J(0.0f), K(0.0f)
 		{}
 
 		/* Initializes a new instance of a quaternion with specific components. */
 		Quaternion(_In_ float r, _In_ float i, _In_ float j, _In_ float k)
-			: r(r), i(i), j(j), k(k)
+			: R(r), I(i), J(j), K(k)
 		{}
 
 		/* Negates the quaternion. */
 		_Check_return_ inline Quaternion operator -(void) const
 		{
-			return Quaternion(-r, -i, -j, -k);
+			return Quaternion(-R, -I, -J, -K);
 		}
 
 		/* Adds the input vector to the quaternion. */
 		_Check_return_ inline Quaternion operator +(_In_ Quaternion q) const
 		{
-			return Quaternion(r + q.r, i + q.i, j + q.j, k + q.k);
+			return Quaternion(R + q.R, I + q.I, J + q.J, K + q.K);
 		}
 
 		/* Subtracts the input vector from the quaternion. */
 		_Check_return_ inline Quaternion operator -(_In_ Quaternion q) const
 		{
-			return Quaternion(r - q.r, i - q.i, j - q.j, k - q.k);
+			return Quaternion(R - q.R, I - q.I, J - q.J, K - q.K);
 		}
 
 		/* Multiplies the quaternion by a scalar value. */
 		_Check_return_ inline Quaternion operator *(_In_ float v) const
 		{
-			return Quaternion(r * v, i * v, j * v, k * v);
+			return Quaternion(R * v, I * v, J * v, K * v);
 		}
 
 		/* Gets whether this quaternion should be sorted before the specified quaternion. */
 		_Check_return_ inline bool operator <(_In_ Quaternion q) const
 		{
-			return i < q.i || (!(q.i < i) && j < q.j) || (!(q.i < i) && !(q.j < j) && k < q.k) || (!(q.i < i) && !(q.j < j) && !(q.k < k) && r < q.r);
+			return I < q.I || (!(q.I < I) && J < q.J) || (!(q.I < I) && !(q.J < J) && K < q.K) || (!(q.I < I) && !(q.J < J) && !(q.K < K) && R < q.R);
 		}
 
 		/* Multiplies a specified quaternion with the quaternion. */
@@ -52,14 +61,30 @@ namespace Pu
 		/* Multiplies a specified vector with the quaternion. */
 		_Check_return_ Vector3 operator *(_In_ Vector3 v) const;
 
+		/* Adds the specified quaternion to this quaternion. */
+		inline Quaternion operator +=(_In_ Quaternion q)
+		{
+			I += q.I;
+			J += q.J;
+			K += q.K;
+			R += q.R;
+			return *this;
+		}
+
 		/* Multiplies the quaternion by a scalar value. */
 		inline Quaternion operator *=(_In_ float v)
 		{
-			i *= v;
-			j *= v;
-			k *= v;
-			r *= v;
+			I *= v;
+			J *= v;
+			K *= v;
+			R *= v;
 			return *this;
+		}
+
+		/* Multiplies the quaternion with the specified quaternion. */
+		inline Quaternion operator *=(_In_ Quaternion q)
+		{
+			return *this = *this * q;
 		}
 
 		/* Divides the quaternion by a scalar value. */
@@ -71,32 +96,18 @@ namespace Pu
 		/* Checks if two quaternions are equal. */
 		_Check_return_ inline bool operator ==(_In_ const Quaternion &q) const
 		{
-			return r == q.r && i == q.i && j == q.j && k == q.k;
+			return R == q.R && I == q.I && J == q.J && K == q.K;
 		}
 		/* Checks if two quaternions differ. */
 		_Check_return_ inline bool operator !=(_In_ const Quaternion &q) const
 		{
-			return r != q.r || i != q.i || j != q.j || k != q.k;
-		}
-
-		/* Implicitly converts the quaternion to a string. */
-		_Check_return_ inline operator string() const
-		{
-			string result("[I: ");
-			result += string::from(i);
-			result += ", J: ";
-			result += string::from(j);
-			result += ", K: ";
-			result += string::from(k);
-			result += ", R: ";
-			result += string::from(r);
-			return result += ']';
+			return R != q.R || I != q.I || J != q.J || K != q.K;
 		}
 
 		/* Gets the magnetude of the quaternion squared. */
 		_Check_return_ inline float LengthSquared(void) const
 		{
-			return i * i + j * j + k * k + r * r;
+			return sqr(I) + sqr(J) + sqr(K) + sqr(R);
 		}
 
 		/* Gets the magnetude of the quaternion. */
@@ -133,32 +144,25 @@ namespace Pu
 		_Check_return_ Quaternion Inverse(void) const;
 		/* Packs the quaterion in 63-bits. */
 		_Check_return_ int64 Pack(void) const;
-
-	private:
-		friend struct Matrix;
-		friend class BinaryWriter;
-		friend float dot(Quaternion, Quaternion);
-		friend bool nrlyeql(Quaternion, Quaternion, float);
-		friend bool nrlyneql(Quaternion, Quaternion, float);
-
-		float i, j, k, r;
+		/* Gets a human readable version of the quaternion. */
+		_Check_return_ string ToString(void) const;
 	};
 
 	/* Calculates the dot product of the two specified quaternions. */
 	_Check_return_ inline float dot(_In_ Quaternion q1, _In_ Quaternion q2)
 	{
-		return q1.i * q2.i + q1.j * q2.j + q1.k * q2.k + q1.r * q2.r;
+		return q1.I * q2.I + q1.J * q2.J + q1.K * q2.K + q1.R * q2.R;
 	}
 
 	/* Checks whether two quaternions are equal within a specified error tolerance. */
 	_Check_return_ inline bool nrlyeql(_In_ Quaternion q1, _In_ Quaternion q2, _In_opt_ float tolerance = EPSILON)
 	{
-		return nrlyeql(q1.i, q2.i, tolerance) && nrlyeql(q1.j, q2.j, tolerance) && nrlyeql(q1.k, q2.k, tolerance) && nrlyeql(q1.r, q2.r, tolerance);
+		return nrlyeql(q1.I, q2.I, tolerance) && nrlyeql(q1.J, q2.J, tolerance) && nrlyeql(q1.K, q2.K, tolerance) && nrlyeql(q1.R, q2.R, tolerance);
 	}
 
 	/* Checks if two quaternions differ within a specific tolerance. */
 	_Check_return_ inline bool nrlyneql(_In_ Quaternion q1, _In_ Quaternion q2, _In_opt_ float tolerance = EPSILON)
 	{
-		return nrlyneql(q1.i, q2.i, tolerance) || nrlyneql(q1.j, q2.j, tolerance) || nrlyneql(q1.k, q2.k, tolerance) || nrlyneql(q1.r, q2.r, tolerance);
+		return nrlyneql(q1.I, q2.I, tolerance) || nrlyneql(q1.J, q2.J, tolerance) || nrlyneql(q1.K, q2.K, tolerance) || nrlyneql(q1.R, q2.R, tolerance);
 	}
 }

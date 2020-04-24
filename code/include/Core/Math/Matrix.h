@@ -72,9 +72,6 @@ namespace Pu
 			return c1 != m.c1 || c2 != m.c2 || c3 != m.c3 || c4 != m.c4;
 		}
 
-		/* Implicitly converts the 4x4 matrix to a string. */
-		_Check_return_ operator string() const;
-
 		/* Creates a translation matrix from two individual components. */
 		_Check_return_ static inline Matrix CreateTranslation(_In_ Vector2 v)
 		{
@@ -243,6 +240,8 @@ namespace Pu
 		_Check_return_ Matrix GetInverse(void) const;
 		/* Gets the transpose of the matrix. */
 		_Check_return_ Matrix GetTranspose(void) const;
+		/* Gets a human readable version of this 4x4 matrix. */
+		_Check_return_ string ToString(void) const;
 
 		/* Sets the translation vector of the matrix. */
 		inline void SetTranslation(_In_ Vector3 v)

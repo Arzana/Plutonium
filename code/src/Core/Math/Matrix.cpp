@@ -7,26 +7,6 @@ inline float det33(float a, float b, float c, float d, float e, float f, float g
 	return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 }
 
-Pu::Matrix::operator string() const
-{
-	if (*this == Matrix()) return "[Identity]";
-
-	string result;
-	for (size_t c = 0; c < 4; c++)
-	{
-		for (size_t r = 0; r < 3; r++)
-		{
-			result += std::_Floating_to_string("%.2f", f[c * 4 + r]);
-			result += ", ";
-		}
-
-		result += std::_Floating_to_string("%.2f", f[c * 4 + 3]);
-		result += '\n';
-	}
-
-	return result;
-}
-
 Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar)
 {
 	return Matrix(
@@ -63,15 +43,15 @@ Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
 
 Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 {
-	const float ii = sqr(quaternion.i);
-	const float jj = sqr(quaternion.j);
-	const float kk = sqr(quaternion.k);
-	const float ir = quaternion.i * quaternion.r;
-	const float ij = quaternion.i * quaternion.j;
-	const float kr = quaternion.k * quaternion.r;
-	const float ki = quaternion.k * quaternion.i;
-	const float jr = quaternion.j * quaternion.r;
-	const float jk = quaternion.j * quaternion.k;
+	const float ii = sqr(quaternion.I);
+	const float jj = sqr(quaternion.J);
+	const float kk = sqr(quaternion.K);
+	const float ir = quaternion.I * quaternion.R;
+	const float ij = quaternion.I * quaternion.J;
+	const float kr = quaternion.K * quaternion.R;
+	const float ki = quaternion.K * quaternion.I;
+	const float jr = quaternion.J * quaternion.R;
+	const float jk = quaternion.J * quaternion.K;
 
 	const float a = 1.0f - 2.0f * (jj + kk);
 	const float b = 2.0f * (ij - kr);
@@ -247,6 +227,26 @@ Matrix Pu::Matrix::GetTranspose(void) const
 		c2.X, c2.Y, c2.Z, c2.W,
 		c3.X, c3.Y, c3.Z, c3.W,
 		c4.X, c4.Y, c4.Z, c4.W);
+}
+
+Pu::string Pu::Matrix::ToString(void) const
+{
+	if (*this == Matrix()) return "[Identity]";
+
+	string result;
+	for (size_t c = 0; c < 4; c++)
+	{
+		for (size_t r = 0; r < 3; r++)
+		{
+			result += std::_Floating_to_string("%.2f", f[c * 4 + r]);
+			result += ", ";
+		}
+
+		result += std::_Floating_to_string("%.2f", f[c * 4 + 3]);
+		result += '\n';
+	}
+
+	return result;
 }
 
 /* Warning cause is checked and code is working as intended. */

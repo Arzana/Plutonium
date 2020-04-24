@@ -32,6 +32,19 @@ Pu::AssetCache & Pu::AssetCache::operator=(AssetCache && other)
 	return *this;
 }
 
+size_t Pu::AssetCache::RngHash(void) const
+{
+	size_t result;
+	std::hash<string> hasher;
+
+	do
+	{
+		result = hasher(random(64));
+	} while (Contains(result));
+
+	return result;
+}
+
 bool Pu::AssetCache::Contains(size_t hash) const
 {
 	return assets.contains([hash](const Asset *cur) { return *cur == hash; });

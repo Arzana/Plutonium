@@ -185,20 +185,6 @@ namespace Pu
 			return X < v.X || (!(v.X < X) && Y < v.Y) || (!(v.X < X) && !(v.Y < Y) && Z < v.Z) || (!(v.X < X) && !(v.Y < Y) && !(v.Z < Z) && W < v.W);
 		}
 
-		/* Implicitly converts the 4D vector to a string. */
-		_Check_return_ inline operator string() const
-		{
-			string result("[X: ");
-			result += string::from(X);
-			result += ", Y: ";
-			result += string::from(Y);
-			result += ", Z: ";
-			result += string::from(Z);
-			result += ", W: ";
-			result += string::from(W);
-			return result += ']';
-		}
-
 		/* Gets the magnetude of the vector squared. */
 		_Check_return_ inline float LengthSquared(void) const
 		{
@@ -215,6 +201,20 @@ namespace Pu
 		_Check_return_ inline Vector4 Normalize(void)
 		{
 			return operator/=(Length());
+		}
+
+		/* Gets a human readable version of this 4D vector. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result("[X: ");
+			result += string::from(X);
+			result += ", Y: ";
+			result += string::from(Y);
+			result += ", Z: ";
+			result += string::from(Z);
+			result += ", W: ";
+			result += string::from(W);
+			return result += ']';
 		}
 	};
 

@@ -3,18 +3,18 @@
 Pu::Quaternion Pu::Quaternion::operator*(Quaternion q) const
 {
 	return Quaternion(
-		r * q.r - (i * q.i + j * q.j + k * q.k),
-		i * q.r + q.i * r + (j * q.k - k * q.j),
-		j * q.r + q.j * r + (k * q.i - i * q.k),
-		k * q.r + q.k * r + (i * q.j - j * q.i));
+		R * q.R - (I * q.I + J * q.J + K * q.K),
+		I * q.R + q.I * R + (J * q.K - K * q.J),
+		J * q.R + q.J * R + (K * q.I - I * q.K),
+		K * q.R + q.K * R + (I * q.J - J * q.I));
 }
 
 Pu::Vector3 Pu::Quaternion::operator*(Vector3 v) const
 {
-	const Vector3 u{ i, j, k };
+	const Vector3 u{ I, J, K };
 	const Vector3 x = 2.0f * dot(u, v) * u;
-	const Vector3 y = (r * r - u.LengthSquared()) * v;
-	const Vector3 z = 2.0f * r * cross(u, v);
+	const Vector3 y = (sqr(R) - u.LengthSquared()) * v;
+	const Vector3 z = 2.0f * R * cross(u, v);
 	return x + y + z;
 }
 
@@ -185,7 +185,7 @@ Pu::Quaternion Pu::Quaternion::Unpack(int64 packed)
 Pu::Quaternion Pu::Quaternion::Inverse(void) const
 {
 	/* Inverse is just the quaterion conjugate divided by its squared magnitude. */
-	return Quaternion(r, -i, -j, -k) * recip(LengthSquared());
+	return Quaternion(R, -I, -J, -K) * recip(LengthSquared());
 }
 
 Pu::int64 Pu::Quaternion::Pack(void) const
@@ -194,9 +194,22 @@ Pu::int64 Pu::Quaternion::Pack(void) const
 	Packs the quaterion as a normalized vector with 21 bits of precision per component.
 	The real component can be recalculated when unpacking.
 	*/
-	const float sign = r >= 0.0f ? 1.0f : -1.0f;
-	const int64 x = static_cast<int64>(sign * i * 2097152.0f) << 21;
-	const int64 y = static_cast<int64>(sign * j * 1048576.0f) & 0x1FFFFF;
-	const int64 z = static_cast<int64>(sign * k * 1048576.0f) & 0x1FFFFF;
+	const float sign = R >= 0.0f ? 1.0f : -1.0f;
+	const int64 x = static_cast<int64>(sign * I * 2097152.0f) << 21;
+	const int64 y = static_cast<int64>(sign * J * 1048576.0f) & 0x1FFFFF;
+	const int64 z = static_cast<int64>(sign * K * 1048576.0f) & 0x1FFFFF;
 	return z | ((y | x) << 21);
+}
+
+Pu::string Pu::Quaternion::ToString(void) const
+{
+	string result("[I: ");
+	result += string::from(I);
+	result += ", J: ";
+	result += string::from(J);
+	result += ", K: ";
+	result += string::from(K);
+	result += ", R: ";
+	result += string::from(R);
+	return result += ']';
 }

@@ -144,10 +144,10 @@ void Pu::BinaryWriter::Write(Vector4 value)
 void Pu::BinaryWriter::Write(Quaternion value)
 {
 	EnsureCapacity(sizeof(Quaternion));
-	Write(value.i);
-	Write(value.j);
-	Write(value.k);
-	Write(value.r);
+	Write(value.I);
+	Write(value.J);
+	Write(value.K);
+	Write(value.R);
 }
 
 void Pu::BinaryWriter::Write(const Matrix & value)

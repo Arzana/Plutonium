@@ -37,6 +37,20 @@ namespace Pu
 		{
 			return End - Start;
 		}
+
+		/* Gets the closest point on the line seqment to the specified point. */
+		_Check_return_ inline Vector3 Closest(_In_ Vector3 p) const
+		{
+			const Vector3 d = Delta();
+			const float lambda = saturate(dot(p - Start, d) / d.LengthSquared());
+			return Start + d * lambda;
+		}
+
+		/* Gets whether the specified point is on the line segment. */
+		_Check_return_ inline bool Contains(_In_ Vector3 p, _In_ float tolerance = EPSILON) const
+		{
+			return nrlyeql(dist(Start, p) + dist(p, End), dist(Start, End), tolerance);
+		}
 	};
 
 	/* Gets the direction from the start of the line to the end. */

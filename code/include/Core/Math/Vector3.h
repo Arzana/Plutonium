@@ -160,18 +160,6 @@ namespace Pu
 			return X < v.X || (!(v.X < X) && Y < v.Y) || (!(v.X < X) && !(v.Y < Y) && Z < v.Z);
 		}
 
-		/* Implicitly converts the 3D vector to a string. */
-		_Check_return_ inline operator string() const
-		{
-			string result("[X: ");
-			result += string::from(X);
-			result += ", Y: ";
-			result += string::from(Y);
-			result += ", Z: ";
-			result += string::from(Z);
-			return result += ']';
-		}
-
 		/* Creates a directional vector from an angle around the Y axis. */
 		_Check_return_ static inline Vector3 FromYaw(_In_ float theta)
 		{
@@ -242,6 +230,18 @@ namespace Pu
 		_Check_return_ inline Vector3 Normalize(void)
 		{
 			return operator/=(Length());
+		}
+
+		/* Gets a human readable version of this 3D vector. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result("[X: ");
+			result += string::from(X);
+			result += ", Y: ";
+			result += string::from(Y);
+			result += ", Z: ";
+			result += string::from(Z);
+			return result += ']';
 		}
 	};
 
@@ -366,6 +366,12 @@ namespace Pu
 	_Check_return_ inline Vector3 sqr(_In_ Vector3 v)
 	{
 		return v * v;
+	}
+
+	/* Calculates the scalar tripple product of the three input vectors (signed volume of the parallelepiped). */
+	_Check_return_ inline float box(Vector3 a, Vector3 b, Vector3 c)
+	{
+		return dot(a, cross(b, c));
 	}
 
 	/* Get the input vector restricted to the specified range in positive and negative direction. */

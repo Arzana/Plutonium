@@ -1,4 +1,5 @@
 #include "Content/AssetFetcher.h"
+#include "Streams/FileReader.h"
 
 Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device)
 	: Patern()
@@ -74,8 +75,9 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	/*
 	The texture itself is not an asset but the sampler and image it stores are.
 	So first get the sampler and then get the image.
+	We also use a predefined sampler if the image could not be loaded.
 	*/
-	Sampler &sampler = FetchSampler(samplerInfo);
+	Sampler &sampler = FetchSampler(FileReader::FileExists(mutablePath) ? samplerInfo : SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::MirroredRepeat });
 
 	/* Try to fetch the image, otherwise just create a new one. */
 	const size_t hash = std::hash<wstring>{}(mutablePath);
@@ -278,7 +280,7 @@ Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer
 Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, Texture2D * diffuse, Texture2D * specularGloss)
 {
 	/* Construct a new random hash for this model. */
-	const size_t hash = std::hash<string>{}(random(64));
+	const size_t hash = cache->RngHash();
 
 	/* Create a new model and add its textures. */
 	Model *result = new Model();

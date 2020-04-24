@@ -19,6 +19,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ AssetCache& operator =(_In_ AssetCache &&other);
 
+		/* Creates a random hash that isn't yet used by the asset cache. */
+		_Check_return_ size_t RngHash(void) const;
 		/* Checks whether an assets with the specific hash exists. */
 		_Check_return_ bool Contains(_In_ size_t hash) const;
 		/* Gets the asset with the specified hash. */

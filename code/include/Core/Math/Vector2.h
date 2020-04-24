@@ -156,16 +156,6 @@ namespace Pu
 			return X < v.X || (!(v.X < X) && Y < v.Y);
 		}
 
-		/* Implicitly converts the 2D vector to a string. */
-		_Check_return_ inline operator string() const
-		{
-			string result("[X: ");
-			result += string::from(X);
-			result += ", Y: ";
-			result += string::from(Y);
-			return result += ']';
-		}
-
 		/* 
 		Initializes a new instance of a two dimentional vector from a specified angle.
 		Rotates the unit X vector ([1, 0]) the specified amount of radians in the anti-clockwise direction.
@@ -211,6 +201,16 @@ namespace Pu
 		_Check_return_ inline Point Truncate(void) const
 		{
 			return Point(static_cast<int>(X), static_cast<int>(Y));
+		}
+
+		/* Gets a human readable version of this 2D vector. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result("[X: ");
+			result += string::from(X);
+			result += ", Y: ";
+			result += string::from(Y);
+			return result += ']';
 		}
 	};
 
