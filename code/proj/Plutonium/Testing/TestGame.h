@@ -20,11 +20,11 @@ public:
 protected:
 	bool GpuPredicate(_In_ const Pu::PhysicalDevice &physicalDevice) final;
 	void EnableFeatures(const Pu::PhysicalDeviceFeatures &supported, Pu::PhysicalDeviceFeatures &enabeled) final;
-	void Initialize(void) final;
+	void Initialize(void) final {}
 	void LoadContent(Pu::AssetFetcher &content) final;
 	void UnLoadContent(Pu::AssetFetcher &content) final;
 	void Finalize(void) final {}
-	void Update(float) final {}
+	void Update(float dt) final;
 	void Render(float dt, Pu::CommandBuffer &cmdBuffer) final;
 
 private:
@@ -40,6 +40,12 @@ private:
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
 	Pu::Model *ground, *ball;
+
+	Pu::Plane collider;
+	Pu::Matrix groundOrien, iI;
+	Pu::Quaternion rot;
+	Pu::Vector3 pos, vloc, angularVloc;
+	float imass, e, time;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);

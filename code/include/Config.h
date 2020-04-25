@@ -51,4 +51,6 @@ namespace Pu
 	constexpr bool LogWastedMemory = false;
 	/* Defines the amount of lines that should be used to draw a single ellipse in an ellipsoid. */
 	constexpr uint32 EllipsiodDivs = 12;
+	/* Defines the maximum number of iterations the GJK algorithm is allowed to perform before terminating. */
+	constexpr uint8 MaxIterationsGJK = 20;
 }

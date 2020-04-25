@@ -8,6 +8,7 @@
 #include "Core/Diagnostics/CPU.h"
 #include "imgui/include/imgui.h"
 #include "Streams/FileWriter.h"
+#include "Physics/GJK.h"
 #include <ctime>
 
 static std::mutex lock;
@@ -162,11 +163,16 @@ void Pu::Profiler::VisualizeInternal(void)
 		RenderSections(gpuSections, "GPU", false);
 
 		ImGui::Separator();
-		ImGui::Text("Draw Calls: %u", CommandBuffer::GetDrawCalls());
-		ImGui::Text("Bind Calls: %u", CommandBuffer::GetBindCalls());
-		ImGui::Text("Transfers:  %u", CommandBuffer::GetTransferCalls());
-		ImGui::Text("Barriers:   %u", CommandBuffer::GetBarrierCalls());
+		ImGui::Text("Draw Calls:            %u", CommandBuffer::GetDrawCalls());
+		ImGui::Text("Bind Calls:            %u", CommandBuffer::GetBindCalls());
+		ImGui::Text("Transfers:             %u", CommandBuffer::GetTransferCalls());
+		ImGui::Text("Barriers:              %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();
+
+		ImGui::Separator();
+		ImGui::Text("GJK Calls:             %u", GJK::GetCallCount());
+		ImGui::Text("Averge GJK Iterations: %u", GJK::GetAverageIterations());
+		GJK::ResetCounters();
 
 		ImGui::Separator();
 		const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();

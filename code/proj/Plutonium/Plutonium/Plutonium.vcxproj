@@ -280,6 +280,7 @@
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDP.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\UPnP.h" />
+    <ClInclude Include="..\..\..\include\Physics\GJK.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
@@ -406,6 +407,7 @@
     <ClCompile Include="..\..\..\src\Networking\UPnP\SOAP.cpp" />
     <ClCompile Include="..\..\..\src\Networking\UPnP\SSDP.cpp" />
     <ClCompile Include="..\..\..\src\Networking\UPnP\UPnP.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\GJK.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryReader.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BinaryWriter.cpp" />
     <ClCompile Include="..\..\..\src\Streams\BitStreamReader.cpp" />

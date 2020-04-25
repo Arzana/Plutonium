@@ -2,13 +2,19 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
+#include <Physics/GJK.h>
+
 using namespace Pu;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"), cam(nullptr),
-	renderer(nullptr), descPoolConst(nullptr), updateCam(true),
-	lightMain(nullptr), lightFill(nullptr), firstRun(true)
+	renderer(nullptr), descPoolConst(nullptr), updateCam(false),
+	lightMain(nullptr), lightFill(nullptr), firstRun(true),
+	pos(0.0f, 5.0f, 0.0f), imass(recip(1.0f)), e(0.5f),
+	groundOrien(Matrix::CreatePitch(PI4)), collider(Vector3::FromPitch(TAU - PI4), 0.0f)
 {
+	// Inertia of a solid sphere = 2/5 * mr^2
+	iI = Matrix::CreateScalar((2.0f / 5.0f) * recip(imass) * sqr(0.5f)).GetInverse();
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 }
 
@@ -26,11 +32,6 @@ void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::
 	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
 	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
 	if (supported.SamplerAnisotropy) enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
-}
-
-void TestGame::Initialize(void)
-{
-	Mouse::HideAndLockCursor(GetWindow().GetNative());
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)
@@ -73,6 +74,32 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (descPoolConst) delete descPoolConst;
 }
 
+void TestGame::Update(float dt)
+{
+	Profiler::Begin("Physics", Color::Gray());
+	dt *= time;
+	vloc.Y -= 9.8f * dt;
+
+	dbgRenderer->AddArrow(Vector3{}, collider.N, Color::Red());
+	if (collider.HalfSpace(pos) < 0.5f)
+	{
+		const float jl = max(0.0f, -(1.0f + e) * dot(vloc, collider.N));
+		vloc += jl * collider.N;
+
+		const Vector3 r = Vector3() - pos;
+		const float nom = -(1.0f + e) * dot(vloc, collider.N);
+		const float denom = imass + dot(iI * (r * collider.N) * r, collider.N);
+		const float jr = nom / denom;
+
+		angularVloc += iI * cross(r, collider.N * jr);
+	}
+
+	pos += vloc * dt;
+	rot += Quaternion::Create(angularVloc.Y, angularVloc.X, angularVloc.Z) * dt;
+	rot.Normalize();
+	Profiler::End();
+}
+
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
 	if (firstRun && renderer->IsUsable() && probeRenderer->IsUsable() && skybox->IsUsable())
@@ -84,8 +111,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
-		cam->Move(0.0f, 1.0f, -1.0f);
+		cam->Move(5.0f, 1.0f, -5.0f);
 		cam->SetExposure(2.5f);
+		cam->Yaw = TAU - PI4;
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightMain->SetEnvironment(environment->GetTexture());
@@ -120,6 +148,20 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 	}
 
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::Button("Reset"))
+		{
+			pos = Vector3(0.0f, 5.0f, 0.0f);
+			rot = Quaternion{};
+			vloc = Vector3{};
+			angularVloc = Vector3{};
+		}
+
+		ImGui::SliderFloat("Time", &time, 0.0f, 1.0f);
+		ImGui::EndMainMenuBar();
+	}
+
 	if (cam)
 	{
 		cam->Update(dt * updateCam);
@@ -135,14 +177,15 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->InitializeResources(cmd);
 		renderer->BeginTerrain(*cam);
 		renderer->BeginGeometry();
-		if (ground->IsLoaded()) renderer->Render(*ground, Matrix::CreatePitch(PI2) * Matrix::CreateScalar(10.0f));
-		if (ball->IsLoaded()) renderer->Render(*ball, Matrix::CreateTranslation(0.0f, 5.0f, 0.0f));
+		if (ground->IsLoaded()) renderer->Render(*ground, groundOrien * Matrix::CreateScalar(10.0f));
+		if (ball->IsLoaded()) renderer->Render(*ball, Matrix::CreateTranslation(pos) * Matrix::CreateRotation(rot));
 		renderer->BeginAdvanced();
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();
 
+		dbgRenderer->AddBox(ball->GetMeshes().GetBoundingBox(), Matrix::CreateTranslation(pos) * Matrix::CreateRotation(rot), Color::Yellow());
 		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
 	}
 
