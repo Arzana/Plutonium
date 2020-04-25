@@ -15,7 +15,9 @@ namespace Pu
 		/* Defines a 3D hemisphere with 24 divisions. */
 		Dome,
 		/* Defines a 3D revloution of a circle with 24 divisions and a ratio of 0.5. */
-		Torus
+		Torus,
+		/* Defines a 3D cylinder with 24 divisions. */
+		Cylinder
 	};
 
 	/* Converts the shape type to a human readable string. */
@@ -33,6 +35,8 @@ namespace Pu
 			return "Dome";
 		case ShapeType::Torus:
 			return "Torus";
+		case ShapeType::Cylinder:
+			return "Cylinder";
 		default:
 			return "Unknown";
 		}

@@ -26,6 +26,11 @@ Pu::uint32 Pu::ShapeCreator::GetTorusVertexSize(uint16 divisions)
 	return sqr(divisions + 1) * sizeof(Basic3D);
 }
 
+Pu::uint32 Pu::ShapeCreator::GetCylinderVertexSize(uint16 divisions)
+{
+	return ((divisions << 2) + 2) * sizeof(Basic3D);
+}
+
 size_t Pu::ShapeCreator::GetPatchPlaneBufferSize(uint16 divisions)
 {
 	return GetPatchPlaneVertexSize(divisions) + 4 * sqr(divisions - 1) * sizeof(uint16);
@@ -74,6 +79,15 @@ size_t Pu::ShapeCreator::GetTorusBufferSize(uint16 divisions)
 	We will have 1 more division than indices so add one to divisions for vertex part.
 	*/
 	return GetTorusVertexSize(divisions) + sqr(divisions) * 6 * sizeof(uint16);
+}
+
+size_t Pu::ShapeCreator::GetCylinderBufferSize(uint16 divisions)
+{
+	/*
+	The top and bottom are a triangle fan with 3 indices per division
+	Between those are quads, i.e. 6 indices per division.
+	*/
+	return GetCylinderVertexSize(divisions) + 12 * divisions * sizeof(uint16);
 }
 
 Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
@@ -616,6 +630,94 @@ Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
 	const float baseZ = -sizeZ * 0.5f;
 	result.SetBoundingBox(AABB{ baseXY, baseXY, baseZ, sizeXY, sizeXY, sizeZ });
 
+	return result;
+}
+
+Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions)
+{
+	DBG_CHECK_BUFFER_SIZE(GetCylinderBufferSize(divisions));
+
+	const uint16 end = divisions - 1;
+	const float step = TAU / end;
+	constexpr float iTau = recip(TAU);
+
+	/* Begin the memory transfer operation. */
+	src.BeginMemoryTransfer();
+	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+
+	/* Center of the top face.. */
+	vertices->Position = Vector3(0.0f, 1.0f, 0.0f);
+	vertices->Normal = Vector3::Up();
+	vertices->TexCoord = Vector2(0.5f);
+	++vertices;
+
+	/* Center of the bottom face. */
+	vertices->Position = Vector3(0.0f);
+	vertices->Normal = Vector3::Down();
+	vertices->TexCoord = Vector2(0.5f);
+	++vertices;
+
+	/* Add the vertices for the top and bottom face. */
+	for (float theta = 0.0f; theta <= TAU; theta += step)
+	{
+		const float ct = cosf(theta);
+		const float st = sinf(theta);
+		const float x = ct * 0.5f;
+		const float z = st * 0.5f;
+		const Vector2 uv = Vector2(ct, st) * 0.5f + 0.5f;
+
+		/* Top face. */
+		vertices->Position = Vector3(x, 1.0f, z);
+		vertices->Normal = Vector3::Up();
+		vertices->TexCoord = uv;
+		++vertices;
+
+		/* Bottom face. */
+		vertices->Position = Vector3(x, 0.0f, z);
+		vertices->Normal = Vector3::Down();
+		vertices->TexCoord = uv;
+		++vertices;
+
+		/* Top side face. */
+		vertices->Position = Vector3(x, 1.0f, z);
+		vertices->Normal = Vector3(ct, 0.0f, st);
+		vertices->TexCoord = Vector2(theta * iTau, 1.0f);
+		++vertices;
+
+		/* Bottom side face. */
+		vertices->Position = Vector3(x, 0.0f, z);
+		vertices->Normal = Vector3(ct, 0.0f, st);
+		vertices->TexCoord = Vector2(theta * iTau, 0.0f);
+		++vertices;
+	}
+
+	/* Indices. */
+	uint16 *indices = reinterpret_cast<uint16*>(vertices);
+	for (uint16 i = 0, j = 2; i < end; i++, j += 4, indices += 12)
+	{
+		/* Top face. */
+		indices[0] = 0;
+		indices[1] = j;
+		indices[2] = j + 4;
+
+		/* Bottom face. */
+		indices[3] = 1;
+		indices[4] = j + 1;
+		indices[5] = j + 5;
+
+		/* Side face. */
+		indices[6] = j + 2;
+		indices[7] = j + 3;
+		indices[8] = j + 6;
+		indices[9] = j + 3;
+		indices[10] = j + 6;
+		indices[11] = j + 7;
+	}
+
+	/* We need to set the bounding box of the mesh as well. */
+	src.EndMemoryTransfer();
+	Mesh result{ 12u * divisions, sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 1.0f, 1.0f });
 	return result;
 }
 
