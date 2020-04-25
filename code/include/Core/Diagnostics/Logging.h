@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <mutex>
+#include <cstdarg>
 #include "Core/String.h"
 
 #if defined (ASSERT)

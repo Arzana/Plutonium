@@ -54,7 +54,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	ground = &fetcher.CreateModel(ShapeType::Plane, *renderer, *probeRenderer);
+	ground = &fetcher.CreateModel(ShapeType::Plane, *renderer, *probeRenderer, L"lala");
 	ball = &fetcher.CreateModel(ShapeType::Sphere, *renderer, *probeRenderer, L"{Textures}uv.png");
 }
 

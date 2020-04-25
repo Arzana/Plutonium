@@ -17,7 +17,9 @@ namespace Pu
 		/* Defines a 3D revloution of a circle with 24 divisions and a ratio of 0.5. */
 		Torus,
 		/* Defines a 3D cylinder with 24 divisions. */
-		Cylinder
+		Cylinder,
+		/* Defines a 3D cone with 24 divisions. */
+		Cone
 	};
 
 	/* Converts the shape type to a human readable string. */
@@ -37,6 +39,8 @@ namespace Pu
 			return "Torus";
 		case ShapeType::Cylinder:
 			return "Cylinder";
+		case ShapeType::Cone:
+			return "Cone";
 		default:
 			return "Unknown";
 		}

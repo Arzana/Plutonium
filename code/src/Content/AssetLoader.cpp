@@ -530,6 +530,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 	constexpr uint16 DOME_DIVS = 24;
 	constexpr uint16 TORUS_DIVS = 24;
 	constexpr uint16 CYLINDER_DIVS = 24;
+	constexpr uint16 CONE_DIVS = 24;
 
 	class CreateTask
 		: public Task
@@ -570,6 +571,10 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				bufferSize = ShapeCreator::GetCylinderBufferSize(CYLINDER_DIVS);
 				vrtxSize = ShapeCreator::GetCylinderVertexSize(CYLINDER_DIVS);
 				break;
+			case ShapeType::Cone:
+				bufferSize = ShapeCreator::GetConeBufferSize(CONE_DIVS);
+				vrtxSize = ShapeCreator::GetConeVertexSize(CONE_DIVS);
+				break;
 			default:
 				Log::Error("Cannot create mesh from shape type: '%s'!", to_string(meshType));
 				return Result::AutoDelete();
@@ -599,6 +604,9 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				break;
 			case ShapeType::Cylinder:
 				mesh = std::move(ShapeCreator::Cylinder(*src, CYLINDER_DIVS));
+				break;
+			case ShapeType::Cone:
+				mesh = std::move(ShapeCreator::Cone(*src, CONE_DIVS));
 				break;
 			}
 

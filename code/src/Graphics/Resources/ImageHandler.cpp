@@ -21,25 +21,19 @@ static const Pu::Color DEFAULT_IMAGE[] =
 {
 	Pu::Color::Lime(),
 	Pu::Color::Magenta(),
-	Pu::Color::Lime(),
-
-	Pu::Color::Magenta(),
-	Pu::Color::Lime(),
-	Pu::Color::Magenta(),
-
-	Pu::Color::Lime(),
 	Pu::Color::Magenta(),
 	Pu::Color::Lime(),
 };
 
 /* Defines the amount of colors in the default image. */
-constexpr size_t DEFAULT_IMAGE_COMPONENTS = sizeof(DEFAULT_IMAGE) / sizeof(Pu::Color);
+constexpr size_t DEFAULT_IMAGE_PIXELS = sizeof(DEFAULT_IMAGE) / sizeof(Pu::Color);
+constexpr size_t FLOATS_PER_VECTOR4 = sizeof(Pu::Vector4) / sizeof(float);
 
 Pu::vector<float> getDefaultImageHDR(void)
 {
 	/* Create HDR copy of default image. */
 	Pu::vector<float> result;
-	result.reserve(DEFAULT_IMAGE_COMPONENTS * 4);
+	result.reserve(DEFAULT_IMAGE_PIXELS * FLOATS_PER_VECTOR4);
 
 	for (Pu::Color cur : DEFAULT_IMAGE)
 	{
@@ -58,7 +52,7 @@ Pu::vector<Pu::byte> getDefaultImageLDR(void)
 {
 	/* Create LDR copy of default image. */
 	Pu::vector<Pu::byte> result;
-	result.reserve(DEFAULT_IMAGE_COMPONENTS * 4);
+	result.reserve(DEFAULT_IMAGE_PIXELS * FLOATS_PER_VECTOR4);
 
 	for (Pu::Color cur : DEFAULT_IMAGE)
 	{
