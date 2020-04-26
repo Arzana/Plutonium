@@ -2,8 +2,7 @@
 #include "Application.h"
 
 Pu::FpsCamera::FpsCamera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
-	: Camera(wnd, pool, renderpass), near(0.1f), far(1000.0f), fov(PI4),
-	Yaw(0.0f), Pitch(0.0f), Roll(0.0f), aspr(wnd.GetAspectRatio())
+	: Camera(wnd, pool, renderpass), near(0.1f), far(1000.0f), fov(PI4), aspr(wnd.GetAspectRatio())
 {
 	UpdateProjection();
 }
@@ -24,17 +23,6 @@ void Pu::FpsCamera::SetFoV(float value)
 {
 	fov = value;
 	UpdateProjection();
-}
-
-void Pu::FpsCamera::Update(float dt)
-{
-	/* Update the camera's orientation. */
-	orien.SetOrientation(Yaw, Pitch, Roll);
-
-	/* Update the view matrix and the clipping frustum. */
-	SetView(Matrix::CreateLookIn(GetPosition(), orien.GetForward(), orien.GetUp()));
-
-	Camera::Update(dt);
 }
 
 void Pu::FpsCamera::OnWindowResize(const NativeWindow & sender, ValueChangedEventArgs<Vector2> args)

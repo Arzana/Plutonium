@@ -2,6 +2,7 @@
 #include <Application.h>
 #include <Graphics/Models/Model.h>
 #include <Graphics/Cameras/FreeCamera.h>
+#include <Graphics/Cameras/FollowCamera.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
@@ -45,6 +46,7 @@ private:
 	Pu::Matrix groundOrien, iI;
 	Pu::Quaternion rot;
 	Pu::Vector3 pos, vloc, angularVloc;
+	Pu::Matrix player;
 	float imass, e, time;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

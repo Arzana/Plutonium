@@ -22,7 +22,7 @@ Pu::Camera::Camera(Camera && value)
 	: DescriptorSetGroup(std::move(value)), pos(value.pos), window(value.window),
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
-	wndSize(value.wndSize), viewDirty(value.viewDirty), 
+	wndSize(value.wndSize), viewDirty(value.viewDirty), Orientation(value.Orientation),
 	offsetSp0(value.offsetSp0), offsetSp1(value.offsetSp1),
 	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3), offsetSp4(value.offsetSp4)
 {
@@ -41,6 +41,7 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 		proj = other.proj;
 		iproj = other.iproj;
 		iview = other.iview;
+		Orientation = other.Orientation;
 		exposure = other.exposure;
 		brightness = other.brightness;
 		contrast = other.contrast;

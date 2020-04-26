@@ -83,20 +83,23 @@ void TestGame::Update(float dt)
 	dbgRenderer->AddArrow(Vector3{}, collider.N, Color::Red());
 	if (collider.HalfSpace(pos) < 0.5f)
 	{
+		/* Linear impulse. */
 		const float jl = max(0.0f, -(1.0f + e) * dot(vloc, collider.N));
 		vloc += jl * collider.N;
 
+		/* Angular impulse. */
 		const Vector3 r = Vector3() - pos;
-		const float nom = -(1.0f + e) * dot(vloc, collider.N);
+		float nom = -(1.0f + e) * dot(vloc, collider.N);
 		const float denom = imass + dot(iI * (r * collider.N) * r, collider.N);
 		const float jr = nom / denom;
-
-		angularVloc += iI * cross(r, collider.N * jr);
+		angularVloc += iI * -cross(r, collider.N * jr);
 	}
 
 	pos += vloc * dt;
 	rot += Quaternion::Create(angularVloc.Y, angularVloc.X, angularVloc.Z) * dt;
 	rot.Normalize();
+
+	player = Matrix::CreateWorld(pos, rot, Vector3(1.0f));
 	Profiler::End();
 }
 
@@ -107,7 +110,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		firstRun = false;
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
-		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
+		renderer->InitializeCameraPool(*descPoolConst, 2);						// Camera sets
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
 
 		cam = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
@@ -148,7 +151,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 	}
 
-	if (ImGui::BeginMainMenuBar())
+	if (ImGui::Begin("Physics Editor"))
 	{
 		if (ImGui::Button("Reset"))
 		{
@@ -159,7 +162,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 
 		ImGui::SliderFloat("Time", &time, 0.0f, 1.0f);
-		ImGui::EndMainMenuBar();
+		ImGui::End();
 	}
 
 	if (cam)
@@ -178,7 +181,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginTerrain(*cam);
 		renderer->BeginGeometry();
 		if (ground->IsLoaded()) renderer->Render(*ground, groundOrien * Matrix::CreateScalar(10.0f));
-		if (ball->IsLoaded()) renderer->Render(*ball, Matrix::CreateTranslation(pos) * Matrix::CreateRotation(rot));
+		if (ball->IsLoaded()) renderer->Render(*ball, player);
 		renderer->BeginAdvanced();
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
@@ -186,7 +189,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->End();
 
 		dbgRenderer->AddBox(ball->GetMeshes().GetBoundingBox(), Matrix::CreateTranslation(pos) * Matrix::CreateRotation(rot), Color::Yellow());
-		dbgRenderer->Render(cmd, cam->GetProjection(), cam->GetView());
+		dbgRenderer->Render(cmd, *cam);
 	}
 
 	Profiler::Visualize();

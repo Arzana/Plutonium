@@ -72,7 +72,10 @@ void Pu::FreeCamera::Update(float dt)
 	/* Reset the lookstate if needed. */
 	lookDelta *= !(state & 16);
 	state &= ~16;
-	FpsCamera::Update(dt);
+
+	/* Update the orientation and the view matrix. */
+	Orientation = Quaternion::Create(Yaw, Pitch, Roll);
+	SetView(Matrix::CreateLookIn(GetPosition(), Orientation * Vector3::Forward(), Orientation * Vector3::Up()));
 }
 
 void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)

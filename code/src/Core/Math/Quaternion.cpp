@@ -25,8 +25,7 @@ University of Pennsylvania
 Pu::Quaternion Pu::Quaternion::Create(Vector3 forward, Vector3 up)
 {
 	const Vector3 axisX = normalize(cross(up, forward));
-	const Vector3 axisY = cross(forward, axisX);
-	const float t = axisX.X + axisY.Y + forward.Z;
+	const float t = axisX.X + up.Y + forward.Z;
 
 	float r, i, j, k, l;
 	if (t > 0.0f)
@@ -35,39 +34,39 @@ Pu::Quaternion Pu::Quaternion::Create(Vector3 forward, Vector3 up)
 		r = l * 0.5f;
 		l = 0.5f / l;
 
-		i = (axisY.Z - forward.Y) * l;
+		i = (up.Z - forward.Y) * l;
 		j = (forward.X - axisX.Z) * l;
-		k = (axisX.Y - axisY.X) * l;
+		k = (axisX.Y - up.X) * l;
 	}
-	else if (axisX.X >= axisY.Y && axisX.X >= forward.Z)
+	else if (axisX.X >= up.Y && axisX.X >= forward.Z)
 	{
-		l = sqrtf(1.0f + axisX.X - axisY.Y - forward.Z);
+		l = sqrtf(1.0f + axisX.X - up.Y - forward.Z);
 		i = l * 0.5f;
 		l = 0.5f / l;
 		
-		j = (axisX.Y + axisY.X) * l;
+		j = (axisX.Y + up.X) * l;
 		k = (axisX.Z + forward.X) * l;
-		r = (axisY.Z - forward.Y) * l;
+		r = (up.Z - forward.Y) * l;
 	}
-	else if (axisY.Y > forward.Z)
+	else if (up.Y > forward.Z)
 	{
-		l = sqrtf(1.0f + axisY.Y - axisX.X - forward.Z);
+		l = sqrtf(1.0f + up.Y - axisX.X - forward.Z);
 		j = l * 0.5f;
 		l = 0.5f / l;
 
-		i = (axisY.X + axisX.Y) * l;
-		k = (forward.Y + axisY.Z) * l;
+		i = (up.X + axisX.Y) * l;
+		k = (forward.Y + up.Z) * l;
 		r = (forward.X - axisX.Z) * l;
 	}
 	else
 	{
-		l = sqrtf(1.0f + forward.Z - axisX.X - axisY.Y);
+		l = sqrtf(1.0f + forward.Z - axisX.X - up.Y);
 		k = 0.5f * l;
 		l = 0.5f / l;
 
 		i = (forward.X + axisX.Z) * l;
-		j = (forward.Y + axisY.Z) * l;
-		r = (axisX.Y - axisY.X) * l;
+		j = (forward.Y + up.Z) * l;
+		r = (axisX.Y - up.X) * l;
 	}
 
 	return Quaternion(r, i, j, k);

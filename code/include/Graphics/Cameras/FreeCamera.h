@@ -9,6 +9,12 @@ namespace Pu
 		: public FpsCamera
 	{
 	public:
+		/* The yaw that the camera should have. */
+		float Yaw;
+		/* The pitch that the camera should have. */
+		float Pitch;
+		/* Rhe roll that the camera should have. */
+		float Roll;
 		/* The movement speed modifier of the camera. */
 		float MoveSpeed;
 		/* The viewing speed modifier of the camera. */
@@ -38,7 +44,7 @@ namespace Pu
 		_Check_return_ FreeCamera& operator =(_In_ FreeCamera &&other);
 
 		/* Updates the free camera. */
-		void Update(_In_ float dt) override;
+		void Update(_In_ float dt);
 
 		/* Sets the key used to move the camera forward. */
 		inline void SetForwardKey(_In_ uint16 key)

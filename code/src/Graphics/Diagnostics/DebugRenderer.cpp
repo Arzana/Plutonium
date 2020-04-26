@@ -253,7 +253,7 @@ void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 	AddLine(ntr, ftr, color);
 }
 
-void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & projection, const Matrix & view, bool clearBuffer)
+void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera, bool clearBuffer)
 {
 	/* Make sure we cannot access garbage memory. */
 	if (pipeline && !invalidated)
@@ -275,7 +275,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Matrix & project
 			if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
 
 			/* Update the descriptors. */
-			const Matrix constants[2] = { projection, view };
+			const Matrix constants[2] = { camera.GetProjection(), camera.GetView() };
 			cmdBuffer.PushConstants(*pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix) << 1, constants);
 
 			/* Render the debug lines. */

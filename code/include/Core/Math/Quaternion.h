@@ -50,6 +50,12 @@ namespace Pu
 			return Quaternion(R * v, I * v, J * v, K * v);
 		}
 
+		/* Divides the quaternion by a scalar value. */
+		_Check_return_ inline Quaternion operator /(_In_ float v) const
+		{
+			return operator*(recip(v));
+		}
+
 		/* Gets whether this quaternion should be sorted before the specified quaternion. */
 		_Check_return_ inline bool operator <(_In_ Quaternion q) const
 		{
@@ -90,7 +96,7 @@ namespace Pu
 		/* Divides the quaternion by a scalar value. */
 		inline Quaternion operator /=(_In_ float v)
 		{
-			return operator*=(1.0f / v);
+			return operator*=(recip(v));
 		}
 
 		/* Checks if two quaternions are equal. */
@@ -152,6 +158,12 @@ namespace Pu
 	_Check_return_ inline float dot(_In_ Quaternion q1, _In_ Quaternion q2)
 	{
 		return q1.I * q2.I + q1.J * q2.J + q1.K * q2.K + q1.R * q2.R;
+	}
+
+	/* Normalizes the specified quaternion. */
+	_Check_return_ inline Quaternion normalize(_In_ Quaternion q)
+	{
+		return q / q.Length();
 	}
 
 	/* Checks whether two quaternions are equal within a specified error tolerance. */

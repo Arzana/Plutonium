@@ -1,8 +1,8 @@
 #pragma once
 #include "Core/Math/Line.h"
 #include "Core/Math/Spline.h"
-#include "Core/Math/Frustum.h"
 #include "Content/AssetFetcher.h"
+#include "Graphics/Cameras/Camera.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Textures/DepthBuffer.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
@@ -55,7 +55,7 @@ namespace Pu
 		/* Adds a frustum to the debug renderer queue. */
 		void AddFrustum(_In_ const Frustum &frustum, _In_ Color color);
 		/* Renders all shapes stored in the debug renderer. */
-		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Matrix &projection, _In_ const Matrix &view, _In_opt_ bool clearBuffer = true);
+		void Render(_In_ CommandBuffer &cmdBuffer, _In_ const Camera &camera, _In_opt_ bool clearBuffer = true);
 		/* Resets the debug renderer with a new depth buffer if the old depth buffer changed. */
 		void Reset(_In_ const DepthBuffer &depthBuffer);
 

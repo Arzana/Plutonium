@@ -155,6 +155,7 @@
     <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h" />
     <ClInclude Include="..\..\..\include\Graphics\Cameras\Camera.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Cameras\FollowCamera.h" />
     <ClInclude Include="..\..\..\include\Graphics\Cameras\FpsCamera.h" />
     <ClInclude Include="..\..\..\include\Graphics\Cameras\FreeCamera.h" />
     <ClInclude Include="..\..\..\include\Graphics\Color.h" />
@@ -331,6 +332,7 @@
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Cameras\Camera.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Cameras\FollowCamera.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Cameras\FpsCamera.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Cameras\FreeCamera.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Color.cpp" />

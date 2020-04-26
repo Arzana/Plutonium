@@ -148,7 +148,7 @@ Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 
 Quaternion Pu::Matrix::GetOrientation(void) const
 {
-	return Quaternion::Create(normalize(GetRight()), normalize(GetUp()));
+	return Quaternion::Create(normalize(GetForward()), normalize(GetUp()));
 }
 
 Vector3 Pu::Matrix::GetScale(void) const

@@ -807,6 +807,9 @@
     <ClInclude Include="..\..\..\include\Physics\GJK.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Cameras\FollowCamera.h">
+      <Filter>Header Files\Graphics\Cameras</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1171,6 +1174,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\GJK.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Cameras\FollowCamera.cpp">
+      <Filter>Source Files\Graphics\Cameras</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

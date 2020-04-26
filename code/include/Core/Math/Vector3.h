@@ -130,7 +130,7 @@ namespace Pu
 		/* Divides the vector by a scalar value. */
 		_Check_return_ inline Vector3 operator /=(_In_ float v)
 		{
-			return operator*=(1.0f / v);
+			return operator*=(recip(v));
 		}
 
 		/* Divides the vector by another vector. */

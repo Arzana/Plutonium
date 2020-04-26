@@ -64,6 +64,12 @@ namespace Pu
 			return iproj;
 		}
 
+		/* Gets the camera's orientation. */
+		_Check_return_ inline const Quaternion& GetOrientation(void) const
+		{
+			return Orientation;
+		}
+
 		/* Gets the exposure of the camera. */
 		_Check_return_ inline float GetExposure(void) const
 		{
@@ -125,11 +131,12 @@ namespace Pu
 		}
 
 	protected:
+		/* Defines the orientation of the camera. */
+		Quaternion Orientation;
+
 		/* Initializes a new instance of a camera. */
 		Camera(_In_ const NativeWindow &wnd, _In_ DescriptorPool &pool, _In_ const Renderpass &renderpass);
 
-		/* Updates the camera. */
-		virtual void Update(_In_ float /*dt*/) {};
 		/* Sets the view matrix. */
 		void SetView(_In_ const Matrix &value);
 		/* Sets the projection matrix. */
