@@ -68,8 +68,26 @@ void Pu::Log::Fatal(const char * format, ...)
 	*/
 	va_list args;
 	va_start(args, format);
-	GetInstance().LogExc(format, 4, args);
+	GetInstance().LogExc(nullptr, format, 4, args);
 	va_end(args);
+}
+
+void Pu::Log::APIFatal(const char * sender, bool condition, const char * format, ...)
+{
+	if (!condition)
+	{
+		/*
+		Skip last four frames:
+		- StackFrame::GetStackTrace
+		- Log::LogExcFtr
+		- Log::LogExc
+		- Log::Fatal
+		*/
+		va_list args;
+		va_start(args, format);
+		GetInstance().LogExc(sender, format, 4, args);
+		va_end(args);
+	}
 }
 
 void Pu::Log::SetRaiseMode(RaiseMode mode, const wstring * reportDir, RaiseCallback callback)
@@ -295,7 +313,7 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 	}
 }
 
-void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
+void Pu::Log::LogExc(const char *sender, const char * msg, uint32 framesToSkip, va_list args)
 {
 	if (suppressLogging) return;
 	suppressLogging = true;
@@ -312,7 +330,7 @@ void Pu::Log::LogExc(const char * msg, uint32 framesToSkip, va_list args)
 	printLock.lock();
 
 	/* log error header. */
-	LogExcHdr(nullptr, frame.FileName, frame.FunctionName, frame.Line);
+	LogExcHdr(sender, frame.FileName, frame.FunctionName, frame.Line);
 	
 	/* Get length and make sure we don't print empty strings. */
 	const size_t len = strlen(msg);
@@ -370,7 +388,7 @@ int32 Pu::Log::CrtErrorHandler(int32 category, char * msg, int32 * retVal)
 		- Log::Fatal
 		- CrtErrorHandler
 		*/
-		GetInstance().LogExc(msg, 5, nullptr);
+		GetInstance().LogExc(nullptr, msg, 5, nullptr);
 		*retVal = 1;	// Debugger should break (if we don't do that already).
 	}
 

@@ -2323,7 +2323,7 @@ namespace Pu
 		}
 
 		/* Log findings if needed. */
-		if (raise) Log::Fatal("Procedure %s failed with error code '%s'!", procedure.c_str(), code);
+		if (raise) Log::APIFatal("Vulkan", false, "Procedure %s failed with error code '%s'!", procedure.c_str(), code);
 		else Log::Warning("Procedure %s produced non-success code '%s'!", procedure.c_str(), code);
 	}
 

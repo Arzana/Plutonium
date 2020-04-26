@@ -38,7 +38,7 @@ namespace Pu
 		_Check_return_ FreeCamera& operator =(_In_ FreeCamera &&other);
 
 		/* Updates the free camera. */
-		virtual void Update(_In_ float dt) override;
+		void Update(_In_ float dt) override;
 
 		/* Sets the key used to move the camera forward. */
 		inline void SetForwardKey(_In_ uint16 key)

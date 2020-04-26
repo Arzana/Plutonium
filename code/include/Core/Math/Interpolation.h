@@ -246,7 +246,7 @@ namespace Pu
 		return -v3 + 3.0f * b * v2 - 2.0f * v2 + v + 2.0f * a * v3 - 3.0f * a * v2 + a;
 	}
 
-	/* Gets a dampening factor the specified value of lamnda with the specific delta time. */
+	/* Gets a dampening factor the specified value of lambda with the specific delta time. */
 	_Check_return_ inline float damp(_In_ float lambda, _In_ float dt)
 	{
 		return 1.0f - expf(-lambda * dt);
@@ -254,6 +254,18 @@ namespace Pu
 
 	/* Gets a damped interpolation with specified bounds (a, b). */
 	_Check_return_ inline float damp(_In_ float a, _In_ float b, _In_ float lambda, _In_ float dt)
+	{
+		return lerp(a, b, damp(lambda, dt));
+	}
+
+	/* Gets a damped interpolation with specified bounds (a, b). */
+	_Check_return_ inline Vector2 damp(_In_ Vector2 a, _In_ Vector2 b, _In_ float lambda, _In_ float dt)
+	{
+		return lerp(a, b, damp(lambda, dt));
+	}
+
+	/* Gets a damped interpolation with specified bounds (a, b). */
+	_Check_return_ inline Vector3 damp(_In_ Vector3 a, _In_ Vector3 b, _In_ float lambda, _In_ float dt)
 	{
 		return lerp(a, b, damp(lambda, dt));
 	}
