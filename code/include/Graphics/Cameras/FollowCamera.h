@@ -12,6 +12,8 @@ namespace Pu
 		float Distance;
 		/* Defines the desited upwards vertical offset from the camera to the target. */
 		float Height;
+		/* Defines the angle (in radians) around the Y axis (yaw) from which to follow the target. */
+		float Angle;
 		/* Defines the movement speed of the camera. */
 		float Speed;
 		/* Defines the minimum damping factor for movement changes. */

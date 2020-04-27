@@ -1,11 +1,11 @@
 #pragma once
 #include <Application.h>
-#include <Graphics/Models/Model.h>
 #include <Graphics/Cameras/FreeCamera.h>
 #include <Graphics/Cameras/FollowCamera.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
+#include <Core/Math/HeightMap.h>
 
 class TestGame
 	: public Pu::Application
@@ -29,7 +29,9 @@ protected:
 	void Render(float dt, Pu::CommandBuffer &cmdBuffer) final;
 
 private:
-	Pu::FreeCamera *cam;
+	Pu::Camera *camActive;
+	Pu::FreeCamera *camFree;
+	Pu::FollowCamera *camFollow;
 	bool firstRun, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
 
@@ -40,15 +42,24 @@ private:
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
-	Pu::Model *ground, *ball;
 
-	Pu::Plane collider;
-	Pu::Matrix groundOrien, iI;
-	Pu::Quaternion rot;
-	Pu::Vector3 pos, vloc, angularVloc;
-	Pu::Matrix player;
-	float imass, e, time;
+	Pu::MeshCollection groundMesh;
+	Pu::Terrain *groundMat;
+	Pu::HeightMap *collider;
+	Pu::Image *perlinImg;
+	Pu::Sampler *perlinSampler;
+	Pu::Texture2D *perlin, *mask;
+	Pu::Texture2DArray *groundTextures;
+	Pu::StagingBuffer *groundMeshStagingBuffer, *perlinStagingBuffer;
+
+	Pu::Model *playerModel;
+	Pu::Matrix playerWorld, MoI;
+	Pu::Quaternion orien;
+	Pu::Vector3 input, vloc, angularVloc;
+	float mass, imass, e, time, speed;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
+	void OnAnyKeyUp(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
+	void OnMouseScrolled(const Pu::Mouse&, Pu::int16 args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
 };

@@ -114,6 +114,7 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 	{
 		/* Allocate the image's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);
+		++parent->parent->allocations;
 		VK_VALIDATE(parent->vkAllocateMemory(parent->hndl, &allocateInfo, nullptr, &memoryHndl), PFN_vkAllocateMemory);
 
 		/* Bind the memory to the image. */
@@ -180,5 +181,6 @@ void Pu::Image::Destroy(void)
 	{
 		parent->vkDestroyImage(parent->hndl, imageHndl, nullptr);
 		parent->vkFreeMemory(parent->hndl, memoryHndl, nullptr);
+		--parent->parent->allocations;
 	}
 }

@@ -40,6 +40,12 @@ namespace Pu
 			return boundingBox;
 		}
 
+		/* Gets the bounding box of the specified child mesh. */
+		_Check_return_ inline AABB GetBoundingBox(_In_ uint32 mesh) const
+		{
+			return meshes.at(mesh).second.GetBoundingBox();
+		}
+
 		/* Gets the offset into the GPU data at the specific view start location. */
 		_Check_return_ inline DeviceSize GetViewOffset(_In_ uint32 viewIdx) const
 		{

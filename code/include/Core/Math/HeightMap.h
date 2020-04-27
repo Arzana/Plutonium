@@ -15,7 +15,7 @@ namespace Pu
 		/* Initializes a new instance of a heightmap with the width and height set to the specified value. */
 		HeightMap(_In_ size_t dimensions, _In_ float scale);
 		/* Initializes a new instance of a heightmap. */
-		HeightMap(_In_ size_t width, _In_ size_t height, _In_ float patchSize);
+		HeightMap(_In_ size_t width, _In_ size_t height, _In_ float scale);
 		/* Copy constructor. */
 		HeightMap(_In_ const HeightMap &value);
 		/* Move constructor. */

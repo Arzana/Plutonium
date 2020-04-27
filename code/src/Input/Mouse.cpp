@@ -200,8 +200,16 @@ void Pu::Mouse::HandleWin32Event(const RAWMOUSE & info)
 		if (info.usButtonFlags & RI_MOUSE_BUTTON_5_DOWN) KeyDown.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra2)));
 		else if (info.usButtonFlags & RI_MOUSE_BUTTON_5_UP) KeyUp.Post(*this, ButtonEventArgs(buttonInfo, _CrtEnum2Int(MouseButtons::Extra2)));
 
-		/* Check for scroll wheel, delta is stored as a signed value so cast it. */
-		if (info.usButtonFlags & RI_MOUSE_HWHEEL) Scrolled.Post(*this, *reinterpret_cast<const int16*>(&info.usButtonData));
+		/* 
+		Check for scroll wheel, delta is stored as a signed value so cast it. 
+		We do this for the vertical (RI_MOUSE_WHEEL) and horizontal (RI_MOUSE_HWEEL) types.
+		Also normalize the wheel data.
+		*/
+		if (info.usButtonFlags & (RI_MOUSE_WHEEL | RI_MOUSE_HWHEEL))
+		{
+			const int16 raw = *reinterpret_cast<const int16*>(&info.usButtonData);
+			Scrolled.Post(*this, raw / WHEEL_DELTA);
+		}
 	}
 }
 #endif

@@ -107,6 +107,12 @@ namespace Pu
 			return memory;
 		}
 
+		/* Gets the amount of memory allocations created by vkAllocateMemory from this physical device. */
+		_Check_return_ inline uint32 GetAllocationsCount(void) const
+		{
+			return allocations;
+		}
+
 		/* Gets whether all single-sample 2D sparse resources use standard image block shapes. */
 		_Check_return_ inline bool IsStandard2DBlockShape(void) const
 		{
@@ -165,6 +171,7 @@ namespace Pu
 		PhysicalDeviceFeatures supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
 		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
+		uint32 allocations;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 

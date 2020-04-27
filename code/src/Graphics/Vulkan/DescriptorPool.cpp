@@ -3,7 +3,7 @@
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass)
 	: device(renderpass.device), renderpass(&renderpass), firstUpdate(true), stride(0),
-	OnStage("DescriptorPoolOnStage"), buffer(nullptr), maxSets(0)
+	OnStage("DescriptorPoolOnStage", true), buffer(nullptr), maxSets(0)
 {}
 
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets, uint32 subpass, uint32 set)

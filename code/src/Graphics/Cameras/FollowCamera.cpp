@@ -2,17 +2,19 @@
 #include "Core/Math/Interpolation.h"
 
 Pu::FollowCamera::FollowCamera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
-	: FpsCamera(wnd, pool, renderpass), Distance(2.0f), Height(2.0f), 
-	Speed(1.0f), MinDamping(2.0f), MaxDamping(20.0f), LookAt(true)
+	: FpsCamera(wnd, pool, renderpass), Distance(5.0f), Height(3.0f), 
+	Speed(1.0f), MinDamping(2.0f), MaxDamping(20.0f), LookAt(true), Angle(0.0f)
 {}
 
 void Pu::FollowCamera::Update(float dt)
 {
 	if (target)
 	{
-		/* Calculate the desired offset for the camera. */
 		const Vector3 translation = target->GetTranslation();
-		const Vector3 offset = target->GetOrientation() * Vector3(0.0f, Height, -Distance);
+
+		/* Calculate the desired offset for the camera. */
+		const Vector3 backwards = Vector3::FromYaw(Angle) * -Distance;
+		const Vector3 offset = target->GetOrientation() * (Vector3(0.0f, Height, 0.0f) + backwards);
 
 		/* Apply some damping to make the camera movement smoother. */
 		const Vector3 desiredPosition = translation + offset;

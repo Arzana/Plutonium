@@ -51,6 +51,12 @@ namespace Pu
 			return probeMaterials.at(idx);
 		}
 
+		/* Gets the transform of the specified node. */
+		_Check_return_ inline Matrix GetNodeTransform(uint32 node) const
+		{
+			return nodes.at(node).GetTransform();
+		}
+
 	protected:
 		/* Increases the reference counter by one and returns itself. */
 		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache&);

@@ -369,11 +369,6 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 {
 	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]{1,2})");
 
-	/* The Y of Md2 models is inverted from Plutoniums Y, so add a rotation global root node to fix it. */
-	pum_node root;
-	root.SetRotation(Quaternion::Create(0.0f, 0.0f, PI));
-	result.Nodes.emplace_back(root);
-
 	/* Convert the name to UTF-32 and enable linear for the filters. */
 	for (const string &path : input.textures)
 	{
@@ -452,7 +447,8 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 
 				/* We need to pitch the model by -90 degrees to flip it the right way. */
 				Vector3 pos = frame.scale * vrtx.position + frame.translation;
-				pos = Vector3(pos.X, -pos.Z, -pos.Y);
+				pos = Vector3(pos.X, pos.Z, -pos.Y);
+				const Vector3 normal = Vector3(vrtx.normal.X, vrtx.normal.Z, -vrtx.normal.Y);
 
 				/* Merge the point into the bounding box . */
 				if (firstVrtx)
@@ -469,7 +465,7 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 				so we flip them on the horizontal axis to be usable for Vulkan.
 				*/
 				result.Data.Write(pos);
-				result.Data.Write(vrtx.normal);
+				result.Data.Write(normal);
 				result.Data.Write(Vector2(uv.X, 1.0f - uv.Y));
 			}
 		}

@@ -2,8 +2,8 @@
 #include "Core/Math/Interpolation.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::HeightMap::HeightMap(size_t dimensions, float patchSize)
-	: HeightMap(dimensions, dimensions, patchSize)
+Pu::HeightMap::HeightMap(size_t dimensions, float scale)
+	: HeightMap(dimensions, dimensions, scale)
 {}
 
 Pu::HeightMap::HeightMap(size_t width, size_t height, float scale)

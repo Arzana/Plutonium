@@ -458,8 +458,9 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 		Result Execute(void) final
 		{
 			/* Initialize the model, loading the meshes. */
-			const PuMData data = PuMData::MeshesOnly(parent.GetDevice(), path);
+			PuMData data = PuMData::MeshesOnly(parent.GetDevice(), path);
 			result.meshes.Initialize(parent.GetDevice(), data);
+			result.nodes = std::move(data.Nodes);
 
 			/* Stage the vertex and index buffer to the GPU on the graphics queue. */
 			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
