@@ -55,11 +55,6 @@
     </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
   </ItemGroup>
-  <ItemGroup>
-    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel.obj">
-      <FileType>Document</FileType>
-    </PuModel>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{B191EC86-74A7-49CD-B197-D0320C82759D}</ProjectGuid>
