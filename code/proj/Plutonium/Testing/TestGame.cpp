@@ -7,10 +7,10 @@
 
 using namespace Pu;
 
-const uint16 meshSize = 64;
+const uint16 meshSize = 32;
 const float meshScale = 10.0f;
 const float imgScale = 16.0f;
-const uint16 imgSize = meshSize * imgScale;
+const uint16 imgSize = meshSize * static_cast<uint16>(imgScale);
 const float displacement = 5.0f;
 
 TestGame::TestGame(void)
@@ -158,8 +158,9 @@ void TestGame::Update(float dt)
 
 	/* Terrain collision. */
 	float h;
+	Vector3 n;
 	Vector2 relPos = Vector2(pos.X, pos.Z) + Vector2(meshSize * 0.5f * meshScale);
-	if (collider->TryGetHeight(Vector2(relPos / meshScale), h))
+	if (collider->TryGetHeightAndNormal(Vector2(relPos / meshScale), h, n))
 	{
 		/* Simple positional constraint. */
 		const float relH = h * displacement * meshScale + 1.5f;
@@ -167,7 +168,11 @@ void TestGame::Update(float dt)
 		{
 			pos.Y = relH;
 			vloc.Y = 0.0f;
+			dbgRenderer->AddSphere(Vector3(pos.X, relH - 1.5f, pos.Z), 0.1f, Color::Red());
 		}
+		else dbgRenderer->AddSphere(Vector3(pos.X, relH - 1.5f, pos.Z), 0.1f, Color::Green());
+
+		dbgRenderer->AddArrow(Vector3(pos.X, relH - 1.5f, pos.Z), n, Color(n * 0.5f + 0.5f));
 	}
 
 	///* Linear impulse. */
@@ -291,12 +296,15 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			updateCam = true;
 			camActive = camFree;
 		}
-		else if (args.Key == Keys::D2) camActive = camFollow;
-
-		if (args.Key == Keys::W) input.Z = 1.0f;
-		if (args.Key == Keys::S) input.Z = -1.0f;
-		if (args.Key == Keys::A) input.X = -1.0f;
-		if (args.Key == Keys::D) input.X = 1.0f;
+		else if (args.Key == Keys::D2)
+		{
+			updateCam = false;
+			camActive = camFollow;
+		}
+		else if (args.Key == Keys::W && !updateCam) input.Z = 1.0f;
+		else if (args.Key == Keys::S && !updateCam) input.Z = -1.0f;
+		else if (args.Key == Keys::A && !updateCam) input.X = -1.0f;
+		else if (args.Key == Keys::D && !updateCam) input.X = 1.0f;
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{

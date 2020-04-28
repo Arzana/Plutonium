@@ -3,7 +3,7 @@
 
 Pu::FollowCamera::FollowCamera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
 	: FpsCamera(wnd, pool, renderpass), Distance(5.0f), Height(3.0f), 
-	Speed(1.0f), MinDamping(2.0f), MaxDamping(20.0f), LookAt(true), Angle(0.0f)
+	Speed(1.0f), MinDamping(13.0f), MaxDamping(15.0f), LookAt(true), Angle(0.0f)
 {}
 
 void Pu::FollowCamera::Update(float dt)

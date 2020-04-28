@@ -76,6 +76,12 @@ namespace Pu
 			return meshes.end();
 		}
 
+		/* Gets the amount of meshes stored in this collection. */
+		_Check_return_ inline size_t Count(void) const
+		{
+			return meshes.size();
+		}
+
 	private:
 		Buffer *memory;
 		vector<PumView> views;

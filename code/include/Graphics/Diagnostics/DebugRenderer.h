@@ -50,6 +50,8 @@ namespace Pu
 		}
 		/* Adds an ellipsoid to the debug renderer queue. */
 		void AddEllipsoid(_In_ Vector3 center, _In_ float xRadius, _In_ float yRadius, _In_ float zRadius, _In_ Color color);
+		/* Adds a capsule to the debug renderer queue. */
+		void AddCapsule(_In_ Vector3 center, _In_ float height, _In_ float radius, _In_ Color color);
 		/* Adds a rectangle to the debug renderer queue. */
 		void AddRectangle(_In_ Vector3 lower, _In_ Vector3 upper, _In_ Color color);
 		/* Adds a frustum to the debug renderer queue. */
@@ -60,6 +62,8 @@ namespace Pu
 		void Reset(_In_ const DepthBuffer &depthBuffer);
 
 	private: 
+		constexpr static uint32 END_ANGLE = EllipsiodDivs << 1;
+
 		AssetFetcher &loader;
 		GameWindow &wnd;
 
@@ -73,6 +77,8 @@ namespace Pu
 
 		float lineWidth;
 		bool dynamicLineWidth, thrown;
+		float cosines[END_ANGLE];
+		float sines[END_ANGLE];
 
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);

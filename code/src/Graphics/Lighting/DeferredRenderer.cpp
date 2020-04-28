@@ -301,6 +301,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 
 		/* Render the mesh. */
 		mesh.Draw(*curCmd, 1);
+		break; //TODO: temp, just here for knight model.
 	}
 }
 

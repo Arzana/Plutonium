@@ -18,6 +18,14 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 
 	/* We might need to manually initialize the pipeline because the renderpass might already be loaded. */
 	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
+
+	/* Precalculate the sines and cosines that will be used. */
+	for (uint32 i = 0; i < END_ANGLE; i++)
+	{
+		const float theta = i * (TAU / END_ANGLE);
+		sines[i] = sinf(theta);
+		cosines[i] = cosf(theta);
+	}
 }
 
 Pu::DebugRenderer::~DebugRenderer(void)
@@ -178,37 +186,86 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 
 void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadius, float zRadius, Color color)
 {
-	/* Ellipsoid is a UV sphere with different radii for each dimension. */
-	constexpr float delta = PI / EllipsiodDivs;
-	constexpr float end = TAU + delta;
+	/*
+	Ellipsoid is a UV sphere with different radii for each dimension.
+	We have to increase the amount if divisions by two because we count one div as a full circle.
+	*/
 	const Vector3 scalar{ xRadius, yRadius, zRadius };
 
-	/* We're calculating the meridian and parallel in one loop to save on trig calls. */
-	for (float theta = 0.0f; theta < TAU; theta += delta)
+	/* Loop through all parallels. */
+	for (uint32 theta = 0; theta < END_ANGLE; theta++)
 	{
-		const float ct = cosf(theta);
-		const float st = sinf(theta);
+		const float ct = cosines[theta];
+		const float st = sines[theta];
 
 		/* Start point for the parallel and meridian. */
 		Vector3 startP = center + Vector3(st, ct, 0.0f) * scalar;
 		Vector3 startM = center + Vector3(ct, 0.0f, st) * scalar;
 
-		/* Create one meridian and parallel line. */
-		for (float phi = delta; phi < end; phi += delta)
+		/* Create one meridian per parallel line. */
+		for (uint32 phi = 0; phi < END_ANGLE; phi++)
 		{
-			const float cp = cosf(phi);
-			const float sp = sinf(phi);
+			const float cp = cosines[phi];
+			const float sp = sines[phi];
 
-			const Vector3 endP = center + Vector3{ cp * st, ct, sp * st } * scalar;
-			const Vector3 endM = center + Vector3{ cp * ct, sp, st * cp } * scalar;
-
-			AddLine(startP, endP, color);
+			const Vector3 endM = center + Vector3(cp * ct, sp, st * cp) * scalar;
 			AddLine(startM, endM, color);
-
-			startP = endP;
 			startM = endM;
+
+			const Vector3 endP = center + Vector3(cp * st, ct, sp * st) * scalar;
+			AddLine(startP, endP, color);
+			startP = endP;
 		}
 	}
+}
+
+void Pu::DebugRenderer::AddCapsule(Vector3 center, float height, float radius, Color color)
+{
+	/*
+	The capsule is rounded at both ends so use the ellipsoid divisions to get the preferred amount of rounding.
+	The capsule height includes the hemispheres on the top and bottom, so remove those radii from the ring height offset.
+	*/
+	const float offset = height - radius;
+	const Vector3 ringOffset = Vector3(0.0f, offset, 0.0f);
+
+	const Vector3 originalX = center + Vector3(0.0f, offset, radius);
+	const Vector3 originalZ = center + Vector3(radius, offset, 0.0f);
+
+	Vector3 startX = originalX;
+	Vector3 startY = center + Vector3(radius, 0.0f, 0.0f);
+	Vector3 startZ = originalZ;
+
+	for (uint32 theta = 0; theta < END_ANGLE; theta++)
+	{
+		const float ct = cosines[theta];
+		const float st = sines[theta];
+
+		/* We'll switch from top to bottom hemisphere halfway through the loop. */
+		const Vector3 adder = theta < EllipsiodDivs ? ringOffset : -ringOffset;
+		const Vector3 endX = center + Vector3(0.0f, st, ct) * radius + adder;
+		const Vector3 endY = center + Vector3(ct, 0.0f, st) * radius;
+		const Vector3 endZ = center + Vector3(ct, st, 0.0f) * radius + adder;
+
+		/*
+		Draw the hemisphere for the X and Z axis.
+		Also add the top and bottom rings.
+		*/
+		AddLine(startX, endX, color);
+		AddLine(startY + ringOffset, endY + ringOffset, color);
+		AddLine(startY - ringOffset, endY - ringOffset, color);
+		AddLine(startZ, endZ, color);
+
+		startX = endX;
+		startY = endY;
+		startZ = endZ;
+	}
+
+	/*
+	The above loop will add 2 lines from the center cylinder, but not all 4.
+	So we add those here.
+	*/
+	AddLine(startX, originalX, color);
+	AddLine(startZ, originalZ, color);
 }
 
 void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
