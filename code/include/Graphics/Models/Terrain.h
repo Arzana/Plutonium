@@ -49,7 +49,7 @@ namespace Pu
 		/* Sets the width/height of a single terrain patch. */
 		inline void SetPatchSize(_In_ float value)
 		{
-			factors.W = 1.5f * value;
+			factors.W = value;
 		}
 
 		/* Sets the height map for this terrain. */
@@ -86,6 +86,12 @@ namespace Pu
 		_Check_return_ inline float GetEdgeSize(void) const
 		{
 			return factors.Z;
+		}
+
+		/* Gets the patch size of this terrain. */
+		_Check_return_ inline float GetPatchSize(void) const
+		{
+			return factors.W;
 		}
 
 	protected:

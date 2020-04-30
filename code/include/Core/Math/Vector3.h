@@ -368,6 +368,14 @@ namespace Pu
 		return v * v;
 	}
 
+	/* Gets the tangent vector of the specified world space normal. */
+	_Check_return_ inline Vector3 tangent(_In_ Vector3 n)
+	{
+		const Vector3 t1 = cross(n, Vector3::Up());
+		const Vector3 t2 = cross(n, Vector3::Forward());
+		return t1.LengthSquared() > t2.LengthSquared() ? t1 : t2;
+	}
+
 	/* Calculates the scalar tripple product of the three input vectors (signed volume of the parallelepiped). */
 	_Check_return_ inline float box(Vector3 a, Vector3 b, Vector3 c)
 	{

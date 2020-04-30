@@ -1361,7 +1361,7 @@ namespace Pu
 	{
 		/* No flags have been set. */
 		None = 0x00000000,
-		/* Specifies hat command buffers allocated from the pool will be short-lived. */
+		/* Specifies that command buffers allocated from the pool will be short-lived. */
 		Transient = 0x00000001,
 		/* Allows any command buffer allocated from a pool to be individually reset. */
 		ResetCommandBuffer = 0x00000002,

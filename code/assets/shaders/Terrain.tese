@@ -39,7 +39,9 @@ mat3 sy = mat3(
 
 float sampleHeight(in vec2 uv)
 {
-	return texture(Height, uv).r * Displacement;
+	// We need to sample at the center of the patch instead of in the corners.
+	const float offset = 1.0f / (2.0f * PatchSize);
+	return texture(Height, uv + offset).r * Displacement;
 }
 
 vec3 sobel(in vec2 uv)

@@ -28,13 +28,8 @@ void Pu::Terrain::SetPosition(Vector3 value)
 
 void Pu::Terrain::SetScale(float value)
 {
-	/*
-	The patch size (used for culling) is set to 1.5 times the scale of the patch. 
-	This seems to cull in the most efficient manner.
-	*/
 	dirty = true;
 	transform.W = value;
-	factors.W = 1.5f * value;
 }
 
 void Pu::Terrain::Stage(byte * dest)
