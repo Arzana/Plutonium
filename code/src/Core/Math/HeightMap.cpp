@@ -7,15 +7,18 @@ Pu::HeightMap::HeightMap(size_t dimensions, float scale)
 {}
 
 Pu::HeightMap::HeightMap(size_t width, size_t height, float scale)
-	: width(width), height(height), scale(scale), iscale(recip(scale)),
-	boundX(width - 1), boundY(height - 1)
+	: width(width), height(height), boundX(width - 1), boundY(height - 1)
 {
+	const Vector2 size{ static_cast<float>(boundX), static_cast<float>(boundY) };
+	patchSize = (size * scale) / size;
+	iPatchSize = recip(patchSize);
+
 	Alloc();
 }
 
 Pu::HeightMap::HeightMap(const HeightMap & value)
-	: width(value.width), height(value.height), scale(value.scale),
-	boundX(value.boundX), boundY(value.boundY), iscale(value.iscale)
+	: width(value.width), height(value.height), patchSize(value.patchSize),
+	boundX(value.boundX), boundY(value.boundY), iPatchSize(value.iPatchSize)
 {
 	Alloc();
 	Copy(value);
@@ -23,7 +26,7 @@ Pu::HeightMap::HeightMap(const HeightMap & value)
 
 Pu::HeightMap::HeightMap(HeightMap && value)
 	: width(value.width), height(value.height),
-	scale(value.scale), iscale(value.iscale),
+	patchSize(value.patchSize), iPatchSize(value.patchSize),
 	boundX(value.boundX), boundY(value.boundY),
 	data(value.data), normals(value.normals)
 {
@@ -39,8 +42,8 @@ Pu::HeightMap & Pu::HeightMap::operator=(const HeightMap & other)
 		height = other.height;
 		boundX = other.boundX;
 		boundY = other.boundY;
-		scale = other.scale;
-		iscale = other.iscale;
+		patchSize = other.patchSize;
+		iPatchSize = other.iPatchSize;
 
 		data = reinterpret_cast<float*>(realloc(data, width * height * sizeof(float)));
 		if (other.normals) normals = reinterpret_cast<Vector3*>(realloc(normals, width * height * sizeof(Vector3)));
@@ -58,8 +61,8 @@ Pu::HeightMap & Pu::HeightMap::operator=(HeightMap && other)
 		height = other.height;
 		boundX = other.boundX;
 		boundY = other.boundY;
-		scale = other.scale;
-		iscale = other.iscale;
+		patchSize = other.patchSize;
+		iPatchSize = other.iPatchSize;
 		data = other.data;
 		normals = other.normals;
 
@@ -133,7 +136,7 @@ bool Pu::HeightMap::Contains(size_t x, size_t y) const
 
 bool Pu::HeightMap::Contains(Vector2 pos) const
 {
-	return pos.X < width * iscale && pos.Y < height * iscale && pos.X > 0.0f && pos.Y > 0.0f;
+	return ipart(pos.X * iPatchSize.X) < boundX && ipart(pos.Y * iPatchSize.Y) < boundY && pos.X > 0.0f && pos.Y > 0.0f;
 }
 
 float Pu::HeightMap::GetHeight(size_t x, size_t y) const
@@ -150,40 +153,25 @@ float Pu::HeightMap::GetHeight(size_t x, size_t y) const
 
 float Pu::HeightMap::GetHeight(Vector2 pos) const
 {
-	/* Check anyway on debug to give proper errors. */
-#ifdef _DEBUG
-	if (!Contains(pos))
-	{
-		Log::Fatal("Cannot access height at [%f, %f] (out of [%f, %f] range)!", pos.X, pos.Y, width * iscale, height * iscale);
-	}
-#endif
-
-	/* Get the patch location from the terrain position. */
-	const size_t px = ipart(pos.X * scale);
-	const size_t py = ipart(pos.Y * scale);
-
-	/* Get the relative position on the patch. */
-	const float x = fmodf(pos.X, iscale) * scale;
-	const float y = fmodf(pos.Y, iscale) * scale;
-
-	/* We might be on the edge, if this is the case; just return a non interpolated value. */
-	if (px >= boundX || py >= boundY) return GetHeight(min(px, boundX), min(py, boundY));
+	/* Convert the location into the patch position and the patch uv. */
+	size_t px, py;
+	float x, y;
+	TransformPosition(pos, px, py, x, y);
 
 	/* Calculate the barycentric location from the correct traingle in the heightmap. */
-	float a, b, c = GetHeight(px, py + 1);
 	if (x <= (1.0f - y))
 	{
-		a = GetHeight(px, py);
-		b = GetHeight(px + 1, py);
+		/* Bottom-Left triangle. */
+		const float t = -x - (y - 1.0f);
+		return QueryHeight(px, py, px + 1, py, px, py + 1, t, x);
 	}
 	else
 	{
-		a = GetHeight(px + 1, py);
-		b = GetHeight(px + 1, py + 1);
+		/* Top-Right triangle. */
+		const float t = -(y - 1.0f);
+		const float s = x + (y - 1.0f);
+		return QueryHeight(px + 1, py, px + 1, py + 1, px, py + 1, t, s);
 	}
-
-	/* Return the interpolated position. */
-	return barycentric(a, b, c, x, -x - (y - 1.0f));
 }
 
 Pu::Vector3 Pu::HeightMap::GetNormal(size_t x, size_t y) const
@@ -200,101 +188,58 @@ Pu::Vector3 Pu::HeightMap::GetNormal(size_t x, size_t y) const
 
 Pu::Vector3 Pu::HeightMap::GetNormal(Vector2 pos) const
 {
-	/* Do some checks on debug mode, so easier bug catching. */
-#ifdef _DEBUG
-	if (!Contains(pos))
-	{
-		Log::Fatal("Cannot access normal at [%f, %f] (out of [%f, %f] range)!", pos.X, pos.Y, width * iscale, height * iscale);
-	}
+	/* Convert the location into the patch position and the patch uv. */
+	size_t px, py;
+	float x, y;
+	TransformPosition(pos, px, py, x, y);
 
-	/* We don't lazily create the normals now, that would add a branch to every height query. */
+#ifdef _DEBUG
 	if (!normals) Log::Fatal("Cannot access normal at [%f, %f] (normals have not been calculated)!", pos.X, pos.Y);
 #endif
 
-	/* Get the patch location from the terrain position. */
-	const size_t px = ipart(pos.X * scale);
-	const size_t py = ipart(pos.Y * scale);
-
-	/* Get the relative position on the patch. */
-	const float x = fmodf(pos.X, iscale) * scale;
-	const float y = fmodf(pos.Y, iscale) * scale;
-
-	/* We might be on the edge, if this is the case; just return a non interpolated value. */
-	if (px >= boundX || py >= boundY) return GetNormal(min(px, boundX), min(py, boundY));
-
 	/* Calculate the barycentric location from the correct traingle in the heightmap. */
-	Vector3 a, b, c = GetNormal(px, py + 1);
 	if (x <= (1.0f - y))
 	{
-		a = GetNormal(px, py);
-		b = GetNormal(px + 1, py);
+		/* Bottom-Left triangle. */
+		const float t = -x - (y - 1.0f);
+		return QueryNormal(px, py, px + 1, py, px, py + 1, t, x);
 	}
 	else
 	{
-		a = GetNormal(px + 1, py);
-		b = GetNormal(px + 1, py + 1);
+		/* Top-Right triangle. */
+		const float t = -(y - 1.0f);
+		const float s = x + (y - 1.0f);
+		return QueryNormal(px + 1, py, px + 1, py + 1, px, py + 1, t, s);
 	}
-
-	/* Return the interpolated position. */
-	return normalize(barycentric(a, b, c, x, -x - (y - 1.0f)));
 }
 
 void Pu::HeightMap::GetHeightAndNormal(Vector2 pos, float & output, Vector3 & normal) const
 {
-	/* Do some checks on debug mode, so easier bug catching. */
-#ifdef _DEBUG
-	if (!Contains(pos))
-	{
-		Log::Fatal("Cannot access height and normal at [%f, %f] (out of [%f, %f] range)!", pos.X, pos.Y, width * iscale, height * iscale);
-	}
+	/* Convert the location into the patch position and the patch uv. */
+	size_t px, py;
+	float x, y;
+	TransformPosition(pos, px, py, x, y);
 
-	/* We don't lazily create the normals now, that would add a branch to every height query. */
+#ifdef _DEBUG
 	if (!normals) Log::Fatal("Cannot access normal at [%f, %f] (normals have not been calculated)!", pos.X, pos.Y);
 #endif
 
-	/* Get the patch location from the terrain position. */
-	const size_t px = ipart(pos.X * scale);
-	const size_t py = ipart(pos.Y * scale);
-
-	/* Get the relative position on the patch. */
-	const float x = fmodf(pos.X, iscale) * scale;
-	const float y = fmodf(pos.Y, iscale) * scale;
-
-	/* We might be on the edge, if this is the case; just return a non interpolated values. */
-	if (px >= boundX || py >= boundY)
-	{
-		const size_t cx = min(px, boundX);
-		const size_t cy = min(py, boundY);
-
-		output = GetHeight(cx, cy);
-		normal = GetNormal(cx, cy);
-		return;
-	}
-
 	/* Calculate the barycentric location from the correct traingle in the heightmap. */
-	float ah, bh, ch = GetHeight(px, py + 1);
-	Vector3 an, bn, cn = GetNormal(px, py + 1);
 	if (x <= (1.0f - y))
 	{
-		ah = GetHeight(px, py);
-		bh = GetHeight(px + 1, py);
-
-		an = GetNormal(px, py);
-		bn = GetNormal(px + 1, py);
+		/* Bottom-Left triangle. */
+		const float t = -x - (y - 1.0f);
+		output = QueryHeight(px, py, px + 1, py, px, py + 1, t, x);
+		normal = QueryNormal(px, py, px + 1, py, px, py + 1, t, x);
 	}
 	else
 	{
-		ah = GetHeight(px + 1, py);
-		bh = GetHeight(px + 1, py + 1);
-
-		an = GetNormal(px + 1, py);
-		bn = GetNormal(px + 1, py + 1);
+		/* Top-Right triangle. */
+		const float t = -(y - 1.0f);
+		const float s = x + (y - 1.0f);
+		output = QueryHeight(px + 1, py, px + 1, py + 1, px, py + 1, t, s);
+		normal = QueryNormal(px + 1, py, px + 1, py + 1, px, py + 1, t, s);
 	}
-
-	/* Return the interpolated values. */
-	const float v = -x - (y - 1.0f);
-	output = barycentric(ah, bh, ch, x, v);
-	normal = normalize(barycentric(an, bn, cn, x, v));
 }
 
 bool Pu::HeightMap::TryGetHeight(size_t x, size_t y, float & output) const
@@ -339,6 +284,30 @@ bool Pu::HeightMap::TryGetHeightAndNormal(Vector2 pos, float & output, Vector3 &
 	}
 
 	return false;
+}
+
+void Pu::HeightMap::TransformPosition(Vector2 input, size_t & px, size_t & py, float & x, float & y) const
+{
+	/*
+	Get the patch location from the terrain position.
+	Also clamp this position to the furthest bound in order to not sample outside of the map.
+	*/
+	px = min(static_cast<size_t>(ipart(input.X * iPatchSize.X)), boundX - 1);
+	py = min(static_cast<size_t>(ipart(input.Y * iPatchSize.Y)), boundY - 1);
+
+	/* Get the relative position on the patch. */
+	x = fmodf(input.X, patchSize.X) * iPatchSize.X;
+	y = fmodf(input.Y, patchSize.Y) * iPatchSize.Y;
+}
+
+float Pu::HeightMap::QueryHeight(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const
+{
+	return barycentric(GetHeight(apx, apy), GetHeight(bpx, bpy), GetHeight(cpx, cpy), t, s);
+}
+
+Pu::Vector3 Pu::HeightMap::QueryNormal(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const
+{
+	return barycentric(GetNormal(apx, apy), GetNormal(bpx, bpy), GetNormal(cpx, cpy), t, s);
 }
 
 void Pu::HeightMap::Alloc(void)

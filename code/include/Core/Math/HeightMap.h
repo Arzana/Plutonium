@@ -65,8 +65,11 @@ namespace Pu
 		Vector3 *normals;
 		size_t width, height;
 		size_t boundX, boundY;
-		float scale, iscale;
+		Vector2 patchSize, iPatchSize;
 
+		void TransformPosition(Vector2 input, size_t &px, size_t &py, float &x, float &y) const;
+		float QueryHeight(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const;
+		Vector3 QueryNormal(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const;
 		void Alloc(void);
 		void Copy(const HeightMap &other);
 		void Free(void);
