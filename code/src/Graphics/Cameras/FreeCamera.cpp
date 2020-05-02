@@ -3,9 +3,6 @@
 #include "Core/EnumUtils.h"
 #include "Application.h"
 
-/* Converts the inverted boolean to [1, -1] range. */
-#define ISCALAR(v)		(-static_cast<int>(v) * 2.0f + 1.0f)
-
 /*
 The state of the camera currently hold 5 values.
 [FBLRM000]
@@ -108,7 +105,7 @@ void Pu::FreeCamera::MouseMovedEventHandler(const Mouse &, Vector2 delta)
 {
 	/* We need to mark the the next update for reset because this was a mouse event. */
 	lookDelta.X -= delta.X;
-	lookDelta.Y += ISCALAR(Inverted) * delta.Y;
+	lookDelta.Y += BoolToScalar(Inverted) * delta.Y;
 	state |= 16;
 }
 
@@ -130,7 +127,7 @@ void Pu::FreeCamera::ValueEventHandler(const InputDevice &, const ValueEventArgs
 			lookDelta.X = -args.Value * 2.0f + 1.0f;
 			break;
 		case (HIDUsageGenericDesktop::Ry):
-			lookDelta.Y = ISCALAR(Inverted) * (args.Value * 2.0f - 1.0f);
+			lookDelta.Y = BoolToScalar(Inverted) * (args.Value * 2.0f - 1.0f);
 			break;
 		}
 	}

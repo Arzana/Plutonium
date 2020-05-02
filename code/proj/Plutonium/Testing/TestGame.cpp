@@ -7,11 +7,9 @@
 
 using namespace Pu;
 
-const uint16 meshSize = 32;
+const uint16 meshSize = 32;		// In vertices
 const float meshScale = 10.0f;
-const float imgScale = 16.0f;
-const uint16 imgSize = meshSize * static_cast<uint16>(imgScale);
-const float displacement = 5.0f;
+const float displacement = 8.0f;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame (Bad PBR)"),
@@ -81,17 +79,17 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	groundMesh.Initialize(GetDevice(), *groundMeshStagingBuffer, ShapeCreator::GetPatchPlaneVertexSize(meshSize), std::move(mesh));
 
 	/* Perlin height map. */
-	perlinStagingBuffer = new StagingBuffer(GetDevice(), imgSize * imgSize * sizeof(float));
-	perlinImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(imgSize, imgSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Sampled | ImageUsageFlag::TransferDst });
-	perlinSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::ClampToEdge });
+	perlinStagingBuffer = new StagingBuffer(GetDevice(), sqr(meshSize) * sizeof(float));
+	perlinImg = new Image(GetDevice(), ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Sampled | ImageUsageFlag::TransferDst });
+	perlinSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge });
 	perlin = new Texture2D(*perlinImg, *perlinSampler);
 
-	collider = new HeightMap(imgSize, imgScale);
+	collider = new HeightMap(meshSize, meshScale);
 	perlinStagingBuffer->BeginMemoryTransfer();
 	float *pixel = reinterpret_cast<float*>(perlinStagingBuffer->GetHostMemory());
 
 	PerlinNoise noise;
-	const float step = recip(static_cast<float>(imgSize));
+	const float step = recip(static_cast<float>(meshSize));
 	size_t i = 0;
 	float mi = maxv<float>(), ma = minv<float>();
 	for (float y = 0; y < 1.0f; y += step)
@@ -99,20 +97,20 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 		for (float x = 0; x < 1.0f; x += step)
 		{
 			const float h = noise.NormalizedScale(x, y, 4, 0.5f, 2.0f);
-
 			pixel[i++] = h;
+
 			mi = min(mi, h);
 			ma = max(ma, h);
 		}
 	}
 
 	i = 0;
-	for (uint16 y = 0; y < imgSize; y++)
+	for (uint16 y = 0; y < meshSize; y++)
 	{
-		for (uint16 x = 0; x < imgSize; x++)
+		for (uint16 x = 0; x < meshSize; x++, i++)
 		{
 			pixel[i] = ilerp(mi, ma, pixel[i]);
-			collider->SetHeight(x, y, pixel[i++]);
+			collider->SetHeight(x, y, pixel[i]);
 		}
 	}
 
@@ -148,7 +146,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 void TestGame::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
-	/* Gravity. */
+	/* Gravity (should be divided by the player scale). */
 	dt *= time;
 	vloc.Y -= 9.8f * dt;
 
@@ -159,20 +157,21 @@ void TestGame::Update(float dt)
 	/* Terrain collision. */
 	float h;
 	Vector3 n;
-	Vector2 relPos = Vector2(pos.X, pos.Z) + Vector2(meshSize * 0.5f * meshScale);
-	if (collider->TryGetHeightAndNormal(Vector2(relPos / meshScale), h, n))
+	const float offset = ((meshSize - 1) * 0.5f) * meshScale;
+	const Vector2 relPos = Vector2(pos.X, pos.Z) + offset;
+	if (collider->TryGetHeightAndNormal(relPos, h, n))
 	{
 		/* Simple positional constraint. */
-		const float relH = h * displacement * meshScale + 1.5f;
+		const float pelvicToFeet = 1.5f;
+		const float relH = h * displacement * meshScale + pelvicToFeet;
 		if (pos.Y < relH)
 		{
 			pos.Y = relH;
 			vloc.Y = 0.0f;
-			dbgRenderer->AddSphere(Vector3(pos.X, relH - 1.5f, pos.Z), 0.1f, Color::Red());
 		}
-		else dbgRenderer->AddSphere(Vector3(pos.X, relH - 1.5f, pos.Z), 0.1f, Color::Green());
 
-		dbgRenderer->AddArrow(Vector3(pos.X, relH - 1.5f, pos.Z), n, Color(n * 0.5f + 0.5f));
+		dbgRenderer->AddSphere(Vector3(pos.X, relH - pelvicToFeet, pos.Z), 0.1f, Color::Green());
+		dbgRenderer->AddArrow(Vector3(pos.X, relH - pelvicToFeet, pos.Z), n, Color(n * 0.5f + 0.5f));
 	}
 
 	///* Linear impulse. */
@@ -220,13 +219,14 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		groundMat->SetTextures(*groundTextures);
 		groundMat->SetDisplacement(displacement);
 		groundMat->SetScale(meshScale);
+		groundMat->SetPatchSize(meshSize);
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		camFree->Move(5.0f, 1.0f, -5.0f);
 		camFree->SetExposure(2.5f);
 		camFree->Yaw = TAU - PI4;
 
-		camFollow = new FollowCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass());
+		camFollow = new FollowCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		camFollow->SetTarget(playerWorld);
 		camActive = camFollow;
 
@@ -261,10 +261,19 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginAdvanced();
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
-		renderer->Render(*lightFill);
+		//renderer->Render(*lightFill);
 		renderer->End();
 
-		dbgRenderer->AddBox(playerModel->GetMeshes().GetBoundingBox(0), playerWorld, Color::Yellow());
+		if (ImGui::Begin("TestWindow"))
+		{
+			const Vector3 playerPos = playerWorld.GetTranslation();
+			const float offset = ((meshSize - 1) * 0.5f) * meshScale;
+			const Vector2 relativePos = Vector2(playerPos.X, playerPos.Z) + offset;
+			ImGui::Text("Real Position:     [%f, %f]", playerPos.X, playerPos.Z);
+			ImGui::Text("Relative Position: [%f, %f]", relativePos.X, relativePos.Y);
+			ImGui::End();
+		}
+
 		dbgRenderer->Render(cmd, *camActive);
 	}
 
@@ -278,16 +287,8 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		if (args.Key == Keys::Escape) Exit();
 		else if (args.Key == Keys::C)
 		{
-			if (updateCam)
-			{
-				Mouse::ShowAndFreeCursor();
-				updateCam = false;
-			}
-			else
-			{
-				Mouse::HideAndLockCursor(GetWindow().GetNative());
-				updateCam = true;
-			}
+			if (Mouse::IsCursorVisible()) Mouse::HideAndLockCursor(GetWindow().GetNative());
+			else Mouse::ShowAndFreeCursor();
 		}
 		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
@@ -325,11 +326,7 @@ void TestGame::OnAnyKeyUp(const Pu::InputDevice & sender, const Pu::ButtonEventA
 
 void TestGame::OnMouseScrolled(const Mouse&, int16 args)
 {
-	if (camFollow)
-	{
-		camFollow->Distance -= args;
-		camFollow->Height -= args;
-	}
+	if (camFollow) camFollow->Distance -= args;
 }
 
 void TestGame::OnSwapchainRecreated(const GameWindow &, const SwapchainReCreatedEventArgs &)

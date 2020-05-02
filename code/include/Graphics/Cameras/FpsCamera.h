@@ -50,6 +50,12 @@ namespace Pu
 		/* Occurs when the native window changes it's size. */
 		virtual void OnWindowResize(const NativeWindow &sender, ValueChangedEventArgs<Vector2> args);
 
+		/* Converts the inverted boolean to [1, -1] range. */
+		inline static constexpr float BoolToScalar(_In_ bool v)
+		{
+			return -static_cast<float>(v) * 2.0f + 1.0f;
+		}
+
 	private:
 		float near, far, fov, aspr;
 

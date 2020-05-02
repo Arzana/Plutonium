@@ -21,7 +21,7 @@ namespace Pu
 		float LookSpeed;
 		/* Defines the dead zone of the slider input. */
 		float DeadZone;
-		/* Whether the cursor pitch control should be inverted. */
+		/* Whether the mouse pitch control should be inverted. */
 		bool Inverted;
 
 		/* 
