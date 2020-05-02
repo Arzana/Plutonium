@@ -58,6 +58,12 @@ namespace Pu
 			return proj;
 		}
 
+		/* Gets the combined view and projection matrix. */
+		_Check_return_ inline Matrix GetViewProjection(void) const
+		{
+			return proj * view;
+		}
+
 		/* Gets the camera's inverse projection matrix. */
 		_Check_return_ inline const Matrix& GetInverseProjection(void) const
 		{

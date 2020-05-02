@@ -45,6 +45,9 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 	clip0.xy *= Viewport;
 	clip1.xy *= Viewport;
 
+	// We clamp between [1, 64] range.
+	// Level = 1 of tessellation means no tessellation, so it has no use to go below this.
+	// Level = 64 means every edge has 62 subdivisions, which looks plenty from that close range.
 	return clamp(distance(clip0, clip1) / EdgeSize * Tessellation, 1.0f, 64.0f);
 }
 
@@ -55,10 +58,12 @@ bool cull()
 	pos = Model * pos;
 
 	// Check the sphere against the frustum planes.
+	// The culling radius is either the PatchSize (default)
+	// or the Displacement (if it's greater than the PatchSize).
+	const float iradius = -max(Displacement, PatchSize);
 	for (uint i = 0; i < 6; i++)
 	{
-		// The patch size if the square root of the width and height.
-		if (dot(pos, Frustum[i]) < -PatchSize) return true;
+		if (dot(pos, Frustum[i]) < iradius) return true;
 	}
 
 	// Sphere is on the correct side of all the planes, so don't cull.
