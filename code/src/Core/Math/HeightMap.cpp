@@ -123,8 +123,7 @@ void Pu::HeightMap::CalculateNormals(float displacement)
 			/* Construct the surface normal from the sobel samples. */
 			const float nx = sobel[0][0] - sobel[2][0] + 2.0f * sobel[0][1] - 2.0f * sobel[2][1] + sobel[0][2] - sobel[2][2];
 			const float nz = sobel[0][0] + 2.0f * sobel[1][0] + sobel[2][0] - sobel[0][2] - 2.0f * sobel[1][2] - sobel[2][2];
-			const float ny = 0.25f * sqrtf(1.0f - sqr(nx) - sqr(nz));
-			normals[y * width + x] = normalize(Vector3{ nx, ny, nz });
+			normals[y * width + x] = normalize(Vector3{ nx, 1.0f, nz });
 		}
 	}
 }

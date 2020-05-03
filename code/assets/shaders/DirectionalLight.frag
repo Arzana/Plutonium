@@ -83,6 +83,26 @@ vec3 brdf(in vec3 v, in vec3 n)
 	return (fd + fs) * Radiance.rgb * Radiance.w * ndl;
 }
 
+// Blinn-Phong
+vec3 blinnPhong(in vec3 v, in vec3 n)
+{
+	const vec3 h = normalize(v + Direction);
+	const vec3 r = reflect(-v, n);
+
+	// Get all of the material values out of our G-Buffer.
+	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
+	const vec4 spec = subpassLoad(GBufferSpecular);
+
+	const float intensity = max(0.0f, dot(n, Direction));
+	const float power = pow(max(0.0f, dot(n, h)), spec.w);
+
+	const vec3 flux = Radiance.rgb * Radiance.w;
+	const vec3 diffuse = diffRough.rgb * flux * intensity;
+	const vec3 specular = spec.rgb * flux * power;
+
+	return diffuse + specular;
+}
+
 // Decodes the normal from optimzed spherical to a world normal.
 vec3 DecodeNormal()
 {
@@ -109,5 +129,5 @@ void main()
 	const vec3 n = DecodeNormal();
 	const vec3 v = normalize(CamPos - p);
 
-	L0 = vec4(brdf(v, n), 1.0f);
+	L0 = vec4(blinnPhong(v, n), 1.0f);
 }

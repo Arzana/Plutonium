@@ -12,7 +12,7 @@ const float meshScale = 10.0f;
 const float displacement = 8.0f;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame (Bad PBR)"),
+	: Application(L"TestGame (Blinn-Phong)"),
 	updateCam(false), firstRun(true), playerWorld(Matrix::CreateTranslation(0.0f, 100.0f, 0.0f)),
 	mass(1.0f), e(0.5f), time(1.0f), speed(20.0f)
 {
@@ -115,7 +115,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	}
 
 	perlinStagingBuffer->EndMemoryTransfer();
-	collider->CalculateNormals(displacement);
+	collider->CalculateNormals(displacement * meshScale);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -261,8 +261,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		const uint32 frame = static_cast<uint32>(timer);
 		const float blending = fpart(timer);
 
-		renderer->InitializeResources(cmd);
-		renderer->BeginTerrain(*camActive);
+		renderer->InitializeResources(cmd, *camActive);
+		renderer->BeginTerrain();
 		if (mask->IsUsable() && groundTextures->IsUsable()) renderer->Render(groundMesh, *groundMat);
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
@@ -270,7 +270,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		if (playerModel->IsLoaded()) renderer->Render(*playerModel, playerWorld, frame, frame + 1, blending);
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
-		//renderer->Render(*lightFill);
+		renderer->Render(*lightFill);
 		renderer->End();
 
 		if (ImGui::Begin("TestWindow"))

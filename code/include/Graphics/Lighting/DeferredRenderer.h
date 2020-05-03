@@ -86,9 +86,9 @@ namespace Pu
 		/* Initializes a descriptor pool for use with the deferred renderer cameras. */
 		void InitializeCameraPool(_In_ DescriptorPool &pool, _In_ uint32 maxSets) const;
 		/* Performs needed resource transitions. */
-		void InitializeResources(_In_ CommandBuffer &cmdBuffer);
+		void InitializeResources(_In_ CommandBuffer &cmdBuffer, _In_ const Camera &camera);
 		/* Started the deferred rendering pipeline (with terrain rendering). */
-		void BeginTerrain(_In_ const Camera &camera);
+		void BeginTerrain(void);
 		/* Starts the basic section of the static geometry pipeline. */
 		void BeginGeometry(void);
 		/* Starts the advanced section of the static geometry pipeline. */

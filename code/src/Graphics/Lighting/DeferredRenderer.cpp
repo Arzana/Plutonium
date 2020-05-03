@@ -141,7 +141,7 @@ void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 ma
 	pool.AddSet(SubpassPostProcessing, 0, maxSets);			// Post-Processing
 }
 
-void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
+void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
 {
 	/* Update the profiler and reset the queries. */
 	Profiler::Begin("Rendering", Color::Red());
@@ -154,21 +154,24 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 
 	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
-	if (!markNeeded) return;
-
-	/* Mark all the framebuffer images as writable. */
-	depthBuffer->MakeWritable(cmdBuffer);
-	for (const TextureInput2D *attachment : textures)
+	curCam = &camera;
+	if (markNeeded)
 	{
-		cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
+		markNeeded = false;
+
+		/* Mark all the framebuffer images as writable. */
+		depthBuffer->MakeWritable(cmdBuffer);
+		for (const TextureInput2D *attachment : textures)
+		{
+			cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
+		}
 	}
 }
 
-void Pu::DeferredRenderer::BeginTerrain(const Camera & camera)
+void Pu::DeferredRenderer::BeginTerrain(void)
 {
 	DBG_CHECK(curCmd, "Terrain");
 
-	curCam = &camera;
 	curCmd->AddLabel("Deferred Renderer (Terrain)", Color::Blue());
 	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxTerrain);
