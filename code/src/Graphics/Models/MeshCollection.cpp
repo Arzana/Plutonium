@@ -73,6 +73,18 @@ void Pu::MeshCollection::Initialize(LogicalDevice & device, StagingBuffer & src,
 	boundingBox = mesh.GetBoundingBox();
 }
 
+void Pu::MeshCollection::Bind(CommandBuffer & cmdBuffer, uint32 binding, uint32 mesh) const
+{
+	/* 
+	The full offset of the mesh into the buffer is its vertex view + the bind offset. 
+	Normally we want to set the bind offset in the draw call to avoid needlessly binding buffers, 
+	but this method is used if multiple vertex buffers need to be binded, 
+	so we cannot save on vertex bind calls then.
+	*/
+	const Mesh &vrtx = meshes.at(mesh).second;
+	cmdBuffer.BindVertexBuffer(binding, *memory, GetViewOffset(vrtx.GetVertexView()) + vrtx.GetBindOffset());
+}
+
 void Pu::MeshCollection::Alloc(LogicalDevice & device, const StagingBuffer & src)
 {
 	memory = new Buffer(device, src.GetSize(), BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);

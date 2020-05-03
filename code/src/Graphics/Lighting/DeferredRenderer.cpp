@@ -6,6 +6,13 @@
 #include "Graphics/VertexLayouts/Basic3D.h"
 #include "Core/Diagnostics/Profiler.h"
 
+/* Check for invalid state on debug. */
+#ifdef _DEBUG
+#define DBG_CHECK(obj, stage)	if (!obj) Log::Fatal("InitializeResources should be started before the " stage " pass can start!");
+#else
+#define DBG_CHECK_CAM(...)
+#endif
+
 constexpr Pu::uint32 TerrainTimer = 0;
 constexpr Pu::uint32 GeometryTimer = 1;
 constexpr Pu::uint32 SkyboxTimer = 2;
@@ -88,6 +95,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 			{ L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" },
 			{ L"{Shaders}BasicStaticGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
 			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
+			{ L"{Shaders}BasicMorphGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
 			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
@@ -158,10 +166,7 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer)
 
 void Pu::DeferredRenderer::BeginTerrain(const Camera & camera)
 {
-	/* Check for invalid state on debug. */
-#ifdef _DEBUG
-	if (!curCmd) Log::Fatal("InitializeResources should be called before the geometry pass can start!");
-#endif
+	DBG_CHECK(curCmd, "Terrain");
 
 	curCam = &camera;
 	curCmd->AddLabel("Deferred Renderer (Terrain)", Color::Blue());
@@ -173,10 +178,7 @@ void Pu::DeferredRenderer::BeginTerrain(const Camera & camera)
 
 void Pu::DeferredRenderer::BeginGeometry(void)
 {
-	/* Check for invalid state on debug. */
-#ifdef _DEBUG
-	if (!curCam) Log::Fatal("Terrain pass should be started before the geometry pass can start!");
-#endif
+	DBG_CHECK(curCam, "Basic-Geomtry");
 
 	/* End the terrain pass and start the geometry pass. */
 	advanced = false;
@@ -191,10 +193,7 @@ void Pu::DeferredRenderer::BeginGeometry(void)
 
 void Pu::DeferredRenderer::BeginAdvanced(void)
 {
-	/* Check for invalid state on debug. */
-#ifdef _DEBUG
-	if (!curCam) Log::Fatal("Basic geometry pass should be started before the light pass can start!");
-#endif
+	DBG_CHECK(curCam, "Advanced-Geomtry");
 
 	/* End the basic pass and start the advanced pass. */
 	advanced = true;
@@ -205,12 +204,21 @@ void Pu::DeferredRenderer::BeginAdvanced(void)
 	curCmd->BindGraphicsDescriptors(*gfxGPassAdv, SubpassAdvancedStaticGeometry, *curCam);
 }
 
+void Pu::DeferredRenderer::BeginMorph(void)
+{
+	DBG_CHECK(curCam, "Morph-Geometry");
+
+	/* End the advanced pass and start the morph pass. */
+	curCmd->EndLabel();
+	curCmd->AddLabel("Deferred Renderer (Basic Morph Geometry)", Color::Blue());
+	curCmd->NextSubpass(SubpassContents::Inline);
+	curCmd->BindGraphicsPipeline(*gfxGPassBasicMorph);
+	curCmd->BindGraphicsDescriptors(*gfxGPassBasicMorph, SubpassAdvancedStaticGeometry, *curCam);
+}
+
 void Pu::DeferredRenderer::BeginLight(void)
 {
-	/* Check for invalid state on debug. */
-#ifdef _DEBUG
-	if (!curCam) Log::Fatal("Geometry pass should be started before the light pass can start!");
-#endif
+	DBG_CHECK(curCam, "Directional-Light");
 
 	/* End the geometry pass and start the directional light pass. */
 	curCmd->EndLabel();
@@ -225,10 +233,7 @@ void Pu::DeferredRenderer::BeginLight(void)
 
 void Pu::DeferredRenderer::End(void)
 {
-	/* Check for invalid state on debug. */
-#ifdef _DEBUG
-	if (!curCam) Log::Fatal("Geometry pass should be started before the final pass can start!");
-#endif
+	DBG_CHECK(curCam, "final");
 
 	/* End the light pass, do tonemapping and end the renderpass. */
 	curCmd->EndLabel();
@@ -301,8 +306,37 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 
 		/* Render the mesh. */
 		mesh.Draw(*curCmd, 1);
-		break; //TODO: temp, just here for knight model.
 	}
+}
+
+void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform, uint32 keyFrame1, uint32 keyFrame2, float blending)
+{
+	/* Only render the model if it can be viewed by the camera. */
+	const MeshCollection &meshes = model.GetMeshes();
+	const AABB bb = meshes.GetBoundingBox(keyFrame1).Merge(meshes.GetBoundingBox(keyFrame2));
+	if (curCam->Cull(bb, transform)) return;
+
+	/* Set push constants. */
+	float push[17];
+	memcpy(push, transform.GetComponents(), sizeof(Matrix));
+	push[16] = blending;
+	curCmd->PushConstants(*gfxGPassBasicMorph, ShaderStageFlag::Vertex, 0, sizeof(push), push);
+
+	/* Query the two meshes from the model. */
+	const auto &[matIdx1, mesh1] = meshes.GetShape(keyFrame1);
+	const auto &[matIdx2, mesh2] = meshes.GetShape(keyFrame2);
+
+	/* Do a quick check on debug, to see if the meshes are compatible. */
+#ifdef _DEBUG
+	if (matIdx1 != matIdx2) Log::Fatal("Cannot use keyframe %u and %u as morph targets (material mismatch)!", keyFrame1, keyFrame2);
+	if (mesh1.GetCount() != mesh2.GetCount()) Log::Fatal("Cannot use keyframe %u and %u as morph targets (meshes don't have equal vertex count)!", keyFrame1, keyFrame2);
+#endif
+
+	/* Bind the required buffers and descriptor and render the meshes. */
+	curCmd->BindGraphicsDescriptor(*gfxGPassBasicMorph, model.GetMaterial(matIdx1));
+	meshes.Bind(*curCmd, 0, keyFrame1);
+	meshes.Bind(*curCmd, 1, keyFrame2);
+	curCmd->Draw(mesh1.GetCount(), 1, 0, 0);
 }
 
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
@@ -436,6 +470,32 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Advanced3D, TexCoord));
 	}
 
+	/* Set all the options for the basic morph Geometry-Pass. */
+	{
+		Subpass &gpass = renderpass->GetSubpass(SubpassBasicMorphGeometry);
+		gpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+
+		/* We can just clone the values set by the previous subpass. */
+		gpass.CloneDepthStencil(5);
+		gpass.CloneOutput("GBufferDiffuseRough", 1);
+		gpass.CloneOutput("GBufferSpecular", 2);
+		gpass.CloneOutput("GBufferNormal", 3);
+
+		gpass.GetAttribute("Normal1").SetOffset(vkoffsetof(Basic3D, Normal));
+		gpass.GetAttribute("TexCoord1").SetOffset(vkoffsetof(Basic3D, TexCoord));
+
+		Attribute &pos2 = gpass.GetAttribute("Position2");
+		pos2.SetBinding(1);
+
+		Attribute &normal2 = gpass.GetAttribute("Normal2");
+		normal2.SetBinding(1);
+		normal2.SetOffset(vkoffsetof(Basic3D, Normal));
+
+		Attribute &uv2 = gpass.GetAttribute("TexCoord2");
+		uv2.SetBinding(1);
+		uv2.SetOffset(vkoffsetof(Basic3D, TexCoord));
+	}
+
 	/* Set all the options for the directional light pass. */
 	{
 		Subpass &dlpass = renderpass->GetSubpass(SubpassDirectionalLight);
@@ -486,6 +546,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxTerrain = new GraphicsPipeline(*renderpass, SubpassTerrain);
 		gfxGPassBasic = new GraphicsPipeline(*renderpass, SubpassBasicStaticGeometry);
 		gfxGPassAdv = new GraphicsPipeline(*renderpass, SubpassAdvancedStaticGeometry);
+		gfxGPassBasicMorph = new GraphicsPipeline(*renderpass, SubpassBasicMorphGeometry);
 		gfxLightPass = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
 		gfxSkybox = new GraphicsPipeline(*renderpass, SubpassSkybox);
 		gfxTonePass = new GraphicsPipeline(*renderpass, SubpassPostProcessing);
@@ -542,6 +603,18 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPassAdv->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxGPassAdv->AddVertexBinding<Advanced3D>(0);
 		gfxGPassAdv->Finalize();
+	}
+
+	/* Create the graphics pipeline for the basic morph geometry pass. */
+	{
+		if (wireframe) gfxGPassBasicMorph->SetPolygonMode(PolygonMode::Line);
+
+		gfxGPassBasicMorph->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxGPassBasicMorph->SetTopology(PrimitiveTopology::TriangleList);
+		gfxGPassBasicMorph->EnableDepthTest(true, CompareOp::LessOrEqual);
+		gfxGPassBasicMorph->AddVertexBinding<Basic3D>(0);
+		gfxGPassBasicMorph->AddVertexBinding<Basic3D>(1);
+		gfxGPassBasicMorph->Finalize();
 	}
 
 	/* Create the graphics pipeline for the directional light pass. */
@@ -654,6 +727,7 @@ void Pu::DeferredRenderer::DestroyPipelines(void)
 	if (gfxTerrain) delete gfxTerrain;
 	if (gfxGPassBasic) delete gfxGPassBasic;
 	if (gfxGPassAdv) delete gfxGPassAdv;
+	if (gfxGPassBasicMorph) delete gfxGPassBasicMorph;
 	if (gfxLightPass) delete gfxLightPass;
 	if (gfxSkybox) delete gfxSkybox;
 	if (gfxTonePass) delete gfxTonePass;

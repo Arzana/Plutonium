@@ -103,6 +103,24 @@ Pu::Quaternion Pu::Quaternion::Create(float yaw, float pitch, float roll)
 		cy * cp * sr - sy * sp * cr);
 }
 
+Pu::Quaternion Pu::Quaternion::CreateYaw(float theta)
+{
+	theta *= 0.5f;
+	return Quaternion(cosf(theta), 0.0f, sinf(theta), 0.0f);
+}
+
+Pu::Quaternion Pu::Quaternion::CreatePitch(float theta)
+{
+	theta *= 0.5f;
+	return Quaternion(cosf(theta), sinf(theta), 0.0f, 0.0f);
+}
+
+Pu::Quaternion Pu::Quaternion::CreateRoll(float theta)
+{
+	theta *= 0.5f;
+	return Quaternion(cosf(theta), 0.0f, 0.0f, sinf(theta));
+}
+
 Pu::Quaternion Pu::Quaternion::Delta(Quaternion q1, Quaternion q2)
 {
 	return q1 * q2.Inverse();

@@ -48,6 +48,18 @@ namespace Pu
 			target = &value;
 		}
 
+		/* gets the pitch of the camera offset in spherical coordinates. */
+		_Check_return_ inline float GetTheta(void) const
+		{
+			return pitch;
+		}
+
+		/* Gets the yaw of the camera offset in spherical coordinates. */
+		_Check_return_ inline float GetPhi(void) const
+		{
+			return yaw;
+		}
+
 	private:
 		const Matrix *target;
 		Vector2 lookDelta;

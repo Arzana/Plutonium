@@ -61,7 +61,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, *probeRenderer);
+	playerModel = &fetcher.FetchModel(L"{Models}Ratamahatta.pum", *renderer, *probeRenderer);
 
 	/* Additional terrain textures. */
 	mask = &fetcher.CreateTexture2D("TerrainMask", Color::Black());
@@ -152,7 +152,8 @@ void TestGame::Update(float dt)
 
 	/* Player input. */
 	Vector3 pos = playerWorld.GetTranslation();
-	pos += input * dt * speed;
+	const  Quaternion orien = camFollow ? Quaternion::CreateYaw(camFollow->GetPhi()) : Quaternion();
+	pos += orien * input * dt * speed;
 
 	/* Terrain collision. */
 	float h;
@@ -190,7 +191,7 @@ void TestGame::Update(float dt)
 	//rot += Quaternion::Create(angularVloc.Y, angularVloc.X, angularVloc.Z) * dt;
 	//rot.Normalize();
 
-	playerWorld = Matrix::CreateWorld(pos, Quaternion{ SQRT05, 0.0f, -SQRT05, 0.0f }, Vector3(0.05f));
+	playerWorld = Matrix::CreateWorld(pos, orien * Quaternion{ SQRT05, 0.0f, -SQRT05, 0.0f }, Vector3(0.05f));
 	Profiler::End();
 }
 
@@ -243,7 +244,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	else if (!firstRun)
 	{
 		camFree->Update(dt * updateCam);
-		camFollow->Update(dt);
+		camFollow->Update(dt * !Mouse::IsCursorVisible());
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 		if (environment->ShouldUpdate(dt))
@@ -253,12 +254,20 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			probeRenderer->End(*environment, cmd);
 		}
 
+		static float timer = 40.0f;
+		static float anim = 1.0f;
+		timer += dt * anim;
+		if (timer >= 45.0f) timer = 40.0f;
+		const uint32 frame = static_cast<uint32>(timer);
+		const float blending = fpart(timer);
+
 		renderer->InitializeResources(cmd);
 		renderer->BeginTerrain(*camActive);
 		if (mask->IsUsable() && groundTextures->IsUsable()) renderer->Render(groundMesh, *groundMat);
 		renderer->BeginGeometry();
-		if (playerModel->IsLoaded()) renderer->Render(*playerModel, playerWorld);
 		renderer->BeginAdvanced();
+		renderer->BeginMorph();
+		if (playerModel->IsLoaded()) renderer->Render(*playerModel, playerWorld, frame, frame + 1, blending);
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		//renderer->Render(*lightFill);
@@ -266,11 +275,10 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		if (ImGui::Begin("TestWindow"))
 		{
-			const Vector3 playerPos = playerWorld.GetTranslation();
-			const float offset = ((meshSize - 1) * 0.5f) * meshScale;
-			const Vector2 relativePos = Vector2(playerPos.X, playerPos.Z) + offset;
-			ImGui::Text("Real Position:     [%f, %f]", playerPos.X, playerPos.Z);
-			ImGui::Text("Relative Position: [%f, %f]", relativePos.X, relativePos.Y);
+			ImGui::Text("Timer:		%f", timer);
+			ImGui::Text("Frame:		%u", frame);
+			ImGui::Text("Blending:	%f", blending);
+			ImGui::SliderFloat("Speed", &anim, 0.0f, 10.0f);
 			ImGui::End();
 		}
 
@@ -302,10 +310,13 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			updateCam = false;
 			camActive = camFollow;
 		}
-		else if (args.Key == Keys::W && !updateCam) input.Z = 1.0f;
-		else if (args.Key == Keys::S && !updateCam) input.Z = -1.0f;
-		else if (args.Key == Keys::A && !updateCam) input.X = -1.0f;
-		else if (args.Key == Keys::D && !updateCam) input.X = 1.0f;
+		else if (!Mouse::IsCursorVisible())
+		{
+			if (args.Key == Keys::W && !updateCam) input.Z = 1.0f;
+			else if (args.Key == Keys::S && !updateCam) input.Z = -1.0f;
+			else if (args.Key == Keys::A && !updateCam) input.X = -1.0f;
+			else if (args.Key == Keys::D && !updateCam) input.X = 1.0f;
+		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{

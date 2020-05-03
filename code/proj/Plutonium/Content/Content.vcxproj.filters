@@ -102,6 +102,9 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Terrain.vert">
       <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\BasicMorphGeometry.vert">
+      <Filter>Shaders\Deferred\Geometry\Basic</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">

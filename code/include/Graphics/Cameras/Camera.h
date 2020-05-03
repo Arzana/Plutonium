@@ -38,7 +38,7 @@ namespace Pu
 		/* Gets the camera's inverse view matrix. */
 		_Check_return_ const Matrix& GetInverseView(void) const;
 		/* Gets whether the specified AABB with the specified transform applied is outside the camera's view frustum. */
-		_Check_return_ bool Cull(_In_ const AABB &&boundingBox, _In_ const Matrix &transform) const;
+		_Check_return_ bool Cull(_In_ const AABB &boundingBox, _In_ const Matrix &transform) const;
 
 		/* Gets the position of the camera. */
 		_Check_return_ inline Vector3 GetPosition(void) const

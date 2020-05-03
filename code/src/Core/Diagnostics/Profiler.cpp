@@ -163,15 +163,15 @@ void Pu::Profiler::VisualizeInternal(void)
 		RenderSections(gpuSections, "GPU", false);
 
 		ImGui::Separator();
-		ImGui::Text("Draw Calls:            %u", CommandBuffer::GetDrawCalls());
-		ImGui::Text("Bind Calls:            %u", CommandBuffer::GetBindCalls());
-		ImGui::Text("Transfers:             %u", CommandBuffer::GetTransferCalls());
-		ImGui::Text("Barriers:              %u", CommandBuffer::GetBarrierCalls());
+		ImGui::Text("Draw Calls:             %u", CommandBuffer::GetDrawCalls());
+		ImGui::Text("Bind Calls:             %u", CommandBuffer::GetBindCalls());
+		ImGui::Text("Transfers:              %u", CommandBuffer::GetTransferCalls());
+		ImGui::Text("Barriers:               %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();
 
 		ImGui::Separator();
-		ImGui::Text("GJK Calls:             %u", GJK::GetCallCount());
-		ImGui::Text("Averge GJK Iterations: %u", GJK::GetAverageIterations());
+		ImGui::Text("GJK Calls:              %u", GJK::GetCallCount());
+		ImGui::Text("Average GJK Iterations: %u", GJK::GetAverageIterations());
 		GJK::ResetCounters();
 
 		ImGui::Separator();

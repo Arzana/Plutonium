@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\BasicGeometry.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\BasicMorphGeometry.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\BasicStaticGeometry.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.frag" />

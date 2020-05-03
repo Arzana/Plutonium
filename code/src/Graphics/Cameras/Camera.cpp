@@ -111,7 +111,7 @@ const Pu::Matrix & Pu::Camera::GetInverseView(void) const
 	return iview;
 }
 
-bool Pu::Camera::Cull(const AABB && boundingBox, const Matrix & transform) const
+bool Pu::Camera::Cull(const AABB & boundingBox, const Matrix & transform) const
 {
 	return !frustum.IntersectionBox(boundingBox * transform);
 }

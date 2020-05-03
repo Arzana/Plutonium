@@ -54,8 +54,8 @@ void Pu::FollowCamera::Update(float dt)
 		lookDelta = 0.0f;
 
 		/* Calculate the desired offset for the camera. */
-		const Quaternion orien = Quaternion::Create(yaw, pitch, 0.0f);
-		const Vector3 offset = orien * (Vector3::Backward() * Distance);
+		Orientation = Quaternion::Create(yaw, pitch, 0.0f);
+		const Vector3 offset = Orientation * (Vector3::Backward() * Distance);
 
 		/* Apply some damping to make the camera movement smoother. */
 		const Vector3 desiredPosition = translation + offset;

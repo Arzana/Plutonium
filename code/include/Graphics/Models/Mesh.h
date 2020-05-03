@@ -50,6 +50,12 @@ namespace Pu
 			return stride;
 		}
 
+		/* Gets the amount of indices or vertices that need to be drawn for this mesh. */
+		_Check_return_ inline uint32 GetCount(void) const
+		{
+			return count;
+		}
+
 		/* Gets the type of indices used by this mesh. */
 		_Check_return_ inline IndexType GetIndexType(void) const
 		{
@@ -66,6 +72,12 @@ namespace Pu
 		_Check_return_ inline uint32 GetIndexView(void) const
 		{
 			return indexView;
+		}
+
+		/* Gets the offset (in bytes) from the index or vertex view where the first vertex is located. */
+		_Check_return_ inline DeviceSize GetBindOffset(void) const
+		{
+			return first * stride;
 		}
 
 	private:

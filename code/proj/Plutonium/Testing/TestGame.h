@@ -54,7 +54,6 @@ private:
 
 	Pu::Model *playerModel;
 	Pu::Matrix playerWorld, MoI;
-	Pu::Quaternion orien;
 	Pu::Vector3 input, vloc, angularVloc;
 	float mass, imass, e, time, speed;
 

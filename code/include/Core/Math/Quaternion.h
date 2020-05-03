@@ -134,6 +134,12 @@ namespace Pu
 		_Check_return_ static Quaternion Create(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a quaternion from euler angles. */
 		_Check_return_ static Quaternion Create(_In_ float yaw, _In_ float pitch, _In_ float roll);
+		/* Creates a quaternion around the Y-axis. */
+		_Check_return_ static Quaternion CreateYaw(_In_ float theta);
+		/* Creates a quaternion around the X-axis. */
+		_Check_return_ static Quaternion CreatePitch(_In_ float theta);
+		/* Creates a quaternion around the Z-axis. */
+		_Check_return_ static Quaternion CreateRoll(_In_ float theta);
 		/* Gets the rotational delta between two quaternions. */
 		_Check_return_ static Quaternion Delta(_In_ Quaternion q1, _In_ Quaternion q2);
 		/* Performs nearest neightbor interpolation between two quaternions. */

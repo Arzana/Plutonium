@@ -33,6 +33,8 @@ namespace Pu
 		void Initialize(_In_ LogicalDevice &device, _In_ const PuMData &data);
 		/* Initializes the mesh collection with a single mesh from the specified source buffer. */
 		void Initialize(_In_ LogicalDevice &device, _In_ StagingBuffer &src, _In_ uint32 vrtxSize, _In_ Mesh &&mesh);
+		/* Binds the specified mesh directly to the command buffer, ignoring possible view optimizations. */
+		void Bind(_In_ CommandBuffer &cmdBuffer, _In_ uint32 binding, _In_ uint32 mesh) const;
 
 		/* Gets an AABB that is a combination of all mesh bounding boxes. */
 		_Check_return_ inline AABB GetBoundingBox(void) const
@@ -50,6 +52,12 @@ namespace Pu
 		_Check_return_ inline DeviceSize GetViewOffset(_In_ uint32 viewIdx) const
 		{
 			return views.at(viewIdx).Offset;
+		}
+
+		/* Gets the mesh and matrial index at the specified index. */
+		_Check_return_ inline const Shape& GetShape(_In_ uint32 index) const
+		{
+			return meshes.at(index);
 		}
 
 		/* Gets the GPU memory buffer. */

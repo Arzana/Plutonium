@@ -21,12 +21,14 @@ namespace Pu
 		static constexpr uint32 SubpassBasicStaticGeometry = 1;
 		/* Defines the index of the advanced static geometry subpass. */
 		static constexpr uint32 SubpassAdvancedStaticGeometry = 2;
+		/* Defines the index of the basic morph geometry subpass. */
+		static constexpr uint32 SubpassBasicMorphGeometry = 3;
 		/* Defines the index of the directional light subpass. */
-		static constexpr uint32 SubpassDirectionalLight = 3;
+		static constexpr uint32 SubpassDirectionalLight = 4;
 		/* Defines the index of the skybox subpass. */
-		static constexpr uint32 SubpassSkybox = 4;
+		static constexpr uint32 SubpassSkybox = 5;
 		/* Defines the index of the post-processing subpass. */
-		static constexpr uint32 SubpassPostProcessing = 5;
+		static constexpr uint32 SubpassPostProcessing = 6;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
 		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_opt_ bool wireframe = false);
@@ -91,6 +93,8 @@ namespace Pu
 		void BeginGeometry(void);
 		/* Starts the advanced section of the static geometry pipeline. */
 		void BeginAdvanced(void);
+		/* Starts the basic section of the animated geometry pipeline. */
+		void BeginMorph(void);
 		/* Starts the second phase of the deferred rendering pipeline. */
 		void BeginLight(void);
 		/* End the deferred rendering pipeline. */
@@ -99,6 +103,8 @@ namespace Pu
 		void Render(_In_ const MeshCollection &meshes, const Terrain &terrain);
 		/* Renders the specified model to the G-Buffer. */
 		void Render(_In_ const Model &model, _In_ const Matrix &transform);
+		/* Render the specified model to the G-Buffer. */
+		void Render(_In_ const Model &model, _In_ const Matrix &transform, _In_ uint32 keyFrame1, _In_ uint32 keyFrame2, _In_ float blending);
 		/* Renders the specified direction light onto the scene. */
 		void Render(_In_ const DirectionalLight &light);
 		/* Sets the skybox to use. */
@@ -111,7 +117,8 @@ namespace Pu
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
-		GraphicsPipeline *gfxTerrain, *gfxGPassBasic, *gfxGPassAdv, *gfxLightPass, *gfxSkybox, *gfxTonePass;
+		GraphicsPipeline *gfxTerrain, *gfxGPassBasic, *gfxGPassAdv, *gfxGPassBasicMorph;
+		GraphicsPipeline *gfxLightPass, *gfxSkybox, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
