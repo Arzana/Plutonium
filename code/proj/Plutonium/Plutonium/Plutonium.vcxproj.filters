@@ -1195,9 +1195,6 @@
     <Natvis Include="..\..\..\visualizers\Rectangle.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
-    <Natvis Include="..\..\..\visualizers\Vector3.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
     <Natvis Include="..\..\..\visualizers\Vector4.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
@@ -1223,6 +1220,9 @@
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\Subpass.natvis">
+      <Filter>Resource Files\Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Vector3.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
   </ItemGroup>
