@@ -5,7 +5,9 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Graphics/Lighting/LightProbeRenderer.h>
+#include <Physics/PhysicalWorld.h>
 #include <Core/Math/HeightMap.h>
+#include <Core/Math/Matrix3.h>
 
 class TestGame
 	: public Pu::Application
@@ -53,9 +55,12 @@ private:
 	Pu::StagingBuffer *groundMeshStagingBuffer, *perlinStagingBuffer;
 
 	Pu::Model *playerModel;
-	Pu::Matrix playerWorld, MoI;
+	Pu::Matrix playerWorld;
+	Pu::Matrix3 MoI;
 	Pu::Vector3 input, vloc, angularVloc;
 	float mass, imass, e, time, speed;
+
+	Pu::PhysicalWorld *world;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnAnyKeyUp(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

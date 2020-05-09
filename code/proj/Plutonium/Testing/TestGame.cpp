@@ -18,11 +18,12 @@ TestGame::TestGame(void)
 {
 	// Inertia of a solid sphere = 2/5 * mr^2
 	imass = recip(mass);
-	MoI = Matrix::CreateScalar((2.0f / 5.0f) * recip(imass) * sqr(0.5f)).GetInverse();
+	MoI = Matrix3::CreateScalar((2.0f / 5.0f) * mass * sqr(0.5f)).GetInverse();
 
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyKeyUp.Add(*this, &TestGame::OnAnyKeyUp);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnMouseScrolled);
+	AddSystem(world = new PhysicalWorld());
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)

@@ -1,13 +1,11 @@
 #include "Core\Math\Matrix.h"
 
-using namespace Pu;
-
 inline float det33(float a, float b, float c, float d, float e, float f, float g, float h, float i)
 {
 	return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 }
 
-Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar)
+Pu::Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar)
 {
 	return Matrix(
 		scalar, 0.0f, 0.0f, scalar * translation.X,
@@ -16,7 +14,7 @@ Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
+Pu::Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
 {
 	const float cc = cosf(theta);
 	const float ss = sinf(theta);
@@ -41,7 +39,7 @@ Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
 	return Matrix(a, b, c, 0.0f, e, f, g, 0.0f, i, j, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
+Pu::Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 {
 	const float ii = sqr(quaternion.I);
 	const float jj = sqr(quaternion.J);
@@ -66,7 +64,7 @@ Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 	return Matrix(a, b, c, 0.0f, e, f, g, 0.0f, i, j, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
+Pu::Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 {
 	const float a = 2.0f / width;
 	const float f = 2.0f / height;
@@ -79,7 +77,7 @@ Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateOrtho(float left, float right, float bottom, float top, float near, float far)
+Pu::Matrix Pu::Matrix::CreateOrtho(float left, float right, float bottom, float top, float near, float far)
 {
 	const float a = 2.0f / (right - left);
 	const float f = 2.0f / (top - bottom);
@@ -95,7 +93,7 @@ Matrix Pu::Matrix::CreateOrtho(float left, float right, float bottom, float top,
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float top, float near, float far)
+Pu::Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float top, float near, float far)
 {
 	const float a = (2.0f * near) / (right - left);
 	const float c = -((right + left) / (right - left));
@@ -111,7 +109,7 @@ Matrix Pu::Matrix::CreateFrustum(float left, float right, float bottom, float to
 		0.0f, 0.0f, 1.0f, 0.0f);
 }
 
-Matrix Pu::Matrix::CreatePerspective(float fovY, float aspr, float near, float far)
+Pu::Matrix Pu::Matrix::CreatePerspective(float fovY, float aspr, float near, float far)
 {
 	/*
 	This simpification can be made over the frustum function because the frustum is generic.
@@ -130,7 +128,7 @@ Matrix Pu::Matrix::CreatePerspective(float fovY, float aspr, float near, float f
 		0.0f, 0.0f, 1.0f, 0.0f);
 }
 
-Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
+Pu::Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 {
 	const Vector3 axisX = normalize(cross(up, direction));
 	const Vector3 axisY = cross(direction, axisX);
@@ -146,17 +144,17 @@ Matrix Pu::Matrix::CreateLookIn(Vector3 pos, Vector3 direction, Vector3 up)
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-Quaternion Pu::Matrix::GetOrientation(void) const
+Pu::Quaternion Pu::Matrix::GetOrientation(void) const
 {
 	return Quaternion::Create(normalize(GetForward()), normalize(GetUp()));
 }
 
-Vector3 Pu::Matrix::GetScale(void) const
+Pu::Vector3 Pu::Matrix::GetScale(void) const
 {
 	return Vector3(GetRight().Length(), GetUp().Length(), GetForward().Length());
 }
 
-Matrix Pu::Matrix::GetStatic(void) const
+Pu::Matrix Pu::Matrix::GetStatic(void) const
 {
 	/* Simply remove the translation. */
 	const Vector3 r = GetRight();
@@ -182,7 +180,7 @@ float Pu::Matrix::GetDeterminant(void) const
 /* Warning cause is checked and code is working as intended. */
 #pragma warning (push)
 #pragma warning (disable:4458)
-Matrix Pu::Matrix::GetInverse(void) const
+Pu::Matrix Pu::Matrix::GetInverse(void) const
 {
 	/* Inline calculate the matrix of minors needed for the determinant to save performance. */
 	const float a = det33(this->f[5], this->f[9], this->f[13], this->f[6], this->f[10], this->f[14], this->f[7], this->f[11], this->f[15]);
@@ -191,7 +189,7 @@ Matrix Pu::Matrix::GetInverse(void) const
 	const float m = det33(this->f[1], this->f[5], this->f[9], this->f[2], this->f[6], this->f[10], this->f[3], this->f[7], this->f[11]);
 
 	/* Calculate determinant and if it's zero early out with an identity matrix. */
-	float det = f[0] * a - f[4] * e + f[8] * i - f[12] * m;
+	const float det = f[0] * a - f[4] * e + f[8] * i - f[12] * m;
 	if (det == 0.0f) return Matrix();
 
 	/* Calculate matrix of minors for the full matrix (inline transposed). */
@@ -216,12 +214,11 @@ Matrix Pu::Matrix::GetInverse(void) const
 		-m, +n, -o, +p);
 
 	/* Return the adjugate matrix multiplied by the inverse determinant. */
-	det = 1.0f / det;
-	return Matrix(adj.c1 * det, adj.c2 * det, adj.c3 * det, adj.c4 * det);
+	return adj * recip(det);
 }
 #pragma warning(pop)
 
-Matrix Pu::Matrix::GetTranspose(void) const
+Pu::Matrix Pu::Matrix::GetTranspose(void) const
 {
 	return Matrix(c1.X, c1.Y, c1.Z, c1.W,
 		c2.X, c2.Y, c2.Z, c2.W,
@@ -231,7 +228,7 @@ Matrix Pu::Matrix::GetTranspose(void) const
 
 Pu::string Pu::Matrix::ToString(void) const
 {
-	if (*this == Matrix()) return "[Identity]";
+	if (nrlyeql(GetDeterminant(), 1.0f)) return "[Identity]";
 
 	string result;
 	for (size_t c = 0; c < 4; c++)

@@ -40,36 +40,29 @@ namespace Pu
 		{
 			return Matrix(c1 + m.c1, c2 + m.c2, c3 + m.c3, c4 + m.c4);
 		}
+
 		/* Subtracts a specified matrix from the matrix. */
 		_Check_return_ inline Matrix operator -(_In_ const Matrix &m) const
 		{
 			return Matrix(c1 - m.c1, c2 - m.c2, c3 - m.c3, c4 - m.c4);
 		}
+
 		/* Multiplies a specified matrix with the matrix. */
 		_Check_return_ inline Matrix operator *(_In_ const Matrix &m) const
 		{
 			return Matrix(operator*(m.c1), operator*(m.c2), operator*(m.c3), operator*(m.c4));
 		}
+
 		/* Scales the matrix by a specified amount. */
 		_Check_return_ inline Matrix operator *(_In_ float scalar) const
 		{
 			return Matrix(c1 * scalar, c2 * scalar, c3 * scalar, c4 * scalar);
 		}
+
 		/* Multiplies a specified matrix with the matrix. */
 		_Check_return_ inline Matrix operator *=(_In_ const Matrix &m)
 		{
 			return *this = *this * m;
-		}
-
-		/* Checks if two matrices are equal. */
-		_Check_return_ inline bool operator ==(_In_ const Matrix &m) const
-		{
-			return c1 == m.c1 && c2 == m.c2 && c3 == m.c3 && c4 == m.c4;
-		}
-		/* Checks if two matrices differ. */
-		_Check_return_ inline bool operator !=(_In_ const Matrix &m) const
-		{
-			return c1 != m.c1 || c2 != m.c2 || c3 != m.c3 || c4 != m.c4;
 		}
 
 		/* Creates a translation matrix from two individual components. */
@@ -106,12 +99,6 @@ namespace Pu
 		_Check_return_ static inline Matrix CreateScalar(_In_ Vector3 v)
 		{
 			return Matrix(v.X, 0.0f, 0.0f, 0.0f, 0.0f, v.Y, 0.0f, 0.0f, 0.0f, 0.0f, v.Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-		}
-
-		/* Creates a matrix with all components set to zero. */
-		_Check_return_ static inline Matrix CreateZero(void)
-		{
-			return Matrix(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
 		/* Creates a scale and translation matrix. */

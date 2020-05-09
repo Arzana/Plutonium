@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/Component.h"
+#include "System.h"
 #include "Content/AssetFetcher.h"
 #include "Content/AssetSaver.h"
 #include "Input/InputDeviceHandler.h"
@@ -27,10 +27,10 @@ namespace Pu
 
 		/* Starts the application and runs it untill the user closes it. */
 		void Run(void);
-		/* Adds a component to the application (Application takes ownership!). */
-		void AddComponent(_In_ Component *component);
-		/* Removes and deletes the specified component from the application. */
-		void RemoveComponent(_In_ Component &component);
+		/* Adds a system to the application (Application takes ownership!). */
+		void AddSystem(_In_ System *system);
+		/* Removes and deletes the specified system from the application. */
+		void RemoveSystem(_In_ System &system);
 		/* Sets the target time setp in Hz. */
 		void SetTargetTimeStep(_In_ int32 hertz);
 
@@ -145,7 +145,7 @@ namespace Pu
 		AssetFetcher *content;
 		AssetSaver *saver;
 		InputDeviceHandler *input;
-		vector<Component*> components;
+		vector<System*> systems;
 
 		static void InitializePlutonium(void);
 

@@ -4,24 +4,22 @@
 
 namespace Pu
 {
-	class Application;
-
 	/* Defines a basic application component that needs to be updated at a specific interval. */
-	class Component
+	class System
 	{
 	public:
 		/* Occurs when the component is either enabled or disabled. */
-		EventBus<Component, ValueChangedEventArgs<bool>> StateChanged;
+		EventBus<System, ValueChangedEventArgs<bool>> StateChanged;
 
 		/* Copy constructor. */
-		Component(_In_ const Component &value);
+		System(_In_ const System &value);
 		/* Move constructor. */
-		Component(_In_ Component &&value);
+		System(_In_ System &&value);
 		/* Releases the resources allocated by this component. */
-		virtual ~Component(void) {}
+		virtual ~System(void) {}
 
-		_Check_return_ Component& operator =(_In_ const Component&) = delete;
-		_Check_return_ Component& operator =(_In_ Component&&) = delete;
+		_Check_return_ System& operator =(_In_ const System&) = delete;
+		_Check_return_ System& operator =(_In_ System&&) = delete;
 
 		/* Enabled the component. */
 		void Enable(void);
@@ -37,27 +35,23 @@ namespace Pu
 		}
 
 	protected:
-		/* The application associated with this component. */
-		Application *App;
+		/* Initializes a new instance of a system. */
+		System(void);
 
-		/* Initializes a new instance of a component. */
-		Component(_In_ Application &app);
-
-		/* Initializes the component. */
+		/* Initializes the system. */
 		virtual void Initialize(void) {}
-		/* Updates the component. */
+		/* Updates the system. */
 		virtual void Update(_In_ float dt) = 0;
-		/* Finalizes the component. */
+		/* Finalizes the system. */
 		virtual void Finalize(void) {}
 
 	private:
 		friend class Application;
 
 		bool enabled, initialized;
-		float accum, rate;
 		int32 place;
 
-		static bool SortPredicate(const Component *first, const Component *second);
+		static bool SortPredicate(const System *first, const System *second);
 
 		void DoInitialize(void);
 	};

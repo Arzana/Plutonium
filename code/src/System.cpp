@@ -1,25 +1,25 @@
-#include "Components/Component.h"
+#include "System.h"
 #include "Application.h"
 
-Pu::Component::Component(Application & app)
-	: App(&app), StateChanged("ComponentStateChanged"),
+Pu::System::System(void)
+	: StateChanged("ComponentStateChanged"),
 	initialized(false), enabled(true), place(0)
 {}
 
-Pu::Component::Component(const Component & value)
-	: App(value.App), StateChanged(value.StateChanged),
+Pu::System::System(const System & value)
+	: StateChanged(value.StateChanged),
 	initialized(value.initialized), enabled(value.enabled), place(value.place)
 {}
 
-Pu::Component::Component(Component && value)
-	: App(value.App), StateChanged(std::move(value.StateChanged)),
+Pu::System::System(System && value)
+	: StateChanged(std::move(value.StateChanged)),
 	initialized(value.initialized), enabled(value.enabled), place(value.place)
 {
 	value.initialized = false;
 	value.enabled = false;
 }
 
-void Pu::Component::Enable(void)
+void Pu::System::Enable(void)
 {
 	static ValueChangedEventArgs<bool> args(false, true);
 
@@ -30,7 +30,7 @@ void Pu::Component::Enable(void)
 	}
 }
 
-void Pu::Component::Disable(void)
+void Pu::System::Disable(void)
 {
 	static ValueChangedEventArgs<bool> args(true, false);
 
@@ -41,20 +41,20 @@ void Pu::Component::Disable(void)
 	}
 }
 
-void Pu::Component::SetUpdatePlace(int32 newPlace)
+void Pu::System::SetUpdatePlace(int32 newPlace)
 {
 	Log::Warning("Setting the update place after initialization is not valid!");
 	place = newPlace;
 }
 
-void Pu::Component::DoInitialize(void)
+void Pu::System::DoInitialize(void)
 {
 	/* Used to force the set of initialized to true. */
 	Initialize();
 	initialized = true;
 }
 
-bool Pu::Component::SortPredicate(const Component * first, const Component * second)
+bool Pu::System::SortPredicate(const System * first, const System * second)
 {
 	if (first->place && !second->place) return true;
 	if (!first->place && second->place) return false;

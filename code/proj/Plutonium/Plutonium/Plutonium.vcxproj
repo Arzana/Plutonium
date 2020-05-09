@@ -98,7 +98,10 @@
     <ClInclude Include="..\..\..\deps\imgui\include\imconfig.h" />
     <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
-    <ClInclude Include="..\..\..\include\Components\Component.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h" />
+    <ClInclude Include="..\..\..\include\Physics\Colider.h" />
+    <ClInclude Include="..\..\..\include\Physics\CollisionShapes.h" />
+    <ClInclude Include="..\..\..\include\System.h" />
     <ClInclude Include="..\..\..\include\Config.h" />
     <ClInclude Include="..\..\..\include\Content\Asset.h" />
     <ClInclude Include="..\..\..\include\Content\AssetCache.h" />
@@ -282,6 +285,7 @@
     <ClInclude Include="..\..\..\include\Networking\UPnP\SSDPResponse.h" />
     <ClInclude Include="..\..\..\include\Networking\UPnP\UPnP.h" />
     <ClInclude Include="..\..\..\include\Physics\GJK.h" />
+    <ClInclude Include="..\..\..\include\Physics\PhysicalWorld.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryReader.h" />
     <ClInclude Include="..\..\..\include\Streams\BinaryWriter.h" />
     <ClInclude Include="..\..\..\include\Streams\BitStreamReader.h" />
@@ -300,7 +304,9 @@
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp" />
     <ClCompile Include="..\..\..\deps\tinyxml\tinyxml2.cpp" />
     <ClCompile Include="..\..\..\src\Application.cpp" />
-    <ClCompile Include="..\..\..\src\Components\Component.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Matrix3.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\PhysicalWorld.cpp" />
+    <ClCompile Include="..\..\..\src\System.cpp" />
     <ClCompile Include="..\..\..\src\Content\Asset.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetCache.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetFetcher.cpp" />

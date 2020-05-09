@@ -71,28 +71,28 @@ void Pu::Application::Run(void)
 	DoFinalize();
 }
 
-void Pu::Application::AddComponent(Component * component)
+void Pu::Application::AddSystem(System * component)
 {
 	/* Add the component to the list and initialize it if needed. */
-	components.emplace_back(component);
+	systems.emplace_back(component);
 	
 	/* Initializes the component and sort the list again if we've already initialized the application. */
 	if (initialized)
 	{
 		component->DoInitialize();
-		std::sort(components.begin(), components.end(), Component::SortPredicate);
+		std::sort(systems.begin(), systems.end(), System::SortPredicate);
 	}
 }
 
-void Pu::Application::RemoveComponent(Component & component)
+void Pu::Application::RemoveSystem(System & system)
 {
-	for (size_t i = 0; i < components.size(); i++)
+	for (size_t i = 0; i < systems.size(); i++)
 	{
-		Component *cur = components[i];
-		if (cur == &component)
+		System *cur = systems[i];
+		if (cur == &system)
 		{
 			delete cur;
-			components.removeAt(i);
+			systems.removeAt(i);
 			return;
 		}
 	}
@@ -301,9 +301,9 @@ void Pu::Application::DoInitialize(void)
 	Initialize();
 	wnd->Show();
 	
-	/* Initialize and sort the components. */
-	for (Component *cur : components) cur->DoInitialize();
-	std::sort(components.begin(), components.end(), Component::SortPredicate);
+	/* Initialize and sort the systems. */
+	for (System *cur : systems) cur->DoInitialize();
+	std::sort(systems.begin(), systems.end(), System::SortPredicate);
 	initialized = true;
 }
 
@@ -311,9 +311,9 @@ void Pu::Application::DoFinalize(void)
 {
 	/* Finalize all components that are set to update before the application update. */
 	size_t i = 0;
-	for (; i < components.size(); i++)
+	for (; i < systems.size(); i++)
 	{
-		Component *cur = components[i];
+		System *cur = systems[i];
 		if (cur->place > 0) break;
 		cur->Finalize();
 		delete cur;
@@ -322,10 +322,10 @@ void Pu::Application::DoFinalize(void)
 	Finalize();
 
 	/* Finalize all components that are set to update after the application update. */
-	for (; i < components.size(); i++)
+	for (; i < systems.size(); i++)
 	{
-		components[i]->Finalize();
-		delete components[i];
+		systems[i]->Finalize();
+		delete systems[i];
 	}
 
 	delete content;
@@ -338,9 +338,9 @@ void Pu::Application::DoUpdate(float dt)
 {
 	/* Update all components that are set to update before the application update. */
 	size_t i = 0;
-	for (; i < components.size(); i++)
+	for (; i < systems.size(); i++)
 	{
-		Component *cur = components[i];
+		System *cur = systems[i];
 		if (cur->place > 0) break;
 		cur->Update(dt);
 	}
@@ -348,7 +348,7 @@ void Pu::Application::DoUpdate(float dt)
 	Update(dt);
 
 	/* Update all components that are set to update after the application update. */
-	for (; i < components.size(); i++) components[i]->Update(dt);
+	for (; i < systems.size(); i++) systems[i]->Update(dt);
 }
 
 void Pu::Application::BeginRender(void)
