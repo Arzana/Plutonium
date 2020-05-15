@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/Color.h"
 #include "Stopwatch.h"
+#include <stack>
 
 struct ImDrawList;
 
@@ -36,11 +37,11 @@ namespace Pu
 
 	private:
 		friend class Application;
-
+		
 		using Section = std::tuple<string, Color, int64>;
 		using Timer = std::pair<size_t, Stopwatch>;
 
-		std::map<uint64, Timer> activeThreads;
+		std::map<uint64, std::stack<Timer>> activeThreads;
 		VulkanInstance *vkInstance;
 
 		vector<Section> cpuSections;

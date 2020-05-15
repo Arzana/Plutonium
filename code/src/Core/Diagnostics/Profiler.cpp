@@ -95,44 +95,52 @@ Pu::Profiler & Pu::Profiler::GetInstance(void)
 
 void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 thread)
 {
-	if (activeThreads.find(thread) != activeThreads.end())
-	{
-		Log::Error("Profiler doesn't support nested sections!");
-		return;
-	}
-
 	/* Check if the category already exists, if so just start a stopwatch. */
 	size_t i = 0;
 	for (const auto &[cat, clr, total] : cpuSections)
 	{
 		if (cat == category)
 		{
-			activeThreads.emplace(thread, std::make_pair(i, Stopwatch::StartNew()));
-			return;
+			//activeThreads.emplace(thread, std::make_pair(i, Stopwatch::StartNew()));
+			break;
 		}
 
 		++i;
 	}
 
 	/* The category was not found, so add it and start a new timer. */
-	cpuSections.emplace_back(std::make_tuple(category, color, 0));
-	activeThreads.emplace(thread, std::make_pair(i, Stopwatch::StartNew()));
+	if (i >= cpuSections.size()) cpuSections.emplace_back(std::make_tuple(category, color, 0));
+
+	/* We must add a new stack if the thread hasn't recorded any data yet. */
+	decltype(activeThreads)::iterator it = activeThreads.find(thread);
+	if (it == activeThreads.end())
+	{
+		activeThreads.emplace(thread, std::stack<Timer>());
+		it = activeThreads.find(thread);
+	}
+
+	/* Add the stopwatch to the thread stack. */
+	it->second.push(std::make_pair(i, Stopwatch::StartNew()));
 }
 
 void Pu::Profiler::EndInternal(uint64 thread)
 {
-	/* Make sure that we throw if the profiler is misused. */
 	decltype(activeThreads)::iterator it = activeThreads.find(thread);
-	if (it == activeThreads.end())
+
+	/* Make sure that we throw if the profiler is misused. */
+#ifdef _DEBUG
+	if (it == activeThreads.end() || it->second.empty())
 	{
 		Log::Error("Profiler cannot end a section that hasn't started!");
 		return;
 	}
+#endif
 
 	/* Get the time and the category, then remove the entry.  */
-	const int64 time = it->second.second.Microseconds();
-	const size_t category = it->second.first;
-	activeThreads.erase(it);
+	const Timer &entry = it->second.top();
+	const int64 time = entry.second.Microseconds();
+	const size_t category = entry.first;
+	it->second.pop();
 
 	/* Add the total time to the category list. */
 	std::get<2>(cpuSections[category]) += time;
@@ -183,8 +191,8 @@ void Pu::Profiler::VisualizeInternal(void)
 			for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
 			{
 				const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
-				ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u", 
-					device.GetName(), 
+				ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u",
+					device.GetName(),
 					b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam),
 					device.GetAllocationsCount(), device.GetLimits().MaxMemoryAllocationCount);
 			}
