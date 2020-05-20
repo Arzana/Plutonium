@@ -214,6 +214,24 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{8f6e6dea-417b-4ee0-b23b-64f1803e29db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Math\Shapes">
+      <UniqueIdentifier>{e52491a5-6c78-4948-ab67-8a3de395cbb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core\Math\Shapes">
+      <UniqueIdentifier>{43ffa09d-7d96-4294-8f80-f0330c047c74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Physics\Properties">
+      <UniqueIdentifier>{e059a480-872c-49e6-8084-eb95ac11eae4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Physics\Systems">
+      <UniqueIdentifier>{89d46ffe-d259-40a3-a022-e8e8729d3602}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Physics\Objects">
+      <UniqueIdentifier>{5d6ac25f-4839-4039-835e-a94ebae00b35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Physics\Systems">
+      <UniqueIdentifier>{e63b0567-2bdc-4d39-b341-0fd814a43e4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -237,19 +255,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Matrix.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Rectangle.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\AABB.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Plane.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Frustum.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h">
@@ -597,9 +603,6 @@
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\DebugRenderer.h">
       <Filter>Header Files\Graphics\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Line.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Input\GamePad.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
@@ -795,26 +798,74 @@
     <ClInclude Include="..\..\..\include\Core\Math\HeightMap.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\GJK.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Graphics\Cameras\FollowCamera.h">
       <Filter>Header Files\Graphics\Cameras</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\PhysicalWorld.h">
-      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\System.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Colider.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\CollisionShapes.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h">
       <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\AABB.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\Frustum.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\Line.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\Plane.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\Rectangle.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\Sphere.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Shapes\OBB.h">
+      <Filter>Header Files\Core\Math\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Properties\CollisionShapes.h">
+      <Filter>Header Files\Physics\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h">
+      <Filter>Header Files\Physics\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h">
+      <Filter>Header Files\Physics\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Objects\Collider.h">
+      <Filter>Header Files\Physics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Objects\CollisionManifold.h">
+      <Filter>Header Files\Physics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h">
+      <Filter>Header Files\Physics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h">
+      <Filter>Header Files\Physics\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h">
+      <Filter>Header Files\Physics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -822,12 +873,6 @@
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp">
-      <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Math\Rectangle.cpp">
-      <Filter>Source Files\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Math\AABB.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp">
@@ -1175,20 +1220,23 @@
     <ClCompile Include="..\..\..\src\Core\Math\HeightMap.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\GJK.cpp">
-      <Filter>Source Files\Physics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Graphics\Cameras\FollowCamera.cpp">
       <Filter>Source Files\Graphics\Cameras</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\System.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\PhysicalWorld.cpp">
-      <Filter>Source Files\Physics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix3.cpp">
       <Filter>Source Files\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp">
+      <Filter>Source Files\Core\Math\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp">
+      <Filter>Source Files\Core\Math\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

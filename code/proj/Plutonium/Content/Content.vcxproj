@@ -35,6 +35,10 @@
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
   </ItemGroup>
   <ItemGroup>
+    <PuModel Include="..\..\..\assets\models\book\Book.gltf">
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-rt</RecalcTangentsPum>
+      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-rt</RecalcTangentsPum>
+    </PuModel>
     <PuModel Include="..\..\..\assets\models\BoomBox\BoomBox.gltf" />
     <PuModel Include="..\..\..\assets\models\Fire\fire.md2">
       <AdditionalTexturesPum>fire.png;</AdditionalTexturesPum>

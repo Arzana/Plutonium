@@ -38,16 +38,16 @@ namespace Pu
 		/* Fetches the desired font. */
 		_Check_return_ Font& FetchFont(_In_ const wstring &path, _In_ float size, _In_ const CodeChart &codeChart);
 		/* Fetches the desired model. */
-		_Check_return_ Model& FetchModel(_In_ const wstring &path, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer);
+		_Check_return_ Model& FetchModel(_In_ const wstring &path, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer *probeRenderer);
 
 		/* Creates a default 2D texture (1x1) from a specified color. */
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ Color color);
 		/* Creates a new 2D texture from the specified RGBA data. */
 		_Check_return_ Texture2D& CreateTexture2D(_In_ const string &id, _In_ const void *data, _In_ uint32 width, _In_ uint32 height, _In_ Format format, _In_ const SamplerCreateInfo &samplerInfo);
 		/* Creates a primitive model with a diffuse texture. */
-		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer, _In_ const wstring &diffuse);
+		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_opt_ const LightProbeRenderer *probeRenderer, _In_ const wstring &diffuse);
 		/* Creates a primitive model with optional textures. */
-		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_ const LightProbeRenderer &probeRenderer, _In_opt_ Texture2D *diffuse = nullptr, _In_opt_ Texture2D *specularGloss = nullptr);
+		_Check_return_ Model& CreateModel(_In_ ShapeType type, _In_ const DeferredRenderer &deferredRenderer, _In_opt_ const LightProbeRenderer *probeRenderer = nullptr, _In_opt_ Texture2D *diffuse = nullptr, _In_opt_ Texture2D *specularGloss = nullptr);
 
 		/* Releases the renderpass. */
 		void Release(_In_ Renderpass &renderpass);

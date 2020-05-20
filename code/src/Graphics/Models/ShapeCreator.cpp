@@ -109,26 +109,26 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Top Left. */
-	vertices->Position = Vector3(-0.5f, 0.5f, 0.0f);
-	vertices->Normal = Vector3::Forward();
+	vertices->Position = Vector3(-0.5f, 0.0f, 0.5f);
+	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(0.0f, 1.0f);
 	++vertices;
 
 	/* Bottom left. */
-	vertices->Position = Vector3(-0.5f, -0.5f, 0.0f);
-	vertices->Normal = Vector3::Forward();
+	vertices->Position = Vector3(-0.5f, 0.0f, -0.5f);
+	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(0.0f);
 	++vertices;
 
 	/* Bottom Right. */
-	vertices->Position = Vector3(0.5f, -0.5f, 0.0f);
-	vertices->Normal = Vector3::Forward();
+	vertices->Position = Vector3(0.5f, 0.0f, -0.5f);
+	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(1.0f, 0.0f);
 	++vertices;
 
 	/* Top Right. */
-	vertices->Position = Vector3(0.5f, 0.5f, 0.0f);
-	vertices->Normal = Vector3::Forward();
+	vertices->Position = Vector3(0.5f, 0.0f, 0.5f);
+	vertices->Normal = Vector3::Up();
 	vertices->TexCoord = Vector2(1.0f);
 	++vertices;
 

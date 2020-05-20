@@ -48,7 +48,7 @@ Pu::Asset & Pu::Model::Duplicate(AssetCache&)
 	return *this;
 }
 
-void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer & probes, size_t count)
+void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer * probes, size_t count)
 {
 	/* Reserve the material vectors to decrease allocations. */
 	materials.reserve(count);
@@ -56,10 +56,10 @@ void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRe
 
 	/* Allocate the required descriptor pools. */
 	poolMaterials = deferred.CreateMaterialDescriptorPool(static_cast<uint32>(count));
-	poolProbes = probes.CreateDescriptorPool(static_cast<uint32>(count));
+	if (probes) poolProbes = probes->CreateDescriptorPool(static_cast<uint32>(count));
 }
 
-void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer & probes, const PuMData & data)
+void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer * probes, const PuMData & data)
 {
 	AllocPools(deferred, probes, data.Materials.size());
 
@@ -77,11 +77,14 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 	poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
 }
 
-Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
+Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
 {
 	/* Create the light probe material for this material. */
-	DescriptorSet &set = probeMaterials.emplace_back(*poolProbes, 0, probes.GetLayout());
-	set.Write(probes.GetDiffuseDescriptor(), *textures[diffuse]);
+	if (probes)
+	{
+		DescriptorSet &set = probeMaterials.emplace_back(*poolProbes, 0, probes->GetLayout());
+		set.Write(probes->GetDiffuseDescriptor(), *textures[diffuse]);
+	}
 
 	/* Create the deferred material for this material. */
 	Material &material = materials.emplace_back(*poolMaterials, deferred.GetMaterialLayout());

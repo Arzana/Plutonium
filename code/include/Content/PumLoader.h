@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/AABB.h"
+#include "Core/Math/Shapes/AABB.h"
 #include "Graphics/Color.h"
 #include "Streams/BinaryReader.h"
 #include "Graphics/Resources/StagingBuffer.h"

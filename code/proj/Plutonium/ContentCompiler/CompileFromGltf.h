@@ -145,8 +145,8 @@ enum class GLTFPrimitiveAttribute
 	unsigned byte/short needs to be converted using value/max.
 	*/
 	TexCoord1,
-	/* The texture UV for the second set (see TexCoord1). */
-	TexCoord2,
+	/* The texture UV for any additional texture coordinate (see TexCoord1). */
+	TexCoordAux,
 	/*
 	The RGB or RGBA vertex color.
 	Can either be stored as floats or unsigned normalized values (see TexCoord1).

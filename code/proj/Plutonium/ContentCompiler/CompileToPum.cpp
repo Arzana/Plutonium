@@ -233,7 +233,7 @@ int CompileToPum(const CLArgs & args)
 		return EXIT_FAILURE;
 	}
 
-	if (args.RecalcTangents)
+	if (args.RecalcTangents || args.CreateTangents)
 	{
 		/* Early out if the generation failed somehow. */
 		if (GenerateTangents(data, args) == EXIT_FAILURE) return EXIT_FAILURE;

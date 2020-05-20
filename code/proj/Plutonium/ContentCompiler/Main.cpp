@@ -12,6 +12,7 @@ void logHelp(void)
 		"-o <path>			Specifies the output file.\n"
 		"-dn <name>			Overrides the default model name.\n"
 		"-t					Calculate vertex tangents (MikkTSpace).\n"
+		"-rt				Recalculate vertex tangents (MikkTSpace).\n"
 		"-at <path>;<path>;	Adds the specified textures to the output model.");
 }
 
@@ -48,6 +49,10 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 			}
 		}
 		else if (cur == "-t")		// Generate tangents.
+		{
+			result.CreateTangents = true;
+		}
+		else if (cur == "-rt")		// Fix tangents.
 		{
 			result.RecalcTangents = true;
 		}

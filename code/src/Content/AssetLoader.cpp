@@ -445,13 +445,13 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 	scheduler.Spawn(*task);
 }
 
-void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
+void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
 {
 	class LoadTask
 		: public Task
 	{
 	public:
-		LoadTask(AssetLoader &parent, Model &model, const wstring &path, const DeferredRenderer &deferred, const LightProbeRenderer &probes)
+		LoadTask(AssetLoader &parent, Model &model, const wstring &path, const DeferredRenderer &deferred, const LightProbeRenderer *probes)
 			: result(model), parent(parent), path(path), deferred(deferred), probes(probes)
 		{}
 
@@ -507,7 +507,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 			}
 
 			if (!deferred.IsUsable()) return false;
-			if (!probes.IsUsable()) return false;
+			if (probes && !probes->IsUsable()) return false;
 
 			return result.meshes.GetBuffer().IsLoaded();
 		}
@@ -517,7 +517,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 		AssetLoader &parent;
 		const wstring path;
 		const DeferredRenderer &deferred;
-		const LightProbeRenderer &probes;
+		const LightProbeRenderer *probes;
 		SingleUseCommandBuffer cmdBuffer;
 	};
 
@@ -525,7 +525,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 	scheduler.Spawn(*task);
 }
 
-void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const DeferredRenderer & deferred, const LightProbeRenderer & probes)
+void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
 {
 	constexpr uint16 SPHERE_DIVS = 12;
 	constexpr uint16 DOME_DIVS = 24;
@@ -537,7 +537,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 		: public Task
 	{
 	public:
-		CreateTask(AssetLoader &parent, Model &model, ShapeType type, const DeferredRenderer &deferred, const LightProbeRenderer &probes)
+		CreateTask(AssetLoader &parent, Model &model, ShapeType type, const DeferredRenderer &deferred, const LightProbeRenderer *probes)
 			: result(model), parent(parent), deferred(deferred), probes(probes), meshType(type)
 		{}
 
@@ -658,7 +658,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			}
 
 			if (!deferred.IsUsable()) return false;
-			if (!probes.IsUsable()) return false;
+			if (probes && !probes->IsUsable()) return false;
 
 			return result.meshes.GetBuffer().IsLoaded();
 		}
@@ -667,7 +667,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 		Model &result;
 		AssetLoader &parent;
 		const DeferredRenderer &deferred;
-		const LightProbeRenderer &probes;
+		const LightProbeRenderer *probes;
 		SingleUseCommandBuffer cmdBuffer;
 		ShapeType meshType;
 	};

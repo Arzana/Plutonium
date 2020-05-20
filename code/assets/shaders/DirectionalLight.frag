@@ -130,4 +130,5 @@ void main()
 	const vec3 v = normalize(CamPos - p);
 
 	L0 = vec4(blinnPhong(v, n), 1.0f);
+	//L0 = vec4(brdf(v, n), 1.0f);
 }

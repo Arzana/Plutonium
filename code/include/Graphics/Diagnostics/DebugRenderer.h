@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/Line.h"
+#include "Core/Math/Shapes/Line.h"
 #include "Core/Math/Spline.h"
 #include "Content/AssetFetcher.h"
 #include "Graphics/Cameras/Camera.h"

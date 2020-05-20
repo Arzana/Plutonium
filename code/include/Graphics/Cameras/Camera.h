@@ -3,7 +3,7 @@
 #include "Graphics/Vulkan/Shaders/Renderpass.h"
 #include "Core/Events/ValueChangedEventArgs.h"
 #include "Graphics/Textures/TextureCube.h"
-#include "Core/Math/Frustum.h"
+#include "Core/Math/Shapes/Frustum.h"
 
 namespace Pu
 {

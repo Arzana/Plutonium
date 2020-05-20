@@ -73,9 +73,9 @@ namespace Pu
 		MeshCollection meshes;
 		vector<PumNode> nodes;
 
-		void AllocPools(const DeferredRenderer &deferred, const LightProbeRenderer &probes, size_t count);
-		void Finalize(CommandBuffer &cmdBuffer, const DeferredRenderer &deferred, const LightProbeRenderer &probes, const PuMData &data);
-		Material& AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer &deferred, const LightProbeRenderer &probes);
+		void AllocPools(const DeferredRenderer &deferred, const LightProbeRenderer *probes, size_t count);
+		void Finalize(CommandBuffer &cmdBuffer, const DeferredRenderer &deferred, const LightProbeRenderer *probes, const PuMData &data);
+		Material& AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer &deferred, const LightProbeRenderer *probes);
 		void Destroy(void);
 	};
 }

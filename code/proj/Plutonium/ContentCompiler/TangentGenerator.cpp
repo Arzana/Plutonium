@@ -17,7 +17,7 @@ public:
 		vrtxReader(data.Data.GetData() + mesh.VertexViewStart, mesh.VertexViewSize)
 	{
 		/* We need to create an entire new vertex array, because the indices will change. */
-		newStride = oldStride + sizeof(Vector4);
+		newStride = oldStride + (sizeof(Vector4) * !mesh.HasTangents);
 		newVrtxData = reinterpret_cast<byte*>(malloc(GetVrtxCount() * newStride));
 
 		/* Only set an index reader if the mesh has one. */
@@ -121,7 +121,7 @@ private:
 	{
 		/* We always start with a position and normal, but the data after the tangent is mesh dependent. */
 		constexpr size_t startStride = sizeof(Vector3) << 1;
-		const size_t endStride = oldStride - startStride;
+		const size_t endStride = oldStride - startStride - (sizeof(Vector4) * Mesh.HasTangents);
 
 		/* The index into out destination buffer is easy, but the index to our source buffer might come from a indexed buffer. */
 		size_t i = (faceIdx * newStride * 3) + (vertIdx * newStride);
@@ -136,6 +136,7 @@ private:
 		/* Copy the tangent. */
 		memcpy(newVrtxData + i, tangent.f, sizeof(Vector4));
 		i += sizeof(Vector4);
+		j += sizeof(Vector4) * Mesh.HasTangents;
 
 		/* Copy the remainder of the vertex. */
 		memcpy(newVrtxData + i, oldSrc + j, endStride);
@@ -220,16 +221,20 @@ void PumSetTangent(const SMikkTSpaceContext *context, const float tangent[3], fl
 	MikkTSpaceUserData::WriteTangent(context, faceIdx, vertIdx, value);
 }
 
-void LogMeshConversion(PumIntermediate &data)
+void LogMeshConversion(PumIntermediate &data, bool newTangents, bool recalculate)
 {
 	size_t cnt = 0;
 
 	for (const pum_mesh &mesh : data.Geometry)
 	{
-		cnt += mesh.HasNormals && mesh.HasTextureUvs && !mesh.HasTangents && mesh.Topology == 3;
+		/* Check whether the mesh can be converted. */
+		if (mesh.HasNormals && mesh.HasTextureUvs)
+		{
+			cnt += (newTangents && !mesh.HasTangents) || (recalculate && mesh.HasTangents);
+		}
 	}
 
-	Log::Message("Generating tangents for %zu meshes using MikkTSpace.", cnt);
+	Log::Message("Generating new tangents for %zu meshes using MikkTSpace.", cnt);
 }
 
 int GenerateTangents(PumIntermediate & data, const CLArgs & args)
@@ -247,7 +252,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	interfaces.m_setTSpace = nullptr;
 
 	/* Log how many conversions will take place. */
-	LogMeshConversion(data);
+	LogMeshConversion(data, args.CreateTangents, args.RecalcTangents);
 	BinaryWriter writer{ 0u, Endian::Little };
 	std::mutex writeLock;
 	vector<GenerateTask*> tasks;
@@ -261,7 +266,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 		const string name = mesh.Identifier.toUTF8();
 
 		/* We can skip any mesh that already has tangents. */
-		if (mesh.HasTangents)
+		if (mesh.HasTangents && !args.RecalcTangents)
 		{
 			writeLock.lock();
 			if (mesh.IndexMode != 2)
@@ -287,7 +292,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 
 			/* Add the maximum required amount of bytes to the output buffer. */
 			const size_t elementSize = mesh.IndexMode != 2 ? mesh.GetIndexCount() : mesh.GetVrtxCount();
-			reserveSize += elementSize * mesh.GetVrtxStride() + sizeof(Vector4);
+			reserveSize += elementSize * mesh.GetVrtxStride() + (sizeof(Vector4) * !mesh.HasTangents);
 		}
 		else Log::Warning("Unable to generate tangents for mesh '%s' (mesh doesn't have normals, texture coordinates, or isn't a triangle list)!", name.c_str());
 	}

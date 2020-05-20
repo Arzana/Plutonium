@@ -1,6 +1,6 @@
 #pragma once
 #include <Streams/BinaryWriter.h>
-#include <Core/Math/AABB.h>
+#include <Core/Math/Shapes/AABB.h>
 #include <Graphics/Color.h>
 
 struct pum_node

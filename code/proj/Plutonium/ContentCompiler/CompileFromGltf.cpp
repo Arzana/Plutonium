@@ -369,11 +369,6 @@ void HandleJsonMeshPrimitives(const json &primitives, GLTFMesh &mesh)
 						if (idx.is_number_unsigned()) primitive.Attributes.emplace(GLTFPrimitiveAttribute::TexCoord1, idx);
 						else LogCorruptJsonHeader("mesh primitive first texture coordinate isn't a valid index");
 					}
-					else if (upperType == "TEXCOORD_1")
-					{
-						if (idx.is_number_unsigned()) primitive.Attributes.emplace(GLTFPrimitiveAttribute::TexCoord2, idx);
-						else LogCorruptJsonHeader("mesh primitive second texture coordinate isn't a valid index");
-					}
 					else if (upperType == "COLOR_0")
 					{
 						if (idx.is_number_unsigned()) primitive.Attributes.emplace(GLTFPrimitiveAttribute::Color, idx);
@@ -393,8 +388,12 @@ void HandleJsonMeshPrimitives(const json &primitives, GLTFMesh &mesh)
 					{
 						if (idx.is_number_unsigned())
 						{
-							/* Log the mesh name if it is already loaded (might not be the case). */
-							if (mesh.Name.empty()) Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute!", type.c_str());
+							/* 
+							Save any additional texture coordinates as auxilary coordinates.
+							Log the mesh name if it is already loaded (might not be the case). 
+							*/
+							if (mesh.Name.contains("TEXCOORD_")) primitive.Attributes.emplace(GLTFPrimitiveAttribute::TexCoordAux, idx);
+							else if (mesh.Name.empty()) Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute!", type.c_str());
 							else Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute in mesh '%s'!", type.c_str(), mesh.Name.c_str());
 
 							primitive.Attributes.emplace(GLTFPrimitiveAttribute::Other, idx);
@@ -1351,7 +1350,7 @@ void CopyMeshesToPum(const GLTFLoaderResult &input, const vector<string> &buffer
 				case GLTFPrimitiveAttribute::TexCoord1:
 					mesh.HasTextureUvs = true;
 					break;
-				case GLTFPrimitiveAttribute::TexCoord2:
+				case GLTFPrimitiveAttribute::TexCoordAux:
 					Log::Warning("Plutonium models cannot have more than 1 set of texture coordinates!");
 					increaseStride = false;
 					break;
@@ -1461,7 +1460,7 @@ void ProcessAnimationChannel(const GLTFLoaderResult &input, const vector<string>
 	/* Check for corrupt files. */
 	if (inputAccessor.Count != outputAccessor.Count)
 	{
-		Log::Error("Corrupt GLTF animation sampler detected, input and output sizes differ!");
+		Log::Warning("Corrupt GLTF animation sampler detected, input and output sizes differ!");
 		return;
 	}
 
@@ -1485,7 +1484,7 @@ void ProcessAnimationChannel(const GLTFLoaderResult &input, const vector<string>
 
 	if (channel.Target == GLTFAnimationTarget::Weights)
 	{
-		Log::Error("Plutonium currently doesn't handle weighted morph animation channels!");
+		Log::Warning("Plutonium currently doesn't handle weighted morph animation channels!");
 		return;
 	}
 

@@ -14,7 +14,12 @@
 
     <StringProperty Name="DisplayNamePum" DisplayName="Display Name" Description="Overrides the default ebug display name of the model."/>
 
-    <EnumProperty Name="RecalcTangentsPum" DisplayName="Calculate Tangents" Description="Forces the use of tangents in the output model and calculates them if they are not defined.">
+    <EnumProperty Name="RecalcTangentsPum" DisplayName="Recalculate Tangents" Description="Recalculates the tangent in all meshes that have tangents defined.">
+      <EnumValue Name="-rt" DisplayName="Yes (-rt)"/>
+      <EnumValue DisplayName="No"/>
+    </EnumProperty>
+
+    <EnumProperty Name="CreateTangentsPum" DisplayName="Create Tangents" Description="Calculates tangents for meshes that have no tangents defined.">
       <EnumValue Name="-t" DisplayName="Yes (-t)"/>
       <EnumValue DisplayName="No"/>
     </EnumProperty>

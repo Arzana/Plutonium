@@ -187,7 +187,7 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	return *result;
 }
 
-Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer)
+Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRenderer & deferredRenderer, const LightProbeRenderer * probeRenderer)
 {
 	/* Solve for the model path. */
 	wstring mutablePath(path);
@@ -263,7 +263,7 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 	}
 }
 
-Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, const wstring & diffuse)
+Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer * probeRenderer, const wstring & diffuse)
 {
 	SamplerCreateInfo sampler;
 	sampler.MaxLoD = static_cast<float>(DefaultMipLevels);
@@ -277,7 +277,7 @@ Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer
 	return result;
 }
 
-Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer & probeRenderer, Texture2D * diffuse, Texture2D * specularGloss)
+Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer * probeRenderer, Texture2D * diffuse, Texture2D * specularGloss)
 {
 	/* Construct a new random hash for this model. */
 	const size_t hash = cache->RngHash();

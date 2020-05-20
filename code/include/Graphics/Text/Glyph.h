@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/Rectangle.h"
+#include "Core/Math/Shapes/Rectangle.h"
 
 namespace Pu
 {

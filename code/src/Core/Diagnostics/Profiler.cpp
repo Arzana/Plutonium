@@ -8,7 +8,7 @@
 #include "Core/Diagnostics/CPU.h"
 #include "imgui/include/imgui.h"
 #include "Streams/FileWriter.h"
-#include "Physics/GJK.h"
+#include "Physics/Systems/GJK.h"
 #include <ctime>
 
 static std::mutex lock;
