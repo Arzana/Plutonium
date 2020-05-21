@@ -50,9 +50,13 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 
 	plane = world->AddPlane(std::move(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse)));
 
-	Sphere narrow{ Vector3(), 1.0f };
+	PhysicalProperties rubber;
+	rubber.Mechanical.E = 0.6f;
+
+	Sphere narrow{ Vector3(), 0.5f };
 	Collider collider{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &narrow };
-	PhysicalObject obj{ Vector3(0.0f, 200.0f, 0.0f), Quaternion{}, std::move(collider) };
+	PhysicalObject obj{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(collider) };
+	obj.Properties = world->AddMaterial(rubber);
 	sphere = world->AddKinematic(std::move(obj));
 }
 
@@ -99,6 +103,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
+		world->Visualize(*dbgRenderer);
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();

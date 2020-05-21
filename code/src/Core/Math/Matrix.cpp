@@ -5,6 +5,15 @@ inline float det33(float a, float b, float c, float d, float e, float f, float g
 	return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 }
 
+Pu::Matrix Pu::Matrix::CreateFrom3x3(const Matrix3 & matrix, Vector3 translation)
+{
+	return Matrix(
+		matrix.f[0], matrix.f[3], matrix.f[6], translation.X,
+		matrix.f[1], matrix.f[4], matrix.f[7], translation.Y,
+		matrix.f[2], matrix.f[5], matrix.f[8], translation.Z,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Pu::Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar)
 {
 	return Matrix(

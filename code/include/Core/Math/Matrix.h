@@ -1,6 +1,6 @@
 #pragma once
 #include "Vector4.h"
-#include "Quaternion.h"
+#include "Matrix3.h"
 
 #if defined(near)
 #undef near
@@ -101,6 +101,8 @@ namespace Pu
 			return Matrix(v.X, 0.0f, 0.0f, 0.0f, 0.0f, v.Y, 0.0f, 0.0f, 0.0f, 0.0f, v.Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 		}
 
+		/* Creates a 4x4 matrix from a 3x3 rotation/scalar matrix and a translation. */
+		_Check_return_ static Matrix CreateFrom3x3(_In_ const Matrix3 &matrix, _In_ Vector3 translation);
 		/* Creates a scale and translation matrix. */
 		_Check_return_ static Matrix CreateScaledTranslation(_In_ Vector3 translation, _In_ float scalar);
 		/* Creates a rotation matrix around a specified axis. */

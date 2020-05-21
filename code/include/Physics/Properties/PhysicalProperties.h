@@ -1,4 +1,5 @@
 #pragma once
+#include "MechanicalProperties.h"
 
 namespace Pu
 {
@@ -7,5 +8,7 @@ namespace Pu
 	{
 		/* Specifies the density of the material. */
 		float Density;
+		/* Specifies the mechanical properties of the material. */
+		MechanicalProperties Mechanical;
 	};
 }

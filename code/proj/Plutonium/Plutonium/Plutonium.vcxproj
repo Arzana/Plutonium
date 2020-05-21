@@ -111,6 +111,7 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\CollisionShapes.h" />
+    <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h" />

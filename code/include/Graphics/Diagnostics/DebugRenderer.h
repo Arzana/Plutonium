@@ -1,7 +1,8 @@
 #pragma once
-#include "Core/Math/Shapes/Line.h"
 #include "Core/Math/Spline.h"
 #include "Content/AssetFetcher.h"
+#include "Core/Math/Shapes/Line.h"
+#include "Core/Math/Shapes/Sphere.h"
 #include "Graphics/Cameras/Camera.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Textures/DepthBuffer.h"
@@ -44,10 +45,9 @@ namespace Pu
 		/* Adds a box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ const Matrix &transform, _In_ Color color);
 		/* Adds a sphere to the debug renderer queue. */
-		inline void AddSphere(_In_ Vector3 center, _In_ float radius, _In_ Color color)
-		{
-			AddEllipsoid(center, radius, radius, radius, color);
-		}
+		void AddSphere(_In_ Sphere sphere, _In_ Color color);
+		/* Adds a sphere to the debug renderer queue. */
+		void AddSphere(_In_ Vector3 center, _In_ float radius, _In_ Color color);
 		/* Adds an ellipsoid to the debug renderer queue. */
 		void AddEllipsoid(_In_ Vector3 center, _In_ float xRadius, _In_ float yRadius, _In_ float zRadius, _In_ Color color);
 		/* Adds a capsule to the debug renderer queue. */

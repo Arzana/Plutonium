@@ -91,7 +91,7 @@ void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, 
 {
 	/* The length of the arrow head is always relative to the arrow shaft length. */
 	const float headLength = length * recip(4.0f);
-	const Quaternion base = Quaternion::Create(direction, direction != Vector3::Up() ? Vector3::Up() : Vector3::Right());
+	const Quaternion base = Quaternion::Create(direction, tangent(direction));
 
 	/* Calculate the directions of the arrow head lines. */
 	const Vector3 right = base * Quaternion::Create(PI + headAngle, Vector3{ 1.0f, 0.0f,0.0f }) * Vector3::Forward();
@@ -182,6 +182,16 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	AddLine(ftr, btr, color);
 	AddLine(fbr, bbr, color);
 	AddLine(fbl, bbl, color);
+}
+
+void Pu::DebugRenderer::AddSphere(Sphere sphere, Color color)
+{
+	AddEllipsoid(sphere.Center, sphere.Radius, sphere.Radius, sphere.Radius, color);
+}
+
+void Pu::DebugRenderer::AddSphere(Vector3 center, float radius, Color color)
+{
+	AddEllipsoid(center, radius, radius, radius, color);
 }
 
 void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadius, float zRadius, Color color)

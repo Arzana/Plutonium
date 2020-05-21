@@ -155,6 +155,8 @@ namespace Pu
 		_Check_return_ string ToString(void) const;
 
 	private:
+		friend struct Matrix;
+
 		union
 		{
 			float f[9];

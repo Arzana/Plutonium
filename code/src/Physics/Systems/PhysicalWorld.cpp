@@ -1,6 +1,7 @@
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Physics/Systems/ShapeTests.h"
+#include "Graphics/Diagnostics/DebugRenderer.h"
 
 /*
 Physical handles store various pieces of fast information.
@@ -64,6 +65,13 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(PhysicalObject && obj)
 	return handle;
 }
 
+size_t Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & properties)
+{
+	/* Materials cannot be deleted, so this makes returning an index easier. */
+	materials.emplace_back(properties);
+	return materials.size() - 1;
+}
+
 void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 {
 #ifdef _DEBUG
@@ -123,12 +131,31 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 	}
 }
 
+void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
+{
+	for (const CollisionPlane &collider : planes)
+	{
+		const Plane &plane = collider.Plane;
+		renderer.AddArrow(plane.N * plane.D, plane.N, Color::Green());
+	}
+
+	for (const PhysicalObject &obj : staticObjects)
+	{
+		VisualizePhysicalObject(renderer, obj, Color::Green());
+	}
+
+	for (const PhysicalObject &obj : kinematicObjects)
+	{
+		VisualizePhysicalObject(renderer, obj, Color::Blue());
+	}
+}
+
 void Pu::PhysicalWorld::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
 
 	CheckForCollisions();
-	//SolveContraints();
+	SolveContraints();
 	Integrate(dt);
 
 	Profiler::End();
@@ -137,6 +164,16 @@ void Pu::PhysicalWorld::Update(float dt)
 void Pu::PhysicalWorld::ThrowInvalidHandle(bool condition, const char *action)
 {
 	if (condition) Log::Fatal("Cannot %s physics object (invalid handle)!", action);
+}
+
+void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const PhysicalObject & obj, Color clr)
+{
+	if (obj.Collider.NarrowPhaseShape == CollisionShapes::Sphere)
+	{
+		const Sphere collider = *reinterpret_cast<Sphere*>(obj.Collider.NarrowPhaseParameters);
+		renderer.AddSphere(obj.P + collider.Center, collider.Radius, clr);
+	}
+	else Log::Warning("Cannot visualize %s yet!", to_string(obj.Collider.NarrowPhaseShape));
 }
 
 void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
@@ -228,7 +265,7 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 				j += TestPlaneSphere(i, j);
 				break;
 			default:
-				Log::Warning("Cannot handle collision shape currently!");
+				Log::Warning("Cannot handle %s collision shape currently!", to_string(kinematicObjects[j].Collider.NarrowPhaseShape));
 				break;
 			}
 		}
@@ -273,6 +310,39 @@ bool Pu::PhysicalWorld::TestPlaneSphere(size_t planeIdx, size_t sphereIdx)
 	}
 
 	return true;
+}
+
+void Pu::PhysicalWorld::SolveContraints(void)
+{
+	for (const CollisionManifold &manifold : collisions)
+	{
+		const uint32 at = PHYSICS_HANDLE_TYPE(manifold.FirstObject);
+		const uint32 bt = PHYSICS_HANDLE_TYPE(manifold.SecondObject);
+
+		/* Collisions with a plane will always store the plane as the first object. */
+		if (at == PHYSICS_LIST_PLANE && bt == PHYSICS_LIST_KINEMATIC)
+		{
+			SolvePlaneContraint(PHYSICS_HANDLE_LOOKUP_ID(manifold.FirstObject), PHYSICS_HANDLE_LOOKUP_ID(manifold.SecondObject));
+		}
+		else Log::Error("Unable to solve constraint for type %u (%x) with type %u (%x)!", at, manifold.FirstObject, bt, manifold.SecondObject);
+	}
+
+	collisions.clear();
+}
+
+void Pu::PhysicalWorld::SolvePlaneContraint(size_t planeIdx, size_t kinematicIdx)
+{
+	/* Query the parameters needed to solve the collision. */
+	const Plane &plane = planes[planeIdx].Plane;
+	PhysicalObject &obj = kinematicObjects[kinematicIdx];
+	const float e = materials[obj.Properties].Mechanical.E;
+
+	/* 
+	Calculate and apply the linear impulse. 
+	For a collision with a plane this is always on the plane normal.
+	*/
+	const float j = rectify(-(1.0f + e) * dot(obj.V, plane.N));
+	obj.V += j * plane.N;
 }
 
 void Pu::PhysicalWorld::Integrate(float dt)
