@@ -2,6 +2,7 @@
 
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Vulkan/CommandBuffer.h"
+#include "Physics/Systems/PhysicalWorld.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/Diagnostics/Memory.h"
@@ -178,6 +179,7 @@ void Pu::Profiler::VisualizeInternal(void)
 		CommandBuffer::ResetCounters();
 
 		ImGui::Separator();
+		ImGui::Text("Collisions:			 %u", PhysicalWorld::GetCollisionCount());
 		ImGui::Text("GJK Calls:              %u", GJK::GetCallCount());
 		ImGui::Text("Average GJK Iterations: %u", GJK::GetAverageIterations());
 		GJK::ResetCounters();

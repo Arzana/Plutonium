@@ -19,6 +19,8 @@ I (32-bits): The index in the lookup vector, used to determine the actual index.
 #define PHYSICS_HANDLE_TYPE(handle)				((handle) >> 62)
 #define PHYSICS_HANDLE_CREATE(type, idx)		(((type) << 62) | (idx))
 
+static Pu::uint32 collisionCount = 0;
+
 Pu::PhysicalWorld::PhysicalWorld(void)
 	: System(), Gravity(0.0f, -9.8f, 0.0f)
 {}
@@ -32,36 +34,37 @@ Pu::PhysicalWorld::~PhysicalWorld(void)
 	}
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld::AddPlane(CollisionPlane && plane)
+Pu::uint32 Pu::PhysicalWorld::GetCollisionCount(void)
+{
+	return collisionCount;
+}
+
+Pu::PhysicsHandle Pu::PhysicalWorld::AddPlane(const CollisionPlane & plane)
 {
 	const PhysicsHandle handle = CreateNewHandle(PHYSICS_LIST_PLANE);
-	planes.emplace_back(std::move(plane));
+	planes.emplace_back(plane);
 	return handle;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(PhysicalObject && obj)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(const PhysicalObject & obj)
 {
-	/* 
-	We need to copy over the pointer data in the collider, 
-	to make sure it doesn't go out of scope.
-	*/
-	void *data = nullptr;
+	/* We need to copy over some collider parameters. */
+	PhysicalObject copy = obj;
 	switch (obj.Collider.NarrowPhaseShape)
 	{
 	case CollisionShapes::None:
 		break;
 	case CollisionShapes::Sphere:
-		data = malloc(sizeof(Sphere));
-		memcpy(data, obj.Collider.NarrowPhaseParameters, sizeof(Sphere));
+		copy.Collider.NarrowPhaseParameters = malloc(sizeof(Sphere));
+		memcpy(copy.Collider.NarrowPhaseParameters, obj.Collider.NarrowPhaseParameters, sizeof(Sphere));
 		break;
 	default:
 		Log::Error("Unable to add kinematic object (invalid narrow phase)!");
 		return PHYSICS_HANDLE_NULL;
 	}
 
-	obj.Collider.NarrowPhaseParameters = data;
 	const PhysicsHandle handle = CreateNewHandle(PHYSICS_LIST_KINEMATIC);
-	kinematicObjects.emplace_back(std::move(obj));
+	kinematicObjects.emplace_back(copy);
 	return handle;
 }
 
@@ -153,8 +156,23 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
 void Pu::PhysicalWorld::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
+	collisionCount = 0;
 
+	/*
+	We first check for collision events between all objects.
+	This should be done early on, but it could be swapped with the next step.
+
+	We add the constant world forces (gravity and dynamics).
+	This needs to happen before we solve the collisions as they take
+	the final velocity into account when applying their impulses.
+	Otherwise the objects would slowely fall through floors, etc.
+
+	Finally we solve for the collision and integrate our positions to the next timestep.
+	Thus creating the new state of the world.
+	*/
 	CheckForCollisions();
+	collisionCount = static_cast<uint32>(collisions.size());
+	AddConstantForces(dt);
 	SolveContraints();
 	Integrate(dt);
 
@@ -255,6 +273,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint64 type)
 
 void Pu::PhysicalWorld::CheckForCollisions(void)
 {
+	/* Check for plane constraints with kinematic objects. */
 	for (size_t i = 0; i < planes.size(); i++)
 	{
 		for (size_t j = 0; j < kinematicObjects.size();)
@@ -268,6 +287,25 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 				Log::Warning("Cannot handle %s collision shape currently!", to_string(kinematicObjects[j].Collider.NarrowPhaseShape));
 				break;
 			}
+		}
+	}
+
+	/* Check for collision with kinematic objects. */
+	for (size_t i = 0; i < kinematicObjects.size(); i++)
+	{
+		for (size_t j = 0; j < kinematicObjects.size(); j++)
+		{
+			if (i == j) continue;
+
+			if (kinematicObjects[i].Collider.NarrowPhaseShape == CollisionShapes::Sphere)
+			{
+				if (kinematicObjects[j].Collider.NarrowPhaseShape == CollisionShapes::Sphere)
+				{
+					TestSphereSphere(kinematicObjects[i], PHYSICS_HANDLE_CREATE(PHYSICS_LIST_KINEMATIC, i), kinematicObjects[j], PHYSICS_HANDLE_CREATE(PHYSICS_LIST_KINEMATIC, j));
+				}
+				else Log::Warning("Cannot handle %s collision shape currently!", to_string(kinematicObjects[j].Collider.NarrowPhaseShape));
+			}
+			else Log::Warning("Cannot handle %s collision shape currently!", to_string(kinematicObjects[i].Collider.NarrowPhaseShape));
 		}
 	}
 }
@@ -312,6 +350,26 @@ bool Pu::PhysicalWorld::TestPlaneSphere(size_t planeIdx, size_t sphereIdx)
 	return true;
 }
 
+void Pu::PhysicalWorld::TestSphereSphere(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
+{
+	Sphere firstSphere = *reinterpret_cast<Sphere*>(first.Collider.NarrowPhaseParameters);
+	Sphere secondSphere = *reinterpret_cast<Sphere*>(second.Collider.NarrowPhaseParameters);
+
+	firstSphere.Center += first.P;
+	secondSphere.Center += second.P;
+
+	/* Add the collision manifold if the spheres overlap. */
+	if (intersects(firstSphere, secondSphere))
+	{
+		collisions.emplace_back(CollisionManifold
+			{
+				hfirst,
+				hsecond,
+				dir(firstSphere.Center, secondSphere.Center)
+			});
+	}
+}
+
 void Pu::PhysicalWorld::SolveContraints(void)
 {
 	for (const CollisionManifold &manifold : collisions)
@@ -323,6 +381,26 @@ void Pu::PhysicalWorld::SolveContraints(void)
 		if (at == PHYSICS_LIST_PLANE && bt == PHYSICS_LIST_KINEMATIC)
 		{
 			SolvePlaneContraint(PHYSICS_HANDLE_LOOKUP_ID(manifold.FirstObject), PHYSICS_HANDLE_LOOKUP_ID(manifold.SecondObject));
+		}
+		else if (at == PHYSICS_LIST_KINEMATIC && bt == PHYSICS_LIST_KINEMATIC)
+		{
+			PhysicalObject &first = kinematicObjects[PHYSICS_HANDLE_LOOKUP_ID(manifold.FirstObject)];
+			PhysicalObject &second = kinematicObjects[PHYSICS_HANDLE_LOOKUP_ID(manifold.SecondObject)];
+
+			const float imassFirst = recip(first.State.Mass);
+			const float imassSecond = recip(second.State.Mass);
+			const Vector3 relVloc = second.V - first.V;
+
+			/* Objects are moving away from each other, don't solve collision again. */
+			if (dot(relVloc, manifold.N) > 0.0f) continue;
+
+			/* Calculate impulse. */
+			const float e = min(materials[first.Properties].Mechanical.E, materials[second.Properties].Mechanical.E);
+			const float j = (-(1.0f + e) * dot(relVloc, manifold.N)) / (imassFirst + imassSecond);
+
+			/* Apply linear impulse. */
+			first.V -= j * manifold.N * imassFirst;
+			second.V += j * manifold.N * imassSecond;
 		}
 		else Log::Error("Unable to solve constraint for type %u (%x) with type %u (%x)!", at, manifold.FirstObject, bt, manifold.SecondObject);
 	}
@@ -337,19 +415,32 @@ void Pu::PhysicalWorld::SolvePlaneContraint(size_t planeIdx, size_t kinematicIdx
 	PhysicalObject &obj = kinematicObjects[kinematicIdx];
 	const float e = materials[obj.Properties].Mechanical.E;
 
-	/* 
-	Calculate and apply the linear impulse. 
+	/*
+	Calculate and apply the linear impulse.
 	For a collision with a plane this is always on the plane normal.
 	*/
 	const float j = rectify(-(1.0f + e) * dot(obj.V, plane.N));
 	obj.V += j * plane.N;
 }
 
+void Pu::PhysicalWorld::AddConstantForces(float dt)
+{
+	for (PhysicalObject &cur : kinematicObjects)
+	{
+		/* Add gravity. */
+		cur.V += Gravity * dt;
+
+		/* Add aerodynamic drag. */
+		const float l = cur.V.LengthSquared();
+		const Vector3 f = (cur.V / sqrtf(l)) * cur.State.Cd * l;
+		cur.V -= f * recip(cur.State.Mass) * dt;
+	}
+}
+
 void Pu::PhysicalWorld::Integrate(float dt)
 {
 	for (PhysicalObject &cur : kinematicObjects)
 	{
-		cur.V += Gravity * dt;
 		cur.P += cur.V * dt;
 	}
 }

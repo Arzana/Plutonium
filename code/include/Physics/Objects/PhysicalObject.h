@@ -29,6 +29,11 @@ namespace Pu
 		/* Specifies the collider used by the object. */
 		Collider Collider;
 
+		/* Initializes an empty instance of a physical object. */
+		PhysicalObject(void)
+			: Properties(~0ull)
+		{}
+
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, Pu::Collider &&collider)
 			: P(pos), Theta(orien), Properties(~0ull), Collider(std::move(collider))

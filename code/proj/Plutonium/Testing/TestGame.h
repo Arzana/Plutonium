@@ -28,7 +28,7 @@ protected:
 
 private:
 	Pu::FreeCamera *camFree;
-	bool firstRun, updateCam;
+	bool firstRun, updateCam, spawn;
 	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::DeferredRenderer *renderer;
@@ -39,8 +39,13 @@ private:
 
 	Pu::PhysicalWorld *world;
 	Pu::Model *modelSphere, *modelPlane;
-	Pu::PhysicsHandle sphere, plane;
+
+	Pu::Sphere collider;
+	Pu::PhysicalObject spherePrefab;
+	Pu::vector<Pu::PhysicsHandle> spheres;
+	Pu::PhysicsHandle plane;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
+	void OnAnyKeyUp(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
 };

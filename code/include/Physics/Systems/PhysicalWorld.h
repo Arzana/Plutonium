@@ -27,10 +27,12 @@ namespace Pu
 		_Check_return_ PhysicalWorld& operator =(_In_ const PhysicalWorld&) = delete;
 		_Check_return_ PhysicalWorld& operator =(_In_ PhysicalWorld&&) = delete;
 
+		/* Gets the total amount of collisions since the last reset call. */
+		_Check_return_ static uint32 GetCollisionCount(void);
 		/* Adds the specified collision plane to this world. */
-		_Check_return_ PhysicsHandle AddPlane(_In_ CollisionPlane &&plane);
+		_Check_return_ PhysicsHandle AddPlane(_In_ const CollisionPlane &plane);
 		/* Adds the specified object to this world. */
-		_Check_return_ PhysicsHandle AddKinematic(_In_ PhysicalObject &&obj);
+		_Check_return_ PhysicsHandle AddKinematic(_In_ const PhysicalObject &obj);
 		/* Adds a specific physical material to this world. */
 		_Check_return_ size_t AddMaterial(_In_ const PhysicalProperties &properties);
 		/* Removes the specified physics object from this world. */
@@ -60,8 +62,10 @@ namespace Pu
 		PhysicsHandle CreateNewHandle(uint64 type);
 		void CheckForCollisions(void);
 		bool TestPlaneSphere(size_t planeIdx, size_t sphereIdx);
+		void TestSphereSphere(const PhysicalObject &first, PhysicsHandle hfirst, const PhysicalObject &second, PhysicsHandle hsecond);
 		void SolveContraints(void);
 		void SolvePlaneContraint(size_t planeIdx, size_t kinematicIdx);
+		void AddConstantForces(float dt);
 		void Integrate(float dt);
 	};
 }

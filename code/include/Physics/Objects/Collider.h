@@ -21,6 +21,13 @@ namespace Pu
 		/* Occurs just before the collision on this object is resolved. */
 		EventBus<const void*, const CollisionManifold&> OnCollision;
 
+		/* Initializes an empty instance of a collider. */
+		Collider(void)
+			: NarrowPhaseShape(CollisionShapes::None),
+			NarrowPhaseParameters(nullptr), UserParam(nullptr),
+			OnCollision("Collider::OnCollision")
+		{}
+
 		/* Initializes a new instance of a collider. */
 		Collider(_In_ AABB broad, _In_ CollisionShapes narrow, _In_ void *params)
 			: BroadPhase(broad), NarrowPhaseShape(narrow), NarrowPhaseParameters(params),

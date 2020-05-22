@@ -9,5 +9,7 @@ namespace Pu
 		float Volume;
 		/* Specifies the mass (in kilograms) of the physical object. */
 		float Mass;
+		/* Specifies the coefficient of drag of the shape of the physical object. */
+		float Cd;
 	};
 }

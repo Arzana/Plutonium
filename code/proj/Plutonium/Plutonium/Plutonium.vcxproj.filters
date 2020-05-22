@@ -1239,7 +1239,7 @@
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

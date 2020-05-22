@@ -7,9 +7,10 @@ using namespace Pu;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame (Blinn-Phong)"),
-	updateCam(false), firstRun(true)
+	updateCam(false), firstRun(true), spawn(false), collider(Vector3(), 0.5f)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
+	GetInput().AnyKeyUp.Add(*this, &TestGame::OnAnyKeyUp);
 	AddSystem(world = new PhysicalWorld());
 }
 
@@ -45,19 +46,21 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	modelSphere = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
+	modelSphere = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr);
 	modelPlane = &fetcher.CreateModel(ShapeType::Plane, *renderer, nullptr);
 
-	plane = world->AddPlane(std::move(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse)));
+	plane = world->AddPlane(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse));
 
 	PhysicalProperties rubber;
 	rubber.Mechanical.E = 0.6f;
+	rubber.Density = 70.0f;
 
-	Sphere narrow{ Vector3(), 0.5f };
-	Collider collider{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &narrow };
-	PhysicalObject obj{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(collider) };
-	obj.Properties = world->AddMaterial(rubber);
-	sphere = world->AddKinematic(std::move(obj));
+	Collider coll{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &collider };
+
+	spherePrefab = PhysicalObject{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(coll) };
+	spherePrefab.Properties = world->AddMaterial(rubber);
+	spherePrefab.State.Mass = rubber.Density / (4.0f / 3.0f * PI * cube(collider.Radius));
+	spherePrefab.State.Cd = 0.47f;
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -103,12 +106,17 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
-		world->Visualize(*dbgRenderer);
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();
 		renderer->BeginGeometry();
-		if (modelSphere->IsLoaded()) renderer->Render(*modelSphere, world->GetTransform(sphere));
+		if (modelSphere->IsLoaded())
+		{
+			for (PhysicsHandle hndl : spheres)
+			{
+				renderer->Render(*modelSphere, world->GetTransform(hndl));
+			}
+		}
 		if (modelPlane->IsLoaded()) renderer->Render(*modelPlane, world->GetTransform(plane) * Matrix::CreateScalar(10.0f));
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
@@ -135,10 +143,23 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		}
 		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
+		else if (args.Key == Keys::Enter && !spawn)
+		{
+			spawn = true;
+			spheres.emplace_back(world->AddKinematic(spherePrefab));
+		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();
+	}
+}
+
+void TestGame::OnAnyKeyUp(const Pu::InputDevice & sender, const Pu::ButtonEventArgs & args)
+{
+	if (sender.Type == InputDeviceType::Keyboard)
+	{
+		if (args.Key == Keys::Enter) spawn = false;
 	}
 }
 
