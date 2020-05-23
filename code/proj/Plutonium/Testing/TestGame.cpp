@@ -49,18 +49,28 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	modelSphere = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr);
 	modelPlane = &fetcher.CreateModel(ShapeType::Plane, *renderer, nullptr);
 
-	plane = world->AddPlane(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse));
+	{
+		plane = world->AddPlane(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse));
 
-	PhysicalProperties rubber;
-	rubber.Mechanical.E = 0.6f;
-	rubber.Density = 70.0f;
+		Collider wall{ AABB(-0.5f, 0.0f, -5.0f, 1.0f, 10.0f, 10.0f), CollisionShapes::None, nullptr };
+		world->AddStatic(PhysicalObject(Vector3(5.0f, 0.0f, 0.0f), Quaternion{}, wall));
+		world->AddStatic(PhysicalObject(Vector3(-5.0f, 0.0f, 0.0f), Quaternion{}, wall));
+		wall.BroadPhase = AABB(-5.0f, 0.0f, -0.5f, 10.0f, 10.0f, 1.0f);
+		world->AddStatic(PhysicalObject(Vector3(0.0f, 0.0f, -5.0f), Quaternion{}, wall));
+		world->AddStatic(PhysicalObject(Vector3(0.0f, 0.0f, 5.0f), Quaternion{}, wall));
+	}
 
-	Collider coll{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &collider };
+	{
+		PhysicalProperties rubber;
+		rubber.Mechanical.E = 0.6f;
+		rubber.Density = 70.0f;
 
-	spherePrefab = PhysicalObject{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(coll) };
-	spherePrefab.Properties = world->AddMaterial(rubber);
-	spherePrefab.State.Mass = rubber.Density / (4.0f / 3.0f * PI * cube(collider.Radius));
-	spherePrefab.State.Cd = 0.47f;
+		Collider ball{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &collider };
+		spherePrefab = PhysicalObject{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(ball) };
+		spherePrefab.Properties = world->AddMaterial(rubber);
+		spherePrefab.State.Mass = rubber.Density / (4.0f / 3.0f * PI * cube(collider.Radius));
+		spherePrefab.State.Cd = 0.47f;
+	}
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -106,17 +116,18 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
+		world->Visualize(*dbgRenderer);
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();
 		renderer->BeginGeometry();
-		if (modelSphere->IsLoaded())
-		{
-			for (PhysicsHandle hndl : spheres)
-			{
-				renderer->Render(*modelSphere, world->GetTransform(hndl));
-			}
-		}
+		//if (modelSphere->IsLoaded())
+		//{
+		//	for (PhysicsHandle hndl : spheres)
+		//	{
+		//		renderer->Render(*modelSphere, world->GetTransform(hndl));
+		//	}
+		//}
 		if (modelPlane->IsLoaded()) renderer->Render(*modelPlane, world->GetTransform(plane) * Matrix::CreateScalar(10.0f));
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
@@ -146,6 +157,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		else if (args.Key == Keys::Enter && !spawn)
 		{
 			spawn = true;
+			spherePrefab.P = Vector3(random(), 20.0f, random());
 			spheres.emplace_back(world->AddKinematic(spherePrefab));
 		}
 	}

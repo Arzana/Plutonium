@@ -144,7 +144,7 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 	/* We need to set the bounding box of the mesh as well. */
 	src.EndMemoryTransfer();
 	Mesh result{ 6, sizeof(Basic3D), IndexType::UInt16 };
-	result.SetBoundingBox(AABB{ -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f });
+	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f });
 
 	return result;
 }

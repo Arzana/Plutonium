@@ -32,6 +32,8 @@ namespace Pu
 		/* Adds the specified collision plane to this world. */
 		_Check_return_ PhysicsHandle AddPlane(_In_ const CollisionPlane &plane);
 		/* Adds the specified object to this world. */
+		_Check_return_ PhysicsHandle AddStatic(_In_ const PhysicalObject &obj);
+		/* Adds the specified object to this world. */
 		_Check_return_ PhysicsHandle AddKinematic(_In_ const PhysicalObject &obj);
 		/* Adds a specific physical material to this world. */
 		_Check_return_ size_t AddMaterial(_In_ const PhysicalProperties &properties);
@@ -58,13 +60,14 @@ namespace Pu
 		static void ThrowInvalidHandle(bool condition, const char *action);
 		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr);
 
+		PhysicsHandle AddInternal(const PhysicalObject &obj, uint64 type, vector<PhysicalObject> &list);
 		void DestroyInternal(PhysicsHandle internalHandle);
 		PhysicsHandle CreateNewHandle(uint64 type);
 		void CheckForCollisions(void);
 		bool TestPlaneSphere(size_t planeIdx, size_t sphereIdx);
+		void TestAABBSphere(const PhysicalObject &first, PhysicsHandle hfirst, const PhysicalObject &second, PhysicsHandle hsecond);
 		void TestSphereSphere(const PhysicalObject &first, PhysicsHandle hfirst, const PhysicalObject &second, PhysicsHandle hsecond);
 		void SolveContraints(void);
-		void SolvePlaneContraint(size_t planeIdx, size_t kinematicIdx);
 		void AddConstantForces(float dt);
 		void Integrate(float dt);
 	};

@@ -35,6 +35,11 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a physical object. */
+		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, const Pu::Collider &collider)
+			: P(pos), Theta(orien), Properties(~0ull), Collider(collider)
+		{}
+
+		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, Pu::Collider &&collider)
 			: P(pos), Theta(orien), Properties(~0ull), Collider(std::move(collider))
 		{}

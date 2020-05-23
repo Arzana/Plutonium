@@ -33,6 +33,11 @@ Vector3 Pu::AABB::operator[](size_t idx) const
 	}
 }
 
+AABB Pu::AABB::operator+(Vector3 offset) const
+{
+	return AABB(LowerBound + offset, UpperBound + offset);
+}
+
 AABB Pu::AABB::Mix(const AABB & first, const AABB & second, float a)
 {
 	return AABB(lerp(first.LowerBound, second.LowerBound, a), lerp(first.UpperBound, second.UpperBound, a));

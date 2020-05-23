@@ -34,6 +34,8 @@ namespace Pu
 		_Check_return_ AABB operator *(_In_ const Matrix &m) const;
 		/* Gets the corner at the specified index. */
 		_Check_return_ Vector3 operator [](_In_ size_t idx) const;
+		/* Adds the specified offset to the AABB. */
+		_Check_return_ AABB operator +(_In_ Vector3 offset) const;
 
 		/* Gets whether the box has a size of zero. */
 		_Check_return_ inline bool IsEmpty(void) const
