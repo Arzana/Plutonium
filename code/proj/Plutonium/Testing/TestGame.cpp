@@ -50,14 +50,11 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	modelPlane = &fetcher.CreateModel(ShapeType::Plane, *renderer, nullptr);
 
 	{
-		plane = world->AddPlane(CollisionPlane(Vector3::Up(), 0.0f, PassOptions::KinematicResponse));
-
-		Collider wall{ AABB(-0.5f, 0.0f, -5.0f, 1.0f, 10.0f, 10.0f), CollisionShapes::None, nullptr };
-		world->AddStatic(PhysicalObject(Vector3(5.0f, 0.0f, 0.0f), Quaternion{}, wall));
-		world->AddStatic(PhysicalObject(Vector3(-5.0f, 0.0f, 0.0f), Quaternion{}, wall));
-		wall.BroadPhase = AABB(-5.0f, 0.0f, -0.5f, 10.0f, 10.0f, 1.0f);
-		world->AddStatic(PhysicalObject(Vector3(0.0f, 0.0f, -5.0f), Quaternion{}, wall));
-		world->AddStatic(PhysicalObject(Vector3(0.0f, 0.0f, 5.0f), Quaternion{}, wall));
+		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Up(), -5.0f, PassOptions::KinematicResponse)));			// Ground
+		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Right(), -5.0f, PassOptions::KinematicResponse)));		// Left
+		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Left(), -5.0f, PassOptions::KinematicResponse)));		// Right
+		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Forward(), -5.0f, PassOptions::KinematicResponse)));	// Backwards
+		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Backward(), -5.0f, PassOptions::KinematicResponse)));	// Forwards
 	}
 
 	{
@@ -116,19 +113,24 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
-		world->Visualize(*dbgRenderer);
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();
 		renderer->BeginGeometry();
-		//if (modelSphere->IsLoaded())
-		//{
-		//	for (PhysicsHandle hndl : spheres)
-		//	{
-		//		renderer->Render(*modelSphere, world->GetTransform(hndl));
-		//	}
-		//}
-		if (modelPlane->IsLoaded()) renderer->Render(*modelPlane, world->GetTransform(plane) * Matrix::CreateScalar(10.0f));
+		if (modelSphere->IsLoaded())
+		{
+			for (PhysicsHandle hndl : spheres)
+			{
+				renderer->Render(*modelSphere, world->GetTransform(hndl));
+			}
+		}
+		if (modelPlane->IsLoaded())
+		{
+			for (PhysicsHandle hndl : planes)
+			{
+				renderer->Render(*modelPlane, world->GetTransform(hndl) * Matrix::CreateScalar(10.0f));
+			}
+		}
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
 		renderer->BeginLight();

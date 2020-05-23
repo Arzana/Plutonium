@@ -103,9 +103,20 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= planes.size(), "get transform of");
 #endif
-
-		Plane plane = planes[idx].Plane;
-		return Matrix::CreateLookIn(plane.N * plane.D, tangent(plane.N), plane.N);
+		/* 
+		The default state of the plane is N = UP.
+		So we just get the tangent of that normal for the right vector,
+		and then N X R = FORWARD, translation is simply N * D.
+		*/
+		const Plane plane = planes[idx].Plane;
+		const Vector3 t = plane.N * plane.D;
+		const Vector3 r = cross(plane.N, tangent(plane.N));
+		const Vector3 f = cross(plane.N, r);
+		return Matrix(
+			r.X, plane.N.X, f.X, t.X,
+			r.Y, plane.N.Y, f.Y, t.Y,
+			r.Z, plane.N.Z, f.Z, t.Z,
+			0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	else if (list == PHYSICS_LIST_KINEMATIC)
 	{

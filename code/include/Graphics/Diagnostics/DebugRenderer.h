@@ -11,6 +11,7 @@
 namespace Pu
 {
 	class DynamicBuffer;
+	class QueryChain;
 
 	/* Defines an obect used to render debug shapes. */
 	class DebugRenderer
@@ -69,6 +70,7 @@ namespace Pu
 
 		Renderpass *renderpass;
 		GraphicsPipeline *pipeline;
+		QueryChain *query;
 
 		DynamicBuffer *buffer;
 		const DepthBuffer *depthBuffer;

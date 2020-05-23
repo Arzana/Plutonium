@@ -43,7 +43,7 @@ private:
 	Pu::Sphere collider;
 	Pu::PhysicalObject spherePrefab;
 	Pu::vector<Pu::PhysicsHandle> spheres;
-	Pu::PhysicsHandle plane;
+	Pu::vector<Pu::PhysicsHandle> planes;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnAnyKeyUp(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

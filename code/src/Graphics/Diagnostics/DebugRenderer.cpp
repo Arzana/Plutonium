@@ -1,6 +1,8 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Graphics/VertexLayouts/ColoredVertex3D.h"
 #include "Graphics/Resources/DynamicBuffer.h"
+#include "Graphics/Diagnostics/QueryChain.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/Interpolation.h"
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
@@ -10,6 +12,7 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
 	queue = reinterpret_cast<ColoredVertex3D*>(malloc(sizeof(ColoredVertex3D) * MaxDebugRendererVertices));
+	query = new QueryChain(window.GetDevice(), QueryType::Timestamp, 1);
 
 	renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
@@ -34,6 +37,7 @@ Pu::DebugRenderer::~DebugRenderer(void)
 
 	loader.Release(*renderpass);
 
+	delete query;
 	delete buffer;
 	delete queue;
 }
@@ -328,7 +332,9 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 		/* Only render if the pipeline is loaded. */
 		if (pipeline->IsUsable() && size)
 		{
+			Profiler::Add("Debug Renderer", Color::Orange(), query->GetProfilerTimeDelta(0));
 			cmdBuffer.AddLabel("Debug Renderer", Color::CodGray());
+			query->Reset(cmdBuffer);
 
 			/* Update the dynamic buffer. */
 			buffer->BeginMemoryTransfer();
@@ -338,6 +344,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 
 			/* Begin the renderpass. */
 			cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
+			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::TopOfPipe);
 			cmdBuffer.BindGraphicsPipeline(*pipeline);
 			if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
 
@@ -350,6 +357,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 			cmdBuffer.Draw(size, 1, 0, 0);
 
 			/* End the renderpass. */
+			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::BottomOfPipe);
 			cmdBuffer.EndRenderPass();
 			cmdBuffer.EndLabel();
 		}

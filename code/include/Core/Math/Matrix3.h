@@ -14,6 +14,13 @@ namespace Pu
 			, c3(0.0f, 0.0f, 1.0f)
 		{}
 
+		/* Initializes a new instance of a 3x3 square matrix with all components specified. */
+		Matrix3(float m00, float m01, float m02,
+			float m10, float m11, float m12,
+			float m20, float m21, float m22)
+			: c1(m00, m10, m20), c2(m01, m11, m21), c3(m02, m12, m22)
+		{}
+
 		/* Transforms the specified vector by the matrix. */
 		_Check_return_ inline Vector3 operator *(_In_ Vector3 v) const
 		{
@@ -173,12 +180,6 @@ namespace Pu
 
 		Matrix3(const Vector3 &c1, const Vector3 &c2, const Vector3 &c3)
 			: c1(c1), c2(c2), c3(c3)
-		{}
-
-		Matrix3(float m00, float m01, float m02,
-			float m10, float m11, float m12,
-			float m20, float m21, float m22)
-			: c1(m00, m10, m20), c2(m01, m11, m21), c3(m02, m12, m22)
 		{}
 	};
 }

@@ -23,6 +23,14 @@ namespace Pu
 			, c4(0.0f, 0.0f, 0.0f, 1.0f)
 		{}
 
+		/* Initializes a new instance of a 4x4 square matrix with all components specified. */
+		Matrix(float m00, float m01, float m02, float m03,
+			float m10, float m11, float m12, float m13,
+			float m20, float m21, float m22, float m23,
+			float m30, float m31, float m32, float m33)
+			: c1(m00, m10, m20, m30), c2(m01, m11, m21, m31), c3(m02, m12, m22, m32), c4(m03, m13, m23, m33)
+		{}
+
 		/* Transforms the specified vector by the matrix (threats it as a point). */
 		_Check_return_ inline Vector3 operator *(_In_ Vector3 v) const
 		{
@@ -271,15 +279,8 @@ namespace Pu
 #pragma warning(pop)
 		};
 
-		Matrix(const Vector4 &c1, const Vector4 &c2, const Vector4 &c3, const Vector4 &c4)
+		Matrix(Vector4 c1, Vector4 c2, Vector4 c3, Vector4 c4)
 			: c1(c1), c2(c2), c3(c3), c4(c4)
-		{}
-
-		Matrix(float m00, float m01, float m02, float m03,
-			float m10, float m11, float m12, float m13,
-			float m20, float m21, float m22, float m23,
-			float m30, float m31, float m32, float m33)
-			: c1(m00, m10, m20, m30), c2(m01, m11, m21, m31), c3(m02, m12, m22, m32), c4(m03, m13, m23, m33)
 		{}
 	};
 
