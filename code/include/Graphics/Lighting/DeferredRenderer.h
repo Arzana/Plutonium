@@ -62,9 +62,15 @@ namespace Pu
 		}
 
 		/* Gets the descriptor set layout for the materials used by the renderer. */
-		_Check_return_ inline const DescriptorSetLayout& GetMaterialLayout(void) const
+		_Check_return_ inline const DescriptorSetLayout& GetAdvancedMaterialLayout(void) const
 		{
 			return renderpass->GetSubpass(SubpassAdvancedStaticGeometry).GetSetLayout(1);
+		}
+
+		/* Gets the descriptor set layout for the materials used by the renderer. */
+		_Check_return_ inline const DescriptorSetLayout& GetBasicMaterialLayout(void) const
+		{
+			return renderpass->GetSubpass(SubpassBasicStaticGeometry).GetSetLayout(1);
 		}
 
 		/* Gets the descriptor set layout for the directional lights used by the renderer. */
@@ -82,7 +88,7 @@ namespace Pu
 		/* Creates a new descriptor pool for terrains. */
 		_Check_return_ DescriptorPool* CreateTerrainDescriptorPool(_In_ uint32 maxTerrains) const;
 		/* Creates a new descriptor pool for materials rendered through this deferred renderer. */
-		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxMaterials) const;
+		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxBasicMaterials, _In_ uint32 maxAdvancedMaterials) const;
 		/* Initializes a descriptor pool for use with the deferred renderer cameras. */
 		void InitializeCameraPool(_In_ DescriptorPool &pool, _In_ uint32 maxSets) const;
 		/* Performs needed resource transitions. */

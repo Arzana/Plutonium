@@ -120,7 +120,7 @@ Pu::DescriptorPool * Pu::DeferredRenderer::CreateTerrainDescriptorPool(uint32 ma
 	return new DescriptorPool(*renderpass, maxTerrains, SubpassTerrain, 1);
 }
 
-Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 maxMaterials) const
+Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 maxBasicMaterials, uint32 maxAdvancedMaterials) const
 {
 	if (!renderpass->IsLoaded())
 	{
@@ -128,8 +128,11 @@ Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 m
 		return nullptr;
 	}
 
-	/* Set 1 is the material set. */
-	return new DescriptorPool(*renderpass, maxMaterials, SubpassAdvancedStaticGeometry, 1);
+	/* Allocate the pool, only add the set if the user wants to use it. */
+	DescriptorPool *result = new DescriptorPool(*renderpass);
+	if (maxBasicMaterials) result->AddSet(SubpassBasicStaticGeometry, 1, maxBasicMaterials);
+	if (maxAdvancedMaterials) result->AddSet(SubpassAdvancedStaticGeometry, 1, maxAdvancedMaterials);
+	return result;
 }
 
 void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 maxSets) const

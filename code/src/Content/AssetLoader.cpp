@@ -626,14 +626,10 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 				return Result::AutoDelete();
 			}
 
-			/* Allocate the single material and create the material. */
-			result.AllocPools(deferred, probes, 1);
-			result.AddMaterial(0, 1, 2, deferred, probes).SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
-
 			/* Record the descriptor commands. */
 			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
 			cmdBuffer.Begin();
-			result.poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
+			result.Finalize(cmdBuffer, deferred, probes);
 			cmdBuffer.End();
 
 			parent.graphicsQueue.Submit(cmdBuffer);

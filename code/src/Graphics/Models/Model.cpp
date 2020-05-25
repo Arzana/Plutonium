@@ -48,37 +48,57 @@ Pu::Asset & Pu::Model::Duplicate(AssetCache&)
 	return *this;
 }
 
-void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer * probes, size_t count)
+void Pu::Model::AllocPools(const DeferredRenderer & deferred, const LightProbeRenderer * probes, size_t basicCount, size_t advancedCount)
 {
 	/* Reserve the material vectors to decrease allocations. */
-	materials.reserve(count);
-	probeMaterials.reserve(count);
+	const uint32 totalCount = static_cast<uint32>(basicCount + advancedCount);
+	materials.reserve(totalCount);
+	probeMaterials.reserve(totalCount);
 
 	/* Allocate the required descriptor pools. */
-	poolMaterials = deferred.CreateMaterialDescriptorPool(static_cast<uint32>(count));
-	if (probes) poolProbes = probes->CreateDescriptorPool(static_cast<uint32>(count));
+	poolMaterials = deferred.CreateMaterialDescriptorPool(static_cast<uint32>(basicCount), static_cast<uint32>(advancedCount));
+	if (probes) poolProbes = probes->CreateDescriptorPool(static_cast<uint32>(totalCount));
 }
 
+/* This finalize is used to finalize normal models. */
 void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer * probes, const PuMData & data)
 {
-	AllocPools(deferred, probes, data.Materials.size());
-
+	/* Calculate how many basic and advanced materials are needed. */
+	size_t basicCount = 0, advancedCount = 0;
 	for (const PumMaterial &raw : data.Materials)
 	{
-		/* Get the indices of the textures to use, the last 3 are default textures. */
-		const size_t diffuseMap = raw.HasDiffuseTexture ? raw.DiffuseTexture : textures.size() - 3;
-		const size_t specGlossMap = raw.HasSpecGlossTexture ? raw.SpecGlossTexture : textures.size() - 2;
-		const size_t normalMap = raw.HasNormalTexture ? raw.NormalTexture : textures.size() - 1;
-
-		AddMaterial(diffuseMap, specGlossMap, normalMap, deferred, probes).SetParameters(raw);
+		basicCount += !raw.HasNormalTexture;
+		advancedCount += raw.HasNormalTexture;
 	}
+
+	/* Allocate the pool and set the set values. */
+	AllocPools(deferred, probes, basicCount, advancedCount);
+	for (const PumMaterial &raw : data.Materials) AddMaterial(raw, deferred, probes);
 
 	/* Only the material pool needs to update. */
 	poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
 }
 
-Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t normal, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
+/* This finalize is used to finalize created models. */
+void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
 {
+	/* Allocate the single pool and set the material. */
+	AllocPools(deferred, probes, 1, 0);	
+
+	Material &material = AddBasicMaterial(deferred);
+	material.SetDiffuse(*textures[0]);
+	material.SetSpecular(*textures[1]);
+	material.SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
+
+	poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
+}
+
+void Pu::Model::AddMaterial(const PumMaterial & info, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
+{
+	/* Get the indices of the textures to use, the last 2 are default textures. */
+	const size_t diffuse = info.HasDiffuseTexture ? info.DiffuseTexture : textures.size() - 2;
+	const size_t specGlossMap = info.HasSpecGlossTexture ? info.SpecGlossTexture : textures.size() - 1;
+
 	/* Create the light probe material for this material. */
 	if (probes)
 	{
@@ -86,13 +106,25 @@ Pu::Material& Pu::Model::AddMaterial(size_t diffuse, size_t specular, size_t nor
 		set.Write(probes->GetDiffuseDescriptor(), *textures[diffuse]);
 	}
 
-	/* Create the deferred material for this material. */
-	Material &material = materials.emplace_back(*poolMaterials, deferred.GetMaterialLayout());
+	/* Allocate the correct material and set the diffuse and specular map. */
+	Material &material = info.HasNormalTexture ? AddAdvancedMaterial(info.NormalTexture, deferred) : AddBasicMaterial(deferred);
 	material.SetDiffuse(*textures[diffuse]);
-	material.SetSpecular(*textures[specular]);
-	material.SetNormal(*textures[normal]);
+	material.SetSpecular(*textures[specGlossMap]);
+	material.SetParameters(info);
+}
 
-	return material;
+Pu::Material & Pu::Model::AddAdvancedMaterial(size_t normal, const DeferredRenderer & deferred)
+{
+	/* Allocate the material from the pool. */
+	Material &result = materials.emplace_back(*poolMaterials, DeferredRenderer::SubpassAdvancedStaticGeometry, deferred.GetAdvancedMaterialLayout());
+	result.SetNormal(*textures[normal]);
+	return result;
+}
+
+Pu::Material & Pu::Model::AddBasicMaterial(const DeferredRenderer & deferred)
+{
+	/* Allocate the material from the pool. */
+	return materials.emplace_back(*poolMaterials, DeferredRenderer::SubpassBasicStaticGeometry, deferred.GetBasicMaterialLayout());
 }
 
 void Pu::Model::Destroy(void)

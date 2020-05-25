@@ -1,16 +1,20 @@
 #include "Graphics/Models/Material.h"
 #include "Graphics/Lighting/DeferredRenderer.h"
 
-Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout)
-	: DescriptorSet(pool, DeferredRenderer::SubpassAdvancedStaticGeometry, layout), 
-	diffuseMap(&GetDescriptor(DeferredRenderer::SubpassAdvancedStaticGeometry, "Diffuse")),
-	specularMap(&GetDescriptor(DeferredRenderer::SubpassAdvancedStaticGeometry, "SpecularGlossiness")),
-	normalMap(&GetDescriptor(DeferredRenderer::SubpassAdvancedStaticGeometry, "Bump")),
-	threshold(0.0f)
-{}
+Pu::Material::Material(DescriptorPool & pool, uint32 subpass, const DescriptorSetLayout & layout)
+	: DescriptorSet(pool, subpass, layout), 
+	diffuseMap(&GetDescriptor(subpass, "Diffuse")),
+	specularMap(&GetDescriptor(subpass, "SpecularGlossiness")),
+	normalMap(nullptr), threshold(0.0f)
+{
+	if (subpass == DeferredRenderer::SubpassAdvancedStaticGeometry)
+	{
+		normalMap = &GetDescriptor(subpass, "Bump");
+	}
+}
 
-Pu::Material::Material(DescriptorPool & pool, const DescriptorSetLayout & layout, const PumMaterial & parameters)
-	: Material(pool, layout)
+Pu::Material::Material(DescriptorPool & pool, uint32 subpass, const DescriptorSetLayout & layout, const PumMaterial & parameters)
+	: Material(pool, subpass, layout)
 {
 	SetParameters(parameters);
 }

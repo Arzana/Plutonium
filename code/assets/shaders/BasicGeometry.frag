@@ -4,8 +4,7 @@
 // Defines the material that will be used for the normal models.
 layout (set = 1, binding = 0) uniform sampler2D Diffuse;
 layout (set = 1, binding = 1) uniform sampler2D SpecularGlossiness;
-layout (set = 1, binding = 2) uniform sampler2D Bump;
-layout (set = 1, binding = 3) uniform Material
+layout (set = 1, binding = 2) uniform Material
 {
 	vec4 F0Power;					// Stores the specular base (F0) and the specular power.
 	vec4 DiffuseFactorRoughness;	// Stores the diffuse factor and roughness.
