@@ -457,7 +457,7 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 					mesh.Bounds.LowerBound = pos;
 					mesh.Bounds.UpperBound = pos;
 				}
-				else mesh.Bounds = mesh.Bounds.Merge(pos);
+				else mesh.Bounds.MergeInto(pos);
 
 				/* 
 				Write the vertex to the buffer.

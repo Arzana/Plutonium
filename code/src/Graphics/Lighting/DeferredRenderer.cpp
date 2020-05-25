@@ -316,7 +316,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform,
 {
 	/* Only render the model if it can be viewed by the camera. */
 	const MeshCollection &meshes = model.GetMeshes();
-	const AABB bb = meshes.GetBoundingBox(keyFrame1).Merge(meshes.GetBoundingBox(keyFrame2));
+	const AABB bb = lerp(meshes.GetBoundingBox(keyFrame1), meshes.GetBoundingBox(keyFrame2), blending);
 	if (curCam->Cull(bb, transform)) return;
 
 	/* Set push constants. */

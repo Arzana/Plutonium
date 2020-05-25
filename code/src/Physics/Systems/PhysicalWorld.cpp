@@ -15,7 +15,6 @@ I (32-bits): The index in the lookup vector, used to determine the actual index.
 #define PHYSICS_LIST_STATIC						1ull
 #define PHYSICS_LIST_KINEMATIC					2ull
 
-#define PHYSICS_HANDLE_NULL						~0ull
 #define PHYSICS_HANDLE_LOOKUP_ID(handle)		((handle) & 0xFFFFFFFF)
 #define PHYSICS_HANDLE_TYPE(handle)				((handle) >> 62)
 #define PHYSICS_HANDLE_CREATE(type, idx)		(((type) << 62) | (idx))
@@ -80,7 +79,7 @@ void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 
 	/* Actually destroy the handle and set it to null. */
 	DestroyInternal(internalHandle);
-	internalHandle = PHYSICS_HANDLE_NULL;
+	internalHandle = PhysicsNullHandle;
 }
 
 Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
@@ -212,7 +211,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 			Therefor only an AABB collider would create very weird physics.
 			*/
 			Log::Error("Kinematic objects cannot have only an AABB collider!");
-			return PHYSICS_HANDLE_NULL;
+			return PhysicsNullHandle;
 		}
 		break;
 	case CollisionShapes::Sphere:
@@ -221,7 +220,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 		break;
 	default:
 		Log::Error("Unable to add object (invalid narrow phase)!");
-		return PHYSICS_HANDLE_NULL;
+		return PhysicsNullHandle;
 	}
 
 	/* All went well, so create a new handle and add it to the correct list. */
@@ -306,13 +305,13 @@ Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint64 type)
 		break;
 	default:
 		Log::Fatal("Unable to create physics handle (invalid object type)!");
-		return PHYSICS_HANDLE_NULL;
+		return PhysicsNullHandle;
 	}
 
 	/* Search for an empty position in the lookup table. */
 	for (size_t j = 0; j < lookup.size(); j++)
 	{
-		if (lookup[j] == PHYSICS_HANDLE_NULL)
+		if (lookup[j] == PhysicsNullHandle)
 		{
 			lookup[j] = PHYSICS_HANDLE_CREATE(type, i);
 			return PHYSICS_HANDLE_CREATE(type, j);
@@ -474,7 +473,7 @@ void Pu::PhysicalWorld::SolveContraints(void)
 		{
 			PhysicalObject &second = kinematicObjects[PHYSICS_HANDLE_LOOKUP_ID(manifold.SecondObject)];
 
-			const float e = materials[second.Properties].Mechanical.E;
+			const float e = materials[second.Properties].Mechanical.CoR;
 			const float j = rectify(-(1.0f + e) * dot(second.V, manifold.N));
 			second.V += j * manifold.N;
 		}
@@ -491,7 +490,7 @@ void Pu::PhysicalWorld::SolveContraints(void)
 			if (dot(relVloc, manifold.N) > 0.0f) continue;
 
 			/* Calculate impulse. */
-			const float e = min(materials[first.Properties].Mechanical.E, materials[second.Properties].Mechanical.E);
+			const float e = min(materials[first.Properties].Mechanical.CoR, materials[second.Properties].Mechanical.CoR);
 			const float j = (-(1.0f + e) * dot(relVloc, manifold.N)) / (imassFirst + imassSecond);
 
 			/* Apply linear impulse. */

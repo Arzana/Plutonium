@@ -38,11 +38,6 @@ AABB Pu::AABB::operator+(Vector3 offset) const
 	return AABB(LowerBound + offset, UpperBound + offset);
 }
 
-AABB Pu::AABB::Mix(const AABB & first, const AABB & second, float a)
-{
-	return AABB(lerp(first.LowerBound, second.LowerBound, a), lerp(first.UpperBound, second.UpperBound, a));
-}
-
 void Pu::AABB::Inflate(float horizontal, float vertical, float depth)
 {
 	const Vector3 adder(horizontal * 0.5f, vertical * 0.5f, depth * 0.5f);
@@ -50,37 +45,14 @@ void Pu::AABB::Inflate(float horizontal, float vertical, float depth)
 	UpperBound += adder;
 }
 
-AABB Pu::AABB::Merge(const AABB & second) const
+void Pu::AABB::MergeInto(Vector3 p)
 {
-	return AABB(min(LowerBound, second.LowerBound), max(UpperBound, second.UpperBound));
-}
-
-AABB Pu::AABB::Merge(Vector3 point) const
-{
-	return AABB(min(LowerBound, point), max(UpperBound, point));
+	LowerBound = min(LowerBound, p);
+	UpperBound = max(UpperBound, p);
 }
 
 void Pu::AABB::MergeInto(const AABB & second)
 {
 	LowerBound = min(LowerBound, second.LowerBound);
 	UpperBound = max(UpperBound, second.UpperBound);
-}
-
-bool Pu::AABB::Contains(const AABB & r) const
-{
-	return LowerBound.X <= r.LowerBound.X && UpperBound.X >= r.UpperBound.X
-		&& LowerBound.Y <= r.LowerBound.Y && UpperBound.Y >= r.UpperBound.Y
-		&& UpperBound.Z <= r.LowerBound.Z && UpperBound.Z >= r.UpperBound.Z;
-}
-
-AABB Pu::AABB::GetOverlap(const AABB & r) const
-{
-	const Vector3 low = max(LowerBound, r.LowerBound);
-	const Vector3 upp = min(UpperBound, r.UpperBound);
-	return upp.X < low.X || upp.Y < low.Y || upp.Z < low.Z ? AABB() : AABB(low, upp);
-}
-
-float Pu::AABB::GetDistance(Vector3 point) const
-{
-	return max(LowerBound - point, point - UpperBound).Length();
 }

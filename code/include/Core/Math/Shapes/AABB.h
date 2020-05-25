@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Math/Matrix.h"
+#include "Core/Math/Interpolation.h"
 
 namespace Pu
 {
@@ -36,18 +37,6 @@ namespace Pu
 		_Check_return_ Vector3 operator [](_In_ size_t idx) const;
 		/* Adds the specified offset to the AABB. */
 		_Check_return_ AABB operator +(_In_ Vector3 offset) const;
-
-		/* Gets whether the box has a size of zero. */
-		_Check_return_ inline bool IsEmpty(void) const
-		{
-			return LowerBound == UpperBound;
-		}
-
-		/* Gets whether the box has a size of zero and is at the position origin. */
-		_Check_return_ inline bool IsUseless(void) const
-		{
-			return LowerBound == Vector3() && IsEmpty();
-		}
 
 		/* Gets the absolute width of the box. */
 		_Check_return_ inline float GetWidth(void) const
@@ -86,28 +75,41 @@ namespace Pu
 			return 2.0f * (dim.X * dim.Y + dim.Y * dim.Z + dim.Z * dim.X);
 		}
 
-		/* Mixes the two boxes with a specified amount. */
-		_Check_return_ static AABB Mix(_In_ const AABB &first, _In_ const AABB &second, _In_ float a);
-
 		/* Expands the box from all faces by a specified amount. */
 		void Inflate(_In_ float horizontal, _In_ float vertical, _In_ float depth);
-		/* Creates a box that contains the two input boxes. */
-		_Check_return_ AABB Merge(_In_ const AABB &second) const;
-		/* Creates a box that contains the input box and the specified point. */
-		_Check_return_ AABB Merge(_In_ Vector3 point) const;
+		/* Merges the specified point into this box. */
+		void MergeInto(_In_ Vector3 p);
 		/* Merges the specified box into this box. */
 		void MergeInto(_In_ const AABB &second);
-		/* Checks whether a box is fully within the box. */
-		_Check_return_ bool Contains(_In_ const AABB &r) const;
-		/* Gets the overlap of a box over the box. */
-		_Check_return_ AABB GetOverlap(_In_ const AABB &r) const;
-		/* Gets the distance from a single point to the box. */
-		_Check_return_ float GetDistance(_In_ Vector3 point) const;
 	};
 
 	/* Transforms the box with the specified matrix. */
 	_Check_return_ inline AABB operator *(_In_ const Matrix &m, _In_ const AABB &b)
 	{
 		return b * m;
+	}
+
+	/* Adds the specified offset to the specified AABB. */
+	_Check_return_ inline AABB operator +(_In_ Vector3 offset, _In_ const AABB &box)
+	{
+		return box + offset;
+	}
+
+	/* Performs linear interpolation between the two specified axis-aligned bounding boxes. */
+	_Check_return_ inline AABB lerp(_In_ const AABB &a, _In_ const AABB &b, _In_ float v)
+	{
+		return AABB(lerp(a.LowerBound, b.LowerBound, v), lerp(a.UpperBound, b.UpperBound, v));
+	}
+
+	/* Creates an exis-aligned bounding box that contains the input box and point. */
+	_Check_return_ inline AABB union_(_In_ const AABB &a, _In_ Vector3 p)
+	{
+		return AABB(min(a.LowerBound, p), max(a.UpperBound, p));
+	}
+
+	/* Creates an axis-aligned bounding box that contains both input boxes. */
+	_Check_return_ inline AABB union_(_In_ const AABB &a, _In_ const AABB &b)
+	{
+		return AABB(min(a.LowerBound, b.LowerBound), max(a.UpperBound, b.UpperBound));
 	}
 }

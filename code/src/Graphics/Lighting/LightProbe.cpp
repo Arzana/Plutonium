@@ -1,6 +1,7 @@
 #include "Graphics/Lighting/LightProbe.h"
 #include "Graphics/Lighting/LightProbeRenderer.h"
 #include "Graphics/Lighting/LightProbeUniformBlock.h"
+#include "Physics/Systems/PointTests.h"
 
 Pu::LightProbe::LightProbe(void)
 	: fetcher(nullptr), time(0.0f), locked(true),
@@ -144,8 +145,8 @@ bool Pu::LightProbe::ShouldUpdate(float dt)
 bool Pu::LightProbe::Cull(const AABB & bb) const
 {
 	/* The light probe is omnidirectional so we only care about the distance between the object and the light probe. */
-	const float d = bb.GetDistance(position);
-	return d < near || d > far;
+	const float d = sqrdist(position, closest(bb, position));
+	return d < sqr(near) || d > sqr(far);
 }
 
 Pu::Viewport Pu::LightProbe::GetViewport(void) const

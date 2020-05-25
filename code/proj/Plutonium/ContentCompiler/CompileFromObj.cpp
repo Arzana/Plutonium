@@ -1124,7 +1124,7 @@ void CopyGeometry(const ObjLoaderResult &input, PumIntermediate &result)
 				mesh.Bounds.LowerBound = pos;
 				mesh.Bounds.UpperBound = pos;
 			}
-			else mesh.Bounds = mesh.Bounds.Merge(pos);
+			else mesh.Bounds.MergeInto(pos);
 
 			result.Data.Write(pos);
 

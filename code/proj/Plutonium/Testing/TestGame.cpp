@@ -59,7 +59,8 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 
 	{
 		PhysicalProperties rubber;
-		rubber.Mechanical.E = 0.6f;
+		rubber.Mechanical.CoR = 0.6f;
+		rubber.Mechanical.CoF = 1.16f;
 		rubber.Density = 70.0f;
 
 		Collider ball{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &collider };

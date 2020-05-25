@@ -6,6 +6,8 @@ namespace Pu
 	struct MechanicalProperties
 	{
 		/* Specifies the coefficient of restitution [0, 1]. */
-		float E;
+		float CoR;
+		/* Specifies the coefficient of friction [0, n]. */
+		float CoF;
 	};
 }

@@ -5,6 +5,8 @@ namespace Pu
 {
 	/* Defines the handle to a physical object. */
 	using PhysicsHandle = uint64;
+	/* Defines the handle used to denote a null handle. */
+	constexpr PhysicsHandle PhysicsNullHandle = ~0ull;
 
 	/* Defines the parameters needed to solve a collision. */
 	struct CollisionManifold
