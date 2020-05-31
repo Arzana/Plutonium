@@ -43,8 +43,6 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
-
-	terrain = new TerrainChunk(fetcher);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -52,7 +50,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (camFree) delete camFree;
 	if (lightMain) delete lightMain;
 	if (lightFill) delete lightFill;
-	if (terrain) delete terrain;
+	for (TerrainChunk *chunk : terrain) delete chunk;
 	if (renderer) delete renderer;
 	if (dbgRenderer) delete dbgRenderer;
 
@@ -69,7 +67,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
-		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 1);			// Terrain set
+		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 100);		// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		camFree->Move(5.0f, 1.0f, -5.0f);
@@ -95,7 +93,10 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();
-		if (terrain->IsUsable()) renderer->Render(*terrain);
+		for (const TerrainChunk *chunk : terrain)
+		{
+			if (chunk->IsUsable()) renderer->Render(*chunk);
+		}
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
@@ -122,15 +123,24 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		}
 		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
-		else if (args.Key == Keys::G && terrain && !terrain->IsGenerated())
+		else if (args.Key == Keys::G && terrain.empty())
 		{
-			terrain->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, 
+			for (float z = 0; z < 10.0f; z++)
+			{
+				for (float x = 0; x < 10.0f; x++)
 				{
-					L"{Textures}Terrain/Water.jpg",
-					L"{Textures}Terrain/Grass.jpg",
-					L"{Textures}Terrain/Dirt.jpg",
-					L"{Textures}Terrain/Snow.jpg"
-				});
+					TerrainChunk *chunk = new TerrainChunk(GetContent());
+					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
+						{
+							L"{Textures}Terrain/Water.jpg",
+							L"{Textures}Terrain/Grass.jpg",
+							L"{Textures}Terrain/Dirt.jpg",
+							L"{Textures}Terrain/Snow.jpg"
+						});
+
+					terrain.emplace_back(chunk);
+				}
+			}
 		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)

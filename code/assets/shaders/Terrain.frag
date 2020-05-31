@@ -1,7 +1,7 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
 layout (early_fragment_tests) in;
-layout (constant_id = 1) const bool SampleBasedOnHeight = false;
+layout (constant_id = 1) const bool SampleBasedOnHeight = true;
 
 layout (set = 1, binding = 0) uniform sampler2D Height;
 layout (set = 1, binding = 1) uniform sampler2D TextureMask;

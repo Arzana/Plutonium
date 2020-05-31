@@ -37,6 +37,8 @@ namespace Pu
 		_Check_return_ Vector3 NDCToWorld(_In_ Vector3 v) const;
 		/* Gets the camera's inverse view matrix. */
 		_Check_return_ const Matrix& GetInverseView(void) const;
+		/* Gets whether the specified AABB is outside the camera's view frustum. */
+		_Check_return_ bool Cull(_In_ const AABB &boundingBox) const;
 		/* Gets whether the specified AABB with the specified transform applied is outside the camera's view frustum. */
 		_Check_return_ bool Cull(_In_ const AABB &boundingBox, _In_ const Matrix &transform) const;
 

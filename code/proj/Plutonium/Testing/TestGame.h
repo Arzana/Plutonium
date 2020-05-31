@@ -36,7 +36,7 @@ private:
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
-	Pu::TerrainChunk *terrain;
+	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

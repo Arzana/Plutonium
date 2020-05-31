@@ -12,8 +12,8 @@ namespace Pu
 		: public Task
 	{
 	public:
-		ChunkCreator(TerrainChunk *result, DescriptorPool &pool, const DescriptorSetLayout &layout, PerlinNoise &noise)
-			: result(result), pool(pool), layout(layout), noise(noise)
+		ChunkCreator(TerrainChunk *result, DescriptorPool &pool, const DescriptorSetLayout &layout, PerlinNoise &noise, Vector2 offset)
+			: result(result), pool(pool), layout(layout), noise(noise), offset(offset)
 		{}
 
 		Result Execute(void) final
@@ -46,7 +46,7 @@ namespace Pu
 			{
 				for (float x = 0; x < 1.0f; x += step)
 				{
-					const float h = noise.NormalizedScale(x, y, 4, 0.5f, 2.0f);
+					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, 4, 0.5f, 2.0f);
 					pixel[i++] = h;
 
 					mi = min(mi, h);
@@ -92,6 +92,10 @@ namespace Pu
 			cmd.End();
 			device.GetGraphicsQueue(0).Submit(cmd);
 
+			/* The terrain is rendered fro the center, so we need to add an offset. */
+			const Vector3 pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * (meshSize - 1);
+			const float halfSize = meshSize * 0.5f * meshScale;
+
 			/* Initialize the material. */
 			result->material = new Terrain(pool, layout);
 			result->material->SetHeight(*result->displacement);
@@ -100,8 +104,10 @@ namespace Pu
 			result->material->SetDisplacement(displacement);
 			result->material->SetScale(meshScale);
 			result->material->SetPatchSize(meshSize);
+			result->material->SetPosition(pos + Vector3(halfSize, 0.0f, halfSize));
 
-			result->bb = AABB(0.0f, mi, 0.0f, meshSize * meshScale, ma * meshScale, meshSize * meshScale);
+			result->bb.LowerBound = pos;
+			result->bb.UpperBound = pos + Vector3(meshScale * meshSize, meshScale * displacement, meshScale * meshSize);
 			return Result::CustomWait();
 		}
 
@@ -123,6 +129,7 @@ namespace Pu
 		DescriptorPool &pool;
 		const DescriptorSetLayout &layout;
 		PerlinNoise &noise;
+		Vector2 offset;
 
 		StagingBuffer *stagingBuffer;
 		SingleUseCommandBuffer cmd;
@@ -174,7 +181,7 @@ Pu::TerrainChunk & Pu::TerrainChunk::operator=(TerrainChunk && other)
 	return *this;
 }
 
-void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, const DescriptorSetLayout & layout, PerlinNoise & noise, const vector<wstring>& albedos)
+void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, const DescriptorSetLayout & layout, PerlinNoise & noise, Vector2 offset, const vector<wstring>& albedos)
 {
 	/* Make sure initialize isn't called multiple times. */
 	if (generated) return;
@@ -185,7 +192,7 @@ void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, c
 	albedoMask = &fetcher->FetchTexture2D(mask, SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge }, false, 1);
 
 	/* The task will self delete so we can use spawn it and stop caring about it. */
-	ChunkCreator *task = new ChunkCreator(this, pool, layout, noise);
+	ChunkCreator *task = new ChunkCreator(this, pool, layout, noise, offset);
 	fetcher->GetScheduler().Spawn(*task);
 }
 

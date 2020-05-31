@@ -26,7 +26,7 @@ namespace Pu
 		_Check_return_ TerrainChunk& operator =(_In_ TerrainChunk &&other);
 
 		/* Generates the mesh for this terrain chunk. */
-		void Initialize(_In_ const wstring &mask, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout, _In_ PerlinNoise &noise, _In_ const vector<wstring> &albedos);
+		void Initialize(_In_ const wstring &mask, _In_ DescriptorPool &pool, _In_ const DescriptorSetLayout &layout, _In_ PerlinNoise &noise, _In_ Vector2 offset, _In_ const vector<wstring> &albedos);
 
 		/* Gets whether this chunk has been generated. */
 		_Check_return_ inline bool IsGenerated(void) const

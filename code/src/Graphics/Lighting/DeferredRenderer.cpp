@@ -254,6 +254,8 @@ void Pu::DeferredRenderer::End(void)
 
 void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 {
+	if (curCam->Cull(chunk.GetBoundingBox())) return;
+
 	const MeshCollection &meshes = chunk.GetMeshes();
 	curCmd->BindGraphicsDescriptor(*gfxTerrain, chunk.GetMaterial());
 
