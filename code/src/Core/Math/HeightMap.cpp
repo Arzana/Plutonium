@@ -2,25 +2,25 @@
 #include "Core/Math/Interpolation.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::HeightMap::HeightMap(size_t dimensions, float scale)
-	: HeightMap(dimensions, dimensions, scale)
+Pu::HeightMap::HeightMap(size_t dimensions, float scale, bool addNormals)
+	: HeightMap(dimensions, dimensions, scale, addNormals)
 {}
 
-Pu::HeightMap::HeightMap(size_t width, size_t height, float scale)
+Pu::HeightMap::HeightMap(size_t width, size_t height, float scale, bool addNormals)
 	: width(width), height(height), boundX(width - 1), boundY(height - 1)
 {
 	const Vector2 size{ static_cast<float>(boundX), static_cast<float>(boundY) };
 	patchSize = (size * scale) / size;
 	iPatchSize = recip(patchSize);
 
-	Alloc();
+	Alloc(addNormals);
 }
 
 Pu::HeightMap::HeightMap(const HeightMap & value)
 	: width(value.width), height(value.height), patchSize(value.patchSize),
 	boundX(value.boundX), boundY(value.boundY), iPatchSize(value.iPatchSize)
 {
-	Alloc();
+	Alloc(value.normals);
 	Copy(value);
 }
 
@@ -97,10 +97,40 @@ void Pu::HeightMap::SetHeight(size_t i, float value)
 	data[i] = value;
 }
 
+void Pu::HeightMap::SetNormal(size_t x, size_t y, Vector3 normal)
+{
+#ifdef _DEBUG
+	if (!Contains(x, y))
+	{
+		Log::Fatal("Cannot set normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+	}
+
+	if (!normals) Log::Fatal("Heightmap needs to be created with pre-allocated normals when calling SetNormal!");
+#endif
+
+	normals[y * width + x] = normal;
+}
+
+void Pu::HeightMap::SetHeightAndNormal(size_t x, size_t y, float height, Vector3 normal)
+{
+#ifdef _DEBUG
+	if (!Contains(x, y))
+	{
+		Log::Fatal("Cannot set height and normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+	}
+
+	if (!normals) Log::Fatal("Heightmap needs to be created with pre-allocated normals when calling SetHeightAndNormal!");
+#endif
+
+	data[y * width + x] = height;
+	normals[y * width + x] = normal;
+}
+
 void Pu::HeightMap::CalculateNormals(float displacement)
 {
-	/* Allocate the normals if needed. */
-	if (!normals) normals = reinterpret_cast<Vector3*>(malloc(width * height * sizeof(Vector3)));
+#ifdef _DEBUG
+	if (!normals) Log::Fatal("Heightmap needs to be allocated with normals in order to generate them!");
+#endif
 
 	/* Loop through every location of the heightmap. */
 	for (int32 y = 0; y < height; y++)
@@ -309,9 +339,10 @@ Pu::Vector3 Pu::HeightMap::QueryNormal(size_t apx, size_t apy, size_t bpx, size_
 	return barycentric(GetNormal(apx, apy), GetNormal(bpx, bpy), GetNormal(cpx, cpy), t, s);
 }
 
-void Pu::HeightMap::Alloc(void)
+void Pu::HeightMap::Alloc(bool allocNormals)
 {
 	data = reinterpret_cast<float*>(malloc(width * height * sizeof(float)));
+	if (allocNormals) normals = reinterpret_cast<Vector3*>(malloc(width * height * sizeof(Vector3)));
 }
 
 void Pu::HeightMap::Copy(const HeightMap & other)

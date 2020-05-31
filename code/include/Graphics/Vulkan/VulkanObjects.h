@@ -2955,6 +2955,12 @@ namespace Pu
 			: BufferOffset(0), BufferRowLength(0), BufferImageHeight(0),
 			ImageSubresource(), ImageExtent(imageSize)
 		{}
+
+		/* Initializes a new instance of a buffer to image copy object. */
+		BufferImageCopy(_In_ DeviceSize offset, _In_ Extent3D imageSize)
+			: BufferOffset(offset), BufferRowLength(0), BufferImageHeight(0),
+			ImageSubresource(), ImageExtent(imageSize)
+		{}
 	};
 
 	/* Defines the information required to create a new sampler. */

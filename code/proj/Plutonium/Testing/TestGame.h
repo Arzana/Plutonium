@@ -3,7 +3,7 @@
 #include <Graphics/Cameras/FreeCamera.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
-#include <Physics/Systems/PhysicalWorld.h>
+#include <Procedural/Terrain/TerrainChunk.h>
 
 class TestGame
 	: public Pu::Application
@@ -28,7 +28,7 @@ protected:
 
 private:
 	Pu::FreeCamera *camFree;
-	bool firstRun, updateCam, spawn;
+	bool firstRun, updateCam;
 	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::DeferredRenderer *renderer;
@@ -36,16 +36,9 @@ private:
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
-
-	Pu::PhysicalWorld *world;
-	Pu::Model *modelSphere, *modelPlane;
-
-	Pu::Sphere collider;
-	Pu::PhysicalObject spherePrefab;
-	Pu::vector<Pu::PhysicsHandle> spheres;
-	Pu::vector<Pu::PhysicsHandle> planes;
+	Pu::TerrainChunk *terrain;
+	Pu::PerlinNoise noise;
 
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
-	void OnAnyKeyUp(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
 };

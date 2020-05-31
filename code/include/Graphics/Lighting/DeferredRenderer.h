@@ -1,7 +1,7 @@
 #pragma once
+#include "Procedural/Terrain/TerrainChunk.h"
 #include "Graphics/Platform/GameWindow.h"
 #include "Graphics/Cameras/Camera.h"
-#include "Graphics/Models/Terrain.h"
 #include "Content/AssetFetcher.h"
 #include "DirectionalLight.h"
 
@@ -106,7 +106,7 @@ namespace Pu
 		/* End the deferred rendering pipeline. */
 		void End(void);
 		/* Renders the specified terrain piece to the G-Buffer. */
-		void Render(_In_ const MeshCollection &meshes, const Terrain &terrain);
+		void Render(_In_ const TerrainChunk &chunk);
 		/* Renders the specified model to the G-Buffer. */
 		void Render(_In_ const Model &model, _In_ const Matrix &transform);
 		/* Render the specified model to the G-Buffer. */
@@ -134,7 +134,6 @@ namespace Pu
 		const Camera *curCam;
 		QueryChain *timer;
 
-		float hdrSwapchain;
 		bool markNeeded, advanced, wireframe;
 
 		void DoSkybox(void);

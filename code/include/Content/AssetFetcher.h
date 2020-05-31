@@ -66,6 +66,12 @@ namespace Pu
 			return loader->GetDevice();
 		}
 
+		/* Gets the task scheduler that this asset fetcher uses. */
+		_Check_return_ inline TaskScheduler& GetScheduler(void)
+		{
+			return loader->GetScheduler();
+		}
+
 	private:
 		AssetLoader *loader;
 		AssetCache *cache;

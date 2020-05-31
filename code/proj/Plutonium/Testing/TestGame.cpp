@@ -6,12 +6,10 @@
 using namespace Pu;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame (Blinn-Phong)"),
-	updateCam(false), firstRun(true), spawn(false), collider(Vector3(), 0.5f)
+	: Application(L"TestGame"),
+	updateCam(false), firstRun(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
-	GetInput().AnyKeyUp.Add(*this, &TestGame::OnAnyKeyUp);
-	AddSystem(world = new PhysicalWorld());
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -46,29 +44,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	modelSphere = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr);
-	modelPlane = &fetcher.CreateModel(ShapeType::Plane, *renderer, nullptr);
-
-	{
-		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Up(), -5.0f, PassOptions::KinematicResponse)));			// Ground
-		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Right(), -5.0f, PassOptions::KinematicResponse)));		// Left
-		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Left(), -5.0f, PassOptions::KinematicResponse)));		// Right
-		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Forward(), -5.0f, PassOptions::KinematicResponse)));	// Backwards
-		planes.emplace_back(world->AddPlane(CollisionPlane(Vector3::Backward(), -5.0f, PassOptions::KinematicResponse)));	// Forwards
-	}
-
-	{
-		PhysicalProperties rubber;
-		rubber.Mechanical.CoR = 0.6f;
-		rubber.Mechanical.CoF = 1.16f;
-		rubber.Density = 70.0f;
-
-		Collider ball{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &collider };
-		spherePrefab = PhysicalObject{ Vector3(0.0f, 20.0f, 0.0f), Quaternion{}, std::move(ball) };
-		spherePrefab.Properties = world->AddMaterial(rubber);
-		spherePrefab.State.Mass = rubber.Density / (4.0f / 3.0f * PI * cube(collider.Radius));
-		spherePrefab.State.Cd = 0.47f;
-	}
+	terrain = new TerrainChunk(fetcher);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -76,11 +52,10 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (camFree) delete camFree;
 	if (lightMain) delete lightMain;
 	if (lightFill) delete lightFill;
+	if (terrain) delete terrain;
 	if (renderer) delete renderer;
 	if (dbgRenderer) delete dbgRenderer;
 
-	fetcher.Release(*modelSphere);
-	fetcher.Release(*modelPlane);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
@@ -94,6 +69,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
 		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
+		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 1);			// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		camFree->Move(5.0f, 1.0f, -5.0f);
@@ -101,10 +77,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		camFree->Yaw = TAU - PI4;
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+		lightMain->SetDirection(PI4, PI4, 0.0f);
 		lightMain->SetEnvironment(*skybox);
+		lightMain->SetIntensity(4.0f);
 
 		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		lightFill->SetDirection(normalize(Vector3(0.7f)));
+		lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(*skybox);
 
@@ -117,21 +95,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		renderer->InitializeResources(cmd, *camFree);
 		renderer->BeginTerrain();
+		if (terrain->IsUsable()) renderer->Render(*terrain);
 		renderer->BeginGeometry();
-		if (modelSphere->IsLoaded())
-		{
-			for (PhysicsHandle hndl : spheres)
-			{
-				renderer->Render(*modelSphere, world->GetTransform(hndl));
-			}
-		}
-		if (modelPlane->IsLoaded())
-		{
-			for (PhysicsHandle hndl : planes)
-			{
-				renderer->Render(*modelPlane, world->GetTransform(hndl) * Matrix::CreateScalar(10.0f));
-			}
-		}
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
 		renderer->BeginLight();
@@ -157,24 +122,20 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		}
 		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
-		else if (args.Key == Keys::Enter && !spawn)
+		else if (args.Key == Keys::G && terrain && !terrain->IsGenerated())
 		{
-			spawn = true;
-			spherePrefab.P = Vector3(random(), 20.0f, random());
-			spheres.emplace_back(world->AddKinematic(spherePrefab));
+			terrain->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, 
+				{
+					L"{Textures}Terrain/Water.jpg",
+					L"{Textures}Terrain/Grass.jpg",
+					L"{Textures}Terrain/Dirt.jpg",
+					L"{Textures}Terrain/Snow.jpg"
+				});
 		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();
-	}
-}
-
-void TestGame::OnAnyKeyUp(const Pu::InputDevice & sender, const Pu::ButtonEventArgs & args)
-{
-	if (sender.Type == InputDeviceType::Keyboard)
-	{
-		if (args.Key == Keys::Enter) spawn = false;
 	}
 }
 

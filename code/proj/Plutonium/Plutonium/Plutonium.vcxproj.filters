@@ -232,6 +232,18 @@
     <Filter Include="Source Files\Physics\Systems">
       <UniqueIdentifier>{e63b0567-2bdc-4d39-b341-0fd814a43e4e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Procedural">
+      <UniqueIdentifier>{7277fa21-9c6a-4b19-91b3-f7d6cc41537d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Procedural\Terrain">
+      <UniqueIdentifier>{8fe15846-8684-4469-bf0b-4cc5e8d6762a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Procedural">
+      <UniqueIdentifier>{325eb417-1be3-4fd0-ab00-bee2a92c70cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Procedural\Terrain">
+      <UniqueIdentifier>{56b88786-bf98-44ae-b3bd-a8b1922e3dd8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -867,6 +879,9 @@
     <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h">
       <Filter>Header Files\Physics\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h">
+      <Filter>Header Files\Procedural\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1240,6 +1255,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp">
+      <Filter>Source Files\Procedural\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

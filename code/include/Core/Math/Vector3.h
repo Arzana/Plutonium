@@ -326,6 +326,13 @@ namespace Pu
 		return v / v.Length();
 	}
 
+	/* Gets a vector with unit length that has the same direction as the input vector. */
+	_Check_return_ inline Vector3 normalize(_In_ float x, _In_ float y, _In_ float z)
+	{
+		const float l = recip(sqrtf(x * x + y * y + z * z));
+		return Vector3(x * l, y * l, z * l);
+	}
+
 	/* Checks if two vectors are equal with a specfied error tolerance. */
 	_Check_return_ inline bool nrlyeql(_In_ Vector3 v, _In_ Vector3 w, _In_opt_ float tolerance = EPSILON)
 	{

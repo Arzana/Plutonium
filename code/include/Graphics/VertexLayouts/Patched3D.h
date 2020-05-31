@@ -8,6 +8,8 @@ namespace Pu
 	{
 		/* The location of the vertex. */
 		Vector3 Position;
+		/* The normal of the vertex. */
+		Vector3 Normal;
 		/* The first texture coordinate of the vertex. */
 		Vector2 TexCoord1;
 		/* The second texture coordinate of the vertex. */

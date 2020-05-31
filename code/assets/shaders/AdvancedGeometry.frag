@@ -23,7 +23,7 @@ layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical
 // Optimized to use as little space and transformations as possible.
 vec2 EncodeNormal()
 {
-	vec3 normal = normalize(TBN * normalize(texture(Bump, Uv).xyz * 2.0f - 1.0f));
+	vec3 normal = normalize(TBN * normalize(textureLod(Bump, Uv, 0.0f).xyz * 2.0f - 1.0f));
 	float phi = atan(normal.y, normal.x);
 	return vec2(normal.z, phi);
 }

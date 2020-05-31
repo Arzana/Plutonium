@@ -100,12 +100,12 @@ size_t Pu::ShapeCreator::GetConeBufferSize(uint16 divisions)
 	return GetConeVertexSize(divisions) + 6 * divisions * sizeof(uint16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
+Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(PlaneBufferSize);
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Top Left. */
@@ -142,14 +142,14 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src)
 	indices[5] = 3;
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 6, sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 0.0f, 1.0f });
 
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetPatchPlaneBufferSize(divisions));
 
@@ -159,7 +159,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 	const float idivs = recip(static_cast<float>(divisions));
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Patched3D *vertices = reinterpret_cast<Patched3D*>(src.GetHostMemory());
 	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
 
@@ -168,6 +168,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 		for (uint16 x = 0; x < divisions; x++, i++)
 		{
 			vertices[i].Position = Vector3{ tl.X + x, 0.0f, tl.Y + z };
+			vertices[i].Normal = Vector3::Up();
 			vertices[i].TexCoord1 = Vector2(x, z);
 			vertices[i].TexCoord2 = Vector2(x * idivs, z * idivs);
 
@@ -183,9 +184,9 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 	}
 
 	/* Finalize the memory transfer. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ sqr(end) * 4u, sizeof(Patched3D), IndexType::UInt16 };
-	
+
 	/* Set the bounding box. */
 	const float size = static_cast<float>(end);
 	const float ihalfSize = size * -0.5f;
@@ -194,12 +195,12 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions)
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
+Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(BoxBufferSize);
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Back face. */
@@ -368,7 +369,7 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 	indices[35] = 20;
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 36, sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f });
 
@@ -376,7 +377,7 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src)
 }
 
 /* https://github.com/caosdoar/spheres */
-Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	static const Vector3 origins[6] =
 	{
@@ -411,7 +412,7 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 	DBG_CHECK_BUFFER_SIZE(GetSphereBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Loop through the faces of the box. */
@@ -489,19 +490,19 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions)
 	}
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 36u * sqr(divisions), sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f });
 
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetDomeBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	const float divs = static_cast<float>(divisions);
@@ -563,19 +564,19 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions)
 	}
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ (3u * divisions + 6u * sqr(divisions - 1)), sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 0.5f, 1.0f });
 
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
+Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetTorusBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	const float divs = static_cast<float>(divisions);
@@ -626,11 +627,11 @@ Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
 	}
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 6u * sqr(divisions), sizeof(Basic3D), IndexType::UInt16 };
 
-	/* 
-	The X & Y maximum is equal to the radius of the circle (1) with the radius of the ring added (ratio). 
+	/*
+	The X & Y maximum is equal to the radius of the circle (1) with the radius of the ring added (ratio).
 	This is multiplied by 2 to get the total size.
 	The Z only scales with the ring as the circle is 2D and thusly has Z = 0.
 	*/
@@ -643,7 +644,7 @@ Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio)
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetCylinderBufferSize(divisions));
 
@@ -652,7 +653,7 @@ Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions)
 	constexpr float iTau = recip(TAU);
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Center of the top face.. */
@@ -725,13 +726,13 @@ Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions)
 	}
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 12u * divisions, sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 1.0f, 1.0f });
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions)
+Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetConeBufferSize(divisions));
 
@@ -740,7 +741,7 @@ Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions)
 	constexpr float iTau = recip(TAU);
 
 	/* Begin the memory transfer operation. */
-	src.BeginMemoryTransfer();
+	if (mapMemory) src.BeginMemoryTransfer();
 	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
 
 	/* Bottom center. */
@@ -793,7 +794,7 @@ Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions)
 	}
 
 	/* We need to set the bounding box of the mesh as well. */
-	src.EndMemoryTransfer();
+	if (mapMemory) src.EndMemoryTransfer();
 	Mesh result{ 6u * divisions, sizeof(Basic3D), IndexType::UInt16 };
 	result.SetBoundingBox(AABB{ -0.5f, 0.0f, -0.5f, 1.0f, 1.0f, 1.0f });
 	return result;

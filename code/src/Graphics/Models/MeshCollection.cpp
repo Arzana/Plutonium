@@ -46,7 +46,7 @@ void Pu::MeshCollection::Initialize(LogicalDevice & device, const PuMData & data
 	DBG_INIT_CHECK();
 
 	/* Allocate the GPU memory and set the views. */
-	Alloc(device, *data.Buffer);
+	Alloc(device, data.Buffer->GetSize());
 	views = data.Views;
 
 	/* Add all the meshes to the list. */
@@ -61,12 +61,17 @@ void Pu::MeshCollection::Initialize(LogicalDevice & device, const PuMData & data
 
 void Pu::MeshCollection::Initialize(LogicalDevice & device, StagingBuffer & src, uint32 vrtxSize, Mesh &&mesh)
 {
+	Initialize(device, static_cast<uint32>(src.GetSize() - vrtxSize), vrtxSize, std::move(mesh));
+}
+
+void Pu::MeshCollection::Initialize(LogicalDevice & device, uint32 idxSize, uint32 vrtxSize, Mesh && mesh)
+{
 	DBG_INIT_CHECK();
 
 	/* Allocate the destination buffer and add the vertex and index view. */
-	Alloc(device, src);
+	Alloc(device, idxSize + vrtxSize);
 	views.emplace_back(0, vrtxSize);
-	views.emplace_back(vrtxSize, src.GetSize() - vrtxSize);
+	views.emplace_back(vrtxSize, idxSize);
 
 	/* Add the mesh to the collection and set the bounding box. */
 	meshes.emplace_back(std::make_pair(0u, std::move(mesh)));
@@ -85,9 +90,9 @@ void Pu::MeshCollection::Bind(CommandBuffer & cmdBuffer, uint32 binding, uint32 
 	cmdBuffer.BindVertexBuffer(binding, *memory, GetViewOffset(vrtx.GetVertexView()) + vrtx.GetBindOffset());
 }
 
-void Pu::MeshCollection::Alloc(LogicalDevice & device, const StagingBuffer & src)
+void Pu::MeshCollection::Alloc(LogicalDevice & device, size_t size)
 {
-	memory = new Buffer(device, src.GetSize(), BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
+	memory = new Buffer(device, size, BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, false);
 }
 
 void Pu::MeshCollection::SetBoundingBox(void)

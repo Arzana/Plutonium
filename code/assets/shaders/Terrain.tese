@@ -21,42 +21,13 @@ layout (set = 1, binding = 3) uniform Terrain
 	float PatchSize;
 };
 
-layout (location = 0) in vec2 TexCoords1[];
-layout (location = 1) in vec2 TexCoords2[];
+layout (location = 0) in vec3 Normals[];
+layout (location = 1) in vec2 TexCoords1[];
+layout (location = 2) in vec2 TexCoords2[];
 
-layout (location = 0) out vec2 TexCoord1;
-layout (location = 1) out vec2 TexCoord2;
-layout (location = 2) out vec3 Normal;
-
-mat3 sy = mat3( 
-    1.0, 2.0, 1.0, 
-    0.0, 0.0, 0.0, 
-   -1.0, -2.0, -1.0);
-mat3 sx = mat3( 
-    1.0, 0.0, -1.0, 
-    2.0, 0.0, -2.0, 
-    1.0, 0.0, -1.0);
-
-vec3 sobel(in vec2 uv, in float offset)
-{
-	// Construct sobel matrix.
-	mat3 mat;
-	mat[0][0] = textureOffset(Height, uv, ivec2(-1)).r;
-	mat[0][1] = textureOffset(Height, uv, ivec2(0, -1)).r;
-	mat[0][2] = textureOffset(Height, uv, ivec2(1, -1)).r;
-	mat[1][0] = textureOffset(Height, uv, ivec2(-1, 0)).r;
-	mat[1][1] = texture(Height, uv).r;
-	mat[1][2] = textureOffset(Height, uv, ivec2(1, 0)).r;
-	mat[2][0] = textureOffset(Height, uv, ivec2(-1, 1)).r;
-	mat[2][1] = textureOffset(Height, uv, ivec2(0, 1)).r;
-	mat[2][2] = textureOffset(Height, uv, ivec2(1)).r;
-	mat *= Displacement;
-
-	// Construct vertex normal from sobel samples.
-	const float nx = dot(sx[0], mat[0]) + dot(sx[1], mat[1]) + dot(sx[2], mat[2]);
-	const float nz = dot(sy[0], mat[0]) + dot(sy[1], mat[1]) + dot(sy[2], mat[2]);
-	return normalize(vec3(nx * 2.0f, 1.0f, nz * 2.0f));
-}
+layout (location = 0) out vec3 Normal;
+layout (location = 1) out vec2 TexCoord1;
+layout (location = 2) out vec2 TexCoord2;
 
 void main()
 {
@@ -73,13 +44,15 @@ void main()
 	uv2 = mix(TexCoords2[3], TexCoords2[2], gl_TessCoord.x);
 	TexCoord2 = mix(uv1, uv2, gl_TessCoord.y);
 
-	// Calculate the vertex normal based on a sobel height filter.
-	Normal = sobel(TexCoord2, offset);
+	// Set the normal. 
+	vec3 n1 = mix(Normals[0], Normals[1], gl_TessCoord.x);
+	vec3 n2 = mix(Normals[3], Normals[2], gl_TessCoord.x);
+	Normal = mix(n1, n2, gl_TessCoord.y);
 
 	// Set the final position.
 	const vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
 	const vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
-	pos.y += texture(Height, TexCoord2 + offset).r * Displacement;
+	pos.y += textureLod(Height, TexCoord2 + offset, 0.0f).r * Displacement;
 	gl_Position = Projection * View * Model * pos;
 }

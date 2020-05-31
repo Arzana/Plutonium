@@ -33,6 +33,8 @@ namespace Pu
 		void Initialize(_In_ LogicalDevice &device, _In_ const PuMData &data);
 		/* Initializes the mesh collection with a single mesh from the specified source buffer. */
 		void Initialize(_In_ LogicalDevice &device, _In_ StagingBuffer &src, _In_ uint32 vrtxSize, _In_ Mesh &&mesh);
+		/* Initializes the mesh collection with a single mesh from the specified source buffer. */
+		void Initialize(_In_ LogicalDevice &device, _In_ _In_ uint32 idxSize, _In_ uint32 vrtxSize, _In_ Mesh &&mesh);
 		/* Binds the specified mesh directly to the command buffer, ignoring possible view optimizations. */
 		void Bind(_In_ CommandBuffer &cmdBuffer, _In_ uint32 binding, _In_ uint32 mesh) const;
 
@@ -96,7 +98,7 @@ namespace Pu
 		vector<Shape> meshes;
 		AABB boundingBox;
 
-		void Alloc(LogicalDevice &device, const StagingBuffer &src);
+		void Alloc(LogicalDevice &device, size_t size);
 		void SetBoundingBox(void);
 		void Destroy(void);
 	};

@@ -39,13 +39,11 @@ vec3 fresnel(in float cosTheta, in vec3 f0)
 }
 
 // G: Smith Joint GGX (Vis)
-float occlusion(in float ndl, in float ndv, in float roughness)
+float occlusion(in float ndh, in float ndl, in float ndv, in float vdh)
 {
-	const float r = roughness + 1.0f;
-	const float k = r * r / 8.0f;
-	const float ggxl = ndl / (ndl * (1.0f - k) + k);
-	const float ggxv = ndv / (ndv * (1.0f - k) + k);
-	return ggxl * ggxv;
+	const float gv = (2.0f * ndh * ndv) / vdh;
+	const float gl = (2.0f * ndh * ndl) / vdh;
+	return min(1.0f, min(gv, gl));
 }
 
 // D: GTR
@@ -65,7 +63,7 @@ vec3 brdf(in vec3 v, in vec3 n)
 	const float ndl = mdot(n, Direction);
 	const float ndv = mdot(n, v);
 	const float ndh = mdot(n, h);
-	const float vdh = dot(v, h);
+	const float vdh = mdot(v, h);
 
 	// Get all of the material values out of our G-Buffer.
 	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
@@ -74,33 +72,13 @@ vec3 brdf(in vec3 v, in vec3 n)
 
 	// Specular
 	const vec3 f = fresnel(vdh, spec.xyz);
-	const float g = occlusion(ndl, ndv, diffRough.w);
+	const float g = occlusion(ndh, ndl, ndv, vdh);
 	const float d = microfacet(ndh, diffRough.w, spec.w);
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffRough.rgb / PI);
-	const vec3 fs = (f * g * d) * envi;
+	const vec3 fs = (f * g * d) * (4.0f * ndl * ndv) * envi;
 	return (fd + fs) * Radiance.rgb * Radiance.w * ndl;
-}
-
-// Blinn-Phong
-vec3 blinnPhong(in vec3 v, in vec3 n)
-{
-	const vec3 h = normalize(v + Direction);
-	const vec3 r = reflect(-v, n);
-
-	// Get all of the material values out of our G-Buffer.
-	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
-	const vec4 spec = subpassLoad(GBufferSpecular);
-
-	const float intensity = max(0.0f, dot(n, Direction));
-	const float power = pow(max(0.0f, dot(n, h)), spec.w);
-
-	const vec3 flux = Radiance.rgb * Radiance.w;
-	const vec3 diffuse = diffRough.rgb * flux * intensity;
-	const vec3 specular = spec.rgb * flux * power;
-
-	return diffuse + specular;
 }
 
 // Decodes the normal from optimzed spherical to a world normal.
@@ -129,6 +107,5 @@ void main()
 	const vec3 n = DecodeNormal();
 	const vec3 v = normalize(CamPos - p);
 
-	L0 = vec4(blinnPhong(v, n), 1.0f);
-	//L0 = vec4(brdf(v, n), 1.0f);
+	L0 = vec4(brdf(v, n), 1.0f);
 }

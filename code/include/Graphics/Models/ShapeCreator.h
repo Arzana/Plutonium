@@ -59,21 +59,21 @@ namespace Pu
 		_Check_return_ static size_t GetConeBufferSize(_In_ uint16 divisions);
 
 		/* Populates the source buffer with a basic plane and returns a mesh that can view that plane. */
-		_Check_return_ static Mesh Plane(_In_ Buffer &src);
+		_Check_return_ static Mesh Plane(_In_ Buffer &src, _In_opt_ bool mapMemory =  true);
 		/* Populates the source buffer with a patch list plane and returns a mesh that can view that plane. */
-		_Check_return_ static Mesh PatchPlane(_In_ Buffer &src, _In_ uint16 divisions);
+		_Check_return_ static Mesh PatchPlane(_In_ Buffer &src, _In_ uint16 divisions, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a basic box and returns a mesh that can view that box. */
-		_Check_return_ static Mesh Box(_In_ Buffer &src);
+		_Check_return_ static Mesh Box(_In_ Buffer &src, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a spherified cube and returns a mesh that can view that sphere. */
-		_Check_return_ static Mesh Sphere(_In_ Buffer &src, _In_ uint16 divisions);
+		_Check_return_ static Mesh Sphere(_In_ Buffer &src, _In_ uint16 divisions, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a (UV) hemisphere and returns a mesh that can view that hemisphere. */
-		_Check_return_ static Mesh Dome(_In_ Buffer &src, _In_ uint16 divisions);
+		_Check_return_ static Mesh Dome(_In_ Buffer &src, _In_ uint16 divisions, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a torus and returns a mesh that can view that torus. */
-		_Check_return_ static Mesh Torus(_In_ Buffer &src, _In_ uint16 divisions, _In_ float ratio);
+		_Check_return_ static Mesh Torus(_In_ Buffer &src, _In_ uint16 divisions, _In_ float ratio, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a cylinder and returns a mesh that can view that cylinder. */
-		_Check_return_ static Mesh Cylinder(_In_ Buffer &src, _In_ uint16 divisions);
+		_Check_return_ static Mesh Cylinder(_In_ Buffer &src, _In_ uint16 divisions, _In_opt_ bool mapMemory = true);
 		/* Populates the source buffer with a cone and returns a mesh taht can view that cone. */
-		_Check_return_ static Mesh Cone(_In_ Buffer &src, _In_ uint16 divisions);
+		_Check_return_ static Mesh Cone(_In_ Buffer &src, _In_ uint16 divisions, _In_opt_ bool mapMemory = true);
 
 	private:
 #ifdef _DEBUG

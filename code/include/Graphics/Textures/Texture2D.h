@@ -26,5 +26,11 @@ namespace Pu
 		{
 			return Image->GetExtent().To2D();
 		}
+
+		/* Gets the sampler used by this 2D texture. */
+		_Check_return_ inline Pu::Sampler& GetSampler(void)
+		{
+			return *Sampler;
+		}
 	};
 }

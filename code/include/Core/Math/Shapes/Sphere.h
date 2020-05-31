@@ -22,4 +22,11 @@ namespace Pu
 			: Center(center), Radius(radius)
 		{}
 	};
+
+	/* Defines the GJK support function for a sphere. */
+	_Check_return_ inline Vector3 gjk_support_sphere(_In_ Vector3 dir, _In_ const void *userParam)
+	{
+		const Sphere *sphere = reinterpret_cast<const Sphere*>(userParam);
+		return sphere->Center + dir * sphere->Radius;
+	}
 }

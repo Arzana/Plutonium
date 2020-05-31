@@ -13,9 +13,9 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a heightmap with the width and height set to the specified value. */
-		HeightMap(_In_ size_t dimensions, _In_ float scale);
+		HeightMap(_In_ size_t dimensions, _In_ float scale, _In_ bool addNormals);
 		/* Initializes a new instance of a heightmap. */
-		HeightMap(_In_ size_t width, _In_ size_t height, _In_ float scale);
+		HeightMap(_In_ size_t width, _In_ size_t height, _In_ float scale, _In_ bool addNormals);
 		/* Copy constructor. */
 		HeightMap(_In_ const HeightMap &value);
 		/* Move constructor. */
@@ -35,6 +35,10 @@ namespace Pu
 		void SetHeight(_In_ size_t x, _In_ size_t y, _In_ float value);
 		/* Sets the height at a specific index in the heightmap. */
 		void SetHeight(_In_ size_t i, _In_ float value);
+		/* Sets the normal at a specific location in the heightmap. */
+		void SetNormal(_In_ size_t x, _In_ size_t y, _In_ Vector3 normal);
+		/* Sets the height and normal at a specific location in the heightmap. */
+		void SetHeightAndNormal(_In_ size_t x, _In_ size_t y, _In_ float height, _In_ Vector3 normal);
 		/* Generates normals for every point on the heightmap. */
 		void CalculateNormals(_In_ float displacement);
 		/* Gets whether the specified location is on the heightmap. */
@@ -70,7 +74,7 @@ namespace Pu
 		void TransformPosition(Vector2 input, size_t &px, size_t &py, float &x, float &y) const;
 		float QueryHeight(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const;
 		Vector3 QueryNormal(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const;
-		void Alloc(void);
+		void Alloc(bool allocNormals);
 		void Copy(const HeightMap &other);
 		void Free(void);
 	};

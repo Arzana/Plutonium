@@ -76,8 +76,6 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
 	descPoolInput(nullptr), descSetInput(nullptr), advanced(false)
 {
-	/* We need to know if we'll be doing tone mapping or not. */
-	hdrSwapchain = static_cast<float>(wnd.GetSwapchain().IsNativeHDR());
 	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
 
 	/* Make sure that we can actually run wireframe mode. */
@@ -254,11 +252,12 @@ void Pu::DeferredRenderer::End(void)
 	Profiler::End();
 }
 
-void Pu::DeferredRenderer::Render(const MeshCollection & meshes, const Terrain & terrain)
+void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 {
-	curCmd->BindGraphicsDescriptor(*gfxTerrain, terrain);
+	const MeshCollection &meshes = chunk.GetMeshes();
+	curCmd->BindGraphicsDescriptor(*gfxTerrain, chunk.GetMaterial());
 
-	for (const auto &[_, mesh] : meshes)
+	for (const auto &[_, mesh] : chunk.GetMeshes())
 	{
 		curCmd->BindVertexBuffer(0, meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetVertexView()));
 		curCmd->BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetIndexView()));
@@ -387,7 +386,6 @@ void Pu::DeferredRenderer::DoTonemap(void)
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *descSetInput);
-	curCmd->PushConstants(*gfxTonePass, ShaderStageFlag::Fragment, 4, sizeof(float), &hdrSwapchain);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
 	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::BottomOfPipe);
@@ -441,6 +439,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 		norm.SetReference(3);
 
+		tpass.GetAttribute("Normal").SetOffset(vkoffsetof(Patched3D, Normal));
 		tpass.GetAttribute("TexCoord1").SetOffset(vkoffsetof(Patched3D, TexCoord1));
 		tpass.GetAttribute("TexCoord2").SetOffset(vkoffsetof(Patched3D, TexCoord2));
 	}

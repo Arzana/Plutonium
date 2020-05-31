@@ -2,6 +2,7 @@
 #extension GL_KHR_vulkan_glsl : enable
 #extension GL_ARB_tessellation_shader : require
 layout (vertices = 4) out;
+layout (constant_id = 0) const float MaxTessellation = 64.0f;
 
 layout (binding = 0) uniform Camera
 {
@@ -21,11 +22,13 @@ layout (set = 1, binding = 3) uniform Terrain
 	float PatchSize;
 };
 
-layout (location = 0) in vec2 TexCoords1[];
-layout (location = 1) in vec2 TexCoords2[];
+layout (location = 0) in vec3 Normals[];
+layout (location = 1) in vec2 TexCoords1[];
+layout (location = 2) in vec2 TexCoords2[];
 
-layout (location = 0) out vec2 Uvs1[4];
-layout (location = 1) out vec2 Uvs2[4];
+layout (location = 0) out vec3 WorldNormals[4];
+layout (location = 1) out vec2 Uvs1[4];
+layout (location = 2) out vec2 Uvs2[4];
 
 // Calculates the tessellation factor based on scrren space dimensions of the edge.
 float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
@@ -47,14 +50,14 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 
 	// We clamp between [1, 64] range.
 	// Level = 1 of tessellation means no tessellation, so it has no use to go below this.
-	// Level = 64 means every edge has 62 subdivisions, which looks plenty from that close range.
-	return clamp(distance(clip0, clip1) / EdgeSize * Tessellation, 1.0f, 64.0f);
+	// Level = MaxTessellation. At this point we gain no more precision from sampling the heightmap.
+	return clamp(distance(clip0, clip1) / EdgeSize * Tessellation, 1.0f, MaxTessellation);
 }
 
 bool cull()
 {
 	vec4 pos = gl_in[gl_InvocationID].gl_Position;
-	pos.y += texture(Height, TexCoords2[0]).r * Displacement;
+	pos.y += textureLod(Height, TexCoords2[0], 0.0f).r * Displacement;
 	pos = Model * pos;
 
 	// Check the sphere against the frustum planes.
@@ -112,6 +115,7 @@ void main()
 
 	// Pass through position and texture coordinates.
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	WorldNormals[gl_InvocationID] = Normals[gl_InvocationID];
 	Uvs1[gl_InvocationID] = TexCoords1[gl_InvocationID];
 	Uvs2[gl_InvocationID] = TexCoords2[gl_InvocationID];
 }

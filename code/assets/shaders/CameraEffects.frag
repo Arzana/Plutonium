@@ -1,10 +1,6 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
-
-layout (push_constant, std140) uniform Display
-{
-	layout (offset = 4) float HdrSwapchain;
-};
+layout (constant_id = 2) const float HdrSwapchain = 0.0f;
 
 layout (binding = 2) uniform Camera
 {

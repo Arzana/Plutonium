@@ -28,6 +28,12 @@ namespace Pu
 			return device;
 		}
 
+		/* Gets the task scheduler used by the loader. */
+		_Check_return_ inline TaskScheduler& GetScheduler(void)
+		{
+			return scheduler;
+		}
+
 		/* Loads the renderpass with the specified subpasses and finalizes the graphics pipeline. */
 		void PopulateRenderpass(_In_ Renderpass &renderpass, _In_ const vector<vector<wstring>> &shaders);
 		/* Loads and stages a texture from a specific path. */

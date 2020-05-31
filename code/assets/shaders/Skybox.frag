@@ -9,5 +9,5 @@ layout (location = 0) out vec4 Hdr;
 
 void main()
 {
-	Hdr = texture(Skybox, Angle);
+	Hdr = textureLod(Skybox, Angle, 0.0f);
 }

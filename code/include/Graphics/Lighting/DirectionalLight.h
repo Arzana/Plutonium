@@ -20,6 +20,9 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ DirectionalLight& operator =(_In_ DirectionalLight &&other) = default;
 
+		/* Attempts to render a ImGUI window for this directional light. */
+		void RenderGUI(void);
+
 		/* Gets the direction of this light. */
 		_Check_return_ inline Vector3 GetDirection(void) const
 		{
@@ -33,7 +36,7 @@ namespace Pu
 		}
 
 		/* Gets the orientation of the light. */
-		_Check_return_ inline const Quaternion& GetOrientation(void) const
+		_Check_return_ inline Quaternion GetOrientation(void) const
 		{
 			return orien.GetOrientation();
 		}
