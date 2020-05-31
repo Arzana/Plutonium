@@ -1,9 +1,10 @@
 #pragma once
 #include <tuple>
+#include "SPIRV.h"
+#include "FieldType.h"
 #include "Core/String.h"
 #include "Streams/BinaryReader.h"
 #include "Core/Events/DelegateObsevers.h"
-#include "SPIRV.h"
 
 namespace Pu
 {
@@ -64,6 +65,8 @@ namespace Pu
 
 		/* Loops through all the modules defines and sends them to the handler. */
 		void HandleAllModules(_In_ ModuleHandler& hndlr);
+		/* Reads a specific scalar type from the stream. */
+		_Check_return_ double ReadComponentType(_In_ ComponentType type);
 		/* Reads a null-terminated UTF-8 string from the stream. */
 		_Check_return_ string ReadLiteralString(void);
 

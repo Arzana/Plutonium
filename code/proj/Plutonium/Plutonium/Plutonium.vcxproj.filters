@@ -882,6 +882,9 @@
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h">
       <Filter>Header Files\Procedural\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\SpecializationConstant.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1258,6 +1261,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp">
       <Filter>Source Files\Procedural\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
-layout (constant_id = 2) const float HdrSwapchain = 0.0f;
+layout (constant_id = 0) const float HdrSwapchain = 0.0f;
 
 layout (binding = 2) uniform Camera
 {

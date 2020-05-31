@@ -54,6 +54,7 @@ namespace Pu
 		DynamicBuffer *buffer;
 		LogicalDevice *device;
 		const Renderpass *renderpass;
+		std::mutex lock;
 
 		uint32 maxSets;
 		DeviceSize stride;

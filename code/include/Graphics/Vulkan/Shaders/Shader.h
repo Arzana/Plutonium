@@ -3,6 +3,7 @@
 #include "Graphics/Vulkan/LogicalDevice.h"
 #include "Graphics/Vulkan/SPIR-V/FieldInfo.h"
 #include "Graphics/Vulkan/SPIR-V/Decoration.h"
+#include "SpecializationConstant.h"
 #include "Content/Asset.h"
 
 namespace Pu
@@ -45,6 +46,11 @@ namespace Pu
 			return *parent;
 		}
 
+		/* Gets the specified specialization constant. */
+		_Check_return_ SpecializationConstant& GetConstant(_In_ const string &name);
+		/* Gets the specified specialization constant. */
+		_Check_return_ const SpecializationConstant& GetConstant(_In_ const string &name) const;
+
 	protected:
 		/* References the asset and return a self-reference. */
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
@@ -73,10 +79,12 @@ namespace Pu
 		};
 
 		const static FieldInfo invalid;
+		static SpecializationConstant defConst;
 
 		LogicalDevice *parent;
 		PipelineShaderStageCreateInfo info;
 		vector<FieldInfo> fields;
+		vector<SpecializationConstant> specializationConstants;
 
 		std::map<spv::Id, string> names;
 		std::map<spv::Id, vector<string>> memberNames;
@@ -108,6 +116,7 @@ namespace Pu
 		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);
 		void HandleConstant(SPIRVReader &reader);
+		void HandleSpecConstant(SPIRVReader &reader);
 		void SetInfo(const wstring &ext);
 		void Destroy(void);
 	};

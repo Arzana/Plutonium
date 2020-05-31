@@ -45,6 +45,31 @@ void Pu::SPIRVReader::HandleAllModules(ModuleHandler &hndlr)
 	}
 }
 
+double Pu::SPIRVReader::ReadComponentType(ComponentType type)
+{
+	switch (type)
+	{
+	case ComponentType::Byte:
+	case ComponentType::SByte:
+	case ComponentType::Short:
+	case ComponentType::UShort:
+	case ComponentType::Int:
+	case ComponentType::UInt:
+		return static_cast<double>(ReadWord());
+	case ComponentType::Long:
+	case ComponentType::ULong:
+		return static_cast<double>(reader->ReadInt64());
+	case ComponentType::HalfFloat:
+	case ComponentType::Float:
+		return reader->ReadSingle();
+	case ComponentType::Double:
+		return reader->ReadDouble();
+	default:
+		Log::Error("Unable to read type from SPIR-V!");
+		return 0.0f;
+	}
+}
+
 Pu::string Pu::SPIRVReader::ReadLiteralString(void)
 {
 	string str;

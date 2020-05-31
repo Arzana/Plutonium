@@ -21,12 +21,6 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Descriptor& operator =(_In_ Descriptor&&) = default;
 
-		/* Overrides the default descriptor type for this uniform. */
-		inline void SetType(_In_ DescriptorType type)
-		{
-			layoutBinding.DescriptorType = type;
-		}
-
 		/* Gets the descriptor type currently assigned to the uniform. */
 		_Check_return_ inline DescriptorType GetType(void) const
 		{

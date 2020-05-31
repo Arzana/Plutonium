@@ -1466,12 +1466,12 @@ namespace Pu
 
 		/* Initializes an empty instance of a specialization map entry object. */
 		SpecializationMapEntry(void)
-			: SpecializationMapEntry(0, 0, 0)
+			: SpecializationMapEntry(0, 0)
 		{}
 
 		/* Initializes a new instance of a specialization map entry object. */
-		SpecializationMapEntry(_In_ uint32 id, _In_ uint32 offset, _In_ size_t size)
-			: ConstantID(id), Offset(offset), Size(size)
+		SpecializationMapEntry(_In_ uint32 id,_In_ size_t size)
+			: ConstantID(id), Offset(0), Size(size)
 		{}
 	};
 

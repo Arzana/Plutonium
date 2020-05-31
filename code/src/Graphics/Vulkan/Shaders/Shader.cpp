@@ -4,6 +4,7 @@
 
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
 constexpr spv::Word GlobalMemberIndex = ~0u;
+Pu::SpecializationConstant Pu::Shader::defConst = Pu::SpecializationConstant(0, "", Pu::FieldType(Pu::ComponentType::Invalid, Pu::SizeType::Scalar));
 
 Pu::Shader::Shader(LogicalDevice & device)
 	: Asset(true), parent(&device)
@@ -34,7 +35,8 @@ Pu::Shader::Shader(LogicalDevice & device, const void *src, size_t size, ShaderS
 }
 
 Pu::Shader::Shader(Shader && value)
-	: Asset(std::move(value)), parent(value.parent), info(value.info), fields(std::move(value.fields))
+	: Asset(std::move(value)), parent(value.parent), info(value.info),
+	fields(std::move(value.fields)), specializationConstants(std::move(value.specializationConstants))
 {
 	value.info.Module = nullptr;
 }
@@ -49,11 +51,34 @@ Pu::Shader & Pu::Shader::operator=(Shader && other)
 		parent = other.parent;
 		info = other.info;
 		fields = std::move(other.fields);
+		specializationConstants = std::move(other.specializationConstants);
 
 		other.info.Module = nullptr;
 	}
 
 	return *this;
+}
+
+Pu::SpecializationConstant & Pu::Shader::GetConstant(const string & name)
+{
+	for (SpecializationConstant &cur : specializationConstants)
+	{
+		if (name == cur.name) return cur;
+	}
+
+	Log::Error("Unable to find specialization constant '%s' in shader '%ls'!", name.c_str(), GetName().c_str());
+	return defConst;
+}
+
+const Pu::SpecializationConstant & Pu::Shader::GetConstant(const string & name) const
+{
+	for (const SpecializationConstant &cur : specializationConstants)
+	{
+		if (name == cur.name) return cur;
+	}
+
+	Log::Error("Unable to find specialization constant '%s' in shader '%ls'!", name.c_str(), GetName().c_str());
+	return defConst;
 }
 
 Pu::Asset & Pu::Shader::Duplicate(AssetCache &)
@@ -220,6 +245,9 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 	case (spv::Op::OpConstant):
 		HandleConstant(reader);
 		break;
+	case (spv::Op::OpSpecConstant):
+		HandleSpecConstant(reader);
+		break;
 	}
 }
 
@@ -285,13 +313,14 @@ void Pu::Shader::HandleDecoration(SPIRVReader & reader, spv::Id target, spv::Wor
 	case (spv::Decoration::DescriptorSet):			// Descriptor set decoration stores a single literal number.
 	case (spv::Decoration::Binding):				// Binding decoration stores a single literal number.
 	case (spv::Decoration::InputAttachmentIndex):	// Describes the index of the input attachment in the framebuffer.
-	case (spv::Decoration::Offset):
+	case (spv::Decoration::Offset):					// Offset is used for struct offsets (mainly descriptors).
+	case (spv::Decoration::SpecId):					// Specialization ID's are used to access pipeline constant values.
 		result.Numbers.emplace(decoration, reader.ReadWord());
 		break;
 	case (spv::Decoration::RowMajor):
 		Log::Error("Plutonium uses column-major matrices, field %u uses row-major!", target);
 		return;
-	default:								// Just log that we don't hanle the decoration at this point.
+	default:										// Just log that we don't hanle the decoration at this point.
 		Log::Warning("Unable to handle decoration type '%s' at this point!", to_string(decoration));
 		return;
 	}
@@ -458,39 +487,29 @@ void Pu::Shader::HandleVariable(SPIRVReader & reader)
 
 void Pu::Shader::HandleConstant(SPIRVReader & reader)
 {
-	const FieldType &type = types[reader.ReadWord()];
+	FieldType type = types[reader.ReadWord()];
 	const spv::Id resultId = reader.ReadWord();
 
 	if (type.ContainerType == SizeType::Scalar)
 	{
-		double value;
-
-		switch (type.ComponentType)
-		{
-		case Pu::ComponentType::Byte:
-		case Pu::ComponentType::SByte:
-		case Pu::ComponentType::Short:
-		case Pu::ComponentType::UShort:
-		case Pu::ComponentType::Int:
-		case Pu::ComponentType::UInt:
-			value = static_cast<double>(reader.ReadWord());
-			break;
-		case Pu::ComponentType::HalfFloat:
-		case Pu::ComponentType::Float:
-			value = reader.GetStream().ReadSingle();
-			break;
-		case Pu::ComponentType::Long:
-		case Pu::ComponentType::ULong:
-			value = static_cast<double>(reader.GetStream().ReadInt64());
-			break;
-		case Pu::ComponentType::Double:
-			value = reader.GetStream().ReadDouble();
-			break;
-		}
-
-		constants.emplace(resultId, value);
+		constants.emplace(resultId, reader.ReadComponentType(type.ComponentType));
 	}
 	else Log::Error("Non-scalar constrant defined in SPIR-V, ignoring constant!");
+}
+
+void Pu::Shader::HandleSpecConstant(SPIRVReader & reader)
+{
+	/* The type and decoration are already defined before this specialization constant is defined. */
+	FieldType type = types[reader.ReadWord()];
+	const spv::Id id = reader.ReadWord();
+	Decoration &decoration = decorations[std::make_pair(id, GlobalMemberIndex)];
+
+	/* The default value for this constant is stored at the end of this sub-stream. */
+	SpecializationConstant value{ id, names[id], type };
+	value.entry.ConstantID = decoration.Numbers[spv::Decoration::SpecId];
+	value.defaultValue = reader.ReadComponentType(type.ComponentType);
+
+	specializationConstants.emplace_back(std::move(value));
 }
 
 void Pu::Shader::SetInfo(const wstring & ext)

@@ -25,6 +25,18 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ Subpass& operator =(_In_ Subpass&&) = default;
 
+		/* Gets a specific shader in this subpass. */
+		_Check_return_ inline Shader& operator [](_In_ size_t idx)
+		{
+			return *shaders.at(idx);
+		}
+
+		/* Gets a specific shader in this subpass. */
+		_Check_return_ inline const Shader& operator [](_In_ size_t idx) const
+		{
+			return *shaders.at(idx);
+		}
+
 		/* Sets the dependency information for this subpass with both access flags set to none, indicating no resource transition. */
 		inline void SetNoDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_opt_ DependencyFlag flags = DependencyFlag::None)
 		{

@@ -115,6 +115,7 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayout & layout, DescriptorSetHndl * result)
 {
 	/* Lazily create if needed. */
+	lock.lock();
 	if (!hndl) Create();
 
 	/* Allocate the set from the pool, Vulkan will throw an exception if we don't have any descriptors left. */
@@ -122,24 +123,28 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayo
 	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &info, result), PFN_vkAllocateDescriptorSets);
 
 	/* Return the buffer offset if this set is a uniform buffer. */
+	DeviceSize offset = 0;
 	if (buffer)
 	{
 		/* Get the base offset of the set in the buffer. */
 		const uint64 id = MakeId(subpass, layout.set);
 		decltype(sets)::iterator it = sets.iteratorOf([id](const SetInfo &cur) { return cur.Id == id; });
-		if (it != sets.end()) return it->Offset + layout.GetAllignedStride() * it->AllocCnt++;
+		if (it != sets.end()) offset = it->Offset + layout.GetAllignedStride() * it->AllocCnt++;
 		else
 		{
 			Log::Fatal("Cannot allocate set %u (subpass %u) from descriptor pool (combination wasn't specified during creation)!", layout.set, subpass);
 		}
 	}
 
-	return 0;
+	lock.unlock();
+	return offset;
 }
 
 void Pu::DescriptorPool::Free(DescriptorSetHndl set)
 {
+	lock.lock();
 	VK_VALIDATE(device->vkFreeDescriptorSets(device->hndl, hndl, 1, &set), PFN_vkFreeDescriptorSets);
+	lock.unlock();
 }
 
 void Pu::DescriptorPool::Create(void)
