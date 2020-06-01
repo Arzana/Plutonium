@@ -155,7 +155,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMe
 
 	/* Define commonly used constants. */
 	const uint16 end = divisions - 1;
-	const Vector2 tl{ end * -0.5f };
+	const Vector2 tl{ end * -0.5f - 0.5f };
 	const float idivs = recip(static_cast<float>(divisions));
 
 	/* Begin the memory transfer operation. */
@@ -189,7 +189,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMe
 
 	/* Set the bounding box. */
 	const float size = static_cast<float>(end);
-	const float ihalfSize = size * -0.5f;
+	const float ihalfSize = size * -0.5f - 0.5f;
 	result.SetBoundingBox(AABB{ ihalfSize, 0.0f, ihalfSize, size, 0.0f, size });
 
 	return result;

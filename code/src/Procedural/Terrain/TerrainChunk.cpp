@@ -3,13 +3,12 @@
 #include "Graphics/Models/ShapeCreator.h"
 
 const Pu::uint16 meshSize = 64;
+const Pu::uint16 meshBound = meshSize - 1;
 const Pu::uint32 octaves = 4;
 const float persistance = 0.5f;
 const float lacunarity = 2.0f;
 const float meshScale = 1.0f;
-const float displacement = 32.0f;
-
-#define sample_s(u, v)		ilerp(minH, maxH, pixel[clamp(y + v, 0, meshSize - 1) * meshSize + clamp(x + u, 0, meshSize - 1)])
+const float displacement = 16.0f;
 
 namespace Pu
 {
@@ -43,20 +42,27 @@ namespace Pu
 			Mesh mesh = ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false);
 			result->mesh.Initialize(device, static_cast<uint32>(meshBufferSize - vrtxSize), vrtxSize, std::move(mesh));
 
-			/* Generate the unnormalized displacement map. */
+			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
 			const float step = recip(meshSize);
+			float minH = maxv<float>(), maxH = minv<float>();
 			size_t i = 0;
+
+			/* Generate the unnormalized displacement map. */
 			for (float y = 0; y < 1.0f; y += step)
 			{
 				for (float x = 0; x < 1.0f; x += step)
 				{
 					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, octaves, persistance, lacunarity);
+
 					pixel[i++] = h;
+					minH = min(minH, h);
+					maxH = max(maxH, h);
 				}
 			}
 
 			/* Normalize the height. */
-			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
+			minH *= iMaxPerlin;
+			maxH *= iMaxPerlin;
 			for (i = 0; i < sqr(meshSize); i++)
 			{
 				pixel[i] *= iMaxPerlin;
@@ -70,8 +76,8 @@ namespace Pu
 				{
 					const float h0 = pixel[rectify(y - 1) * meshSize + x];
 					const float h1 = pixel[y * meshSize + rectify(x - 1)];
-					const float h2 = pixel[y * meshSize + min(x + 1, meshSize - 1)];
-					const float h3 = pixel[min(y + 1, meshSize - 1) * meshSize + x];
+					const float h2 = pixel[y * meshSize + min(x + 1, meshBound)];
+					const float h3 = pixel[min(y + 1, meshBound) * meshSize + x];
 					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
 					n.Normalize();
 
@@ -95,7 +101,7 @@ namespace Pu
 			device.GetGraphicsQueue(0).Submit(cmd);
 
 			/* The terrain is rendered fro the center, so we need to add an offset. */
-			const Vector3 pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * (meshSize - 1);
+			const Vector3 pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * meshBound;
 			const float halfSize = meshSize * 0.5f * meshScale;
 
 			/* Initialize the material. */
@@ -107,9 +113,10 @@ namespace Pu
 			result->material->SetScale(meshScale);
 			result->material->SetPatchSize(meshSize);
 			result->material->SetPosition(pos + Vector3(halfSize, 0.0f, halfSize));
+			result->material->SetTessellation(0.0f);
 
-			result->bb.LowerBound = pos;
-			result->bb.UpperBound = pos + Vector3(meshScale * meshSize, meshScale * displacement, meshScale * meshSize);
+			result->bb.LowerBound = Vector3(pos.X, minH * meshScale * displacement, pos.Z);
+			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * meshScale * displacement, meshScale * meshBound);
 			return Result::CustomWait();
 		}
 

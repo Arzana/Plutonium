@@ -95,11 +95,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginTerrain();
 		for (const TerrainChunk *chunk : terrain)
 		{
-			if (chunk->IsUsable())
-			{
-				renderer->Render(*chunk);
-				dbgRenderer->AddBox(chunk->GetBoundingBox(), Color::Orange());
-			}
+			if (chunk->IsUsable()) renderer->Render(*chunk);
 		}
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
