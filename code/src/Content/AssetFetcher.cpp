@@ -58,16 +58,13 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::in
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const PumTexture & texture)
 {
-	/* We have to set the maximum usable level of detail ourselves. */
-	SamplerCreateInfo sampler = texture.GetSamplerCreateInfo();
-	sampler.MaxLoD = static_cast<float>(DefaultMipLevels);
-	TryAddAnisotropy(sampler);
-
-	return FetchTexture2D(texture.Path.toWide(), sampler, texture.IsSRGB);
+	return FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), texture.IsSRGB);
 }
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const SamplerCreateInfo & samplerInfo, bool sRGB, uint32 mipMapLevels)
 {
+	static SamplerCreateInfo defSamplerInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::MirroredRepeat };
+
 	/* Solve for the texture path. */
 	wstring mutablePath(path);
 	Solve(mutablePath);
@@ -77,7 +74,9 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	So first get the sampler and then get the image.
 	We also use a predefined sampler if the image could not be loaded.
 	*/
-	Sampler &sampler = FetchSampler(FileReader::FileExists(mutablePath) ? samplerInfo : SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::MirroredRepeat });
+	const bool valid = FileReader::FileExists(mutablePath);
+	const ImageInformation info = _CrtGetImageInfo(mutablePath);
+	Sampler &sampler = valid ? FetchSamplerForImage(info, samplerInfo, true) : FetchSampler(defSamplerInfo);
 
 	/* Try to fetch the image, otherwise just create a new one. */
 	const size_t hash = std::hash<wstring>{}(mutablePath);
@@ -93,7 +92,6 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	else
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const ImageInformation info = _CrtGetImageInfo(mutablePath);
 		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height));
 		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 
@@ -264,12 +262,8 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 
 Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer * probeRenderer, const wstring & diffuse)
 {
-	SamplerCreateInfo sampler;
-	sampler.MaxLoD = static_cast<float>(DefaultMipLevels);
-	TryAddAnisotropy(sampler);
-
 	/* The texture is references in the model, but we won't use it afterwards so immediately release it. */
-	Texture2D &texture = FetchTexture2D(diffuse, sampler, true);
+	Texture2D &texture = FetchTexture2D(diffuse, SamplerCreateInfo{}, true);
 	Model &result = CreateModel(type, deferredRenderer, probeRenderer, &texture);
 	Release(texture);
 
@@ -359,14 +353,21 @@ void Pu::AssetFetcher::Release(Model & model)
 	cache->Release(model);
 }
 
-void Pu::AssetFetcher::TryAddAnisotropy(SamplerCreateInfo & sampler) const
+Pu::Sampler & Pu::AssetFetcher::FetchSamplerForImage(const ImageInformation & info, const SamplerCreateInfo & createInfo, bool anisotropy)
 {
+	SamplerCreateInfo copy = createInfo;
+
 	/* We can only set anisotropic filtering if it's enabled on the physical device. */
-	if (loader->GetDevice().GetPhysicalDevice().GetEnabledFeatures().SamplerAnisotropy)
+	if (anisotropy && loader->GetDevice().GetPhysicalDevice().GetEnabledFeatures().SamplerAnisotropy)
 	{
-		sampler.AnisotropyEnable = true;
-		sampler.MaxAnisotropy = 4.0f;
+		copy.AnisotropyEnable = true;
+		copy.MaxAnisotropy = 4.0f;
 	}
+
+	/* Set the maximum LoD to the amount of mipmap that we'll generate. */
+	copy.MaxLoD = static_cast<float>(Image::GetMaxMipLayers(info.Width, info.Height));
+
+	return FetchSampler(copy);
 }
 
 Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, const SamplerCreateInfo & samplerInfo, bool sRGB, const vector<wstring>& paths, uint32 mipMapLevels, ImageViewType view)
@@ -385,7 +386,8 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 	The texture itself is not an asset but the sampler and image it stores are.
 	So first get the sampler and then get the image.
 	*/
-	Sampler &sampler = FetchSampler(samplerInfo);
+	const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
+	Sampler &sampler = FetchSamplerForImage(info, samplerInfo, false);
 
 	/* Create the hash and check if the cache contains the requested asset. */
 	const size_t hash = std::hash<wstring>{}(hashParameter);
@@ -401,8 +403,7 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 	else
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const ImageInformation info = _CrtGetImageInfo(mutableImages.front());
-		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height, 1));
+		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height));
 		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
 		const uint32 layers = static_cast<uint32>(paths.size());
 

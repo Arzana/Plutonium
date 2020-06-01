@@ -78,7 +78,7 @@ namespace Pu
 
 		vector<Texture*> textures;
 
-		void TryAddAnisotropy(SamplerCreateInfo &sampler) const;
+		Sampler& FetchSamplerForImage(_In_ const ImageInformation &info, const SamplerCreateInfo &createInfo, bool anisotropy);
 		Texture2DArray& FetchMultiTexture(const string &name, const SamplerCreateInfo &samplerInfo, bool sRGB, const vector<wstring> &paths, uint32 mipMapLevels, ImageViewType view);
 		Texture2D& GetDefaultDiffuse(void);
 		Texture2D& GetDefaultSpecGloss(void);

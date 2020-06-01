@@ -2,8 +2,8 @@
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 #include "Graphics/Models/ShapeCreator.h"
 
-const Pu::uint16 meshSize = 32;
-const float meshScale = 10.0f;
+const Pu::uint16 meshSize = 256;
+const float meshScale = 1.0f;
 const float displacement = 8.0f;
 
 namespace Pu
@@ -46,7 +46,7 @@ namespace Pu
 			{
 				for (float x = 0; x < 1.0f; x += step)
 				{
-					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, 4, 0.5f, 2.0f);
+					const float h = noise.NormalizedScale(offset.X + x, offset.Y - y, 4, 0.5f, 2.0f);
 					pixel[i++] = h;
 
 					mi = min(mi, h);
@@ -68,8 +68,8 @@ namespace Pu
 				{
 					float h0 = pixel[rectify(y - 1) * meshSize + x];
 					float h1 = pixel[y * meshSize + rectify(x - 1)];
-					float h2 = pixel[y * meshSize + max(x + 1, meshSize - 1)];
-					float h3 = pixel[max(y + 1, meshSize - 1) * meshSize + x];
+					float h2 = pixel[y * meshSize + min(x + 1, meshSize - 1)];
+					float h3 = pixel[min(y + 1, meshSize - 1) * meshSize + x];
 					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
 					n.Normalize();
 

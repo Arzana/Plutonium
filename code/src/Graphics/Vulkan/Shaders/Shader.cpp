@@ -4,7 +4,7 @@
 
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
 constexpr spv::Word GlobalMemberIndex = ~0u;
-Pu::SpecializationConstant Pu::Shader::defConst = Pu::SpecializationConstant(0, "", Pu::FieldType(Pu::ComponentType::Invalid, Pu::SizeType::Scalar));
+Pu::SpecializationConstant Pu::Shader::defConst = Pu::SpecializationConstant(0, "", Pu::FieldType(Pu::ComponentType::Byte, Pu::SizeType::Scalar));
 
 Pu::Shader::Shader(LogicalDevice & device)
 	: Asset(true), parent(&device)
