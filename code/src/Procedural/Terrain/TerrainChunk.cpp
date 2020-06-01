@@ -8,7 +8,8 @@ const Pu::uint32 octaves = 4;
 const float persistance = 0.5f;
 const float lacunarity = 2.0f;
 const float meshScale = 1.0f;
-const float displacement = 16.0f;
+const float displacement = 32.0f;
+const float heightScale = meshScale * displacement;
 
 namespace Pu
 {
@@ -74,10 +75,10 @@ namespace Pu
 			{
 				for (int32 x = 0; x < meshSize; x++, i++)
 				{
-					const float h0 = pixel[rectify(y - 1) * meshSize + x];
-					const float h1 = pixel[y * meshSize + rectify(x - 1)];
-					const float h2 = pixel[y * meshSize + min(x + 1, meshBound)];
-					const float h3 = pixel[min(y + 1, meshBound) * meshSize + x];
+					const float h0 = pixel[rectify(y - 1) * meshSize + x] * heightScale;
+					const float h1 = pixel[y * meshSize + rectify(x - 1)] * heightScale;
+					const float h2 = pixel[y * meshSize + min(x + 1, meshBound)] * heightScale;
+					const float h3 = pixel[min(y + 1, meshBound) * meshSize + x] * heightScale;
 					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
 					n.Normalize();
 
@@ -115,8 +116,8 @@ namespace Pu
 			result->material->SetPosition(pos + Vector3(halfSize, 0.0f, halfSize));
 			result->material->SetTessellation(0.0f);
 
-			result->bb.LowerBound = Vector3(pos.X, minH * meshScale * displacement, pos.Z);
-			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * meshScale * displacement, meshScale * meshBound);
+			result->bb.LowerBound = Vector3(pos.X, minH * heightScale, pos.Z);
+			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * heightScale, meshScale * meshBound);
 			return Result::CustomWait();
 		}
 
