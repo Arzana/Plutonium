@@ -111,6 +111,9 @@ void Pu::HeightMap::SetNormal(size_t x, size_t y, Vector3 normal)
 	normals[y * width + x] = normal;
 }
 
+/* Height hides class member, checked and works as expected. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Pu::HeightMap::SetHeightAndNormal(size_t x, size_t y, float height, Vector3 normal)
 {
 #ifdef _DEBUG
@@ -125,6 +128,7 @@ void Pu::HeightMap::SetHeightAndNormal(size_t x, size_t y, float height, Vector3
 	data[y * width + x] = height;
 	normals[y * width + x] = normal;
 }
+#pragma warning(pop)
 
 void Pu::HeightMap::CalculateNormals(float displacement)
 {

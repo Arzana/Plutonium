@@ -174,6 +174,7 @@ void Pu::Profiler::VisualizeInternal(void)
 		ImGui::Separator();
 		ImGui::Text("Draw Calls:             %u", CommandBuffer::GetDrawCalls());
 		ImGui::Text("Bind Calls:             %u", CommandBuffer::GetBindCalls());
+		ImGui::Text("Shaders Used:           %u", CommandBuffer::GetShaderCalls());
 		ImGui::Text("Transfers:              %u", CommandBuffer::GetTransferCalls());
 		ImGui::Text("Barriers:               %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();

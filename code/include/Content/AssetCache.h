@@ -32,7 +32,7 @@ namespace Pu
 		void Store(_In_ Asset *asset);
 
 	private:
-		std::mutex lock;
+		mutable std::mutex lock;
 		vector<Asset*> assets;
 	};
 }

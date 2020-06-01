@@ -2,9 +2,14 @@
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 #include "Graphics/Models/ShapeCreator.h"
 
-const Pu::uint16 meshSize = 256;
+const Pu::uint16 meshSize = 64;
+const Pu::uint32 octaves = 4;
+const float persistance = 0.5f;
+const float lacunarity = 2.0f;
 const float meshScale = 1.0f;
-const float displacement = 8.0f;
+const float displacement = 32.0f;
+
+#define sample_s(u, v)		ilerp(minH, maxH, pixel[clamp(y + v, 0, meshSize - 1) * meshSize + clamp(x + u, 0, meshSize - 1)])
 
 namespace Pu
 {
@@ -40,24 +45,21 @@ namespace Pu
 
 			/* Generate the unnormalized displacement map. */
 			const float step = recip(meshSize);
-			float mi = maxv<float>(), ma = minv<float>();
 			size_t i = 0;
 			for (float y = 0; y < 1.0f; y += step)
 			{
 				for (float x = 0; x < 1.0f; x += step)
 				{
-					const float h = noise.NormalizedScale(offset.X + x, offset.Y - y, 4, 0.5f, 2.0f);
+					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, octaves, persistance, lacunarity);
 					pixel[i++] = h;
-
-					mi = min(mi, h);
-					ma = max(ma, h);
 				}
 			}
 
 			/* Normalize the height. */
+			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
 			for (i = 0; i < sqr(meshSize); i++)
 			{
-				pixel[i] = ilerp(mi, ma, pixel[i]);
+				pixel[i] *= iMaxPerlin;
 			}
 
 			/* Calculate the normals for the mesh and heightmap. */
@@ -66,10 +68,10 @@ namespace Pu
 			{
 				for (int32 x = 0; x < meshSize; x++, i++)
 				{
-					float h0 = pixel[rectify(y - 1) * meshSize + x];
-					float h1 = pixel[y * meshSize + rectify(x - 1)];
-					float h2 = pixel[y * meshSize + min(x + 1, meshSize - 1)];
-					float h3 = pixel[min(y + 1, meshSize - 1) * meshSize + x];
+					const float h0 = pixel[rectify(y - 1) * meshSize + x];
+					const float h1 = pixel[y * meshSize + rectify(x - 1)];
+					const float h2 = pixel[y * meshSize + min(x + 1, meshSize - 1)];
+					const float h3 = pixel[min(y + 1, meshSize - 1) * meshSize + x];
 					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
 					n.Normalize();
 

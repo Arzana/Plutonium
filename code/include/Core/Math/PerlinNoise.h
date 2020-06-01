@@ -10,7 +10,7 @@ namespace Pu
 	Normalized options move this range from [-1, 1] to a [0, 1] range for ease of use.
 
 	You can also use multiple octaves in one function call, the frequency and amplitude are controlled by lacunarity and persistance respectively.
-	Lacunarity controlls the frequency as follows: lacunarity^octave, the range of the lacunarity should be [0, -]
+	Lacunarity controlls the frequency as follows: lacunarity^octave, the range of the lacunarity should be > 1.
 	Persistance controlls the amplitude as follows: persistance^octave, the range of persistance should be [0, 1]
 	*/
 	class PerlinNoise
@@ -59,6 +59,14 @@ namespace Pu
 		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
 		/* Gets a noise value for multiple octaves of noise for the 3D coordinate. */
 		_Check_return_ float NormalizedScale(_In_ float x, _In_ float y, _In_ float z, _In_ size_t octaves, _In_ float persistance, _In_ float lacunarity) const;
+
+		/* Gets the maximum value that can be produced by a scale. */
+		_Check_return_ static float Max(_In_ size_t octaves, _In_ float persistance);
+		/* Gets the minimum value that can be produced by an unnormalized scale. */
+		_Check_return_ static inline float Min(_In_ size_t octaves, _In_ float persistance)
+		{
+			return -Max(octaves, persistance);
+		}
 
 		/* Gets a noise value (range [-1, 1]) for the specified 2D coordinate. */
 		_Check_return_ inline float Octave(_In_ Vector2 p) const

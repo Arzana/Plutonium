@@ -65,6 +65,8 @@ namespace Pu
 		_Check_return_ static uint32 GetTransferCalls(void);
 		/* Gets the amount of barrier calls curently handled by Plutonium. */
 		_Check_return_ static uint32 GetBarrierCalls(void);
+		/* Gets the amount of shaders currently being used by Plutonium. */
+		_Check_return_ static uint32 GetShaderCalls(void);
 		/* Resets all the command counters back to zero. */
 		static void ResetCounters(void);
 

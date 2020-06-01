@@ -95,7 +95,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginTerrain();
 		for (const TerrainChunk *chunk : terrain)
 		{
-			if (chunk->IsUsable()) renderer->Render(*chunk);
+			if (chunk->IsUsable())
+			{
+				renderer->Render(*chunk);
+				dbgRenderer->AddBox(chunk->GetBoundingBox(), Color::Orange());
+			}
 		}
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
@@ -123,8 +127,12 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		}
 		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
 		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
-		else if (args.Key == Keys::G && terrain.empty())
+		else if (args.Key == Keys::G)
 		{
+			GetDevice().GetGraphicsQueue(1).WaitIdle();
+			for (TerrainChunk *chunk : terrain) delete chunk;
+			terrain.clear();
+
 			for (float z = 0; z < 10.0f; z++)
 			{
 				for (float x = 0; x < 10.0f; x++)

@@ -244,6 +244,19 @@ float Pu::PerlinNoise::NormalizedScale(float x, float y, float z, size_t octaves
 	return result;
 }
 
+float Pu::PerlinNoise::Max(size_t octaves, float persistance)
+{
+	float result = 0.0f;
+	float amplitude = 1.0f;
+
+	for (size_t i = 0; i < octaves; i++, amplitude *= persistance)
+	{
+		result += amplitude;
+	}
+
+	return result;
+}
+
 float Pu::PerlinNoise::Fade(float t)
 {
 	/* Simple cubic fade function. */

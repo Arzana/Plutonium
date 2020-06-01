@@ -103,9 +103,11 @@ vec3 DecodePosition()
 
 void main()
 {
-	const vec3 p = DecodePosition();
-	const vec3 n = DecodeNormal();
-	const vec3 v = normalize(CamPos - p);
+	L0 = vec4(subpassLoad(GBufferDiffuseRough).rgb, 1.0f);
 
-	L0 = vec4(brdf(v, n), 1.0f);
+//	const vec3 p = DecodePosition();
+//	const vec3 n = DecodeNormal();
+//	const vec3 v = normalize(CamPos - p);
+//
+//	L0 = vec4(brdf(v, n), 1.0f);
 }

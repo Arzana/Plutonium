@@ -47,7 +47,11 @@ size_t Pu::AssetCache::RngHash(void) const
 
 bool Pu::AssetCache::Contains(size_t hash) const
 {
-	return assets.contains([hash](const Asset *cur) { return *cur == hash; });
+	lock.lock();
+	const bool result = assets.contains([hash](const Asset *cur) { return *cur == hash; });
+	lock.unlock();
+
+	return result;
 }
 
 /* Not all codepaths return a value, Log::Fatal will always throw. */

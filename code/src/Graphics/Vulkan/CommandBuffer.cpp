@@ -31,6 +31,7 @@ static Pu::uint32 bindCalls = 0;
 static Pu::uint32 drawCalls = 0;
 static Pu::uint32 transferCalls = 0;
 static Pu::uint32 barrierCalls = 0;
+static Pu::uint32 shaderCalls = 0;
 
 Pu::CommandBuffer::CommandBuffer(void)
 	: parent(nullptr), device(nullptr), hndl(nullptr), 
@@ -346,6 +347,7 @@ void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 fir
 void Pu::CommandBuffer::NextSubpass(SubpassContents contents)
 {
 	DbgCheckIfRecording("transition to next subpass");
+	++shaderCalls;
 	device->vkCmdNextSubpass(hndl, contents);
 }
 
@@ -449,6 +451,7 @@ void Pu::CommandBuffer::BeginRenderPassInternal(RenderPassHndl renderPass, const
 	info.ClearValueCount = static_cast<uint32>(clearValues.size());
 	info.ClearValues = clearValues.data();
 
+	++shaderCalls;
 	device->vkCmdBeginRenderPass(hndl, &info, contents);
 }
 
@@ -472,12 +475,18 @@ Pu::uint32 Pu::CommandBuffer::GetBarrierCalls(void)
 	return barrierCalls;
 }
 
+Pu::uint32 Pu::CommandBuffer::GetShaderCalls(void)
+{
+	return shaderCalls;
+}
+
 void Pu::CommandBuffer::ResetCounters(void)
 {
 	drawCalls = 0;
 	bindCalls = 0;
 	transferCalls = 0;
 	barrierCalls = 0;
+	shaderCalls = 0;
 }
 
 void Pu::CommandBuffer::Begin(void)
