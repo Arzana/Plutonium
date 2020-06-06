@@ -29,7 +29,7 @@ void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<v
 			const size_t shaderHash = std::hash<wstring>{}(path);
 
 			/* Check if the subpass is already loaded. */
-			if (cache.Contains(shaderHash))
+			if (!cache.Reserve(shaderHash))
 			{
 				renderpass.subpasses.back().shaders.emplace_back(&cache.Get(shaderHash).Duplicate<Shader>(cache));
 			}

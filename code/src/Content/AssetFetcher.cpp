@@ -46,7 +46,7 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::in
 
 	/* Create the hash and check if the cache contains the requested asset. */
 	const size_t hash = std::hash<wstring>{}(hashParameter);
-	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Renderpass>(*cache);
+	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<Renderpass>(*cache);
 
 	/* Create a new renderpass and start loading it. */
 	Renderpass *renderpass = new Renderpass(loader->GetDevice());
@@ -80,7 +80,7 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 
 	/* Try to fetch the image, otherwise just create a new one. */
 	const size_t hash = std::hash<wstring>{}(mutablePath);
-	if (cache->Contains(hash))
+	if (!cache->Reserve(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
 
@@ -133,7 +133,7 @@ Pu::Sampler & Pu::AssetFetcher::FetchSampler(const SamplerCreateInfo & samplerIn
 {
 	/* Try to fetch the sampler, otherwise just create a new one. */
 	size_t hash = Sampler::CreateHash(samplerInfo);
-	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Sampler>(*cache);
+	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<Sampler>(*cache);
 
 	Sampler *result = new Sampler(loader->GetDevice(), samplerInfo);
 	result->loadedViaLoader = true;
@@ -149,7 +149,7 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 
 	/* Try to fetch the font, create a new one. */
 	const size_t hash = std::hash<wstring>{}(mutablePath);
-	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Font>(*cache);
+	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<Font>(*cache);
 
 	/* The sampler needs to be retrieved from the fetcher so we just add this as a continuation task. */
 	class CreateTextureTask
@@ -193,7 +193,7 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 
 	/* Try to fetch the model, create a new one. */
 	const size_t hash = std::hash<wstring>{}(mutablePath);
-	if (cache->Contains(hash)) return cache->Get(hash).Duplicate<Model>(*cache);
+	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<Model>(*cache);
 
 	/* Create a new model and fetch its textures. */
 	Model *result = new Model();
@@ -231,7 +231,7 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 
 	/* Try to fetch the image, otherwise just create a new one. */
 	const size_t hash = std::hash<string>{}(id);
-	if (cache->Contains(hash))
+	if (!cache->Reserve(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
 
@@ -391,7 +391,7 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 
 	/* Create the hash and check if the cache contains the requested asset. */
 	const size_t hash = std::hash<wstring>{}(hashParameter);
-	if (cache->Contains(hash))
+	if (!cache->Reserve(hash))
 	{
 		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
 

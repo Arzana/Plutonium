@@ -20,9 +20,9 @@ namespace Pu
 		_Check_return_ AssetCache& operator =(_In_ AssetCache &&other);
 
 		/* Creates a random hash that isn't yet used by the asset cache. */
-		_Check_return_ size_t RngHash(void) const;
-		/* Checks whether an assets with the specific hash exists. */
-		_Check_return_ bool Contains(_In_ size_t hash) const;
+		_Check_return_ size_t RngHash(void);
+		/* Attempts to reserve the specific asset hash, returns false if it already exists. */
+		_Check_return_ bool Reserve(_In_ size_t hash);
 		/* Gets the asset with the specified hash. */
 		_Check_return_ Asset& Get(_In_ size_t hash);
 
@@ -34,5 +34,8 @@ namespace Pu
 	private:
 		mutable std::mutex lock;
 		vector<Asset*> assets;
+		vector<size_t> reserved;
+
+		bool Contains(size_t hash, bool asset, bool reserve) const;
 	};
 }

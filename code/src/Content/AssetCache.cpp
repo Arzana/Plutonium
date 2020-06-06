@@ -1,5 +1,6 @@
 #include "Content/AssetCache.h"
 #include "Core/Diagnostics/Logging.h"
+#include "Core/Threading/PuThread.h"
 
 Pu::AssetCache::AssetCache(AssetCache && value)
 {
@@ -8,6 +9,7 @@ Pu::AssetCache::AssetCache(AssetCache && value)
 	value.lock.lock();
 
 	assets = std::move(value.assets);
+	reserved = std::move(value.reserved);
 
 	/* Unlock both mutexes again. */
 	value.lock.unlock();
@@ -23,6 +25,7 @@ Pu::AssetCache & Pu::AssetCache::operator=(AssetCache && other)
 		other.lock.lock();
 
 		assets = std::move(other.assets);
+		reserved = std::move(other.reserved);
 
 		/* Unlock both mutexes again. */
 		other.lock.unlock();
@@ -32,26 +35,75 @@ Pu::AssetCache & Pu::AssetCache::operator=(AssetCache && other)
 	return *this;
 }
 
-size_t Pu::AssetCache::RngHash(void) const
+size_t Pu::AssetCache::RngHash(void)
 {
+	/* Make sure that we're the only ones accessing the cache. */
+	lock.lock();
 	size_t result;
 	std::hash<string> hasher;
 
+	/* Just create random 64-length string hashes until we find one this isn't used yet. */
 	do
 	{
 		result = hasher(random(64));
-	} while (Contains(result));
+	} while (Contains(result, true, true));
 
+	/* Reserve the hash and return it to the user. */
+	reserved.emplace_back(result);
+	lock.lock();
 	return result;
 }
 
-bool Pu::AssetCache::Contains(size_t hash) const
+bool Pu::AssetCache::Reserve(size_t hash)
 {
 	lock.lock();
-	const bool result = assets.contains([hash](const Asset *cur) { return *cur == hash; });
-	lock.unlock();
 
-	return result;
+	/* 
+	Spin if the specified hash has already been reserved,
+	but isn't in the full asset cache yet.
+	*/
+	while (Contains(hash, false, true))
+	{
+		lock.unlock();
+		PuThread::Sleep(1);
+		lock.lock();
+	}
+
+	/* 
+	Check whether the asset is in the cache,
+	if so we can't reserve it so return false.
+	*/
+	if (Contains(hash, true, false))
+	{
+		lock.unlock();
+		return false;
+	}
+
+	/* Otherwise we reserve the hash and return true. */
+	reserved.emplace_back(hash);
+	lock.unlock();
+	return true;
+}
+
+bool Pu::AssetCache::Contains(size_t hash, bool asset, bool reserve) const
+{
+	if (asset)
+	{
+		for (const Asset *cur : assets)
+		{
+			if (cur->hash == hash) return true;
+		}
+	}
+
+	if (reserve)
+	{
+		for (size_t cur : reserved)
+		{
+			if (cur == hash) return true;
+		}
+	}
+
+	return false;
 }
 
 /* Not all codepaths return a value, Log::Fatal will always throw. */
@@ -63,7 +115,7 @@ Pu::Asset & Pu::AssetCache::Get(size_t hash)
 
 	for (Asset *cur : assets)
 	{
-		if (*cur == hash)
+		if (cur->hash == hash)
 		{
 			lock.unlock();
 			return *cur;
@@ -99,14 +151,20 @@ void Pu::AssetCache::Release(Asset & asset)
 
 void Pu::AssetCache::Store(Asset * asset)
 {
+	lock.lock();
+
 	/* Only check if the asset is already added if the hash isn't zero (indicates hash hasn't been set yet). */
-	if (asset->hash != 0 && Contains(asset->hash))
+	if (asset->hash != 0 && Contains(asset->hash, true, false))
 	{
-		Log::Error("Attempting to add already added asset '%zu'!", asset->hash);
+		lock.unlock();
+		Log::Error("Attempting to add already added asset %zu!", asset->hash);
 		return;
 	}
 
-	lock.lock();
-	assets.push_back(asset);
+	/* Make sure to remove the asset from the reserve list, and throw a warning if it was just added without reserving. */
+	if (Contains(asset->hash, false, true)) reserved.remove(asset->hash);
+	else Log::Warning("Asset %zu was added before first reserving it, this is unsafe!", asset->hash);
+
+	assets.emplace_back(asset);
 	lock.unlock();
 }
