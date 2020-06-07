@@ -119,7 +119,7 @@ void Pu::HeightMap::SetHeightAndNormal(size_t x, size_t y, float height, Vector3
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot set height and normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+		Log::Fatal("Cannot set height and normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, this->height);
 	}
 
 	if (!normals) Log::Fatal("Heightmap needs to be created with pre-allocated normals when calling SetHeightAndNormal!");
