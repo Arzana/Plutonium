@@ -15,6 +15,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\BasicMorphGeometry.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\BasicStaticGeometry.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\DirectionalLight.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\FastTerrain.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Forward3D_Unlit.frag" />
@@ -30,7 +31,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Terrain.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\Terrain.tesc" />
     <SPIRVShader Include="..\..\..\assets\shaders\Terrain.tese" />
-    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\PatchTerrain.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.vert" />
   </ItemGroup>

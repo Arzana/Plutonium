@@ -5,11 +5,15 @@
 
 using namespace Pu;
 
+const bool enableTessellation = false;
+const uint16 terrainSize = 10;
+
 TestGame::TestGame(void)
 	: Application(L"TestGame"),
 	updateCam(false), firstRun(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
+	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -20,12 +24,10 @@ bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 
 void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::PhysicalDeviceFeatures & enabeled)
 {
-	enabeled.GeometryShader = true;		// Needed for the light probe renderer.
-	enabeled.TessellationShader = true;	// Needed for terrain rendering.
-
-	if (supported.WideLines) enabeled.WideLines = true;					// Debug renderer
-	if (supported.FillModeNonSolid) enabeled.FillModeNonSolid = true;	// Easy wireframe mode
-	if (supported.SamplerAnisotropy) enabeled.SamplerAnisotropy = true;	// Textures are loaded with 4 anisotropy by default
+	enabeled.TessellationShader = supported.TessellationShader && enableTessellation;	// Optional for better terrain rendering.
+	enabeled.WideLines = supported.WideLines;											// Debug renderer
+	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
+	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;							// Textures are loaded with 4 anisotropy by default
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)
@@ -65,9 +67,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		firstRun = false;
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
-		renderer->InitializeCameraPool(*descPoolConst, 1);						// Camera sets
-		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);	// Light set
-		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, 100);		// Terrain set
+		renderer->InitializeCameraPool(*descPoolConst, 1);								// Camera sets
+		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);			// Light set
+		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
 		camFree->Move(5.0f, 1.0f, -5.0f);
@@ -95,8 +97,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginTerrain();
 		for (const TerrainChunk *chunk : terrain)
 		{
-			if (chunk->IsUsable()) renderer->Render(*chunk);
+			if (chunk->IsUsable())
+			{
+				renderer->Render(*chunk);
+			}
 		}
+
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
@@ -111,6 +117,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	Profiler::Visualize();
 }
 
+void TestGame::OnAnyMouseScrolled(const Pu::Mouse &, Pu::int16 value)
+{
+	if (camFree) camFree->MoveSpeed += value;
+}
+
 void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &args)
 {
 	if (sender.Type == InputDeviceType::Keyboard)
@@ -121,17 +132,15 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			if (updateCam = !updateCam) Mouse::HideAndLockCursor(GetWindow().GetNative());
 			else Mouse::ShowAndFreeCursor();
 		}
-		else if (args.Key == Keys::NumAdd) camFree->MoveSpeed++;
-		else if (args.Key == Keys::NumSubtract) camFree->MoveSpeed--;
 		else if (args.Key == Keys::G)
 		{
 			GetDevice().GetGraphicsQueue(1).WaitIdle();
 			for (TerrainChunk *chunk : terrain) delete chunk;
 			terrain.clear();
 
-			for (float z = 0; z < 10.0f; z++)
+			for (float z = 0; z < terrainSize; z++)
 			{
-				for (float x = 0; x < 10.0f; x++)
+				for (float x = 0; x < terrainSize; x++)
 				{
 					TerrainChunk *chunk = new TerrainChunk(GetContent());
 					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),

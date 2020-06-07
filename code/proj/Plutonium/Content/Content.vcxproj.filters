@@ -99,11 +99,14 @@
     <SPIRVShader Include="..\..\..\assets\shaders\Terrain.tese">
       <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
     </SPIRVShader>
-    <SPIRVShader Include="..\..\..\assets\shaders\Terrain.vert">
-      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
-    </SPIRVShader>
     <SPIRVShader Include="..\..\..\assets\shaders\BasicMorphGeometry.vert">
       <Filter>Shaders\Deferred\Geometry\Basic</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\PatchTerrain.vert">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\FastTerrain.vert">
+      <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
     </SPIRVShader>
   </ItemGroup>
   <ItemGroup>

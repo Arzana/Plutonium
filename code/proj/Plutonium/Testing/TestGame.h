@@ -39,6 +39,7 @@ private:
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
 
+	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
 };

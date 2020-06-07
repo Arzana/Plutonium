@@ -123,8 +123,8 @@ namespace Pu
 
 		static float Fade(float t);
 
-		float Gradient(size_t i, float x) const;
-		float Gradient(size_t i, float x, float y) const;
-		float Gradient(size_t i, float x, float y, float z) const;
+		float Gradient(uint32 i, float x) const;
+		float Gradient(uint32 i, float x, float y) const;
+		float Gradient(uint32 i, float x, float y, float z) const;
 	};
 }

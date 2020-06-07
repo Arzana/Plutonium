@@ -6,7 +6,7 @@
 #define DBG_CHECK_BUFFER_SIZE(...)
 #endif
 
-Pu::uint32 Pu::ShapeCreator::GetPatchPlaneVertexSize(uint16 divisions)
+Pu::uint32 Pu::ShapeCreator::GetPlaneVertexSize(uint16 divisions)
 {
 	return sqr(divisions) * sizeof(Patched3D);
 }
@@ -36,9 +36,14 @@ Pu::uint32 Pu::ShapeCreator::GetConeVertexSize(uint16 divisions)
 	return (divisions * 3 + 1) * sizeof(Basic3D);
 }
 
+size_t Pu::ShapeCreator::GetPlaneBufferSize(uint16 divisions)
+{
+	return GetPlaneVertexSize(divisions) + 6 * sqr(divisions - 1) * sizeof(uint16);
+}
+
 size_t Pu::ShapeCreator::GetPatchPlaneBufferSize(uint16 divisions)
 {
-	return GetPatchPlaneVertexSize(divisions) + 4 * sqr(divisions - 1) * sizeof(uint16);
+	return GetPlaneVertexSize(divisions) + 4 * sqr(divisions - 1) * sizeof(uint16);
 }
 
 size_t Pu::ShapeCreator::GetSphereBufferSize(uint16 divisions)
@@ -149,6 +154,54 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, bool mapMemory)
 	return result;
 }
 
+Pu::Mesh Pu::ShapeCreator::LodPlane(Buffer & src, uint16 divisions, bool mapMemory)
+{
+	DBG_CHECK_BUFFER_SIZE(GetPlaneBufferSize(divisions));
+
+	/* Define commonly used constants. */
+	const uint16 end = divisions - 1;
+	const Vector2 tl{ end * -0.5f };
+	const float idivs = recip(static_cast<float>(end));
+
+	/* Begin the memory transfer operation. */
+	if (mapMemory) src.BeginMemoryTransfer();
+	Patched3D *vertices = reinterpret_cast<Patched3D*>(src.GetHostMemory());
+	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
+
+	for (uint16 z = 0, i = 0; z < divisions; z++)
+	{
+		for (uint16 x = 0; x < divisions; x++, i++)
+		{
+			vertices[i].Position = Vector3{ tl.X + x, 0.0f, tl.Y + z };
+			vertices[i].Normal = Vector3::Up();
+			vertices[i].TexCoord1 = Vector2(x, z);
+			vertices[i].TexCoord2 = Vector2(x * idivs, z * idivs);
+
+			if (x < end && z < end)
+			{
+				indices[0] = i;
+				indices[1] = i + divisions + 1;
+				indices[2] = i + divisions;
+				indices[3] = i + divisions + 1;
+				indices[4] = i;
+				indices[5] = i + 1;
+				indices += 6;
+			}
+		}
+	}
+
+	/* Finalize the memory transfer. */
+	if (mapMemory) src.EndMemoryTransfer();
+	Mesh result{ sqr(end) * 6u, sizeof(Patched3D), IndexType::UInt16 };
+
+	/* Set the bounding box. */
+	const float size = static_cast<float>(end);
+	const float ihalfSize = size * -0.5f;
+	result.SetBoundingBox(AABB{ ihalfSize, 0.0f, ihalfSize, size, 0.0f, size });
+
+	return result;
+}
+
 Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMemory)
 {
 	DBG_CHECK_BUFFER_SIZE(GetPatchPlaneBufferSize(divisions));
@@ -156,7 +209,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMe
 	/* Define commonly used constants. */
 	const uint16 end = divisions - 1;
 	const Vector2 tl{ end * -0.5f - 0.5f };
-	const float idivs = recip(static_cast<float>(divisions));
+	const float idivs = recip(static_cast<float>(end));
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();

@@ -22,7 +22,7 @@ namespace Pu
 		_Check_return_ AssetFetcher& operator =(_In_ AssetFetcher&&) = delete;
 
 		/* Fetches the desired renderpass. */
-		_Check_return_ Renderpass& FetchRenderpass(_In_ std::initializer_list<std::initializer_list<wstring>> shaders);
+		_Check_return_ Renderpass& FetchRenderpass(_In_ const vector<vector<wstring>> &shaders);
 		/* Fetches the desired 2D texture with the correct sampler and color space. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const PumTexture &texture);
 		/* Fetches the desired 2D texture. */

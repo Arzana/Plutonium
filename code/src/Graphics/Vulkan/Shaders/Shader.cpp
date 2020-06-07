@@ -529,7 +529,11 @@ void Pu::Shader::Destroy(void)
 
 Pu::Shader::LoadTask::LoadTask(Shader & result, const wstring & path)
 	: result(result), path(path)
-{}
+{
+#ifdef _DEBUG
+	if (path.empty()) Log::Fatal("Shader path empty!");
+#endif
+}
 
 Pu::Task::Result Pu::Shader::LoadTask::Execute(void)
 {

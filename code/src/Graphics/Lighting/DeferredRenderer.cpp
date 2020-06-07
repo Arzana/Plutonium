@@ -88,9 +88,20 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 		}
 	}
 
+	/* We can only use tessellation on the terrain if it's supported. */
+	vector<wstring> terrainShaders;
+	if (wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
+	{
+		terrainShaders = { L"{Shaders}PatchTerrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" };
+	}
+	else
+	{
+		terrainShaders = { L"{Shaders}FastTerrain.vert.spv", L"{Shaders}Terrain.frag.spv" };
+	}
+
 	renderpass = &fetcher.FetchRenderpass(
 		{
-			{ L"{Shaders}Terrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" },
+			terrainShaders,
 			{ L"{Shaders}BasicStaticGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
 			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
 			{ L"{Shaders}BasicMorphGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
@@ -581,12 +592,21 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 			gfxTerrain->SetLineWidth(2.0f);
 		}
 
+		if (wnd->GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
+		{
+			gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
+			gfxTerrain->SetPatchControlPoints(4);
+		}
+		else
+		{
+			gfxTerrain->SetTopology(PrimitiveTopology::TriangleList);
+		}
+
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
-		gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
+		
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxTerrain->SetCullMode(CullModeFlag::Back);
 		gfxTerrain->AddVertexBinding<Patched3D>(0);
-		gfxTerrain->SetPatchControlPoints(4);
 		gfxTerrain->Finalize();
 	}
 

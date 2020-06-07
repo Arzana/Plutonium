@@ -27,12 +27,12 @@ Pu::AssetFetcher::~AssetFetcher(void)
 	delete cache;
 }
 
-Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(std::initializer_list<std::initializer_list<wstring>> shaders)
+Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(const vector<vector<wstring>> & shaders)
 {
 	/* Make sure the wildcards are solved. */
 	vector<vector<wstring>> mutableShaders;
 	wstring hashParameter;
-	for (const std::initializer_list<wstring> &subpass : shaders)
+	for (const vector<wstring> &subpass : shaders)
 	{
 		mutableShaders.emplace_back();
 

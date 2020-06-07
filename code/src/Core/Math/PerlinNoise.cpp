@@ -66,11 +66,11 @@ float Pu::PerlinNoise::Octave(float x) const
 {
 	/* Find the unit that contains the point. */
 	const float fx = floorf(x);
-	const size_t ifx = static_cast<size_t>(fx) & 0xFF;
+	const uint32 ifx = static_cast<uint32>(fx) & 0xFF;
 
 	/* Hash the coodinates of the line. */
-	const size_t a = permutations[ifx];
-	const size_t b = permutations[ifx + 1];
+	const uint32 a = permutations[ifx];
+	const uint32 b = permutations[ifx + 1];
 
 	/*
 	Find the relative x of the point in the cube.
@@ -89,13 +89,13 @@ float Pu::PerlinNoise::Octave(float x, float y) const
 	const float fx = floorf(x);
 	const float fy = floorf(y);
 
-	const size_t ifx = static_cast<size_t>(fx) & 0xFF;
-	const size_t ify = static_cast<size_t>(fy) & 0xFF;
+	const uint32 ifx = static_cast<uint32>(fx) & 0xFF;
+	const uint32 ify = static_cast<uint32>(fy) & 0xFF;
 
-	const size_t a = permutations[permutations[ifx] + ify];
-	const size_t b = permutations[permutations[ifx + 1] + ify];
-	const size_t ab = permutations[permutations[ifx] + ify + 1];
-	const size_t ba = permutations[permutations[ifx + 1] + ify + 1];
+	const uint32 a = permutations[permutations[ifx] + ify];
+	const uint32 b = permutations[permutations[ifx + 1] + ify];
+	const uint32 ab = permutations[permutations[ifx] + ify + 1];
+	const uint32 ba = permutations[permutations[ifx + 1] + ify + 1];
 
 	const float u = Fade(x -= fx);
 	const float v = Fade(y -= fy);
@@ -114,16 +114,16 @@ float Pu::PerlinNoise::Octave(float x, float y, float z) const
 	const float fy = floorf(y);
 	const float fz = floorf(z);
 
-	const size_t ifx = static_cast<size_t>(fx) & 0xFF;
-	const size_t ify = static_cast<size_t>(fy) & 0xFF;
-	const size_t ifz = static_cast<size_t>(fz) & 0xFF;
+	const uint32 ifx = static_cast<uint32>(fx) & 0xFF;
+	const uint32 ify = static_cast<uint32>(fy) & 0xFF;
+	const uint32 ifz = static_cast<uint32>(fz) & 0xFF;
 
-	const size_t a = permutations[ifx] + ify;
-	const size_t b = permutations[ifx + 1] + ify;
-	const size_t aa = permutations[a] + ifz;
-	const size_t ab = permutations[a + 1] + ify;
-	const size_t ba = permutations[b] + ifz;
-	const size_t bb = permutations[b + 1] + ifz;
+	const uint32 a = permutations[ifx] + ify;
+	const uint32 b = permutations[ifx + 1] + ify;
+	const uint32 aa = permutations[a] + ifz;
+	const uint32 ab = permutations[a + 1] + ifz;
+	const uint32 ba = permutations[b] + ifz;
+	const uint32 bb = permutations[b + 1] + ifz;
 
 	const float u = Fade(x -= fx);
 	const float v = Fade(y -= fy);
@@ -263,20 +263,20 @@ float Pu::PerlinNoise::Fade(float t)
 	return cube(t) * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
-float Pu::PerlinNoise::Gradient(size_t i, float x) const
+float Pu::PerlinNoise::Gradient(uint32 i, float x) const
 {
 	/* Gets the ends of the unit line represented by x. */
 	return (permutations[i] & 1) ? -x : x;
 }
 
-float Pu::PerlinNoise::Gradient(size_t i, float x, float y) const
+float Pu::PerlinNoise::Gradient(uint32 i, float x, float y) const
 {
 	/* Get the corners of the unit rectangle represented by [x, y] */
 	const byte h = permutations[i];
 	return ((h & 1) ? -x : x) + ((h & 2) ? -y : y);
 }
 
-float Pu::PerlinNoise::Gradient(size_t i, float x, float y, float z) const
+float Pu::PerlinNoise::Gradient(uint32 i, float x, float y, float z) const
 {
 	/*
 	This basically gets the corners of the unit cube represented by [x, y, z]. 

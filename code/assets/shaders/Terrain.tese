@@ -31,9 +31,6 @@ layout (location = 2) out vec2 TexCoord2;
 
 void main()
 {
-	// We need to sample at the center of the patch instead of in the corners.
-	const float offset = 1.0f / (2.0f * PatchSize);
-
 	// Set the first texture coordinate. 
 	vec2 uv1 = mix(TexCoords1[0], TexCoords1[1], gl_TessCoord.x);
 	vec2 uv2 = mix(TexCoords1[3], TexCoords1[2], gl_TessCoord.x);
@@ -53,6 +50,6 @@ void main()
 	const vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
 	const vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
-	pos.y += textureLod(Height, TexCoord2 + offset, 0.0f).r * Displacement;
+	pos.y += textureLod(Height, TexCoord2, 0.0f).r * Displacement;
 	gl_Position = Projection * View * Model * pos;
 }

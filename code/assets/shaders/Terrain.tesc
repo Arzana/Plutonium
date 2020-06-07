@@ -48,7 +48,7 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 	clip0.xy *= Viewport;
 	clip1.xy *= Viewport;
 
-	// We clamp between [1, 64] range.
+	// We clamp between [1, MaxTessellation] range.
 	// Level = 1 of tessellation means no tessellation, so it has no use to go below this.
 	// Level = MaxTessellation. At this point we gain no more precision from sampling the heightmap.
 	return clamp(distance(clip0, clip1) / EdgeSize * Tessellation, 1.0f, MaxTessellation);

@@ -26,11 +26,13 @@ namespace Pu
 			/* Allocate the displacement GPU image. */
 			LogicalDevice &device = result->fetcher->GetDevice();
 			Image *img = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Sampled | ImageUsageFlag::TransferDst });
-			result->displacement = new Texture2D(*img, result->fetcher->FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge }));
+			result->displacement = new Texture2D(*img, result->fetcher->FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Nearest, SamplerAddressMode::Repeat }));
+
+			const bool canPatch = device.GetPhysicalDevice().GetEnabledFeatures().TessellationShader;
 
 			/* Allocate a single staging buffer for both the displacement image and the mesh. */
-			const size_t meshBufferSize = ShapeCreator::GetPatchPlaneBufferSize(meshSize);
-			const uint32 vrtxSize = ShapeCreator::GetPatchPlaneVertexSize(meshSize);
+			const size_t meshBufferSize = canPatch ? ShapeCreator::GetPatchPlaneBufferSize(meshSize) : ShapeCreator::GetPlaneBufferSize(meshSize);
+			const uint32 vrtxSize = ShapeCreator::GetPlaneVertexSize(meshSize);
 			const size_t stagingBufferSize = meshBufferSize + sqr(meshSize) * sizeof(float);
 			stagingBuffer = new StagingBuffer(device, stagingBufferSize);
 
@@ -40,18 +42,19 @@ namespace Pu
 			float *pixel = reinterpret_cast<float*>(reinterpret_cast<byte*>(stagingBuffer->GetHostMemory()) + meshBufferSize);
 
 			/* Set the position and uv's for the mesh. */
-			Mesh mesh = ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false);
+			Mesh mesh = canPatch ? ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false) : ShapeCreator::LodPlane(*stagingBuffer, meshSize, false);
 			result->mesh.Initialize(device, static_cast<uint32>(meshBufferSize - vrtxSize), vrtxSize, std::move(mesh));
 
 			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
 			const float step = recip(meshSize);
+			const float start = step * 0.5f;
 			float minH = maxv<float>(), maxH = minv<float>();
 			size_t i = 0;
 
 			/* Generate the unnormalized displacement map. */
-			for (float y = 0; y < 1.0f; y += step)
+			for (float y = start; y <= 1.0f; y += step)
 			{
-				for (float x = 0; x < 1.0f; x += step)
+				for (float x = start; x <= 1.0f; x += step)
 				{
 					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, octaves, persistance, lacunarity);
 
@@ -93,11 +96,11 @@ namespace Pu
 			cmd.Initialize(device, device.GetGraphicsQueueFamily());
 			cmd.Begin();
 			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
-			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result->displacement->GetFullRange());
 			cmd.CopyBuffer(*stagingBuffer, result->mesh.GetBuffer(), BufferCopy{ 0, 0, meshBufferSize });
-			cmd.CopyBuffer(*stagingBuffer, *img, BufferImageCopy{ meshBufferSize, img->GetExtent() });
 			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, PipelineStageFlag::TessellationControlShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, result->displacement->GetFullRange());
+			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result->displacement->GetFullRange());
+			cmd.CopyBuffer(*stagingBuffer, *img, BufferImageCopy{ meshBufferSize, img->GetExtent() });
+			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, canPatch ? PipelineStageFlag::TessellationControlShader : PipelineStageFlag::VertexShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, result->displacement->GetFullRange());
 			cmd.End();
 			device.GetGraphicsQueue(0).Submit(cmd);
 
