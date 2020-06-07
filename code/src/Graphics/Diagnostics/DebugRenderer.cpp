@@ -485,11 +485,14 @@ void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReC
 
 	We could set the viewport and scissor as dynamic state, but I opted to just recreate the pipeline if the area changes.
 	*/
-	if (args.FormatChanged) renderpass->Recreate();
-	else if (args.AreaChanged)
+	if (renderpass->IsLoaded())
 	{
-		CreatePipeline();
-		if (depthBuffer && !invalidated) invalidated = 1;
-		else if (invalidated != 1) CreateFrameBuffers();
+		if (args.FormatChanged) renderpass->Recreate();
+		else if (args.AreaChanged)
+		{
+			CreatePipeline();
+			if (depthBuffer && !invalidated) invalidated = 1;
+			else if (invalidated != 1) CreateFrameBuffers();
+		}
 	}
 }

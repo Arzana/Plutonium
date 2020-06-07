@@ -406,7 +406,11 @@ void Pu::DeferredRenderer::DoTonemap(void)
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	/* We can just ignore the event if the renderpass isn't loaded yet. */
+	/*
+	We can't ignore the event fully if the renderpass isn't loaded yet.
+	The size dependent resources will always need to be recreated, 
+	but the renderpass and pipeline don't have to change.
+	*/
 	if (renderpass->IsLoaded())
 	{
 		/*
@@ -420,6 +424,7 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 			FinalizeRenderpass(*renderpass);
 		}
 	}
+	else CreateSizeDependentResources();
 }
 
 void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
