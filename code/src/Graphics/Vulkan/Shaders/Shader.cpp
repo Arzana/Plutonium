@@ -434,39 +434,51 @@ void Pu::Shader::HandleArray(SPIRVReader & reader)
 
 void Pu::Shader::HandleImage(SPIRVReader & reader)
 {
-	/* We need the type id but we can skip the underlying image type as it doesn't concern us. */
+	/*
+	OpTypeImage format:
+	Word Result Id
+	Word Sampled Type
+	Word Dimensionality
+	Word Depth
+	Word Arrayed
+	Word Multi-Sampled
+	Word Sampled
+	Word Format
+	Word Access Qualifier (Optional)
+
+	We currently only care about:
+	Id: To distinguish the type.
+	Dim: To determine the type of image.
+	Sampled: Whether it is a storage image or a sampled image.
+	*/
 	const spv::Id id = reader.ReadWord();
 	reader.AdvanceWord();
+	const spv::Dim dim = _CrtInt2Enum<spv::Dim>(reader.ReadWord());
+	reader.AdvanceWord();
+	reader.AdvanceWord();
+	reader.AdvanceWord();
+	const spv::Word sampled = reader.ReadWord();
 
-	switch (_CrtInt2Enum<spv::Dim>(reader.ReadWord()))
+	const ComponentType type = sampled == 2 ? ComponentType::StoreImage : ComponentType::SampledImage;
+	switch (dim)
 	{
 	case (spv::Dim::Dim1D):
-		types.emplace(id, FieldType(ComponentType::Image, SizeType::Scalar));
+		types.emplace(id, FieldType(type, SizeType::Scalar));
 		break;
 	case (spv::Dim::Dim2D):
 	case (spv::Dim::SubpassData):		// Input attachments are always 2D.
-		types.emplace(id, FieldType(ComponentType::Image, SizeType::Vector2));
+		types.emplace(id, FieldType(type, SizeType::Vector2));
 		break;
 	case (spv::Dim::Dim3D):
-		types.emplace(id, FieldType(ComponentType::Image, SizeType::Vector3));
+		types.emplace(id, FieldType(type, SizeType::Vector3));
 		break;
 	case (spv::Dim::Cube):
-		types.emplace(id, FieldType(ComponentType::Image, SizeType::Cube));
+		types.emplace(id, FieldType(type, SizeType::Cube));
 		break;
 	default:
 		Log::Warning("Unable to handle SPIR-V image (unhandled dimension)!");
 		break;
 	}
-
-	/*
-	We can also skip the:
-	depth indicator,
-	arrayed indicator,
-	multi-sample indicator,
-	sampled indicator
-	format
-	and (optional) access qualifier Because we don't care about them.
-	*/
 }
 
 void Pu::Shader::HandleSampledImage(SPIRVReader & reader)

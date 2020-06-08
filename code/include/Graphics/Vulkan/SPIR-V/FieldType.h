@@ -8,31 +8,33 @@ namespace Pu
 	enum class ComponentType
 	{
 		/* The type is either unknown, invalid or not supported. */
-		Invalid = 0,
+		Invalid,
 		/* A unsigned int with width 8. */
-		Byte = 5121,
+		Byte,
 		/* A signed int with width 8. */
-		SByte = 5120,
+		SByte,
 		/* A signed int with width 16. */
-		Short = 5122,
+		Short,
 		/* A unsigned int with width 16. */
-		UShort = 5123,
+		UShort,
 		/* A signed int with width 32. */
-		Int = 5124,
+		Int,
 		/* A unsigned int with width 32. */
-		UInt = 5125,
+		UInt,
 		/* A signed int with width 64. */
-		Long = 5127,
+		Long,
 		/* A unsigned int with width 64. */
-		ULong = 5128,
+		ULong,
 		/* A 16 bit floating point. */
-		HalfFloat = 5129,
+		HalfFloat,
 		/* A 32 bit floating point. */
-		Float = 5126,
+		Float,
 		/* A 64 bit floating point. */
-		Double = 5130,
+		Double,
 		/* A sampled image. */
-		Image = 5131
+		SampledImage,
+		/* A storage image. */
+		StoreImage
 	};
 
 	/* Specifies the dimension of a field type. */
@@ -91,5 +93,7 @@ namespace Pu
 		_Check_return_ string GetName(void) const;
 		/* Gets the Vulkan format that represents this field type. */
 		_Check_return_ Format GetFormat(void) const;
+		/* Gets whether the specified field is an image. */
+		_Check_return_ bool IsImage(void) const;
 	};
 }

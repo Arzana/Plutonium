@@ -27,13 +27,19 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, const DescriptorSetLay
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const TextureInput & input)
 {
-	WriteInput(hndl, set, descriptor, input.view->hndl);
+	WriteNonSampled(hndl, set, descriptor, input.view->hndl, DescriptorType::InputAttachment, ImageLayout::ShaderReadOnlyOptimal);
 }
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const DepthBuffer & input)
 {
-	WriteInput(hndl, set, descriptor, input.GetView().hndl);
+	WriteNonSampled(hndl, set, descriptor, input.GetView().hndl, DescriptorType::InputAttachment, ImageLayout::ShaderReadOnlyOptimal);
 }
+
+void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const ImageView & image)
+{
+	WriteNonSampled(hndl, set, descriptor, image.hndl, DescriptorType::StorageImage, ImageLayout::General);
+}
+
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const Texture & texture)
 {
@@ -68,18 +74,22 @@ void Pu::DescriptorSetBase::ValidateDescriptor(const Descriptor & descriptor, ui
 	}
 }
 
-void Pu::DescriptorSetBase::WriteInput(DescriptorSetHndl setHndl, uint32 set, const Descriptor & descriptor, ImageViewHndl viewHndl)
+void Pu::DescriptorSetBase::WriteNonSampled(DescriptorSetHndl setHndl, uint32 set, const Descriptor & descriptor, ImageViewHndl viewHndl, DescriptorType type, ImageLayout layout)
 {
 #ifdef _DEBUG
-	ValidateDescriptor(descriptor, set, DescriptorType::InputAttachment);
+	ValidateDescriptor(descriptor, set, type);
 #else
 	(void)set;
 #endif
 
-	/* An input attachment descriptor doesn't have a sampler (because the samples are fragment local). */
-	const DescriptorImageInfo info{ nullptr, viewHndl };
+	/* 
+	Input attachments and storage images have no sampler attached to them.
+	The layout of the image also cannot always be shader read only, as that's not allowed for storage images.
+	*/
+	DescriptorImageInfo info{ nullptr, viewHndl };
 	WriteDescriptorSet write{ setHndl, descriptor.layoutBinding.Binding, info };
-	write.DescriptorType = DescriptorType::InputAttachment;
+	info.ImageLayout = layout;
+	write.DescriptorType = type;
 	WriteDescriptors({ write });
 }
 

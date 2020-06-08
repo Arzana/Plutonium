@@ -57,6 +57,11 @@ void Pu::DescriptorSet::Write(const Descriptor & descriptor, const Texture & tex
 	DescriptorSetBase::Write(hndl, set, descriptor, texture);
 }
 
+void Pu::DescriptorSet::Write(const Descriptor & descriptor, const ImageView & image)
+{
+	DescriptorSetBase::Write(hndl, set, descriptor, image);
+}
+
 void Pu::DescriptorSet::StageInternal(DescriptorPool &, byte * destination)
 {
 	Stage(destination + baseOffset);

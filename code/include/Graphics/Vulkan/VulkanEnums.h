@@ -492,7 +492,7 @@ namespace Pu
 		TransferSrcOptimal = 6,
 		/* Image can be used as the destination of an image transfer command. */
 		TransferDstOptimal = 7,
-		/* Layout is provided by the host, can be used to initializes an image or as the old layout paramter in an image transition, the contents of the image are preseved with this layout. */
+		/* Layout is provided by the host, can be used to initializes an image or as the old layout parameter in an image transition, the contents of the image are preseved with this layout. */
 		Preinitialized = 8,
 		/* Image can be used as a read only depth and normal stencil attachment in a framebuffer. */
 		DepthReadOnlyStencilAttachmentOptimal = 1000117000,
@@ -834,6 +834,7 @@ namespace Pu
 		/* Defines an image and a sampler combined (Sampler in GLSL). */
 		CombinedImageSampler = 1,
 		SampledImage = 2,
+		/* Defines a storage image without a sampler (Image in GLSL). */
 		StorageImage = 3,
 		UniformTexelBuffer = 4,
 		StorageTexelBuffer = 5,
@@ -1313,7 +1314,7 @@ namespace Pu
 		UniformRead = 0x00000008,
 		/* Specifies read access to an input attachment within a render pass during fragment shading. */
 		InputAttachmentRead = 0x00000010,
-		/* Specifies read access to a storage buffer, uniform texel buffer, storage buffer, sapled image or storage image. */
+		/* Specifies read access to a storage buffer, uniform texel buffer, storage buffer, sampled image or storage image. */
 		ShaderRead = 0x00000020,
 		/* Specifies write access to a storage buffer storage, storage texel buffer or storage image. */
 		ShaderWrite = 0x00000040,
