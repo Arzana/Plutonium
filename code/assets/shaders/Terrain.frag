@@ -3,7 +3,7 @@
 layout (early_fragment_tests) in;
 layout (constant_id = 1) const bool SampleBasedOnHeight = true;
 
-layout (set = 1, binding = 0) uniform sampler2D Height;
+layout (set = 1, binding = 0, r32f) uniform image2D Height;
 layout (set = 1, binding = 1) uniform sampler2D TextureMask;
 layout (set = 1, binding = 2) uniform sampler2DArray Textures;
 
@@ -38,7 +38,7 @@ void main()
 	vec3 diffuse = vec3(0.0f);
 	if (SampleBasedOnHeight)
 	{
-		const float h = textureLod(Height, Uv2, 0.0f).r;
+		const float h = imageLoad(Height, ivec2(Uv1)).r;
 		for (uint i = 0; i < 4; i++)
 		{
 			const float rangeEnd = (i + 1) * 0.25f;

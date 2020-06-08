@@ -68,7 +68,9 @@ namespace Pu
 		AABB bb;
 
 		MeshCollection mesh;
-		Texture2D *displacement, *albedoMask;
+		Texture2D *albedoMask;
+		Image *displacement;
+		ImageView *view;
 		Texture2DArray *textures;
 		Terrain *material;
 

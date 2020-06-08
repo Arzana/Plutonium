@@ -9,7 +9,7 @@ layout (binding = 0) uniform Camera
 	vec2 Viewport;
 };
 
-layout (set = 1, binding = 0) uniform sampler2D Height;
+layout (set = 1, binding = 0, r32f) uniform image2D Height;
 layout (set = 1, binding = 3) uniform Terrain
 {
 	mat4 Model;
@@ -30,7 +30,7 @@ layout (location = 2) out vec2 Uv2;
 
 void main()
 {
-	const vec4 pos = vec4(Position.x, textureLod(Height, TexCoord2, 0.0f).r * Displacement, Position.z, 1.0f);
+	const vec4 pos = vec4(Position.x, imageLoad(Height, ivec2(TexCoord1)).r * Displacement, Position.z, 1.0f);
 	gl_Position = Projection * View * Model * pos;
 	WorldNormal = Normal;
 	Uv1 = TexCoord1;

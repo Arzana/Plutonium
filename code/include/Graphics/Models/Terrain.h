@@ -53,7 +53,7 @@ namespace Pu
 		}
 
 		/* Sets the height map for this terrain. */
-		inline void SetHeight(_In_ const Texture2D &value)
+		inline void SetHeight(_In_ const ImageView &value)
 		{
 			Write(*height, value);
 		}

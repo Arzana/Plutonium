@@ -25,12 +25,11 @@ namespace Pu
 		{
 			/* Allocate the displacement GPU image. */
 			LogicalDevice &device = result->fetcher->GetDevice();
-			Image *img = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Sampled | ImageUsageFlag::TransferDst });
-			result->displacement = new Texture2D(*img, result->fetcher->FetchSampler(SamplerCreateInfo{ Filter::Linear, SamplerMipmapMode::Nearest, SamplerAddressMode::Repeat }));
-
-			const bool canPatch = device.GetPhysicalDevice().GetEnabledFeatures().TessellationShader;
+			result->displacement = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Storage | ImageUsageFlag::TransferDst });
+			result->view = new ImageView(*result->displacement, ImageViewType::Image2D, ImageAspectFlag::Color);
 
 			/* Allocate a single staging buffer for both the displacement image and the mesh. */
+			const bool canPatch = device.GetPhysicalDevice().GetEnabledFeatures().TessellationShader;
 			const size_t meshBufferSize = canPatch ? ShapeCreator::GetPatchPlaneBufferSize(meshSize) : ShapeCreator::GetPlaneBufferSize(meshSize);
 			const uint32 vrtxSize = ShapeCreator::GetPlaneVertexSize(meshSize);
 			const size_t stagingBufferSize = meshBufferSize + sqr(meshSize) * sizeof(float);
@@ -91,16 +90,17 @@ namespace Pu
 			}
 
 			stagingBuffer->EndMemoryTransfer();
+			const ImageSubresourceRange range = result->displacement->GetFullRange(ImageAspectFlag::Color);
 
 			/* Stage the mesh and displacement texture to the GPU. */
 			cmd.Initialize(device, device.GetGraphicsQueueFamily());
 			cmd.Begin();
 			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
+			cmd.MemoryBarrier(*result->displacement, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, range);
 			cmd.CopyBuffer(*stagingBuffer, result->mesh.GetBuffer(), BufferCopy{ 0, 0, meshBufferSize });
+			cmd.CopyBuffer(*stagingBuffer, *result->displacement, BufferImageCopy{ meshBufferSize, result->displacement->GetExtent() });
 			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result->displacement->GetFullRange());
-			cmd.CopyBuffer(*stagingBuffer, *img, BufferImageCopy{ meshBufferSize, img->GetExtent() });
-			cmd.MemoryBarrier(*img, PipelineStageFlag::Transfer, canPatch ? PipelineStageFlag::TessellationControlShader : PipelineStageFlag::VertexShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, result->displacement->GetFullRange());
+			cmd.MemoryBarrier(*result->displacement, PipelineStageFlag::Transfer, canPatch ? PipelineStageFlag::TessellationControlShader : PipelineStageFlag::VertexShader, ImageLayout::General, AccessFlag::ShaderRead, range);
 			cmd.End();
 			device.GetGraphicsQueue(0).Submit(cmd);
 
@@ -110,7 +110,7 @@ namespace Pu
 
 			/* Initialize the material. */
 			result->material = new Terrain(pool, layout);
-			result->material->SetHeight(*result->displacement);
+			result->material->SetHeight(*result->view);
 			result->material->SetMask(*result->albedoMask);
 			result->material->SetTextures(*result->textures);
 			result->material->SetDisplacement(displacement);
@@ -218,8 +218,7 @@ void Pu::TerrainChunk::Destroy(void)
 	/* We need to delete all aspects of the texture, because we allocated them ourselves. */
 	if (displacement)
 	{
-		fetcher->Release(displacement->GetSampler());
-		delete &displacement->GetImage();
+		delete view;
 		delete displacement;
 	}
 }

@@ -12,7 +12,7 @@ layout (binding = 0) uniform Camera
 	vec2 Viewport;
 };
 
-layout (set = 1, binding = 0) uniform sampler2D Height;
+layout (set = 1, binding = 0, r32f) uniform image2D Height;
 layout (set = 1, binding = 3) uniform Terrain
 {
 	mat4 Model;
@@ -57,7 +57,7 @@ float screenSpaceTessellationFactor(in vec4 p, in vec4 q)
 bool cull()
 {
 	vec4 pos = gl_in[gl_InvocationID].gl_Position;
-	pos.y += textureLod(Height, TexCoords2[0], 0.0f).r * Displacement;
+	pos.y += imageLoad(Height, ivec2(TexCoords1[0])).r * Displacement;
 	pos = Model * pos;
 
 	// Check the sphere against the frustum planes.

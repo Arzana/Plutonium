@@ -19,15 +19,18 @@ TestGame::TestGame(void)
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 {
 	const PhysicalDeviceFeatures &features = physicalDevice.GetSupportedFeatures();
-	return features.GeometryShader && features.TessellationShader;
+	return features.VertexPipelineStoresAndAtomics && features.FragmentStoresAndAtomics;
 }
 
-void TestGame::EnableFeatures(const Pu::PhysicalDeviceFeatures & supported, Pu::PhysicalDeviceFeatures & enabeled)
+void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
 {
 	enabeled.TessellationShader = supported.TessellationShader && enableTessellation;	// Optional for better terrain rendering.
 	enabeled.WideLines = supported.WideLines;											// Debug renderer
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
 	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;							// Textures are loaded with 4 anisotropy by default
+
+	enabeled.VertexPipelineStoresAndAtomics = true;										// Needed for imageLoad.
+	enabeled.FragmentStoresAndAtomics = true;
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)
