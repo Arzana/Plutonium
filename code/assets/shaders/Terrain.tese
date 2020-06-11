@@ -28,6 +28,7 @@ layout (location = 2) in vec2 TexCoords2[];
 layout (location = 0) out vec3 Normal;
 layout (location = 1) out vec2 TexCoord1;
 layout (location = 2) out vec2 TexCoord2;
+layout (location = 3) out float WorldHeight;
 
 void main()
 {
@@ -46,10 +47,13 @@ void main()
 	vec3 n2 = mix(Normals[3], Normals[2], gl_TessCoord.x);
 	Normal = mix(n1, n2, gl_TessCoord.y);
 
+	// Set output height.
+	WorldHeight = imageLoad(Height, ivec2(TexCoord1)).r;
+
 	// Set the final position.
 	const vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
 	const vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
-	pos.y += imageLoad(Height, ivec2(TexCoord1)).r * Displacement;
+	pos.y += WorldHeight * Displacement;
 	gl_Position = Projection * View * Model * pos;
 }

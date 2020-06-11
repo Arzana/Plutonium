@@ -27,11 +27,12 @@ layout (location = 3) in vec2 TexCoord2;
 layout (location = 0) out vec3 WorldNormal;
 layout (location = 1) out vec2 Uv1;;
 layout (location = 2) out vec2 Uv2;
+layout (location = 3) out float WorldHeight;
 
 void main()
 {
-	const vec4 pos = vec4(Position.x, imageLoad(Height, ivec2(TexCoord1)).r * Displacement, Position.z, 1.0f);
-	gl_Position = Projection * View * Model * pos;
+	WorldHeight = imageLoad(Height, ivec2(TexCoord1)).r;
+	gl_Position = Projection * View * Model * vec4(Position.x, WorldHeight * Displacement, Position.z, 1.0f);
 	WorldNormal = Normal;
 	Uv1 = TexCoord1;
 	Uv2 = TexCoord2;

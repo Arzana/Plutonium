@@ -3,7 +3,6 @@
 layout (early_fragment_tests) in;
 layout (constant_id = 1) const bool SampleBasedOnHeight = true;
 
-layout (set = 1, binding = 0, r32f) uniform image2D Height;
 layout (set = 1, binding = 1) uniform sampler2D TextureMask;
 layout (set = 1, binding = 2) uniform sampler2DArray Textures;
 
@@ -19,6 +18,7 @@ layout (set = 1, binding = 3) uniform Terrain
 layout (location = 0) in vec3 Normal;
 layout (location = 1) in vec2 Uv1;
 layout (location = 2) in vec2 Uv2;
+layout (location = 3) in float Height;
 
 layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
@@ -38,11 +38,10 @@ void main()
 	vec3 diffuse = vec3(0.0f);
 	if (SampleBasedOnHeight)
 	{
-		const float h = imageLoad(Height, ivec2(Uv1)).r;
 		for (uint i = 0; i < 4; i++)
 		{
 			const float rangeEnd = (i + 1) * 0.25f;
-			const float weight = max(0.0f, (0.25f - abs(h - rangeEnd)) * 4.0f);
+			const float weight = max(0.0f, (0.25f - abs(Height - rangeEnd)) * 4.0f);
 			diffuse += weight * texture(Textures, vec3(Uv1, i)).rgb;
 		}
 	}

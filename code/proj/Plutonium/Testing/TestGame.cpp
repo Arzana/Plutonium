@@ -19,7 +19,7 @@ TestGame::TestGame(void)
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 {
 	const PhysicalDeviceFeatures &features = physicalDevice.GetSupportedFeatures();
-	return features.VertexPipelineStoresAndAtomics && features.FragmentStoresAndAtomics;
+	return features.VertexPipelineStoresAndAtomics;
 }
 
 void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
@@ -28,9 +28,7 @@ void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, Physical
 	enabeled.WideLines = supported.WideLines;											// Debug renderer
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
 	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;							// Textures are loaded with 4 anisotropy by default
-
 	enabeled.VertexPipelineStoresAndAtomics = true;										// Needed for imageLoad.
-	enabeled.FragmentStoresAndAtomics = true;
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)
@@ -135,7 +133,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			if (updateCam = !updateCam) Mouse::HideAndLockCursor(GetWindow().GetNative());
 			else Mouse::ShowAndFreeCursor();
 		}
-		else if (args.Key == Keys::G)
+		else if (args.Key == Keys::G && descPoolConst)
 		{
 			GetDevice().GetGraphicsQueue(1).WaitIdle();
 			for (TerrainChunk *chunk : terrain) delete chunk;

@@ -45,15 +45,15 @@ namespace Pu
 			result->mesh.Initialize(device, static_cast<uint32>(meshBufferSize - vrtxSize), vrtxSize, std::move(mesh));
 
 			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
-			const float step = recip(meshSize);
+			const float step = recip(meshBound);
 			const float start = step * 0.5f;
 			float minH = maxv<float>(), maxH = minv<float>();
 			size_t i = 0;
 
 			/* Generate the unnormalized displacement map. */
-			for (float y = start; y <= 1.0f; y += step)
+			for (float y = 0.0f; y <= 1.0f; y += step)
 			{
-				for (float x = start; x <= 1.0f; x += step)
+				for (float x = 0.0f; x <= 1.0f; x += step)
 				{
 					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, octaves, persistance, lacunarity);
 
@@ -106,7 +106,7 @@ namespace Pu
 
 			/* The terrain is rendered fro the center, so we need to add an offset. */
 			const Vector3 pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * meshBound;
-			const float halfSize = meshSize * 0.5f * meshScale;
+			const float halfSize = meshBound * 0.5f * meshScale;
 
 			/* Initialize the material. */
 			result->material = new Terrain(pool, layout);
@@ -117,7 +117,6 @@ namespace Pu
 			result->material->SetScale(meshScale);
 			result->material->SetPatchSize(meshSize);
 			result->material->SetPosition(pos + Vector3(halfSize, 0.0f, halfSize));
-			result->material->SetTessellation(0.0f);
 
 			result->bb.LowerBound = Vector3(pos.X, minH * heightScale, pos.Z);
 			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * heightScale, meshScale * meshBound);
