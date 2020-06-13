@@ -60,7 +60,7 @@ namespace Pu
 		std::map<uint16, CollisionChecker_t> checkers;
 		vector<PhysicsHandle> lookup;
 		vector<CollisionManifold> collisions;
-		std::mutex lock;
+		mutable std::mutex lock;
 
 		static void ThrowInvalidHandle(bool condition, const char *action);
 		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr);

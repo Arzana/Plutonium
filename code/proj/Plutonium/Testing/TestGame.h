@@ -42,7 +42,7 @@ private:
 	Pu::PerlinNoise noise;
 
 	Pu::PhysicalWorld *physics;
-	Pu::PhysicsHandle hplayer;
+	Pu::vector<Pu::PhysicsHandle> npcs;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

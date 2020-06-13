@@ -10,12 +10,13 @@ const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"),
-	updateCam(false), firstRun(true), hplayer(PhysicsNullHandle)
+	updateCam(false), firstRun(true)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
 	AddSystem(physics = new PhysicalWorld());
+	physics->AddMaterial({ 1.0f, 0.2f, 0.1f });
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -109,10 +110,13 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
-		if (playerModel->IsLoaded() && hplayer != PhysicsNullHandle)
+		if (playerModel->IsLoaded())
 		{
-			const Matrix transform = physics->GetTransform(hplayer) * Matrix::CreateScalar(0.05f);
-			renderer->Render(*playerModel, transform, 0, 1, 0.0f);
+			for (PhysicsHandle hnpc : npcs)
+			{
+				const Matrix transform = physics->GetTransform(hnpc) * Matrix::CreateScalar(0.05f);
+				renderer->Render(*playerModel, transform, 0, 1, 0.0f);
+			}
 		}
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
@@ -160,14 +164,17 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 				}
 			}
 		}
-		else if (args.Key == Keys::P && hplayer == PhysicsNullHandle)
+		else if (args.Key == Keys::P)
 		{
+			const float x = random(10.0f, 40.0f);
+			const float z = random(10.0f, 40.0f);
+
 			Sphere sphere{ Vector3{}, 1.0f };
 			Collider collider{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &sphere };
-			PhysicalObject obj{ Vector3(20.0f, 30.0f, 20.0f), Quaternion{}, collider };
-			obj.Properties = physics->AddMaterial({ 1.0f, 0.5f, 0.5f });
+			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
+			obj.Properties = 0;
 			obj.State.Mass = 1.0f;
-			hplayer = physics->AddKinematic(obj);
+			npcs.emplace_back(physics->AddKinematic(obj));
 		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)

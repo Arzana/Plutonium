@@ -177,6 +177,8 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 
 void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
 {
+	lock.lock();
+
 	for (const CollisionPlane &collider : planes)
 	{
 		const Plane &plane = collider.Plane;
@@ -192,6 +194,8 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
 	{
 		VisualizePhysicalObject(renderer, obj, Color::Blue());
 	}
+
+	lock.unlock();
 }
 
 void Pu::PhysicalWorld::Update(float dt)
@@ -564,30 +568,50 @@ void Pu::PhysicalWorld::SolveContraints(void)
 		if ((at == PHYSICS_LIST_STATIC || at == PHYSICS_LIST_PLANE) && bt == PHYSICS_LIST_KINEMATIC)
 		{
 			PhysicalObject &second = kinematicObjects[get_lookup_id(manifold.SecondObject)];
+			const Vector3 t = normalize(second.V - dot(second.V, manifold.N) * manifold.N);
 
-			const float e = materials[second.Properties].Mechanical.CoR;
-			const float j = rectify(-(1.0f + e) * dot(second.V, manifold.N));
+			/* Apply linear impulse. */
+			float e = materials[second.Properties].Mechanical.CoR;
+			float j = rectify(-(1.0f + e) * dot(second.V, manifold.N));
 			second.V += j * manifold.N;
+
+			/* Apply friction. */
+			e = materials[second.Properties].Mechanical.CoF;
+			j = clamp(-(1.0f + e) * dot(second.V, t), -j * e, j * e);
+			second.V += j * t;
 		}
 		else if (at == PHYSICS_LIST_KINEMATIC && bt == PHYSICS_LIST_KINEMATIC)
 		{
 			PhysicalObject &first = kinematicObjects[get_lookup_id(manifold.FirstObject)];
 			PhysicalObject &second = kinematicObjects[get_lookup_id(manifold.SecondObject)];
 
+			PhysicalProperties &pfirst = materials[first.Properties];
+			PhysicalProperties &psecond = materials[second.Properties];
+
 			const float imassFirst = recip(first.State.Mass);
 			const float imassSecond = recip(second.State.Mass);
+			const float imassTotal = imassFirst + imassSecond;
 			const Vector3 relVloc = second.V - first.V;
+			const Vector3 t = normalize(relVloc - dot(relVloc, manifold.N) * manifold.N);
 
 			/* Objects are moving away from each other, don't solve collision again. */
 			if (dot(relVloc, manifold.N) > 0.0f) continue;
 
-			/* Calculate impulse. */
-			const float e = min(materials[first.Properties].Mechanical.CoR, materials[second.Properties].Mechanical.CoR);
-			const float j = (-(1.0f + e) * dot(relVloc, manifold.N)) / (imassFirst + imassSecond);
+			/* Calculate linear impulse. */
+			float e = min(pfirst.Mechanical.CoR, psecond.Mechanical.CoR);
+			float j = (-(1.0f + e) * dot(relVloc, manifold.N)) / imassTotal;
 
 			/* Apply linear impulse. */
 			first.V -= j * manifold.N * imassFirst;
 			second.V += j * manifold.N * imassSecond;
+
+			/* Calculate friction. */
+			e = sqrtf(pfirst.Mechanical.CoF * psecond.Mechanical.CoF);
+			e = clamp(-(1.0f + e) * dot(relVloc, t) / imassTotal, -j * e, j * e);
+			
+			/* Apply friction. */
+			first.V -= j * t * imassFirst;
+			second.V += j * t * imassSecond;
 		}
 		else Log::Error("Unable to solve constraint for type %u (%x) with type %u (%x)!", at, manifold.FirstObject, bt, manifold.SecondObject);
 	}
