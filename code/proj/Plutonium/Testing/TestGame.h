@@ -4,6 +4,7 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Procedural/Terrain/TerrainChunk.h>
+#include <Physics/Systems/PhysicalWorld.h>
 
 class TestGame
 	: public Pu::Application
@@ -33,11 +34,15 @@ private:
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
+	Pu::Model *playerModel;
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
+
+	Pu::PhysicalWorld *physics;
+	Pu::PhysicsHandle hplayer;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

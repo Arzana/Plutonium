@@ -2,11 +2,11 @@
 #include "Core/Math/Interpolation.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::HeightMap::HeightMap(size_t dimensions, float scale, bool addNormals)
+Pu::HeightMap::HeightMap(uint32 dimensions, float scale, bool addNormals)
 	: HeightMap(dimensions, dimensions, scale, addNormals)
 {}
 
-Pu::HeightMap::HeightMap(size_t width, size_t height, float scale, bool addNormals)
+Pu::HeightMap::HeightMap(uint32 width, uint32 height, float scale, bool addNormals)
 	: width(width), height(height), boundX(width - 1), boundY(height - 1)
 {
 	const Vector2 size{ static_cast<float>(boundX), static_cast<float>(boundY) };
@@ -73,19 +73,19 @@ Pu::HeightMap & Pu::HeightMap::operator=(HeightMap && other)
 	return *this;
 }
 
-void Pu::HeightMap::SetHeight(size_t x, size_t y, float value)
+void Pu::HeightMap::SetHeight(uint32 x, uint32 y, float value)
 {
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot set height at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+		Log::Fatal("Cannot set height at [%u, %u] in heightmap (out of [%u, %u] range)!", x, y, width, height);
 	}
 #endif
 
 	data[y * width + x] = value;
 }
 
-void Pu::HeightMap::SetHeight(size_t i, float value)
+void Pu::HeightMap::SetHeight(uint32 i, float value)
 {
 #ifdef _DEBUG
 	if (i >= width * height)
@@ -97,12 +97,12 @@ void Pu::HeightMap::SetHeight(size_t i, float value)
 	data[i] = value;
 }
 
-void Pu::HeightMap::SetNormal(size_t x, size_t y, Vector3 normal)
+void Pu::HeightMap::SetNormal(uint32 x, uint32 y, Vector3 normal)
 {
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot set normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+		Log::Fatal("Cannot set normal at [%u, %u] in heightmap (out of [%u, %u] range)!", x, y, width, height);
 	}
 
 	if (!normals) Log::Fatal("Heightmap needs to be created with pre-allocated normals when calling SetNormal!");
@@ -114,12 +114,12 @@ void Pu::HeightMap::SetNormal(size_t x, size_t y, Vector3 normal)
 /* Height hides class member, checked and works as expected. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-void Pu::HeightMap::SetHeightAndNormal(size_t x, size_t y, float height, Vector3 normal)
+void Pu::HeightMap::SetHeightAndNormal(uint32 x, uint32 y, float height, Vector3 normal)
 {
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot set height and normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, this->height);
+		Log::Fatal("Cannot set height and normal at [%u, %u] in heightmap (out of [%u, %u] range)!", x, y, width, this->height);
 	}
 
 	if (!normals) Log::Fatal("Heightmap needs to be created with pre-allocated normals when calling SetHeightAndNormal!");
@@ -137,9 +137,9 @@ void Pu::HeightMap::CalculateNormals(float displacement)
 #endif
 
 	/* Loop through every location of the heightmap. */
-	for (int32 y = 0; y < height; y++)
+	for (uint32 y = 0; y < height; y++)
 	{
-		for (int32 x = 0; x < width; x++)
+		for (uint32 x = 0; x < width; x++)
 		{
 			/* Construct a sobel filter matrix. */
 			float sobel[3][3];
@@ -148,8 +148,8 @@ void Pu::HeightMap::CalculateNormals(float displacement)
 				for (int32 sx = 0; sx < 3; sx++)
 				{
 					/* Sample height with a clamp operation. */
-					const size_t sampleX = clamp(x + (sx - 1), 0, static_cast<int32>(boundX));
-					const size_t sampleY = clamp(y + (sy - 1), 0, static_cast<int32>(boundY));
+					const uint32 sampleX = clamp(x + (sx - 1), 0, static_cast<int32>(boundX));
+					const uint32 sampleY = clamp(y + (sy - 1), 0, static_cast<int32>(boundY));
 					sobel[sy][sx] = GetHeight(sampleX, sampleY) * displacement;
 				}
 			}
@@ -162,22 +162,22 @@ void Pu::HeightMap::CalculateNormals(float displacement)
 	}
 }
 
-bool Pu::HeightMap::Contains(size_t x, size_t y) const
+bool Pu::HeightMap::Contains(uint32 x, uint32 y) const
 {
 	return x < width && y < height;
 }
 
 bool Pu::HeightMap::Contains(Vector2 pos) const
 {
-	return ipart(pos.X * iPatchSize.X) < boundX && ipart(pos.Y * iPatchSize.Y) < boundY && pos.X > 0.0f && pos.Y > 0.0f;
+	return upart(pos.X * iPatchSize.X) < boundX && upart(pos.Y * iPatchSize.Y) < boundY && pos.X > 0.0f && pos.Y > 0.0f;
 }
 
-float Pu::HeightMap::GetHeight(size_t x, size_t y) const
+float Pu::HeightMap::GetHeight(uint32 x, uint32 y) const
 {
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot get height at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+		Log::Fatal("Cannot get height at [%u, %u] in heightmap (out of [%u, %u] range)!", x, y, width, height);
 	}
 #endif
 
@@ -187,7 +187,7 @@ float Pu::HeightMap::GetHeight(size_t x, size_t y) const
 float Pu::HeightMap::GetHeight(Vector2 pos) const
 {
 	/* Convert the location into the patch position and the patch uv. */
-	size_t px, py;
+	uint32 px, py;
 	float x, y;
 	TransformPosition(pos, px, py, x, y);
 
@@ -207,12 +207,12 @@ float Pu::HeightMap::GetHeight(Vector2 pos) const
 	}
 }
 
-Pu::Vector3 Pu::HeightMap::GetNormal(size_t x, size_t y) const
+Pu::Vector3 Pu::HeightMap::GetNormal(uint32 x, uint32 y) const
 {
 #ifdef _DEBUG
 	if (!Contains(x, y))
 	{
-		Log::Fatal("Cannot get normal at [%zu, %zu] in heightmap (out of [%zu, %zu] range)!", x, y, width, height);
+		Log::Fatal("Cannot get normal at [%u, %u] in heightmap (out of [%u, %u] range)!", x, y, width, height);
 	}
 #endif
 
@@ -222,7 +222,7 @@ Pu::Vector3 Pu::HeightMap::GetNormal(size_t x, size_t y) const
 Pu::Vector3 Pu::HeightMap::GetNormal(Vector2 pos) const
 {
 	/* Convert the location into the patch position and the patch uv. */
-	size_t px, py;
+	uint32 px, py;
 	float x, y;
 	TransformPosition(pos, px, py, x, y);
 
@@ -249,7 +249,7 @@ Pu::Vector3 Pu::HeightMap::GetNormal(Vector2 pos) const
 void Pu::HeightMap::GetHeightAndNormal(Vector2 pos, float & output, Vector3 & normal) const
 {
 	/* Convert the location into the patch position and the patch uv. */
-	size_t px, py;
+	uint32 px, py;
 	float x, y;
 	TransformPosition(pos, px, py, x, y);
 
@@ -275,7 +275,7 @@ void Pu::HeightMap::GetHeightAndNormal(Vector2 pos, float & output, Vector3 & no
 	}
 }
 
-bool Pu::HeightMap::TryGetHeight(size_t x, size_t y, float & output) const
+bool Pu::HeightMap::TryGetHeight(uint32 x, uint32 y, float & output) const
 {
 	if (Contains(x, y))
 	{
@@ -319,26 +319,26 @@ bool Pu::HeightMap::TryGetHeightAndNormal(Vector2 pos, float & output, Vector3 &
 	return false;
 }
 
-void Pu::HeightMap::TransformPosition(Vector2 input, size_t & px, size_t & py, float & x, float & y) const
+void Pu::HeightMap::TransformPosition(Vector2 input, uint32 & px, uint32 & py, float & x, float & y) const
 {
 	/*
 	Get the patch location from the terrain position.
 	Also clamp this position to the furthest bound in order to not sample outside of the map.
 	*/
-	px = min(static_cast<size_t>(ipart(input.X * iPatchSize.X)), boundX - 1);
-	py = min(static_cast<size_t>(ipart(input.Y * iPatchSize.Y)), boundY - 1);
+	px = min(upart(input.X * iPatchSize.X), boundX - 1);
+	py = min(upart(input.Y * iPatchSize.Y), boundY - 1);
 
 	/* Get the relative position on the patch. */
 	x = fmodf(input.X, patchSize.X) * iPatchSize.X;
 	y = fmodf(input.Y, patchSize.Y) * iPatchSize.Y;
 }
 
-float Pu::HeightMap::QueryHeight(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const
+float Pu::HeightMap::QueryHeight(uint32 apx, uint32 apy, uint32 bpx, uint32 bpy, uint32 cpx, uint32 cpy, float t, float s) const
 {
 	return barycentric(GetHeight(apx, apy), GetHeight(bpx, bpy), GetHeight(cpx, cpy), t, s);
 }
 
-Pu::Vector3 Pu::HeightMap::QueryNormal(size_t apx, size_t apy, size_t bpx, size_t bpy, size_t cpx, size_t cpy, float t, float s) const
+Pu::Vector3 Pu::HeightMap::QueryNormal(uint32 apx, uint32 apy, uint32 bpx, uint32 bpy, uint32 cpx, uint32 cpy, float t, float s) const
 {
 	return barycentric(GetNormal(apx, apy), GetNormal(bpx, bpy), GetNormal(cpx, cpy), t, s);
 }

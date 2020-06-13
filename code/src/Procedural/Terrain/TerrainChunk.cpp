@@ -72,6 +72,7 @@ namespace Pu
 			}
 
 			/* Calculate the normals for the mesh and heightmap. */
+			HeightMap tmpCollider{ meshSize, meshScale, true };
 			i = 0;
 			for (int32 y = 0; y < meshSize; y++)
 			{
@@ -85,7 +86,7 @@ namespace Pu
 					n.Normalize();
 
 					vertex[i].Normal = n;
-					result->collider.SetHeightAndNormal(x, y, pixel[i], n);
+					tmpCollider.SetHeightAndNormal(x, y, pixel[i] * heightScale, n);
 				}
 			}
 
@@ -120,6 +121,15 @@ namespace Pu
 
 			result->bb.LowerBound = Vector3(pos.X, minH * heightScale, pos.Z);
 			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * heightScale, meshScale * meshBound);
+
+			/* Add the heightmap to the physical world if needed. */
+			if (result->world)
+			{
+				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
+				PhysicalObject obj{ pos, Quaternion{}, collider };
+				result->hcollider = result->world->AddStatic(obj);
+			}
+
 			return Result::CustomWait();
 		}
 
@@ -148,17 +158,18 @@ namespace Pu
 	};
 }
 
-Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher)
-	: generated(false), fetcher(&fetcher), collider(meshSize, meshScale, true),
-	displacement(nullptr), textures(nullptr), material(nullptr), usable(false)
+Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld * world)
+	: generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
+	displacement(nullptr), textures(nullptr), material(nullptr), usable(false),
+	world(world)
 {}
 
 Pu::TerrainChunk::TerrainChunk(TerrainChunk && value)
 	: generated(value.generated), fetcher(value.fetcher),
-	collider(std::move(value.collider)), mesh(std::move(value.mesh)),
+	hcollider(value.hcollider), mesh(std::move(value.mesh)),
 	displacement(value.displacement), textures(value.textures),
 	material(value.material), albedoMask(value.albedoMask),
-	usable(value.usable.load())
+	usable(value.usable.load()), world(value.world)
 {
 	value.displacement = nullptr;
 	value.textures = nullptr;
@@ -176,12 +187,13 @@ Pu::TerrainChunk & Pu::TerrainChunk::operator=(TerrainChunk && other)
 		generated = other.generated;
 		usable = other.usable.load();
 		fetcher = other.fetcher;
-		collider = std::move(other.collider);
+		hcollider = other.hcollider;
 		mesh = std::move(other.mesh);
 		displacement = other.displacement;
 		textures = other.textures;
 		material = other.material;
 		albedoMask = other.albedoMask;
+		world = other.world;
 
 		other.displacement = nullptr;
 		other.textures = nullptr;
@@ -210,6 +222,9 @@ void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, c
 
 void Pu::TerrainChunk::Destroy(void)
 {
+	/* Remove the terrain chunk from the physical world. */
+	if (hcollider != PhysicsNullHandle) world->Destroy(hcollider);
+
 	if (material) delete material;
 	if (textures) fetcher->Release(*textures);
 	if (albedoMask) fetcher->Release(*albedoMask);

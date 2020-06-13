@@ -3,6 +3,7 @@
 #include "Graphics/Models/Terrain.h"
 #include "Core/Math/PerlinNoise.h"
 #include "Core/Math/HeightMap.h"
+#include "Physics/Systems/PhysicalWorld.h"
 
 namespace Pu
 {
@@ -11,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes an empty instance of a terrain chunk. */
-		TerrainChunk(_In_ AssetFetcher &fetcher);
+		TerrainChunk(_In_ AssetFetcher &fetcher, _In_ PhysicalWorld *physics);
 		TerrainChunk(_In_ const TerrainChunk&) = delete;
 		/* Move constructor. */
 		TerrainChunk(_In_ TerrainChunk &&value);
@@ -52,7 +53,7 @@ namespace Pu
 			return *material;
 		}
 
-		/* Gets the bounding box of this terrain chunk. */
+		/* Gets the bounding box of this terrain chunk (transform is pre-multiplied). */
 		_Check_return_ inline const AABB& GetBoundingBox(void) const
 		{
 			return bb;
@@ -64,8 +65,10 @@ namespace Pu
 		bool generated;
 		std::atomic_bool usable;
 		AssetFetcher *fetcher;
-		HeightMap collider;
 		AABB bb;
+
+		PhysicalWorld *world;
+		PhysicsHandle hcollider;
 
 		MeshCollection mesh;
 		Texture2D *albedoMask;

@@ -1,10 +1,10 @@
 #pragma once
-#include <sal.h>
+#include "Core/Math/Constants.h"
 
 namespace Pu
 {
 	/* Defines the possible collision shapes for broad and narrow phases. */
-	enum class CollisionShapes
+	enum class CollisionShapes : uint8
 	{
 		/* No narrow phase shape, the collider is an AABB. */
 		None,
@@ -17,7 +17,9 @@ namespace Pu
 		/* Defines a convex hull collider. */
 		Hull,
 		/* Defines a mesh collider. */
-		Mesh
+		Mesh,
+		/* Defines a heightmap collider. */
+		HeightMap
 	};
 
 	/* Converts the collision shape to a human readable version. */
@@ -37,6 +39,8 @@ namespace Pu
 			return "Hull";
 		case CollisionShapes::Mesh:
 			return "Mesh";
+		case CollisionShapes::HeightMap:
+			return "Heightmap";
 		default:
 			return "Unknown";
 		}

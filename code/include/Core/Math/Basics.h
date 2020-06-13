@@ -357,6 +357,12 @@ namespace Pu
 		return static_cast<int32>(floorf(v));
 	}
 
+	/* Gets the unsigned integer part of the input value. */
+	_Check_return_ inline uint32 upart(_In_ float v)
+	{
+		return static_cast<uint32>(floorf(v));
+	}
+
 	/* Gets the rounded integer of the input value. */
 	_Check_return_ inline int32 iround(_In_ float v)
 	{

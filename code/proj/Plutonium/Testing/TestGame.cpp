@@ -10,10 +10,12 @@ const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"),
-	updateCam(false), firstRun(true)
+	updateCam(false), firstRun(true), hplayer(PhysicsNullHandle)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
+
+	AddSystem(physics = new PhysicalWorld());
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -46,6 +48,8 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
+
+	playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -57,6 +61,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (renderer) delete renderer;
 	if (dbgRenderer) delete dbgRenderer;
 
+	fetcher.Release(*playerModel);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
@@ -98,20 +103,23 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->BeginTerrain();
 		for (const TerrainChunk *chunk : terrain)
 		{
-			if (chunk->IsUsable())
-			{
-				renderer->Render(*chunk);
-			}
+			if (chunk->IsUsable()) renderer->Render(*chunk);
 		}
 
 		renderer->BeginGeometry();
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
+		if (playerModel->IsLoaded() && hplayer != PhysicsNullHandle)
+		{
+			const Matrix transform = physics->GetTransform(hplayer) * Matrix::CreateScalar(0.05f);
+			renderer->Render(*playerModel, transform, 0, 1, 0.0f);
+		}
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();
 
+		physics->Visualize(*dbgRenderer);
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
@@ -133,17 +141,13 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			if (updateCam = !updateCam) Mouse::HideAndLockCursor(GetWindow().GetNative());
 			else Mouse::ShowAndFreeCursor();
 		}
-		else if (args.Key == Keys::G && descPoolConst)
+		else if (args.Key == Keys::G && descPoolConst && terrain.empty())
 		{
-			GetDevice().GetGraphicsQueue(1).WaitIdle();
-			for (TerrainChunk *chunk : terrain) delete chunk;
-			terrain.clear();
-
 			for (float z = 0; z < terrainSize; z++)
 			{
 				for (float x = 0; x < terrainSize; x++)
 				{
-					TerrainChunk *chunk = new TerrainChunk(GetContent());
+					TerrainChunk *chunk = new TerrainChunk(GetContent(), physics);
 					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
 						{
 							L"{Textures}Terrain/Water.jpg",
@@ -155,6 +159,15 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 					terrain.emplace_back(chunk);
 				}
 			}
+		}
+		else if (args.Key == Keys::P && hplayer == PhysicsNullHandle)
+		{
+			Sphere sphere{ Vector3{}, 1.0f };
+			Collider collider{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &sphere };
+			PhysicalObject obj{ Vector3(20.0f, 30.0f, 20.0f), Quaternion{}, collider };
+			obj.Properties = physics->AddMaterial({ 1.0f, 0.5f, 0.5f });
+			obj.State.Mass = 1.0f;
+			hplayer = physics->AddKinematic(obj);
 		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)

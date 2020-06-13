@@ -94,6 +94,12 @@ namespace Pu
 			return factors.W;
 		}
 
+		/* Gets the scale of this terrain. */
+		_Check_return_ inline float GetScale(void) const
+		{
+			return transform.W;
+		}
+
 	protected:
 		/* Stages the buffer data for the uniform buffer. */
 		void Stage(_In_ byte *dest) final;
