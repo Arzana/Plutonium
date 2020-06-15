@@ -6,42 +6,35 @@
 
 using namespace Pu;
 
-/*
-Physical handles store various pieces of fast information.
-[TT000000 00000000 00000000 00000000 IIIIIIII IIIIIIII IIIIIIII IIIIIIII]
-
-T (2-bits): The type of the object, also the vector in which it is stored.
-I (32-bits): The index in the lookup vector, used to determine the actual index.
-*/
-
 #define PHYSICS_LIST_PLANE						0u
 #define PHYSICS_LIST_STATIC						1u
 #define PHYSICS_LIST_KINEMATIC					2u
 
 static uint32 collisionCount = 0;
+static uint32 narrowChecks = 0;
 
 /* Gets the index of the object associated with the handle. */
-static constexpr inline uint32 get_lookup_id(PhysicsHandle handle)
+static constexpr inline uint16 get_lookup_id(PhysicsHandle handle)
 {
-	return handle & 0xFFFFFFFF;
+	return handle & 0xFFFF;
 }
 
 /* Gets the list (or type) of the object associated with the handle. */
 static constexpr inline uint8 get_type(PhysicsHandle handle)
 {
-	return static_cast<uint8>(handle >> 62);
+	return static_cast<uint8>(handle >> 30);
 }
 
 /* Creates a new physics handle. */
-static constexpr inline PhysicsHandle create_handle(uint8 type, uint32 idx)
+static constexpr inline PhysicsHandle create_handle(uint8 type, uint16 idx)
 {
-	return static_cast<uint64>(type) << 62 | idx;
+	return static_cast<uint32>(type) << 30 | idx;
 }
 
 /* Creates a new physics handle. */
 static constexpr inline PhysicsHandle create_handle(uint8 type, uint64 idx)
 {
-	return static_cast<uint64>(type) << 62 | static_cast<uint32>(idx);
+	return static_cast<uint32>(type) << 30 | static_cast<uint16>(idx);
 }
 
 /* Creates the lookup ID of a collision type. */
@@ -70,6 +63,11 @@ Pu::PhysicalWorld::~PhysicalWorld(void)
 Pu::uint32 Pu::PhysicalWorld::GetCollisionCount(void)
 {
 	return collisionCount;
+}
+
+uint32 Pu::PhysicalWorld::GetNarrowCheckCount(void)
+{
+	return narrowChecks;
 }
 
 Pu::PhysicsHandle Pu::PhysicalWorld::AddPlane(const CollisionPlane & plane)
@@ -132,7 +130,7 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 
 	/* Get the internal physics handle. */
 	const PhysicsHandle internalHandle = lookup[get_lookup_id(handle)];
-	const uint32 idx = get_lookup_id(internalHandle);
+	const uint16 idx = get_lookup_id(internalHandle);
 	const uint8 list = get_type(handle);
 
 #ifdef _DEBUG
@@ -168,6 +166,22 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 		const PhysicalObject &obj = kinematicObjects[idx];
 		return Matrix::CreateTranslation(obj.P) * Matrix::CreateRotation(obj.Theta);
 	}
+	else if (list == PHYSICS_LIST_STATIC)
+	{
+#ifdef _DEBUG
+		ThrowInvalidHandle(idx >= staticObjects.size(), "get transform of");
+
+		static bool shouldThrow = true;
+		if (shouldThrow)
+		{
+			shouldThrow = false;
+			Log::Warning("Attempting to query transform of static object 0x%X, this is slow, cache it instead (this warning only displays once)!");
+		}
+#endif
+
+		const PhysicalObject &obj = staticObjects[idx];
+		return Matrix::CreateTranslation(obj.P) * Matrix::CreateRotation(obj.Theta);
+	}
 	else
 	{
 		ThrowInvalidHandle(true, "get transform of");
@@ -175,8 +189,9 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 	}
 }
 
-void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
+void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer, Vector3 camPos) const
 {
+	Profiler::BeginDebug();
 	lock.lock();
 
 	for (const CollisionPlane &collider : planes)
@@ -187,22 +202,25 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer) const
 
 	for (const PhysicalObject &obj : staticObjects)
 	{
-		VisualizePhysicalObject(renderer, obj, Color::Green());
+		VisualizePhysicalObject(renderer, obj, Color::Green(), camPos);
 	}
 
 	for (const PhysicalObject &obj : kinematicObjects)
 	{
-		VisualizePhysicalObject(renderer, obj, Color::Blue());
+		VisualizePhysicalObject(renderer, obj, Color::Blue(), camPos);
 	}
 
 	lock.unlock();
+	Profiler::End();
 }
 
 void Pu::PhysicalWorld::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
-	collisionCount = 0;
 	lock.lock();
+
+	collisionCount = 0;
+	narrowChecks = 0;
 
 	/*
 	We first check for collision events between all objects.
@@ -231,7 +249,7 @@ void Pu::PhysicalWorld::ThrowInvalidHandle(bool condition, const char *action)
 	if (condition) Log::Fatal("Cannot %s physics object (invalid handle)!", action);
 }
 
-void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const PhysicalObject & obj, Color clr)
+void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const PhysicalObject & obj, Color clr, Vector3 camPos)
 {
 	if (obj.Collider.NarrowPhaseShape == CollisionShapes::None)
 	{
@@ -241,6 +259,15 @@ void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const 
 	{
 		const Sphere collider = *reinterpret_cast<Sphere*>(obj.Collider.NarrowPhaseParameters);
 		renderer.AddSphere(obj.P + collider.Center, collider.Radius, clr);
+	}
+	else if (obj.Collider.NarrowPhaseShape == CollisionShapes::HeightMap)
+	{
+		/* Rendering a heightmap is extremely expensive, so only do it for the closest one. */
+		const HeightMap &collider = *reinterpret_cast<HeightMap*>(obj.Collider.NarrowPhaseParameters);
+		camPos -= obj.P;
+
+		if (collider.Contains(Vector2(camPos.X, camPos.Z))) collider.Visualize(renderer, obj.P, clr);
+		else renderer.AddBox(obj.Collider.BroadPhase + obj.P, clr);
 	}
 }
 
@@ -279,6 +306,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 	/* All went well, so create a new handle and add it to the correct list. */
 	const PhysicsHandle handle = CreateNewHandle(type);
 	list.emplace_back(copy);
+	bvh.Insert(lookup[get_lookup_id(handle)], copy.Collider.BroadPhase + copy.P);
 	lock.unlock();
 
 	return handle;
@@ -286,8 +314,10 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 
 void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 {
-	const uint32 idx = get_lookup_id(internalHandle);
+	const uint16 idx = get_lookup_id(internalHandle);
 	const uint8 list = get_type(internalHandle);
+
+	if (list != PHYSICS_LIST_PLANE) bvh.Remove(internalHandle);
 
 	/* Destroy the underlying object. */
 	if (list == PHYSICS_LIST_PLANE)
@@ -328,8 +358,8 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 		const uint8 curList = get_type(cur);
 		if (curList == list)
 		{
-			const uint32 curIdx = get_lookup_id(cur);
-			if (curIdx > idx) cur = create_handle(curList, curIdx - 1);
+			const uint16 curIdx = get_lookup_id(cur);
+			if (curIdx > idx) cur = create_handle(curList, static_cast<uint16>(curIdx - 1u));
 		}
 	}
 }
@@ -363,6 +393,14 @@ Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint8 type)
 		return PhysicsNullHandle;
 	}
 
+#ifdef _DEBUG
+	if (i > maxv<uint16>())
+	{
+		Log::Fatal("Unable to create physics handle (out of space)!");
+		return PhysicsNullHandle;
+	}
+#endif
+
 	/* Search for an empty position in the lookup table. */
 	for (size_t j = 0; j < lookup.size(); j++)
 	{
@@ -376,6 +414,15 @@ Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint8 type)
 	/* No null entry was found, so just add a new one. */
 	lookup.emplace_back(create_handle(type, i));
 	return create_handle(type, lookup.size() - 1);
+}
+
+PhysicalObject & Pu::PhysicalWorld::QueryInternal(PhysicsHandle handle)
+{
+	const uint16 idx = get_lookup_id(handle);
+	const uint8 list = get_type(handle);
+
+	if (list == PHYSICS_LIST_STATIC) return staticObjects[idx];
+	else return kinematicObjects[idx];
 }
 
 void Pu::PhysicalWorld::CheckForCollisions(void)
@@ -398,31 +445,22 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 	}
 
 	/* Check for collision. */
-	uint32 i = 0;
+	uint16 i = 0;
+	vector<PhysicsHandle> broadPhaseResult;
 	for (const PhysicalObject &second : kinematicObjects)
 	{
-		const PhysicsHandle hsecond = create_handle(PHYSICS_LIST_KINEMATIC, i);
+		/* Traverse the BVH to perform broad phase for this kinematic object. */
+		const PhysicsHandle hsecond = create_handle(PHYSICS_LIST_KINEMATIC, i++);
+		bvh.Boxcast(second.Collider.BroadPhase + second.P, broadPhaseResult);
 
-		/* With static objects. */
-		uint32 j = 0;
-		for (const PhysicalObject &first : staticObjects)
+		/* Perform narrow phase for all the hits, ignoring self. */
+		for (const PhysicsHandle hfirst : broadPhaseResult)
 		{
-			const PhysicsHandle hfirst = create_handle(PHYSICS_LIST_STATIC, j++);
-			TestGeneric(first, hfirst, second, hsecond);
+			if (hfirst == hsecond) continue;
+			TestGeneric(QueryInternal(hfirst), hfirst, second, hsecond);
 		}
 
-		/* With other kinematic objects. */
-		j = 0;
-		for (const PhysicalObject &first : kinematicObjects)
-		{
-			/* Ignore collisions with self. */
-			if (i == j) continue;
-
-			const PhysicsHandle hfirst = create_handle(PHYSICS_LIST_KINEMATIC, j++);
-			TestGeneric(first, hfirst, second, hsecond);
-		}
-
-		++i;
+		broadPhaseResult.clear();
 	}
 }
 
@@ -468,6 +506,8 @@ bool Pu::PhysicalWorld::TestPlaneSphere(size_t planeIdx, size_t sphereIdx)
 
 void Pu::PhysicalWorld::TestGeneric(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
 {
+	++narrowChecks;
+
 	/* 
 	Construct a key from the collision type, then check if it's in the list.
 	If not, try again, but with reverse order.

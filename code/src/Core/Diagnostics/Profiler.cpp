@@ -172,17 +172,16 @@ void Pu::Profiler::VisualizeInternal(void)
 		RenderSections(gpuSections, "GPU", false);
 
 		ImGui::Separator();
-		ImGui::Text("Draw Calls:             %u", CommandBuffer::GetDrawCalls());
-		ImGui::Text("Bind Calls:             %u", CommandBuffer::GetBindCalls());
-		ImGui::Text("Shaders Used:           %u", CommandBuffer::GetShaderCalls());
-		ImGui::Text("Transfers:              %u", CommandBuffer::GetTransferCalls());
-		ImGui::Text("Barriers:               %u", CommandBuffer::GetBarrierCalls());
+		ImGui::Text("Draw Calls:      %u", CommandBuffer::GetDrawCalls());
+		ImGui::Text("Bind Calls:      %u", CommandBuffer::GetBindCalls());
+		ImGui::Text("Shaders Used:    %u", CommandBuffer::GetShaderCalls());
+		ImGui::Text("Transfers:       %u", CommandBuffer::GetTransferCalls());
+		ImGui::Text("Barriers:        %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();
 
 		ImGui::Separator();
-		ImGui::Text("Collisions:			 %u", PhysicalWorld::GetCollisionCount());
-		ImGui::Text("GJK Calls:              %u", GJK::GetCallCount());
-		ImGui::Text("Average GJK Iterations: %u", GJK::GetAverageIterations());
+		ImGui::Text("Collisions:      %u/%u", PhysicalWorld::GetCollisionCount(), PhysicalWorld::GetNarrowCheckCount());
+		ImGui::Text("GJK Calls:       %u@%u", GJK::GetCallCount(), GJK::GetAverageIterations());
 		GJK::ResetCounters();
 
 		ImGui::Separator();

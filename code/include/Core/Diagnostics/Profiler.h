@@ -35,6 +35,12 @@ namespace Pu
 		/* Sets the smoothing interval (in seconds). */
 		static void SetInterval(_In_ float value);
 
+		/* Starts or adds to the recording of a debug specific piece of code. */
+		static void BeginDebug(void)
+		{
+			Begin("Debug", Color::Orange());
+		}
+
 	private:
 		friend class Application;
 		

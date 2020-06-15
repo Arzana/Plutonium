@@ -107,6 +107,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Rectangle.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Sphere.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\SpecializationConstant.h" />
+    <ClInclude Include="..\..\..\include\Physics\Objects\BVH.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\Collider.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionManifold.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h" />
@@ -119,6 +120,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
     <ClInclude Include="..\..\..\include\System.h" />
@@ -321,6 +323,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />

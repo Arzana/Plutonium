@@ -1,6 +1,7 @@
 #include "Core/Math/HeightMap.h"
 #include "Core/Math/Interpolation.h"
 #include "Core/Diagnostics/Logging.h"
+#include "Graphics/Diagnostics/DebugRenderer.h"
 
 Pu::HeightMap::HeightMap(uint32 dimensions, float scale, bool addNormals)
 	: HeightMap(dimensions, dimensions, scale, addNormals)
@@ -317,6 +318,34 @@ bool Pu::HeightMap::TryGetHeightAndNormal(Vector2 pos, float & output, Vector3 &
 	}
 
 	return false;
+}
+
+void Pu::HeightMap::Visualize(DebugRenderer & renderer, Vector3 offset, Color color) const
+{
+	Vector3 a;
+	Vector3 b;
+
+	for (uint32 y = 0; y < height; y++)
+	{
+		for (uint32 x = 0; x < width - 1; x++)
+		{
+			a = offset + Vector3{ x * patchSize.X, data[y * width + x], y * patchSize.Y };
+
+			/* Only render a downwards line if this is not the last row. */
+			if (y < height - 1)
+			{
+				b = offset + Vector3{ x * patchSize.X, data[(y + 1) * width + x], (y + 1) * patchSize.Y };
+				renderer.AddLine(a, b, color);
+			}
+
+			b = offset + Vector3{ (x + 1) * patchSize.X, data[y * width + x + 1], y * patchSize.Y };
+			renderer.AddLine(a, b, color);
+		}
+
+		/* Render the last column line seperately */
+		a = offset + Vector3{ (width - 1) * patchSize.X, data[(y + 1) * width + width - 1], (y + 1) * patchSize.Y };
+		renderer.AddLine(a, b, color);
+	}
 }
 
 void Pu::HeightMap::TransformPosition(Vector2 input, uint32 & px, uint32 & py, float & x, float & y) const

@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "System.h"
+#include "Physics/Objects/BVH.h"
 #include "Physics/Objects/PhysicalObject.h"
 #include "Physics/Objects/CollisionPlane.h"
 #include "Physics/Properties/PhysicalProperties.h"
@@ -30,6 +31,9 @@ namespace Pu
 
 		/* Gets the total amount of collisions since the last reset call. */
 		_Check_return_ static uint32 GetCollisionCount(void);
+		/* Gets the amount of narrow phase collision checks since the last reset call. */
+		_Check_return_ static uint32 GetNarrowCheckCount(void);
+
 		/* Adds the specified collision plane to this world. */
 		_Check_return_ PhysicsHandle AddPlane(_In_ const CollisionPlane &plane);
 		/* Adds the specified object to this world. */
@@ -43,7 +47,7 @@ namespace Pu
 		/* Gets the transform of the specified physical object. */
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
 		/* Renders the entire physical world to the specified debug renderer. */
-		void Visualize(_In_ DebugRenderer &renderer) const;
+		void Visualize(_In_ DebugRenderer &renderer, _In_ Vector3 camPos) const;
 
 	protected:
 		/* Updates the physical world contraints. */
@@ -57,17 +61,19 @@ namespace Pu
 		vector<PhysicalObject> kinematicObjects;
 		vector<PhysicalProperties> materials;
 
+		BVH bvh;
 		std::map<uint16, CollisionChecker_t> checkers;
 		vector<PhysicsHandle> lookup;
 		vector<CollisionManifold> collisions;
 		mutable std::mutex lock;
 
 		static void ThrowInvalidHandle(bool condition, const char *action);
-		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr);
+		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr, Vector3 camPos);
 
 		PhysicsHandle AddInternal(const PhysicalObject &obj, uint8 type, vector<PhysicalObject> &list);
 		void DestroyInternal(PhysicsHandle internalHandle);
 		PhysicsHandle CreateNewHandle(uint8 type);
+		PhysicalObject& QueryInternal(PhysicsHandle handle);
 		void CheckForCollisions(void);
 		bool TestPlaneSphere(size_t planeIdx, size_t sphereIdx);
 		void TestGeneric(const PhysicalObject &first, PhysicsHandle hfirst, const PhysicalObject &second, PhysicsHandle hsecond);

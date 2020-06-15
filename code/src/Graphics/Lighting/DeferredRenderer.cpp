@@ -10,7 +10,7 @@
 #ifdef _DEBUG
 #define DBG_CHECK(obj, stage)	if (!obj) Log::Fatal("InitializeResources should be started before the " stage " pass can start!");
 #else
-#define DBG_CHECK_CAM(...)
+#define DBG_CHECK(...)
 #endif
 
 constexpr Pu::uint32 TerrainTimer = 0;
@@ -265,7 +265,7 @@ void Pu::DeferredRenderer::End(void)
 
 void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 {
-	if (curCam->Cull(chunk.GetBoundingBox())) return;
+	if (curCam->Cull(chunk.GetBoundingBox() + chunk.GetPosition())) return;
 
 	const MeshCollection &meshes = chunk.GetMeshes();
 	curCmd->BindGraphicsDescriptor(*gfxTerrain, chunk.GetMaterial());

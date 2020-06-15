@@ -16,7 +16,7 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
 	AddSystem(physics = new PhysicalWorld());
-	physics->AddMaterial({ 1.0f, 0.2f, 0.1f });
+	physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -123,7 +123,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*lightFill);
 		renderer->End();
 
-		physics->Visualize(*dbgRenderer);
+		physics->Visualize(*dbgRenderer, camFree->GetPosition());
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
@@ -170,7 +170,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			const float z = random(10.0f, 40.0f);
 
 			Sphere sphere{ Vector3{}, 1.0f };
-			Collider collider{ AABB(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f), CollisionShapes::Sphere, &sphere };
+			Collider collider{ AABB(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f), CollisionShapes::Sphere, &sphere };
 			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
 			obj.Properties = 0;
 			obj.State.Mass = 1.0f;

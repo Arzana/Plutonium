@@ -1,9 +1,11 @@
 #pragma once
-#include "Vector3.h"
+#include "Graphics/Color.h"
 #include "Graphics/Vulkan/VulkanObjects.h"
 
 namespace Pu
 {
+	class DebugRenderer;
+
 	/* 
 	Defines an object that contains a height field for a plane.
 	The scale supplied as the contructor input refers to the scale between the heightmap vs the object it will be applied on,
@@ -64,6 +66,8 @@ namespace Pu
 		_Check_return_ bool TryGetNormal(_In_ Vector2 pos, _Out_ Vector3 &normal) const;
 		/* Attempts to get the height and normal from an interpolated point on the map. */
 		_Check_return_ bool TryGetHeightAndNormal(_In_ Vector2 pos, _Out_ float &height, _Out_ Vector3 &normal) const;
+		/* Renders the heightmap to the debug renderer. */
+		void Visualize(_In_ DebugRenderer &renderer, _In_ Vector3 offset, _In_ Color color) const;
 
 		/* Gets the size of the heightmap.s */
 		_Check_return_ inline Extent2D GetExtent(void) const

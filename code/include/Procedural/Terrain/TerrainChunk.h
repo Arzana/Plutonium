@@ -53,10 +53,16 @@ namespace Pu
 			return *material;
 		}
 
-		/* Gets the bounding box of this terrain chunk (transform is pre-multiplied). */
+		/* Gets the bounding box of this terrain chunk. */
 		_Check_return_ inline const AABB& GetBoundingBox(void) const
 		{
 			return bb;
+		}
+
+		/* Gets the transform of this chunk in the physical world. */
+		_Check_return_ inline Vector3 GetPosition(void) const
+		{
+			return pos;
 		}
 
 	private:
@@ -69,6 +75,7 @@ namespace Pu
 
 		PhysicalWorld *world;
 		PhysicsHandle hcollider;
+		Vector3 pos;
 
 		MeshCollection mesh;
 		Texture2D *albedoMask;

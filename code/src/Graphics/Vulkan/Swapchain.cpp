@@ -6,7 +6,11 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 	: parent(&device), format(createInfo.ImageFormat, createInfo.ImageColorSpace)
 {
 	/* Check if the information specified is correct. */
+#ifdef _DEBUG
 	if (!CanCreateInternal(device.GetPhysicalDevice(), surface, createInfo, true)) Log::Fatal("Cannot create swapchain with the given arguments for the specified device or surface!");
+#else 
+	(void)surface;
+#endif
 
 	/* Create swapchain. */
 	VK_VALIDATE(parent->vkCreateSwapchainKHR(device.hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSwapchainKHR);

@@ -106,7 +106,7 @@ namespace Pu
 			device.GetGraphicsQueue(0).Submit(cmd);
 
 			/* The terrain is rendered fro the center, so we need to add an offset. */
-			const Vector3 pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * meshBound;
+			result->pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * meshBound;
 			const float halfSize = meshBound * 0.5f * meshScale;
 
 			/* Initialize the material. */
@@ -117,16 +117,16 @@ namespace Pu
 			result->material->SetDisplacement(displacement);
 			result->material->SetScale(meshScale);
 			result->material->SetPatchSize(meshSize);
-			result->material->SetPosition(pos + Vector3(halfSize, 0.0f, halfSize));
+			result->material->SetPosition(result->pos + Vector3(halfSize, 0.0f, halfSize));
 
-			result->bb.LowerBound = Vector3(pos.X, minH * heightScale, pos.Z);
-			result->bb.UpperBound = pos + Vector3(meshScale * meshBound, maxH * heightScale, meshScale * meshBound);
+			result->bb.LowerBound = Vector3(0.0f, minH * heightScale, 0.0f);
+			result->bb.UpperBound = Vector3(meshScale * meshBound, maxH * heightScale, meshScale * meshBound);
 
 			/* Add the heightmap to the physical world if needed. */
 			if (result->world)
 			{
 				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
-				PhysicalObject obj{ pos, Quaternion{}, collider };
+				PhysicalObject obj{ result->pos, Quaternion{}, collider };
 				result->hcollider = result->world->AddStatic(obj);
 			}
 
