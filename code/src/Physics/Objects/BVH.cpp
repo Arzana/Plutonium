@@ -7,7 +7,6 @@
 #include <queue>
 
 #define BVH_NULL		0xC0FFFFFF
-#define BVH_ALLOC_BIT	0x20000000
 
 /*
 Node structure:
@@ -115,7 +114,7 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 	/* Find the leaf node associated with this handle. */
 	for (uint32 i = 0; i < capacity; i++)
 	{
-		if (nodes[i].Handle == handle && !(nodes[i].Handle & BVH_ALLOC_BIT))
+		if (nodes[i].Handle == handle && !(nodes[i].Handle & PhysicsHandleBVHAllocBit))
 		{
 			const uint32 oldParentIdx = nodes[i].Parent;
 
@@ -201,7 +200,7 @@ float Pu::BVH::GetTreeCost(void) const
 	for (uint32 i = 0; i < capacity; i++)
 	{
 		/* Skip any deallocated node. */
-		if (nodes[i].Handle & BVH_ALLOC_BIT) continue;
+		if (nodes[i].Handle & PhysicsHandleBVHAllocBit) continue;
 
 		/* The cost of the tree itself is the cost of all the internal nodes. */
 		if (nodes[i].Handle != BVH_NULL) result += nodes[i].Box.GetArea();
@@ -215,7 +214,7 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 	for (uint32 i = 0; i < capacity; i++)
 	{
 		const Node &node = nodes[i];
-		if (node.Handle & BVH_ALLOC_BIT) continue;
+		if (node.Handle & PhysicsHandleBVHAllocBit) continue;
 
 		if (node.Handle == BVH_NULL) renderer.AddBox(node.Box, Color::Red());
 		else renderer.AddBox(node.Box, Color::Cyan());
@@ -289,7 +288,7 @@ Pu::uint32 Pu::BVH::AllocBranch(void)
 
 		for (uint32 i = 0; i < capacity; i++) 
 		{
-			if (nodes[i].Handle & BVH_ALLOC_BIT)
+			if (nodes[i].Handle & PhysicsHandleBVHAllocBit)
 			{
 				nodes[i].Handle = BVH_NULL;
 				return i;
@@ -329,7 +328,7 @@ void Pu::BVH::FreeNode(uint32 idx)
 	*/
 #ifdef _DEBUG
 	Node &node = nodes[idx];
-	node.Handle = BVH_ALLOC_BIT;
+	node.Handle = PhysicsHandleBVHAllocBit;
 	node.Parent = BVH_NULL;
 	node.Child1 = BVH_NULL;
 	node.Child2 = BVH_NULL;

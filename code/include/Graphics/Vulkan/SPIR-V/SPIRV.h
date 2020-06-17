@@ -1608,27 +1608,27 @@ namespace Pu
 		case spv::Op::OpConvertUToF:
 			return "Unsigned-int to Floating-point Conversion";
 		case spv::Op::OpUConvert:
-			break;
+			return "Unsigned-int Truncate or Zero Extent";
 		case spv::Op::OpSConvert:
-			break;
+			return "Signed-int Truncate or Zero Extent";
 		case spv::Op::OpFConvert:
-			break;
+			return "Floating-point Width Conversion";
 		case spv::Op::OpQuantizeToF16:
-			break;
+			return "Floating-point quantize 16-bit";
 		case spv::Op::OpConvertPtrToU:
-			break;
+			return "Pointer to Unsigned-int Conversion";
 		case spv::Op::OpSatConvertSToU:
-			break;
+			return "Signed-int to Unsigned-int Conversion";
 		case spv::Op::OpSatConvertUToS:
-			break;
+			return "Unsigned-int to Signed-int Conversion";
 		case spv::Op::OpConvertUToPtr:
-			break;
+			return "Unsigned-int to Pointer Conversion";
 		case spv::Op::OpPtrCastToGeneric:
-			break;
+			return "Pointer Storage to Generic Conversion";
 		case spv::Op::OpGenericCastToPtr:
-			break;
+			return "Pointer Storage to Non-Generic Conversion";
 		case spv::Op::OpGenericCastToPtrExplicit:
-			break;
+			return "Explicit Pointer Storage to Non-Generic Conversion";
 		case spv::Op::OpBitcast:
 			return "Bit Pattern-preserving Conversion";
 		case spv::Op::OpSNegate:
@@ -1678,17 +1678,17 @@ namespace Pu
 		case spv::Op::OpDot:
 			return "Dot Product";
 		case spv::Op::OpIAddCarry:
-			break;
+			return "Unsigned-int Add with Carry";
 		case spv::Op::OpISubBorrow:
-			break;
+			return "Unsigned-int Subtraction with Borrow";
 		case spv::Op::OpUMulExtended:
-			break;
+			return "Unsigned-int Full Multiplication";
 		case spv::Op::OpSMulExtended:
-			break;
+			return "Signed-int Full Multiplication";
 		case spv::Op::OpAny:
-			break;
+			return "Any Vector Component True";
 		case spv::Op::OpAll:
-			break;
+			return "All Vector Components True";
 		case spv::Op::OpIsNan:
 			return "Floating-point Is NaN";
 		case spv::Op::OpIsInf:
@@ -1702,9 +1702,9 @@ namespace Pu
 		case spv::Op::OpLessOrGreater:
 			return "<Depricated>";
 		case spv::Op::OpOrdered:
-			break;
+			return "Floating-point Vector is Numeric";
 		case spv::Op::OpUnordered:
-			break;
+			return "Floating-point Vector is NaN";
 		case spv::Op::OpLogicalEqual:
 			return "Logical Equalily";
 		case spv::Op::OpLogicalNotEqual:
@@ -1716,7 +1716,7 @@ namespace Pu
 		case spv::Op::OpLogicalNot:
 			return "Logical Not";
 		case spv::Op::OpSelect:
-			break;
+			return "Select Between Two Objects";
 		case spv::Op::OpIEqual:
 			return "Integer Equalily";
 		case spv::Op::OpINotEqual:
@@ -1774,7 +1774,7 @@ namespace Pu
 		case spv::Op::OpBitwiseAnd:
 			return "Bitwise And";
 		case spv::Op::OpNot:
-			break;
+			return "Bitwise Not";
 		case spv::Op::OpBitFieldInsert:
 			break;
 		case spv::Op::OpBitFieldSExtract:
@@ -2092,64 +2092,6 @@ namespace Pu
 		case spv::Op::OpSubgroupAllEqualKHR:
 			break;
 		case spv::Op::OpSubgroupReadInvocationKHR:
-			break;
-		case spv::Op::OpGroupIAddNonUniformAMD:
-			break;
-		case spv::Op::OpGroupFAddNonUniformAMD:
-			break;
-		case spv::Op::OpGroupFMinNonUniformAMD:
-			break;
-		case spv::Op::OpGroupUMinNonUniformAMD:
-			break;
-		case spv::Op::OpGroupSMinNonUniformAMD:
-			break;
-		case spv::Op::OpGroupFMaxNonUniformAMD:
-			break;
-		case spv::Op::OpGroupUMaxNonUniformAMD:
-			break;
-		case spv::Op::OpGroupSMaxNonUniformAMD:
-			break;
-		case spv::Op::OpFragmentMaskFetchAMD:
-			break;
-		case spv::Op::OpFragmentFetchAMD:
-			break;
-		case spv::Op::OpImageSampleFootprintNV:
-			break;
-		case spv::Op::OpGroupNonUniformPartitionNV:
-			break;
-		case spv::Op::OpWritePackedPrimitiveIndices4x8NV:
-			break;
-		case spv::Op::OpReportIntersectionNV:
-			break;
-		case spv::Op::OpIgnoreIntersectionNV:
-			break;
-		case spv::Op::OpTerminateRayNV:
-			break;
-		case spv::Op::OpTraceNV:
-			break;
-		case spv::Op::OpTypeAccelerationStructureNV:
-			break;
-		case spv::Op::OpExecuteCallableNV:
-			break;
-		case spv::Op::OpSubgroupShuffleINTEL:
-			break;
-		case spv::Op::OpSubgroupShuffleDownINTEL:
-			break;
-		case spv::Op::OpSubgroupShuffleUpINTEL:
-			break;
-		case spv::Op::OpSubgroupShuffleXorINTEL:
-			break;
-		case spv::Op::OpSubgroupBlockReadINTEL:
-			break;
-		case spv::Op::OpSubgroupBlockWriteINTEL:
-			break;
-		case spv::Op::OpSubgroupImageBlockReadINTEL:
-			break;
-		case spv::Op::OpSubgroupImageBlockWriteINTEL:
-			break;
-		case spv::Op::OpDecorateStringGOOGLE:
-			break;
-		case spv::Op::OpMemberDecorateStringGOOGLE:
 			break;
 		case spv::Op::Max:
 			break;

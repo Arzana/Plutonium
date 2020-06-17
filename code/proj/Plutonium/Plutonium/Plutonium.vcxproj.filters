@@ -894,6 +894,9 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Objects\PhysicsHandle.h">
+      <Filter>Header Files\Physics\Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1265,9 +1268,6 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
-      <Filter>Source Files\Physics\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp">
       <Filter>Source Files\Procedural\Terrain</Filter>
     </ClCompile>
@@ -1276,6 +1276,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp">
       <Filter>Source Files\Physics\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Public.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

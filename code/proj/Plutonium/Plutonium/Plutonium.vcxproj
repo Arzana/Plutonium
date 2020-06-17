@@ -112,6 +112,7 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionManifold.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h" />
+    <ClInclude Include="..\..\..\include\Physics\Objects\PhysicsHandle.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\CollisionShapes.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h" />
@@ -325,7 +326,8 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp" />
-    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Public.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />
     <ClCompile Include="..\..\..\src\Content\Asset.cpp" />

@@ -1,47 +1,9 @@
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Core/Diagnostics/Profiler.h"
-#include "Physics/Systems/ShapeTests.h"
 #include "Core/Math/HeightMap.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 
-using namespace Pu;
-
-#define PHYSICS_LIST_PLANE						0u
-#define PHYSICS_LIST_STATIC						1u
-#define PHYSICS_LIST_KINEMATIC					2u
-
-static uint32 collisionCount = 0;
-static uint32 narrowChecks = 0;
-
-/* Gets the index of the object associated with the handle. */
-static constexpr inline uint16 get_lookup_id(PhysicsHandle handle)
-{
-	return handle & 0xFFFF;
-}
-
-/* Gets the list (or type) of the object associated with the handle. */
-static constexpr inline uint8 get_type(PhysicsHandle handle)
-{
-	return static_cast<uint8>(handle >> 30);
-}
-
-/* Creates a new physics handle. */
-static constexpr inline PhysicsHandle create_handle(uint8 type, uint16 idx)
-{
-	return static_cast<uint32>(type) << 30 | idx;
-}
-
-/* Creates a new physics handle. */
-static constexpr inline PhysicsHandle create_handle(uint8 type, uint64 idx)
-{
-	return static_cast<uint32>(type) << 30 | static_cast<uint16>(idx);
-}
-
-/* Creates the lookup ID of a collision type. */
-static constexpr inline uint16 create_collision_type(CollisionShapes first, CollisionShapes second)
-{
-	return static_cast<uint16>(first) | static_cast<uint16>(second) << 8;
-}
+static Pu::uint32 collisionCount = 0;
 
 Pu::PhysicalWorld::PhysicalWorld(void)
 	: System(), Gravity(0.0f, -9.8f, 0.0f)
@@ -65,15 +27,10 @@ Pu::uint32 Pu::PhysicalWorld::GetCollisionCount(void)
 	return collisionCount;
 }
 
-uint32 Pu::PhysicalWorld::GetNarrowCheckCount(void)
-{
-	return narrowChecks;
-}
-
 Pu::PhysicsHandle Pu::PhysicalWorld::AddPlane(const CollisionPlane & plane)
 {
 	lock.lock();
-	const PhysicsHandle handle = CreateNewHandle(PHYSICS_LIST_PLANE);
+	const PhysicsHandle handle = CreateNewHandle(PhysicsType::Plane);
 	planes.emplace_back(plane);
 	lock.unlock();
 	return handle;
@@ -81,12 +38,12 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddPlane(const CollisionPlane & plane)
 
 Pu::PhysicsHandle Pu::PhysicalWorld::AddStatic(const PhysicalObject & obj)
 {
-	return AddInternal(obj, PHYSICS_LIST_STATIC, staticObjects);
+	return AddInternal(obj, PhysicsType::Static, staticObjects);
 }
 
 Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(const PhysicalObject & obj)
 {
-	return AddInternal(obj, PHYSICS_LIST_KINEMATIC, kinematicObjects);
+	return AddInternal(obj, PhysicsType::Kinematic, kinematicObjects);
 }
 
 size_t Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & properties)
@@ -104,15 +61,15 @@ void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 	lock.lock();
 
 #ifdef _DEBUG
-	ThrowInvalidHandle(get_lookup_id(handle) >= lookup.size(), "destroy");
+	ThrowInvalidHandle(physics_get_lookup_id(handle) >= lookup.size(), "destroy");
 #endif
 
 	/* Get the internal physics handle. */
-	PhysicsHandle &internalHandle = lookup[get_lookup_id(handle)];
-	const uint8 list = get_type(handle);
+	PhysicsHandle &internalHandle = lookup[physics_get_lookup_id(handle)];
+	const PhysicsType list = physics_get_type(handle);
 
 #ifdef _DEBUG
-	ThrowInvalidHandle(list != get_type(internalHandle), "destroy");
+	ThrowInvalidHandle(list != physics_get_type(internalHandle), "destroy");
 #endif
 
 	/* Actually destroy the handle and set it to null. */
@@ -125,19 +82,19 @@ void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 {
 #ifdef _DEBUG
-	ThrowInvalidHandle(get_lookup_id(handle) >= lookup.size(), "get transform of");
+	ThrowInvalidHandle(physics_get_lookup_id(handle) >= lookup.size(), "get transform of");
 #endif
 
 	/* Get the internal physics handle. */
-	const PhysicsHandle internalHandle = lookup[get_lookup_id(handle)];
-	const uint16 idx = get_lookup_id(internalHandle);
-	const uint8 list = get_type(handle);
+	const PhysicsHandle internalHandle = lookup[physics_get_lookup_id(handle)];
+	const uint16 idx = physics_get_lookup_id(internalHandle);
+	const PhysicsType list = physics_get_type(handle);
 
 #ifdef _DEBUG
-	ThrowInvalidHandle(list != get_type(internalHandle), "get transform of");
+	ThrowInvalidHandle(list != physics_get_type(internalHandle), "get transform of");
 #endif
 
-	if (list == PHYSICS_LIST_PLANE)
+	if (list == PhysicsType::Plane)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= planes.size(), "get transform of");
@@ -157,7 +114,7 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 			r.Z, plane.N.Z, f.Z, t.Z,
 			0.0f, 0.0f, 0.0f, 1.0f);
 	}
-	else if (list == PHYSICS_LIST_KINEMATIC)
+	else if (list == PhysicsType::Kinematic)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= kinematicObjects.size(), "get transform of");
@@ -166,7 +123,7 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 		const PhysicalObject &obj = kinematicObjects[idx];
 		return Matrix::CreateTranslation(obj.P) * Matrix::CreateRotation(obj.Theta);
 	}
-	else if (list == PHYSICS_LIST_STATIC)
+	else if (list == PhysicsType::Static)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= staticObjects.size(), "get transform of");
@@ -271,7 +228,7 @@ void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const 
 	}
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uint8 type, vector<PhysicalObject> & list)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, PhysicsType type, vector<PhysicalObject> & list)
 {
 	lock.lock();
 
@@ -280,7 +237,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 	switch (obj.Collider.NarrowPhaseShape)
 	{
 	case CollisionShapes::None:
-		if (type == PHYSICS_LIST_KINEMATIC)
+		if (type == PhysicsType::Kinematic)
 		{
 			/*
 			Kinematic objects can move throughout the world.
@@ -306,7 +263,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 	/* All went well, so create a new handle and add it to the correct list. */
 	const PhysicsHandle handle = CreateNewHandle(type);
 	list.emplace_back(copy);
-	bvh.Insert(lookup[get_lookup_id(handle)], copy.Collider.BroadPhase + copy.P);
+	bvh.Insert(lookup[physics_get_lookup_id(handle)], copy.Collider.BroadPhase + copy.P);
 	lock.unlock();
 
 	return handle;
@@ -314,13 +271,13 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, uin
 
 void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 {
-	const uint16 idx = get_lookup_id(internalHandle);
-	const uint8 list = get_type(internalHandle);
+	const uint16 idx = physics_get_lookup_id(internalHandle);
+	const PhysicsType list = physics_get_type(internalHandle);
 
-	if (list != PHYSICS_LIST_PLANE) bvh.Remove(internalHandle);
+	if (list != PhysicsType::Plane) bvh.Remove(internalHandle);
 
 	/* Destroy the underlying object. */
-	if (list == PHYSICS_LIST_PLANE)
+	if (list == PhysicsType::Plane)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= planes.size(), "destroy");
@@ -328,7 +285,7 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 
 		planes.removeAt(idx);
 	}
-	else if (list == PHYSICS_LIST_STATIC)
+	else if (list == PhysicsType::Static)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= staticObjects.size(), "destroy");
@@ -341,7 +298,7 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 
 		staticObjects.removeAt(idx);
 	}
-	else if (list == PHYSICS_LIST_KINEMATIC)
+	else if (list == PhysicsType::Kinematic)
 	{
 #ifdef _DEBUG
 		ThrowInvalidHandle(idx >= kinematicObjects.size(), "destroy");
@@ -355,11 +312,11 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 	/* Update all the other underlying handles in the list. */
 	for (PhysicsHandle &cur : lookup)
 	{
-		const uint8 curList = get_type(cur);
+		const PhysicsType curList = physics_get_type(cur);
 		if (curList == list)
 		{
-			const uint16 curIdx = get_lookup_id(cur);
-			if (curIdx > idx) cur = create_handle(curList, static_cast<uint16>(curIdx - 1u));
+			const uint16 curIdx = physics_get_lookup_id(cur);
+			if (curIdx > idx) cur = create_physics_handle(curList, static_cast<uint16>(curIdx - 1u));
 		}
 	}
 }
@@ -373,19 +330,19 @@ If we find one we'll use that index for this object, otherwise we just emplace a
 
 When an object is removed we must go through the entire lookup table to update the indices of the objects.
 */
-Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint8 type)
+Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(PhysicsType type)
 {
 	/* Get the index of the new internal handle in the specified physics list. */
 	size_t i;
 	switch (type)
 	{
-	case PHYSICS_LIST_PLANE:
+	case PhysicsType::Plane:
 		i = planes.size();
 		break;
-	case PHYSICS_LIST_STATIC:
+	case PhysicsType::Static:
 		i = staticObjects.size();
 		break;
-	case PHYSICS_LIST_KINEMATIC:
+	case PhysicsType::Kinematic:
 		i = kinematicObjects.size();
 		break;
 	default:
@@ -406,208 +363,36 @@ Pu::PhysicsHandle Pu::PhysicalWorld::CreateNewHandle(uint8 type)
 	{
 		if (lookup[j] == PhysicsNullHandle)
 		{
-			lookup[j] = create_handle(type, i);
-			return create_handle(type, j);
+			lookup[j] = create_physics_handle(type, i);
+			return create_physics_handle(type, j);
 		}
 	}
 
 	/* No null entry was found, so just add a new one. */
-	lookup.emplace_back(create_handle(type, i));
-	return create_handle(type, lookup.size() - 1);
+	lookup.emplace_back(create_physics_handle(type, i));
+	return create_physics_handle(type, lookup.size() - 1);
 }
 
-PhysicalObject & Pu::PhysicalWorld::QueryInternal(PhysicsHandle handle)
+Pu::PhysicalObject & Pu::PhysicalWorld::QueryInternal(PhysicsHandle handle)
 {
-	const uint16 idx = get_lookup_id(handle);
-	const uint8 list = get_type(handle);
+	const uint16 idx = physics_get_lookup_id(handle);
+	const PhysicsType list = physics_get_type(handle);
 
-	if (list == PHYSICS_LIST_STATIC) return staticObjects[idx];
+	if (list == PhysicsType::Static) return staticObjects[idx];
 	else return kinematicObjects[idx];
-}
-
-void Pu::PhysicalWorld::CheckForCollisions(void)
-{
-	/* Check for plane constraints with kinematic objects. */
-	for (size_t i = 0; i < planes.size(); i++)
-	{
-		for (size_t j = 0; j < kinematicObjects.size();)
-		{
-			switch (kinematicObjects[j].Collider.NarrowPhaseShape)
-			{
-			case CollisionShapes::Sphere:
-				j += TestPlaneSphere(i, j);
-				break;
-			default:
-				Log::Warning("Cannot handle %s collision shape currently!", to_string(kinematicObjects[j].Collider.NarrowPhaseShape));
-				break;
-			}
-		}
-	}
-
-	/* Check for collision. */
-	uint16 i = 0;
-	vector<PhysicsHandle> broadPhaseResult;
-	for (const PhysicalObject &second : kinematicObjects)
-	{
-		/* Traverse the BVH to perform broad phase for this kinematic object. */
-		const PhysicsHandle hsecond = create_handle(PHYSICS_LIST_KINEMATIC, i++);
-		bvh.Boxcast(second.Collider.BroadPhase + second.P, broadPhaseResult);
-
-		/* Perform narrow phase for all the hits, ignoring self. */
-		for (const PhysicsHandle hfirst : broadPhaseResult)
-		{
-			if (hfirst == hsecond) continue;
-			TestGeneric(QueryInternal(hfirst), hfirst, second, hsecond);
-		}
-
-		broadPhaseResult.clear();
-	}
-}
-
-bool Pu::PhysicalWorld::TestPlaneSphere(size_t planeIdx, size_t sphereIdx)
-{
-	CollisionPlane &plane = planes[planeIdx];
-	PhysicalObject &sphere = kinematicObjects[sphereIdx];
-
-	/* Move the collider into world space. */
-	Sphere worldSphere = *reinterpret_cast<Sphere*>(sphere.Collider.NarrowPhaseParameters);
-	worldSphere.Center += sphere.P;
-
-	/* Do the collision check. */
-	if (intersects(worldSphere, plane.Plane))
-	{
-		/* Add a collision manifold if specified. */
-		if (_CrtEnumCheckFlag(plane.Type, PassOptions::KinematicResponse))
-		{
-			collisions.emplace_back(CollisionManifold
-				{
-					create_handle(PHYSICS_LIST_PLANE, planeIdx),
-					create_handle(PHYSICS_LIST_KINEMATIC, sphereIdx),
-					plane.Plane.N
-				});
-		}
-
-		/* Check if a custom event should hit. */
-		if (_CrtEnumCheckFlag(plane.Type, PassOptions::Event))
-		{
-			plane.OnPass.Post(plane, sphere.Collider.UserParam);
-		}
-
-		/* Check whether the sphere should be destroyed. */
-		if (_CrtEnumCheckFlag(plane.Type, PassOptions::Destroy))
-		{
-			DestroyInternal(create_handle(PHYSICS_LIST_KINEMATIC, sphereIdx));
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void Pu::PhysicalWorld::TestGeneric(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
-{
-	++narrowChecks;
-
-	/* 
-	Construct a key from the collision type, then check if it's in the list.
-	If not, try again, but with reverse order.
-	Otherwise it's an invalid collision.
-	*/
-	uint16 key = create_collision_type(first.Collider.NarrowPhaseShape, second.Collider.NarrowPhaseShape);
-	decltype(checkers)::iterator it = checkers.find(key);
-	if (it != checkers.end())
-	{
-		((*this).*it->second)(first, hfirst, second, hsecond);
-		return;
-	}
-
-	key = create_collision_type(second.Collider.NarrowPhaseShape, first.Collider.NarrowPhaseShape);
-	it = checkers.find(key);
-	if (it != checkers.end())
-	{
-		((*this).*it->second)(second, hsecond, first, hfirst);
-		return;
-	}
-
-	Log::Warning("Unable to check for collision between %s and %s!", to_string(first.Collider.NarrowPhaseShape), to_string(second.Collider.NarrowPhaseShape));
-}
-
-void Pu::PhysicalWorld::TestAABBSphere(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
-{
-	AABB aabb = first.Collider.BroadPhase;
-	Sphere sphere = *reinterpret_cast<Sphere*>(second.Collider.NarrowPhaseParameters);
-
-	aabb.LowerBound += first.P;
-	aabb.UpperBound += first.P;
-	sphere.Center += second.P;
-
-	/* Add collision manifold if the sphere and the AABB overlap. */
-	const Vector3 q = closest(aabb, sphere.Center);
-	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
-	{
-		collisions.emplace_back(CollisionManifold
-			{
-				hfirst,
-				hsecond,
-				dir(q, sphere.Center)
-			});
-	}
-}
-
-void Pu::PhysicalWorld::TestSphereSphere(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
-{
-	Sphere firstSphere = *reinterpret_cast<Sphere*>(first.Collider.NarrowPhaseParameters);
-	Sphere secondSphere = *reinterpret_cast<Sphere*>(second.Collider.NarrowPhaseParameters);
-
-	firstSphere.Center += first.P;
-	secondSphere.Center += second.P;
-
-	/* Add the collision manifold if the spheres overlap. */
-	if (intersects(firstSphere, secondSphere))
-	{
-		collisions.emplace_back(CollisionManifold
-			{
-				hfirst,
-				hsecond,
-				dir(firstSphere.Center, secondSphere.Center)
-			});
-	}
-}
-
-void Pu::PhysicalWorld::TestHeightMapSphere(const PhysicalObject & first, PhysicsHandle hfirst, const PhysicalObject & second, PhysicsHandle hsecond)
-{
-	const HeightMap &heightMap = *reinterpret_cast<HeightMap*>(first.Collider.NarrowPhaseParameters);
-	Sphere sphere = *reinterpret_cast<Sphere*>(second.Collider.NarrowPhaseParameters);
-	sphere.Center += second.P;
-
-	float h;
-	Vector3 n;
-	if (heightMap.TryGetHeightAndNormal(Vector2(sphere.Center.X - first.P.X, sphere.Center.Z - first.P.Z), h, n))
-	{
-		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
-		if (h >= sphere.Center.Y - sphere.Radius)
-		{
-			collisions.emplace_back(CollisionManifold
-				{
-					hfirst,
-					hsecond,
-					n
-				});
-		}
-	}
 }
 
 void Pu::PhysicalWorld::SolveContraints(void)
 {
 	for (const CollisionManifold &manifold : collisions)
 	{
-		const uint8 at = get_type(manifold.FirstObject);
-		const uint8 bt = get_type(manifold.SecondObject);
+		const PhysicsType at = physics_get_type(manifold.FirstObject);
+		const PhysicsType bt = physics_get_type(manifold.SecondObject);
 
 		/* Collision with a static object or plane will always store the static object as the first object. */
-		if ((at == PHYSICS_LIST_STATIC || at == PHYSICS_LIST_PLANE) && bt == PHYSICS_LIST_KINEMATIC)
+		if ((at == PhysicsType::Static || at == PhysicsType::Plane) && bt == PhysicsType::Kinematic)
 		{
-			PhysicalObject &second = kinematicObjects[get_lookup_id(manifold.SecondObject)];
+			PhysicalObject &second = kinematicObjects[physics_get_lookup_id(manifold.SecondObject)];
 			const Vector3 t = normalize(second.V - dot(second.V, manifold.N) * manifold.N);
 
 			/* Apply linear impulse. */
@@ -620,10 +405,10 @@ void Pu::PhysicalWorld::SolveContraints(void)
 			j = clamp(-(1.0f + e) * dot(second.V, t), -j * e, j * e);
 			second.V += j * t;
 		}
-		else if (at == PHYSICS_LIST_KINEMATIC && bt == PHYSICS_LIST_KINEMATIC)
+		else if (at == PhysicsType::Kinematic && bt == PhysicsType::Kinematic)
 		{
-			PhysicalObject &first = kinematicObjects[get_lookup_id(manifold.FirstObject)];
-			PhysicalObject &second = kinematicObjects[get_lookup_id(manifold.SecondObject)];
+			PhysicalObject &first = kinematicObjects[physics_get_lookup_id(manifold.FirstObject)];
+			PhysicalObject &second = kinematicObjects[physics_get_lookup_id(manifold.SecondObject)];
 
 			PhysicalProperties &pfirst = materials[first.Properties];
 			PhysicalProperties &psecond = materials[second.Properties];

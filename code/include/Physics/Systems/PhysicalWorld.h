@@ -56,6 +56,8 @@ namespace Pu
 	private:
 		using CollisionChecker_t = void(PhysicalWorld::*)(const PhysicalObject &first, PhysicsHandle hfirst, const PhysicalObject &second, PhysicsHandle hsecond);
 
+		static uint32 narrowChecks;
+
 		vector<CollisionPlane> planes;
 		vector<PhysicalObject> staticObjects;
 		vector<PhysicalObject> kinematicObjects;
@@ -67,12 +69,17 @@ namespace Pu
 		vector<CollisionManifold> collisions;
 		mutable std::mutex lock;
 
+		static constexpr inline uint16 create_collision_type(CollisionShapes first, CollisionShapes second)
+		{
+			return static_cast<uint16>(first) | static_cast<uint16>(second) << 8;
+		}
+
 		static void ThrowInvalidHandle(bool condition, const char *action);
 		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr, Vector3 camPos);
 
-		PhysicsHandle AddInternal(const PhysicalObject &obj, uint8 type, vector<PhysicalObject> &list);
+		PhysicsHandle AddInternal(const PhysicalObject &obj, PhysicsType type, vector<PhysicalObject> &list);
 		void DestroyInternal(PhysicsHandle internalHandle);
-		PhysicsHandle CreateNewHandle(uint8 type);
+		PhysicsHandle CreateNewHandle(PhysicsType type);
 		PhysicalObject& QueryInternal(PhysicsHandle handle);
 		void CheckForCollisions(void);
 		bool TestPlaneSphere(size_t planeIdx, size_t sphereIdx);
