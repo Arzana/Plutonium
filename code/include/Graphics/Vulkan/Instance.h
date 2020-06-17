@@ -104,7 +104,7 @@ namespace Pu
 		void QueryPhysicalDevices(void);
 		void LogAvailableExtensionsAndLayers(void) const;
 		
-#ifdef _DEBUG
+#if defined (_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 		PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 		PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 		PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
@@ -118,6 +118,5 @@ namespace Pu
 		
 		void SetUpDebugLayer(void);
 #endif
-		
 	};
 }

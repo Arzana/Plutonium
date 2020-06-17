@@ -111,7 +111,7 @@ namespace Pu
 		uint32 curImgIdx;
 		Matrix ortho;
 		bool swapchainOutOfDate;
-		FullScreenExclusive fullScreen;
+		SurfaceFullScreenExclusiveInfoExt fullScreenInfo;
 
 		RenderPassHndl imGuiRenderPass;
 		DescriptorPoolHndl imGuiDescriptorPool;

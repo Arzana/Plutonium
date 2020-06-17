@@ -1,8 +1,9 @@
 #pragma once
+#include "Config.h"
 #include "Core/EnumUtils.h"
 #include "Core/Diagnostics/Logging.h"
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 #define VK_VALIDATE(result, proc)	Pu::ValidateVkApiResult(result, #proc)
 #else
 #define VK_VALIDATE(result, proc)	result
@@ -2217,6 +2218,10 @@ namespace Pu
 		}
 	}
 
+	/* 
+	Performs default validation for VkApiResult functions. 
+	Throws errors and warnings when appropriate.
+	*/
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)
 	{
 		/* Remove PFN_ prefix and KHR suffix. */

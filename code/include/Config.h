@@ -5,6 +5,10 @@
 This file is used to store compiler time constant configurations for Plutonium.
 */
 
+
+/* Forces the use of the Vulkan vaidation mechanisms on release mode. */
+//#define VULKAN_FORCE_VALIDATION
+
 namespace Pu
 {
 	/* Defines the interval (in milliseconds) to check whether a PuThread has completed. */

@@ -16,7 +16,7 @@ static void ImGuiVkValidate(VkApiResult result)
 }
 
 Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
-	: native(native), device(device), swapchain(nullptr), fullScreen(FullScreenExclusive::Disallowed),
+	: native(native), device(device), swapchain(nullptr), fullScreenInfo(FullScreenExclusive::Disallowed),
 	SwapchainRecreated("GameWindowSwapchainRecreated"), swapchainOutOfDate(false)
 {
 	/* Make sure we update the swapchains size upon a window size change. */
@@ -197,13 +197,13 @@ void Pu::GameWindow::ReleaseFullScreen(void)
 	/* Check if application controlled full-screen is supported, if so we can use a simple function. */
 	if (native.surface->IsExclusiveFullScreenSupported(*device.parent, native.GetDisplay()))
 	{
-		fullScreen = FullScreenExclusive::ApplicationControlled;
+		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::ApplicationControlled;
 		device.vkReleaseFullScreenExclusiveModeEXT(device.hndl, swapchain->hndl);
 	}
 	else
 	{
 		/* Otherwise we have to recreate the swapchain. */
-		fullScreen = FullScreenExclusive::Disallowed;
+		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::Disallowed;
 		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
 	}
 }
@@ -213,13 +213,13 @@ void Pu::GameWindow::AquireFullScreen(void)
 	/* We can use a simple function is application controlled full-screen is supported. */
 	if (native.surface->IsExclusiveFullScreenSupported(*device.parent, native.GetDisplay()))
 	{
-		fullScreen = FullScreenExclusive::ApplicationControlled;
+		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::ApplicationControlled;
 		device.vkAcquireFullScreenExclusiveModeEXT(device.hndl, swapchain->hndl);
 	}
 	else
 	{
 		/* Otherwise we have to recreate the swapchain. */
-		fullScreen = FullScreenExclusive::Default;
+		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::Default;
 		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
 	}
 }
@@ -262,11 +262,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool f
 	if (swapchain) info.OldSwapChain = swapchain->hndl;
 
 	/* Add the fullscreen information if the extension is supported. */
-	if (device.parent->exclusiveFullScreenSupported)
-	{
-		SurfaceFullScreenExclusiveInfoExt fullScreenInfo{ fullScreen };
-		info.Next = &fullScreenInfo;
-	}
+	if (device.parent->exclusiveFullScreenSupported) info.Next = &fullScreenInfo;
 
 	/* Create new swapchain or replace the old one. */
 	if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);

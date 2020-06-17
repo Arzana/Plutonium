@@ -132,7 +132,7 @@ void Pu::Application::InitializeVulkan(void)
 	instance = new VulkanInstance(name.toUTF8().c_str(), LogAvailableVulkanExtensionsAndLayers,
 		{
 			u8"VK_KHR_surface",
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 			u8"VK_EXT_debug_utils",
 #endif
 #ifdef _WIN32

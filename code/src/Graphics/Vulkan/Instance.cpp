@@ -40,7 +40,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, bool log, std::
 	const ApplicationInfo appInfo(applicationName, major, minor, patch, u8"Plutonium", 0, 1, 0);
 	InstanceCreateInfo createInfo(appInfo, enabledExtensions);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 	/* Enable the LunarG validation layer if available. */
 	static const char *VALIDATION_LAYER = "VK_LAYER_LUNARG_standard_validation";
 	if (IsLayerSupported(VALIDATION_LAYER))
@@ -64,7 +64,7 @@ Pu::VulkanInstance::VulkanInstance(const char * applicationName, bool log, std::
 	if (log) LogAvailableExtensionsAndLayers();
 
 	/* If needed setup the debug layer. */
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 	SetUpDebugLayer();
 #endif
 }
@@ -243,7 +243,7 @@ void Pu::VulkanInstance::Destroy(void)
 	physicalDevices.clear();
 	OnDestroy.Post(*this, EventArgs());
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 	if (msgHndl) vkDestroyDebugUtilsMessengerEXT(hndl, msgHndl, nullptr);
 #endif
 
@@ -299,7 +299,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 #endif
 
 	/* Debug utilities functions. */
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 	if (IsExtensionEnabled(u8"VK_EXT_debug_utils"))
 	{
 		VK_LOAD_INSTANCE_PROC(hndl, vkCreateDebugUtilsMessengerEXT);
@@ -377,7 +377,7 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 	}
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
 VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData * data, void *)
 {
 	switch (severity)
