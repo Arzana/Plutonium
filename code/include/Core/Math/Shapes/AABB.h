@@ -68,13 +68,6 @@ namespace Pu
 			return UpperBound - LowerBound;
 		}
 
-		/* Gets the surface area of the axis alligned bounding box. */
-		_Check_return_ inline float GetArea(void) const
-		{
-			const Vector3 dim = GetSize();
-			return 2.0f * (dim.X * dim.Y + dim.Y * dim.Z + dim.Z * dim.X);
-		}
-
 		/* Expands the box from all faces by a specified amount. */
 		void Inflate(_In_ float horizontal, _In_ float vertical, _In_ float depth);
 		/* Merges the specified point into this box. */
@@ -93,6 +86,13 @@ namespace Pu
 	_Check_return_ inline AABB operator +(_In_ Vector3 offset, _In_ const AABB &box)
 	{
 		return box + offset;
+	}
+
+	/* Gets the surface area of a specified axis aligned bounding box. */
+	_Check_return_ inline float area(_In_ const AABB &box)
+	{
+		const Vector3 s = box.UpperBound - box.LowerBound;
+		return 2.0f * (s.X * s.Y + s.Y * s.Z + s.Z * s.X);
 	}
 
 	/* Performs linear interpolation between the two specified axis-aligned bounding boxes. */

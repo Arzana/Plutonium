@@ -46,8 +46,14 @@ namespace Pu
 		void Destroy(_In_ PhysicsHandle handle);
 		/* Gets the transform of the specified physical object. */
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
-		/* Renders the entire physical world to the specified debug renderer. */
-		void Visualize(_In_ DebugRenderer &renderer, _In_ Vector3 camPos) const;
+		/* Renders the collision shapes to the specified debug renderer. */
+		void VisualizeCollision(_In_ DebugRenderer &renderer, _In_ Vector3 camPos) const;
+		
+		/* Renders the BVH to the specified debug renderer. */
+		void VisualizeBVH(_In_ DebugRenderer &renderer, _In_ bool leafs, _In_ bool midLevel, _In_ bool top) const
+		{
+			bvh.Visualize(renderer, leafs, midLevel, top);
+		}
 
 	protected:
 		/* Updates the physical world contraints. */
@@ -75,7 +81,7 @@ namespace Pu
 		}
 
 		static void ThrowInvalidHandle(bool condition, const char *action);
-		static void VisualizePhysicalObject(DebugRenderer &renderer, const PhysicalObject &obj, Color clr, Vector3 camPos);
+		static void VisualizeCollider(DebugRenderer &renderer, const PhysicalObject &obj, Color clr, Vector3 camPos);
 
 		PhysicsHandle AddInternal(const PhysicalObject &obj, PhysicsType type, vector<PhysicalObject> &list);
 		void DestroyInternal(PhysicsHandle internalHandle);

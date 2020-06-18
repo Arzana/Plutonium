@@ -39,8 +39,22 @@ namespace Pu
 		void Boxcast(_In_ const AABB &box, _Inout_ vector<PhysicsHandle> &result) const;
 		/* Gets the cost of the internal branches of the BVH. */
 		_Check_return_ float GetTreeCost(void) const;
-		/* Visualizes the BVH. */
-		void Visualize(_In_ DebugRenderer &renderer) const;
+		/* Gets the relative efficiency of the tree. */
+		_Check_return_ float GetEfficiency(void) const;
+
+		/* 
+		Visualizes specific nodes in the BVH.
+		The leaf nodes are the nodes that directly contain physical objects.
+		The mid level is one level above the leaf nodes, so this first grouping level.
+		The top level are all of the other branch nodes and the root node.
+		*/
+		void Visualize(_In_ DebugRenderer &renderer, _In_ bool leafs, _In_ bool midLevel, _In_ bool top) const;
+
+		/* Gets the amount of leaf nodes in this BVH. */
+		_Check_return_ inline uint32 GetLeafCount(void) const
+		{
+			return (count + 1) / 2;
+		}
 
 	private:
 		struct Node

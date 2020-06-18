@@ -123,7 +123,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*lightFill);
 		renderer->End();
 
-		physics->Visualize(*dbgRenderer, camFree->GetPosition());
+		physics->VisualizeBVH(*dbgRenderer, false, true, false);
 		dbgRenderer->Render(cmd, *camFree);
 	}
 

@@ -146,31 +146,6 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 	}
 }
 
-void Pu::PhysicalWorld::Visualize(DebugRenderer & renderer, Vector3 camPos) const
-{
-	Profiler::BeginDebug();
-	lock.lock();
-
-	for (const CollisionPlane &collider : planes)
-	{
-		const Plane &plane = collider.Plane;
-		renderer.AddArrow(plane.N * plane.D, plane.N, Color::Green());
-	}
-
-	for (const PhysicalObject &obj : staticObjects)
-	{
-		VisualizePhysicalObject(renderer, obj, Color::Green(), camPos);
-	}
-
-	for (const PhysicalObject &obj : kinematicObjects)
-	{
-		VisualizePhysicalObject(renderer, obj, Color::Blue(), camPos);
-	}
-
-	lock.unlock();
-	Profiler::End();
-}
-
 void Pu::PhysicalWorld::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
@@ -204,28 +179,6 @@ void Pu::PhysicalWorld::Update(float dt)
 void Pu::PhysicalWorld::ThrowInvalidHandle(bool condition, const char *action)
 {
 	if (condition) Log::Fatal("Cannot %s physics object (invalid handle)!", action);
-}
-
-void Pu::PhysicalWorld::VisualizePhysicalObject(DebugRenderer & renderer, const PhysicalObject & obj, Color clr, Vector3 camPos)
-{
-	if (obj.Collider.NarrowPhaseShape == CollisionShapes::None)
-	{
-		renderer.AddBox(obj.Collider.BroadPhase + obj.P, clr);
-	}
-	else if (obj.Collider.NarrowPhaseShape == CollisionShapes::Sphere)
-	{
-		const Sphere collider = *reinterpret_cast<Sphere*>(obj.Collider.NarrowPhaseParameters);
-		renderer.AddSphere(obj.P + collider.Center, collider.Radius, clr);
-	}
-	else if (obj.Collider.NarrowPhaseShape == CollisionShapes::HeightMap)
-	{
-		/* Rendering a heightmap is extremely expensive, so only do it for the closest one. */
-		const HeightMap &collider = *reinterpret_cast<HeightMap*>(obj.Collider.NarrowPhaseParameters);
-		camPos -= obj.P;
-
-		if (collider.Contains(Vector2(camPos.X, camPos.Z))) collider.Visualize(renderer, obj.P, clr);
-		else renderer.AddBox(obj.Collider.BroadPhase + obj.P, clr);
-	}
 }
 
 Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, PhysicsType type, vector<PhysicalObject> & list)

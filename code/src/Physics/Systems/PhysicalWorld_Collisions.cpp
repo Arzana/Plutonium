@@ -1,5 +1,7 @@
 #include "Physics/Systems/PhysicalWorld.h"
+#include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Physics/Systems/ShapeTests.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/HeightMap.h"
 
 using namespace Pu;
@@ -9,6 +11,53 @@ uint32 Pu::PhysicalWorld::narrowChecks = 0;
 uint32 Pu::PhysicalWorld::GetNarrowCheckCount(void)
 {
 	return narrowChecks;
+}
+
+void Pu::PhysicalWorld::VisualizeCollision(DebugRenderer & renderer, Vector3 camPos) const
+{
+	Profiler::BeginDebug();
+	lock.lock();
+
+	for (const CollisionPlane &collider : planes)
+	{
+		const Plane &plane = collider.Plane;
+		renderer.AddArrow(plane.N * plane.D, plane.N, Color::Green());
+	}
+
+	for (const PhysicalObject &obj : staticObjects)
+	{
+		VisualizeCollider(renderer, obj, Color::Green(), camPos);
+	}
+
+	for (const PhysicalObject &obj : kinematicObjects)
+	{
+		VisualizeCollider(renderer, obj, Color::Blue(), camPos);
+	}
+
+	lock.unlock();
+	Profiler::End();
+}
+
+void Pu::PhysicalWorld::VisualizeCollider(DebugRenderer & renderer, const PhysicalObject & obj, Color clr, Vector3 camPos)
+{
+	if (obj.Collider.NarrowPhaseShape == CollisionShapes::None)
+	{
+		renderer.AddBox(obj.Collider.BroadPhase + obj.P, clr);
+	}
+	else if (obj.Collider.NarrowPhaseShape == CollisionShapes::Sphere)
+	{
+		const Sphere collider = *reinterpret_cast<Sphere*>(obj.Collider.NarrowPhaseParameters);
+		renderer.AddSphere(obj.P + collider.Center, collider.Radius, clr);
+	}
+	else if (obj.Collider.NarrowPhaseShape == CollisionShapes::HeightMap)
+	{
+		/* Rendering a heightmap is extremely expensive, so only do it for the closest one. */
+		const HeightMap &collider = *reinterpret_cast<HeightMap*>(obj.Collider.NarrowPhaseParameters);
+		camPos -= obj.P;
+
+		if (collider.Contains(Vector2(camPos.X, camPos.Z))) collider.Visualize(renderer, obj.P, clr);
+		else renderer.AddBox(obj.Collider.BroadPhase + obj.P, clr);
+	}
 }
 
 void Pu::PhysicalWorld::CheckForCollisions(void)
