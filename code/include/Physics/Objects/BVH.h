@@ -42,13 +42,15 @@ namespace Pu
 		/* Gets the relative efficiency of the tree. */
 		_Check_return_ float GetEfficiency(void) const;
 
+#ifdef _DEBUG
 		/* 
 		Visualizes specific nodes in the BVH.
 		The leaf nodes are the nodes that directly contain physical objects.
 		The mid level is one level above the leaf nodes, so this first grouping level.
 		The top level are all of the other branch nodes and the root node.
 		*/
-		void Visualize(_In_ DebugRenderer &renderer, _In_ bool leafs, _In_ bool midLevel, _In_ bool top) const;
+		void Visualize(_In_ DebugRenderer &renderer) const;
+#endif
 
 		/* Gets the amount of leaf nodes in this BVH. */
 		_Check_return_ inline uint32 GetLeafCount(void) const
@@ -71,7 +73,12 @@ namespace Pu
 		uint32 capacity;
 		uint32 root;
 
+#ifdef _DEBUG
+		mutable uint32 displayDepth;
+#endif
+
 		void Refit(uint32 start);
+		uint32 Balance(uint32 idx);
 		uint32 BestSibling(uint32 node) const;
 
 		uint32 AllocBranch(void);

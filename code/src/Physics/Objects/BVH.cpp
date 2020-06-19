@@ -2,19 +2,20 @@
 #include "Physics/Systems/Raycasts.h"
 #include "Physics/Systems/ShapeTests.h"
 #include "Core/Diagnostics/Profiler.h"
-#include "Core/Diagnostics/Logging.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
-#include <imgui/include/imgui.h>
 #include "Core/Collections/cstack.h"
-#include <queue>
-#include <set>
+#include <imgui/include/imgui.h>
 
-#define BVH_NULL		0xC0FFFFFF
+#define BVH_NULL				0xC000FFFF
 
-#define is_leaf(node)	(node.Handle != BVH_NULL)
-#define is_branch(node)	(node.Handle == BVH_NULL)
-#define is_freed(node)	(node.Handle & PhysicsHandleBVHAllocBit)
-#define is_used(node)	(node.Handle ^ PhysicsHandleBVHAllocBit)
+#define is_leaf					pHandle) != BVH_NULL
+#define is_branch				pHandle) == BVH_NULL
+#define is_freed				Handle & PhysicsHandleBVHAllocBit
+#define is_used					Handle ^ PhysicsHandleBVHAllocBit
+#define get_depth				Handle >> 0x10 & 0xFF
+
+#define set_depth(depth)		Handle |= (((depth) & 0xFF) << 0x10)
+#define pHandle					Handle & BVH_NULL
 
 /*
 Node structure:
@@ -100,6 +101,10 @@ void Pu::BVH::Insert(PhysicsHandle handle, const AABB & box)
 	nodes[newParent].Parent = oldParent;
 	nodes[newParent].Box = union_(box, nodes[best].Box);
 
+#if false
+	nodes[newParent].set_depth((nodes[best].get_depth) + 1);
+#endif
+
 	/* We need to set the new parent as the root if the sibling was the old root. */
 	if (oldParent != BVH_NULL)
 	{
@@ -122,7 +127,9 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 	/* Find the leaf node associated with this handle. */
 	for (uint32 i = 0; i < capacity; i++)
 	{
-		if (nodes[i].Handle == handle && is_used(nodes[i]))
+		const Node &node = nodes[i];
+
+		if (node.is_used && (node.pHandle) == handle)
 		{
 			const uint32 oldParentIdx = nodes[i].Parent;
 
@@ -161,7 +168,7 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 		/* Check if the branch (or leaf) overlaps. */
 		if (raycast(p, rd, nodes[i].Box) >= 0.0f)
 		{
-			if (is_leaf(nodes[i])) return nodes[i].Handle;
+			if ((nodes[i].is_leaf) return nodes[i].pHandle;
 			else
 			{
 				stack.push(nodes[i].Child1);
@@ -188,7 +195,7 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 		/* Check if the branch (or leaf) overlaps. */
 		if (intersects(box, nodes[i].Box))
 		{
-			if (is_leaf(nodes[i])) result.emplace_back(nodes[i].Handle);
+			if ((nodes[i].is_leaf) result.emplace_back(nodes[i].pHandle);
 			else
 			{
 				stack.push(nodes[i].Child1);
@@ -205,10 +212,10 @@ float Pu::BVH::GetTreeCost(void) const
 	for (uint32 i = 0; i < capacity; i++)
 	{
 		/* Skip any deallocated node. */
-		if (is_freed(nodes[i])) continue;
+		if (nodes[i].is_freed) continue;
 
 		/* The cost of the tree itself is the cost of all the internal nodes. */
-		if (is_branch(nodes[i])) result += area(nodes[i].Box);
+		if ((nodes[i].is_branch) result += area(nodes[i].Box);
 	}
 
 	return result;
@@ -222,80 +229,192 @@ float Pu::BVH::GetEfficiency(void) const
 	for (uint32 i = 0; i < capacity; i++)
 	{
 		/* Skip any deallocated nodes and sum up the area of the leaf nodes. */
-		if (is_used(nodes[i])) sa += area(nodes[i].Box);
+		if (nodes[i].is_used) sa += area(nodes[i].Box);
 	}
 
 	return sa / area(nodes[root].Box);
 }
 
-void Pu::BVH::Visualize(DebugRenderer & renderer, bool leafs, bool midLevel, bool top) const
+#ifdef _DEBUG
+void Pu::BVH::Visualize(DebugRenderer & renderer) const
 {
 	Profiler::BeginDebug();
-
-	std::set<uint32> mid;
-	vector<uint32> midOrTop;
-
-	for (uint32 i = 0; i < capacity; i++)
-	{
-		/* Skip any deallocated nodes. */
-		const Node &node = nodes[i];
-		if (is_freed(node)) continue;
-
-		if (is_leaf(node))
-		{
-			/* Handle leaf nodes. */
-			if (leafs) renderer.AddBox(node.Box, Color::Red());
-			if (node.Parent != BVH_NULL && midLevel) mid.emplace(node.Parent);
-		}
-		else if (!midLevel)
-		{
-			/* Render the top level directly if the mid level isn't being rendered. */
-			if (top) renderer.AddBox(node.Box, Color::Green());
-		}
-		else midOrTop.emplace_back(i);
-	}
-
-	/* Remove all of the mid level nodes from the mid/top vector. */
-	for (uint32 i = 0; i < midOrTop.size(); i++)
-	{
-		if (mid.find(midOrTop[i]) != mid.end()) midOrTop.removeAt(i);
-	}
-
-	/* Render all the mid level nodes. */
-	for (uint32 i : mid) renderer.AddBox(nodes[i].Box, Color::Blue());
-
-	/* Render the top level nodes if requested. */
-	if (midLevel && top)
-	{
-		for (uint32 i : midOrTop) renderer.AddBox(nodes[i].Box, Color::Green());
-	}
 
 	/* Display the stats in a seperate window. */
 	if constexpr (ImGuiAvailable)
 	{
 		if (ImGui::Begin("BVH Statistics"))
 		{
+			const int32 rootDepth = count > 0 ? nodes[root].get_depth : 0;
+
 			ImGui::Text("Leaf nodes:    %u", GetLeafCount());
 			ImGui::Text("Total nodes:   %u", count);
+			ImGui::Text("Depth:         %d", rootDepth);
 			ImGui::Text("Memory:        %dKB", b2kb(sizeof(Node) * capacity));
 			ImGui::Text("Cost:          %.f", GetTreeCost());
 			ImGui::Text("Efficiency:    %.f%%", GetEfficiency());
+			ImGui::SliderInt("Display", reinterpret_cast<int*>(&displayDepth), 0, rootDepth);
 
 			ImGui::End();
+		}
+
+		for (uint32 i = 0; i < capacity; i++)
+		{
+			const Node &node = nodes[i];
+			if (node.is_used && (node.get_depth) == displayDepth) renderer.AddBox(nodes[i].Box, Color::Blue());
 		}
 	}
 
 	Profiler::End();
 }
+#endif
 
 void Pu::BVH::Refit(uint32 start)
 {
 	for (uint32 i = start; i != BVH_NULL; i = nodes[i].Parent)
 	{
-		const AABB &b1 = nodes[nodes[i].Child1].Box;
-		const AABB &b2 = nodes[nodes[i].Child2].Box;
-		nodes[i].Box = union_(b1, b2);
+#if false
+		i = Balance(i);
+#endif
+
+		const Node &c1 = nodes[nodes[i].Child1];
+		const Node &c2 = nodes[nodes[i].Child2];
+		nodes[i].Box = union_(c1.Box, c2.Box);
+
+#if false
+		nodes[i].set_depth(1 + max(c1.get_depth, c2.get_depth));
+#endif
 	}
+}
+
+Pu::uint32 Pu::BVH::Balance(uint32 idx)
+{
+	Node &a = nodes[idx];
+	if ((a.is_leaf || (a.get_depth) < 2) return idx;
+
+	int32 iB = a.Child1;
+	int32 iC = a.Child2;
+
+	Node &b = nodes[iB];
+	Node &c = nodes[iC];
+
+	int32 balance = (c.get_depth) - (b.get_depth);
+
+	// Rotate C up
+	if (balance > 1)
+	{
+		int32 iF = c.Child1;
+		int32 iG = c.Child2;
+		Node &f = nodes[iF];
+		Node &g = nodes[iG];
+
+		// Swap A and C
+		c.Child1 = idx;
+		c.Parent = a.Parent;
+		a.Parent = iC;
+
+		// A's old parent should point to C
+		if (c.Parent != BVH_NULL)
+		{
+			if (nodes[c.Parent].Child1 == idx)
+			{
+				nodes[c.Parent].Child1 = iC;
+			}
+			else
+			{
+				nodes[c.Parent].Child2 = iC;
+			}
+		}
+		else
+		{
+			root = iC;
+		}
+
+		// Rotate
+		if ((f.get_depth) > (g.get_depth))
+		{
+			c.Child2 = iF;
+			a.Child2 = iG;
+			g.Parent = idx;
+			a.Box = union_(b.Box, g.Box);
+			c.Box = union_(a.Box, f.Box);
+
+			a.set_depth(1 + max(b.get_depth, g.get_depth));
+			c.set_depth(1 + max(a.get_depth, f.get_depth));
+		}
+		else
+		{
+			c.Child2 = iG;
+			a.Child2 = iF;
+			f.Parent = idx;
+			a.Box = union_(b.Box, f.Box);
+			c.Box = union_(a.Box, g.Box);
+
+			a.set_depth(1 + max(b.get_depth, f.get_depth));
+			c.set_depth(1 + max(a.get_depth, g.get_depth));
+		}
+
+		return iC;
+	}
+
+	// Rotate B up
+	if (balance < -1)
+	{
+		int32 iD = b.Child1;
+		int32 iE = b.Child2;
+		Node &d = nodes[iD];
+		Node &e = nodes[iE];
+
+		// Swap A and B
+		b.Child1 = idx;
+		b.Parent = a.Parent;
+		a.Parent = iB;
+
+		// A's old parent should point to B
+		if (b.Parent != BVH_NULL)
+		{
+			if (nodes[b.Parent].Child1 == idx)
+			{
+				nodes[b.Parent].Child1 = iB;
+			}
+			else
+			{
+				nodes[b.Parent].Child2 = iB;
+			}
+		}
+		else
+		{
+			root = iB;
+		}
+
+		// Rotate
+		if ((d.get_depth) > (e.get_depth))
+		{
+			b.Child2 = iD;
+			a.Child1 = iE;
+			e.Parent = idx;
+			a.Box = union_(c.Box, e.Box);
+			b.Box = union_(a.Box, d.Box);
+
+			a.set_depth(1 + max(c.get_depth, e.get_depth));
+			b.set_depth(1 + max(a.get_depth, d.get_depth));
+		}
+		else
+		{
+			b.Child2 = iE;
+			a.Child1 = iD;
+			d.Parent = idx;
+			a.Box = union_(c.Box, d.Box);
+			b.Box = union_(a.Box, e.Box);
+
+			a.set_depth(1 + max(c.get_depth, d.get_depth));
+			b.set_depth(1 + max(a.get_depth, e.get_depth));
+		}
+
+		return iB;
+	}
+
+	return idx;
 }
 
 Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
@@ -318,7 +437,7 @@ Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
 		/* Calculate the cost of descending into the first child. */
 		float cost1;
 		if (c1 == BVH_NULL) cost1 = maxv<float>();
-		else if (is_leaf(nodes[c1])) cost1 = area(union_(nodes[c1].Box, box));
+		else if ((nodes[c1].is_leaf) cost1 = area(union_(nodes[c1].Box, box));
 		else
 		{
 			const float oldA = area(nodes[c1].Box);
@@ -329,7 +448,7 @@ Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
 		/* Calculate the cost of descending into the second child. */
 		float cost2;
 		if (c2 == BVH_NULL) cost2 = maxv<float>();
-		else if (is_leaf(nodes[c2])) cost2 = area(union_(nodes[c2].Box, box));
+		else if ((nodes[c2].is_leaf) cost2 = area(union_(nodes[c2].Box, box));
 		else
 		{
 			const float oldA = area(nodes[c2].Box);
@@ -342,7 +461,7 @@ Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
 
 		/* Descend further down. */
 		i = c1 < c2 ? c1 : c2;
-	} while (is_branch(nodes[i]));
+	} while ((nodes[i].is_branch);
 
 	return i;
 }
@@ -356,7 +475,7 @@ Pu::uint32 Pu::BVH::AllocBranch(void)
 
 		for (uint32 i = 0; i < capacity; i++)
 		{
-			if (is_freed(nodes[i]))
+			if (nodes[i].is_freed)
 			{
 				nodes[i].Handle = BVH_NULL;
 				return i;

@@ -50,9 +50,11 @@ namespace Pu
 		void VisualizeCollision(_In_ DebugRenderer &renderer, _In_ Vector3 camPos) const;
 		
 		/* Renders the BVH to the specified debug renderer. */
-		void VisualizeBVH(_In_ DebugRenderer &renderer, _In_ bool leafs, _In_ bool midLevel, _In_ bool top) const
+		void VisualizeBVH(_In_ DebugRenderer &renderer) const
 		{
-			bvh.Visualize(renderer, leafs, midLevel, top);
+			lock.lock();
+			bvh.Visualize(renderer);
+			lock.unlock();
 		}
 
 	protected:

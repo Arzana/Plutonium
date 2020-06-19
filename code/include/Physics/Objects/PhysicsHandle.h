@@ -7,10 +7,11 @@ namespace Pu
 	Defines the handle to a physical object.
 
 	Physical handles store various pieces of fast information.
-	[TTA00000 00000000 IIIIIIII IIIIIIII]
+	[TTA00000 DDDDDDDD IIIIIIII IIIIIIII]
 
 	T (2-bits):		The type of the object, also the PhysicalWorld vector in which it is stored.
 	A (1-bit):		Allocation flag, used by the BVH to set whether the node is in use.
+	D (8-bits):		BVH node depth, only set for internal nodes.
 	I (16-bits):	The index in the lookup vector, used to determine the actual index.
 	*/
 	using PhysicsHandle = uint32;
