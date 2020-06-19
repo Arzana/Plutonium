@@ -5,7 +5,7 @@
 #include "Core/Diagnostics/Logging.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include <imgui/include/imgui.h>
-#include <stack>
+#include "Core/Collections/cstack.h"
 #include <queue>
 #include <set>
 
@@ -150,14 +150,13 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 	const Vector3 rd = recip(d);
 
 	/* Start at the root node. */
-	std::stack<uint32> stack;
+	cstack<uint32> stack;
 	stack.push(root);
 
 	/* Loop until we traversed the tree. */
 	do
 	{
-		const uint32 i = stack.top();
-		stack.pop();
+		const uint32 i = stack.pop();
 
 		/* Check if the branch (or leaf) overlaps. */
 		if (raycast(p, rd, nodes[i].Box) >= 0.0f)
@@ -178,14 +177,13 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 {
 	/* Start at the root node. */
-	std::stack<uint32> stack;
+	cstack<uint32> stack;
 	stack.push(root);
 
 	/* Loop until we traversed the tree. */
 	do
 	{
-		const uint32 i = stack.top();
-		stack.pop();
+		const uint32 i = stack.pop();
 
 		/* Check if the branch (or leaf) overlaps. */
 		if (intersects(box, nodes[i].Box))
@@ -197,7 +195,6 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 				stack.push(nodes[i].Child2);
 			}
 		}
-
 	} while (stack.size());
 }
 
@@ -405,7 +402,7 @@ void Pu::BVH::FreeNode(uint32 idx)
 	node.Child2 = BVH_NULL;
 	node.Box = AABB();
 #else
-	nodes[idx].Handle = BVH_ALLOC_BIT;
+	nodes[idx].Handle = PhysicsHandleBVHAllocBit;
 #endif
 }
 

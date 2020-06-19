@@ -897,6 +897,9 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicsHandle.h">
       <Filter>Header Files\Physics\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\cstack.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">

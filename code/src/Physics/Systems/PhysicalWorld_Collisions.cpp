@@ -85,7 +85,7 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 	for (const PhysicalObject &second : kinematicObjects)
 	{
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
-		const PhysicsHandle hsecond =  create_physics_handle(PhysicsType::Kinematic, i++);
+		const PhysicsHandle hsecond = create_physics_handle(PhysicsType::Kinematic, i++);
 		bvh.Boxcast(second.Collider.BroadPhase + second.P, broadPhaseResult);
 
 		/* Perform narrow phase for all the hits, ignoring self. */

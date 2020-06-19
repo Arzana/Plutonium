@@ -98,6 +98,7 @@
     <ClInclude Include="..\..\..\deps\imgui\include\imconfig.h" />
     <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\cstack.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\AABB.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Frustum.h" />
