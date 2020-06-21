@@ -28,6 +28,9 @@ namespace Pu
 		size_t Properties;
 		/* Specifies the collider used by the object. */
 		Collider Collider;
+		
+		/* Interal use only. */
+		Vector3 Q;
 
 		/* Initializes an empty instance of a physical object. */
 		PhysicalObject(void)

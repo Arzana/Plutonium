@@ -62,8 +62,26 @@ void Pu::PhysicalWorld::VisualizeCollider(DebugRenderer & renderer, const Physic
 
 void Pu::PhysicalWorld::CheckForCollisions(void)
 {
+	/* Update the kinematic object AABB if it's out of range. */
+	size_t i = 0;
+	for (PhysicalObject &obj : kinematicObjects)
+	{
+		if (sqrdist(obj.P, obj.Q) > sqr(KinematicExpansion))
+		{
+			const PhysicsHandle hobj = create_physics_handle(PhysicsType::Kinematic, i);
+			AABB aabb = obj.Collider.BroadPhase + obj.P;
+			aabb.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
+
+			obj.Q = obj.P;
+			bvh.Remove(hobj);
+			bvh.Insert(hobj, aabb);
+		}
+
+		++i;
+	}
+
 	/* Check for plane constraints with kinematic objects. */
-	for (size_t i = 0; i < planes.size(); i++)
+	for (i = 0; i < planes.size(); i++)
 	{
 		for (size_t j = 0; j < kinematicObjects.size();)
 		{
@@ -80,7 +98,6 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 	}
 
 	/* Check for collision. */
-	uint16 i = 0;
 	vector<PhysicsHandle> broadPhaseResult;
 	for (const PhysicalObject &second : kinematicObjects)
 	{

@@ -57,4 +57,6 @@ namespace Pu
 	constexpr uint32 EllipsiodDivs = 12;
 	/* Defines the maximum number of iterations the GJK algorithm is allowed to perform before terminating. */
 	constexpr uint8 MaxIterationsGJK = 20;
+	/* Defines the amount of expansion kinematic objects should get in broadphase. */
+	constexpr float KinematicExpansion = 1.0f;
 }

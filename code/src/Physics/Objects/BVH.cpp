@@ -138,13 +138,29 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 
 			if (oldParentIdx != BVH_NULL)
 			{
-				/* Move the sibling over to the parents location in the tree. */
 				Node &oldParent = nodes[oldParentIdx];
-				if (oldParent.Child1 == i) nodes[oldParent.Child2].Parent = oldParent.Parent;
-				else nodes[oldParent.Child1].Parent = oldParent.Parent;
+				const uint32 sibling = oldParent.Child1 == i ? oldParent.Child2 : oldParent.Child1;
 
-				/* Walk back up the treem refitting the bounding boxes. */
-				Refit(oldParent.Parent);
+				/* Destroy the parent and connect the sibling to the grandparent. */
+				const uint32 grandParentIdx = nodes[oldParentIdx].Parent;
+				if (grandParentIdx != BVH_NULL)
+				{
+					if (nodes[grandParentIdx].Child1 == oldParentIdx) nodes[grandParentIdx].Child1 = sibling;
+					else nodes[grandParentIdx].Child2 = sibling;
+
+					nodes[sibling].Parent = grandParentIdx;
+					FreeNode(oldParentIdx);
+
+					/* Walk back up the treem refitting the bounding boxes. */
+					Refit(grandParentIdx);
+				}
+				else
+				{
+					/* The sibling becomes the root node if no grandparent was available. */
+					root = sibling;
+					nodes[sibling].Parent = BVH_NULL;
+					FreeNode(oldParentIdx);
+				}
 			}
 
 			return;
@@ -172,13 +188,13 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 			else
 			{
 				stack.push(nodes[i].Child1);
-				stack.push(nodes[i].Child2);
+					stack.push(nodes[i].Child2);
 			}
 		}
 	} while (stack.size());
 
-	/* Nothing was lit by the ray. */
-	return PhysicsNullHandle;
+		/* Nothing was lit by the ray. */
+		return PhysicsNullHandle;
 }
 
 void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
@@ -199,7 +215,7 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 			else
 			{
 				stack.push(nodes[i].Child1);
-				stack.push(nodes[i].Child2);
+					stack.push(nodes[i].Child2);
 			}
 		}
 	} while (stack.size());
@@ -225,12 +241,12 @@ float Pu::BVH::GetEfficiency(void) const
 {
 	if (count < 1) return 0.0f;
 
-	float sa = 0.0f;
-	for (uint32 i = 0; i < capacity; i++)
-	{
-		/* Skip any deallocated nodes and sum up the area of the leaf nodes. */
-		if (nodes[i].is_used) sa += area(nodes[i].Box);
-	}
+		float sa = 0.0f;
+		for (uint32 i = 0; i < capacity; i++)
+		{
+			/* Skip any deallocated nodes and sum up the area of the leaf nodes. */
+			if (nodes[i].is_used) sa += area(nodes[i].Box);
+		}
 
 	return sa / area(nodes[root].Box);
 }
@@ -249,7 +265,9 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 
 			ImGui::Text("Leaf nodes:    %u", GetLeafCount());
 			ImGui::Text("Total nodes:   %u", count);
+#if false
 			ImGui::Text("Depth:         %d", rootDepth);
+#endif
 			ImGui::Text("Memory:        %dKB", b2kb(sizeof(Node) * capacity));
 			ImGui::Text("Cost:          %.f", GetTreeCost());
 			ImGui::Text("Efficiency:    %.f%%", GetEfficiency());
@@ -258,11 +276,13 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 			ImGui::End();
 		}
 
+#if false
 		for (uint32 i = 0; i < capacity; i++)
 		{
 			const Node &node = nodes[i];
 			if (node.is_used && (node.get_depth) == displayDepth) renderer.AddBox(nodes[i].Box, Color::Blue());
 		}
+#endif
 	}
 
 	Profiler::End();
@@ -292,70 +312,70 @@ Pu::uint32 Pu::BVH::Balance(uint32 idx)
 	Node &a = nodes[idx];
 	if ((a.is_leaf || (a.get_depth) < 2) return idx;
 
-	int32 iB = a.Child1;
-	int32 iC = a.Child2;
+		int32 iB = a.Child1;
+		int32 iC = a.Child2;
 
-	Node &b = nodes[iB];
-	Node &c = nodes[iC];
+		Node &b = nodes[iB];
+		Node &c = nodes[iC];
 
-	int32 balance = (c.get_depth) - (b.get_depth);
+		int32 balance = (c.get_depth) - (b.get_depth);
 
-	// Rotate C up
-	if (balance > 1)
-	{
-		int32 iF = c.Child1;
-		int32 iG = c.Child2;
-		Node &f = nodes[iF];
-		Node &g = nodes[iG];
-
-		// Swap A and C
-		c.Child1 = idx;
-		c.Parent = a.Parent;
-		a.Parent = iC;
-
-		// A's old parent should point to C
-		if (c.Parent != BVH_NULL)
+		// Rotate C up
+		if (balance > 1)
 		{
-			if (nodes[c.Parent].Child1 == idx)
+			int32 iF = c.Child1;
+			int32 iG = c.Child2;
+			Node &f = nodes[iF];
+			Node &g = nodes[iG];
+
+			// Swap A and C
+			c.Child1 = idx;
+			c.Parent = a.Parent;
+			a.Parent = iC;
+
+			// A's old parent should point to C
+			if (c.Parent != BVH_NULL)
 			{
-				nodes[c.Parent].Child1 = iC;
+				if (nodes[c.Parent].Child1 == idx)
+				{
+					nodes[c.Parent].Child1 = iC;
+				}
+				else
+				{
+					nodes[c.Parent].Child2 = iC;
+				}
 			}
 			else
 			{
-				nodes[c.Parent].Child2 = iC;
+				root = iC;
 			}
-		}
-		else
-		{
-			root = iC;
-		}
 
-		// Rotate
-		if ((f.get_depth) > (g.get_depth))
-		{
-			c.Child2 = iF;
-			a.Child2 = iG;
-			g.Parent = idx;
-			a.Box = union_(b.Box, g.Box);
-			c.Box = union_(a.Box, f.Box);
+			// Rotate
+			if ((f.get_depth) > (g.get_depth))
+			{
+				c.Child2 = iF;
+				a.Child2 = iG;
+				g.Parent = idx;
+				a.Box = union_(b.Box, g.Box);
+				c.Box = union_(a.Box, f.Box);
 
-			a.set_depth(1 + max(b.get_depth, g.get_depth));
-			c.set_depth(1 + max(a.get_depth, f.get_depth));
+				a.set_depth(1 + max(b.get_depth, g.get_depth));
+				c.set_depth(1 + max(a.get_depth, f.get_depth));
+			}
+			else
+			{
+				c.Child2 = iG;
+				a.Child2 = iF;
+				f.Parent = idx;
+				a.Box = union_(b.Box, f.Box);
+				c.Box = union_(a.Box, g.Box);
+
+				a.set_depth(1 + max(b.get_depth, f.get_depth));
+				c.set_depth(1 + max(a.get_depth, g.get_depth));
+			}
+
+			return iC;
 		}
-		else
-		{
-			c.Child2 = iG;
-			a.Child2 = iF;
-			f.Parent = idx;
-			a.Box = union_(b.Box, f.Box);
-			c.Box = union_(a.Box, g.Box);
-
-			a.set_depth(1 + max(b.get_depth, f.get_depth));
-			c.set_depth(1 + max(a.get_depth, g.get_depth));
-		}
-
-		return iC;
-	}
 
 	// Rotate B up
 	if (balance < -1)
@@ -441,26 +461,26 @@ Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
 		else
 		{
 			const float oldA = area(nodes[c1].Box);
-			const float newA = area(union_(nodes[c1].Box, box));
-			cost1 = (newA - oldA) + ic;
+				const float newA = area(union_(nodes[c1].Box, box));
+				cost1 = (newA - oldA) + ic;
 		}
 
 		/* Calculate the cost of descending into the second child. */
 		float cost2;
-		if (c2 == BVH_NULL) cost2 = maxv<float>();
-		else if ((nodes[c2].is_leaf) cost2 = area(union_(nodes[c2].Box, box));
-		else
-		{
-			const float oldA = area(nodes[c2].Box);
-			const float newA = area(union_(nodes[c2].Box, box));
-			cost2 = (newA - oldA) + ic;
-		}
+			if (c2 == BVH_NULL) cost2 = maxv<float>();
+			else if ((nodes[c2].is_leaf) cost2 = area(union_(nodes[c2].Box, box));
+			else
+			{
+				const float oldA = area(nodes[c2].Box);
+					const float newA = area(union_(nodes[c2].Box, box));
+					cost2 = (newA - oldA) + ic;
+			}
 
 		/* Stop descending if needed. */
 		if (c < cost1 && c < cost2) break;
 
-		/* Descend further down. */
-		i = c1 < c2 ? c1 : c2;
+			/* Descend further down. */
+			i = c1 < c2 ? c1 : c2;
 	} while ((nodes[i].is_branch);
 
 	return i;
@@ -508,6 +528,7 @@ Pu::uint32 Pu::BVH::AllocLeaf(PhysicsHandle hobj, const AABB & box)
 void Pu::BVH::FreeNode(uint32 idx)
 {
 	--count;
+	if (idx == root) root = BVH_NULL;
 
 	/*
 	We just set a single bit, that indicates that this leaf node is no longer in use.

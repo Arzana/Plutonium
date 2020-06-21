@@ -187,6 +187,8 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 
 	/* We need to copy over some collider parameters. */
 	PhysicalObject copy = obj;
+	copy.Q = copy.P;
+
 	switch (obj.Collider.NarrowPhaseShape)
 	{
 	case CollisionShapes::None:
@@ -216,9 +218,12 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	/* All went well, so create a new handle and add it to the correct list. */
 	const PhysicsHandle handle = CreateNewHandle(type);
 	list.emplace_back(copy);
-	bvh.Insert(lookup[physics_get_lookup_id(handle)], copy.Collider.BroadPhase + copy.P);
-	lock.unlock();
 
+	AABB aabb = copy.Collider.BroadPhase + copy.P;
+	aabb.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
+	bvh.Insert(lookup[physics_get_lookup_id(handle)], aabb);
+
+	lock.unlock();
 	return handle;
 }
 
