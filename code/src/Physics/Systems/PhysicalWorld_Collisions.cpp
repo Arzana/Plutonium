@@ -97,6 +97,8 @@ void Pu::PhysicalWorld::CheckForCollisions(void)
 		}
 	}
 
+	i = 0;
+
 	/* Check for collision. */
 	vector<PhysicsHandle> broadPhaseResult;
 	for (const PhysicalObject &second : kinematicObjects)

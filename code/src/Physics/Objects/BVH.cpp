@@ -13,9 +13,13 @@
 #define is_freed				Handle & PhysicsHandleBVHAllocBit
 #define is_used					Handle ^ PhysicsHandleBVHAllocBit
 #define get_depth				Handle >> 0x10 & 0xFF
-
-#define set_depth(depth)		Handle |= (((depth) & 0xFF) << 0x10)
 #define pHandle					Handle & BVH_NULL
+
+static inline void set_depth(Pu::PhysicsHandle &handle, Pu::uint32 depth)
+{
+	handle &= 0xFF00FFFF;
+	handle |= (depth & 0xFF) << 0x10;
+}
 
 /*
 Node structure:
@@ -100,10 +104,7 @@ void Pu::BVH::Insert(PhysicsHandle handle, const AABB & box)
 	const uint32 newParent = AllocBranch();
 	nodes[newParent].Parent = oldParent;
 	nodes[newParent].Box = union_(box, nodes[best].Box);
-
-#if false
-	nodes[newParent].set_depth((nodes[best].get_depth) + 1);
-#endif
+	set_depth(nodes[newParent].Handle, (nodes[best].get_depth) + 1);
 
 	/* We need to set the new parent as the root if the sibling was the old root. */
 	if (oldParent != BVH_NULL)
@@ -193,8 +194,8 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 		}
 	} while (stack.size());
 
-		/* Nothing was lit by the ray. */
-		return PhysicsNullHandle;
+	/* Nothing was lit by the ray. */
+	return PhysicsNullHandle;
 }
 
 void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
@@ -241,12 +242,12 @@ float Pu::BVH::GetEfficiency(void) const
 {
 	if (count < 1) return 0.0f;
 
-		float sa = 0.0f;
-		for (uint32 i = 0; i < capacity; i++)
-		{
-			/* Skip any deallocated nodes and sum up the area of the leaf nodes. */
-			if (nodes[i].is_used) sa += area(nodes[i].Box);
-		}
+	float sa = 0.0f;
+	for (uint32 i = 0; i < capacity; i++)
+	{
+		/* Skip any deallocated nodes and sum up the area of the leaf nodes. */
+		if (nodes[i].is_used) sa += area(nodes[i].Box);
+	}
 
 	return sa / area(nodes[root].Box);
 }
@@ -265,9 +266,7 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 
 			ImGui::Text("Leaf nodes:    %u", GetLeafCount());
 			ImGui::Text("Total nodes:   %u", count);
-#if false
 			ImGui::Text("Depth:         %d", rootDepth);
-#endif
 			ImGui::Text("Memory:        %dKB", b2kb(sizeof(Node) * capacity));
 			ImGui::Text("Cost:          %.f", GetTreeCost());
 			ImGui::Text("Efficiency:    %.f%%", GetEfficiency());
@@ -276,13 +275,11 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 			ImGui::End();
 		}
 
-#if false
 		for (uint32 i = 0; i < capacity; i++)
 		{
 			const Node &node = nodes[i];
 			if (node.is_used && (node.get_depth) == displayDepth) renderer.AddBox(nodes[i].Box, Color::Blue());
 		}
-#endif
 	}
 
 	Profiler::End();
@@ -293,17 +290,13 @@ void Pu::BVH::Refit(uint32 start)
 {
 	for (uint32 i = start; i != BVH_NULL; i = nodes[i].Parent)
 	{
-#if false
 		i = Balance(i);
-#endif
 
 		const Node &c1 = nodes[nodes[i].Child1];
 		const Node &c2 = nodes[nodes[i].Child2];
 		nodes[i].Box = union_(c1.Box, c2.Box);
 
-#if false
-		nodes[i].set_depth(1 + max(c1.get_depth, c2.get_depth));
-#endif
+		set_depth(nodes[i].Handle, 1 + max(c1.get_depth, c2.get_depth));
 	}
 }
 
@@ -359,8 +352,8 @@ Pu::uint32 Pu::BVH::Balance(uint32 idx)
 				a.Box = union_(b.Box, g.Box);
 				c.Box = union_(a.Box, f.Box);
 
-				a.set_depth(1 + max(b.get_depth, g.get_depth));
-				c.set_depth(1 + max(a.get_depth, f.get_depth));
+				set_depth(a.Handle, 1 + max(b.get_depth, g.get_depth));
+				set_depth(c.Handle, 1 + max(a.get_depth, f.get_depth));
 			}
 			else
 			{
@@ -370,8 +363,8 @@ Pu::uint32 Pu::BVH::Balance(uint32 idx)
 				a.Box = union_(b.Box, f.Box);
 				c.Box = union_(a.Box, g.Box);
 
-				a.set_depth(1 + max(b.get_depth, f.get_depth));
-				c.set_depth(1 + max(a.get_depth, g.get_depth));
+				set_depth(a.Handle, 1 + max(b.get_depth, f.get_depth));
+				set_depth(c.Handle, 1 + max(a.get_depth, g.get_depth));
 			}
 
 			return iC;
@@ -416,8 +409,8 @@ Pu::uint32 Pu::BVH::Balance(uint32 idx)
 			a.Box = union_(c.Box, e.Box);
 			b.Box = union_(a.Box, d.Box);
 
-			a.set_depth(1 + max(c.get_depth, e.get_depth));
-			b.set_depth(1 + max(a.get_depth, d.get_depth));
+			set_depth(a.Handle, 1 + max(c.get_depth, e.get_depth));
+			set_depth(b.Handle, 1 + max(a.get_depth, d.get_depth));
 		}
 		else
 		{
@@ -427,8 +420,8 @@ Pu::uint32 Pu::BVH::Balance(uint32 idx)
 			a.Box = union_(c.Box, d.Box);
 			b.Box = union_(a.Box, e.Box);
 
-			a.set_depth(1 + max(c.get_depth, d.get_depth));
-			b.set_depth(1 + max(a.get_depth, e.get_depth));
+			set_depth(a.Handle, 1 + max(c.get_depth, d.get_depth));
+			set_depth(b.Handle, 1 + max(a.get_depth, e.get_depth));
 		}
 
 		return iB;
@@ -461,26 +454,26 @@ Pu::uint32 Pu::BVH::BestSibling(uint32 node) const
 		else
 		{
 			const float oldA = area(nodes[c1].Box);
-				const float newA = area(union_(nodes[c1].Box, box));
-				cost1 = (newA - oldA) + ic;
+			const float newA = area(union_(nodes[c1].Box, box));
+			cost1 = (newA - oldA) + ic;
 		}
 
 		/* Calculate the cost of descending into the second child. */
 		float cost2;
-			if (c2 == BVH_NULL) cost2 = maxv<float>();
-			else if ((nodes[c2].is_leaf) cost2 = area(union_(nodes[c2].Box, box));
-			else
-			{
-				const float oldA = area(nodes[c2].Box);
-					const float newA = area(union_(nodes[c2].Box, box));
-					cost2 = (newA - oldA) + ic;
-			}
+		if (c2 == BVH_NULL) cost2 = maxv<float>();
+		else if ((nodes[c2].is_leaf) cost2 = area(union_(nodes[c2].Box, box));
+		else
+		{
+			const float oldA = area(nodes[c2].Box);
+				const float newA = area(union_(nodes[c2].Box, box));
+				cost2 = (newA - oldA) + ic;
+		}
 
 		/* Stop descending if needed. */
 		if (c < cost1 && c < cost2) break;
 
-			/* Descend further down. */
-			i = c1 < c2 ? c1 : c2;
+		/* Descend further down. */
+		i = c1 < c2 ? c1 : c2;
 	} while ((nodes[i].is_branch);
 
 	return i;

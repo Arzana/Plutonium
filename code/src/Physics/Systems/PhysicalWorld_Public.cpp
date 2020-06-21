@@ -231,6 +231,7 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle internalHandle)
 {
 	const uint16 idx = physics_get_lookup_id(internalHandle);
 	const PhysicsType list = physics_get_type(internalHandle);
+	bvh.Remove(internalHandle);
 
 	if (list != PhysicsType::Plane) bvh.Remove(internalHandle);
 
