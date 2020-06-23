@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <climits>
 #include <cfloat>
+#include <intrin.h>
 
 namespace Pu
 {
@@ -27,6 +28,14 @@ namespace Pu
 	using octet = uint8;
 	/* Defines a UTF-32 character. */
 	using char32 = char32_t;
+	/* Defines a 128-bit integer vector type. */
+	using int128 = __m128i;
+	/* Defines a 256-bit integer vector type. */
+	using int256 = __m256i;
+	/* Defines a 128-bit vector type (quad-float). */
+	using qfloat = __m128;
+	/* Defines a 256-bit vector type (oct-float). */
+	using ofloat = __m256;
 
 	/* Euler's constant. */
 	constexpr float E = 2.71828182845904523536f;

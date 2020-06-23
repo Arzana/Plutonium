@@ -1,8 +1,18 @@
 #pragma once
 #include "Core/Math/Shapes/AABB.h"
+#include "Core/Math/Shapes/Plane.h"
 
 namespace Pu
 {
+	/*
+	Gets the distance on the ray at which the ray intersects with the plane, if it doesn't intersect; the value is negative.
+	Note that the ray is specified as it's starting position (p) and its direction (d).
+	*/
+	_Check_return_ inline float raycast(_In_ Vector3 p, _In_ Vector3 d, _In_ Plane plane)
+	{
+		return -(halfspace(plane, p) / dot(plane.N, d));
+	}
+
 	/* 
 	Gets the distance on the ray at which the ray intersects with the axis aligned bounding box, if it doesn't intersect; the value is negative. 
 	Note that the ray is specified as it's starting position (p) and the reciprocal of its direction (rd).

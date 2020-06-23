@@ -65,7 +65,7 @@ namespace Pu
 		}
 
 		/* Pushes a new element to the front of the stack. */
-		inline void push(element_t value)
+		inline void push(_In_ element_t value)
 		{
 			ensure(count + 1);
 			buffer[count++] = value;
@@ -85,7 +85,7 @@ namespace Pu
 		}
 
 		/* Ensures that the stack has the specified amount of space. */
-		inline void ensure(size_t newCapacity)
+		inline void ensure(_In_ size_t newCapacity)
 		{
 			if (capacity < newCapacity)
 			{

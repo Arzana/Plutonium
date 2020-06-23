@@ -123,7 +123,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*lightFill);
 		renderer->End();
 
-		physics->VisualizeBVH(*dbgRenderer);
 		dbgRenderer->Render(cmd, *camFree);
 	}
 

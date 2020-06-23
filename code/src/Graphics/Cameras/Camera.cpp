@@ -1,5 +1,6 @@
 #include "Graphics/Cameras/Camera.h"
 #include "Graphics/Lighting/DeferredRenderer.h"
+#include "Physics/Systems/ShapeTests.h"
 #include "Application.h"
 
 Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
@@ -113,12 +114,12 @@ const Pu::Matrix & Pu::Camera::GetInverseView(void) const
 
 bool Pu::Camera::Cull(const AABB & boundingBox) const
 {
-	return !frustum.IntersectionBox(boundingBox);
+	return !intersects(frustum, boundingBox);
 }
 
 bool Pu::Camera::Cull(const AABB & boundingBox, const Matrix & transform) const
 {
-	return !frustum.IntersectionBox(boundingBox * transform);
+	return !intersects(frustum, boundingBox * transform);
 }
 
 void Pu::Camera::SetView(const Matrix & value)

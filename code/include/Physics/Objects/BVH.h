@@ -53,7 +53,7 @@ namespace Pu
 #endif
 
 		/* Gets the amount of leaf nodes in this BVH. */
-		_Check_return_ inline uint32 GetLeafCount(void) const
+		_Check_return_ inline uint16 GetLeafCount(void) const
 		{
 			return (count + 1) / 2;
 		}
@@ -63,27 +63,27 @@ namespace Pu
 		{
 			AABB Box;
 			PhysicsHandle Handle;
-			uint32 Parent;
-			uint32 Child1;
-			uint32 Child2;
+			uint16 Parent;
+			uint16 Child1;
+			uint16 Child2;
 		};
 
 		Node *nodes;
-		uint32 count;
-		uint32 capacity;
-		uint32 root;
+		uint16 count;
+		uint16 capacity;
+		uint16 root;
 
 #ifdef _DEBUG
 		mutable uint32 displayDepth;
 #endif
 
-		void Refit(uint32 start);
-		uint32 Balance(uint32 idx);
-		uint32 BestSibling(uint32 node) const;
+		void Refit(uint16 start);
+		uint16 Balance(uint16 idx);
+		uint16 BestSibling(uint16 node) const;
 
-		uint32 AllocBranch(void);
-		uint32 AllocLeaf(PhysicsHandle hobj, const AABB &box);
-		void FreeNode(uint32 idx);
+		uint16 AllocBranch(void);
+		uint16 AllocLeaf(PhysicsHandle hobj, const AABB &box);
+		void FreeNode(uint16 idx);
 		void CopyAlloc(const BVH &other);
 		void Destroy(void);
 	};

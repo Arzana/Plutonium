@@ -41,37 +41,11 @@ namespace Pu
 			const float denom = -dot(a.N, cross(b.N, c.N));
 			return (v1 + v2 + v3) / denom;
 		}
-
-		/* Gets the relative location of the point to the plane, positive numbers mean the point is in front of the plane, negative means it's behind and zero means it's on the plane.  */
-		_Check_return_ inline float HalfSpace(_In_ Vector3 p) const
-		{
-			return dot(N, p) + D;
-		}
-
-		/* Checks whether the ray is intersection the plane. */
-		_Check_return_ inline bool IntersectionRay(_In_ Vector3 origin, _In_ Vector3 direction) const
-		{
-			return (-(HalfSpace(origin) / dot(N, direction))) >= 0.0f;
-		}
-
-		/* Gets whether the sphere is intersecting or is in front of the plane. */
-		_Check_return_ inline bool IntersectionSphere(_In_ Vector3 center, _In_ float radius) const
-		{
-			return HalfSpace(center) >= -radius;
-		}
-
-		/* Gets whether the box is intersecting or is in front of the plane. */
-		_Check_return_ inline bool IntersectionBox(_In_ const AABB &aabb) const
-		{
-			constexpr size_t CORNER_CNT = 8;
-
-			size_t cnt = CORNER_CNT;
-			for (size_t i = 0; i < CORNER_CNT; i++)
-			{
-				cnt -= HalfSpace(aabb[i]) < 0.0f;
-			}
-
-			return cnt > 0;
-		}
 	};
+
+	/* Gets the relative location of the point to the plane, positive numbers mean the point is in front of the plane, negative means it's behind and zero means it's on the plane.  */
+	_Check_return_ inline float halfspace(_In_ Plane plane, _In_ Vector3 p)
+	{
+		return dot(plane.N, p) + plane.D;
+	}
 }

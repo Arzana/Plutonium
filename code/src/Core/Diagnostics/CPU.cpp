@@ -41,10 +41,24 @@ const char * Pu::CPU::GetName(void)
 	}
 
 #else
-	Log::Warning("Querying the CPU name is not suppoerted on this platform!");
+	Log::Warning("Querying the CPU name is not supported on this platform!");
 #endif
 
 	return name.c_str();
+}
+
+bool Pu::CPU::SupportsAVX(void)
+{
+#ifdef _WIN32
+	/* SSE3 is the flag that must be set for AVX to be supported. */
+	int32 registers[4];
+	__cpuid(registers, 0x1);
+	return registers[2] & 0x1;
+#else
+	Log::Warning("Querying AVX support is not supported on this platform!");
+#endif
+
+	return false;
 }
 
 float Pu::CPU::GetCurrentProcessUsage(void)

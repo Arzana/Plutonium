@@ -29,12 +29,6 @@ namespace Pu
 			Planes[1] = Plane(row4 - row3);
 		}
 
-		/* Gets the amount of planes specified in the frustum. */
-		_Check_return_ static inline constexpr size_t GetPlaneCount(void)
-		{
-			return sizeof(Planes) / sizeof(Plane);
-		}
-
 		/* Gets the near side of the frustum. */
 		_Check_return_ inline const Plane& Near(void) const
 		{
@@ -69,34 +63,6 @@ namespace Pu
 		_Check_return_ inline const Plane& Bottom(void) const
 		{
 			return Planes[5];
-		}
-
-		/* Checks whether the specified sphere is fully or partially inside of the frustum. */
-		_Check_return_ inline bool IntersectionSphere(_In_ Vector3 center, _In_ float radius) const
-		{
-			/* Loop through all of the planes. */
-			for (size_t i = 0; i < GetPlaneCount(); i++)
-			{
-				/* If it's outside the plane it's outside of the frustum so we can early out. */
-				if (!Planes[i].IntersectionSphere(center, radius)) return false;
-			}
-
-			/* It's inside or touching every plane so it must be inside the frustum. */
-			return true;
-		}
-
-		/* Checks whether the specified box is fully or partially inside of the frustum. */
-		_Check_return_ inline bool IntersectionBox(_In_ const AABB &aabb) const
-		{
-			/* Loop through all of the planes. */
-			for (size_t i = 0; i < GetPlaneCount(); i++)
-			{
-				/* If it's outside the plane it's outside of the frustum so we can early out. */
-				if (!Planes[i].IntersectionBox(aabb)) return false;
-			}
-
-			/* It's inside or touching every plane so it must be inside the frustum. */
-			return true;
 		}
 	};
 }

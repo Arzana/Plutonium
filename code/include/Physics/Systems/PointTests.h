@@ -73,7 +73,7 @@ namespace Pu
 	/* Gets whether the specified point is on the specified plane. */
 	_Check_return_ inline bool contains(_In_ Plane plane, _In_ Vector3 point, _In_opt_ float tolerance = EPSILON)
 	{
-		return nrlyeql(plane.HalfSpace(point), 0.0f, tolerance);
+		return nrlyeql(halfspace(plane, point), 0.0f, tolerance);
 	}
 
 	/* Gets whether the specified point is on the specified line. */

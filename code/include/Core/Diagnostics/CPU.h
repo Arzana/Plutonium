@@ -18,6 +18,8 @@ namespace Pu
 
 		/* Gets the name of the currently used logical processor. */
 		_Check_return_ static const char* GetName(void);
+		/* Gets whether AVX instructions are supported. */
+		_Check_return_ static bool SupportsAVX(void);
 		/* Gets the CPU usage of the current process. */
 		_Check_return_ static float GetCurrentProcessUsage(void);
 

@@ -81,14 +81,13 @@ vec3 brdf(in vec3 v, in vec3 n)
 	return (fd + fs) * Radiance.rgb * Radiance.w * ndl;
 }
 
-// Decodes the normal from optimzed spherical to a world normal.
+// Decodes the normal from Lambert Azimuthal Equal-Area projection
 vec3 DecodeNormal()
 {
-	vec2 raw = subpassLoad(GBufferNormal).xy;
-	float st = sqrt(1.0f - raw.x * raw.x);
-	float sp = sin(raw.y);
-	float cp = cos(raw.y);
-	return vec3(st * cp, st * sp, raw.x);
+	const vec2 enc = subpassLoad(GBufferNormal).xy * 4.0f - 2.0f;
+	const float f = dot(enc, enc);
+	const float g = sqrt(1.0f - f * 0.25f);
+	return vec3(enc * g, 1.0f - f * 0.5f);
 }
 
 // Decodes the position from linear depth buffer.
