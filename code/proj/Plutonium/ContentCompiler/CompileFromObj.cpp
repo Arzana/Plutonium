@@ -936,7 +936,7 @@ void HandleMtlLine(const char *line, const string &dir, ObjLoaderResult &result,
 	}
 
 	/* Check if line is bump tex line. */
-	if (!strncmp(line, "bump", 4) && IS_SPACE(line[4]))
+	if ((!strncmp(line, "bump", 4) || !strncmp(line, "norm", 4)) && IS_SPACE(line[4]))
 	{
 		HandleTextureLine(line + 5, dir, curMaterial.BumpMap, true);
 		return;

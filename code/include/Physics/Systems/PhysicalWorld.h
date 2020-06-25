@@ -48,14 +48,8 @@ namespace Pu
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
 		/* Renders the collision shapes to the specified debug renderer. */
 		void VisualizeCollision(_In_ DebugRenderer &renderer, _In_ Vector3 camPos) const;
-		
 		/* Renders the BVH to the specified debug renderer. */
-		void VisualizeBVH(_In_ DebugRenderer &renderer) const
-		{
-			lock.lock();
-			bvh.Visualize(renderer);
-			lock.unlock();
-		}
+		void VisualizeBVH(_In_ DebugRenderer &renderer) const;
 
 	protected:
 		/* Updates the physical world contraints. */

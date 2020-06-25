@@ -207,6 +207,7 @@ Pu::Model & Pu::AssetFetcher::FetchModel(const wstring & path, const DeferredRen
 
 	/* Start the parallel initialization and return the model reference. */
 	loader->InitializeModel(*result, mutablePath, deferredRenderer, probeRenderer);
+	result->SetHash(hash);
 	cache->Store(result);
 	return *result;
 }

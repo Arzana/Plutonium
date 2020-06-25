@@ -12,7 +12,7 @@ Pu::Model::Model(void)
 Pu::Model::Model(Model && value)
 	: Asset(std::move(value)), Category(value.Category), meshes(std::move(value.meshes)),
 	materials(std::move(value.materials)), probeMaterials(std::move(value.probeMaterials)),
-	poolMaterials(value.poolMaterials), poolProbes(value.poolProbes), textures(value.textures),
+	poolMaterials(value.poolMaterials), poolProbes(value.poolProbes), textures(std::move(value.textures)),
 	nodes(std::move(value.nodes))
 {
 	value.poolMaterials = nullptr;

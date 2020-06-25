@@ -38,6 +38,17 @@ void Pu::PhysicalWorld::VisualizeCollision(DebugRenderer & renderer, Vector3 cam
 	Profiler::End();
 }
 
+void Pu::PhysicalWorld::VisualizeBVH(DebugRenderer & renderer) const
+{
+#ifdef _DEBUG
+	lock.lock();
+	bvh.Visualize(renderer);
+	lock.unlock();
+#else 
+	(void)renderer;
+#endif
+}
+
 void Pu::PhysicalWorld::VisualizeCollider(DebugRenderer & renderer, const PhysicalObject & obj, Color clr, Vector3 camPos)
 {
 	if (obj.Collider.NarrowPhaseShape == CollisionShapes::None)

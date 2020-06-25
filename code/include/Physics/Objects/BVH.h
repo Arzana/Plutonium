@@ -1,6 +1,7 @@
 #pragma once
 #include "PhysicsHandle.h"
 #include "Core/Math/Shapes/AABB.h"
+#include "Core/Math/Shapes/Frustum.h"
 #include "Core/Collections/vector.h"
 
 namespace Pu
@@ -37,6 +38,9 @@ namespace Pu
 		_Check_return_ PhysicsHandle Raycast(_In_ Vector3 p, _In_ Vector3 d) const;
 		/* Gets the objects that overlap with the specified bounding box. */
 		void Boxcast(_In_ const AABB &box, _Inout_ vector<PhysicsHandle> &result) const;
+		/* Gets the objects that intersect with the specified frustum. */
+		void Frustumcast(_In_ const Frustum &frustum, _Inout_ vector<PhysicsHandle> &result) const;
+
 		/* Gets the cost of the internal branches of the BVH. */
 		_Check_return_ float GetTreeCost(void) const;
 		/* Gets the relative efficiency of the tree. */
