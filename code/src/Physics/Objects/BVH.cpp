@@ -223,6 +223,30 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 	} while (stack.size());
 }
 
+void Pu::BVH::Frustumcast(const Frustum & frustum, vector<PhysicsHandle>& result) const
+{
+	/* Start at the root node. */
+	cstack<uint16> stack;
+	stack.push(root);
+
+	/* Loop until we traversed the tree. */
+	do
+	{
+		const uint16 i = stack.pop();
+
+		/* Check if the branch (or leaf) overlaps. */
+		if (intersects(frustum, nodes[i].Box))
+		{
+			if ((nodes[i].is_leaf) result.emplace_back(nodes[i].pHandle);
+			else
+			{
+				stack.push(nodes[i].Child1);
+				stack.push(nodes[i].Child2);
+			}
+		}
+	} while (stack.size());
+}
+
 float Pu::BVH::GetTreeCost(void) const
 {
 	float result = 0.0f;
