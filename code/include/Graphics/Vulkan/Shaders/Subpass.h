@@ -116,7 +116,9 @@ namespace Pu
 
 		void Link(LogicalDevice &device);
 		void LoadFields(const PhysicalDevice &physicalDevice);
-		bool CheckIO(const Shader &a, const Shader &b);
+		bool CheckIO(const Shader &a, const Shader &b) const;
+		bool CheckSets(void) const;
+		std::map<uint32, vector<const Descriptor*>> QuerySets(void) const;
 		void CreateSetLayouts(LogicalDevice &device);
 	};
 }

@@ -188,16 +188,27 @@ void Pu::Subpass::Link(LogicalDevice & device)
 	{
 		if (!CheckIO(*shaders[i], *shaders[j]))
 		{
-			/* Shader is done loading but failed linking. */
+			/* Shader is done loading but failed linking because of I/O issues. */
 			Log::Error("Unable to link %s shader to %s shader!", to_string(shaders[i]->GetType()), to_string(shaders[j]->GetType()));
 			return;
 		}
 	}
 #endif
 
-	/* At this point we know that the linking was successfull so we can start loading the fields. */
-	linkSuccessfull = true;
+	/* We need to fields to be loaded in order to check the descriptors. */
 	LoadFields(device.GetPhysicalDevice());
+
+#ifdef _DEBUG
+	if (!CheckSets())
+	{
+		/* Shader is done loading but failed linking because of descriptor set overlap. */
+		Log::Error("Unable to link %zu shaders!", shaders.size());
+		return;
+	}
+#endif
+
+	/* At this point we know that the linking was successfull so we can start creating set layouts. */
+	linkSuccessfull = true;
 	CreateSetLayouts(device);
 
 	/* Log the creation of the subpass on debug mode. */
@@ -248,7 +259,7 @@ void Pu::Subpass::LoadFields(const PhysicalDevice & physicalDevice)
 	}
 }
 
-bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
+bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b) const
 {
 	bool result = true;
 	vector<spv::Word> linkedLocations;
@@ -311,10 +322,49 @@ bool Pu::Subpass::CheckIO(const Shader & a, const Shader & b)
 	return result;
 }
 
-void Pu::Subpass::CreateSetLayouts(LogicalDevice & device)
+bool Pu::Subpass::CheckSets(void) const
+{
+	const std::map<uint32, vector<const Descriptor*>> sets = QuerySets();
+	bool result = true;
+
+	for (const auto &[set, arguments] : sets)
+	{
+		for (const Descriptor *first : arguments)
+		{
+			for (const Descriptor *second : arguments)
+			{
+				if (first == second) continue;
+
+				/* Descriptor with the same binding might be part of a uniform buffer or them might be invalid. */
+				if (first->GetBinding() == second->GetBinding())
+				{
+					/* The types should always be equal (i.e. UniformBuffer vs Image). */
+					if (first->GetType() != second->GetType())
+					{
+						Log::Error("Binding %u in set %u is both used for %s %s and %s %s", first->GetBinding(), set,
+							to_string(first->GetType()), first->GetInfo().Name.c_str(),
+							to_string(second->GetType()), second->GetInfo().Name.c_str());
+
+						result = false;
+					}
+					else if (first->GetType() != DescriptorType::UniformBuffer)
+					{
+						Log::Error("Binding %u in set %u is used for both %s and %s!", first->GetBinding(), set, first->GetInfo().Name.c_str(), second->GetInfo().Name.c_str());
+						result = false;
+					}
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+std::map<uint32, vector<const Descriptor*>> Pu::Subpass::QuerySets(void) const
 {
 	/* Get all the sets in this subpass and their descriptors. */
 	std::map<uint32, vector<const Descriptor*>> sets;
+
 	for (const Descriptor &descriptor : descriptors)
 	{
 		decltype(sets)::iterator it = sets.find(descriptor.set);
@@ -325,6 +375,13 @@ void Pu::Subpass::CreateSetLayouts(LogicalDevice & device)
 			sets.emplace(descriptor.set, std::move(buffer));
 		}
 	}
+
+	return sets;
+}
+
+void Pu::Subpass::CreateSetLayouts(LogicalDevice & device)
+{
+	const std::map<uint32, vector<const Descriptor*>> sets = QuerySets();
 
 	/* Allocate the descriptor set layouts. */
 	setLayouts.reserve(sets.size());
