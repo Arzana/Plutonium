@@ -99,6 +99,7 @@
     <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\cstack.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\fvector.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\AABB.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Frustum.h" />
@@ -107,6 +108,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Plane.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Rectangle.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Sphere.h" />
+    <ClInclude Include="..\..\..\include\Core\Math\VectorSSE.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\SpecializationConstant.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\BVH.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\Collider.h" />
@@ -120,7 +122,9 @@
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicsCache.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
@@ -327,6 +331,7 @@
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Public.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />

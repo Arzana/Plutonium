@@ -900,6 +900,18 @@
     <ClInclude Include="..\..\..\include\Core\Collections\cstack.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\fvector.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\VectorSSE.h">
+      <Filter>Header Files\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicsCache.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1284,6 +1296,9 @@
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>

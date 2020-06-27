@@ -392,7 +392,7 @@ void HandleJsonMeshPrimitives(const json &primitives, GLTFMesh &mesh)
 							Save any additional texture coordinates as auxilary coordinates.
 							Log the mesh name if it is already loaded (might not be the case). 
 							*/
-							if (mesh.Name.contains("TEXCOORD_")) primitive.Attributes.emplace(GLTFPrimitiveAttribute::TexCoordAux, idx);
+							if (string(type).contains("TEXCOORD")) primitive.Attributes.emplace(GLTFPrimitiveAttribute::TexCoordAux, idx);
 							else if (mesh.Name.empty()) Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute!", type.c_str());
 							else Log::Warning("Plutonium doesn't recognize '%s' as a valid primitive attribute in mesh '%s'!", type.c_str(), mesh.Name.c_str());
 
@@ -959,7 +959,10 @@ void HandleJsonImages(const json &images, GLTFLoaderResult &file)
 				if (val.is_string()) file.Images.emplace_back(string(val).toWide());
 				else LogCorruptJsonHeader("Image URI isn't a valid path");
 			}
-			else if (KEY != "MIMETYPE") Log::Warning("GLTF loader doesn't currently handle embedded images!");
+			else if (KEY == "BUFFERVIEW")
+			{
+				Log::Warning("GLTF loader doesn't currently handle embedded images!");
+			}
 		}
 	}
 }
