@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/Constants.h"
+#include "Core/Math/Conversion.h"
 #include <string>
 #include <assert.h>
 
@@ -9,6 +9,9 @@ namespace Pu
 	class fvector
 	{
 	public:
+		/* Defines the underlying SSE type. */
+		using sse_type = ofloat;
+
 		/* Initializes an empty instance of a SSE vector. */
 		fvector(void)
 			: buffer(nullptr), cap(0), cnt(0)
@@ -208,8 +211,8 @@ namespace Pu
 		_Check_return_ float get(_In_ size_t idx) const
 		{
 			assert(idx < cnt && "Index out of range!");
-			const sse_shift_helper helper{ buffer[idx >> 0x3] };
-			return helper.f[idx & ~0x7];
+			const AVX_FLOAT_UNION helper{ buffer[idx >> 0x3] };
+			return helper.V[idx & ~0x7];
 		}
 
 		/* Gets the underlying data buffer. */
@@ -232,8 +235,7 @@ namespace Pu
 			const size_t i = idx >> 0x3;
 			const size_t j = idx & 0x7;
 
-			buffer[i] = _mm256_andnot_ps(lut[j], buffer[i]);
-			buffer[i] = _mm256_or_ps(buffer[i], _mm256_and_ps(_mm256_set1_ps(value), lut[j]));
+			buffer[i] = _mm256_or_ps(_mm256_andnot_ps(lut[j], buffer[i]), _mm256_and_ps(_mm256_set1_ps(value), lut[j]));
 		}
 
 		/* Adds the specified value to the value at the specified index. */
@@ -269,47 +271,41 @@ namespace Pu
 
 			const size_t i = idx >> 0x3;
 			const size_t j = idx & 0x7;
-			sse_shift_helper shift;
+			AVX_FLOAT_UNION shift;
 
 			float carryIn = -NAN, carryOut;
 			for (size_t k = cnt >> 0x3; k > i; k--)
 			{
-				shift.avx = buffer[k];
-				carryOut = shift.f[0];
+				shift.AVX = buffer[k];
+				carryOut = shift.V[0];
 
-				shift.f[0] = shift.f[1];
-				shift.f[1] = shift.f[2];
-				shift.f[2] = shift.f[3];
-				shift.f[3] = shift.f[4];
-				shift.f[4] = shift.f[5];
-				shift.f[5] = shift.f[6];
-				shift.f[6] = shift.f[7];
-				shift.f[7] = carryIn;
+				shift.V[0] = shift.V[1];
+				shift.V[1] = shift.V[2];
+				shift.V[2] = shift.V[3];
+				shift.V[3] = shift.V[4];
+				shift.V[4] = shift.V[5];
+				shift.V[5] = shift.V[6];
+				shift.V[6] = shift.V[7];
+				shift.V[7] = carryIn;
 
-				buffer[k] = shift.avx;
+				buffer[k] = shift.AVX;
 				carryIn = carryOut;
 			}
 
-			shift.avx = buffer[i];
+			shift.AVX = buffer[i];
 			for (size_t k = j; k < 7; k++)
 			{
-				shift.f[k] = shift.f[k + 1];
+				shift.V[k] = shift.V[k + 1];
 			}
 
-			shift.f[7] = carryIn;
-			buffer[i] = shift.avx;
+			shift.V[7] = carryIn;
+			buffer[i] = shift.AVX;
 		}
 
 	private:
+		static const ofloat lut[8];
 		ofloat *buffer;
 		size_t cap, cnt;
-		static const ofloat lut[8];
-
-		union sse_shift_helper
-		{
-			ofloat avx;
-			float f[8];
-		};
 
 		static size_t sse_cast(size_t n)
 		{

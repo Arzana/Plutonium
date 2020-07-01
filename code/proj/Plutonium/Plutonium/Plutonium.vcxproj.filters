@@ -909,7 +909,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\VectorSSE.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicsCache.h">
+    <ClInclude Include="..\..\..\include\Physics\Systems\SolverSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1299,6 +1299,9 @@
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\SolverSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>

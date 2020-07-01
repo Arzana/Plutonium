@@ -17,7 +17,6 @@ const char * Pu::CPU::GetName(void)
 	/* We don't have to query again if it's already set. */
 	if (name.length()) return name.c_str();
 
-#ifdef _WIN32
 	/*
 	Define the EAX, EBX, ECX and EDX registers.
 	And query the highest extended function implemented (sets only EAX).
@@ -39,26 +38,27 @@ const char * Pu::CPU::GetName(void)
 			memcpy(name.data() + (i << 4), registers, 0x10);
 		}
 	}
+	else
+	{
+		/* The brand string is not supported on this CPU, use the manufacturer ID instead. */
+		__cpuid(registers, 0x0);
 
-#else
-	Log::Warning("Querying the CPU name is not supported on this platform!");
-#endif
+		/* Brand string is 3-words or 12-bytes in size and is stored in EBX, EDX, ECX (in that order). */
+		name.resize(12u);
+		memcpy(name.data(), registers + 1, sizeof(int));
+		memcpy(name.data() + 4, registers + 3, sizeof(int));
+		memcpy(name.data() + 8, registers + 2, sizeof(int));
+	}
 
 	return name.c_str();
 }
 
 bool Pu::CPU::SupportsAVX(void)
 {
-#ifdef _WIN32
-	/* SSE3 is the flag that must be set for AVX to be supported. */
+	/* AVX support is in the 28th-bit of the feature bits (CPUID 1). */
 	int32 registers[4];
 	__cpuid(registers, 0x1);
-	return registers[2] & 0x1;
-#else
-	Log::Warning("Querying AVX support is not supported on this platform!");
-#endif
-
-	return false;
+	return registers[2] & 0x8000000;
 }
 
 float Pu::CPU::GetCurrentProcessUsage(void)

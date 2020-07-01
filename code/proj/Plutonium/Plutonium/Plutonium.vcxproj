@@ -124,10 +124,10 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h" />
-    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicsCache.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\SolverSystem.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
     <ClInclude Include="..\..\..\include\System.h" />
     <ClInclude Include="..\..\..\include\Config.h" />
@@ -334,6 +334,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Public.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\SolverSystem.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />
     <ClCompile Include="..\..\..\src\Content\Asset.cpp" />

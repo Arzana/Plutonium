@@ -48,6 +48,10 @@ namespace Pu
 		void Integrate(_In_ ofloat dt);
 		/* Creates a transformation matrix for the specified object. */
 		_Check_return_ Matrix CreateTransform(_In_ size_t idx) const;
+		/* Returns the velocity of the specified object. */
+		_Check_return_ Vector3 GetVelocity(_In_ size_t idx) const;
+		/* Returns the indices of the objects that have moved out of their expanded AABB. */
+		void CheckDistance(_Out_ vector<size_t> &result);
 
 	private:
 		Vector3SSE g;
@@ -58,6 +62,10 @@ namespace Pu
 		fvector px;
 		fvector py;
 		fvector pz;
+
+		fvector qx;
+		fvector qy;
+		fvector qz;
 
 		fvector vx;
 		fvector vy;
