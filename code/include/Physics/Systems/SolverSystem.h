@@ -23,6 +23,11 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ SolverSystem& operator =(_In_ SolverSystem &&other);
 
+		/* Gets the total amount of collisions processed since the last reset call. */
+		_Check_return_ static uint32 GetCollisionCount(void);
+		/* Resets the collisions counter. */
+		static void ResetCounter(void);
+
 		/* Adds a single item to the solver system, returns the index. */
 		_Check_return_ size_t AddItem(_In_ const Matrix3 &MoI, _In_ float mass, _In_ float CoR, _In_ float CoF);
 		/* Removes the item at the specified index. */

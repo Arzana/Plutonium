@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/Conversion.h"
+#include "Core/Math/Constants.h"
 #include <string>
 #include <assert.h>
 
@@ -264,43 +264,7 @@ namespace Pu
 		}
 
 		/* Removes the element at the specified index. */
-		void erase(_In_ size_t idx)
-		{
-			assert(idx < cnt && "Index out of range!");
-			if (idx == --cnt) return;
-
-			const size_t i = idx >> 0x3;
-			const size_t j = idx & 0x7;
-			AVX_FLOAT_UNION shift;
-
-			float carryIn = -NAN, carryOut;
-			for (size_t k = cnt >> 0x3; k > i; k--)
-			{
-				shift.AVX = buffer[k];
-				carryOut = shift.V[0];
-
-				shift.V[0] = shift.V[1];
-				shift.V[1] = shift.V[2];
-				shift.V[2] = shift.V[3];
-				shift.V[3] = shift.V[4];
-				shift.V[4] = shift.V[5];
-				shift.V[5] = shift.V[6];
-				shift.V[6] = shift.V[7];
-				shift.V[7] = carryIn;
-
-				buffer[k] = shift.AVX;
-				carryIn = carryOut;
-			}
-
-			shift.AVX = buffer[i];
-			for (size_t k = j; k < 7; k++)
-			{
-				shift.V[k] = shift.V[k + 1];
-			}
-
-			shift.V[7] = carryIn;
-			buffer[i] = shift.AVX;
-		}
+		void erase(_In_ size_t idx);
 
 	private:
 		static const ofloat lut[8];
@@ -326,17 +290,5 @@ namespace Pu
 		{
 			if (buffer) _aligned_free(buffer);
 		}
-	};
-
-	__declspec(align(32)) const ofloat fvector::lut[8] =
-	{
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0xFFFFFFFF)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0, 0, 0, 0, 0xFFFFFFFF, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0, 0, 0, 0xFFFFFFFF, 0, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0, 0, 0xFFFFFFFF, 0, 0, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0, 0xFFFFFFFF, 0, 0, 0, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0, 0xFFFFFFFF, 0, 0, 0, 0, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0, 0xFFFFFFFF, 0, 0, 0, 0, 0, 0)),
-		_mm256_castsi256_ps(_mm256_set_epi32(0xFFFFFFFF, 0, 0, 0, 0, 0, 0, 0))
 	};
 }

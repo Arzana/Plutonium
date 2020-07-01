@@ -3,6 +3,8 @@
 #define avx_realloc(ptr, type, cnt)	ptr = reinterpret_cast<type*>(_aligned_realloc(ptr, sizeof(type) * cnt, sizeof(type)))
 #define avx_clear(ptr, size)		memset(ptr, 0, size)
 
+static Pu::uint32 collisions = 0;
+
 Pu::SolverSystem::SolverSystem(MovementSystem & movement)
 	: movement(&movement), sharedCapacity(0), kinematicCapacity(0), resultCapacity(0)
 {}
@@ -57,6 +59,16 @@ Pu::SolverSystem & Pu::SolverSystem::operator=(SolverSystem && other)
 	return *this;
 }
 
+Pu::uint32 Pu::SolverSystem::GetCollisionCount(void)
+{
+	return collisions;
+}
+
+void Pu::SolverSystem::ResetCounter(void)
+{
+	collisions = 0;
+}
+
 size_t Pu::SolverSystem::AddItem(const Matrix3 & MoI, float mass, float CoR, float CoF)
 {
 	moi.emplace_back(MoI);
@@ -89,6 +101,7 @@ void Pu::SolverSystem::SolveConstriant(void)
 	FillKinematic(cntKinematic);
 	SolveKinematic(cntKinematic);
 
+	collisions += static_cast<uint32>(cntStatic + cntKinematic);
 	manifolds.clear();
 }
 

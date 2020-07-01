@@ -325,6 +325,7 @@
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp" />
     <ClCompile Include="..\..\..\deps\tinyxml\tinyxml2.cpp" />
     <ClCompile Include="..\..\..\src\Application.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Collections\fvector.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix3.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />

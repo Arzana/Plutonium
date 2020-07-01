@@ -247,6 +247,9 @@
     <Filter Include="Source Files\Physics\Objects">
       <UniqueIdentifier>{54dbe07f-82be-41aa-a0f1-382861149c25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Core\Collections">
+      <UniqueIdentifier>{d6ef423b-7b1f-4d6a-b036-9f6c13be71fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
@@ -1303,6 +1306,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\SolverSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Collections\fvector.cpp">
+      <Filter>Source Files\Core\Collections</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
