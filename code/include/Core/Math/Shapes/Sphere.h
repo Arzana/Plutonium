@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Math/Vector3.h"
+#include "Core/Math/Matrix.h"
 
 namespace Pu
 {
@@ -21,6 +21,15 @@ namespace Pu
 		Sphere(_In_ Vector3 center, _In_ float radius)
 			: Center(center), Radius(radius)
 		{}
+
+		/* Transforms the sphere with the specified transform. */
+		_Check_return_ inline Sphere operator *(_In_ const Matrix &transform) const
+		{
+			const Vector3 center = transform * Center;
+			const Vector3 scale2 = transform.GetSquaredScale();
+			const float scale = sqrtf(max(scale2.X, scale2.Y, scale2.Z));
+			return Sphere{ center, Radius * scale };
+		}
 	};
 
 	/* Defines the GJK support function for a sphere. */

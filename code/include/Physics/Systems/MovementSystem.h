@@ -51,7 +51,7 @@ namespace Pu
 		/* Returns the velocity of the specified object. */
 		_Check_return_ Vector3 GetVelocity(_In_ size_t idx) const;
 		/* Returns the indices of the objects that have moved out of their expanded AABB. */
-		void CheckDistance(_Out_ vector<size_t> &result);
+		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
 
 	private:
 		Vector3SSE g;
@@ -63,9 +63,9 @@ namespace Pu
 		fvector py;
 		fvector pz;
 
-		fvector qx;
-		fvector qy;
-		fvector qz;
+		mutable fvector qx;
+		mutable fvector qy;
+		mutable fvector qz;
 
 		fvector vx;
 		fvector vy;

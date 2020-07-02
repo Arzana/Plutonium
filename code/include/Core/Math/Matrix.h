@@ -227,8 +227,10 @@ namespace Pu
 
 		/* Calculates a quaternion that defines the orientation of this matrix. */
 		_Check_return_ Quaternion GetOrientation(void) const;
-		/* Gets the scale applied to this model. */
+		/* Gets the scale applied to this matrix. */
 		_Check_return_ Vector3 GetScale(void) const;
+		/* Gets the squared scale applied to this matrix. */
+		_Check_return_ Vector3 GetSquaredScale(void) const;
 		/* Calculates a matrix that defines the orientation and scale of this matrix. */
 		_Check_return_ Matrix GetStatic(void) const;
 		/* Calculates the determinant of the matrix. */

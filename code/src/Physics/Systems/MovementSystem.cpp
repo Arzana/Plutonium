@@ -139,7 +139,7 @@ Pu::Vector3 Pu::MovementSystem::GetVelocity(size_t idx) const
 	return Vector3(vx.get(idx), vy.get(idx), vz.get(idx));
 }
 
-void Pu::MovementSystem::CheckDistance(vector<size_t>& result)
+void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & result) const
 {
 	const size_t size = vx.sse_size();
 
@@ -169,13 +169,17 @@ void Pu::MovementSystem::CheckDistance(vector<size_t>& result)
 			if (cur.V[i])
 			{
 				const size_t idx = i << 0x3 | j;
+				const float x = px.get(idx);
+				const float y = py.get(idx);
+				const float z = pz.get(idx);
 
 				/* The old location needs to be overriden when it reaches this point. */
-				qx.set(idx, px.get(idx));
-				qy.set(idx, py.get(idx));
-				qz.set(idx, pz.get(idx));
+				qx.set(idx, x);
+				qy.set(idx, y);
+				qz.set(idx, z);
 
-				result.emplace_back(idx);
+				/* Return both the index and the new location. */
+				result.emplace_back(std::make_pair(idx, Vector3(x, y, z)));
 			}
 		}
 	}

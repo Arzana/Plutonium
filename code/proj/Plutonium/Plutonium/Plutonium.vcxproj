@@ -121,6 +121,7 @@
     <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\ConstraintSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h" />
@@ -331,6 +332,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\ConstraintSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp" />

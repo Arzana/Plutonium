@@ -163,6 +163,11 @@ Pu::Vector3 Pu::Matrix::GetScale(void) const
 	return Vector3(GetRight().Length(), GetUp().Length(), GetForward().Length());
 }
 
+Pu::Vector3 Pu::Matrix::GetSquaredScale(void) const
+{
+	return Vector3(GetRight().LengthSquared(), GetUp().LengthSquared(), GetForward().LengthSquared());
+}
+
 Pu::Matrix Pu::Matrix::GetStatic(void) const
 {
 	/* Simply remove the translation. */
