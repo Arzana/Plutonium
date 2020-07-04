@@ -3,7 +3,7 @@
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Vulkan/CommandBuffer.h"
 #include "Physics/Systems/SolverSystem.h"
-#include "Physics/Systems/PhysicalWorld.h"
+#include "Physics/Systems/ConstraintSystem.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/Diagnostics/Memory.h"
@@ -168,10 +168,12 @@ void Pu::Profiler::VisualizeInternal(void)
 {
 	if (ImGui::Begin("Profiler"))
 	{
+		/* Render the bar style timers. */
 		RenderSections(cpuSections, "CPU", true);
 		ImGui::Separator();
 		RenderSections(gpuSections, "GPU", false);
 
+		/* Rendering/compute frame stats. */
 		ImGui::Separator();
 		ImGui::Text("Draw Calls:      %u", CommandBuffer::GetDrawCalls());
 		ImGui::Text("Bind Calls:      %u", CommandBuffer::GetBindCalls());
@@ -180,17 +182,20 @@ void Pu::Profiler::VisualizeInternal(void)
 		ImGui::Text("Barriers:        %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();
 
+		/* Physics stats. */
 		ImGui::Separator();
-		ImGui::Text("Collisions:      %u/%u", SolverSystem::GetCollisionCount(), PhysicalWorld::GetNarrowCheckCount());
+		ImGui::Text("Collisions:      %u/%u", SolverSystem::GetCollisionCount(), ConstraintSystem::GetNarrowPhaseChecks());
 		ImGui::Text("GJK Calls:       %u@%u", GJK::GetCallCount(), GJK::GetAverageIterations());
-
+		ConstraintSystem::ResetCounter();
 		SolverSystem::ResetCounter();
 		GJK::ResetCounters();
 
+		/* CPU/RAM stats. */
 		ImGui::Separator();
 		const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();
 		ImGui::Text("%s:\n%zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
 
+		/* GPU stats. */
 		if (vkInstance)
 		{
 			for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())

@@ -15,7 +15,7 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
-	AddSystem(physics = new PhysicalWorld());
+	AddSystem(physics = new PhysicalWorld2());
 	physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
 }
 
@@ -123,6 +123,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		renderer->Render(*lightFill);
 		renderer->End();
 
+		physics->Visualize(*dbgRenderer, camFree->GetPosition());
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
@@ -171,7 +172,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			Sphere sphere{ Vector3{}, 1.0f };
 			Collider collider{ AABB(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f), CollisionShapes::Sphere, &sphere };
 			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
-			obj.Properties = 0;
+			obj.Properties = create_physics_handle(PhysicsType::Material, 0ull);
 			obj.State.Mass = 1.0f;
 			npcs.emplace_back(physics->AddKinematic(obj));
 		}

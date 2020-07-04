@@ -1,7 +1,6 @@
 #include "Physics/Objects/BVH.h"
 #include "Physics/Systems/Raycasts.h"
 #include "Physics/Systems/ShapeTests.h"
-#include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Core/Collections/cstack.h"
 #include <imgui/include/imgui.h>
@@ -168,6 +167,8 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 			return;
 		}
 	}
+
+	Log::Error("Unable to remove leaf node from BVH (handle wasn't found)!");
 }
 
 Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
@@ -280,8 +281,6 @@ float Pu::BVH::GetEfficiency(void) const
 #ifdef _DEBUG
 void Pu::BVH::Visualize(DebugRenderer & renderer) const
 {
-	Profiler::BeginDebug();
-
 	/* Display the stats in a seperate window. */
 	if constexpr (ImGuiAvailable)
 	{
@@ -294,7 +293,6 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 			ImGui::Text("Depth:         %d", rootDepth);
 			ImGui::Text("Memory:        %dKB", b2kb(sizeof(Node) * capacity));
 			ImGui::Text("Cost:          %.f", GetTreeCost());
-			ImGui::Text("Efficiency:    %.f%%", GetEfficiency());
 			ImGui::SliderInt("Display", reinterpret_cast<int*>(&displayDepth), 0, rootDepth);
 
 			ImGui::End();
@@ -306,8 +304,6 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 			if (node.is_used && (node.get_depth) == displayDepth) renderer.AddBox(nodes[i].Box, Color::Blue());
 		}
 	}
-
-	Profiler::End();
 }
 #endif
 

@@ -1,7 +1,8 @@
 #pragma once
+#include "Physics/Objects/PhysicsHandle.h"
+#include "Core/Collections/fvector.h"
 #include "Core/Math/VectorSSE.h"
 #include "Core/Math/Matrix.h"
-#include "Core/Collections/fvector.h"
 
 namespace Pu
 {
@@ -36,10 +37,12 @@ namespace Pu
 
 		/* Adds a specific linear and angular force to the specific object. */
 		void AddForce(_In_ size_t idx, _In_ Vector3 linear, _In_ Quaternion angular);
-		/* Adds a single item to the movement system, return the index. */
+		/* Adds a single kinematic item to the movement system, return the index. */
 		_Check_return_ size_t AddItem(_In_ Vector3 p, _In_ Vector3 v, _In_ Quaternion theta, _In_ Quaternion omega, _In_ float CoD, _In_ float imass);
+		/* Adds a single static item to the movement system, returns the index. */
+		_Check_return_ size_t AddItem(_In_ const Matrix &transform);
 		/* Removes the item at the specified index. */
-		void RemoveItem(_In_ size_t idx);
+		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Adds the gravitational force to the objects. */
 		void ApplyGravity(_In_ ofloat dt);
 		/* Adds the aerodynamic drag force to the objects. */
@@ -47,7 +50,7 @@ namespace Pu
 		/* Adds the linear and angular velocity to the objects position. */
 		void Integrate(_In_ ofloat dt);
 		/* Creates a transformation matrix for the specified object. */
-		_Check_return_ Matrix CreateTransform(_In_ size_t idx) const;
+		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
 		/* Returns the velocity of the specified object. */
 		_Check_return_ Vector3 GetVelocity(_In_ size_t idx) const;
 		/* Returns the indices of the objects that have moved out of their expanded AABB. */
@@ -63,6 +66,7 @@ namespace Pu
 		fvector py;
 		fvector pz;
 
+		vector<Matrix> transforms;
 		mutable fvector qx;
 		mutable fvector qy;
 		mutable fvector qz;

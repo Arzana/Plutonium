@@ -127,6 +127,7 @@ namespace Pu
 			{
 				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
 				PhysicalObject obj{ result->pos, Quaternion{}, collider };
+				obj.Properties = create_physics_handle(PhysicsType::Material, 0ull);
 				result->hcollider = result->world->AddStatic(obj);
 			}
 
@@ -158,7 +159,7 @@ namespace Pu
 	};
 }
 
-Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld * world)
+Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld2 * world)
 	: generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
 	displacement(nullptr), textures(nullptr), material(nullptr), usable(false),
 	world(world)

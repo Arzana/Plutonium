@@ -45,40 +45,54 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quate
 	return cod.size() - 1;
 }
 
-void Pu::MovementSystem::RemoveItem(size_t idx)
+size_t Pu::MovementSystem::AddItem(const Matrix & transform)
 {
-	cod.erase(idx);
-	m.erase(idx);
-	px.erase(idx);
-	py.erase(idx);
-	pz.erase(idx);
-	vx.erase(idx);
-	vy.erase(idx);
-	vz.erase(idx);
-	ti.erase(idx);
-	tj.erase(idx);
-	tk.erase(idx);
-	tr.erase(idx);
-	wi.erase(idx);
-	wj.erase(idx);
-	wk.erase(idx);
-	wr.erase(idx);
+	transforms.emplace_back(transform);
+	return transforms.size() - 1;
+}
 
-	qx.erase(idx);
-	qy.erase(idx);
-	qz.erase(idx);
+void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
+{
+	const uint16 idx = physics_get_lookup_id(handle);
+
+	if (physics_get_type(handle) == PhysicsType::Static) transforms.removeAt(idx);
+	else
+	{
+		cod.erase(idx);
+		m.erase(idx);
+		px.erase(idx);
+		py.erase(idx);
+		pz.erase(idx);
+		vx.erase(idx);
+		vy.erase(idx);
+		vz.erase(idx);
+		ti.erase(idx);
+		tj.erase(idx);
+		tk.erase(idx);
+		tr.erase(idx);
+		wi.erase(idx);
+		wj.erase(idx);
+		wk.erase(idx);
+		wr.erase(idx);
+
+		qx.erase(idx);
+		qy.erase(idx);
+		qz.erase(idx);
+	}
 }
 
 void Pu::MovementSystem::ApplyGravity(ofloat dt)
 {
-	for (ofloat &x : px) x = _mm256_mul_ps(_mm256_mul_ps(x, g.X), dt);
-	for (ofloat &y : px) y = _mm256_mul_ps(_mm256_mul_ps(y, g.Y), dt);
-	for (ofloat &z : px) z = _mm256_mul_ps(_mm256_mul_ps(z, g.Z), dt);
+	for (ofloat &x : vx) x = _mm256_add_ps(x, _mm256_mul_ps(g.X, dt));
+	for (ofloat &y : vy) y = _mm256_add_ps(y, _mm256_mul_ps(g.Y, dt));
+	for (ofloat &z : vz) z = _mm256_add_ps(z, _mm256_mul_ps(g.Z, dt));
 }
 
 void Pu::MovementSystem::ApplyDrag(ofloat dt)
 {
 	const size_t size = vx.sse_size();
+	const ofloat zero = _mm256_set1_ps(0.0f);
+
 	for (size_t i = 0; i < size; i++)
 	{
 		ofloat &x = vx[i];
@@ -96,13 +110,13 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 		- Aerodynamic drag scalar (ld).
 		*/
 		const ofloat ll = _mm256_add_ps(_mm256_add_ps(xx, yy), zz);
-		const ofloat l = _mm256_sqrt_ps(ll);
+		const ofloat l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
 		const ofloat ld = _mm256_mul_ps(ll, cod[i]);
 
 		/* Calculate the aerodynamic force to apply. */
-		const ofloat fx = _mm256_mul_ps(_mm256_div_ps(x, l), ld);
-		const ofloat fy = _mm256_mul_ps(_mm256_div_ps(y, l), ld);
-		const ofloat fz = _mm256_mul_ps(_mm256_div_ps(z, l), ld);
+		const ofloat fx = _mm256_mul_ps(_mm256_mul_ps(x, l), ld);
+		const ofloat fy = _mm256_mul_ps(_mm256_mul_ps(y, l), ld);
+		const ofloat fz = _mm256_mul_ps(_mm256_mul_ps(z, l), ld);
 
 		/* Apply the force scaled with delta time. */
 		x = _mm256_sub_ps(x, _mm256_mul_ps(fx, _mm256_mul_ps(m[i], dt)));
@@ -122,13 +136,18 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 
 	/* Add angular rotation to orientation (scaled by delta time). */
 	for (size_t i = 0; i < size; i++) ti[i] = _mm256_add_ps(ti[i], _mm256_mul_ps(wi[i], dt));
-	for (size_t i = 0; i < size; i++) ti[i] = _mm256_add_ps(tj[i], _mm256_mul_ps(wj[i], dt));
-	for (size_t i = 0; i < size; i++) ti[i] = _mm256_add_ps(tk[i], _mm256_mul_ps(wk[i], dt));
-	for (size_t i = 0; i < size; i++) ti[i] = _mm256_add_ps(tr[i], _mm256_mul_ps(wr[i], dt));
+	for (size_t i = 0; i < size; i++) tj[i] = _mm256_add_ps(tj[i], _mm256_mul_ps(wj[i], dt));
+	for (size_t i = 0; i < size; i++) tk[i] = _mm256_add_ps(tk[i], _mm256_mul_ps(wk[i], dt));
+	for (size_t i = 0; i < size; i++) tr[i] = _mm256_add_ps(tr[i], _mm256_mul_ps(wr[i], dt));
 }
 
-Pu::Matrix Pu::MovementSystem::CreateTransform(size_t idx) const
+Pu::Matrix Pu::MovementSystem::GetTransform(PhysicsHandle handle) const
 {
+	const uint16 idx = physics_get_lookup_id(handle);
+
+	/* Static objects are cached as they don't move. */
+	if (physics_get_type(handle) == PhysicsType::Static) return transforms[idx];
+
 	const Matrix translation = Matrix::CreateTranslation(px.get(idx), py.get(idx), pz.get(idx));
 	const Matrix orientation = Matrix::CreateRotation(Quaternion(tr.get(idx), ti.get(idx), tj.get(idx), tk.get(idx)));
 	return translation * orientation;
@@ -166,9 +185,11 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 		const AVX_FLOAT_UNION cur = masks[i];
 		for (size_t j = 0; j < 8; j++)
 		{
+			const size_t idx = i << 0x3 | j;
+			if (idx >= px.size()) break;
+
 			if (cur.V[i])
 			{
-				const size_t idx = i << 0x3 | j;
 				const float x = px.get(idx);
 				const float y = py.get(idx);
 				const float z = pz.get(idx);

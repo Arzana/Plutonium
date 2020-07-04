@@ -6,12 +6,14 @@
 
 namespace Pu
 {
+	class PhysicalWorld2;
+
 	/* Defines a system used to detect collisions. */
 	class ConstraintSystem
 	{
 	public:
 		/* Initializes a new instance of a constraint system. */
-		ConstraintSystem(_In_ const MovementSystem &movement, _In_ SolverSystem &solver, _In_ BVH &bvh);
+		ConstraintSystem(_In_ PhysicalWorld2 &world);
 		ConstraintSystem(_In_ const ConstraintSystem&) = delete;
 		/* Move contructor. */
 		ConstraintSystem(_In_ ConstraintSystem &&value);
@@ -29,24 +31,24 @@ namespace Pu
 		_Check_return_ static uint32 GetNarrowPhaseChecks(void);
 		/* Resets the narrow phase check counter. */
 		static void ResetCounter(void);
+
 		/* Adds a new collider to the constraint system. */
-		_Check_return_ size_t AddItem(_In_ PhysicsHandle handle, _In_ const AABB &bb, _In_ CollisionShapes type, _In_ const float *collider);
+		void AddItem(_In_ PhysicsHandle handle, _In_ const AABB &bb, _In_ CollisionShapes type, _In_ const float *collider);
 		/* Removes the specified item from the constraint system. */
 		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Checks whether any of the kinematic objects have collided with anything in the scene. */
 		void Check(void);
+		/* Visualizes the colliders in the world. */
+		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
 
 	private:
 		using CollisionChecker_t = void(ConstraintSystem::*)(PhysicsHandle hfirst, PhysicsHandle hsecond);
 
 		std::map<uint16, CollisionChecker_t> checkers;
-		const MovementSystem *movement;
-		SolverSystem *solver;
-		BVH *searchTree;
+		PhysicalWorld2 *world;
 
 		vector<AABB> rawBroadPhase;
-		vector<CollisionShapes> shapes;
-		vector<float*> narrowPhases;
+		std::map<PhysicsHandle, std::pair<CollisionShapes, float*>> rawNarrowPhase;
 
 		std::map<PhysicsHandle, AABB> cachedBroadPhase;
 		vector<std::pair<size_t, Vector3>> readdCache;

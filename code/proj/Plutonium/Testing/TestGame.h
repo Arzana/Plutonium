@@ -4,7 +4,7 @@
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Graphics/Lighting/DeferredRenderer.h>
 #include <Procedural/Terrain/TerrainChunk.h>
-#include <Physics/Systems/PhysicalWorld.h>
+#include <Physics/Systems/PhysicalWorld2.h>
 
 class TestGame
 	: public Pu::Application
@@ -41,7 +41,7 @@ private:
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
 
-	Pu::PhysicalWorld *physics;
+	Pu::PhysicalWorld2 *physics;
 	Pu::vector<Pu::PhysicsHandle> npcs;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);

@@ -2,6 +2,7 @@
 #include "Collider.h"
 #include "Core/Math/Matrix3.h"
 #include "Physics/Properties/PhysicalState.h"
+#include "PhysicsHandle.h"
 
 namespace Pu
 {
@@ -25,7 +26,7 @@ namespace Pu
 		/* Specifies the current physical state of the object. */
 		PhysicalState State;
 		/* Specifies the ID of the physical properties of which this physical object is made. */
-		size_t Properties;
+		PhysicsHandle Properties;
 		/* Specifies the collider used by the object. */
 		Collider Collider;
 		
@@ -34,17 +35,17 @@ namespace Pu
 
 		/* Initializes an empty instance of a physical object. */
 		PhysicalObject(void)
-			: Properties(~0ull)
+			: Properties(PhysicsNullHandle)
 		{}
 
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, const Pu::Collider &collider)
-			: P(pos), Theta(orien), Properties(~0ull), Collider(collider)
+			: P(pos), Theta(orien), Properties(PhysicsNullHandle), Collider(collider)
 		{}
 
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, Pu::Collider &&collider)
-			: P(pos), Theta(orien), Properties(~0ull), Collider(std::move(collider))
+			: P(pos), Theta(orien), Properties(PhysicsNullHandle), Collider(std::move(collider))
 		{}
 	};
 }

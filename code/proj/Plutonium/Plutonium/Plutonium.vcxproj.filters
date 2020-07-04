@@ -918,6 +918,12 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\ConstraintSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\MaterialDatabase.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld2.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1314,6 +1320,9 @@
       <Filter>Source Files\Core\Collections</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\ConstraintSystem.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld2.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
