@@ -5,14 +5,14 @@
 
 namespace Pu
 {
-	class PhysicalWorld2;
+	class PhysicalWorld;
 
 	/* Defines a system used to solve collision manifolds. */
 	class SolverSystem
 	{
 	public:
 		/* Initializes a new instance of a solver system that updates the specified movement system. */
-		SolverSystem(_In_ PhysicalWorld2 &world);
+		SolverSystem(_In_ PhysicalWorld &world);
 		SolverSystem(_In_ const SolverSystem &value) = delete;
 		/* Move constructor. */
 		SolverSystem(_In_ SolverSystem &&value);
@@ -41,7 +41,7 @@ namespace Pu
 		void SolveConstriants(void);
 
 	private:
-		PhysicalWorld2 *world;
+		PhysicalWorld *world;
 
 		std::map<PhysicsHandle, Matrix3> moi;
 		std::map<PhysicsHandle, float> imass;

@@ -852,9 +852,6 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h">
-      <Filter>Header Files\Physics\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
@@ -921,7 +918,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\MaterialDatabase.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld2.h">
+    <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1304,12 +1301,6 @@
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp">
       <Filter>Source Files\Physics\Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Public.cpp">
-      <Filter>Source Files\Physics\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld_Collisions.cpp">
-      <Filter>Source Files\Physics\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
@@ -1322,7 +1313,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\ConstraintSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld2.cpp">
+    <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>

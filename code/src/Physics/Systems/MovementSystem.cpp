@@ -5,12 +5,12 @@ Pu::MovementSystem::MovementSystem(void)
 	: g(0.0f, -9.81f, 0.0f)
 {}
 
-void Pu::MovementSystem::AddForce(size_t idx, Vector3 linear, Quaternion angular)
+void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quaternion angular)
 {
 	/* Add the linear force to the velocity. */
-	vx.add(idx, linear.X);
-	vy.add(idx, linear.Y);
-	vz.add(idx, linear.Z);
+	vx.add(idx, x);
+	vy.add(idx, y);
+	vz.add(idx, z);
 
 	/* Add the angular force to the rotation. */
 	wi.add(idx, angular.I);
@@ -158,6 +158,12 @@ Pu::Vector3 Pu::MovementSystem::GetVelocity(size_t idx) const
 	return Vector3(vx.get(idx), vy.get(idx), vz.get(idx));
 }
 
+/*
+foreach object
+	if distance(p, q) > max distance
+		q = p
+		add current object to result
+*/
 void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & result) const
 {
 	const size_t size = vx.sse_size();
@@ -192,7 +198,7 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 			const size_t idx = i << 0x3 | j;
 			if (idx >= px.size()) break;
 
-			if (cur.V[i])
+			if (cur.V[j])
 			{
 				const float x = px.get(idx);
 				const float y = py.get(idx);

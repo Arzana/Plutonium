@@ -36,7 +36,7 @@ namespace Pu
 		}
 
 		/* Adds a specific linear and angular force to the specific object. */
-		void AddForce(_In_ size_t idx, _In_ Vector3 linear, _In_ Quaternion angular);
+		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ Quaternion angular);
 		/* Adds a single kinematic item to the movement system, return the index. */
 		_Check_return_ size_t AddItem(_In_ Vector3 p, _In_ Vector3 v, _In_ Quaternion theta, _In_ Quaternion omega, _In_ float CoD, _In_ float imass);
 		/* Adds a single static item to the movement system, returns the index. */

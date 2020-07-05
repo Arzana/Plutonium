@@ -1,4 +1,4 @@
-#include "Physics/Systems/PhysicalWorld2.h"
+#include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/MaterialDatabase.h"
 #include "Physics/Systems/ConstraintSystem.h"
 #include "Core/Diagnostics/Profiler.h"
@@ -6,7 +6,7 @@
 
 #define nameof(x)			#x
 
-Pu::PhysicalWorld2::PhysicalWorld2(void)
+Pu::PhysicalWorld::PhysicalWorld(void)
 {
 	db = new MaterialDatabase();
 	sysMove = new MovementSystem();
@@ -14,7 +14,7 @@ Pu::PhysicalWorld2::PhysicalWorld2(void)
 	sysCnst = new ConstraintSystem(*this);
 }
 
-Pu::PhysicalWorld2::PhysicalWorld2(PhysicalWorld2 && value)
+Pu::PhysicalWorld::PhysicalWorld(PhysicalWorld && value)
 	: db(value.db), sysMove(value.sysMove), sysCnst(value.sysCnst),
 	sysSolv(value.sysSolv), searchTree(std::move(value.searchTree)),
 	handleLut(std::move(value.handleLut))
@@ -29,7 +29,7 @@ Pu::PhysicalWorld2::PhysicalWorld2(PhysicalWorld2 && value)
 	value.lock.unlock();
 }
 
-Pu::PhysicalWorld2 & Pu::PhysicalWorld2::operator=(PhysicalWorld2 && other)
+Pu::PhysicalWorld & Pu::PhysicalWorld::operator=(PhysicalWorld && other)
 {
 	if (this != &other)
 	{
@@ -56,7 +56,7 @@ Pu::PhysicalWorld2 & Pu::PhysicalWorld2::operator=(PhysicalWorld2 && other)
 	return *this;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld2::AddStatic(const PhysicalObject & obj)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddStatic(const PhysicalObject & obj)
 {
 	lock.lock();
 	const PhysicsHandle result = AddInternal(obj, PhysicsType::Static);
@@ -65,7 +65,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld2::AddStatic(const PhysicalObject & obj)
 	return result;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld2::AddKinematic(const PhysicalObject & obj)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(const PhysicalObject & obj)
 {
 	lock.lock();
 	const PhysicsHandle result = AddInternal(obj, PhysicsType::Kinematic);
@@ -74,7 +74,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld2::AddKinematic(const PhysicalObject & obj)
 	return result;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld2::AddMaterial(const PhysicalProperties & prop)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & prop)
 {
 	lock.lock();
 	const PhysicsHandle result = db->Add(prop);
@@ -83,7 +83,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld2::AddMaterial(const PhysicalProperties & pro
 	return result;
 }
 
-void Pu::PhysicalWorld2::Destroy(PhysicsHandle handle)
+void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 {
 	lock.lock();
 
@@ -99,7 +99,7 @@ void Pu::PhysicalWorld2::Destroy(PhysicsHandle handle)
 	lock.unlock();
 }
 
-Pu::Matrix Pu::PhysicalWorld2::GetTransform(PhysicsHandle handle) const
+Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 {
 	/* We cannot get the transform of a material... obviously. */
 #ifdef _DEBUG
@@ -110,7 +110,7 @@ Pu::Matrix Pu::PhysicalWorld2::GetTransform(PhysicsHandle handle) const
 	return sysMove->GetTransform(handleLut[physics_get_lookup_id(handle)]);
 }
 
-void Pu::PhysicalWorld2::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
+void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
 {
 	if constexpr (ImGuiAvailable)
 	{
@@ -142,7 +142,7 @@ void Pu::PhysicalWorld2::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) 
 	}
 }
 
-void Pu::PhysicalWorld2::Update(float dt)
+void Pu::PhysicalWorld::Update(float dt)
 {
 	Profiler::Begin("Physics", Color::Gray());
 	lock.lock();
@@ -171,18 +171,18 @@ void Pu::PhysicalWorld2::Update(float dt)
 	Profiler::End();
 }
 
-void Pu::PhysicalWorld2::ThrowCorruptHandle(bool condition, const char * func)
+void Pu::PhysicalWorld::ThrowCorruptHandle(bool condition, const char * func)
 {
 	if (condition) Log::Fatal("Corrupt physics handle detected at %s::%s!", nameof(PhysicalWorld2), func);
 }
 
-void Pu::PhysicalWorld2::ValidatePhysicalObject(const PhysicalObject & obj)
+void Pu::PhysicalWorld::ValidatePhysicalObject(const PhysicalObject & obj)
 {
 	if (obj.Properties == PhysicsNullHandle) Log::Fatal("Physical objects must have material set!");
 	if (obj.State.Mass <= 0.0f) Log::Fatal("Physical object mass must be greater than zero!");
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld2::QueryPublicHandle(PhysicsHandle handle) const
+Pu::PhysicsHandle Pu::PhysicalWorld::QueryPublicHandle(PhysicsHandle handle) const
 {
 	for (size_t i = 0; i < handleLut.size(); i++)
 	{
@@ -192,12 +192,12 @@ Pu::PhysicsHandle Pu::PhysicalWorld2::QueryPublicHandle(PhysicsHandle handle) co
 	return PhysicsNullHandle;
 }
 
-Pu::uint16 Pu::PhysicalWorld2::QueryInternalIndex(PhysicsHandle handle) const
+Pu::uint16 Pu::PhysicalWorld::QueryInternalIndex(PhysicsHandle handle) const
 {
 	return physics_get_lookup_id(handleLut[physics_get_lookup_id(handle)]);
 }
 
-void Pu::PhysicalWorld2::ValidateHandle(PhysicsHandle handle) const
+void Pu::PhysicalWorld::ValidateHandle(PhysicsHandle handle) const
 {
 	/* Check for a corrupt or internal handle. */
 	if (handle == PhysicsNullHandle) Log::Fatal("Physics handle cannot be null!");
@@ -213,7 +213,7 @@ void Pu::PhysicalWorld2::ValidateHandle(PhysicsHandle handle) const
 	if (t1 != t2) Log::Fatal("Unknown physics handle passed (types differ)!");
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld2::AddInternal(const PhysicalObject & obj, PhysicsType type)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, PhysicsType type)
 {
 	/* Check if the user set the material. */
 #ifdef _DEBUG
@@ -247,7 +247,7 @@ If we find one we'll use that index for this object, otherwise we just emplace a
 
 When an object is removed we must go through the entire lookup table to update the indices of the objects.
 */
-Pu::PhysicsHandle Pu::PhysicalWorld2::AllocPublicHandle(PhysicsType type, size_t idx)
+Pu::PhysicsHandle Pu::PhysicalWorld::AllocPublicHandle(PhysicsType type, size_t idx)
 {
 	/* Check if we have ran out of address space. */
 #ifdef _DEBUG
@@ -269,7 +269,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld2::AllocPublicHandle(PhysicsType type, size_t
 	return create_physics_handle(type, handleLut.size() - 1);
 }
 
-void Pu::PhysicalWorld2::DestroyInternal(PhysicsHandle hpublic, PhysicsHandle hinternal)
+void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle hpublic, PhysicsHandle hinternal)
 {
 	/* Destroy global parameters (order matters). */
 	sysCnst->RemoveItem(hpublic);
@@ -290,7 +290,7 @@ void Pu::PhysicalWorld2::DestroyInternal(PhysicsHandle hpublic, PhysicsHandle hi
 	}
 }
 
-void Pu::PhysicalWorld2::Destroy(void)
+void Pu::PhysicalWorld::Destroy(void)
 {
 	if (sysCnst) delete sysCnst;
 	if (sysSolv) delete sysSolv;

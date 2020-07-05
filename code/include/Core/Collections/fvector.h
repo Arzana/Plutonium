@@ -210,9 +210,9 @@ namespace Pu
 		/* Gets the float at the specified index. */
 		_Check_return_ float get(_In_ size_t idx) const
 		{
-			assert(idx < cnt && "Index out of range!");
+			assert(idx <= cnt && "Index out of range!");
 			const AVX_FLOAT_UNION helper{ buffer[idx >> 0x3] };
-			return helper.V[idx & ~0x7];
+			return helper.V[idx & 0x7];
 		}
 
 		/* Gets the underlying data buffer. */
@@ -230,7 +230,7 @@ namespace Pu
 		/* Sets the value at the specified index. */
 		void set(_In_ size_t idx, _In_ float value)
 		{
-			assert(idx < cnt && "Index out of range!");
+			assert(idx <= cnt && "Index out of range!");
 
 			const size_t i = idx >> 0x3;
 			const size_t j = idx & 0x7;
@@ -241,7 +241,7 @@ namespace Pu
 		/* Adds the specified value to the value at the specified index. */
 		void add(_In_ size_t idx, _In_ float value)
 		{
-			assert(idx < cnt && "Index out of range!");
+			assert(idx <= cnt && "Index out of range!");
 
 			const size_t i = idx >> 0x3;
 			const size_t j = idx & 0x7;

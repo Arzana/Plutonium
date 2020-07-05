@@ -1,11 +1,11 @@
 #include "Physics/Systems/SolverSystem.h"
-#include "Physics/Systems/PhysicalWorld2.h"
+#include "Physics/Systems/PhysicalWorld.h"
 
 #define avx_realloc(ptr, type, cnt)	ptr = reinterpret_cast<type*>(_aligned_realloc(ptr, sizeof(type) * cnt, sizeof(type)))
 
 static Pu::uint32 collisions = 0;
 
-Pu::SolverSystem::SolverSystem(PhysicalWorld2 & world)
+Pu::SolverSystem::SolverSystem(PhysicalWorld & world)
 	: world(&world), sharedCapacity(0), kinematicCapacity(0), resultCapacity(0)
 {}
 
@@ -92,7 +92,7 @@ void Pu::SolverSystem::SolveConstriants(void)
 {
 	size_t cntStatic = 0, cntKinematic = 0;
 	EnsureBufferSize(cntStatic, cntKinematic);
-	
+
 	if (cntStatic)
 	{
 		FillStatic(cntStatic);
@@ -119,7 +119,7 @@ void Pu::SolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematic
 		kinematicCount += !isStatic;
 	}
 
-	/* 
+	/*
 	Kinematic collisions need more information than static collisions.
 	Kinematic collisions also have two result (one for each object), so the result buffer is bigger.
 	*/
@@ -183,7 +183,7 @@ void Pu::SolverSystem::FillStatic(size_t staticCount)
 		if (physics_get_type(cur.FirstObject) == PhysicsType::Static)
 		{
 			/* Calculate the result index (j), AVX index [0, 7] (k), and the internal index (idx). */
-			const size_t j = i << 0x3;
+			const size_t j = i >> 0x3;
 			const size_t k = i++ & 0x7;
 			const uint16 idx = world->QueryInternalIndex(cur.SecondObject);
 
@@ -251,29 +251,29 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 		if (physics_get_type(cur.FirstObject) == PhysicsType::Kinematic)
 		{
 			/*
-			Calculate 
+			Calculate
 			- The result index (j)
 			- The AVX index [0, 7] (k)
 			- The first internal index (l1)
 			- The second internal index (l2)
 			*/
-			const size_t j = i << 0x3;
+			const size_t j = i >> 0x3;
 			const size_t k = i & 0x7;
 			const uint16 l1 = world->QueryInternalIndex(cur.FirstObject);
 			const uint16 l2 = world->QueryInternalIndex(cur.SecondObject);
 
-			/* 
+			/*
 			Query the various systems for additional parameters.
 			Also ignore this collision if the objects are already moving away from each other,
 			in the direction of the collision normal.
 			*/
 			const Vector3 relVloc = world->sysMove->GetVelocity(l2) - world->sysMove->GetVelocity(l1);
 			if (dot(relVloc, cur.N) > 0.0f) continue;
-			else ++i;
 
+			++i;
 			const Vector2 cofs1 = coefficients[cur.FirstObject];
 			const Vector2 cofs2 = coefficients[cur.SecondObject];
-			
+
 			/* Fill the next spot in the AVX staging buffer. */
 			tmp_nx.V[k] = cur.N.X;
 			tmp_ny.V[k] = cur.N.Y;
@@ -312,9 +312,9 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	}
 
 	/* Push the staging buffer one more time if needed. */
-	if ((i & 0x7) < 7)
+	if (i && (i & 0x7) < 7)
 	{
-		const size_t j = i << 0x3;
+		const size_t j = i >> 0x3;
 
 		nx[j] = tmp_nx.AVX;
 		ny[j] = tmp_ny.AVX;
@@ -336,10 +336,22 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	kinematicCount = i;
 }
 
+/*
+	Linear impulse:
+	e = min(coefficient of resitution)
+	j = max(0, -(1.0f + e) * dot(V, N))
+	V += j * N
+
+	Friction:
+	T = normalize(V - dot(V, N) * N)
+	e = sqrt(product coefficient of friction)
+	j = clamp(-(1.0f + e) * dot(V, T), -j * e, j * e)
+	V += j * T;
+*/
 void Pu::SolverSystem::SolveStatic(size_t count)
 {
 	/* Predefine often used constants. */
-	const size_t avxCnt = (count >> 0x3) + 1;
+	const size_t avxCnt = (count >> 0x3) + (count != 0);
 	const ofloat zero = _mm256_setzero_ps();
 	const ofloat one = _mm256_set1_ps(1.0f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
@@ -372,15 +384,15 @@ void Pu::SolverSystem::SolveStatic(size_t count)
 		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, e), neg), cosTheta)));
 
 		/* Apply friction impulse. */
-		jx[i] = _mm256_add_ps(jx[i] ,_mm256_mul_ps(j, tx));
-		jy[i] = _mm256_add_ps(jy[i] ,_mm256_mul_ps(j, ty));
-		jz[i] = _mm256_add_ps(jz[i] ,_mm256_mul_ps(j, tz));
+		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(j, tx));
+		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(j, ty));
+		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(j, tz));
 	}
 
 	/* Push the accumulated forces to the movement system. */
 	for (size_t i = 0; i < count; i++)
 	{
-		const size_t j = i << 0x3;
+		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
 
 		const uint32 id = AVX_UINT_UNION{ hsecond[j] }.V[k];
@@ -388,14 +400,29 @@ void Pu::SolverSystem::SolveStatic(size_t count)
 		const float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
 		const float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
 
-		world->sysMove->AddForce(id, Vector3(x, y, z), Quaternion{});
+		world->sysMove->AddForce(id, x, y, z, Quaternion{});
 	}
 }
 
+/*
+	Linear impulse:
+	M = m1^-1 + m2^-1
+	e = min(coefficient of resitution)
+	j = -(1.0f + e) * dot(V, N) / M
+	V1 -= j * N * m1^-1
+	V2 += j * N * m2^-1
+
+	Friction:
+	T = normalize(V - dot(V, N) * N)
+	e = sqrt(product coefficient of friction)
+	j = clamp((-(1.0f + e) * dot(V, T)) / M, -j * e, j * e)
+	V1 -= j * T * m1^-1
+	V2 += j * T * m2^-1
+*/
 void Pu::SolverSystem::SolveKinematic(size_t count)
 {
 	/* Predefine often used constants. */
-	const size_t avxCnt = (count >> 0x3) + 1;
+	const size_t avxCnt = (count >> 0x3) + (count != 0);
 	const ofloat zero = _mm256_setzero_ps();
 	const ofloat one = _mm256_set1_ps(1.0f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
@@ -445,25 +472,22 @@ void Pu::SolverSystem::SolveKinematic(size_t count)
 	}
 
 	/* Push the accumulated forces to the movement system. */
-	for (size_t i = 0, j = count; i < count; i++, j++)
+	for (size_t i = 0; i < count; i++)
 	{
-		size_t k = i << 0x3;
-		size_t m = i & 0x7;
+		const size_t j = i >> 0x3;
+		const size_t k = i & 0x7;
 
-		uint32 id = AVX_UINT_UNION{ hfirst[k] }.V[m];
-		float x = AVX_FLOAT_UNION{ jx[k] }.V[m];
-		float y = AVX_FLOAT_UNION{ jy[k] }.V[m];
-		float z = AVX_FLOAT_UNION{ jz[k] }.V[m];
-		world->sysMove->AddForce(id, Vector3(x, y, z), Quaternion{});
+		uint32 id = AVX_UINT_UNION{ hfirst[j] }.V[k];
+		float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
+		float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
+		float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
+		world->sysMove->AddForce(id, x, y, z, Quaternion{});
 
-		k = j << 0x3;
-		m = j & 0x7;
-
-		id = AVX_UINT_UNION{ hfirst[k] }.V[m];
-		x = AVX_FLOAT_UNION{ jx[k] }.V[m];
-		y = AVX_FLOAT_UNION{ jy[k] }.V[m];
-		z = AVX_FLOAT_UNION{ jz[k] }.V[m];
-		world->sysMove->AddForce(id, Vector3(x, y, z), Quaternion{});
+		id = AVX_UINT_UNION{ hsecond[j] }.V[k];
+		x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
+		y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
+		z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
+		world->sysMove->AddForce(id, x, y, z, Quaternion{});
 	}
 }
 

@@ -6,14 +6,14 @@
 
 namespace Pu
 {
-	class PhysicalWorld2;
+	class PhysicalWorld;
 
 	/* Defines a system used to detect collisions. */
 	class ConstraintSystem
 	{
 	public:
 		/* Initializes a new instance of a constraint system. */
-		ConstraintSystem(_In_ PhysicalWorld2 &world);
+		ConstraintSystem(_In_ PhysicalWorld &world);
 		ConstraintSystem(_In_ const ConstraintSystem&) = delete;
 		/* Move contructor. */
 		ConstraintSystem(_In_ ConstraintSystem &&value);
@@ -45,7 +45,7 @@ namespace Pu
 		using CollisionChecker_t = void(ConstraintSystem::*)(PhysicsHandle hfirst, PhysicsHandle hsecond);
 
 		std::map<uint16, CollisionChecker_t> checkers;
-		PhysicalWorld2 *world;
+		PhysicalWorld *world;
 
 		vector<AABB> rawBroadPhase;
 		std::map<PhysicsHandle, std::pair<CollisionShapes, float*>> rawNarrowPhase;

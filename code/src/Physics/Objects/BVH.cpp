@@ -278,7 +278,6 @@ float Pu::BVH::GetEfficiency(void) const
 	return sa / area(nodes[root].Box);
 }
 
-#ifdef _DEBUG
 void Pu::BVH::Visualize(DebugRenderer & renderer) const
 {
 	/* Display the stats in a seperate window. */
@@ -305,7 +304,6 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 		}
 	}
 }
-#endif
 
 void Pu::BVH::Refit(uint16 start)
 {

@@ -159,7 +159,7 @@ namespace Pu
 	};
 }
 
-Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld2 * world)
+Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld * world)
 	: generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
 	displacement(nullptr), textures(nullptr), material(nullptr), usable(false),
 	world(world)

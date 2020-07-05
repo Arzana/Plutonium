@@ -15,7 +15,7 @@ TestGame::TestGame(void)
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
-	AddSystem(physics = new PhysicalWorld2());
+	AddSystem(physics = new PhysicalWorld());
 	physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
 }
 

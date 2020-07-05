@@ -1,6 +1,6 @@
 #include "Physics/Systems/ConstraintSystem.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
-#include "Physics/Systems/PhysicalWorld2.h"
+#include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/ShapeTests.h"
 #include "Core/Math/HeightMap.h"
 
@@ -10,7 +10,7 @@
 
 static Pu::uint32 narrowPhaseChecks = 0;
 
-Pu::ConstraintSystem::ConstraintSystem(PhysicalWorld2 & world)
+Pu::ConstraintSystem::ConstraintSystem(PhysicalWorld & world)
 	: world(&world)
 {
 	SetGenericCheckers();

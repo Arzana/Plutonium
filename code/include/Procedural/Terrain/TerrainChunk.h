@@ -3,7 +3,7 @@
 #include "Graphics/Models/Terrain.h"
 #include "Core/Math/PerlinNoise.h"
 #include "Core/Math/HeightMap.h"
-#include "Physics/Systems/PhysicalWorld2.h"
+#include "Physics/Systems/PhysicalWorld.h"
 
 namespace Pu
 {
@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes an empty instance of a terrain chunk. */
-		TerrainChunk(_In_ AssetFetcher &fetcher, _In_ PhysicalWorld2 *physics);
+		TerrainChunk(_In_ AssetFetcher &fetcher, _In_ PhysicalWorld *physics);
 		TerrainChunk(_In_ const TerrainChunk&) = delete;
 		/* Move constructor. */
 		TerrainChunk(_In_ TerrainChunk &&value);
@@ -73,7 +73,7 @@ namespace Pu
 		AssetFetcher *fetcher;
 		AABB bb;
 
-		PhysicalWorld2 *world;
+		PhysicalWorld *world;
 		PhysicsHandle hcollider;
 		Vector3 pos;
 
