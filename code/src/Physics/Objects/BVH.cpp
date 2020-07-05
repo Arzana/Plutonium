@@ -3,7 +3,10 @@
 #include "Physics/Systems/ShapeTests.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Core/Collections/cstack.h"
+
+#ifdef _DEBUG
 #include <imgui/include/imgui.h>
+#endif
 
 #define BVH_HNULL				0xC000FFFF
 #define BVH_INULL				0xFFFF
@@ -278,6 +281,7 @@ float Pu::BVH::GetEfficiency(void) const
 	return sa / area(nodes[root].Box);
 }
 
+#ifdef _DEBUG
 void Pu::BVH::Visualize(DebugRenderer & renderer) const
 {
 	/* Display the stats in a seperate window. */
@@ -304,6 +308,7 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 		}
 	}
 }
+#endif
 
 void Pu::BVH::Refit(uint16 start)
 {

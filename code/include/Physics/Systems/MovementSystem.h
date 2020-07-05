@@ -6,6 +6,8 @@
 
 namespace Pu
 {
+	class DebugRenderer;
+
 	/* Defines a system that handles the integration of position. */
 	class MovementSystem
 	{
@@ -56,8 +58,26 @@ namespace Pu
 		/* Returns the indices of the objects that have moved out of their expanded AABB. */
 		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
 
+#ifdef _DEBUG
+		/* Visualizes the forces being applied to kinematic objects. */
+		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ float dt) const;
+#endif
+
 	private:
 		Vector3SSE g;
+
+#ifdef _DEBUG
+		struct TimedForce
+		{
+			float TTL;
+			float Magnitude;
+			Vector3 Position;
+			Vector3 Direction;
+		};
+
+		mutable bool addForces;
+		mutable vector<TimedForce> forces;
+#endif
 
 		fvector cod;
 		fvector m;

@@ -38,8 +38,11 @@ namespace Pu
 		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Checks whether any of the kinematic objects have collided with anything in the scene. */
 		void Check(void);
+
+#ifdef _DEBUG
 		/* Visualizes the colliders in the world. */
 		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
+#endif
 
 	private:
 		using CollisionChecker_t = void(ConstraintSystem::*)(PhysicsHandle hfirst, PhysicsHandle hsecond);

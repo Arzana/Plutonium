@@ -144,6 +144,7 @@ void Pu::ConstraintSystem::Check(void)
 	}
 }
 
+#ifdef _DEBUG
 void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
 {
 	/* Display yellow for cached broadphases. */
@@ -167,6 +168,7 @@ void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos
 		}
 	}
 }
+#endif
 
 void Pu::ConstraintSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {

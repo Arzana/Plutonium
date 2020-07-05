@@ -316,6 +316,8 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	{
 		const size_t j = i >> 0x3;
 
+#pragma warning(push)
+#pragma warning(disable:4701)
 		nx[j] = tmp_nx.AVX;
 		ny[j] = tmp_ny.AVX;
 		nz[j] = tmp_nz.AVX;
@@ -330,6 +332,7 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 		vz[j] = tmp_vz.AVX;
 		fimass[j] = tmp_fimass.AVX;
 		simass[j] = tmp_simass.AVX;
+#pragma warning(pop)
 	}
 
 	/* Update the kinematic count to the actual objects in the buffer. */

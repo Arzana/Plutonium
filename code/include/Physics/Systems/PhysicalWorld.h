@@ -43,7 +43,7 @@ namespace Pu
 		/* Gets the transform of the specified object. */
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
 		/* Allows the user to visualize the physical world. */
-		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
+		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos, _In_ float dt) const;
 
 	protected:
 		/* Updates the physical world. */

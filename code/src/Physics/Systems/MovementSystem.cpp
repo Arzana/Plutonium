@@ -1,4 +1,5 @@
 #include "Physics/Systems/MovementSystem.h"
+#include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Config.h"
 
 Pu::MovementSystem::MovementSystem(void)
@@ -17,6 +18,16 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quatern
 	wj.add(idx, angular.J);
 	wk.add(idx, angular.K);
 	wr.add(idx, angular.R);
+
+	/* Save this impulse on debug mode, so we can display it. */
+#ifdef _DEBUG
+	if (addForces)
+	{
+		const Vector3 at = Vector3(px.get(idx), py.get(idx), pz.get(idx));
+		const Vector3 force = Vector3(x, y, z);
+		forces.emplace_back(TimedForce{ ImpulseDebuggingTTL, force.Length(), at, normalize(force) });
+	}
+#endif
 }
 
 size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quaternion omega, float CoD, float imass)
@@ -129,6 +140,10 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 {
 	const size_t size = vx.sse_size();
 
+#ifdef _DEBUG
+	addForces = false;
+#endif
+
 	/* Add linear velocity to position (scaled by delta time). */
 	for (size_t i = 0; i < size; i++) px[i] = _mm256_add_ps(px[i], _mm256_mul_ps(vx[i], dt));
 	for (size_t i = 0; i < size; i++) py[i] = _mm256_add_ps(py[i], _mm256_mul_ps(vy[i], dt));
@@ -168,7 +183,7 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 {
 	const size_t size = vx.sse_size();
 
-	/* 
+	/*
 	Pre-calculate the square distance.
 	The expansion is done using an inflate operation.
 	So the maximum distance in any direction is half of the actual expansion.
@@ -217,3 +232,23 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 
 	_aligned_free(masks);
 }
+
+#ifdef _DEBUG
+void Pu::MovementSystem::Visualize(DebugRenderer & dbgRenderer, float dt) const
+{
+	addForces = true;
+
+	/* Remove any old impulses. from the list. */
+	for (size_t i = 0; i < forces.size();)
+	{
+		if ((forces[i].TTL -= dt) <= 0.0f) forces.removeAt(i);
+		else i++;
+	}
+
+	/* Display the forces. */
+	for (const TimedForce &force : forces)
+	{
+		dbgRenderer.AddArrow(force.Position, force.Direction, Color::WhiteSmoke(), force.Magnitude);
+	}
+}
+#endif

@@ -59,4 +59,6 @@ namespace Pu
 	constexpr uint8 MaxIterationsGJK = 20;
 	/* Defines the amount of expansion kinematic objects should get in broadphase. */
 	constexpr float KinematicExpansion = 1.0f;
+	/* Defines the amount of time (in seconds) that physics impulses are visually shown when debugging is enabled. */
+	constexpr float ImpulseDebuggingTTL = 2.0f;
 }

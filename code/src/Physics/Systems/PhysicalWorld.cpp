@@ -2,7 +2,10 @@
 #include "Physics/Systems/MaterialDatabase.h"
 #include "Physics/Systems/ConstraintSystem.h"
 #include "Core/Diagnostics/Profiler.h"
+
+#ifdef _DEBUG
 #include <imgui/include/imgui.h>
+#endif
 
 #define nameof(x)			#x
 
@@ -110,8 +113,13 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 	return sysMove->GetTransform(handleLut[physics_get_lookup_id(handle)]);
 }
 
-void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
+void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, float dt) const
 {
+	/*
+	We only allow visualization of the physics system on debug mode. 
+	This is because the debugging options add a lot of overhead.
+	*/
+#ifdef _DEBUG
 	if constexpr (ImGuiAvailable)
 	{
 		Profiler::BeginDebug();
@@ -127,6 +135,10 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) c
 			ImGui::Checkbox("Visualize Colliders", &showColliders);
 			if (showColliders) sysCnst->Visualize(dbgRenderer, camPos);
 
+			static bool showForces = false;
+			ImGui::Checkbox("Visualize Impulses", &showForces);
+			if (showForces) sysMove->Visualize(dbgRenderer, dt);
+
 			ImGui::Separator();
 			ImGui::Text("Legend:");
 			ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
@@ -140,6 +152,11 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) c
 		lock.unlock();
 		Profiler::End();
 	}
+#else
+	(void)dbgRenderer;
+	(void)camPos;
+	(void)dt;
+#endif
 }
 
 void Pu::PhysicalWorld::Update(float dt)
