@@ -355,12 +355,12 @@ void Pu::PhysicalWorld::SolveContraints(void)
 			const Vector3 t = normalize(second.V - dot(second.V, manifold.N) * manifold.N);
 
 			/* Apply linear impulse. */
-			float e = materials[second.Properties].Mechanical.CoR;
+			float e = materials[physics_get_lookup_id(second.Properties)].Mechanical.CoR;
 			float j = rectify(-(1.0f + e) * dot(second.V, manifold.N));
 			second.V += j * manifold.N;
 
 			/* Apply friction. */
-			e = materials[second.Properties].Mechanical.CoF;
+			e = materials[physics_get_lookup_id(second.Properties)].Mechanical.CoF;
 			j = clamp(-(1.0f + e) * dot(second.V, t), -j * e, j * e);
 			second.V += j * t;
 		}

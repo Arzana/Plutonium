@@ -259,8 +259,8 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 			*/
 			const size_t j = i << 0x3;
 			const size_t k = i & 0x7;
-			const uint16 l1 = physics_get_lookup_id(cur.FirstObject);
-			const uint16 l2 = physics_get_lookup_id(cur.SecondObject);
+			const uint16 l1 = world->QueryInternalIndex(cur.FirstObject);
+			const uint16 l2 = world->QueryInternalIndex(cur.SecondObject);
 
 			/* 
 			Query the various systems for additional parameters.
@@ -368,8 +368,8 @@ void Pu::SolverSystem::SolveStatic(size_t count)
 
 		/* Calculate friction impulse. */
 		cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], tx), _mm256_add_ps(_mm256_mul_ps(vy[i], ty), _mm256_mul_ps(vz[i], tz)));
-		e = _mm256_mul_ps(_mm256_add_ps(_mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i])), one), neg);
-		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(e, cosTheta)));
+		e = _mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i]));
+		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, e), neg), cosTheta)));
 
 		/* Apply friction impulse. */
 		jx[i] = _mm256_add_ps(jx[i] ,_mm256_mul_ps(j, tx));
@@ -430,8 +430,8 @@ void Pu::SolverSystem::SolveKinematic(size_t count)
 
 		/* Calculate friction impulse. */
 		cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], tx), _mm256_add_ps(_mm256_mul_ps(vy[i], ty), _mm256_mul_ps(vz[i], tz)));
-		e = _mm256_mul_ps(_mm256_add_ps(_mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i])), one), neg);
-		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(e, cosTheta), imassTotal)));
+		e = _mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i]));
+		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal)));
 
 		/* Apply friction impulse to the first object. */
 		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), fimass[i]));

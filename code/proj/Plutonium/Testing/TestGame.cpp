@@ -169,8 +169,8 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			const float x = random(10.0f, 40.0f);
 			const float z = random(10.0f, 40.0f);
 
-			Sphere sphere{ Vector3{}, 1.0f };
-			Collider collider{ AABB(-1.0f, -1.0f, -1.0f, 2.0f, 2.0f, 2.0f), CollisionShapes::Sphere, &sphere };
+			Sphere sphere{ Vector3{}, 1.5f };
+			Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
 			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
 			obj.Properties = create_physics_handle(PhysicsType::Material, 0ull);
 			obj.State.Mass = 1.0f;

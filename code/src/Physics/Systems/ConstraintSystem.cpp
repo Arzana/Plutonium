@@ -52,11 +52,12 @@ void Pu::ConstraintSystem::ResetCounter(void)
 
 void Pu::ConstraintSystem::AddItem(PhysicsHandle handle, const AABB & bb, CollisionShapes type, const float * collider)
 {
-	const AABB bb2 = bb * world->GetTransform(handle);
+	AABB bb2 = bb * world->GetTransform(handle);
 
 	/* This system need to check if kinematic objects collide with others, so handle them seperately. */
 	if (physics_get_type(handle) == PhysicsType::Kinematic)
 	{
+		bb2.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
 		cachedBroadPhase.emplace(handle, bb2);
 	}
 
@@ -119,8 +120,11 @@ void Pu::ConstraintSystem::Check(void)
 		const PhysicsHandle hobj = world->QueryPublicHandle(create_physics_handle(PhysicsType::Kinematic, idx));
 		world->searchTree.Remove(hobj);
 
+		/* Create the new cached bounding box. */
+		AABB newBB = rawBroadPhase[physics_get_lookup_id(hobj)] + pos;
+		newBB.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
+
 		/* Insert the new bounding box. */
-		const AABB newBB = rawBroadPhase[physics_get_lookup_id(hobj)] + pos;
 		cachedBroadPhase[hobj] = newBB;
 		world->searchTree.Insert(hobj, newBB);
 	}

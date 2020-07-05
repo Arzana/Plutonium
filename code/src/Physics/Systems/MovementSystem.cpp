@@ -162,8 +162,12 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 {
 	const size_t size = vx.sse_size();
 
-	/* Pre-calculate the square distance. */
-	ofloat maxDist = _mm256_set1_ps(KinematicExpansion);
+	/* 
+	Pre-calculate the square distance.
+	The expansion is done using an inflate operation.
+	So the maximum distance in any direction is half of the actual expansion.
+	*/
+	ofloat maxDist = _mm256_set1_ps(KinematicExpansion * 0.5f);
 	maxDist = _mm256_mul_ps(maxDist, maxDist);
 
 	AVX_FLOAT_UNION *masks = reinterpret_cast<AVX_FLOAT_UNION*>(_aligned_malloc(sizeof(ofloat) * size, sizeof(ofloat)));
