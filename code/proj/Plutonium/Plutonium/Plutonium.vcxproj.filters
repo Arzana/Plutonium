@@ -873,12 +873,6 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h">
       <Filter>Header Files\Physics\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h">
-      <Filter>Header Files\Physics\Properties</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h">
-      <Filter>Header Files\Physics\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h">
       <Filter>Header Files\Physics\Properties</Filter>
     </ClInclude>

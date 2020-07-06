@@ -28,8 +28,6 @@ namespace Pu
 	/* Defines the types of physics objects. */
 	enum class PhysicsType : uint8
 	{
-		/* Inifite plane (depricated). */
-		Plane,
 		/* Physical material. */
 		Material,
 		/* Unmovable object. */

@@ -328,7 +328,7 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	}
 
 	/* Push the staging buffer one more time if needed. */
-	if (i && (i & 0x7) < 7)
+	if (i && (i & 0x7) < 8)
 	{
 		const size_t j = i >> 0x3;
 

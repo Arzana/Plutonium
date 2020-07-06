@@ -113,12 +113,10 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\BVH.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\Collider.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\CollisionManifold.h" />
-    <ClInclude Include="..\..\..\include\Physics\Objects\CollisionPlane.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h" />
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicsHandle.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\CollisionShapes.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h" />
-    <ClInclude Include="..\..\..\include\Physics\Properties\PassOptions.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ConstraintSystem.h" />
