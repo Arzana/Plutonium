@@ -85,6 +85,16 @@ void Pu::SolverSystem::RemoveItem(PhysicsHandle handle)
 
 void Pu::SolverSystem::RegisterCollision(const CollisionManifold & manifold)
 {
+	/* Skip any duplicate collisions. */
+	for (const CollisionManifold &cur : manifolds)
+	{
+		if (cur.FirstObject == manifold.SecondObject &&
+			cur.SecondObject == manifold.FirstObject)
+		{
+			return;
+		}
+	}
+
 	manifolds.emplace_back(manifold);
 }
 
@@ -227,6 +237,12 @@ void Pu::SolverSystem::FillStatic(size_t staticCount)
 	}
 }
 
+/*
+MSVC thinks that the temporary values can be used before they are being set.
+This is not the case, we check against i to see whether they have been set.
+*/
+#pragma warning(push)
+#pragma warning(disable:4701)
 void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 {
 	/* Use these buffers as staging buffer for the AVX types. */
@@ -316,8 +332,6 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	{
 		const size_t j = i >> 0x3;
 
-#pragma warning(push)
-#pragma warning(disable:4701)
 		nx[j] = tmp_nx.AVX;
 		ny[j] = tmp_ny.AVX;
 		nz[j] = tmp_nz.AVX;
@@ -332,12 +346,12 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 		vz[j] = tmp_vz.AVX;
 		fimass[j] = tmp_fimass.AVX;
 		simass[j] = tmp_simass.AVX;
-#pragma warning(pop)
 	}
 
 	/* Update the kinematic count to the actual objects in the buffer. */
 	kinematicCount = i;
 }
+#pragma warning(pop)
 
 /*
 	Linear impulse:
@@ -372,11 +386,12 @@ void Pu::SolverSystem::SolveStatic(size_t count)
 		jy[i] = _mm256_mul_ps(j, ny[i]);
 		jz[i] = _mm256_mul_ps(j, nz[i]);
 
-		/* Calculate tangent vector. */
+		/* Calculate tangent vector (normalization is done safely incase of N=V). */
 		ofloat tx = _mm256_sub_ps(vx[i], _mm256_mul_ps(cosTheta, nx[i]));
 		ofloat ty = _mm256_sub_ps(vy[i], _mm256_mul_ps(cosTheta, ny[i]));
 		ofloat tz = _mm256_sub_ps(vz[i], _mm256_mul_ps(cosTheta, nz[i]));
-		const ofloat l = _mm256_rsqrt_ps(_mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz))));
+		ofloat l = _mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz)));
+		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, l, _CMP_EQ_OQ), _mm256_rsqrt_ps(l));
 		tx = _mm256_mul_ps(tx, l);
 		ty = _mm256_mul_ps(ty, l);
 		tz = _mm256_mul_ps(tz, l);
@@ -449,11 +464,12 @@ void Pu::SolverSystem::SolveKinematic(size_t count)
 		jy[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, ny[i]), simass[i]), neg);
 		jz[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nz[i]), simass[i]), neg);
 
-		/* Calculate tangent vector. */
+		/* Calculate tangent vector (normalization is done safely incase of N=V). */
 		ofloat tx = _mm256_sub_ps(vx[i], _mm256_mul_ps(cosTheta, nx[i]));
 		ofloat ty = _mm256_sub_ps(vy[i], _mm256_mul_ps(cosTheta, ny[i]));
 		ofloat tz = _mm256_sub_ps(vz[i], _mm256_mul_ps(cosTheta, nz[i]));
-		const ofloat l = _mm256_rsqrt_ps(_mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz))));
+		ofloat l = _mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz)));
+		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, l, _CMP_EQ_OQ), _mm256_rsqrt_ps(l));
 		tx = _mm256_mul_ps(tx, l);
 		ty = _mm256_mul_ps(ty, l);
 		tz = _mm256_mul_ps(tz, l);

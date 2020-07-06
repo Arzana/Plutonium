@@ -43,6 +43,7 @@ private:
 
 	Pu::PhysicalWorld *physics;
 	Pu::vector<Pu::PhysicsHandle> npcs;
+	Pu::PhysicsHandle physicsMat;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

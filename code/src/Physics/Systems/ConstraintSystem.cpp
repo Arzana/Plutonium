@@ -19,7 +19,7 @@ Pu::ConstraintSystem::ConstraintSystem(PhysicalWorld & world)
 Pu::ConstraintSystem::ConstraintSystem(ConstraintSystem && value)
 	: checkers(std::move(value.checkers)), world(value.world),
 	rawBroadPhase(std::move(value.rawBroadPhase)),
-	cachedBroadPhase(std::move(value.cachedBroadPhase)), 
+	cachedBroadPhase(std::move(value.cachedBroadPhase)),
 	rawNarrowPhase(std::move(value.rawNarrowPhase))
 {
 	SetGenericCheckers();
@@ -58,12 +58,12 @@ void Pu::ConstraintSystem::AddItem(PhysicsHandle handle, const AABB & bb, Collis
 	if (physics_get_type(handle) == PhysicsType::Kinematic)
 	{
 		bb2.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
-		cachedBroadPhase.emplace(handle, bb2);
+		rawBroadPhase.emplace_back(bb);
 	}
 
 	/* Add the broadphase to the BVH and emplace the collider type. */
 	world->searchTree.Insert(handle, bb2);
-	rawBroadPhase.emplace_back(bb);
+	cachedBroadPhase.emplace(handle, bb2);
 
 	/* We need to make a copy of the collider incase the user defined it in stack memory. */
 	float *copy = nullptr;
@@ -94,17 +94,12 @@ void Pu::ConstraintSystem::AddItem(PhysicsHandle handle, const AABB & bb, Collis
 
 void Pu::ConstraintSystem::RemoveItem(PhysicsHandle handle)
 {
-	/* Remove the bounding boxes from the cache buffer if it's kinematic. */
-	if (physics_get_type(handle) == PhysicsType::Kinematic)
-	{
-		cachedBroadPhase.erase(handle);
-	}
-
+	cachedBroadPhase.erase(handle);
 	world->searchTree.Remove(handle);
 
 	/* Make sure to free the narrow phase. */
 	const uint16 idx = world->QueryInternalIndex(handle);
-	rawBroadPhase.removeAt(idx);
+	if (physics_get_type(handle) == PhysicsType::Kinematic) rawBroadPhase.removeAt(idx);
 	free(rawNarrowPhase[handle].second);
 	rawNarrowPhase.erase(handle);
 }
@@ -121,7 +116,7 @@ void Pu::ConstraintSystem::Check(void)
 		world->searchTree.Remove(hobj);
 
 		/* Create the new cached bounding box. */
-		AABB newBB = rawBroadPhase[physics_get_lookup_id(hobj)] + pos;
+		AABB newBB = rawBroadPhase[idx] + pos;
 		newBB.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
 
 		/* Insert the new bounding box. */
@@ -132,6 +127,8 @@ void Pu::ConstraintSystem::Check(void)
 	/* Check for collisions. */
 	for (const auto &[hobj, bb] : cachedBroadPhase)
 	{
+		if (physics_get_type(hobj) == PhysicsType::Static) continue;
+
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
 		broadPhaseCache.clear();
 		world->searchTree.Boxcast(bb, broadPhaseCache);
@@ -150,21 +147,28 @@ void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos
 	/* Display yellow for cached broadphases. */
 	for (const auto[hcur, bb] : cachedBroadPhase)
 	{
-		dbgRenderer.AddBox(bb, Color::Yellow());
+		if (physics_get_type(hcur) == PhysicsType::Kinematic) dbgRenderer.AddBox(bb, Color::Yellow());
 	}
 
 	for (const auto[hcur, narrow] : rawNarrowPhase)
 	{
+		/*
+		Static objects are displayed as green (to indicate that they are fast to compute).
+		Kinematic ojects are displayed as red (they have all physics systems on them).
+		*/
 		const Color clr = physics_get_type(hcur) == PhysicsType::Static ? Color::Green() : Color::Red();
 		const Matrix transform = world->GetTransform(hcur);
 
-		if (narrow.first == CollisionShapes::Sphere) dbgRenderer.AddSphere(as_sphere(narrow.second) * transform, clr);
+		if (narrow.first == CollisionShapes::None) dbgRenderer.AddBox(cachedBroadPhase.at(hcur), clr);
+		else if (narrow.first == CollisionShapes::Sphere) dbgRenderer.AddSphere(as_sphere(narrow.second) * transform, clr);
 		else if (narrow.first == CollisionShapes::HeightMap)
 		{
 			const HeightMap &collider = as_height(narrow.second);
 			const Vector3 offset = transform.GetTranslation();
 
+			/* The heightmap is incredibly expensive to debug render, so only do it for one. */
 			if (collider.Contains(Vector2(camPos.X - offset.X, camPos.Z - offset.Z))) collider.Visualize(dbgRenderer, offset, clr);
+			else dbgRenderer.AddBox(cachedBroadPhase.at(hcur), clr);
 		}
 	}
 }
@@ -213,12 +217,11 @@ void Pu::ConstraintSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle 
 
 void Pu::ConstraintSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
 {
-	/* Query the colliders and transform them to the correct position. */
-	const AABB aabb = rawBroadPhase[haabb] * world->GetTransform(haabb);
+	/* Query the sphere collider and transform it to the correct position. */
 	const Sphere sphere = as_sphere(rawNarrowPhase[hsphere].second) * world->GetTransform(hsphere);
 
-	/* Check for collision. */
-	const Vector3 q = closest(aabb, sphere.Center);
+	/* Check for collision with the cached bounding box. */
+	const Vector3 q = closest(cachedBroadPhase[haabb], sphere.Center);
 	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
 	{
 		world->sysSolv->RegisterCollision(CollisionManifold{ haabb, hsphere, dir(q, sphere.Center) });
@@ -254,5 +257,5 @@ void Pu::ConstraintSystem::SetGenericCheckers(void)
 
 void Pu::ConstraintSystem::Destroy(void)
 {
-	for (auto [hcur, narrow] : rawNarrowPhase) free(narrow.second);
+	for (auto[hcur, narrow] : rawNarrowPhase) free(narrow.second);
 }

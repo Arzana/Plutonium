@@ -16,7 +16,7 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
 	AddSystem(physics = new PhysicalWorld());
-	physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
+	physicsMat = physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -147,32 +147,37 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 		}
 		else if (args.Key == Keys::G && descPoolConst && terrain.empty())
 		{
-			for (float z = 0; z < terrainSize; z++)
-			{
-				for (float x = 0; x < terrainSize; x++)
-				{
-					TerrainChunk *chunk = new TerrainChunk(GetContent(), physics);
-					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
-						{
-							L"{Textures}Terrain/Water.jpg",
-							L"{Textures}Terrain/Grass.jpg",
-							L"{Textures}Terrain/Dirt.jpg",
-							L"{Textures}Terrain/Snow.jpg"
-						});
+			Collider collider{ AABB(-10.0f, 0.0f, -10.0f, 20.0f, 1.0f, 20.0f), CollisionShapes::None, nullptr };
+			PhysicalObject obj{ Vector3{}, Quaternion{}, collider };
+			obj.Properties = physicsMat;
+			physics->AddStatic(obj);
 
-					terrain.emplace_back(chunk);
-				}
-			}
+			//for (float z = 0; z < terrainSize; z++)
+			//{
+			//	for (float x = 0; x < terrainSize; x++)
+			//	{
+			//		TerrainChunk *chunk = new TerrainChunk(GetContent(), physics);
+			//		chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
+			//			{
+			//				L"{Textures}Terrain/Water.jpg",
+			//				L"{Textures}Terrain/Grass.jpg",
+			//				L"{Textures}Terrain/Dirt.jpg",
+			//				L"{Textures}Terrain/Snow.jpg"
+			//			});
+
+			//		terrain.emplace_back(chunk);
+			//	}
+			//}
 		}
 		else if (args.Key == Keys::P)
 		{
-			const float x = random(10.0f, 40.0f);
-			const float z = random(10.0f, 40.0f);
+			const float x = 0.0f;//random(10.0f, 40.0f);
+			const float z = 0.0f;//random(10.0f, 40.0f);
 
 			Sphere sphere{ Vector3{}, 1.5f };
 			Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
 			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
-			obj.Properties = create_physics_handle(PhysicsType::Material, 0ull);
+			obj.Properties = physicsMat;
 			obj.State.Mass = 1.0f;
 			npcs.emplace_back(physics->AddKinematic(obj));
 		}
