@@ -496,13 +496,13 @@ void Pu::SolverSystem::SolveKinematic(size_t count)
 		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
 
-		uint32 id = AVX_UINT_UNION{ hfirst[j] }.V[k];
+		uint32 id = AVX_UINT_UNION{ hsecond[j] }.V[k];
 		float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
 		float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
 		float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
 		world->sysMove->AddForce(id, x, y, z, Quaternion{});
 
-		id = AVX_UINT_UNION{ hsecond[j] }.V[k];
+		id = AVX_UINT_UNION{ hfirst[j] }.V[k];
 		x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
 		y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
 		z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
