@@ -32,11 +32,11 @@ namespace Pu
 		/* Adds a single line to the debug renderer queue. */
 		void AddLine(_In_ Vector3 start, _In_ Vector3 end, _In_ Color color);
 		/* Adds a cubic bezier curve to the debug renderer queue, with a specified amount of segments. */
-		void AddBezier(_In_ Vector3 start, _In_ Vector3 control, _In_ Vector3 end, _In_ Color color, _In_ float segments);
+		void AddBezier(_In_ Vector3 start, _In_ Vector3 control, _In_ Vector3 end, _In_ Color color, _In_ uint32 segments);
 		/* Adds a quadratic bezier curve to the debug renderer queue, with a specified amount of segments. */
-		void AddBezier(_In_ Vector3 start, _In_ Vector3 control1, _In_ Vector3 control2, _In_ Vector3 end, _In_ Color color, _In_ float segments);
+		void AddBezier(_In_ Vector3 start, _In_ Vector3 control1, _In_ Vector3 control2, _In_ Vector3 end, _In_ Color color, _In_ uint32 segments);
 		/* Adds a spline to the debug renderer queue, with a specified amount of segments. */
-		void AddSpline(_In_ const Spline &spline, _In_ Color color, _In_ float segments);
+		void AddSpline(_In_ const Spline &spline, _In_ Color color, _In_ uint32 segments);
 		/* Adds an arrow to the debug renderer queue. */
 		void AddArrow(_In_ Vector3 start, _In_ Vector3 direction, _In_ Color color, _In_opt_ float length = 1.0f, _In_opt_ float headAngle = PI / 8.0f);
 		/* Adds a matrix transform to the debug renderer queue. */
@@ -75,13 +75,18 @@ namespace Pu
 		DynamicBuffer *buffer;
 		const DepthBuffer *depthBuffer;
 		ColoredVertex3D *queue;
-		uint32 size, culled, invalidated;
+		uint32 size, invalidated;
+
+#ifdef _DEBUG
+		mutable uint32 culled;
+#endif
 
 		float lineWidth;
 		bool dynamicLineWidth, thrown;
 		float cosines[END_ANGLE];
 		float sines[END_ANGLE];
 
+		bool CheckCapacity(uint32 addition) const;
 		void AddVertex(Vector3 p, Color c);
 		void InitializeRenderpass(Renderpass&);
 		void InitializePipeline(Renderpass&);

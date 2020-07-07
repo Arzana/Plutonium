@@ -5,6 +5,9 @@
 #include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/Interpolation.h"
 
+#define AddLineInternal(p, q, clr)		AddVertex((p), (clr)); AddVertex((q), (clr))
+#define CapacityEarlyOut(cap)			if (CheckCapacity(cap)) return
+
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
 	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0),
 	lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false), invalidated(0)
@@ -49,50 +52,60 @@ void Pu::DebugRenderer::AddLine(const Line & line, Color color)
 
 void Pu::DebugRenderer::AddLine(Vector3 start, Vector3 end, Color color)
 {
-	/* Only add the line if we have enough space. */
-	if (size + 2 <= MaxDebugRendererVertices)
-	{
-		AddVertex(start, color);
-		AddVertex(end, color);
-	}
-	else culled += 2;
+	CapacityEarlyOut(2);
+	AddVertex(start, color);
+	AddVertex(end, color);
 }
 
-void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control, Vector3 end, Color color, float segments)
+void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control, Vector3 end, Color color, uint32 segments)
 {
+	CapacityEarlyOut(segments << 1);
+
 	Vector3 a = start;
-	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	const float step = recip(static_cast<float>(segments));
+
+	for (float v = 0.0f; v < 1.0f; v += step)
 	{
 		const Vector3 b = cubic(start, control, end, v);
-		AddLine(a, b, color);
+		AddLineInternal(a, b, color);
 		a = b;
 	}
 }
 
-void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control1, Vector3 control2, Vector3 end, Color color, float segments)
+void Pu::DebugRenderer::AddBezier(Vector3 start, Vector3 control1, Vector3 control2, Vector3 end, Color color, uint32 segments)
 {
+	CapacityEarlyOut(segments << 1);
+
 	Vector3 a = start;
-	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	const float step = recip(static_cast<float>(segments));
+
+	for (float v = 0.0f; v < 1.0f; v += step)
 	{
 		const Vector3 b = quadratic(start, control1, control2, end, v);
-		AddLine(a, b, color);
+		AddLineInternal(a, b, color);
 		a = b;
 	}
 }
 
-void Pu::DebugRenderer::AddSpline(const Spline & spline, Color color, float segments)
+void Pu::DebugRenderer::AddSpline(const Spline & spline, Color color, uint32 segments)
 {
+	CapacityEarlyOut(segments << 1);
+
 	Vector3 a = spline.GetLocation(0.0f);
-	for (float v = 0.0f; v < 1.0f; v += recip(segments))
+	const float step = recip(static_cast<float>(segments));
+
+	for (float v = 0.0f; v < 1.0f; v += step)
 	{
 		const Vector3 b = spline.GetLocation(v);
-		AddLine(a, b, color);
+		AddLineInternal(a, b, color);
 		a = b;
 	}
 }
 
 void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, float length, float headAngle)
 {
+	CapacityEarlyOut(6);
+
 	/* The length of the arrow head is always relative to the arrow shaft length. */
 	const float headLength = length * recip(4.0f);
 	const Quaternion base = Quaternion::Create(direction, tangent(direction));
@@ -107,9 +120,9 @@ void Pu::DebugRenderer::AddArrow(Vector3 start, Vector3 direction, Color color, 
 	const Vector3 end2 = head + left * headLength;
 
 	/* Add the shaft line and head lines. */
-	AddLine(start, head, color);
-	AddLine(head, end1, color);
-	AddLine(head, end2, color);
+	AddLineInternal(start, head, color);
+	AddLineInternal(head, end1, color);
+	AddLineInternal(head, end2, color);
 }
 
 void Pu::DebugRenderer::AddTransform(const Matrix & transform, float scale, Vector3 offset)
@@ -130,6 +143,8 @@ void Pu::DebugRenderer::AddTransform(const Matrix & transform, float scale, Vect
 
 void Pu::DebugRenderer::AddBox(const AABB & box, Color color)
 {
+	CapacityEarlyOut(24);
+
 	const Vector3 ftl = box[0];
 	const Vector3 ftr = box[1];
 	const Vector3 fbr = box[2];
@@ -140,26 +155,28 @@ void Pu::DebugRenderer::AddBox(const AABB & box, Color color)
 	const Vector3 bbl = box[7];
 
 	/* Front face */
-	AddLine(ftl, ftr, color);
-	AddLine(ftr, fbr, color);
-	AddLine(fbr, fbl, color);
-	AddLine(fbl, ftl, color);
+	AddLineInternal(ftl, ftr, color);
+	AddLineInternal(ftr, fbr, color);
+	AddLineInternal(fbr, fbl, color);
+	AddLineInternal(fbl, ftl, color);
 
 	/* Back face */
-	AddLine(btl, btr, color);
-	AddLine(btr, bbr, color);
-	AddLine(bbr, bbl, color);
-	AddLine(bbl, btl, color);
+	AddLineInternal(btl, btr, color);
+	AddLineInternal(btr, bbr, color);
+	AddLineInternal(bbr, bbl, color);
+	AddLineInternal(bbl, btl, color);
 
 	/* Inbetween lines */
-	AddLine(ftl, btl, color);
-	AddLine(ftr, btr, color);
-	AddLine(fbr, bbr, color);
-	AddLine(fbl, bbl, color);
+	AddLineInternal(ftl, btl, color);
+	AddLineInternal(ftr, btr, color);
+	AddLineInternal(fbr, bbr, color);
+	AddLineInternal(fbl, bbl, color);
 }
 
 void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color color)
 {
+	CapacityEarlyOut(24);
+
 	const Vector3 ftl = transform * box[0];
 	const Vector3 ftr = transform * box[1];
 	const Vector3 fbr = transform * box[2];
@@ -170,22 +187,22 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 	const Vector3 bbl = transform * box[7];
 
 	/* Front face */
-	AddLine(ftl, ftr, color);
-	AddLine(ftr, fbr, color);
-	AddLine(fbr, fbl, color);
-	AddLine(fbl, ftl, color);
+	AddLineInternal(ftl, ftr, color);
+	AddLineInternal(ftr, fbr, color);
+	AddLineInternal(fbr, fbl, color);
+	AddLineInternal(fbl, ftl, color);
 
 	/* Back face */
-	AddLine(btl, btr, color);
-	AddLine(btr, bbr, color);
-	AddLine(bbr, bbl, color);
-	AddLine(bbl, btl, color);
+	AddLineInternal(btl, btr, color);
+	AddLineInternal(btr, bbr, color);
+	AddLineInternal(bbr, bbl, color);
+	AddLineInternal(bbl, btl, color);
 
 	/* Inbetween lines */
-	AddLine(ftl, btl, color);
-	AddLine(ftr, btr, color);
-	AddLine(fbr, bbr, color);
-	AddLine(fbl, bbl, color);
+	AddLineInternal(ftl, btl, color);
+	AddLineInternal(ftr, btr, color);
+	AddLineInternal(fbr, bbr, color);
+	AddLineInternal(fbl, bbl, color);
 }
 
 void Pu::DebugRenderer::AddSphere(Sphere sphere, Color color)
@@ -200,6 +217,8 @@ void Pu::DebugRenderer::AddSphere(Vector3 center, float radius, Color color)
 
 void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadius, float zRadius, Color color)
 {
+	CapacityEarlyOut(sqr(END_ANGLE) << 1);
+
 	/*
 	Ellipsoid is a UV sphere with different radii for each dimension.
 	We have to increase the amount if divisions by two because we count one div as a full circle.
@@ -223,11 +242,11 @@ void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadiu
 			const float sp = sines[phi];
 
 			const Vector3 endM = center + Vector3(cp * ct, sp, st * cp) * scalar;
-			AddLine(startM, endM, color);
+			AddLineInternal(startM, endM, color);
 			startM = endM;
 
 			const Vector3 endP = center + Vector3(cp * st, ct, sp * st) * scalar;
-			AddLine(startP, endP, color);
+			AddLineInternal(startP, endP, color);
 			startP = endP;
 		}
 	}
@@ -235,6 +254,8 @@ void Pu::DebugRenderer::AddEllipsoid(Vector3 center, float xRadius, float yRadiu
 
 void Pu::DebugRenderer::AddCapsule(Vector3 center, float height, float radius, Color color)
 {
+	CapacityEarlyOut((END_ANGLE << 3) + 4);
+
 	/*
 	The capsule is rounded at both ends so use the ellipsoid divisions to get the preferred amount of rounding.
 	The capsule height includes the hemispheres on the top and bottom, so remove those radii from the ring height offset.
@@ -264,10 +285,10 @@ void Pu::DebugRenderer::AddCapsule(Vector3 center, float height, float radius, C
 		Draw the hemisphere for the X and Z axis.
 		Also add the top and bottom rings.
 		*/
-		AddLine(startX, endX, color);
-		AddLine(startY + ringOffset, endY + ringOffset, color);
-		AddLine(startY - ringOffset, endY - ringOffset, color);
-		AddLine(startZ, endZ, color);
+		AddLineInternal(startX, endX, color);
+		AddLineInternal(startY + ringOffset, endY + ringOffset, color);
+		AddLineInternal(startY - ringOffset, endY - ringOffset, color);
+		AddLineInternal(startZ, endZ, color);
 
 		startX = endX;
 		startY = endY;
@@ -278,23 +299,27 @@ void Pu::DebugRenderer::AddCapsule(Vector3 center, float height, float radius, C
 	The above loop will add 2 lines from the center cylinder, but not all 4.
 	So we add those here.
 	*/
-	AddLine(startX, originalX, color);
-	AddLine(startZ, originalZ, color);
+	AddLineInternal(startX, originalX, color);
+	AddLineInternal(startZ, originalZ, color);
 }
 
 void Pu::DebugRenderer::AddRectangle(Vector3 lower, Vector3 upper, Color color)
 {
+	CapacityEarlyOut(8);
+
 	const Vector3 v{ upper.X, lower.Y, upper.Z };
 	const Vector3 w{ lower.X, upper.Y, lower.Z };
 
-	AddLine(lower, v, color);
-	AddLine(lower, w, color);
-	AddLine(upper, v, color);
-	AddLine(upper, w, color);
+	AddLineInternal(lower, v, color);
+	AddLineInternal(lower, w, color);
+	AddLineInternal(upper, v, color);
+	AddLineInternal(upper, w, color);
 }
 
 void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 {
+	CapacityEarlyOut(24);
+
 	/* We calculate 8 corner points by intersecting the frustum bounds. */
 	const Vector3 nbl = Plane::IntersectionPoint(frustum.Near(), frustum.Left(), frustum.Bottom());
 	const Vector3 ntr = Plane::IntersectionPoint(frustum.Near(), frustum.Right(), frustum.Top());
@@ -306,22 +331,22 @@ void Pu::DebugRenderer::AddFrustum(const Frustum & frustum, Color color)
 	const Vector3 ftl = Plane::IntersectionPoint(frustum.Far(), frustum.Left(), frustum.Top());
 
 	/* Near plane */
-	AddLine(nbl, nbr, color);
-	AddLine(nbl, ntl, color);
-	AddLine(ntr, nbr, color);
-	AddLine(ntr, ntl, color);
+	AddLineInternal(nbl, nbr, color);
+	AddLineInternal(nbl, ntl, color);
+	AddLineInternal(ntr, nbr, color);
+	AddLineInternal(ntr, ntl, color);
 
 	/* Far plane */
-	AddLine(fbl, fbr, color);
-	AddLine(fbl, ftl, color);
-	AddLine(ftr, fbr, color);
-	AddLine(ftr, ftl, color);
+	AddLineInternal(fbl, fbr, color);
+	AddLineInternal(fbl, ftl, color);
+	AddLineInternal(ftr, fbr, color);
+	AddLineInternal(ftr, ftl, color);
 
 	/* Inbetween lines */
-	AddLine(nbl, fbl, color);
-	AddLine(nbr, fbr, color);
-	AddLine(ntl, ftl, color);
-	AddLine(ntr, ftr, color);
+	AddLineInternal(nbl, fbl, color);
+	AddLineInternal(nbr, fbr, color);
+	AddLineInternal(ntl, ftl, color);
+	AddLineInternal(ntr, ftr, color);
 }
 
 void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera, bool clearBuffer)
@@ -367,6 +392,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 	if (clearBuffer) size = 0;
 
 	/* Log and warning if the user exceeds their limit once. */
+#ifdef _DEBUG
 	if (culled)
 	{
 		if (!thrown)
@@ -376,6 +402,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 		}
 		culled = 0;
 	}
+#endif
 }
 
 #pragma warning(push)
@@ -400,6 +427,18 @@ void Pu::DebugRenderer::Reset(const DepthBuffer & depthBuffer)
 	}
 }
 #pragma warning(pop)
+
+bool Pu::DebugRenderer::CheckCapacity(uint32 addition) const
+{
+#ifdef _DEBUG
+	if (size + addition <= MaxDebugRendererVertices) return false;
+
+	culled += addition;
+	return true;
+#else
+	retun size + addition > MaxDebugRendererVertices;
+#endif
+}
 
 void Pu::DebugRenderer::AddVertex(Vector3 p, Color c)
 {
