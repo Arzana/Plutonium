@@ -129,6 +129,15 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 
 		if (ImGui::Begin("Physical World"))
 		{
+			/* Statistics. */
+			ImGui::Text("Objects:    %zu", handleLut.size());
+			ImGui::Text("Collisions: %u/%u", SolverSystem::GetCollisionCount(), ConstraintSystem::GetNarrowPhaseChecks());
+			ConstraintSystem::ResetCounter();
+			SolverSystem::ResetCounter();
+
+			ImGui::Separator();
+
+			/* Options. */
 			static bool showBvh = false;
 			ImGui::Checkbox("Visualize BVH", &showBvh);
 			if (showBvh) searchTree.Visualize(dbgRenderer);
@@ -141,6 +150,7 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 			ImGui::Checkbox("Visualize Impulses", &showForces);
 			if (showForces) sysMove->Visualize(dbgRenderer, dt);
 
+			/* Legend. */
 			ImGui::Separator();
 			ImGui::Text("Legend:");
 			ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
@@ -182,16 +192,25 @@ void Pu::PhysicalWorld::Update(float dt)
 	the final velocity into account when applying their impulses.
 	Otherwise the objects would slowely fall through floors, etc.
 
+	Next we check if any of our objects have come to rest.
+	This is the case if the velocity is below the defined threshold.
+	It's important that this threshold is smaller than the initial gravity constant,
+	otherwise the initial gravity won't overcome this threshold, therefore it is set to:
+	Magnitude(G) * (DeltaTime / Substeps) / 2
+
 	Finally we solve for the collision and integrate our positions to the next timestep.
 	Thus creating the new state of the world.
 	*/
 	const ofloat dt8 = _mm256_set1_ps(dt / Substeps);
+	const ofloat threshold = _mm256_mul_ps(_mm256_mul_ps(sysMove->GetGravity().Length(), dt8), _mm256_set1_ps(0.5f));
+
 	for (uint32 step = 0; step < Substeps; step++)
 	{
 		sysCnst->Check();
 		sysMove->ApplyGravity(dt8);
 		sysMove->ApplyDrag(dt8);
 		sysSolv->SolveConstriants();
+		sysMove->TrySleep(threshold);
 		sysMove->Integrate(dt8);
 	}
 
@@ -229,7 +248,7 @@ void Pu::PhysicalWorld::ValidateHandle(PhysicsHandle handle) const
 {
 	/* Check for a corrupt or internal handle. */
 	if (handle == PhysicsNullHandle) Log::Fatal("Physics handle cannot be null!");
-	if (handle & PhysicsHandleImplBits) Log::Fatal("Phyics handle implementation bits must be zero!");
+	if (handle & PhysicsHandleImplBits) Log::Fatal("Physics handle implementation bits must be zero!");
 
 	/* Check whether the lookup ID is plausible. */
 	const uint16 i = physics_get_lookup_id(handle);

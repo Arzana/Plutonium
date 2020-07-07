@@ -32,5 +32,23 @@ namespace Pu
 		Vector3SSE(_In_ Vector3 value)
 			: X(_mm256_set1_ps(value.X)), Y(_mm256_set1_ps(value.Y)), Z(_mm256_set1_ps(value.Z))
 		{}
+
+		/* Implicitly converts the SSE stream vector to a normal vector. */
+		_Check_return_ inline operator Vector3(void) const
+		{
+			return Vector3(AVX_FLOAT_UNION{ X }.V[0], AVX_FLOAT_UNION{ Y }.V[0], AVX_FLOAT_UNION{ Z }.V[0]);
+		}
+
+		/* Gets the magnetude of the vector squared. */
+		_Check_return_ inline ofloat LengthSquared(void) const
+		{
+			return _mm256_add_ps(_mm256_mul_ps(X, X), _mm256_add_ps(_mm256_mul_ps(Y, Y), _mm256_mul_ps(Z, Z)));
+		}
+
+		/* Gets the magnetude of the vector. */
+		_Check_return_ inline ofloat Length(void) const
+		{
+			return _mm256_sqrt_ps(LengthSquared());
+		}
 	};
 }

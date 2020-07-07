@@ -24,14 +24,15 @@ namespace Pu
 		_Check_return_ inline const PhysicalProperties& operator [](_In_ PhysicsHandle id) const
 		{
 			assert(physics_get_type(id) == PhysicsType::Material);
-			return materials[physics_get_lookup_id(id)];
+			return materials[physics_get_lookup_id(id) - 1];
 		}
 
 		/* Adds a new material to the database and returns its identifier */
 		inline PhysicsHandle Add(_In_ const PhysicalProperties &properties)
 		{
+			/* Material handles start at one, becasue all zeros is the null handle. */
 			materials.emplace_back(properties);
-			return create_physics_handle(PhysicsType::Material, materials.size() - 1);
+			return create_physics_handle(PhysicsType::Material, materials.size());
 		}
 
 	private:

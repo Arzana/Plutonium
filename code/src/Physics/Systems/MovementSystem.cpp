@@ -3,6 +3,8 @@
 #include "Core/Diagnostics/Profiler.h"
 #include "Config.h"
 
+#define alloc_tmp(size)		reinterpret_cast<Pu::AVX_FLOAT_UNION*>(_aligned_malloc(sizeof(Pu::ofloat) * size, sizeof(Pu::ofloat)))
+
 Pu::MovementSystem::MovementSystem(void)
 	: g(0.0f, -9.81f, 0.0f)
 {}
@@ -33,6 +35,16 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quatern
 
 size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quaternion omega, float CoD, float imass)
 {
+	/* 
+	We need to put a mask of all ones into the affected by gravity buffer. 
+	So use an union to create that constant.
+	*/
+	static union
+	{
+		uint32 u;
+		float f;
+	} cnvrt{ ~0u };
+
 	cod.push(CoD);
 	m.push(imass);
 	px.push(p.X);
@@ -53,6 +65,7 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quate
 	qx.push(p.X);
 	qy.push(p.Y);
 	qz.push(p.Z);
+	sleep.push(cnvrt.f);
 
 	return cod.size() - 1;
 }
@@ -90,6 +103,7 @@ void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
 		qx.erase(idx);
 		qy.erase(idx);
 		qz.erase(idx);
+		sleep.erase(idx);
 	}
 }
 
@@ -97,9 +111,10 @@ void Pu::MovementSystem::ApplyGravity(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 
-	for (ofloat &x : vx) x = _mm256_add_ps(x, _mm256_mul_ps(g.X, dt));
-	for (ofloat &y : vy) y = _mm256_add_ps(y, _mm256_mul_ps(g.Y, dt));
-	for (ofloat &z : vz) z = _mm256_add_ps(z, _mm256_mul_ps(g.Z, dt));
+	const size_t size = vx.sse_size();
+	for (size_t i = 0; i < size; i++) vx[i] = _mm256_and_ps(_mm256_add_ps(vx[i], _mm256_mul_ps(g.X, dt)), sleep[i]);
+	for (size_t i = 0; i < size; i++) vy[i] = _mm256_and_ps(_mm256_add_ps(vy[i], _mm256_mul_ps(g.Y, dt)), sleep[i]);
+	for (size_t i = 0; i < size; i++) vz[i] = _mm256_and_ps(_mm256_add_ps(vz[i], _mm256_mul_ps(g.Z, dt)), sleep[i]);
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
@@ -193,18 +208,18 @@ foreach object
 */
 void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & result) const
 {
-	const size_t size = vx.sse_size();
+	const size_t size_avx = vx.sse_size();
+	const size_t size = vx.size();
 
 	/*
 	Pre-calculate the square distance.
 	The expansion is done using an inflate operation.
 	So the maximum distance in any direction is half of the actual expansion.
 	*/
-	ofloat maxDist = _mm256_set1_ps(KinematicExpansion * 0.5f);
-	maxDist = _mm256_mul_ps(maxDist, maxDist);
+	const ofloat maxDist = _mm256_set1_ps(sqr(KinematicExpansion * 0.5f));
 
-	AVX_FLOAT_UNION *masks = reinterpret_cast<AVX_FLOAT_UNION*>(_aligned_malloc(sizeof(ofloat) * size, sizeof(ofloat)));
-	for (size_t i = 0; i < size; i++)
+	AVX_FLOAT_UNION *masks = alloc_tmp(size_avx);
+	for (size_t i = 0; i < size_avx; i++)
 	{
 		/* Calculate the distance between the current position and the previous. */
 		const ofloat sx = _mm256_sub_ps(qx[i], px[i]);
@@ -219,30 +234,48 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 	/* Convert the AVX type to normal floats and add them to the result buffer. */
 	for (size_t i = 0; i < size; i++)
 	{
-		const AVX_FLOAT_UNION cur = masks[i];
-		for (size_t j = 0; j < 8; j++)
+		const size_t j = i >> 0x3;
+		const size_t k = i & 0x7;
+
+		if (masks[j].V[k])
 		{
-			const size_t idx = i << 0x3 | j;
-			if (idx >= px.size()) break;
+			const float x = px.get(i);
+			const float y = py.get(i);
+			const float z = pz.get(i);
 
-			if (cur.V[j])
-			{
-				const float x = px.get(idx);
-				const float y = py.get(idx);
-				const float z = pz.get(idx);
+			/* The old location needs to be overriden when it reaches this point. */
+			qx.set(i, x);
+			qy.set(i, y);
+			qz.set(i, z);
 
-				/* The old location needs to be overriden when it reaches this point. */
-				qx.set(idx, x);
-				qy.set(idx, y);
-				qz.set(idx, z);
-
-				/* Return both the index and the new location. */
-				result.emplace_back(std::make_pair(idx, Vector3(x, y, z)));
-			}
+			/* Return both the index and the new location. */
+			result.emplace_back(std::make_pair(i, Vector3(x, y, z)));
 		}
 	}
 
 	_aligned_free(masks);
+}
+
+void Pu::MovementSystem::TrySleep(ofloat epsilon)
+{
+	if constexpr (PhysicsAllowSleeping)
+	{
+		if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+
+		/* Predefine the minimum distance for us to consider the object sleepable. */
+		const size_t size_avx = vx.sse_size();
+		const size_t size = vx.size();
+		const ofloat minMag = _mm256_mul_ps(epsilon, epsilon);
+
+		/* Populate a temporary buffer with the compared distances. */
+		for (size_t i = 0; i < size_avx; i++)
+		{
+			const ofloat d = _mm256_add_ps(_mm256_mul_ps(vx[i], vx[i]), _mm256_add_ps(_mm256_mul_ps(vy[i], vy[i]), _mm256_mul_ps(vz[i], vz[i])));
+			sleep[i] = _mm256_cmp_ps(d, minMag, _CMP_GT_OQ);
+		}
+
+		if constexpr (PhysicsProfileSystems) Profiler::End();
+	}
 }
 
 #ifdef _DEBUG

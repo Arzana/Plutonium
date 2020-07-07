@@ -2,8 +2,6 @@
 
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Vulkan/CommandBuffer.h"
-#include "Physics/Systems/SolverSystem.h"
-#include "Physics/Systems/ConstraintSystem.h"
 #include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/Diagnostics/Memory.h"
@@ -181,14 +179,6 @@ void Pu::Profiler::VisualizeInternal(void)
 		ImGui::Text("Transfers:       %u", CommandBuffer::GetTransferCalls());
 		ImGui::Text("Barriers:        %u", CommandBuffer::GetBarrierCalls());
 		CommandBuffer::ResetCounters();
-
-		/* Physics stats. */
-		ImGui::Separator();
-		ImGui::Text("Collisions:      %u/%u", SolverSystem::GetCollisionCount(), ConstraintSystem::GetNarrowPhaseChecks());
-		ImGui::Text("GJK Calls:       %u@%u", GJK::GetCallCount(), GJK::GetAverageIterations());
-		ConstraintSystem::ResetCounter();
-		SolverSystem::ResetCounter();
-		GJK::ResetCounters();
 
 		/* CPU/RAM stats. */
 		ImGui::Separator();

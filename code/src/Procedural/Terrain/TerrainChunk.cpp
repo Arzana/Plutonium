@@ -127,7 +127,7 @@ namespace Pu
 			{
 				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
 				PhysicalObject obj{ result->pos, Quaternion{}, collider };
-				obj.Properties = create_physics_handle(PhysicsType::Material, 0ull);
+				obj.Properties = create_physics_handle(PhysicsType::Material, 1ull);
 				result->hcollider = result->world->AddStatic(obj);
 			}
 

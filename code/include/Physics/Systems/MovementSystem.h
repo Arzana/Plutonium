@@ -30,11 +30,23 @@ namespace Pu
 			g = value;
 		}
 
+		/* Gets the gravitational constant. */
+		_Check_return_ inline Vector3SSE GetGravity(void) const
+		{
+			return g;
+		}
+
 		/* Updates the coefficient of drag for a specific object. */
 		inline void UpdateParameters(_In_ size_t idx, _In_ float CoD, _In_ float imass)
 		{
 			cod.set(idx, CoD);
 			m.set(idx, imass);
+		}
+
+		/* Gets whether the specified object is sleeping. */
+		_Check_return_ inline bool IsSleeping(_In_ size_t idx) const
+		{
+			return sleep.get(idx) == 0.0f;
 		}
 
 		/* Adds a specific linear and angular force to the specific object. */
@@ -57,6 +69,8 @@ namespace Pu
 		_Check_return_ Vector3 GetVelocity(_In_ size_t idx) const;
 		/* Returns the indices of the objects that have moved out of their expanded AABB. */
 		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
+		/* Sets the sleep bit for any object with a velocity magnitude smaller than the specified epsilon. */
+		void TrySleep(_In_ ofloat epsilon);
 
 #ifdef _DEBUG
 		/* Visualizes the forces being applied to kinematic objects. */
@@ -94,6 +108,7 @@ namespace Pu
 		fvector vx;
 		fvector vy;
 		fvector vz;
+		fvector sleep;
 
 		fvector ti;
 		fvector tj;

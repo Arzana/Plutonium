@@ -101,7 +101,7 @@ void Pu::ConstraintSystem::RemoveItem(PhysicsHandle handle)
 	/* Make sure to free the narrow phase. */
 	const uint16 idx = world->QueryInternalIndex(handle);
 	if (physics_get_type(handle) == PhysicsType::Kinematic) rawBroadPhase.removeAt(idx);
-	free(rawNarrowPhase[handle].second);
+	free(rawNarrowPhase.at(handle).second);
 	rawNarrowPhase.erase(handle);
 }
 
@@ -123,7 +123,7 @@ void Pu::ConstraintSystem::Check(void)
 		newBB.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
 
 		/* Insert the new bounding box. */
-		cachedBroadPhase[hobj] = newBB;
+		cachedBroadPhase.at(hobj) = newBB;
 		world->searchTree.Insert(hobj, newBB);
 	}
 
@@ -132,7 +132,9 @@ void Pu::ConstraintSystem::Check(void)
 	/* Check for collisions. */
 	for (const auto &[hobj, bb] : cachedBroadPhase)
 	{
+		/* We don't have to check sleeping or static objects. */
 		if (physics_get_type(hobj) == PhysicsType::Static) continue;
+		if (world->sysMove->IsSleeping(world->QueryInternalIndex(hobj))) continue;
 
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
 		if constexpr (PhysicsProfileSystems) Profiler::Begin("Broadphase", Color::Crimson());
@@ -191,8 +193,8 @@ void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos
 void Pu::ConstraintSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	++narrowPhaseChecks;
-	const CollisionShapes shape1 = rawNarrowPhase[hfirst].first;
-	const CollisionShapes shape2 = rawNarrowPhase[hsecond].first;
+	const CollisionShapes shape1 = rawNarrowPhase.at(hfirst).first;
+	const CollisionShapes shape2 = rawNarrowPhase.at(hsecond).first;
 
 	/*
 	Construct a key from the collision type, then check if it's in the list.
@@ -219,8 +221,8 @@ void Pu::ConstraintSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hseco
 void Pu::ConstraintSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	/* Query the colliders and transform them to the correct position. */
-	const Sphere sphere1 = as_sphere(rawNarrowPhase[hfirst].second) * world->GetTransform(hfirst);
-	const Sphere sphere2 = as_sphere(rawNarrowPhase[hsecond].second) * world->GetTransform(hsecond);
+	const Sphere sphere1 = as_sphere(rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
+	const Sphere sphere2 = as_sphere(rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
 
 	/* Check for collision. */
 	if (intersects(sphere1, sphere2))
@@ -232,10 +234,10 @@ void Pu::ConstraintSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle 
 void Pu::ConstraintSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
 {
 	/* Query the sphere collider and transform it to the correct position. */
-	const Sphere sphere = as_sphere(rawNarrowPhase[hsphere].second) * world->GetTransform(hsphere);
+	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
 	/* Check for collision with the cached bounding box. */
-	const Vector3 q = closest(cachedBroadPhase[haabb], sphere.Center);
+	const Vector3 q = closest(cachedBroadPhase.at(haabb), sphere.Center);
 	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
 	{
 		world->sysSolv->RegisterCollision(CollisionManifold{ haabb, hsphere, dir(q, sphere.Center) });
@@ -245,9 +247,9 @@ void Pu::ConstraintSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsp
 void Pu::ConstraintSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
 {
 	/* Query the colliders and transform them to the correct position. */
-	const HeightMap &heightmap = as_height(rawNarrowPhase[hmap].second);
+	const HeightMap &heightmap = as_height(rawNarrowPhase.at(hmap).second);
 	const Vector3 offset = world->GetTransform(hmap).GetTranslation();
-	const Sphere sphere = as_sphere(rawNarrowPhase[hsphere].second) * world->GetTransform(hsphere);
+	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
 	/* Query the heightmap for the height and normal under the sphere. */
 	float h;
