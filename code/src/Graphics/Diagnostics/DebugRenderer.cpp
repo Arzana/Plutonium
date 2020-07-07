@@ -9,8 +9,11 @@
 #define CapacityEarlyOut(cap)			if (CheckCapacity(cap)) return
 
 Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, const DepthBuffer * depthBuffer, float lineWidth)
-	: loader(loader), wnd(window), pipeline(nullptr), size(0), culled(0),
-	lineWidth(lineWidth), depthBuffer(depthBuffer), thrown(false), invalidated(0)
+	: loader(loader), wnd(window), pipeline(nullptr), size(0), lineWidth(lineWidth), 
+	depthBuffer(depthBuffer), thrown(false), invalidated(0)
+#ifdef _DEBUG
+	, culled(0)
+#endif
 {
 	/* We need a dynamic buffer because the data will update every frame, the queue is a raw array to increase performance. */
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(ColoredVertex3D) * MaxDebugRendererVertices, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
@@ -436,7 +439,7 @@ bool Pu::DebugRenderer::CheckCapacity(uint32 addition) const
 	culled += addition;
 	return true;
 #else
-	retun size + addition > MaxDebugRendererVertices;
+	return size + addition > MaxDebugRendererVertices;
 #endif
 }
 

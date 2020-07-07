@@ -17,6 +17,9 @@ namespace Pu
 		: public System
 	{
 	public:
+		/* Defines the amount of update sub-steps. */
+		uint32 Substeps;
+
 		/* Initializes a new instance of a physical world system. */
 		PhysicalWorld(void);
 		PhysicalWorld(_In_ const PhysicalWorld&) = delete;

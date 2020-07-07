@@ -2,6 +2,7 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/ShapeTests.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/HeightMap.h"
 
 #define create_collision_t(first, second)		(static_cast<Pu::uint16>(static_cast<Pu::uint16>(first) | static_cast<Pu::uint16>(second) << 8))
@@ -106,6 +107,8 @@ void Pu::ConstraintSystem::RemoveItem(PhysicsHandle handle)
 
 void Pu::ConstraintSystem::Check(void)
 {
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
+
 	/* Query the movement system for updates to the BVH. */
 	readdCache.clear();
 	world->sysMove->CheckDistance(readdCache);
@@ -124,20 +127,31 @@ void Pu::ConstraintSystem::Check(void)
 		world->searchTree.Insert(hobj, newBB);
 	}
 
+	if constexpr (PhysicsProfileSystems) Profiler::End();
+
 	/* Check for collisions. */
 	for (const auto &[hobj, bb] : cachedBroadPhase)
 	{
 		if (physics_get_type(hobj) == PhysicsType::Static) continue;
 
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
+		if constexpr (PhysicsProfileSystems) Profiler::Begin("Broadphase", Color::Crimson());
 		broadPhaseCache.clear();
 		world->searchTree.Boxcast(bb, broadPhaseCache);
+
+		if constexpr (PhysicsProfileSystems)
+		{
+			Profiler::End();
+			Profiler::Begin("Narrowphase", Color::Scarlet());
+		}
 
 		/* Perform narrow phase for all the hits, ignoring self. */
 		for (const PhysicsHandle hhit : broadPhaseCache)
 		{
 			if (hhit != hobj) TestGeneric(hhit, hobj);
 		}
+
+		if constexpr (PhysicsProfileSystems) Profiler::End();
 	}
 }
 

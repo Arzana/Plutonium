@@ -1,5 +1,6 @@
 #include "Physics/Systems/SolverSystem.h"
 #include "Physics/Systems/PhysicalWorld.h"
+#include "Core/Diagnostics/Profiler.h"
 
 #define avx_realloc(ptr, type, cnt)	ptr = reinterpret_cast<type*>(_aligned_realloc(ptr, sizeof(type) * cnt, sizeof(type)))
 
@@ -100,6 +101,8 @@ void Pu::SolverSystem::RegisterCollision(const CollisionManifold & manifold)
 
 void Pu::SolverSystem::SolveConstriants(void)
 {
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("Solver", Color::SunDawn());
+
 	size_t cntStatic = 0, cntKinematic = 0;
 	EnsureBufferSize(cntStatic, cntKinematic);
 
@@ -117,6 +120,8 @@ void Pu::SolverSystem::SolveConstriants(void)
 
 	collisions += static_cast<uint32>(cntStatic + cntKinematic);
 	manifolds.clear();
+
+	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
 void Pu::SolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematicCount)

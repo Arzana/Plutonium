@@ -10,6 +10,7 @@
 #define nameof(x)			#x
 
 Pu::PhysicalWorld::PhysicalWorld(void)
+	: Substeps(1)
 {
 	db = new MaterialDatabase();
 	sysMove = new MovementSystem();
@@ -20,7 +21,7 @@ Pu::PhysicalWorld::PhysicalWorld(void)
 Pu::PhysicalWorld::PhysicalWorld(PhysicalWorld && value)
 	: db(value.db), sysMove(value.sysMove), sysCnst(value.sysCnst),
 	sysSolv(value.sysSolv), searchTree(std::move(value.searchTree)),
-	handleLut(std::move(value.handleLut))
+	handleLut(std::move(value.handleLut)), Substeps(value.Substeps)
 {
 	value.lock.lock();
 
@@ -40,6 +41,7 @@ Pu::PhysicalWorld & Pu::PhysicalWorld::operator=(PhysicalWorld && other)
 		other.lock.lock();
 		Destroy();
 
+		Substeps = other.Substeps;
 		db = other.db;
 		sysMove = other.sysMove;
 		sysCnst = other.sysCnst;
@@ -116,7 +118,7 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, float dt) const
 {
 	/*
-	We only allow visualization of the physics system on debug mode. 
+	We only allow visualization of the physics system on debug mode.
 	This is because the debugging options add a lot of overhead.
 	*/
 #ifdef _DEBUG
@@ -161,12 +163,17 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 
 void Pu::PhysicalWorld::Update(float dt)
 {
-	Profiler::Begin("Physics", Color::Gray());
+#ifdef _DEBUG
+	if (Substeps < 1) Log::Error("PhysicalWorld Substeps must be greater than zero for movement to occur!");
+#endif
+
+	if constexpr (!PhysicsProfileSystems) Profiler::Begin("Physics", Color::Gray());
 	lock.lock();
 
-	const ofloat dt8 = _mm256_set1_ps(dt);
-
 	/*
+	Divide the physics update into multiple substeps to get better accuracy.
+	This happens on a fixed timestep to prevent sudden changes in motion.
+
 	We first check for collision events between all objects.
 	This should be done early on, but it could be swapped with the next step.
 
@@ -178,14 +185,18 @@ void Pu::PhysicalWorld::Update(float dt)
 	Finally we solve for the collision and integrate our positions to the next timestep.
 	Thus creating the new state of the world.
 	*/
-	sysCnst->Check();
-	sysMove->ApplyGravity(dt8);
-	sysMove->ApplyDrag(dt8);
-	sysSolv->SolveConstriants();
-	sysMove->Integrate(dt8);
+	const ofloat dt8 = _mm256_set1_ps(dt / Substeps);
+	for (uint32 step = 0; step < Substeps; step++)
+	{
+		sysCnst->Check();
+		sysMove->ApplyGravity(dt8);
+		sysMove->ApplyDrag(dt8);
+		sysSolv->SolveConstriants();
+		sysMove->Integrate(dt8);
+	}
 
 	lock.unlock();
-	Profiler::End();
+	if constexpr (!PhysicsProfileSystems) Profiler::End();
 }
 
 void Pu::PhysicalWorld::ThrowCorruptHandle(bool condition, const char * func)

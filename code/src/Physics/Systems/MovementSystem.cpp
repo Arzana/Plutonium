@@ -1,5 +1,6 @@
 #include "Physics/Systems/MovementSystem.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Config.h"
 
 Pu::MovementSystem::MovementSystem(void)
@@ -94,13 +95,19 @@ void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
 
 void Pu::MovementSystem::ApplyGravity(ofloat dt)
 {
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+
 	for (ofloat &x : vx) x = _mm256_add_ps(x, _mm256_mul_ps(g.X, dt));
 	for (ofloat &y : vy) y = _mm256_add_ps(y, _mm256_mul_ps(g.Y, dt));
 	for (ofloat &z : vz) z = _mm256_add_ps(z, _mm256_mul_ps(g.Z, dt));
+
+	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
 void Pu::MovementSystem::ApplyDrag(ofloat dt)
 {
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+
 	const size_t size = vx.sse_size();
 	const ofloat zero = _mm256_set1_ps(0.0f);
 
@@ -134,10 +141,13 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 		y = _mm256_sub_ps(y, _mm256_mul_ps(fy, _mm256_mul_ps(m[i], dt)));
 		z = _mm256_sub_ps(z, _mm256_mul_ps(fz, _mm256_mul_ps(m[i], dt)));
 	}
+
+	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
 void Pu::MovementSystem::Integrate(ofloat dt)
 {
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 	const size_t size = vx.sse_size();
 
 #ifdef _DEBUG
@@ -154,6 +164,8 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 	for (size_t i = 0; i < size; i++) tj[i] = _mm256_add_ps(tj[i], _mm256_mul_ps(wj[i], dt));
 	for (size_t i = 0; i < size; i++) tk[i] = _mm256_add_ps(tk[i], _mm256_mul_ps(wk[i], dt));
 	for (size_t i = 0; i < size; i++) tr[i] = _mm256_add_ps(tr[i], _mm256_mul_ps(wr[i], dt));
+
+	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
 Pu::Matrix Pu::MovementSystem::GetTransform(PhysicsHandle handle) const

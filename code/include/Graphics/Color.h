@@ -137,6 +137,13 @@ namespace Pu
 			return result;
 		}
 
+		/* Defines a crimson opaque color. */
+		_Check_return_ static inline Color Crimson(void)
+		{
+			static Color result((byte)0xDC, 0x14, 0x3C);
+			return result;
+		}
+
 		/* Defines the specular color of a dielectric material. */
 		_Check_return_ static inline Color CodGray(void)
 		{
@@ -190,6 +197,13 @@ namespace Pu
 		_Check_return_ static inline Color Red(void)
 		{
 			static Color result((byte)0xFF, 0x00, 0x00);
+			return result;
+		}
+
+		/* Defines a scarlet opaque color. */
+		_Check_return_ static inline Color Scarlet(void)
+		{
+			static Color result((byte)0xFF, 0x24, 0x00);
 			return result;
 		}
 
