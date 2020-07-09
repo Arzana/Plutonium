@@ -99,7 +99,7 @@
     <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\cstack.h" />
-    <ClInclude Include="..\..\..\include\Core\Collections\fvector.h" />
+    <ClInclude Include="..\..\..\include\Core\Collections\sse_vector.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\AABB.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Frustum.h" />
@@ -119,7 +119,7 @@
     <ClInclude Include="..\..\..\include\Physics\Properties\MechanicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalProperties.h" />
     <ClInclude Include="..\..\..\include\Physics\Properties\PhysicalState.h" />
-    <ClInclude Include="..\..\..\include\Physics\Systems\ConstraintSystem.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\ContactSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\GJK.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\MaterialDatabase.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h" />
@@ -127,7 +127,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
-    <ClInclude Include="..\..\..\include\Physics\Systems\SolverSystem.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
     <ClInclude Include="..\..\..\include\System.h" />
     <ClInclude Include="..\..\..\include\Config.h" />
@@ -325,17 +325,17 @@
     <ClCompile Include="..\..\..\deps\imgui\src\imgui_widgets.cpp" />
     <ClCompile Include="..\..\..\deps\tinyxml\tinyxml2.cpp" />
     <ClCompile Include="..\..\..\src\Application.cpp" />
-    <ClCompile Include="..\..\..\src\Core\Collections\fvector.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Collections\sse_vector.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix3.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Objects\BVH.cpp" />
-    <ClCompile Include="..\..\..\src\Physics\Systems\ConstraintSystem.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\ContactSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\GJK.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
-    <ClCompile Include="..\..\..\src\Physics\Systems\SolverSystem.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />
     <ClCompile Include="..\..\..\src\Content\Asset.cpp" />

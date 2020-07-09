@@ -59,28 +59,21 @@ namespace Pu
 	constexpr float EPSILON = 0.00000000001f;
 	
 	/* Defines a union that allows access to the individual floats in a SSE type. */
+	template <typename sse_t, typename single_t>
 	union SSE_UNION
 	{
 		/* The SSE type. */
-		qfloat SSE;
-		/* The floats. */
-		float F[4];
-	};
-
-	/* Defines a union that allows access to the individual floats in a AVX type. */
-	template <typename avx_t, typename single_t>
-	union AVX_UNION
-	{
-		avx_t AVX;
-		single_t V[8];
+		sse_t SSE;
+		/* The singles. */
+		single_t V[sizeof(sse_t) / sizeof(single_t)];
 	};
 
 	/* Defines an AVX-float union. */
-	using AVX_FLOAT_UNION = AVX_UNION<ofloat, float>;
+	using AVX_FLOAT_UNION = SSE_UNION<ofloat, float>;
 	/* Defines an AVX-int union. */
-	using AVX_INT_UNION = AVX_UNION<int256, int32>;
+	using AVX_INT_UNION = SSE_UNION<int256, int32>;
 	/* Defines an AVX unsigned-int union. */
-	using AVX_UINT_UNION = AVX_UNION<int256, uint32>;
+	using AVX_UINT_UNION = SSE_UNION<int256, uint32>;
 
 	/* Gets the minimum value of the specified type. */
 	template <typename _Ty>

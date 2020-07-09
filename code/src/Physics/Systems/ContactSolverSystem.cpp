@@ -1,4 +1,4 @@
-#include "Physics/Systems/SolverSystem.h"
+#include "Physics/Systems/ContactSolverSystem.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Core/Diagnostics/Profiler.h"
 
@@ -6,11 +6,11 @@
 
 static Pu::uint32 collisions = 0;
 
-Pu::SolverSystem::SolverSystem(PhysicalWorld & world)
+Pu::ContactSolverSystem::ContactSolverSystem(PhysicalWorld & world)
 	: world(&world), sharedCapacity(0), kinematicCapacity(0), resultCapacity(0)
 {}
 
-Pu::SolverSystem::SolverSystem(SolverSystem && value)
+Pu::ContactSolverSystem::ContactSolverSystem(ContactSolverSystem && value)
 	: world(value.world), moi(std::move(value.moi)), imass(std::move(value.imass)),
 	coefficients(std::move(value.coefficients)), manifolds(std::move(value.manifolds)),
 	nx(value.nx), ny(value.ny), nz(value.nz), hfirst(value.hfirst), hsecond(value.hsecond),
@@ -22,7 +22,7 @@ Pu::SolverSystem::SolverSystem(SolverSystem && value)
 	value.kinematicCapacity = 0;
 }
 
-Pu::SolverSystem & Pu::SolverSystem::operator=(SolverSystem && other)
+Pu::ContactSolverSystem & Pu::ContactSolverSystem::operator=(ContactSolverSystem && other)
 {
 	if (this != &other)
 	{
@@ -60,31 +60,31 @@ Pu::SolverSystem & Pu::SolverSystem::operator=(SolverSystem && other)
 	return *this;
 }
 
-Pu::uint32 Pu::SolverSystem::GetCollisionCount(void)
+Pu::uint32 Pu::ContactSolverSystem::GetCollisionCount(void)
 {
 	return collisions;
 }
 
-void Pu::SolverSystem::ResetCounter(void)
+void Pu::ContactSolverSystem::ResetCounter(void)
 {
 	collisions = 0;
 }
 
-void Pu::SolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & MoI, float mass, float CoR, float CoF)
+void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & MoI, float mass, float CoR, float CoF)
 {
 	moi.emplace(handle, MoI);
 	imass.emplace(handle, recip(mass));
 	coefficients.emplace(handle, Vector2{ CoR, CoF });
 }
 
-void Pu::SolverSystem::RemoveItem(PhysicsHandle handle)
+void Pu::ContactSolverSystem::RemoveItem(PhysicsHandle handle)
 {
 	moi.erase(handle);
 	imass.erase(handle);
 	coefficients.erase(handle);
 }
 
-void Pu::SolverSystem::RegisterCollision(const CollisionManifold & manifold)
+void Pu::ContactSolverSystem::RegisterCollision(const CollisionManifold & manifold)
 {
 	/* Skip any duplicate collisions. */
 	for (const CollisionManifold &cur : manifolds)
@@ -99,7 +99,7 @@ void Pu::SolverSystem::RegisterCollision(const CollisionManifold & manifold)
 	manifolds.emplace_back(manifold);
 }
 
-void Pu::SolverSystem::SolveConstriants(void)
+void Pu::ContactSolverSystem::SolveConstriants(void)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Solver", Color::SunDawn());
 
@@ -124,7 +124,7 @@ void Pu::SolverSystem::SolveConstriants(void)
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
-void Pu::SolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematicCount)
+void Pu::ContactSolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematicCount)
 {
 	/* Pre-calculate the buffer size to save on malloc calls. */
 	for (const CollisionManifold &cur : manifolds)
@@ -176,7 +176,7 @@ void Pu::SolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematic
 	}
 }
 
-void Pu::SolverSystem::FillStatic(size_t staticCount)
+void Pu::ContactSolverSystem::FillStatic(size_t staticCount)
 {
 	/* Use these buffers as staging buffer for the AVX types. */
 	AVX_FLOAT_UNION tmp_nx;
@@ -223,17 +223,17 @@ void Pu::SolverSystem::FillStatic(size_t staticCount)
 			/* Push the staging buffer to the output. */
 			if (k >= 7 || i == staticCount)
 			{
-				nx[j] = tmp_nx.AVX;
-				ny[j] = tmp_ny.AVX;
-				nz[j] = tmp_nz.AVX;
-				hsecond[j] = tmp_hsecond.AVX;
-				fcor[j] = tmp_fcor.AVX;
-				scor[j] = tmp_scor.AVX;
-				fcof[j] = tmp_fcof.AVX;
-				scof[j] = tmp_scof.AVX;
-				vx[j] = tmp_vx.AVX;
-				vy[j] = tmp_vy.AVX;
-				vz[j] = tmp_vz.AVX;
+				nx[j] = tmp_nx.SSE;
+				ny[j] = tmp_ny.SSE;
+				nz[j] = tmp_nz.SSE;
+				hsecond[j] = tmp_hsecond.SSE;
+				fcor[j] = tmp_fcor.SSE;
+				scor[j] = tmp_scor.SSE;
+				fcof[j] = tmp_fcof.SSE;
+				scof[j] = tmp_scof.SSE;
+				vx[j] = tmp_vx.SSE;
+				vy[j] = tmp_vy.SSE;
+				vz[j] = tmp_vz.SSE;
 
 				/* We've found all the static objects, early out. */
 				if (i == staticCount) return;
@@ -248,7 +248,7 @@ This is not the case, we check against i to see whether they have been set.
 */
 #pragma warning(push)
 #pragma warning(disable:4701)
-void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
+void Pu::ContactSolverSystem::FillKinematic(size_t & kinematicCount)
 {
 	/* Use these buffers as staging buffer for the AVX types. */
 	AVX_FLOAT_UNION tmp_nx;
@@ -314,20 +314,20 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 			/* Push the staging buffer to the output. */
 			if (k >= 7)
 			{
-				nx[j] = tmp_nx.AVX;
-				ny[j] = tmp_ny.AVX;
-				nz[j] = tmp_nz.AVX;
-				hfirst[j] = tmp_hfirst.AVX;
-				hsecond[j] = tmp_hsecond.AVX;
-				fcor[j] = tmp_fcor.AVX;
-				scor[j] = tmp_scor.AVX;
-				fcof[j] = tmp_fcof.AVX;
-				scof[j] = tmp_scof.AVX;
-				vx[j] = tmp_vx.AVX;
-				vy[j] = tmp_vy.AVX;
-				vz[j] = tmp_vz.AVX;
-				fimass[j] = tmp_fimass.AVX;
-				simass[j] = tmp_simass.AVX;
+				nx[j] = tmp_nx.SSE;
+				ny[j] = tmp_ny.SSE;
+				nz[j] = tmp_nz.SSE;
+				hfirst[j] = tmp_hfirst.SSE;
+				hsecond[j] = tmp_hsecond.SSE;
+				fcor[j] = tmp_fcor.SSE;
+				scor[j] = tmp_scor.SSE;
+				fcof[j] = tmp_fcof.SSE;
+				scof[j] = tmp_scof.SSE;
+				vx[j] = tmp_vx.SSE;
+				vy[j] = tmp_vy.SSE;
+				vz[j] = tmp_vz.SSE;
+				fimass[j] = tmp_fimass.SSE;
+				simass[j] = tmp_simass.SSE;
 			}
 		}
 	}
@@ -337,20 +337,20 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	{
 		const size_t j = i >> 0x3;
 
-		nx[j] = tmp_nx.AVX;
-		ny[j] = tmp_ny.AVX;
-		nz[j] = tmp_nz.AVX;
-		hfirst[j] = tmp_hfirst.AVX;
-		hsecond[j] = tmp_hsecond.AVX;
-		fcor[j] = tmp_fcor.AVX;
-		scor[j] = tmp_scor.AVX;
-		fcof[j] = tmp_fcof.AVX;
-		scof[j] = tmp_scof.AVX;
-		vx[j] = tmp_vx.AVX;
-		vy[j] = tmp_vy.AVX;
-		vz[j] = tmp_vz.AVX;
-		fimass[j] = tmp_fimass.AVX;
-		simass[j] = tmp_simass.AVX;
+		nx[j] = tmp_nx.SSE;
+		ny[j] = tmp_ny.SSE;
+		nz[j] = tmp_nz.SSE;
+		hfirst[j] = tmp_hfirst.SSE;
+		hsecond[j] = tmp_hsecond.SSE;
+		fcor[j] = tmp_fcor.SSE;
+		scor[j] = tmp_scor.SSE;
+		fcof[j] = tmp_fcof.SSE;
+		scof[j] = tmp_scof.SSE;
+		vx[j] = tmp_vx.SSE;
+		vy[j] = tmp_vy.SSE;
+		vz[j] = tmp_vz.SSE;
+		fimass[j] = tmp_fimass.SSE;
+		simass[j] = tmp_simass.SSE;
 	}
 
 	/* Update the kinematic count to the actual objects in the buffer. */
@@ -370,7 +370,7 @@ void Pu::SolverSystem::FillKinematic(size_t & kinematicCount)
 	j = clamp(-(1.0f + e) * dot(V, T), -j * e, j * e)
 	V += j * T;
 */
-void Pu::SolverSystem::SolveStatic(size_t count)
+void Pu::ContactSolverSystem::SolveStatic(size_t count)
 {
 	/* Predefine often used constants. */
 	const size_t avxCnt = (count >> 0x3) + (count != 0);
@@ -442,7 +442,7 @@ void Pu::SolverSystem::SolveStatic(size_t count)
 	V1 -= j * T * m1^-1
 	V2 += j * T * m2^-1
 */
-void Pu::SolverSystem::SolveKinematic(size_t count)
+void Pu::ContactSolverSystem::SolveKinematic(size_t count)
 {
 	/* Predefine often used constants. */
 	const size_t avxCnt = (count >> 0x3) + (count != 0);
@@ -515,7 +515,7 @@ void Pu::SolverSystem::SolveKinematic(size_t count)
 	}
 }
 
-void Pu::SolverSystem::Destroy(void)
+void Pu::ContactSolverSystem::Destroy(void)
 {
 	if (sharedCapacity)
 	{

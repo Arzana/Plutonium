@@ -1,6 +1,6 @@
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/MaterialDatabase.h"
-#include "Physics/Systems/ConstraintSystem.h"
+#include "Physics/Systems/ContactSystem.h"
 #include "Core/Diagnostics/Profiler.h"
 
 #ifdef _DEBUG
@@ -14,8 +14,8 @@ Pu::PhysicalWorld::PhysicalWorld(void)
 {
 	db = new MaterialDatabase();
 	sysMove = new MovementSystem();
-	sysSolv = new SolverSystem(*this);
-	sysCnst = new ConstraintSystem(*this);
+	sysSolv = new ContactSolverSystem(*this);
+	sysCnst = new ContactSystem(*this);
 }
 
 Pu::PhysicalWorld::PhysicalWorld(PhysicalWorld && value)
@@ -131,9 +131,9 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 		{
 			/* Statistics. */
 			ImGui::Text("Objects:    %zu", handleLut.size());
-			ImGui::Text("Collisions: %u/%u", SolverSystem::GetCollisionCount(), ConstraintSystem::GetNarrowPhaseChecks());
-			ConstraintSystem::ResetCounter();
-			SolverSystem::ResetCounter();
+			ImGui::Text("Collisions: %u/%u", ContactSolverSystem::GetCollisionCount(), ContactSystem::GetNarrowPhaseChecks());
+			ContactSystem::ResetCounter();
+			ContactSolverSystem::ResetCounter();
 
 			ImGui::Separator();
 

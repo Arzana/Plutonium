@@ -8,23 +8,23 @@ namespace Pu
 	class PhysicalWorld;
 
 	/* Defines a system used to solve collision manifolds. */
-	class SolverSystem
+	class ContactSolverSystem
 	{
 	public:
 		/* Initializes a new instance of a solver system that updates the specified movement system. */
-		SolverSystem(_In_ PhysicalWorld &world);
-		SolverSystem(_In_ const SolverSystem &value) = delete;
+		ContactSolverSystem(_In_ PhysicalWorld &world);
+		ContactSolverSystem(_In_ const ContactSolverSystem &value) = delete;
 		/* Move constructor. */
-		SolverSystem(_In_ SolverSystem &&value);
+		ContactSolverSystem(_In_ ContactSolverSystem &&value);
 		/* Releases the resources allocated by the solver system. */
-		~SolverSystem(void)
+		~ContactSolverSystem(void)
 		{
 			Destroy();
 		}
 
-		_Check_return_ SolverSystem& operator =(_In_ const SolverSystem &other) = delete;
+		_Check_return_ ContactSolverSystem& operator =(_In_ const ContactSolverSystem &other) = delete;
 		/* Move assignment. */
-		_Check_return_ SolverSystem& operator =(_In_ SolverSystem &&other);
+		_Check_return_ ContactSolverSystem& operator =(_In_ ContactSolverSystem &&other);
 
 		/* Gets the total amount of collisions processed since the last reset call. */
 		_Check_return_ static uint32 GetCollisionCount(void);

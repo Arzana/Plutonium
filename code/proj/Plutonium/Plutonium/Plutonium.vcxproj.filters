@@ -894,26 +894,26 @@
     <ClInclude Include="..\..\..\include\Core\Collections\cstack.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Collections\fvector.h">
-      <Filter>Header Files\Core\Collections</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\VectorSSE.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Systems\SolverSystem.h">
-      <Filter>Header Files\Physics\Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Systems\ConstraintSystem.h">
-      <Filter>Header Files\Physics\Systems</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\MaterialDatabase.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h">
       <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\ContactSystem.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\sse_vector.h">
+      <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1298,17 +1298,17 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\SolverSystem.cpp">
-      <Filter>Source Files\Physics\Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Collections\fvector.cpp">
-      <Filter>Source Files\Core\Collections</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Physics\Systems\ConstraintSystem.cpp">
-      <Filter>Source Files\Physics\Systems</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\ContactSystem.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Collections\sse_vector.cpp">
+      <Filter>Source Files\Core\Collections</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

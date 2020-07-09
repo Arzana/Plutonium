@@ -9,8 +9,8 @@ namespace Pu
 {
 	class MaterialDatabase;
 	class MovementSystem;
-	class ConstraintSystem;
-	class SolverSystem;
+	class ContactSystem;
+	class ContactSolverSystem;
 
 	/* Defines the main entry point for all physics related code. */
 	class PhysicalWorld final
@@ -53,13 +53,13 @@ namespace Pu
 		void Update(_In_ float dt) final;
 
 	private:
-		friend class SolverSystem;
-		friend class ConstraintSystem;
+		friend class ContactSolverSystem;
+		friend class ContactSystem;
 
 		MaterialDatabase *db;
 		MovementSystem *sysMove;
-		ConstraintSystem *sysCnst;
-		SolverSystem *sysSolv;
+		ContactSystem *sysCnst;
+		ContactSolverSystem *sysSolv;
 		BVH searchTree;
 
 		mutable std::mutex lock;

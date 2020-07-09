@@ -1,6 +1,6 @@
 #pragma once
 #include <map>
-#include "SolverSystem.h"
+#include "ContactSolverSystem.h"
 #include "Physics/Objects/BVH.h"
 #include "Physics/Properties/CollisionShapes.h"
 
@@ -9,23 +9,23 @@ namespace Pu
 	class PhysicalWorld;
 
 	/* Defines a system used to detect collisions. */
-	class ConstraintSystem
+	class ContactSystem
 	{
 	public:
 		/* Initializes a new instance of a constraint system. */
-		ConstraintSystem(_In_ PhysicalWorld &world);
-		ConstraintSystem(_In_ const ConstraintSystem&) = delete;
+		ContactSystem(_In_ PhysicalWorld &world);
+		ContactSystem(_In_ const ContactSystem&) = delete;
 		/* Move contructor. */
-		ConstraintSystem(_In_ ConstraintSystem &&value);
+		ContactSystem(_In_ ContactSystem &&value);
 		/* Releases the resources allocated by the constraint system. */
-		~ConstraintSystem(void)
+		~ContactSystem(void)
 		{
 			Destroy();
 		}
 
-		_Check_return_ ConstraintSystem& operator =(_In_ const ConstraintSystem&) = delete;
+		_Check_return_ ContactSystem& operator =(_In_ const ContactSystem&) = delete;
 		/* Move assignment. */
-		_Check_return_ ConstraintSystem& operator =(_In_ ConstraintSystem &&other);
+		_Check_return_ ContactSystem& operator =(_In_ ContactSystem &&other);
 
 		/* Gets the amount of narrow phase checks since the last reset call. */
 		_Check_return_ static uint32 GetNarrowPhaseChecks(void);
@@ -45,7 +45,7 @@ namespace Pu
 #endif
 
 	private:
-		using CollisionChecker_t = void(ConstraintSystem::*)(PhysicsHandle hfirst, PhysicsHandle hsecond);
+		using CollisionChecker_t = void(ContactSystem::*)(PhysicsHandle hfirst, PhysicsHandle hsecond);
 
 		std::map<uint16, CollisionChecker_t> checkers;
 		PhysicalWorld *world;

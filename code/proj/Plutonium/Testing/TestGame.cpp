@@ -10,7 +10,7 @@ const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"),
-	updateCam(false), firstRun(true)
+	updateCam(false), firstRun(true), spawnToggle(false)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
@@ -65,6 +65,11 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	fetcher.Release(*playerModel);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
+}
+
+void TestGame::Update(float)
+{
+	if (spawnToggle) SpawnNPC();
 }
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
@@ -127,7 +132,28 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
+	if (ImGui::Begin("Counter"))
+	{
+		ImGui::Text("Kinematic objects: %zu", npcs.size());
+		ImGui::End();
+	}
+
 	Profiler::Visualize();
+}
+
+void TestGame::SpawnNPC(void)
+{
+	//const float x = random(10.0f, 64.0f * terrainSize - 10.0f);
+	//const float z = random(10.0f, 64.0f * terrainSize - 10.0f);
+	const float x = random(10.0f, 20.0f);
+	const float z = random(10.0f, 20.0f);
+
+	Sphere sphere{ Vector3{}, 1.5f };
+	Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
+	PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
+	obj.Properties = physicsMat;
+	obj.State.Mass = 1.0f;
+	npcs.emplace_back(physics->AddKinematic(obj));
 }
 
 void TestGame::OnAnyMouseScrolled(const Pu::Mouse &, Pu::int16 value)
@@ -164,18 +190,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 				}
 			}
 		}
-		else if (args.Key == Keys::P)
-		{
-			const float x = random(10.0f, 40.0f);
-			const float z = random(10.0f, 40.0f);
-
-			Sphere sphere{ Vector3{}, 1.5f };
-			Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
-			PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
-			obj.Properties = physicsMat;
-			obj.State.Mass = 1.0f;
-			npcs.emplace_back(physics->AddKinematic(obj));
-		}
+		else if (args.Key == Keys::P) SpawnNPC();//spawnToggle = !spawnToggle;
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{

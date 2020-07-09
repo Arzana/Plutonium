@@ -64,5 +64,5 @@ namespace Pu
 	/* Defines whether the profiling should be global (false) or system local (true). */
 	constexpr bool PhysicsProfileSystems = false;
 	/* Defines whether the physics system is allowed to use sleep mode. */
-	constexpr bool PhysicsAllowSleeping = true;
+	constexpr bool PhysicsAllowSleeping = false;
 }

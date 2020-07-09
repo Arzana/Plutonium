@@ -228,7 +228,7 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 		const ofloat d = _mm256_add_ps(_mm256_add_ps(_mm256_mul_ps(sx, sx), _mm256_mul_ps(sy, sy)), _mm256_mul_ps(sz, sz));
 
 		/* Check whether the distance is greater than the maximum. */
-		masks[i].AVX = _mm256_cmp_ps(d, maxDist, _CMP_GT_OQ);
+		masks[i].SSE = _mm256_cmp_ps(d, maxDist, _CMP_GT_OQ);
 	}
 
 	/* Convert the AVX type to normal floats and add them to the result buffer. */

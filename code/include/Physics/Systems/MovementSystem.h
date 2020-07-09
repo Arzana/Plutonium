@@ -1,6 +1,6 @@
 #pragma once
 #include "Physics/Objects/PhysicsHandle.h"
-#include "Core/Collections/fvector.h"
+#include "Core/Collections/sse_vector.h"
 #include "Core/Math/VectorSSE.h"
 #include "Core/Math/Matrix.h"
 
@@ -93,31 +93,31 @@ namespace Pu
 		mutable vector<TimedForce> forces;
 #endif
 
-		fvector cod;
-		fvector m;
+		avxf_vector cod;
+		avxf_vector m;
 
-		fvector px;
-		fvector py;
-		fvector pz;
+		avxf_vector px;
+		avxf_vector py;
+		avxf_vector pz;
 
 		vector<Matrix> transforms;
-		mutable fvector qx;
-		mutable fvector qy;
-		mutable fvector qz;
+		mutable avxf_vector qx;
+		mutable avxf_vector qy;
+		mutable avxf_vector qz;
 
-		fvector vx;
-		fvector vy;
-		fvector vz;
-		fvector sleep;
+		avxf_vector vx;
+		avxf_vector vy;
+		avxf_vector vz;
+		avxf_vector sleep;
 
-		fvector ti;
-		fvector tj;
-		fvector tk;
-		fvector tr;
+		avxf_vector ti;
+		avxf_vector tj;
+		avxf_vector tk;
+		avxf_vector tr;
 
-		fvector wi;
-		fvector wj;
-		fvector wk;
-		fvector wr;
+		avxf_vector wi;
+		avxf_vector wj;
+		avxf_vector wk;
+		avxf_vector wr;
 	};
 }

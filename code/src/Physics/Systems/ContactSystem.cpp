@@ -1,4 +1,4 @@
-#include "Physics/Systems/ConstraintSystem.h"
+#include "Physics/Systems/ContactSystem.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/ShapeTests.h"
@@ -11,13 +11,13 @@
 
 static Pu::uint32 narrowPhaseChecks = 0;
 
-Pu::ConstraintSystem::ConstraintSystem(PhysicalWorld & world)
+Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
 	: world(&world)
 {
 	SetGenericCheckers();
 }
 
-Pu::ConstraintSystem::ConstraintSystem(ConstraintSystem && value)
+Pu::ContactSystem::ContactSystem(ContactSystem && value)
 	: checkers(std::move(value.checkers)), world(value.world),
 	rawBroadPhase(std::move(value.rawBroadPhase)),
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
@@ -26,7 +26,7 @@ Pu::ConstraintSystem::ConstraintSystem(ConstraintSystem && value)
 	SetGenericCheckers();
 }
 
-Pu::ConstraintSystem & Pu::ConstraintSystem::operator=(ConstraintSystem && other)
+Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 {
 	if (this != &other)
 	{
@@ -41,17 +41,17 @@ Pu::ConstraintSystem & Pu::ConstraintSystem::operator=(ConstraintSystem && other
 	return *this;
 }
 
-Pu::uint32 Pu::ConstraintSystem::GetNarrowPhaseChecks(void)
+Pu::uint32 Pu::ContactSystem::GetNarrowPhaseChecks(void)
 {
 	return narrowPhaseChecks;
 }
 
-void Pu::ConstraintSystem::ResetCounter(void)
+void Pu::ContactSystem::ResetCounter(void)
 {
 	narrowPhaseChecks = 0;
 }
 
-void Pu::ConstraintSystem::AddItem(PhysicsHandle handle, const AABB & bb, CollisionShapes type, const float * collider)
+void Pu::ContactSystem::AddItem(PhysicsHandle handle, const AABB & bb, CollisionShapes type, const float * collider)
 {
 	AABB bb2 = bb * world->GetTransform(handle);
 
@@ -86,14 +86,14 @@ void Pu::ConstraintSystem::AddItem(PhysicsHandle handle, const AABB & bb, Collis
 		new(copy) HeightMap(*reinterpret_cast<const HeightMap*>(collider));
 		break;
 	default:
-		Log::Error("ConstraintSystem cannot handle collider of type %s currently!", to_string(type));
+		Log::Error("ContactSystem cannot handle collider of type %s currently!", to_string(type));
 		return;
 	}
 
 	rawNarrowPhase.emplace(handle, std::make_pair(type, copy));
 }
 
-void Pu::ConstraintSystem::RemoveItem(PhysicsHandle handle)
+void Pu::ContactSystem::RemoveItem(PhysicsHandle handle)
 {
 	cachedBroadPhase.erase(handle);
 	world->searchTree.Remove(handle);
@@ -105,7 +105,7 @@ void Pu::ConstraintSystem::RemoveItem(PhysicsHandle handle)
 	rawNarrowPhase.erase(handle);
 }
 
-void Pu::ConstraintSystem::Check(void)
+void Pu::ContactSystem::Check(void)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
 
@@ -158,7 +158,7 @@ void Pu::ConstraintSystem::Check(void)
 }
 
 #ifdef _DEBUG
-void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
+void Pu::ContactSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
 {
 	/* Display yellow for cached broadphases. */
 	for (const auto[hcur, bb] : cachedBroadPhase)
@@ -190,7 +190,7 @@ void Pu::ConstraintSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos
 }
 #endif
 
-void Pu::ConstraintSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
+void Pu::ContactSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	++narrowPhaseChecks;
 	const CollisionShapes shape1 = rawNarrowPhase.at(hfirst).first;
@@ -218,7 +218,7 @@ void Pu::ConstraintSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hseco
 	Log::Warning("Unable to check for collision between %s and %s!", to_string(shape1), to_string(shape2));
 }
 
-void Pu::ConstraintSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond)
+void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	/* Query the colliders and transform them to the correct position. */
 	const Sphere sphere1 = as_sphere(rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
@@ -231,7 +231,7 @@ void Pu::ConstraintSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle 
 	}
 }
 
-void Pu::ConstraintSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
+void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
 {
 	/* Query the sphere collider and transform it to the correct position. */
 	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
@@ -244,7 +244,7 @@ void Pu::ConstraintSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsp
 	}
 }
 
-void Pu::ConstraintSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
+void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
 {
 	/* Query the colliders and transform them to the correct position. */
 	const HeightMap &heightmap = as_height(rawNarrowPhase.at(hmap).second);
@@ -264,14 +264,14 @@ void Pu::ConstraintSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle
 	}
 }
 
-void Pu::ConstraintSystem::SetGenericCheckers(void)
+void Pu::ContactSystem::SetGenericCheckers(void)
 {
-	checkers.emplace(create_collision_t(CollisionShapes::None, CollisionShapes::Sphere), &ConstraintSystem::TestAABBSphere);
-	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ConstraintSystem::TestSphereSphere);
-	checkers.emplace(create_collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ConstraintSystem::TestHeightmapSphere);
+	checkers.emplace(create_collision_t(CollisionShapes::None, CollisionShapes::Sphere), &ContactSystem::TestAABBSphere);
+	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ContactSystem::TestSphereSphere);
+	checkers.emplace(create_collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ContactSystem::TestHeightmapSphere);
 }
 
-void Pu::ConstraintSystem::Destroy(void)
+void Pu::ContactSystem::Destroy(void)
 {
 	for (auto[hcur, narrow] : rawNarrowPhase) free(narrow.second);
 }

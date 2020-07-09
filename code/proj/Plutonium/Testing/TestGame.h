@@ -24,12 +24,12 @@ protected:
 	void LoadContent(Pu::AssetFetcher &content) final;
 	void UnLoadContent(Pu::AssetFetcher &content) final;
 	void Finalize(void) final {}
-	void Update(float) final {}
+	void Update(float) final;
 	void Render(float dt, Pu::CommandBuffer &cmdBuffer) final;
 
 private:
 	Pu::FreeCamera *camFree;
-	bool firstRun, updateCam;
+	bool firstRun, updateCam, spawnToggle;
 	Pu::DebugRenderer *dbgRenderer;
 
 	Pu::DeferredRenderer *renderer;
@@ -45,6 +45,7 @@ private:
 	Pu::vector<Pu::PhysicsHandle> npcs;
 	Pu::PhysicsHandle physicsMat;
 
+	void SpawnNPC(void);
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);
