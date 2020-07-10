@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a memory buffer of a specified size (in bytes). */
-		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_ bool requiresHostAccess);
+		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_ MemoryPropertyFlag requiredProperties, _In_opt_ MemoryPropertyFlag optionalProperties = MemoryPropertyFlag::None);
 		Buffer(_In_ const Buffer&) = delete;
 		/* Move constructor. */
 		Buffer(_In_ Buffer &&value);
@@ -101,10 +101,10 @@ namespace Pu
 		void UnMap(void);
 		void Flush(size_t size, size_t offset);
 
-		void Create(const BufferCreateInfo &createInfo);
+		void Create(const BufferCreateInfo &createInfo, MemoryPropertyFlag optional);
 		void Destroy(void);
 
-		void Allocate(void);
+		void Allocate(MemoryPropertyFlag optional);
 		void Bind(void);
 		void Free(void);
 	};

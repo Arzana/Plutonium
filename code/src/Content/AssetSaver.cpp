@@ -38,7 +38,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			/* Creat the buffer needed as a result for the image data. */
 			const Extent3D extent = image.GetExtent();
 			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetElementSize();
-			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, true);
+			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, MemoryPropertyFlag::HostVisible);
 
 			/*
 			Begin the command buffer and ensure a usable layouts.

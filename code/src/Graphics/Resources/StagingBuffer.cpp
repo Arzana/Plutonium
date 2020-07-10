@@ -1,13 +1,13 @@
 #include "Graphics/Resources/StagingBuffer.h"
 
 Pu::StagingBuffer::StagingBuffer(Buffer & target)
-	: Buffer(*target.parent, target.GetSize(), BufferUsageFlag::TransferSrc, true)
+	: Buffer(*target.parent, target.GetSize(), BufferUsageFlag::TransferSrc, MemoryPropertyFlag::HostVisible, MemoryPropertyFlag::HostCoherent)
 {
 	SetDebugName("StagingBuffer");
 }
 
 Pu::StagingBuffer::StagingBuffer(LogicalDevice & device, size_t size)
-	: Buffer(device, size, BufferUsageFlag::TransferSrc, true)
+	: Buffer(device, size, BufferUsageFlag::TransferSrc, MemoryPropertyFlag::HostVisible, MemoryPropertyFlag::HostCoherent)
 {
 	SetDebugName("StagingBuffer");
 }

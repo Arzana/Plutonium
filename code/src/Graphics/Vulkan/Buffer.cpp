@@ -1,11 +1,11 @@
 #include "Graphics/Vulkan/Buffer.h"
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
-Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, bool requiresHostAccess)
-	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr), srcAccess(AccessFlag::None), Mutable(true)
+Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, MemoryPropertyFlag requiredProperties, MemoryPropertyFlag optionalProperties)
+	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr), 
+	srcAccess(AccessFlag::None), Mutable(true), memoryProperties(requiredProperties)
 {
-	memoryProperties = requiresHostAccess ? MemoryPropertyFlag::HostVisible : MemoryPropertyFlag::None;
-	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage));
+	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage), optionalProperties);
 }
 
 Pu::Buffer::Buffer(Buffer && value)
@@ -164,10 +164,10 @@ void Pu::Buffer::Flush(size_t size, size_t offset)
 }
 #pragma warning(pop)
 
-void Pu::Buffer::Create(const BufferCreateInfo & createInfo)
+void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlag optional)
 {
 	VK_VALIDATE(parent->vkCreateBuffer(parent->hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
-	Allocate();
+	Allocate(optional);
 }
 
 void Pu::Buffer::Destroy(void)
@@ -176,14 +176,14 @@ void Pu::Buffer::Destroy(void)
 	if (bufferHndl) parent->vkDestroyBuffer(parent->hndl, bufferHndl, nullptr);
 }
 
-void Pu::Buffer::Allocate(void)
+void Pu::Buffer::Allocate(MemoryPropertyFlag optional)
 {
 	/* Get the requirements for this block of memory. */
 	MemoryRequirements requirements;
 	parent->vkGetBufferMemoryRequirements(parent->hndl, bufferHndl, &requirements);
 
 	/* Get the best type of memory available to us. */
-	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, MemoryPropertyFlag::None, memoryType))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memoryProperties, optional, memoryType))
 	{
 		/* Only log wasted memory if desired, the buffer probably doesn't have a name at this point. */
 		gpuSize = static_cast<size_t>(requirements.Size);
