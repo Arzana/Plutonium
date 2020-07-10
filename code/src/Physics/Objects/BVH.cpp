@@ -10,6 +10,7 @@
 
 #define BVH_HNULL				0xC000FFFF
 #define BVH_INULL				0xFFFF
+#define BVH_STACK_CAPACITY		0x40
 
 #define is_leaf					pHandle) != BVH_HNULL
 #define is_branch				pHandle) == BVH_HNULL
@@ -179,7 +180,7 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 	const Vector3 rd = recip(d);
 
 	/* Start at the root node. */
-	cstack<uint16> stack;
+	cstack<uint16> stack{ BVH_STACK_CAPACITY };
 	stack.push(root);
 
 	/* Loop until we traversed the tree. */
@@ -206,7 +207,7 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 {
 	/* Start at the root node. */
-	cstack<uint16> stack;
+	cstack<uint16> stack{ BVH_STACK_CAPACITY };
 	stack.push(root);
 
 	/* Loop until we traversed the tree. */
@@ -230,7 +231,7 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 void Pu::BVH::Frustumcast(const Frustum & frustum, vector<PhysicsHandle>& result) const
 {
 	/* Start at the root node. */
-	cstack<uint16> stack;
+	cstack<uint16> stack{ BVH_STACK_CAPACITY };
 	stack.push(root);
 
 	/* Loop until we traversed the tree. */

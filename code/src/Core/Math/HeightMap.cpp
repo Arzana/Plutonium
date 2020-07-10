@@ -170,7 +170,7 @@ bool Pu::HeightMap::Contains(uint32 x, uint32 y) const
 
 bool Pu::HeightMap::Contains(Vector2 pos) const
 {
-	return upart(pos.X * iPatchSize.X) < boundX && upart(pos.Y * iPatchSize.Y) < boundY && pos.X > 0.0f && pos.Y > 0.0f;
+	return upart(pos.X * iPatchSize.X) < boundX && upart(pos.Y * iPatchSize.Y) < boundY && pos.X >= 0.0f && pos.Y >= 0.0f;
 }
 
 float Pu::HeightMap::GetHeight(uint32 x, uint32 y) const

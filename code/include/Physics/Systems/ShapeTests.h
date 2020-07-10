@@ -33,7 +33,7 @@ namespace Pu
 	{
 		return b1.LowerBound.X <= b2.UpperBound.X && b1.UpperBound.X >= b2.LowerBound.X
 			&& b1.LowerBound.Y <= b2.UpperBound.Y && b1.UpperBound.Y >= b2.LowerBound.Y
-			&& b1.UpperBound.Z <= b2.UpperBound.Z && b1.UpperBound.Z >= b2.LowerBound.Z;
+			&& b1.LowerBound.Z <= b2.UpperBound.Z && b1.UpperBound.Z >= b2.LowerBound.Z;
 	}
 
 	/*

@@ -13,6 +13,13 @@ namespace Pu
 			: buffer(nullptr), capacity(0), count(0)
 		{}
 
+		/* Initializes an empty instance of a stack with a specified initial capacity. */
+		cstack(_In_ size_t initialCapacity)
+			: buffer(nullptr), capacity(initialCapacity), count(0)
+		{
+			Alloc();
+		}
+
 		/* Copy constructor. */
 		cstack(_In_ const cstack<element_t> &value)
 			: buffer(nullptr), capacity(value.capacity), count(value.count)
@@ -90,7 +97,7 @@ namespace Pu
 			if (capacity < newCapacity)
 			{
 				capacity = newCapacity;
-				buffer = reinterpret_cast<element_t*>(realloc(buffer, newCapacity * sizeof(element_t)));
+				Alloc();
 			}
 		}
 
@@ -98,9 +105,14 @@ namespace Pu
 		element_t *buffer;
 		size_t capacity, count;
 
+		inline void Alloc(void)
+		{
+			buffer = reinterpret_cast<element_t*>(realloc(buffer, capacity * sizeof(element_t)));
+		}
+
 		inline void CopyAlloc(const element_t *other)
 		{
-			buffer = reinterpret_cast<element_t*>(realloc(buffer, count * sizeof(element_t)));
+			Alloc();
 			memcpy(buffer, other, count * sizeof(element_t));
 		}
 

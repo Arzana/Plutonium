@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-#define STRESS_TEST
+//#define STRESS_TEST
 
 using namespace Pu;
 
@@ -134,14 +134,22 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
+#ifndef _DEBUG
+	if (ImGui::Begin("Counter"))
+	{
+		ImGui::Text("Kinematic Objects: %zu", npcs.size());
+		ImGui::End();
+	}
+#endif
+
 	Profiler::Visualize();
 }
 
 void TestGame::SpawnNPC(void)
 {
 #ifdef STRESS_TEST
-	const float x = random(10.0f, 64.0f * terrainSize - 10.0f);
-	const float z = random(10.0f, 64.0f * terrainSize - 10.0f);
+	const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
+	const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
 #else
 	const float x = random(10.0f, 20.0f);
 	const float z = random(10.0f, 20.0f);
@@ -149,7 +157,7 @@ void TestGame::SpawnNPC(void)
 
 	Sphere sphere{ Vector3{}, 1.5f };
 	Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
-	PhysicalObject obj{ Vector3(x, 30.0f, z), Quaternion{}, collider };
+	PhysicalObject obj{ Vector3(x, 50.0f, z), Quaternion{}, collider };
 	obj.Properties = physicsMat;
 	obj.State.Mass = 1.0f;
 	npcs.emplace_back(physics->AddKinematic(obj));
