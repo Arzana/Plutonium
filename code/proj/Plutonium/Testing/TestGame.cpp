@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-//#define STRESS_TEST
+#define STRESS_TEST
 
 using namespace Pu;
 
@@ -86,9 +86,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
-		camFree->Move(5.0f, 1.0f, -5.0f);
+		camFree->Move(-16.0f, 57.0f, -34.0f);
+		camFree->Yaw = PI4;
 		camFree->SetExposure(2.5f);
-		camFree->Yaw = TAU - PI4;
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightMain->SetDirection(PI4, PI4, 0.0f);
@@ -133,14 +133,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		physics->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
 		dbgRenderer->Render(cmd, *camFree);
 	}
-
-#ifdef STRESS_TEST
-	if (ImGui::Begin("Counter"))
-	{
-		ImGui::Text("Kinematic objects: %zu", npcs.size());
-		ImGui::End();
-	}
-#endif
 
 	Profiler::Visualize();
 }

@@ -132,8 +132,9 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 		if (ImGui::Begin("Physical World"))
 		{
 			/* Statistics. */
-			ImGui::Text("Objects:    %zu", handleLut.size());
-			ImGui::Text("Collisions: %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
+			ImGui::Text("Objects:     %zu", handleLut.size());
+			ImGui::Text("BVH Updates: %zu", ContactSystem::GetBVHUpdateCalls());
+			ImGui::Text("Collisions:  %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
 			ContactSystem::ResetCounters();
 
 			ImGui::Separator();

@@ -10,6 +10,7 @@
 #define as_sphere(params)						(*reinterpret_cast<const Pu::Sphere*>(params))
 #define as_height(params)						(*reinterpret_cast<const Pu::HeightMap*>(params))
 
+static Pu::uint32 bvhUpdateCalls = 0;
 static Pu::uint32 narrowPhaseChecks = 0;
 static Pu::uint32 collisionCount = 0;
 
@@ -25,7 +26,8 @@ Pu::ContactSystem::ContactSystem(ContactSystem && value)
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
 	rawNarrowPhase(std::move(value.rawNarrowPhase)),
 	hfirsts(std::move(value.hfirsts)), hseconds(std::move(value.hseconds)),
-	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz))
+	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz)),
+	px(std::move(value.px)), py(std::move(value.py)), pz(std::move(value.pz))
 {
 	SetGenericCheckers();
 }
@@ -38,6 +40,9 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 
 		hfirsts = std::move(other.hfirsts);
 		hseconds = std::move(other.hseconds);
+		px = std::move(other.px);
+		py = std::move(other.py);
+		pz = std::move(other.pz);
 		nx = std::move(other.nx);
 		ny = std::move(other.ny);
 		nz = std::move(other.nz);
@@ -49,6 +54,11 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 	}
 
 	return *this;
+}
+
+Pu::uint32 Pu::ContactSystem::GetBVHUpdateCalls(void)
+{
+	return bvhUpdateCalls;
 }
 
 Pu::uint32 Pu::ContactSystem::GetNarrowPhaseChecks(void)
@@ -63,6 +73,7 @@ Pu::uint32 Pu::ContactSystem::GetCollisionsCount(void)
 
 void Pu::ContactSystem::ResetCounters(void)
 {
+	bvhUpdateCalls = 0;
 	narrowPhaseChecks = 0;
 	collisionCount = 0;
 }
@@ -70,6 +81,7 @@ void Pu::ContactSystem::ResetCounters(void)
 void Pu::ContactSystem::AddItem(PhysicsHandle handle, const AABB & bb, CollisionShapes type, const float * collider)
 {
 	AABB bb2 = bb * world->GetTransform(handle);
+	++bvhUpdateCalls;
 
 	/* This system need to check if kinematic objects collide with others, so handle them seperately. */
 	if (physics_get_type(handle) == PhysicsType::Kinematic)
@@ -113,6 +125,7 @@ void Pu::ContactSystem::RemoveItem(PhysicsHandle handle)
 {
 	cachedBroadPhase.erase(handle);
 	world->searchTree.Remove(handle);
+	++bvhUpdateCalls;
 
 	/* Make sure to free the narrow phase. */
 	const uint16 idx = world->QueryInternalIndex(handle);
@@ -123,14 +136,14 @@ void Pu::ContactSystem::RemoveItem(PhysicsHandle handle)
 
 void Pu::ContactSystem::Check(void)
 {
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
-
 	/* Remove the previous collisions from the buffer. */
 	hfirsts.clear();
 	hseconds.clear();
 	nx.clear();
 	ny.clear();
 	nz.clear();
+
+	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
 
 	/* Query the movement system for updates to the BVH. */
 	readdCache.clear();
@@ -148,6 +161,7 @@ void Pu::ContactSystem::Check(void)
 		/* Insert the new bounding box. */
 		cachedBroadPhase.at(hobj) = newBB;
 		world->searchTree.Insert(hobj, newBB);
+		++bvhUpdateCalls;
 	}
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();
@@ -248,7 +262,12 @@ void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hse
 	const Sphere sphere2 = as_sphere(rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
 
 	/* Check for collision. */
-	if (intersects(sphere1, sphere2)) AddManifold(hfirst, hsecond, dir(sphere1.Center, sphere2.Center));
+	if (intersects(sphere1, sphere2))
+	{
+		const Vector3 n = dir(sphere1.Center, sphere2.Center);
+		const Vector3 p = sphere1.Center + sphere1.Radius * n;
+		AddManifold(hfirst, hsecond, p, n);
+	}
 }
 
 void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
@@ -258,7 +277,12 @@ void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hspher
 
 	/* Check for collision with the cached bounding box. */
 	const Vector3 q = closest(cachedBroadPhase.at(haabb), sphere.Center);
-	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius)) AddManifold(haabb, hsphere, dir(q, sphere.Center));
+	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
+	{
+		const Vector3 n = dir(q, sphere.Center);
+		const Vector3 p = sphere.Center + sphere.Radius * -n;
+		AddManifold(haabb, hsphere, p, n);
+	}
 }
 
 void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
@@ -268,17 +292,19 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 	const Vector3 offset = world->GetTransform(hmap).GetTranslation();
 	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
-	/* Query the heightmap for the height and normal under the sphere. */
 	float h;
 	Vector3 n;
-	if (heightmap.TryGetHeightAndNormal(Vector2(sphere.Center.X - offset.X, sphere.Center.Z - offset.Z), h, n))
+
+	/* Query the heightmap for the height and normal under the sphere. */
+	const Vector2 query = Vector2(sphere.Center.X - offset.X, sphere.Center.Z - offset.Z);
+	if (heightmap.TryGetHeightAndNormal(query, h, n))
 	{
 		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
-		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, n);
+		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, Vector3(query.X, h, query.Y), n);
 	}
 }
 
-void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 normal)
+void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal)
 {
 	/* Ignore any duplicate collisions. */
 	for (size_t i = 0; i < hfirsts.size(); i++)
@@ -297,6 +323,9 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 
 	hfirsts.emplace_back(hfirst);
 	hseconds.emplace_back(hsecond);
+	px.push(pos.X);
+	py.push(pos.Y);
+	pz.push(pos.Z);
 	nx.push(normal.X);
 	ny.push(normal.Y);
 	nz.push(normal.Z);

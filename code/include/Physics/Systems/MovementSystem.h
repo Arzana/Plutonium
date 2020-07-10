@@ -14,13 +14,11 @@ namespace Pu
 	public:
 		/* Initializes a new instance of a movement system. */
 		MovementSystem(void);
-		/* Copy constructor. */
-		MovementSystem(_In_ const MovementSystem &value) = default;
+		MovementSystem(_In_ const MovementSystem &value) = delete;
 		/* Move constructor. */
 		MovementSystem(_In_ MovementSystem &&value) = default;
 
-		/* Copy assignment. */
-		_Check_return_ MovementSystem& operator =(_In_ const MovementSystem &other) = default;
+		_Check_return_ MovementSystem& operator =(_In_ const MovementSystem &other) = delete;
 		/* Move assignment. */
 		_Check_return_ MovementSystem& operator =(_In_ MovementSystem &&other) = default;
 

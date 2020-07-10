@@ -18,6 +18,12 @@ namespace Pu
 		vector<PhysicsHandle> hfirsts;
 		/* Specifies the second handles for the current collisions. */
 		vector<PhysicsHandle> hseconds;
+		/* Defines the x-component of the point of collision. */
+		avxf_vector px;
+		/* Defines the y-component of the point of collision. */
+		avxf_vector py;
+		/* Defines the z-component of the point of collision. */
+		avxf_vector pz;
 		/* Defines the x-component of the collision normal. */
 		avxf_vector nx;
 		/* Defines the y-component of the collision normal. */
@@ -40,6 +46,8 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ ContactSystem& operator =(_In_ ContactSystem &&other);
 
+		/* Gets the amount of updates the the BVH that occured in the last reset call. */
+		_Check_return_ static uint32 GetBVHUpdateCalls(void);
 		/* Gets the amount of narrow phase checks since the last reset call. */
 		_Check_return_ static uint32 GetNarrowPhaseChecks(void);
 		/* Gets the amount of collisions registered since the last reset call. */
@@ -76,7 +84,7 @@ namespace Pu
 		void TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond);
 		void TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere);
 		void TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere);
-		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 normal);
+		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal);
 		void SetGenericCheckers(void);
 		void Destroy(void);
 	};
