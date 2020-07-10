@@ -1,5 +1,6 @@
 #include "Physics/Systems/ContactSystem.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
+#include "Physics/Systems/MovementSystem.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/ShapeTests.h"
 #include "Core/Diagnostics/Profiler.h"
@@ -10,6 +11,7 @@
 #define as_height(params)						(*reinterpret_cast<const Pu::HeightMap*>(params))
 
 static Pu::uint32 narrowPhaseChecks = 0;
+static Pu::uint32 collisionCount = 0;
 
 Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
 	: world(&world)
@@ -21,7 +23,9 @@ Pu::ContactSystem::ContactSystem(ContactSystem && value)
 	: checkers(std::move(value.checkers)), world(value.world),
 	rawBroadPhase(std::move(value.rawBroadPhase)),
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
-	rawNarrowPhase(std::move(value.rawNarrowPhase))
+	rawNarrowPhase(std::move(value.rawNarrowPhase)),
+	hfirsts(std::move(value.hfirsts)), hseconds(std::move(value.hseconds)),
+	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz))
 {
 	SetGenericCheckers();
 }
@@ -31,6 +35,12 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 	if (this != &other)
 	{
 		Destroy();
+
+		hfirsts = std::move(other.hfirsts);
+		hseconds = std::move(other.hseconds);
+		nx = std::move(other.nx);
+		ny = std::move(other.ny);
+		nz = std::move(other.nz);
 
 		world = other.world;
 		rawBroadPhase = std::move(other.rawBroadPhase);
@@ -46,9 +56,15 @@ Pu::uint32 Pu::ContactSystem::GetNarrowPhaseChecks(void)
 	return narrowPhaseChecks;
 }
 
-void Pu::ContactSystem::ResetCounter(void)
+Pu::uint32 Pu::ContactSystem::GetCollisionsCount(void)
+{
+	return collisionCount;
+}
+
+void Pu::ContactSystem::ResetCounters(void)
 {
 	narrowPhaseChecks = 0;
+	collisionCount = 0;
 }
 
 void Pu::ContactSystem::AddItem(PhysicsHandle handle, const AABB & bb, CollisionShapes type, const float * collider)
@@ -108,6 +124,13 @@ void Pu::ContactSystem::RemoveItem(PhysicsHandle handle)
 void Pu::ContactSystem::Check(void)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
+
+	/* Remove the previous collisions from the buffer. */
+	hfirsts.clear();
+	hseconds.clear();
+	nx.clear();
+	ny.clear();
+	nz.clear();
 
 	/* Query the movement system for updates to the BVH. */
 	readdCache.clear();
@@ -225,10 +248,7 @@ void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hse
 	const Sphere sphere2 = as_sphere(rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
 
 	/* Check for collision. */
-	if (intersects(sphere1, sphere2))
-	{
-		world->sysSolv->RegisterCollision(CollisionManifold{ hfirst, hsecond, dir(sphere1.Center, sphere2.Center) });
-	}
+	if (intersects(sphere1, sphere2)) AddManifold(hfirst, hsecond, dir(sphere1.Center, sphere2.Center));
 }
 
 void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
@@ -238,10 +258,7 @@ void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hspher
 
 	/* Check for collision with the cached bounding box. */
 	const Vector3 q = closest(cachedBroadPhase.at(haabb), sphere.Center);
-	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
-	{
-		world->sysSolv->RegisterCollision(CollisionManifold{ haabb, hsphere, dir(q, sphere.Center) });
-	}
+	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius)) AddManifold(haabb, hsphere, dir(q, sphere.Center));
 }
 
 void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
@@ -257,11 +274,34 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 	if (heightmap.TryGetHeightAndNormal(Vector2(sphere.Center.X - offset.X, sphere.Center.Z - offset.Z), h, n))
 	{
 		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
-		if (h >= sphere.Center.Y - sphere.Radius)
-		{
-			world->sysSolv->RegisterCollision(CollisionManifold{ hmap, hsphere, n });
-		}
+		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, n);
 	}
+}
+
+void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 normal)
+{
+	/* Ignore any duplicate collisions. */
+	for (size_t i = 0; i < hfirsts.size(); i++)
+	{
+		if (hfirsts[i] == hsecond && hseconds[i] == hfirst) return;
+	}
+
+	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */
+	if (physics_get_type(hfirst) != PhysicsType::Static)
+	{
+		const Vector3 v1 = world->sysMove->GetVelocity(world->QueryInternalIndex(hfirst));
+		const Vector3 v2 = world->sysMove->GetVelocity(world->QueryInternalIndex(hsecond));
+
+		if (dot(v2 - v1, normal) > 0.0f) return;
+	}
+
+	hfirsts.emplace_back(hfirst);
+	hseconds.emplace_back(hsecond);
+	nx.push(normal.X);
+	ny.push(normal.Y);
+	nz.push(normal.Z);
+
+	++collisionCount;
 }
 
 void Pu::ContactSystem::SetGenericCheckers(void)

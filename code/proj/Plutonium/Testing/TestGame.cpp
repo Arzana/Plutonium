@@ -3,6 +3,8 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
+//#define STRESS_TEST
+
 using namespace Pu;
 
 const bool enableTessellation = false;
@@ -132,21 +134,26 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
+#ifdef STRESS_TEST
 	if (ImGui::Begin("Counter"))
 	{
 		ImGui::Text("Kinematic objects: %zu", npcs.size());
 		ImGui::End();
 	}
+#endif
 
 	Profiler::Visualize();
 }
 
 void TestGame::SpawnNPC(void)
 {
-	//const float x = random(10.0f, 64.0f * terrainSize - 10.0f);
-	//const float z = random(10.0f, 64.0f * terrainSize - 10.0f);
+#ifdef STRESS_TEST
+	const float x = random(10.0f, 64.0f * terrainSize - 10.0f);
+	const float z = random(10.0f, 64.0f * terrainSize - 10.0f);
+#else
 	const float x = random(10.0f, 20.0f);
 	const float z = random(10.0f, 20.0f);
+#endif
 
 	Sphere sphere{ Vector3{}, 1.5f };
 	Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
@@ -190,7 +197,14 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 				}
 			}
 		}
-		else if (args.Key == Keys::P) SpawnNPC();//spawnToggle = !spawnToggle;
+		else if (args.Key == Keys::P)
+		{
+#ifdef STRESS_TEST
+			spawnToggle = !spawnToggle;
+#else
+			SpawnNPC();
+#endif
+		}
 	}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{

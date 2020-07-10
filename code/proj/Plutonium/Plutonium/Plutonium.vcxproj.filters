@@ -867,9 +867,6 @@
     <ClInclude Include="..\..\..\include\Physics\Objects\Collider.h">
       <Filter>Header Files\Physics\Objects</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Physics\Objects\CollisionManifold.h">
-      <Filter>Header Files\Physics\Objects</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Objects\PhysicalObject.h">
       <Filter>Header Files\Physics\Objects</Filter>
     </ClInclude>

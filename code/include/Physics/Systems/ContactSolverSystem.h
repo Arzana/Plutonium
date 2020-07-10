@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
-#include "MovementSystem.h"
-#include "Physics/Objects/CollisionManifold.h"
+#include "Physics/Objects/PhysicsHandle.h"
+#include "Core/Math/Matrix3.h"
 
 namespace Pu
 {
@@ -26,17 +26,10 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ ContactSolverSystem& operator =(_In_ ContactSolverSystem &&other);
 
-		/* Gets the total amount of collisions processed since the last reset call. */
-		_Check_return_ static uint32 GetCollisionCount(void);
-		/* Resets the collisions counter. */
-		static void ResetCounter(void);
-
 		/* Adds a single item to the solver system, returns the index. */
 		void AddItem(_In_ PhysicsHandle handle, _In_ const Matrix3 &MoI, _In_ float mass, _In_ float CoR, _In_ float CoF);
 		/* Removes the item at the specified index. */
 		void RemoveItem(_In_ PhysicsHandle handle);
-		/* Registers a collision event between two objects. */
-		void RegisterCollision(_In_ const CollisionManifold &manifold);
 		/* Solves all the collision events currently stored in the system and adds the impulses to the movement system. */
 		void SolveConstriants(void);
 
@@ -46,13 +39,7 @@ namespace Pu
 		std::map<PhysicsHandle, Matrix3> moi;
 		std::map<PhysicsHandle, float> imass;
 		std::map<PhysicsHandle, Vector2> coefficients;
-		vector<CollisionManifold> manifolds;
 
-		ofloat *nx;
-		ofloat *ny;
-		ofloat *nz;
-		int256 *hfirst;
-		int256 *hsecond;
 		ofloat *fcor;
 		ofloat *scor;
 		ofloat *fcof;
@@ -67,15 +54,12 @@ namespace Pu
 		ofloat *jy;
 		ofloat *jz;
 
-		size_t sharedCapacity;
-		size_t kinematicCapacity;
-		size_t resultCapacity;
+		size_t capacity;
 
-		void EnsureBufferSize(size_t &staticCount, size_t &kinematicCount);
-		void FillStatic(size_t staticCount);
-		void FillKinematic(size_t &kinematicCount);
-		void SolveStatic(size_t count);
-		void SolveKinematic(size_t count);
+		void EnsureBufferSize(void);
+		void FillBuffers(void);
+		void VectorSolve(void);
+		void ApplyImpulses(void);
 		void Destroy(void);
 	};
 }

@@ -1,5 +1,7 @@
 #include "Physics/Systems/PhysicalWorld.h"
+#include "Physics/Systems/ContactSolverSystem.h"
 #include "Physics/Systems/MaterialDatabase.h"
+#include "Physics/Systems/MovementSystem.h"
 #include "Physics/Systems/ContactSystem.h"
 #include "Core/Diagnostics/Profiler.h"
 
@@ -131,9 +133,8 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 		{
 			/* Statistics. */
 			ImGui::Text("Objects:    %zu", handleLut.size());
-			ImGui::Text("Collisions: %u/%u", ContactSolverSystem::GetCollisionCount(), ContactSystem::GetNarrowPhaseChecks());
-			ContactSystem::ResetCounter();
-			ContactSolverSystem::ResetCounter();
+			ImGui::Text("Collisions: %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
+			ContactSystem::ResetCounters();
 
 			ImGui::Separator();
 

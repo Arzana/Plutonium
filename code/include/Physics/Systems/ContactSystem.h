@@ -1,17 +1,30 @@
 #pragma once
 #include <map>
-#include "ContactSolverSystem.h"
-#include "Physics/Objects/BVH.h"
+#include "Core/Math/Shapes/AABB.h"
+#include "Core/Collections/sse_vector.h"
+#include "Physics/Objects/PhysicsHandle.h"
 #include "Physics/Properties/CollisionShapes.h"
 
 namespace Pu
 {
 	class PhysicalWorld;
+	class DebugRenderer;
 
 	/* Defines a system used to detect collisions. */
 	class ContactSystem
 	{
 	public:
+		/* Specifies the first handles for the current collisions. */
+		vector<PhysicsHandle> hfirsts;
+		/* Specifies the second handles for the current collisions. */
+		vector<PhysicsHandle> hseconds;
+		/* Defines the x-component of the collision normal. */
+		avxf_vector nx;
+		/* Defines the y-component of the collision normal. */
+		avxf_vector ny;
+		/* Defines the z-component of the collision normal. */
+		avxf_vector nz;
+
 		/* Initializes a new instance of a constraint system. */
 		ContactSystem(_In_ PhysicalWorld &world);
 		ContactSystem(_In_ const ContactSystem&) = delete;
@@ -29,8 +42,10 @@ namespace Pu
 
 		/* Gets the amount of narrow phase checks since the last reset call. */
 		_Check_return_ static uint32 GetNarrowPhaseChecks(void);
-		/* Resets the narrow phase check counter. */
-		static void ResetCounter(void);
+		/* Gets the amount of collisions registered since the last reset call. */
+		_Check_return_ static uint32 GetCollisionsCount(void);
+		/* Resets the profiling counters. */
+		static void ResetCounters(void);
 
 		/* Adds a new collider to the constraint system. */
 		void AddItem(_In_ PhysicsHandle handle, _In_ const AABB &bb, _In_ CollisionShapes type, _In_ const float *collider);
@@ -61,6 +76,7 @@ namespace Pu
 		void TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond);
 		void TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere);
 		void TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere);
+		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 normal);
 		void SetGenericCheckers(void);
 		void Destroy(void);
 	};

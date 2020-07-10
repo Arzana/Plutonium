@@ -1,25 +1,25 @@
 #include "Physics/Systems/ContactSolverSystem.h"
 #include "Physics/Systems/PhysicalWorld.h"
+#include "Physics/Systems/ContactSystem.h"
+#include "Physics/Systems/MovementSystem.h"
 #include "Core/Diagnostics/Profiler.h"
 
 #define avx_realloc(ptr, type, cnt)	ptr = reinterpret_cast<type*>(_aligned_realloc(ptr, sizeof(type) * cnt, sizeof(type)))
 
-static Pu::uint32 collisions = 0;
-
 Pu::ContactSolverSystem::ContactSolverSystem(PhysicalWorld & world)
-	: world(&world), sharedCapacity(0), kinematicCapacity(0), resultCapacity(0)
+	: world(&world), capacity(0), fcor(nullptr), scor(nullptr), fcof(nullptr),
+	scof(nullptr), vx(nullptr), vy(nullptr), vz(nullptr), fimass(nullptr),
+	simass(nullptr), jx(nullptr), jy(nullptr), jz(nullptr)
 {}
 
 Pu::ContactSolverSystem::ContactSolverSystem(ContactSolverSystem && value)
 	: world(value.world), moi(std::move(value.moi)), imass(std::move(value.imass)),
-	coefficients(std::move(value.coefficients)), manifolds(std::move(value.manifolds)),
-	nx(value.nx), ny(value.ny), nz(value.nz), hfirst(value.hfirst), hsecond(value.hsecond),
-	fcor(value.fcor), scor(value.scor), fcof(value.fcof), scof(value.scof), vx(value.vx), vy(value.vy),
-	vz(value.vz), fimass(value.fimass), simass(value.simass), jx(value.jx), jy(value.jy), jz(value.jz),
-	sharedCapacity(value.sharedCapacity), kinematicCapacity(value.kinematicCapacity)
+	coefficients(std::move(value.coefficients)), fcor(value.fcor), scor(value.scor),
+	fcof(value.fcof), scof(value.scof), vx(value.vx), vy(value.vy), vz(value.vz),
+	fimass(value.fimass), simass(value.simass), jx(value.jx), jy(value.jy), 
+	jz(value.jz), capacity(value.capacity)
 {
-	value.sharedCapacity = 0;
-	value.kinematicCapacity = 0;
+	value.capacity = 0;
 }
 
 Pu::ContactSolverSystem & Pu::ContactSolverSystem::operator=(ContactSolverSystem && other)
@@ -32,12 +32,6 @@ Pu::ContactSolverSystem & Pu::ContactSolverSystem::operator=(ContactSolverSystem
 		moi = std::move(other.moi);
 		imass = std::move(other.imass);
 		coefficients = std::move(other.coefficients);
-		manifolds = std::move(other.manifolds);
-		nx = other.nx;
-		ny = other.ny;
-		nz = other.nz;
-		hfirst = other.hfirst;
-		hsecond = other.hsecond;
 		fcor = other.fcor;
 		scor = other.scor;
 		fcof = other.fcof;
@@ -50,24 +44,12 @@ Pu::ContactSolverSystem & Pu::ContactSolverSystem::operator=(ContactSolverSystem
 		jx = other.jx;
 		jy = other.jy;
 		jz = other.jz;
-		sharedCapacity = other.sharedCapacity;
-		kinematicCapacity = other.kinematicCapacity;
+		capacity = other.capacity;
 
-		other.sharedCapacity = 0;
-		other.kinematicCapacity = 0;
+		other.capacity = 0;
 	}
 
 	return *this;
-}
-
-Pu::uint32 Pu::ContactSolverSystem::GetCollisionCount(void)
-{
-	return collisions;
-}
-
-void Pu::ContactSolverSystem::ResetCounter(void)
-{
-	collisions = 0;
 }
 
 void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & MoI, float mass, float CoR, float CoF)
@@ -84,161 +66,47 @@ void Pu::ContactSolverSystem::RemoveItem(PhysicsHandle handle)
 	coefficients.erase(handle);
 }
 
-void Pu::ContactSolverSystem::RegisterCollision(const CollisionManifold & manifold)
-{
-	/* Skip any duplicate collisions. */
-	for (const CollisionManifold &cur : manifolds)
-	{
-		if (cur.FirstObject == manifold.SecondObject &&
-			cur.SecondObject == manifold.FirstObject)
-		{
-			return;
-		}
-	}
-
-	manifolds.emplace_back(manifold);
-}
-
 void Pu::ContactSolverSystem::SolveConstriants(void)
 {
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("Solver", Color::SunDawn());
-
-	size_t cntStatic = 0, cntKinematic = 0;
-	EnsureBufferSize(cntStatic, cntKinematic);
-
-	if (cntStatic)
+	/* We don't need to solve anything if there are no collisions. */
+	if (world->sysCnst->hfirsts.size())
 	{
-		FillStatic(cntStatic);
-		SolveStatic(cntStatic);
-	}
+		if constexpr (PhysicsProfileSystems) Profiler::Begin("Solver", Color::SunDawn());
 
-	if (cntKinematic)
-	{
-		FillKinematic(cntKinematic);
-		SolveKinematic(cntKinematic);
-	}
+		/* First we fill the temporary SSE buffer with our solver data. */
+		EnsureBufferSize();
+		FillBuffers();
 
-	collisions += static_cast<uint32>(cntStatic + cntKinematic);
-	manifolds.clear();
+		/* Then we solve these constraints in SSE and apply the impulses the the movement system. */
+		VectorSolve();
+		ApplyImpulses();
 
-	if constexpr (PhysicsProfileSystems) Profiler::End();
-}
-
-void Pu::ContactSolverSystem::EnsureBufferSize(size_t & staticCount, size_t & kinematicCount)
-{
-	/* Pre-calculate the buffer size to save on malloc calls. */
-	for (const CollisionManifold &cur : manifolds)
-	{
-		const bool isStatic = physics_get_type(cur.FirstObject) == PhysicsType::Static;
-		staticCount += isStatic;
-		kinematicCount += !isStatic;
-	}
-
-	/*
-	Kinematic collisions need more information than static collisions.
-	Kinematic collisions also have two result (one for each object), so the result buffer is bigger.
-	*/
-	const size_t bufferSize = max(staticCount, kinematicCount);
-	const size_t resultSize = max(staticCount, kinematicCount << 1);
-	if (sharedCapacity < bufferSize)
-	{
-		sharedCapacity = bufferSize;
-
-		avx_realloc(nx, ofloat, bufferSize);
-		avx_realloc(ny, ofloat, bufferSize);
-		avx_realloc(nz, ofloat, bufferSize);
-		avx_realloc(hsecond, int256, bufferSize);
-		avx_realloc(fcor, ofloat, bufferSize);
-		avx_realloc(scor, ofloat, bufferSize);
-		avx_realloc(fcof, ofloat, bufferSize);
-		avx_realloc(scof, ofloat, bufferSize);
-		avx_realloc(vx, ofloat, bufferSize);
-		avx_realloc(vy, ofloat, bufferSize);
-		avx_realloc(vz, ofloat, bufferSize);
-	}
-
-	if (kinematicCapacity < kinematicCount)
-	{
-		kinematicCapacity = kinematicCount;
-
-		avx_realloc(hfirst, int256, kinematicCount);
-		avx_realloc(fimass, ofloat, kinematicCount);
-		avx_realloc(simass, ofloat, kinematicCount);
-	}
-
-	if (resultCapacity < resultSize)
-	{
-		resultCapacity = resultSize;
-
-		avx_realloc(jx, ofloat, resultSize);
-		avx_realloc(jy, ofloat, resultSize);
-		avx_realloc(jz, ofloat, resultSize);
+		if constexpr (PhysicsProfileSystems) Profiler::End();
 	}
 }
 
-void Pu::ContactSolverSystem::FillStatic(size_t staticCount)
+void Pu::ContactSolverSystem::EnsureBufferSize(void)
 {
-	/* Use these buffers as staging buffer for the AVX types. */
-	AVX_FLOAT_UNION tmp_nx;
-	AVX_FLOAT_UNION tmp_ny;
-	AVX_FLOAT_UNION tmp_nz;
-	AVX_UINT_UNION tmp_hsecond;
-	AVX_FLOAT_UNION tmp_fcor;
-	AVX_FLOAT_UNION tmp_scor;
-	AVX_FLOAT_UNION tmp_fcof;
-	AVX_FLOAT_UNION tmp_scof;
-	AVX_FLOAT_UNION tmp_vx;
-	AVX_FLOAT_UNION tmp_vy;
-	AVX_FLOAT_UNION tmp_vz;
-
-	/* Fill the calculation buffer with the static manifolds. */
-	size_t i = 0;
-	for (const CollisionManifold &cur : manifolds)
+	/* The temporary buffers might need to be resized if we have more collisions than we can currently handle. */
+	const size_t count = world->sysCnst->hfirsts.size();
+	if (capacity < count)
 	{
-		if (physics_get_type(cur.FirstObject) == PhysicsType::Static)
-		{
-			/* Calculate the result index (j), AVX index [0, 7] (k), and the internal index (idx). */
-			const size_t j = i >> 0x3;
-			const size_t k = i++ & 0x7;
-			const uint16 idx = world->QueryInternalIndex(cur.SecondObject);
+		/* We can maximally apply 2 impulses per collisions (one for each object). */
+		capacity = count;
+		const size_t impulseCount = count << 1;
 
-			/* Query the various systems for additional parameters. */
-			const Vector2 cofs1 = coefficients[cur.FirstObject];
-			const Vector2 cofs2 = coefficients[cur.SecondObject];
-			const Vector3 vloc = world->sysMove->GetVelocity(idx);
-
-			/* Fill the next spot in the AVX staging buffer. */
-			tmp_nx.V[k] = cur.N.X;
-			tmp_ny.V[k] = cur.N.Y;
-			tmp_nz.V[k] = cur.N.Z;
-			tmp_hsecond.V[k] = idx;
-			tmp_fcor.V[k] = cofs1.X;
-			tmp_scor.V[k] = cofs2.X;
-			tmp_fcof.V[k] = cofs1.Y;
-			tmp_scof.V[k] = cofs2.Y;
-			tmp_vx.V[k] = vloc.X;
-			tmp_vy.V[k] = vloc.Y;
-			tmp_vz.V[k] = vloc.Z;
-
-			/* Push the staging buffer to the output. */
-			if (k >= 7 || i == staticCount)
-			{
-				nx[j] = tmp_nx.SSE;
-				ny[j] = tmp_ny.SSE;
-				nz[j] = tmp_nz.SSE;
-				hsecond[j] = tmp_hsecond.SSE;
-				fcor[j] = tmp_fcor.SSE;
-				scor[j] = tmp_scor.SSE;
-				fcof[j] = tmp_fcof.SSE;
-				scof[j] = tmp_scof.SSE;
-				vx[j] = tmp_vx.SSE;
-				vy[j] = tmp_vy.SSE;
-				vz[j] = tmp_vz.SSE;
-
-				/* We've found all the static objects, early out. */
-				if (i == staticCount) return;
-			}
-		}
+		avx_realloc(fcor, ofloat, count);
+		avx_realloc(scor, ofloat, count);
+		avx_realloc(fcof, ofloat, count);
+		avx_realloc(scof, ofloat, count);
+		avx_realloc(vx, ofloat, count);
+		avx_realloc(vy, ofloat, count);
+		avx_realloc(vz, ofloat, count);
+		avx_realloc(fimass, ofloat, count);
+		avx_realloc(simass, ofloat, count);
+		avx_realloc(jx, ofloat, impulseCount);
+		avx_realloc(jy, ofloat, impulseCount);
+		avx_realloc(jz, ofloat, impulseCount);
 	}
 }
 
@@ -248,14 +116,9 @@ This is not the case, we check against i to see whether they have been set.
 */
 #pragma warning(push)
 #pragma warning(disable:4701)
-void Pu::ContactSolverSystem::FillKinematic(size_t & kinematicCount)
+void Pu::ContactSolverSystem::FillBuffers(void)
 {
 	/* Use these buffers as staging buffer for the AVX types. */
-	AVX_FLOAT_UNION tmp_nx;
-	AVX_FLOAT_UNION tmp_ny;
-	AVX_FLOAT_UNION tmp_nz;
-	AVX_UINT_UNION tmp_hfirst;
-	AVX_UINT_UNION tmp_hsecond;
 	AVX_FLOAT_UNION tmp_fcor;
 	AVX_FLOAT_UNION tmp_scor;
 	AVX_FLOAT_UNION tmp_fcof;
@@ -266,166 +129,72 @@ void Pu::ContactSolverSystem::FillKinematic(size_t & kinematicCount)
 	AVX_FLOAT_UNION tmp_fimass;
 	AVX_FLOAT_UNION tmp_simass;
 
-	size_t i = 0;
-	for (const CollisionManifold &cur : manifolds)
+	const size_t size = world->sysCnst->hfirsts.size();
+	size_t i;
+
+	/* Loop through all the registered collisions. */
+	for (i = 0; i < size; i++)
 	{
-		if (physics_get_type(cur.FirstObject) == PhysicsType::Kinematic)
-		{
-			/*
-			Calculate
-			- The result index (j)
-			- The AVX index [0, 7] (k)
-			- The first internal index (l1)
-			- The second internal index (l2)
-			*/
-			const size_t j = i >> 0x3;
-			const size_t k = i & 0x7;
-			const uint16 l1 = world->QueryInternalIndex(cur.FirstObject);
-			const uint16 l2 = world->QueryInternalIndex(cur.SecondObject);
+		/* Get the handles of the current collision. */
+		const PhysicsHandle hfirst = world->sysCnst->hfirsts[i];
+		const PhysicsHandle hsecond = world->sysCnst->hseconds[i];
 
-			/*
-			Query the various systems for additional parameters.
-			Also ignore this collision if the objects are already moving away from each other,
-			in the direction of the collision normal.
-			*/
-			const Vector3 relVloc = world->sysMove->GetVelocity(l2) - world->sysMove->GetVelocity(l1);
-			if (dot(relVloc, cur.N) > 0.0f) continue;
-
-			++i;
-			const Vector2 cofs1 = coefficients[cur.FirstObject];
-			const Vector2 cofs2 = coefficients[cur.SecondObject];
-
-			/* Fill the next spot in the AVX staging buffer. */
-			tmp_nx.V[k] = cur.N.X;
-			tmp_ny.V[k] = cur.N.Y;
-			tmp_nz.V[k] = cur.N.Z;
-			tmp_hfirst.V[k] = l1;
-			tmp_hsecond.V[k] = l2;
-			tmp_fcor.V[k] = cofs1.X;
-			tmp_scor.V[k] = cofs2.X;
-			tmp_fcof.V[k] = cofs1.Y;
-			tmp_scof.V[k] = cofs2.Y;
-			tmp_vx.V[k] = relVloc.X;
-			tmp_vy.V[k] = relVloc.Y;
-			tmp_vz.V[k] = relVloc.Z;
-			tmp_fimass.V[k] = imass[cur.FirstObject];
-			tmp_simass.V[k] = imass[cur.SecondObject];
-
-			/* Push the staging buffer to the output. */
-			if (k >= 7)
-			{
-				nx[j] = tmp_nx.SSE;
-				ny[j] = tmp_ny.SSE;
-				nz[j] = tmp_nz.SSE;
-				hfirst[j] = tmp_hfirst.SSE;
-				hsecond[j] = tmp_hsecond.SSE;
-				fcor[j] = tmp_fcor.SSE;
-				scor[j] = tmp_scor.SSE;
-				fcof[j] = tmp_fcof.SSE;
-				scof[j] = tmp_scof.SSE;
-				vx[j] = tmp_vx.SSE;
-				vy[j] = tmp_vy.SSE;
-				vz[j] = tmp_vz.SSE;
-				fimass[j] = tmp_fimass.SSE;
-				simass[j] = tmp_simass.SSE;
-			}
-		}
-	}
-
-	/* Push the staging buffer one more time if needed. */
-	if (i && (i & 0x7) < 8)
-	{
-		const size_t j = i >> 0x3;
-
-		nx[j] = tmp_nx.SSE;
-		ny[j] = tmp_ny.SSE;
-		nz[j] = tmp_nz.SSE;
-		hfirst[j] = tmp_hfirst.SSE;
-		hsecond[j] = tmp_hsecond.SSE;
-		fcor[j] = tmp_fcor.SSE;
-		scor[j] = tmp_scor.SSE;
-		fcof[j] = tmp_fcof.SSE;
-		scof[j] = tmp_scof.SSE;
-		vx[j] = tmp_vx.SSE;
-		vy[j] = tmp_vy.SSE;
-		vz[j] = tmp_vz.SSE;
-		fimass[j] = tmp_fimass.SSE;
-		simass[j] = tmp_simass.SSE;
-	}
-
-	/* Update the kinematic count to the actual objects in the buffer. */
-	kinematicCount = i;
-}
-#pragma warning(pop)
-
-/*
-	Linear impulse:
-	e = min(coefficient of resitution)
-	j = max(0, -(1.0f + e) * dot(V, N))
-	V += j * N
-
-	Friction:
-	T = normalize(V - dot(V, N) * N)
-	e = sqrt(product coefficient of friction)
-	j = clamp(-(1.0f + e) * dot(V, T), -j * e, j * e)
-	V += j * T;
-*/
-void Pu::ContactSolverSystem::SolveStatic(size_t count)
-{
-	/* Predefine often used constants. */
-	const size_t avxCnt = (count >> 0x3) + (count != 0);
-	const ofloat zero = _mm256_setzero_ps();
-	const ofloat one = _mm256_set1_ps(1.0f);
-	const ofloat neg = _mm256_set1_ps(-1.0f);
-
-	/* Solve collision per AVX type. */
-	for (size_t i = 0; i < avxCnt; i++)
-	{
-		/* Calculate linear impulse. */
-		ofloat cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], nx[i]), _mm256_add_ps(_mm256_mul_ps(vy[i], ny[i]), _mm256_mul_ps(vz[i], nz[i])));
-		ofloat e = _mm256_mul_ps(_mm256_add_ps(_mm256_min_ps(fcor[i], scor[i]), one), neg);
-		ofloat j = _mm256_max_ps(zero, _mm256_mul_ps(e, cosTheta));
-
-		/* Apply linear impulse. */
-		jx[i] = _mm256_mul_ps(j, nx[i]);
-		jy[i] = _mm256_mul_ps(j, ny[i]);
-		jz[i] = _mm256_mul_ps(j, nz[i]);
-
-		/* Calculate tangent vector (normalization is done safely incase of N=V). */
-		ofloat tx = _mm256_sub_ps(vx[i], _mm256_mul_ps(cosTheta, nx[i]));
-		ofloat ty = _mm256_sub_ps(vy[i], _mm256_mul_ps(cosTheta, ny[i]));
-		ofloat tz = _mm256_sub_ps(vz[i], _mm256_mul_ps(cosTheta, nz[i]));
-		ofloat l = _mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz)));
-		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, l, _CMP_EQ_OQ), _mm256_rsqrt_ps(l));
-		tx = _mm256_mul_ps(tx, l);
-		ty = _mm256_mul_ps(ty, l);
-		tz = _mm256_mul_ps(tz, l);
-
-		/* Calculate friction impulse. */
-		cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], tx), _mm256_add_ps(_mm256_mul_ps(vy[i], ty), _mm256_mul_ps(vz[i], tz)));
-		e = _mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i]));
-		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, e), neg), cosTheta)));
-
-		/* Apply friction impulse. */
-		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(j, tx));
-		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(j, ty));
-		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(j, tz));
-	}
-
-	/* Push the accumulated forces to the movement system. */
-	for (size_t i = 0; i < count; i++)
-	{
+		/* Gets the AVX index (j) and the packed index (k). */
 		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
 
-		const uint32 id = AVX_UINT_UNION{ hsecond[j] }.V[k];
-		const float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
-		const float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
-		const float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
+		/* We have to fill the buffers with different data depending on whether one of the types was static. */
+		const bool isStatic = physics_get_type(hfirst) == PhysicsType::Static;
 
-		world->sysMove->AddForce(id, x, y, z, Quaternion{});
+		/* 
+		The relative velocity is either the velocity of the second object (incase of a static collision) or the delta velocity between the two kinematic objects.
+		The mass scalar also needs to be set differently, we don't care about mass in static collisions as all energy will stay in the kinematic object.
+		*/
+		Vector3 v;
+		if (isStatic)
+		{
+			v = world->sysMove->GetVelocity(world->QueryInternalIndex(hsecond));
+			tmp_fimass.V[k] = 0.0f;
+			tmp_simass.V[k] = 1.0f;
+		}
+		else
+		{
+			const uint16 idx1 = world->QueryInternalIndex(hfirst);
+			const uint16 idx2 = world->QueryInternalIndex(hsecond);
+			v = world->sysMove->GetVelocity(idx2) - world->sysMove->GetVelocity(idx1);
+
+			tmp_fimass.V[k] = imass[hfirst];
+			tmp_simass.V[k] = imass[hsecond];
+		}
+
+		/* Gets the coefficients of both objects. */
+		const Vector2 coeff1 = coefficients[hfirst];
+		const Vector2 coeff2 = coefficients[hsecond];
+
+		tmp_fcor.V[k] = coeff1.X;
+		tmp_scor.V[k] = coeff2.X;
+		tmp_fcof.V[k] = coeff1.Y;
+		tmp_scof.V[k] = coeff2.Y;
+		tmp_vx.V[k] = v.X;
+		tmp_vy.V[k] = v.Y;
+		tmp_vz.V[k] = v.Z;
+
+		/* Push the staging buffer to the output. */
+		if (k >= 7 || i == size - 1)
+		{
+			fcor[j] = tmp_fcor.SSE;
+			scor[j] = tmp_scor.SSE;
+			fcof[j] = tmp_fcof.SSE;
+			scof[j] = tmp_scof.SSE;
+			vx[j] = tmp_vx.SSE;
+			vy[j] = tmp_vy.SSE;
+			vz[j] = tmp_vz.SSE;
+			fimass[j] = tmp_fimass.SSE;
+			simass[j] = tmp_simass.SSE;
+		}
 	}
 }
+#pragma warning(pop)
 
 /*
 	Linear impulse:
@@ -435,20 +204,26 @@ void Pu::ContactSolverSystem::SolveStatic(size_t count)
 	V1 -= j * N * m1^-1
 	V2 += j * N * m2^-1
 
-	Friction:
+	Friction (broken):
 	T = normalize(V - dot(V, N) * N)
 	e = sqrt(product coefficient of friction)
 	j = clamp((-(1.0f + e) * dot(V, T)) / M, -j * e, j * e)
 	V1 -= j * T * m1^-1
 	V2 += j * T * m2^-1
 */
-void Pu::ContactSolverSystem::SolveKinematic(size_t count)
+void Pu::ContactSolverSystem::VectorSolve(void)
 {
 	/* Predefine often used constants. */
+	const size_t count = world->sysCnst->hfirsts.size();
 	const size_t avxCnt = (count >> 0x3) + (count != 0);
 	const ofloat zero = _mm256_setzero_ps();
 	const ofloat one = _mm256_set1_ps(1.0f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
+
+	/* Cache pointers to the collision normal. */
+	const ofloat *nx = world->sysCnst->nx.data();
+	const ofloat *ny = world->sysCnst->ny.data();
+	const ofloat *nz = world->sysCnst->nz.data();
 
 	/* Solve collision per AVX type. */
 	for (size_t i = 0, k = avxCnt; i < avxCnt; i++, k++)
@@ -460,14 +235,14 @@ void Pu::ContactSolverSystem::SolveKinematic(size_t count)
 		ofloat j = _mm256_mul_ps(_mm256_mul_ps(e, cosTheta), imassTotal);
 
 		/* Apply linear impulse to the first object. */
-		jx[i] = _mm256_mul_ps(_mm256_mul_ps(j, nx[i]), fimass[i]);
-		jy[i] = _mm256_mul_ps(_mm256_mul_ps(j, ny[i]), fimass[i]);
-		jz[i] = _mm256_mul_ps(_mm256_mul_ps(j, nz[i]), fimass[i]);
+		jx[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nx[i]), fimass[i]), neg);
+		jy[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, ny[i]), fimass[i]), neg);
+		jz[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nz[i]), fimass[i]), neg);
 
 		/* Apply linear impulse to the second object. */
-		jx[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nx[i]), simass[i]), neg);
-		jy[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, ny[i]), simass[i]), neg);
-		jz[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nz[i]), simass[i]), neg);
+		jx[i] = _mm256_mul_ps(_mm256_mul_ps(j, nx[i]), simass[i]);
+		jy[i] = _mm256_mul_ps(_mm256_mul_ps(j, ny[i]), simass[i]);
+		jz[i] = _mm256_mul_ps(_mm256_mul_ps(j, nz[i]), simass[i]);
 
 		/* Calculate tangent vector (normalization is done safely incase of N=V). */
 		ofloat tx = _mm256_sub_ps(vx[i], _mm256_mul_ps(cosTheta, nx[i]));
@@ -485,44 +260,52 @@ void Pu::ContactSolverSystem::SolveKinematic(size_t count)
 		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal)));
 
 		/* Apply friction impulse to the first object. */
-		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), fimass[i]));
-		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), fimass[i]));
-		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), fimass[i]));
+		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(_mm256_mul_ps(j, tx), fimass[i]));
+		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(_mm256_mul_ps(j, ty), fimass[i]));
+		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(_mm256_mul_ps(j, tz), fimass[i]));
 
 		/* Apply friction impulse to the second object. */
-		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(_mm256_mul_ps(j, tx), simass[i]));
-		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(_mm256_mul_ps(j, ty), simass[i]));
-		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(_mm256_mul_ps(j, tz), simass[i]));
+		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), simass[i]));
+		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), simass[i]));
+		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), simass[i]));
 	}
+}
+
+void Pu::ContactSolverSystem::ApplyImpulses(void)
+{
+	const size_t count = world->sysCnst->hfirsts.size();
+	const size_t avxCnt = (count >> 0x3) + (count != 0);
 
 	/* Push the accumulated forces to the movement system. */
 	for (size_t i = 0; i < count; i++)
 	{
 		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
+		
+		const PhysicsHandle hfirst = world->sysCnst->hfirsts[i];
+		const PhysicsHandle hsecond = world->sysCnst->hseconds[i];
 
-		uint32 id = AVX_UINT_UNION{ hsecond[j] }.V[k];
+		/* The second object will always have impulses applied to it as it's either kinematic or dynamic. */
 		float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
 		float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
 		float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
-		world->sysMove->AddForce(id, x, y, z, Quaternion{});
+		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, Quaternion{});
 
-		id = AVX_UINT_UNION{ hfirst[j] }.V[k];
-		x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
-		y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
-		z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
-		world->sysMove->AddForce(id, x, y, z, Quaternion{});
+		/* The second object might not need impulses to be applied. */
+		if (physics_get_type(hfirst) != PhysicsType::Static)
+		{
+			x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
+			y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
+			z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
+			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, Quaternion{});
+		}
 	}
 }
 
 void Pu::ContactSolverSystem::Destroy(void)
 {
-	if (sharedCapacity)
+	if (capacity)
 	{
-		_aligned_free(nx);
-		_aligned_free(ny);
-		_aligned_free(nz);
-		_aligned_free(hsecond);
 		_aligned_free(fcor);
 		_aligned_free(scor);
 		_aligned_free(fcof);
@@ -530,16 +313,8 @@ void Pu::ContactSolverSystem::Destroy(void)
 		_aligned_free(vx);
 		_aligned_free(vy);
 		_aligned_free(vz);
-	}
-
-	if (kinematicCapacity)
-	{
-		_aligned_free(hfirst);
 		_aligned_free(fimass);
 		_aligned_free(simass);
-	}
-	if (resultCapacity)
-	{
 		_aligned_free(jx);
 		_aligned_free(jy);
 		_aligned_free(jz);
