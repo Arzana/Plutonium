@@ -1,4 +1,4 @@
-#include "Core/Collections/sse_vector.h"
+#include "Core/Collections/simd_vector.h"
 
 const Pu::ofloat Pu::avxf_lut[8] =
 {

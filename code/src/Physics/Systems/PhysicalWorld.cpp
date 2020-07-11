@@ -90,6 +90,13 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & prop
 	return result;
 }
 
+void Pu::PhysicalWorld::SetGravity(Vector3 g)
+{
+	lock.lock();
+	sysMove->SetGravity(g);
+	lock.unlock();
+}
+
 void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 {
 	lock.lock();

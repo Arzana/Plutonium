@@ -182,15 +182,15 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		/* Push the staging buffer to the output. */
 		if (k >= 7 || i == size - 1)
 		{
-			fcor[j] = tmp_fcor.SSE;
-			scor[j] = tmp_scor.SSE;
-			fcof[j] = tmp_fcof.SSE;
-			scof[j] = tmp_scof.SSE;
-			vx[j] = tmp_vx.SSE;
-			vy[j] = tmp_vy.SSE;
-			vz[j] = tmp_vz.SSE;
-			fimass[j] = tmp_fimass.SSE;
-			simass[j] = tmp_simass.SSE;
+			fcor[j] = tmp_fcor.SIMD;
+			scor[j] = tmp_scor.SIMD;
+			fcof[j] = tmp_fcof.SIMD;
+			scof[j] = tmp_scof.SIMD;
+			vx[j] = tmp_vx.SIMD;
+			vy[j] = tmp_vy.SIMD;
+			vz[j] = tmp_vz.SIMD;
+			fimass[j] = tmp_fimass.SIMD;
+			simass[j] = tmp_simass.SIMD;
 		}
 	}
 }

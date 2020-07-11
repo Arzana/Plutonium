@@ -71,7 +71,7 @@ void Pu::FreeCamera::Update(float dt)
 	state &= ~16;
 
 	/* Update the orientation and the view matrix. */
-	Orientation = Quaternion::Create(Yaw, Pitch, Roll);
+	Orientation = Quaternion::Create(Pitch, Yaw, Roll);
 	SetView(Matrix::CreateLookIn(GetPosition(), Orientation * Vector3::Forward(), Orientation * Vector3::Up()));
 }
 

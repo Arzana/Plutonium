@@ -155,11 +155,21 @@ void TestGame::SpawnNPC(void)
 	const float z = random(10.0f, 20.0f);
 #endif
 
+	/* Simple sphere is good for height, but bad for width. */
 	Sphere sphere{ Vector3{}, 1.5f };
 	Collider collider{ AABB(-1.5f, -1.5f, -1.5f, 3.0f, 3.0f, 3.0f), CollisionShapes::Sphere, &sphere };
+
+	/* Use the default physical material. */
 	PhysicalObject obj{ Vector3(x, 50.0f, z), Quaternion{}, collider };
 	obj.Properties = physicsMat;
 	obj.State.Mass = 1.0f;
+	obj.CoM = obj.P;
+
+	/* Moment of Inertia is that of a cylinder (using h = 1). */
+	const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
+	const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
+	obj.MoI = Matrix3(nonDomAxis, 0.0f, 0.0f, 0.0f, nonDomAxis, 0.0f, 0.0f, 0.0f, domAxis);
+
 	npcs.emplace_back(physics->AddKinematic(obj));
 }
 

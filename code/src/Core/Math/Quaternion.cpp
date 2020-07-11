@@ -83,16 +83,16 @@ Pu::Quaternion Pu::Quaternion::Create(float theta, Vector3 axis)
 This method works by creating 3 quaternions (for yaw, pitch and roll) and the multiplying them.
 The creation of the quaternions and their multiplication is inlined in order to perform less multiplications.
 */
-Pu::Quaternion Pu::Quaternion::Create(float yaw, float pitch, float roll)
+Pu::Quaternion Pu::Quaternion::Create(float pitch, float yaw, float roll)
 {
-	yaw *= 0.5f;
 	pitch *= 0.5f;
+	yaw *= 0.5f;
 	roll *= 0.5f;
 
-	const float sy = sinf(yaw);
-	const float cy = cosf(yaw);
 	const float sp = sinf(pitch);
 	const float cp = cosf(pitch);
+	const float sy = sinf(yaw);
+	const float cy = cosf(yaw);
 	const float sr = sinf(roll);
 	const float cr = cosf(roll);
 

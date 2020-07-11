@@ -111,7 +111,7 @@ void Pu::MovementSystem::ApplyGravity(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 
-	const size_t size = vx.sse_size();
+	const size_t size = vx.simd_size();
 	for (size_t i = 0; i < size; i++) vx[i] = _mm256_and_ps(_mm256_add_ps(vx[i], _mm256_mul_ps(g.X, dt)), sleep[i]);
 	for (size_t i = 0; i < size; i++) vy[i] = _mm256_and_ps(_mm256_add_ps(vy[i], _mm256_mul_ps(g.Y, dt)), sleep[i]);
 	for (size_t i = 0; i < size; i++) vz[i] = _mm256_and_ps(_mm256_add_ps(vz[i], _mm256_mul_ps(g.Z, dt)), sleep[i]);
@@ -123,7 +123,7 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 
-	const size_t size = vx.sse_size();
+	const size_t size = vx.simd_size();
 	const ofloat zero = _mm256_set1_ps(0.0f);
 
 	for (size_t i = 0; i < size; i++)
@@ -163,7 +163,8 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 void Pu::MovementSystem::Integrate(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
-	const size_t size = vx.sse_size();
+	const size_t size = vx.simd_size();
+	const ofloat zero = _mm256_setzero_ps();
 
 #ifdef _DEBUG
 	addForces = false;
@@ -179,6 +180,23 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 	for (size_t i = 0; i < size; i++) tj[i] = _mm256_add_ps(tj[i], _mm256_mul_ps(wj[i], dt));
 	for (size_t i = 0; i < size; i++) tk[i] = _mm256_add_ps(tk[i], _mm256_mul_ps(wk[i], dt));
 	for (size_t i = 0; i < size; i++) tr[i] = _mm256_add_ps(tr[i], _mm256_mul_ps(wr[i], dt));
+
+	/* Normalize the orientations. */
+	for (size_t i = 0; i < size; i++)
+	{
+		const ofloat ii = _mm256_mul_ps(ti[i], ti[i]);
+		const ofloat jj = _mm256_mul_ps(tj[i], tj[i]);
+		const ofloat kk = _mm256_mul_ps(tk[i], tk[i]);
+		const ofloat rr = _mm256_mul_ps(tr[i], tr[i]);
+
+		const ofloat ll = _mm256_add_ps(_mm256_add_ps(ii, jj), _mm256_add_ps(kk, rr));
+		const ofloat l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
+
+		ti[i] = _mm256_mul_ps(ti[i], l);
+		tj[i] = _mm256_mul_ps(tj[i], l);
+		tk[i] = _mm256_mul_ps(tk[i], l);
+		tr[i] = _mm256_mul_ps(tr[i], l);
+	}
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
@@ -208,7 +226,7 @@ foreach object
 */
 void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & result) const
 {
-	const size_t size_avx = vx.sse_size();
+	const size_t size_avx = vx.simd_size();
 	const size_t size = vx.size();
 
 	/*
@@ -228,7 +246,7 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 		const ofloat d = _mm256_add_ps(_mm256_add_ps(_mm256_mul_ps(sx, sx), _mm256_mul_ps(sy, sy)), _mm256_mul_ps(sz, sz));
 
 		/* Check whether the distance is greater than the maximum. */
-		masks[i].SSE = _mm256_cmp_ps(d, maxDist, _CMP_GT_OQ);
+		masks[i].SIMD = _mm256_cmp_ps(d, maxDist, _CMP_GT_OQ);
 	}
 
 	/* Convert the AVX type to normal floats and add them to the result buffer. */
@@ -263,7 +281,7 @@ void Pu::MovementSystem::TrySleep(ofloat epsilon)
 		if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 
 		/* Predefine the minimum distance for us to consider the object sleepable. */
-		const size_t size_avx = vx.sse_size();
+		const size_t size_avx = vx.simd_size();
 		const size_t size = vx.size();
 		const ofloat minMag = _mm256_mul_ps(epsilon, epsilon);
 

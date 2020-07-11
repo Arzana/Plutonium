@@ -1,6 +1,6 @@
 #pragma once
 #include "Physics/Objects/PhysicsHandle.h"
-#include "Core/Collections/sse_vector.h"
+#include "Core/Collections/simd_vector.h"
 #include "Core/Math/VectorSSE.h"
 #include "Core/Math/Matrix.h"
 

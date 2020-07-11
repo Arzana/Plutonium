@@ -68,7 +68,7 @@ namespace Pu
 		/* Sets the direction of the light. */
 		inline void SetDirection(_In_ float yaw, _In_ float pitch, _In_ float roll)
 		{
-			orien = Matrix::CreateRotation(yaw, pitch, roll);
+			orien = Matrix::CreateRotation(pitch, yaw, roll);
 		}
 
 		/* Sets the direction of the light. */

@@ -909,7 +909,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Collections\sse_vector.h">
+    <ClInclude Include="..\..\..\include\Core\Collections\simd_vector.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1304,7 +1304,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Collections\sse_vector.cpp">
+    <ClCompile Include="..\..\..\src\Core\Collections\simd_vector.cpp">
       <Filter>Source Files\Core\Collections</Filter>
     </ClCompile>
   </ItemGroup>

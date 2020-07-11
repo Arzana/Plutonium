@@ -133,7 +133,7 @@ namespace Pu
 		/* Creates a quaternion rotating around a specified axis. */
 		_Check_return_ static Quaternion Create(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a quaternion from euler angles. */
-		_Check_return_ static Quaternion Create(_In_ float yaw, _In_ float pitch, _In_ float roll);
+		_Check_return_ static Quaternion Create(_In_ float pitch, _In_ float yaw, _In_ float roll);
 		/* Creates a quaternion around the Y-axis. */
 		_Check_return_ static Quaternion CreateYaw(_In_ float theta);
 		/* Creates a quaternion around the X-axis. */

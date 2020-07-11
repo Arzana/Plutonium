@@ -58,22 +58,22 @@ namespace Pu
 	/* Smallest float unit. */
 	constexpr float EPSILON = 0.00000000001f;
 	
-	/* Defines a union that allows access to the individual floats in a SSE type. */
+	/* Defines a union that allows access to the individual floats in a SIMD type. */
 	template <typename sse_t, typename single_t>
-	union SSE_UNION
+	union SIMD_UNION
 	{
-		/* The SSE type. */
-		sse_t SSE;
+		/* The SIMD type. */
+		sse_t SIMD;
 		/* The singles. */
 		single_t V[sizeof(sse_t) / sizeof(single_t)];
 	};
 
 	/* Defines an AVX-float union. */
-	using AVX_FLOAT_UNION = SSE_UNION<ofloat, float>;
+	using AVX_FLOAT_UNION = SIMD_UNION<ofloat, float>;
 	/* Defines an AVX-int union. */
-	using AVX_INT_UNION = SSE_UNION<int256, int32>;
+	using AVX_INT_UNION = SIMD_UNION<int256, int32>;
 	/* Defines an AVX unsigned-int union. */
-	using AVX_UINT_UNION = SSE_UNION<int256, uint32>;
+	using AVX_UINT_UNION = SIMD_UNION<int256, uint32>;
 
 	/* Gets the minimum value of the specified type. */
 	template <typename _Ty>

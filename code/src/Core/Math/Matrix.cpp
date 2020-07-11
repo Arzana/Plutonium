@@ -263,7 +263,7 @@ Pu::string Pu::Matrix::ToString(void) const
 /* Warning cause is checked and code is working as intended. */
 #pragma warning (push)
 #pragma warning (disable:4458)
-void Pu::Matrix::SetOrientation(float yaw, float pitch, float roll)
+void Pu::Matrix::SetOrientation(float pitch, float yaw, float roll)
 {
 	const float cz = cosf(pitch);
 	const float sz = sinf(pitch);

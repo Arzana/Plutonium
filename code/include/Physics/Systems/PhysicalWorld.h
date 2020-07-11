@@ -41,6 +41,8 @@ namespace Pu
 		_Check_return_ PhysicsHandle AddKinematic(_In_ const PhysicalObject &obj);
 		/* Adds the specified material to this world. */
 		_Check_return_ PhysicsHandle AddMaterial(_In_ const PhysicalProperties &prop);
+		/* Sets the gravitational constant. */
+		void SetGravity(_In_ Vector3 g);
 		/* Removes the specified object or material from this world. */
 		void Destroy(_In_ PhysicsHandle handle);
 		/* Gets the transform of the specified object. */
