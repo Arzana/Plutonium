@@ -26,6 +26,11 @@ namespace Pu
 			: R(r), I(i), J(j), K(k)
 		{}
 
+		/* Initializes a new instance of a quaternion with specified real and imaginary components. */
+		Quaternion(_In_ float real, _In_ Vector3 imaginary)
+			:R(real), I(imaginary.X), J(imaginary.Y), K(imaginary.Z)
+		{}
+
 		/* Negates the quaternion. */
 		_Check_return_ inline Quaternion operator -(void) const
 		{
@@ -159,6 +164,18 @@ namespace Pu
 		/* Gets a human readable version of the quaternion. */
 		_Check_return_ string ToString(void) const;
 	};
+
+	/* Multiplies the quaternion by a scalar value. */
+	_Check_return_ inline Quaternion operator *(_In_ float s, _In_ Quaternion q)
+	{
+		return q * s;
+	}
+
+	/* Divides the quaternion by a scalar value. */
+	_Check_return_ inline Quaternion operator /(_In_ float s, _In_ Quaternion q)
+	{
+		return q / s;
+	}
 
 	/* Calculates the dot product of the two specified quaternions. */
 	_Check_return_ inline float dot(_In_ Quaternion q1, _In_ Quaternion q2)

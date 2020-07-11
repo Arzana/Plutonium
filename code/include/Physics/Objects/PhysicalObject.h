@@ -17,7 +17,7 @@ namespace Pu
 		/* Specifies the linear velocity of the object. */
 		Vector3 V;
 		/* Specifies the torque of the object. */
-		Quaternion Omega;
+		Vector3 Omega;
 
 		/* Specifies the moment of inertia of the object. */
 		Matrix3 MoI;

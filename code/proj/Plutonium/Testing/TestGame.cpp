@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-//#define STRESS_TEST
+#define STRESS_TEST
 
 using namespace Pu;
 
@@ -164,6 +164,7 @@ void TestGame::SpawnNPC(void)
 	obj.Properties = physicsMat;
 	obj.State.Mass = 1.0f;
 	obj.CoM = obj.P;
+	obj.Omega = Vector3(0.0f, PI2, 0.0f);
 
 	/* Moment of Inertia is that of a cylinder (using h = 1). */
 	const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));

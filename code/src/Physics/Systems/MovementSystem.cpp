@@ -9,7 +9,7 @@ Pu::MovementSystem::MovementSystem(void)
 	: g(0.0f, -9.81f, 0.0f)
 {}
 
-void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quaternion angular)
+void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3 torque)
 {
 	/* Add the linear force to the velocity. */
 	vx.add(idx, x);
@@ -17,10 +17,9 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quatern
 	vz.add(idx, z);
 
 	/* Add the angular force to the rotation. */
-	wi.add(idx, angular.I);
-	wj.add(idx, angular.J);
-	wk.add(idx, angular.K);
-	wr.add(idx, angular.R);
+	wp.add(idx, torque.X);
+	wy.add(idx, torque.Y);
+	wr.add(idx, torque.Z);
 
 	/* Save this impulse on debug mode, so we can display it. */
 #ifdef _DEBUG
@@ -33,7 +32,7 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Quatern
 #endif
 }
 
-size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quaternion omega, float CoD, float imass)
+size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, float CoD, float imass)
 {
 	/* 
 	We need to put a mask of all ones into the affected by gravity buffer. 
@@ -57,10 +56,9 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Quate
 	tj.push(theta.J);
 	tk.push(theta.K);
 	tr.push(theta.R);
-	wi.push(omega.I);
-	wj.push(omega.J);
-	wk.push(omega.K);
-	wr.push(omega.R);
+	wp.push(omega.X);
+	wy.push(omega.Y);
+	wr.push(omega.Z);
 
 	qx.push(p.X);
 	qy.push(p.Y);
@@ -95,9 +93,8 @@ void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
 		tj.erase(idx);
 		tk.erase(idx);
 		tr.erase(idx);
-		wi.erase(idx);
-		wj.erase(idx);
-		wk.erase(idx);
+		wp.erase(idx);
+		wy.erase(idx);
 		wr.erase(idx);
 
 		qx.erase(idx);
@@ -160,11 +157,19 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
+/*
+	P = P + V * dt
+	normalize(T)
+	T = T + (0.5 * W * T) * dt
+*/
 void Pu::MovementSystem::Integrate(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+
 	const size_t size = vx.simd_size();
 	const ofloat zero = _mm256_setzero_ps();
+	const ofloat half = _mm256_set1_ps(0.5f);
+	const ofloat neg = _mm256_set1_ps(-1.0f);
 
 #ifdef _DEBUG
 	addForces = false;
@@ -175,27 +180,40 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 	for (size_t i = 0; i < size; i++) py[i] = _mm256_add_ps(py[i], _mm256_mul_ps(vy[i], dt));
 	for (size_t i = 0; i < size; i++) pz[i] = _mm256_add_ps(pz[i], _mm256_mul_ps(vz[i], dt));
 
-	/* Add angular rotation to orientation (scaled by delta time). */
-	for (size_t i = 0; i < size; i++) ti[i] = _mm256_add_ps(ti[i], _mm256_mul_ps(wi[i], dt));
-	for (size_t i = 0; i < size; i++) tj[i] = _mm256_add_ps(tj[i], _mm256_mul_ps(wj[i], dt));
-	for (size_t i = 0; i < size; i++) tk[i] = _mm256_add_ps(tk[i], _mm256_mul_ps(wk[i], dt));
-	for (size_t i = 0; i < size; i++) tr[i] = _mm256_add_ps(tr[i], _mm256_mul_ps(wr[i], dt));
-
-	/* Normalize the orientations. */
 	for (size_t i = 0; i < size; i++)
 	{
+		/* Calculate the squares of the components. */
 		const ofloat ii = _mm256_mul_ps(ti[i], ti[i]);
 		const ofloat jj = _mm256_mul_ps(tj[i], tj[i]);
 		const ofloat kk = _mm256_mul_ps(tk[i], tk[i]);
 		const ofloat rr = _mm256_mul_ps(tr[i], tr[i]);
 
+		/* Calculate quaternion magnitude (zero if quaterion is zero). */
 		const ofloat ll = _mm256_add_ps(_mm256_add_ps(ii, jj), _mm256_add_ps(kk, rr));
 		const ofloat l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
 
+		/* Normalize orientation. */
 		ti[i] = _mm256_mul_ps(ti[i], l);
 		tj[i] = _mm256_mul_ps(tj[i], l);
 		tk[i] = _mm256_mul_ps(tk[i], l);
 		tr[i] = _mm256_mul_ps(tr[i], l);
+
+		/* Convert angular velocity into quaterion for (R = 0).*/
+		const ofloat qi = _mm256_mul_ps(_mm256_mul_ps(wp[i], dt), half);
+		const ofloat qj = _mm256_mul_ps(_mm256_mul_ps(wy[i], dt), half);
+		const ofloat qk = _mm256_mul_ps(_mm256_mul_ps(wr[i], dt), half);
+
+		/* Quaternion multiplication in AVX (R = 0). */
+		const ofloat dr = _mm256_mul_ps(_mm256_add_ps(_mm256_mul_ps(qi, ti[i]), _mm256_add_ps(_mm256_mul_ps(qj, tj[i]), _mm256_mul_ps(qk, tk[i]))), neg);
+		const ofloat di = _mm256_add_ps(_mm256_mul_ps(qi, tr[i]), _mm256_sub_ps(_mm256_mul_ps(qj, tk[i]), _mm256_mul_ps(qk, tj[i])));
+		const ofloat dj = _mm256_add_ps(_mm256_mul_ps(qj, tr[i]), _mm256_sub_ps(_mm256_mul_ps(qk, ti[i]), _mm256_mul_ps(qi, tk[i])));
+		const ofloat dk = _mm256_add_ps(_mm256_mul_ps(qk, tr[i]), _mm256_sub_ps(_mm256_mul_ps(qi, tj[i]), _mm256_mul_ps(qj, ti[i])));
+
+		/* Add angular velocity to orientation. */
+		ti[i] = _mm256_add_ps(ti[i], di);
+		tj[i] = _mm256_add_ps(tj[i], dj);
+		tk[i] = _mm256_add_ps(tk[i], dk);
+		tr[i] = _mm256_add_ps(tr[i], dr);
 	}
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();

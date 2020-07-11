@@ -289,7 +289,7 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 		float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
 		float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
 		float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
-		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, Quaternion{});
+		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, Vector3{});
 
 		/* The second object might not need impulses to be applied. */
 		if (physics_get_type(hfirst) != PhysicsType::Static)
@@ -297,7 +297,7 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 			x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
 			y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
 			z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
-			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, Quaternion{});
+			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, Vector3{});
 		}
 	}
 }
