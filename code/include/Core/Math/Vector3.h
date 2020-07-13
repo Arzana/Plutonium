@@ -26,6 +26,16 @@ namespace Pu
 
 			struct
 			{
+				/* The angle around the X-axis. */
+				float Pitch;
+				/* The angle around the Y-axis. */
+				float Yaw;
+				/* The angle around the Z-axis. */
+				float Roll;
+			};
+
+			struct
+			{
 				/* The X and Y component of the vector. */
 				Vector2 XY;
 				/* The Z component of the vector. */

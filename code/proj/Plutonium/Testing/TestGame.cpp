@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-#define STRESS_TEST
+//#define STRESS_TEST
 
 using namespace Pu;
 
@@ -162,14 +162,15 @@ void TestGame::SpawnNPC(void)
 	/* Use the default physical material. */
 	PhysicalObject obj{ Vector3(x, 50.0f, z), Quaternion{}, collider };
 	obj.Properties = physicsMat;
-	obj.State.Mass = 1.0f;
+	obj.State.Mass = 100.0f;
+	obj.State.Cd = 0.82f;
 	obj.CoM = obj.P;
 	obj.Omega = Vector3(0.0f, PI2, 0.0f);
 
 	/* Moment of Inertia is that of a cylinder (using h = 1). */
 	const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
 	const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
-	obj.MoI = Matrix3(nonDomAxis, 0.0f, 0.0f, 0.0f, nonDomAxis, 0.0f, 0.0f, 0.0f, domAxis);
+	obj.MoI = Matrix3(nonDomAxis, 0.0f, 0.0f, 0.0f, domAxis, 0.0f, 0.0f, 0.0f, nonDomAxis);
 
 	npcs.emplace_back(physics->AddKinematic(obj));
 }

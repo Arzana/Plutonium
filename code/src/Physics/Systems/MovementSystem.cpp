@@ -17,9 +17,9 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3
 	vz.add(idx, z);
 
 	/* Add the angular force to the rotation. */
-	wp.add(idx, torque.X);
-	wy.add(idx, torque.Y);
-	wr.add(idx, torque.Z);
+	wp.add(idx, torque.Pitch);
+	wy.add(idx, torque.Yaw);
+	wr.add(idx, torque.Roll);
 
 	/* Save this impulse on debug mode, so we can display it. */
 #ifdef _DEBUG
@@ -32,7 +32,7 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3
 #endif
 }
 
-size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, float CoD, float imass)
+size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, float CoD, float imass, const Matrix3 &moi)
 {
 	/* 
 	We need to put a mask of all ones into the affected by gravity buffer. 
@@ -44,8 +44,20 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vecto
 		float f;
 	} cnvrt{ ~0u };
 
+	const float *mat = moi.GetComponents();
+
 	cod.push(CoD);
 	m.push(imass);
+	m00.push(mat[0]);
+	m01.push(mat[1]);
+	m02.push(mat[2]);
+	m10.push(mat[3]);
+	m11.push(mat[4]);
+	m12.push(mat[5]);
+	m20.push(mat[6]);
+	m21.push(mat[7]);
+	m22.push(mat[8]);
+
 	px.push(p.X);
 	py.push(p.Y);
 	pz.push(p.Z);
@@ -56,9 +68,9 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vecto
 	tj.push(theta.J);
 	tk.push(theta.K);
 	tr.push(theta.R);
-	wp.push(omega.X);
-	wy.push(omega.Y);
-	wr.push(omega.Z);
+	wp.push(omega.Pitch);
+	wy.push(omega.Yaw);
+	wr.push(omega.Roll);
 
 	qx.push(p.X);
 	qy.push(p.Y);
@@ -123,15 +135,20 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 	const size_t size = vx.simd_size();
 	const ofloat zero = _mm256_set1_ps(0.0f);
 
+	ofloat xx, yy, zz;
+	ofloat ll, l, ld;
+	ofloat fx, fy, fz;
+
+	/* Apply linear drag. */
 	for (size_t i = 0; i < size; i++)
 	{
 		ofloat &x = vx[i];
 		ofloat &y = vy[i];
 		ofloat &z = vz[i];
 
-		const ofloat xx = _mm256_mul_ps(x, x);
-		const ofloat yy = _mm256_mul_ps(y, y);
-		const ofloat zz = _mm256_mul_ps(z, z);
+		xx = _mm256_mul_ps(x, x);
+		yy = _mm256_mul_ps(y, y);
+		zz = _mm256_mul_ps(z, z);
 
 		/*
 		Calculate the following values:
@@ -139,19 +156,48 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 		- Magnitude of velocity (l).
 		- Aerodynamic drag scalar (ld).
 		*/
-		const ofloat ll = _mm256_add_ps(_mm256_add_ps(xx, yy), zz);
-		const ofloat l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
-		const ofloat ld = _mm256_mul_ps(ll, cod[i]);
+		ll = _mm256_add_ps(_mm256_add_ps(xx, yy), zz);
+		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
+		ld = _mm256_mul_ps(ll, cod[i]);
 
 		/* Calculate the aerodynamic force to apply. */
-		const ofloat fx = _mm256_mul_ps(_mm256_mul_ps(x, l), ld);
-		const ofloat fy = _mm256_mul_ps(_mm256_mul_ps(y, l), ld);
-		const ofloat fz = _mm256_mul_ps(_mm256_mul_ps(z, l), ld);
+		fx = _mm256_mul_ps(_mm256_mul_ps(x, l), ld);
+		fy = _mm256_mul_ps(_mm256_mul_ps(y, l), ld);
+		fz = _mm256_mul_ps(_mm256_mul_ps(z, l), ld);
 
 		/* Apply the force scaled with delta time. */
 		x = _mm256_sub_ps(x, _mm256_mul_ps(fx, _mm256_mul_ps(m[i], dt)));
 		y = _mm256_sub_ps(y, _mm256_mul_ps(fy, _mm256_mul_ps(m[i], dt)));
 		z = _mm256_sub_ps(z, _mm256_mul_ps(fz, _mm256_mul_ps(m[i], dt)));
+	}
+
+	/* Apply angular drag. */
+	for (size_t i = 0; i < size; i++)
+	{
+		ofloat &pitch = wp[i];
+		ofloat &yaw = wy[i];
+		ofloat &roll = wr[i];
+
+		xx = _mm256_mul_ps(pitch, pitch);
+		yy = _mm256_mul_ps(yaw, yaw);
+		zz = _mm256_mul_ps(roll, roll);
+
+		ll = _mm256_add_ps(_mm256_add_ps(xx, yy), zz);
+		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
+		ld = _mm256_mul_ps(ll, cod[i]);
+
+		const ofloat fx2 = _mm256_mul_ps(_mm256_mul_ps(pitch, l), ld);
+		const ofloat fy2 = _mm256_mul_ps(_mm256_mul_ps(yaw, l), ld);
+		const ofloat fz2 = _mm256_mul_ps(_mm256_mul_ps(roll, l), ld);
+
+		/* Multiply by the moment of inertia tensor (inline mat3 * vec3). */
+		fx = _mm256_add_ps(_mm256_mul_ps(fx2, m00[i]), _mm256_add_ps(_mm256_mul_ps(fy2, m10[i]), _mm256_mul_ps(fz2, m20[i])));
+		fy = _mm256_add_ps(_mm256_mul_ps(fx2, m01[i]), _mm256_add_ps(_mm256_mul_ps(fy2, m11[i]), _mm256_mul_ps(fz2, m21[i])));
+		fz = _mm256_add_ps(_mm256_mul_ps(fx2, m02[i]), _mm256_add_ps(_mm256_mul_ps(fy2, m12[i]), _mm256_mul_ps(fz2, m22[i])));
+
+		pitch = _mm256_sub_ps(pitch, _mm256_mul_ps(fx, dt));
+		yaw = _mm256_sub_ps(yaw, _mm256_mul_ps(fy, dt));
+		roll = _mm256_sub_ps(roll, _mm256_mul_ps(fz, dt));
 	}
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();

@@ -282,7 +282,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 
 	size_t idx;
 	if (type == PhysicsType::Static) idx = sysMove->AddItem(Matrix::CreateWorld(obj.P, obj.Theta, Vector3{ 1.0f }));
-	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.State.Cd, recip(obj.State.Mass));
+	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.State.Cd, recip(obj.State.Mass), obj.MoI.GetInverse());
 
 	/* Create the public handle (to give to the user) and query the internal handle. */
 	const PhysicsHandle hpublic = AllocPublicHandle(type, idx);
