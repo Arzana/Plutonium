@@ -787,6 +787,14 @@ inline void HandleTextureLine(const char *line, const string &dir, ObjLoaderText
 			continue;
 		}
 
+		/* Check for texture resolution and skip. */
+		if (!strncmp(line, "-texres", 7) && IS_SPACE(line[7]))
+		{
+			line += 8;
+			(void)ParseInt(line);
+			continue;
+		}
+
 		/* Assume texture path. */
 		curTexture.Path = dir + line;
 		line += ::strlen(line);
