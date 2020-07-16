@@ -50,7 +50,7 @@ size_t Pu::AssetCache::RngHash(void)
 
 	/* Reserve the hash and return it to the user. */
 	reserved.emplace_back(result);
-	lock.lock();
+	lock.unlock();
 	return result;
 }
 

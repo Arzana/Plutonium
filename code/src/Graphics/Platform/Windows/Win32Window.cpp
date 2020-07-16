@@ -133,7 +133,7 @@ Pu::int32 Pu::Win32Window::GetDefaultTitleBarHeight(void)
 
 void Pu::Win32Window::Show(void)
 {
-	ShowWindow(hndl, SW_SHOWNORMAL);
+	ShowWindow(hndl, mode == WindowMode::Windowed ? SW_SHOWNORMAL : SW_SHOWMAXIMIZED);
 	SetFocus(hndl);
 }
 

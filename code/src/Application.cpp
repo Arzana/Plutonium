@@ -289,7 +289,7 @@ void Pu::Application::DoInitialize(void)
 	saver = new AssetSaver(*scheduler, *device);
 
 	/* Window must be show at least once to give the correct size to the swapchain. */
-	wnd->Show();
+	wnd->SetMode(WindowMode::Borderless);
 	gameWnd = new GameWindow(*wnd, *device);
 
 	/* Move the log window out of the way on debug mode. */
