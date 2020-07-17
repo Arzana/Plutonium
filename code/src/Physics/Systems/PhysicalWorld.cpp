@@ -4,15 +4,21 @@
 #include "Physics/Systems/MovementSystem.h"
 #include "Physics/Systems/ContactSystem.h"
 #include "Core/Diagnostics/Profiler.h"
+#include "Core/Math/Vector3_SIMD.h"
 
 #ifdef _DEBUG
 #include <imgui/include/imgui.h>
+
+const char *STEP_MODES[2] = { "Auto", "Manual" };
 #endif
 
 #define nameof(x)			#x
 
 Pu::PhysicalWorld::PhysicalWorld(void)
 	: Substeps(1)
+#ifdef _DEBUG
+	, stepMode(STEP_MODES[0])
+#endif
 {
 	db = new MaterialDatabase();
 	sysMove = new MovementSystem();
@@ -93,7 +99,9 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & prop
 void Pu::PhysicalWorld::SetGravity(Vector3 g)
 {
 	lock.lock();
-	sysMove->SetGravity(g);
+	sysMove->Gx = _mm256_set1_ps(g.X);
+	sysMove->Gy = _mm256_set1_ps(g.Y);
+	sysMove->Gz = _mm256_set1_ps(g.Z);
 	lock.unlock();
 }
 
@@ -136,7 +144,7 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 		Profiler::BeginDebug();
 		lock.lock();
 
-		if (ImGui::Begin("Physical World"))
+		if (ImGui::Begin("Physical World", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			/* Statistics. */
 			ImGui::Text("Objects:     %zu", handleLut.size());
@@ -147,25 +155,49 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 			ImGui::Separator();
 
 			/* Options. */
-			static bool showBvh = false;
 			ImGui::Checkbox("Visualize BVH", &showBvh);
 			if (showBvh) searchTree.Visualize(dbgRenderer);
 
-			static bool showColliders = false;
 			ImGui::Checkbox("Visualize Colliders", &showColliders);
-			if (showColliders) sysCnst->Visualize(dbgRenderer, camPos);
+			if (showColliders) sysCnst->VisualizeColliders(dbgRenderer, camPos);
 
-			static bool showForces = false;
+			ImGui::Checkbox("Visualize Contacts", &showContacts);
+			if (showContacts) sysCnst->VisualizeContacts(dbgRenderer, dt);
+
 			ImGui::Checkbox("Visualize Impulses", &showForces);
 			if (showForces) sysMove->Visualize(dbgRenderer, dt);
+
+			ImGui::PushItemWidth(100.0f);
+			if (ImGui::BeginCombo("Physics Step Mode", stepMode))
+			{
+				for (size_t i = 0; i < ARRAYSIZE(STEP_MODES); i++)
+				{
+					bool selected = stepMode == STEP_MODES[i];
+					if (ImGui::Selectable(STEP_MODES[i], &selected)) stepMode = STEP_MODES[i];
+
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			/* Add a step button if the current step mode is step. */
+			if (stepMode == STEP_MODES[1])
+			{
+				ImGui::SameLine();
+				if (ImGui::Button("Step")) physicsStep = true;
+			}
 
 			/* Legend. */
 			ImGui::Separator();
 			ImGui::Text("Legend:");
-			ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
-			ImGui::TextColored(Color::Green().ToVector4(), "Static Colliders");
-			ImGui::TextColored(Color::Red().ToVector4(), "Kinematic Colliders");
-			ImGui::TextColored(Color::Yellow().ToVector4(), "Cached Broadphase Colliders");
+			if (showBvh) ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
+			if (showColliders)
+			{
+				ImGui::TextColored(Color::Green().ToVector4(), "Static Colliders");
+				ImGui::TextColored(Color::Red().ToVector4(), "Kinematic Colliders");
+			}
+			if (showColliders || showContacts) ImGui::TextColored(Color::Yellow().ToVector4(), "Cached Broadphase Colliders | Contact Points");
 
 			ImGui::End();
 		}
@@ -184,6 +216,10 @@ void Pu::PhysicalWorld::Update(float dt)
 {
 #ifdef _DEBUG
 	if (Substeps < 1) Log::Error("PhysicalWorld Substeps must be greater than zero for movement to occur!");
+
+	/* Ignore physics update if physics stepping is enabled. */
+	if (stepMode == STEP_MODES[1] && !physicsStep) return;
+	else physicsStep = false;
 #endif
 
 	if constexpr (!PhysicsProfileSystems) Profiler::Begin("Physics", Color::Gray());
@@ -211,7 +247,7 @@ void Pu::PhysicalWorld::Update(float dt)
 	Thus creating the new state of the world.
 	*/
 	const ofloat dt8 = _mm256_set1_ps(dt / Substeps);
-	const ofloat threshold = _mm256_mul_ps(_mm256_mul_ps(sysMove->GetGravity().Length(), dt8), _mm256_set1_ps(0.5f));
+	const ofloat threshold = _mm256_mul_ps(_mm256_mul_ps(_mm256_len_v3(sysMove->Gx, sysMove->Gy, sysMove->Gz), dt8), _mm256_set1_ps(0.5f));
 
 	for (uint32 step = 0; step < Substeps; step++)
 	{
@@ -248,9 +284,14 @@ Pu::PhysicsHandle Pu::PhysicalWorld::QueryPublicHandle(PhysicsHandle handle) con
 	return PhysicsNullHandle;
 }
 
+Pu::PhysicsHandle Pu::PhysicalWorld::QueryInternalHandle(PhysicsHandle handle) const
+{
+	return handleLut[physics_get_lookup_id(handle)];
+}
+
 Pu::uint16 Pu::PhysicalWorld::QueryInternalIndex(PhysicsHandle handle) const
 {
-	return physics_get_lookup_id(handleLut[physics_get_lookup_id(handle)]);
+	return physics_get_lookup_id(QueryInternalHandle(handle));
 }
 
 void Pu::PhysicalWorld::ValidateHandle(PhysicsHandle handle) const
@@ -279,16 +320,18 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 
 	/* Query the material and add the object to the solver to get the index. */
 	const PhysicalProperties &mat = (*db)[obj.Properties];
+	const float imass = recip(obj.State.Mass);
+	const Matrix3 imoi = obj.MoI.GetInverse();
 
 	size_t idx;
 	if (type == PhysicsType::Static) idx = sysMove->AddItem(Matrix::CreateWorld(obj.P, obj.Theta, Vector3{ 1.0f }));
-	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.State.Cd, recip(obj.State.Mass), obj.MoI.GetInverse());
+	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.State.Cd, imass, imoi);
 
 	/* Create the public handle (to give to the user) and query the internal handle. */
 	const PhysicsHandle hpublic = AllocPublicHandle(type, idx);
 
 	/* Add the object parameters to the systems that require the handle. */
-	sysSolv->AddItem(hpublic, obj.MoI, obj.State.Mass, mat.Mechanical.CoR, mat.Mechanical.CoF);
+	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoF);
 	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
 
 	return hpublic;

@@ -3,65 +3,27 @@
 #include "Physics/Systems/ContactSystem.h"
 #include "Physics/Systems/MovementSystem.h"
 #include "Core/Diagnostics/Profiler.h"
-
-#define avx_realloc(ptr, type, cnt)	ptr = reinterpret_cast<type*>(_aligned_realloc(ptr, sizeof(type) * cnt, sizeof(type)))
+#include "Core/Math/Vector3_SIMD.h"
+#include "Core/Math/Matrix3_SIMD.h"
 
 Pu::ContactSolverSystem::ContactSolverSystem(PhysicalWorld & world)
-	: world(&world), capacity(0), fcor(nullptr), scor(nullptr), fcof(nullptr),
-	scof(nullptr), vx(nullptr), vy(nullptr), vz(nullptr), fimass(nullptr),
-	simass(nullptr), jx(nullptr), jy(nullptr), jz(nullptr)
+	: world(&world), capacity(0)
 {}
 
-Pu::ContactSolverSystem::ContactSolverSystem(ContactSolverSystem && value)
-	: world(value.world), moi(std::move(value.moi)), imass(std::move(value.imass)),
-	coefficients(std::move(value.coefficients)), fcor(value.fcor), scor(value.scor),
-	fcof(value.fcof), scof(value.scof), vx(value.vx), vy(value.vy), vz(value.vz),
-	fimass(value.fimass), simass(value.simass), jx(value.jx), jy(value.jy), 
-	jz(value.jz), capacity(value.capacity)
+/* imass hides class member. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & iMoI, float imass, float CoR, float CoF)
 {
-	value.capacity = 0;
-}
-
-Pu::ContactSolverSystem & Pu::ContactSolverSystem::operator=(ContactSolverSystem && other)
-{
-	if (this != &other)
-	{
-		Destroy();
-
-		world = other.world;
-		moi = std::move(other.moi);
-		imass = std::move(other.imass);
-		coefficients = std::move(other.coefficients);
-		fcor = other.fcor;
-		scor = other.scor;
-		fcof = other.fcof;
-		scof = other.scof;
-		vx = other.vx;
-		vy = other.vy;
-		vz = other.vz;
-		fimass = other.fimass;
-		simass = other.simass;
-		jx = other.jx;
-		jy = other.jy;
-		jz = other.jz;
-		capacity = other.capacity;
-
-		other.capacity = 0;
-	}
-
-	return *this;
-}
-
-void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & MoI, float mass, float CoR, float CoF)
-{
-	moi.emplace(handle, MoI);
-	imass.emplace(handle, recip(mass));
+	imoi.emplace(handle, iMoI);
+	this->imass.emplace(handle, imass);
 	coefficients.emplace(handle, Vector2{ CoR, CoF });
 }
+#pragma warning(pop)
 
 void Pu::ContactSolverSystem::RemoveItem(PhysicsHandle handle)
 {
-	moi.erase(handle);
+	imoi.erase(handle);
 	imass.erase(handle);
 	coefficients.erase(handle);
 }
@@ -95,18 +57,35 @@ void Pu::ContactSolverSystem::EnsureBufferSize(void)
 		capacity = count;
 		const size_t impulseCount = count << 1;
 
-		avx_realloc(fcor, ofloat, count);
-		avx_realloc(scor, ofloat, count);
-		avx_realloc(fcof, ofloat, count);
-		avx_realloc(scof, ofloat, count);
-		avx_realloc(vx, ofloat, count);
-		avx_realloc(vy, ofloat, count);
-		avx_realloc(vz, ofloat, count);
-		avx_realloc(fimass, ofloat, count);
-		avx_realloc(simass, ofloat, count);
-		avx_realloc(jx, ofloat, impulseCount);
-		avx_realloc(jy, ofloat, impulseCount);
-		avx_realloc(jz, ofloat, impulseCount);
+		/* Reallocate the coefficients. */
+		cor1 = _mm256_realloc_ps(cor1, count);
+		cor2 = _mm256_realloc_ps(cor2, count);
+		cof1 = _mm256_realloc_ps(cof1, count);
+		cof2 = _mm256_realloc_ps(cof2, count);
+
+		/* Reallocate the positions. */
+		_mm256_realloc_v3(px1, py1, pz1, count);
+		_mm256_realloc_v3(px2, py2, pz2, count);
+
+		/* Reallocate the velocities. */
+		_mm256_realloc_v3(vx1, vy1, vz1, count);
+		_mm256_realloc_v3(vx2, vy2, vz2, count);
+
+		/* Reallocate the angular velocities. */
+		_mm256_realloc_v3(wp1, wy1, wr1, count);
+		_mm256_realloc_v3(wp2, wy2, wr2, count);
+
+		/* Reallocate the inverse masses. */
+		imass1 = _mm256_realloc_ps(imass1, count);
+		imass2 = _mm256_realloc_ps(imass2, count);
+
+		/* Reallocate the inverse moment of inertia tensors. */
+		_mm256_realloc_m3(m001, m011, m021, m101, m111, m121, m201, m211, m221, count);
+		_mm256_realloc_m3(m002, m012, m022, m102, m112, m122, m202, m212, m222, count);
+
+		/* Reallocate the result impulses. */
+		_mm256_recalloc_v3(jx, jy, jz, impulseCount);
+		_mm256_recalloc_v3(jpitch, jyaw, jroll, impulseCount);
 	}
 }
 
@@ -119,15 +98,20 @@ This is not the case, we check against i to see whether they have been set.
 void Pu::ContactSolverSystem::FillBuffers(void)
 {
 	/* Use these buffers as staging buffer for the AVX types. */
-	AVX_FLOAT_UNION tmp_fcor;
-	AVX_FLOAT_UNION tmp_scor;
-	AVX_FLOAT_UNION tmp_fcof;
-	AVX_FLOAT_UNION tmp_scof;
-	AVX_FLOAT_UNION tmp_vx;
-	AVX_FLOAT_UNION tmp_vy;
-	AVX_FLOAT_UNION tmp_vz;
-	AVX_FLOAT_UNION tmp_fimass;
-	AVX_FLOAT_UNION tmp_simass;
+	AVX_FLOAT_UNION tmp_cor1;
+	AVX_FLOAT_UNION tmp_cor2;
+	AVX_FLOAT_UNION tmp_cof1;
+	AVX_FLOAT_UNION tmp_cof2;
+	AVX_VEC3_UNION tmp_p1;
+	AVX_VEC3_UNION tmp_p2;
+	AVX_VEC3_UNION tmp_v1;
+	AVX_VEC3_UNION tmp_v2;
+	AVX_VEC3_UNION tmp_w1;
+	AVX_VEC3_UNION tmp_w2;
+	AVX_FLOAT_UNION tmp_imass1;
+	AVX_FLOAT_UNION tmp_imass2;
+	AVX_MAT3_UNION tmp_moi1;
+	AVX_MAT3_UNION tmp_moi2;
 
 	const size_t size = world->sysCnst->hfirsts.size();
 	size_t i;
@@ -135,7 +119,7 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 	/* Loop through all the registered collisions. */
 	for (i = 0; i < size; i++)
 	{
-		/* Get the handles of the current collision. */
+		/* Get the public handles of the current collision. */
 		const PhysicsHandle hfirst = world->sysCnst->hfirsts[i];
 		const PhysicsHandle hsecond = world->sysCnst->hseconds[i];
 
@@ -143,74 +127,81 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
 
-		/* We have to fill the buffers with different data depending on whether one of the types was static. */
-		const bool isStatic = physics_get_type(hfirst) == PhysicsType::Static;
-
-		/* 
-		The relative velocity is either the velocity of the second object (incase of a static collision) or the delta velocity between the two kinematic objects.
-		The mass scalar also needs to be set differently, we don't care about mass in static collisions as all energy will stay in the kinematic object.
-		*/
-		Vector3 v;
-		if (isStatic)
-		{
-			v = world->sysMove->GetVelocity(world->QueryInternalIndex(hsecond));
-			tmp_fimass.V[k] = 0.0f;
-			tmp_simass.V[k] = 1.0f;
-		}
-		else
-		{
-			const uint16 idx1 = world->QueryInternalIndex(hfirst);
-			const uint16 idx2 = world->QueryInternalIndex(hsecond);
-			v = world->sysMove->GetVelocity(idx2) - world->sysMove->GetVelocity(idx1);
-
-			tmp_fimass.V[k] = imass[hfirst];
-			tmp_simass.V[k] = imass[hsecond];
-		}
-
 		/* Gets the coefficients of both objects. */
 		const Vector2 coeff1 = coefficients[hfirst];
 		const Vector2 coeff2 = coefficients[hsecond];
 
-		tmp_fcor.V[k] = coeff1.X;
-		tmp_scor.V[k] = coeff2.X;
-		tmp_fcof.V[k] = coeff1.Y;
-		tmp_scof.V[k] = coeff2.Y;
-		tmp_vx.V[k] = v.X;
-		tmp_vy.V[k] = v.Y;
-		tmp_vz.V[k] = v.Z;
+		/* We have to fill the buffers with different data depending on whether one of the types was static. */
+		const bool isKinematic = physics_get_type(hfirst) != PhysicsType::Static;
+		const uint16 idx1 = isKinematic ? world->QueryInternalIndex(hfirst) : 0;
+		const uint16 idx2 = world->QueryInternalIndex(hsecond);
+
+		/* The first object might be static, so use zero for velocity instead of querying if it is. */
+		const Vector3 v1 = isKinematic ? world->sysMove->GetVelocity(idx1) : Vector3();
+		const Vector3 v2 = world->sysMove->GetVelocity(idx2);
+
+		/* Angular velocity is handled in the same way as linear velocity. */
+		const Vector3 w1 = isKinematic ? world->sysMove->GetAngularVelocity(idx1) : Vector3();
+		const Vector3 w2 = world->sysMove->GetAngularVelocity(idx2);
+
+		const Vector3 p2 = world->sysMove->GetPosition(world->QueryInternalHandle(hsecond));
+
+		/* The mass scalars need to be properly set in the case of a kinematic collision. */
+		if (isKinematic)
+		{
+			const Vector3 p1 = world->sysMove->GetPosition(world->QueryInternalHandle(hfirst));
+
+			_mm256_seti_v3(tmp_p1, p1.X, p1.Y, p1.Z, k);
+			tmp_imass1.V[k] = imass[hfirst];
+			tmp_imass2.V[k] = imass[hsecond];
+			_mm256_seti_m3(tmp_moi1, imoi[hfirst].GetComponents(), k);
+		}
+		else
+		{
+			/* 
+			The position of the static object needs to be equal to the point of contact. 
+			This will make the relative velocity equal to the velocity of the second object
+			at the contact point.
+			*/
+			_mm256_seti_v3(tmp_p1, world->sysCnst->px.get(i), world->sysCnst->py.get(i), world->sysCnst->pz.get(i), k);
+			tmp_imass1.V[k] = 0.0f;
+			tmp_imass2.V[k] = 1.0f;
+			_mm256_setzero_m3(tmp_moi1, k);
+		}
+
+		tmp_cor1.V[k] = coeff1.X;
+		tmp_cor2.V[k] = coeff2.X;
+		tmp_cof1.V[k] = coeff1.Y;
+		tmp_cof2.V[k] = coeff2.Y;
+		_mm256_seti_v3(tmp_p2, p2.X, p2.Y, p2.Z, k);
+		_mm256_seti_v3(tmp_v1, v1.X, v1.Y, v1.Z, k);
+		_mm256_seti_v3(tmp_v2, v2.X, v2.Y, v2.Z, k);
+		_mm256_seti_v3(tmp_w1, w1.Pitch, w1.Yaw, w1.Roll, k);
+		_mm256_seti_v3(tmp_w2, w2.Pitch, w2.Yaw, w2.Roll, k);
+		_mm256_seti_m3(tmp_moi2, imoi[hsecond].GetComponents(), k);
 
 		/* Push the staging buffer to the output. */
 		if (k >= 7 || i == size - 1)
 		{
-			fcor[j] = tmp_fcor.SIMD;
-			scor[j] = tmp_scor.SIMD;
-			fcof[j] = tmp_fcof.SIMD;
-			scof[j] = tmp_scof.SIMD;
-			vx[j] = tmp_vx.SIMD;
-			vy[j] = tmp_vy.SIMD;
-			vz[j] = tmp_vz.SIMD;
-			fimass[j] = tmp_fimass.SIMD;
-			simass[j] = tmp_simass.SIMD;
+			cor1[j] = tmp_cor1.SIMD;
+			cor2[j] = tmp_cor2.SIMD;
+			cof1[j] = tmp_cof1.SIMD;
+			cof2[j] = tmp_cof2.SIMD;
+			_mm256_set1_v3(tmp_p1, px1[j], py1[j], pz1[j]);
+			_mm256_set1_v3(tmp_p2, px2[j], py2[j], pz2[j]);
+			_mm256_set1_v3(tmp_v1, vx1[j], vy1[j], vz1[j]);
+			_mm256_set1_v3(tmp_v2, vx2[j], vy2[j], vz2[j]);
+			_mm256_set1_v3(tmp_w1, wp1[j], wy1[j], wr1[j]);
+			_mm256_set1_v3(tmp_w2, wp2[j], wy2[j], wr2[j]);
+			imass1[j] = tmp_imass1.SIMD;
+			imass2[j] = tmp_imass2.SIMD;
+			_mm256_set1_m3(tmp_moi1, m001[j], m011[j], m021[j], m101[j], m111[j], m121[j], m201[j], m211[j], m221[j]);
+			_mm256_set1_m3(tmp_moi2, m002[j], m012[j], m022[j], m102[j], m112[j], m122[j], m202[j], m212[j], m222[j]);
 		}
 	}
 }
 #pragma warning(pop)
 
-/*
-	Linear impulse:
-	M = m1^-1 + m2^-1
-	e = min(coefficient of resitution)
-	j = -(1.0f + e) * dot(V, N) / M
-	V1 -= j * N * m1^-1
-	V2 += j * N * m2^-1
-
-	Friction (broken):
-	T = normalize(V - dot(V, N) * N)
-	e = sqrt(product coefficient of friction)
-	j = clamp((-(1.0f + e) * dot(V, T)) / M, -j * e, j * e)
-	V1 -= j * T * m1^-1
-	V2 += j * T * m2^-1
-*/
 void Pu::ContactSolverSystem::VectorSolve(void)
 {
 	/* Predefine often used constants. */
@@ -220,54 +211,105 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 	const ofloat one = _mm256_set1_ps(1.0f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
 
-	/* Cache pointers to the collision normal. */
+	/* Cache pointers to the collision normal and contact point. */
 	const ofloat *nx = world->sysCnst->nx.data();
 	const ofloat *ny = world->sysCnst->ny.data();
 	const ofloat *nz = world->sysCnst->nz.data();
 
-	/* Solve collision per AVX type. */
+	const ofloat *cx = world->sysCnst->px.data();
+	const ofloat *cy = world->sysCnst->py.data();
+	const ofloat *cz = world->sysCnst->pz.data();
+
+	/* Use these as temporary vector buffers during various calculations. */
+	ofloat tmp_x1, tmp_y1, tmp_z1;
+	ofloat tmp_x2, tmp_y2, tmp_z2;
+	ofloat tmp_x3, tmp_y3, tmp_z3;
+
+	/* Solve collision per AVX type (i = second, k = first). */
 	for (size_t i = 0, k = avxCnt; i < avxCnt; i++, k++)
 	{
-		/* Calculate linear impulse. */
-		const ofloat imassTotal = _mm256_rcp_ps(_mm256_add_ps(fimass[i], simass[i]));
-		ofloat cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], nx[i]), _mm256_add_ps(_mm256_mul_ps(vy[i], ny[i]), _mm256_mul_ps(vz[i], nz[i])));
-		ofloat e = _mm256_mul_ps(_mm256_add_ps(_mm256_min_ps(fcor[i], scor[i]), one), neg);
-		ofloat j = _mm256_mul_ps(_mm256_mul_ps(e, cosTheta), imassTotal);
+		/* Calculate the position of the first object relative to the contact point. */
+		const ofloat rx1 = _mm256_sub_ps(cx[i], px1[i]);
+		const ofloat ry1 = _mm256_sub_ps(cy[i], py1[i]);
+		const ofloat rz1 = _mm256_sub_ps(cz[i], pz1[i]);
 
-		/* Apply linear impulse to the first object. */
-		jx[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nx[i]), fimass[i]), neg);
-		jy[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, ny[i]), fimass[i]), neg);
-		jz[k] = _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(j, nz[i]), fimass[i]), neg);
+		/* Calculate the position of the second object relative to the contact point. */
+		const ofloat rx2 = _mm256_sub_ps(cx[i], px2[i]);
+		const ofloat ry2 = _mm256_sub_ps(cy[i], py2[i]);
+		const ofloat rz2 = _mm256_sub_ps(cz[i], pz2[i]);
 
-		/* Apply linear impulse to the second object. */
-		jx[i] = _mm256_mul_ps(_mm256_mul_ps(j, nx[i]), simass[i]);
-		jy[i] = _mm256_mul_ps(_mm256_mul_ps(j, ny[i]), simass[i]);
-		jz[i] = _mm256_mul_ps(_mm256_mul_ps(j, nz[i]), simass[i]);
+		/* Calculate the relative velocity of the objects. */
+		_mm256_cross_v3(wp1[i], wy1[i], wr1[i], rx1, ry1, rz1, tmp_x1, tmp_y1, tmp_z1);
+		_mm256_cross_v3(wp2[i], wy2[i], wr2[i], rx2, ry2, rz2, tmp_x2, tmp_y2, tmp_z2);
+		const ofloat vx = _mm256_sub_ps(_mm256_add_ps(vx2[i], tmp_x2), _mm256_add_ps(vx1[i], tmp_x1));
+		const ofloat vy = _mm256_sub_ps(_mm256_add_ps(vy2[i], tmp_y2), _mm256_add_ps(vy1[i], tmp_y1));
+		const ofloat vz = _mm256_sub_ps(_mm256_add_ps(vz2[i], tmp_z2), _mm256_add_ps(vz1[i], tmp_z1));
 
-		/* Calculate tangent vector (normalization is done safely incase of N=V). */
-		ofloat tx = _mm256_sub_ps(vx[i], _mm256_mul_ps(cosTheta, nx[i]));
-		ofloat ty = _mm256_sub_ps(vy[i], _mm256_mul_ps(cosTheta, ny[i]));
-		ofloat tz = _mm256_sub_ps(vz[i], _mm256_mul_ps(cosTheta, nz[i]));
-		ofloat l = _mm256_add_ps(_mm256_mul_ps(tx, tx), _mm256_add_ps(_mm256_mul_ps(ty, ty), _mm256_mul_ps(tz, tz)));
-		l = _mm256_andnot_ps(_mm256_cmp_ps(zero, l, _CMP_EQ_OQ), _mm256_rsqrt_ps(l));
-		tx = _mm256_mul_ps(tx, l);
-		ty = _mm256_mul_ps(ty, l);
-		tz = _mm256_mul_ps(tz, l);
+		/* Calculate the numerator of the impulse magnitude. */
+		ofloat cosTheta = _mm256_dot_v3(vx, vy, vz, nx[i], ny[i], nz[i]);
+		const ofloat num = _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, _mm256_min_ps(cor1[i], cor2[i])), neg), cosTheta);
 
-		/* Calculate friction impulse. */
-		cosTheta = _mm256_add_ps(_mm256_mul_ps(vx[i], tx), _mm256_add_ps(_mm256_mul_ps(vy[i], ty), _mm256_mul_ps(vz[i], tz)));
-		e = _mm256_sqrt_ps(_mm256_mul_ps(fcof[i], scof[i]));
-		j = _mm256_max_ps(_mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_min_ps(_mm256_mul_ps(j, e), _mm256_mul_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal)));
+		/* Calculate the denominator of the impulse magnitude. */
+		_mm256_cross_v3(rx1, ry1, rz1, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
+		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_cross_v3(tmp_x2, tmp_y2, tmp_z2, rx1, ry1, rz1, tmp_x3, tmp_y3, tmp_z3);
+		_mm256_cross_v3(rx2, ry2, rz2, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
+		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_cross_v3(tmp_x2, tmp_y2, tmp_z2, rx2, ry2, rz2, tmp_x1, tmp_y1, tmp_z1);
+		tmp_x2 = _mm256_add_ps(tmp_x1, tmp_x3);
+		tmp_y2 = _mm256_add_ps(tmp_y1, tmp_y3);
+		tmp_z2 = _mm256_add_ps(tmp_z1, tmp_z3);
+		const ofloat imassTotal = _mm256_add_ps(imass1[i], imass2[i]);
+		const ofloat denom = _mm256_add_ps(imassTotal, _mm256_dot_v3(nx[i], ny[i], nz[i], tmp_x2, tmp_y2, tmp_z2));
+
+		/* Safely calculate the final impulse to apply. */
+		ofloat j = _mm256_andnot_ps(_mm256_cmp_ps(zero, denom, _CMP_EQ_OQ), _mm256_div_ps(num, denom));
+		tmp_x1 = _mm256_mul_ps(j, nx[i]);
+		tmp_y1 = _mm256_mul_ps(j, ny[i]);
+		tmp_z1 = _mm256_mul_ps(j, nz[i]);
+
+		/* Apply the linear impulse to the first object. */
+		jx[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_x1, imass1[i]), neg);
+		jy[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_y1, imass1[i]), neg);
+		jz[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_z1, imass1[i]), neg);
+
+		/* Apply the linear impulse to the second object. */
+		jx[i] = _mm256_mul_ps(tmp_x1, imass2[i]);
+		jy[i] = _mm256_mul_ps(tmp_y1, imass2[i]);
+		jz[i] = _mm256_mul_ps(tmp_z1, imass2[i]);
+
+		/* Apply the angular impulse to the first object. */
+		_mm256_cross_v3(rx1, ry1, rz1, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x2, tmp_y2, tmp_z2, tmp_x3, tmp_y3, tmp_z3);
+
+		/* Apply the angular impulse to the second object. */
+		_mm256_cross_v3(rx2, ry2, rz2, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x2, tmp_y2, tmp_z2, jpitch[i], jyaw[i], jroll[i]);
+		_mm256_neg_v3(jpitch[i], jyaw[i], jroll[i], neg);
+
+		/* Calculate the tangent of the collision. */
+		ofloat tx = _mm256_sub_ps(vx, _mm256_mul_ps(cosTheta, nx[i]));
+		ofloat ty = _mm256_sub_ps(vy, _mm256_mul_ps(cosTheta, ny[i]));
+		ofloat tz = _mm256_sub_ps(vz, _mm256_mul_ps(cosTheta, nz[i]));
+		_mm256_norm_v3(tx, ty, tz, zero);
+
+		/* Calculate the friction impulse. */
+		cosTheta = _mm256_dot_v3(vx, vy, vz, tx, ty, tz);
+		const ofloat e = _mm256_sqrt_ps(_mm256_mul_ps(cof1[i], cof2[i]));
+		j = _mm256_clamp_ps(_mm256_div_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal), _mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_mul_ps(j, e));
+		tmp_x1 = _mm256_mul_ps(j, tx);
+		tmp_y1 = _mm256_mul_ps(j, ty);
+		tmp_z1 = _mm256_mul_ps(j, tz);
 
 		/* Apply friction impulse to the first object. */
-		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(_mm256_mul_ps(j, tx), fimass[i]));
-		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(_mm256_mul_ps(j, ty), fimass[i]));
-		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(_mm256_mul_ps(j, tz), fimass[i]));
+		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(tmp_x1, imass1[i]));
+		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(tmp_y1, imass1[i]));
+		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(tmp_z1, imass1[i]));
 
 		/* Apply friction impulse to the second object. */
-		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), simass[i]));
-		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), simass[i]));
-		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), simass[i]));
+		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(tmp_x1, imass2[i]));
+		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(tmp_y1, imass2[i]));
+		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(tmp_z1, imass2[i]));
 	}
 }
 
@@ -289,7 +331,12 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 		float x = AVX_FLOAT_UNION{ jx[j] }.V[k];
 		float y = AVX_FLOAT_UNION{ jy[j] }.V[k];
 		float z = AVX_FLOAT_UNION{ jz[j] }.V[k];
-		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, Vector3{});
+
+		float pitch = AVX_FLOAT_UNION{ jpitch[j] }.V[k];
+		float yaw = AVX_FLOAT_UNION{ jyaw[j] }.V[k];
+		float roll = AVX_FLOAT_UNION{ jroll[j] }.V[k];
+
+		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, pitch, yaw, roll);
 
 		/* The second object might not need impulses to be applied. */
 		if (physics_get_type(hfirst) != PhysicsType::Static)
@@ -297,7 +344,12 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 			x = AVX_FLOAT_UNION{ jx[j + avxCnt] }.V[k];
 			y = AVX_FLOAT_UNION{ jy[j + avxCnt] }.V[k];
 			z = AVX_FLOAT_UNION{ jz[j + avxCnt] }.V[k];
-			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, Vector3{});
+
+			pitch = AVX_FLOAT_UNION{ jpitch[j + avxCnt] }.V[k];
+			yaw = AVX_FLOAT_UNION{ jyaw[j + avxCnt] }.V[k];
+			roll = AVX_FLOAT_UNION{ jroll[j + avxCnt] }.V[k];
+
+			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, pitch, yaw, roll);
 		}
 	}
 }
@@ -306,17 +358,34 @@ void Pu::ContactSolverSystem::Destroy(void)
 {
 	if (capacity)
 	{
-		_aligned_free(fcor);
-		_aligned_free(scor);
-		_aligned_free(fcof);
-		_aligned_free(scof);
-		_aligned_free(vx);
-		_aligned_free(vy);
-		_aligned_free(vz);
-		_aligned_free(fimass);
-		_aligned_free(simass);
-		_aligned_free(jx);
-		_aligned_free(jy);
-		_aligned_free(jz);
+		/* Free the coeffiecients. */
+		_mm256_free_ps(cor1);
+		_mm256_free_ps(cor2);
+		_mm256_free_ps(cof1);
+		_mm256_free_ps(cof2);
+
+		/* Free the positions. */
+		_mm256_free_v3(px1, py1, pz1);
+		_mm256_free_v3(px2, py2, pz2);
+
+		/* Free the velocities. */
+		_mm256_free_v3(vx1, vy1, vz1);
+		_mm256_free_v3(vx2, vy2, vz2);
+
+		/* Free the angular velocities. */
+		_mm256_free_v3(wp1, wy1, wr1);
+		_mm256_free_v3(wp2, wy2, wr2);
+
+		/* Free the inverse masses. */
+		_mm256_free_ps(imass1);
+		_mm256_free_ps(imass2);
+
+		/* Free the moment of inertia tensors. */
+		_mm256_free_m3(m001, m011, m021, m101, m111, m121, m201, m211, m221);
+		_mm256_free_m3(m002, m012, m022, m102, m112, m122, m202, m212, m222);
+
+		/* Free the result impulses. */
+		_mm256_free_v3(jx, jy, jz);
+		_mm256_free_v3(jpitch, jyaw, jroll);
 	}
 }

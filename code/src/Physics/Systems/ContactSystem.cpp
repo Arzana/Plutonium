@@ -16,6 +16,9 @@ static Pu::uint32 collisionCount = 0;
 
 Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
 	: world(&world)
+#ifdef _DEBUG
+	, addContacts(false)
+#endif
 {
 	SetGenericCheckers();
 }
@@ -139,6 +142,9 @@ void Pu::ContactSystem::Check(void)
 	/* Remove the previous collisions from the buffer. */
 	hfirsts.clear();
 	hseconds.clear();
+	px.clear();
+	py.clear();
+	pz.clear();
 	nx.clear();
 	ny.clear();
 	nz.clear();
@@ -192,10 +198,14 @@ void Pu::ContactSystem::Check(void)
 
 		if constexpr (PhysicsProfileSystems) Profiler::End();
 	}
+
+#ifdef _DEBUG
+	addContacts = false;
+#endif
 }
 
 #ifdef _DEBUG
-void Pu::ContactSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
+void Pu::ContactSystem::VisualizeColliders(DebugRenderer & dbgRenderer, Vector3 camPos) const
 {
 	/* Display yellow for cached broadphases. */
 	for (const auto[hcur, bb] : cachedBroadPhase)
@@ -223,6 +233,23 @@ void Pu::ContactSystem::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) c
 			if (collider.Contains(Vector2(camPos.X - offset.X, camPos.Z - offset.Z))) collider.Visualize(dbgRenderer, offset, clr);
 			else dbgRenderer.AddBox(cachedBroadPhase.at(hcur), clr);
 		}
+	}
+}
+
+void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer, float dt) const
+{
+	addContacts = true;
+
+	/* Remove all the contact point that have timed out. */
+	for (size_t i = 0; i < contacts.size(); i++)
+	{
+		if ((contacts[i].first -= dt) <= 0.0f) contacts.removeAt(i);
+	}
+
+	/* Render all the remaining contact points. */
+	for (const auto[ttl, pos] : contacts)
+	{
+		dbgRenderer.AddSphere(pos, 0.1f, Color::Yellow());
 	}
 }
 #endif
@@ -300,7 +327,7 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 	if (heightmap.TryGetHeightAndNormal(query, h, n))
 	{
 		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
-		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, Vector3(query.X, h, query.Y), n);
+		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, Vector3(sphere.Center.X, h, sphere.Center.Z), n);
 	}
 }
 
@@ -312,14 +339,27 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 		if (hfirsts[i] == hsecond && hseconds[i] == hfirst) return;
 	}
 
-	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */
+	/* Calculate the velocity at the contact point for the kinematic object. */
+	PhysicsHandle hinteral = world->QueryInternalHandle(hsecond);
+	uint16 i = physics_get_lookup_id(hinteral);
+	Vector3 v = world->sysMove->GetVelocity(i);
+	Vector3 w = world->sysMove->GetAngularVelocity(i);
+	Vector3 r = pos - world->sysMove->GetPosition(hinteral);
+	Vector3 relVloc = v + cross(w, r);
+	
+	/* Subtract the first velocity from the relative velocity if the second object is also kinematic. */
 	if (physics_get_type(hfirst) != PhysicsType::Static)
 	{
-		const Vector3 v1 = world->sysMove->GetVelocity(world->QueryInternalIndex(hfirst));
-		const Vector3 v2 = world->sysMove->GetVelocity(world->QueryInternalIndex(hsecond));
-
-		if (dot(v2 - v1, normal) > 0.0f) return;
+		hinteral = world->QueryInternalHandle(hfirst);
+		i = physics_get_lookup_id(hinteral);
+		v = world->sysMove->GetVelocity(i);
+		w = world->sysMove->GetAngularVelocity(i);
+		r = pos - world->sysMove->GetPosition(hinteral);
+		relVloc -= v - cross(w, r);		
 	}
+
+	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */
+	if (dot(relVloc, normal) > 0.0f) return;
 
 	hfirsts.emplace_back(hfirst);
 	hseconds.emplace_back(hsecond);
@@ -329,6 +369,18 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	nx.push(normal.X);
 	ny.push(normal.Y);
 	nz.push(normal.Z);
+
+#ifdef _DEBUG
+	/* We only want to add the contact point to the debug list if debugging is enabled. */
+	if (addContacts)
+	{
+		/* Make sure we don't show the same contact multiple times. */
+		if (!contacts.contains([pos](const std::pair<float, Vector3> &cur) { return nrlyeql(cur.second, pos); }))
+		{
+			contacts.emplace_back(std::make_pair(PhysicsDebuggingTTL, pos));
+		}
+	}
+#endif
 
 	++collisionCount;
 }

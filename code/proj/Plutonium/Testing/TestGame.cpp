@@ -3,7 +3,8 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-//#define STRESS_TEST
+#define STRESS_TEST
+#define USE_KNIGHT
 
 using namespace Pu;
 
@@ -18,7 +19,7 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 
 	AddSystem(physics = new PhysicalWorld());
-	physicsMat = physics->AddMaterial({ 1.0f, 0.2f, 0.8f });
+	physicsMat = physics->AddMaterial({ 1.0f, 0.5f, 0.8f });
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -52,7 +53,11 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
+#ifdef USE_KNIGHT
 	playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
+#else
+	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
+#endif
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -115,8 +120,18 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 
 		renderer->BeginGeometry();
+#ifndef USE_KNIGHT
+		if (playerModel->IsLoaded())
+		{
+			for (PhysicsHandle hnpc : npcs)
+			{
+				renderer->Render(*playerModel, physics->GetTransform(hnpc) * Matrix::CreateScalar(3.0f));
+			}
+		}
+#endif
 		renderer->BeginAdvanced();
 		renderer->BeginMorph();
+#ifdef USE_KNIGHT
 		if (playerModel->IsLoaded())
 		{
 			for (PhysicsHandle hnpc : npcs)
@@ -125,6 +140,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 				renderer->Render(*playerModel, transform, 0, 1, 0.0f);
 			}
 		}
+#endif
 		renderer->BeginLight();
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
@@ -141,6 +157,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::End();
 	}
 #endif
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		ImGui::Text("FPS: %d", iround(recip(dt)));
+		ImGui::EndMainMenuBar();
+	}
 
 	Profiler::Visualize();
 }
@@ -162,15 +184,20 @@ void TestGame::SpawnNPC(void)
 	/* Use the default physical material. */
 	PhysicalObject obj{ Vector3(x, 50.0f, z), Quaternion{}, collider };
 	obj.Properties = physicsMat;
-	obj.State.Mass = 100.0f;
-	obj.State.Cd = 0.82f;
+	obj.State.Mass = 80.0f;
 	obj.CoM = obj.P;
-	obj.Omega = Vector3(0.0f, PI2, 0.0f);
 
+#ifdef USE_KNIGHT
 	/* Moment of Inertia is that of a cylinder (using h = 1). */
 	const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
 	const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
-	obj.MoI = Matrix3(nonDomAxis, 0.0f, 0.0f, 0.0f, domAxis, 0.0f, 0.0f, 0.0f, nonDomAxis);
+	obj.MoI = Matrix3::CreateScalar(nonDomAxis, domAxis, nonDomAxis);
+	obj.State.Cd = 0.82f;
+#else
+	/* Moment of Intertia of a solid sphere. */
+	obj.MoI = Matrix3::CreateScalar((2.0f / 5.0f) * obj.State.Mass * sqr(sphere.Radius));
+	obj.State.Cd = 0.5f;
+#endif
 
 	npcs.emplace_back(physics->AddKinematic(obj));
 }

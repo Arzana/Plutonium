@@ -67,10 +67,20 @@ namespace Pu
 		mutable std::mutex lock;
 		vector<PhysicsHandle> handleLut;
 
+#ifdef _DEBUG
+		mutable bool showBvh;
+		mutable bool showColliders;
+		mutable bool showContacts;
+		mutable bool showForces;
+		mutable bool physicsStep;
+		mutable const char *stepMode;
+#endif
+
 		static void ThrowCorruptHandle(bool condition, const char *func);
 		static void ValidatePhysicalObject(const PhysicalObject &obj);
 
 		PhysicsHandle QueryPublicHandle(PhysicsHandle handle) const;
+		PhysicsHandle QueryInternalHandle(PhysicsHandle handle) const;
 		uint16 QueryInternalIndex(PhysicsHandle handle) const;
 		void ValidateHandle(PhysicsHandle handle) const;
 		PhysicsHandle AddInternal(const PhysicalObject &obj, PhysicsType type);

@@ -250,30 +250,15 @@
     <Filter Include="Source Files\Core\Collections">
       <UniqueIdentifier>{d6ef423b-7b1f-4d6a-b036-9f6c13be71fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Core\Math\Single">
+      <UniqueIdentifier>{12864ffb-255b-4264-90d3-908401fa40a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core\Math\SIMD">
+      <UniqueIdentifier>{47e4bb71-2a11-4e94-b318-84bf82662f2d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Constants.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Basics.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Vector3.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Vector4.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Matrix.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h">
@@ -657,9 +642,6 @@
     <ClInclude Include="..\..\..\include\Core\Math\SquareDiamondNoise.h">
       <Filter>Header Files\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Point.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Networking\Core\Socket.h">
       <Filter>Header Files\Networking\Core</Filter>
     </ClInclude>
@@ -822,9 +804,6 @@
     <ClInclude Include="..\..\..\include\System.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\AABB.h">
       <Filter>Header Files\Core\Math\Shapes</Filter>
     </ClInclude>
@@ -894,9 +873,6 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\MovementSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\VectorSSE.h">
-      <Filter>Header Files\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\MaterialDatabase.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
@@ -911,6 +887,48 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Collections\simd_vector.h">
       <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Collections\simd_multi_vector.h">
+      <Filter>Header Files\Core\Collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Basics.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Interpolation.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Point.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Quaternion.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector2.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector3.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector4.h">
+      <Filter>Header Files\Core\Math\Single</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Basics_SIMD.h">
+      <Filter>Header Files\Core\Math\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector3_SIMD.h">
+      <Filter>Header Files\Core\Math\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Vector4_SIMD.h">
+      <Filter>Header Files\Core\Math\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix3_SIMD.h">
+      <Filter>Header Files\Core\Math\SIMD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

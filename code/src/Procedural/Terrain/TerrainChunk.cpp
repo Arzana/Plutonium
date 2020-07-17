@@ -83,9 +83,8 @@ namespace Pu
 					const float h2 = pixel[y * meshSize + min(x + 1, meshBound)] * heightScale;
 					const float h3 = pixel[min(y + 1, meshBound) * meshSize + x] * heightScale;
 					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
-					n.Normalize();
 
-					vertex[i].Normal = n;
+					vertex[i].Normal = n.Normalize();
 					tmpCollider.SetHeightAndNormal(x, y, pixel[i] * heightScale, n);
 				}
 			}

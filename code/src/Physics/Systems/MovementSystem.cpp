@@ -1,15 +1,17 @@
 #include "Physics/Systems/MovementSystem.h"
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Core/Diagnostics/Profiler.h"
+#include "Core/Math/Vector3_SIMD.h"
+#include "Core/Math/Vector4_SIMD.h"
 #include "Config.h"
 
 #define alloc_tmp(size)		reinterpret_cast<Pu::AVX_FLOAT_UNION*>(_aligned_malloc(sizeof(Pu::ofloat) * size, sizeof(Pu::ofloat)))
 
 Pu::MovementSystem::MovementSystem(void)
-	: g(0.0f, -9.81f, 0.0f)
+	: Gx(_mm256_setzero_ps()), Gy(_mm256_set1_ps(-9.81f)), Gz(_mm256_setzero_ps())
 {}
 
-void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3 torque)
+void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, float pitch, float yaw, float roll)
 {
 	/* Add the linear force to the velocity. */
 	vx.add(idx, x);
@@ -17,9 +19,9 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3
 	vz.add(idx, z);
 
 	/* Add the angular force to the rotation. */
-	wp.add(idx, torque.Pitch);
-	wy.add(idx, torque.Yaw);
-	wr.add(idx, torque.Roll);
+	wp.add(idx, pitch);
+	wy.add(idx, yaw);
+	wr.add(idx, roll);
 
 	/* Save this impulse on debug mode, so we can display it. */
 #ifdef _DEBUG
@@ -27,7 +29,7 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, Vector3
 	{
 		const Vector3 at = Vector3(px.get(idx), py.get(idx), pz.get(idx));
 		const Vector3 force = Vector3(x, y, z);
-		forces.emplace_back(TimedForce{ ImpulseDebuggingTTL, force.Length(), at, normalize(force) });
+		forces.emplace_back(TimedForce{ PhysicsDebuggingTTL, force.Length(), at, normalize(force) });
 	}
 #endif
 }
@@ -121,9 +123,9 @@ void Pu::MovementSystem::ApplyGravity(ofloat dt)
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
 
 	const size_t size = vx.simd_size();
-	for (size_t i = 0; i < size; i++) vx[i] = _mm256_and_ps(_mm256_add_ps(vx[i], _mm256_mul_ps(g.X, dt)), sleep[i]);
-	for (size_t i = 0; i < size; i++) vy[i] = _mm256_and_ps(_mm256_add_ps(vy[i], _mm256_mul_ps(g.Y, dt)), sleep[i]);
-	for (size_t i = 0; i < size; i++) vz[i] = _mm256_and_ps(_mm256_add_ps(vz[i], _mm256_mul_ps(g.Z, dt)), sleep[i]);
+	for (size_t i = 0; i < size; i++) vx[i] = _mm256_and_ps(_mm256_add_ps(vx[i], _mm256_mul_ps(Gx, dt)), sleep[i]);
+	for (size_t i = 0; i < size; i++) vy[i] = _mm256_and_ps(_mm256_add_ps(vy[i], _mm256_mul_ps(Gy, dt)), sleep[i]);
+	for (size_t i = 0; i < size; i++) vz[i] = _mm256_and_ps(_mm256_add_ps(vz[i], _mm256_mul_ps(Gz, dt)), sleep[i]);
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
@@ -203,11 +205,6 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 	if constexpr (PhysicsProfileSystems) Profiler::End();
 }
 
-/*
-	P = P + V * dt
-	normalize(T)
-	T = T + (0.5 * W * T) * dt
-*/
 void Pu::MovementSystem::Integrate(ofloat dt)
 {
 	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
@@ -228,22 +225,6 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 
 	for (size_t i = 0; i < size; i++)
 	{
-		/* Calculate the squares of the components. */
-		const ofloat ii = _mm256_mul_ps(ti[i], ti[i]);
-		const ofloat jj = _mm256_mul_ps(tj[i], tj[i]);
-		const ofloat kk = _mm256_mul_ps(tk[i], tk[i]);
-		const ofloat rr = _mm256_mul_ps(tr[i], tr[i]);
-
-		/* Calculate quaternion magnitude (zero if quaterion is zero). */
-		const ofloat ll = _mm256_add_ps(_mm256_add_ps(ii, jj), _mm256_add_ps(kk, rr));
-		const ofloat l = _mm256_andnot_ps(_mm256_cmp_ps(zero, ll, _CMP_EQ_OQ), _mm256_rsqrt_ps(ll));
-
-		/* Normalize orientation. */
-		ti[i] = _mm256_mul_ps(ti[i], l);
-		tj[i] = _mm256_mul_ps(tj[i], l);
-		tk[i] = _mm256_mul_ps(tk[i], l);
-		tr[i] = _mm256_mul_ps(tr[i], l);
-
 		/* Convert angular velocity into quaterion for (R = 0).*/
 		const ofloat qi = _mm256_mul_ps(_mm256_mul_ps(wp[i], dt), half);
 		const ofloat qj = _mm256_mul_ps(_mm256_mul_ps(wy[i], dt), half);
@@ -260,6 +241,12 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 		tj[i] = _mm256_add_ps(tj[i], dj);
 		tk[i] = _mm256_add_ps(tk[i], dk);
 		tr[i] = _mm256_add_ps(tr[i], dr);
+
+		/* 
+		Normalize orientation. 
+		Make sure to do this after and not before applying angular velocity.
+		*/
+		_mm256_norm_v4(ti[i], tj[i], tk[i], tr[i], zero);
 	}
 
 	if constexpr (PhysicsProfileSystems) Profiler::End();
@@ -277,9 +264,24 @@ Pu::Matrix Pu::MovementSystem::GetTransform(PhysicsHandle handle) const
 	return translation * orientation;
 }
 
+Pu::Vector3 Pu::MovementSystem::GetPosition(PhysicsHandle handle) const
+{
+	const uint16 idx = physics_get_lookup_id(handle);
+	
+	/* Static objects don't have their position saved, so get it from the transform. */
+	if (physics_get_type(handle) == PhysicsType::Static) return transforms[idx].GetTranslation();
+
+	return Vector3(px.get(idx), py.get(idx), pz.get(idx));
+}
+
 Pu::Vector3 Pu::MovementSystem::GetVelocity(size_t idx) const
 {
 	return Vector3(vx.get(idx), vy.get(idx), vz.get(idx));
+}
+
+Pu::Vector3 Pu::MovementSystem::GetAngularVelocity(size_t idx) const
+{
+	return Vector3(wp.get(idx), wy.get(idx), wr.get(idx));
 }
 
 /*
@@ -307,7 +309,7 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 		const ofloat sx = _mm256_sub_ps(qx[i], px[i]);
 		const ofloat sy = _mm256_sub_ps(qy[i], py[i]);
 		const ofloat sz = _mm256_sub_ps(qz[i], pz[i]);
-		const ofloat d = _mm256_add_ps(_mm256_add_ps(_mm256_mul_ps(sx, sx), _mm256_mul_ps(sy, sy)), _mm256_mul_ps(sz, sz));
+		const ofloat d = _mm256_len2_v3(sx, sy, sz);
 
 		/* Check whether the distance is greater than the maximum. */
 		masks[i].SIMD = _mm256_cmp_ps(d, maxDist, _CMP_GT_OQ);
@@ -352,7 +354,7 @@ void Pu::MovementSystem::TrySleep(ofloat epsilon)
 		/* Populate a temporary buffer with the compared distances. */
 		for (size_t i = 0; i < size_avx; i++)
 		{
-			const ofloat d = _mm256_add_ps(_mm256_mul_ps(vx[i], vx[i]), _mm256_add_ps(_mm256_mul_ps(vy[i], vy[i]), _mm256_mul_ps(vz[i], vz[i])));
+			const ofloat d = _mm256_len2_v3(vx[i], vy[i], vz[i]);
 			sleep[i] = _mm256_cmp_ps(d, minMag, _CMP_GT_OQ);
 		}
 

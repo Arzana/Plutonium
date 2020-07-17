@@ -64,7 +64,9 @@ namespace Pu
 
 #ifdef _DEBUG
 		/* Visualizes the colliders in the world. */
-		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
+		void VisualizeColliders(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
+		/* Visualizes the contact point in the world. */
+		void VisualizeContacts(_In_ DebugRenderer &dbgRenderer, _In_ float dt) const;
 #endif
 
 	private:
@@ -79,6 +81,11 @@ namespace Pu
 		std::map<PhysicsHandle, AABB> cachedBroadPhase;
 		vector<std::pair<size_t, Vector3>> readdCache;
 		vector<PhysicsHandle> broadPhaseCache;
+
+#ifdef _DEBUG
+		mutable bool addContacts;
+		mutable vector<std::pair<float, Vector3>> contacts;
+#endif
 
 		void TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond);
 		void TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond);

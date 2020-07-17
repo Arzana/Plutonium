@@ -1,7 +1,6 @@
 #pragma once
 #include "Physics/Objects/PhysicsHandle.h"
 #include "Core/Collections/simd_vector.h"
-#include "Core/Math/VectorSSE.h"
 #include "Core/Math/Matrix.h"
 
 namespace Pu
@@ -12,6 +11,13 @@ namespace Pu
 	class MovementSystem
 	{
 	public:
+		/* Specifies the gravity constant on the X-axis. */
+		ofloat Gx;
+		/* Specifies the gravity constant on the Y-axis. */
+		ofloat Gy;
+		/* Specifies the gravity constant on the Z-axis. */
+		ofloat Gz;
+
 		/* Initializes a new instance of a movement system. */
 		MovementSystem(void);
 		MovementSystem(_In_ const MovementSystem &value) = delete;
@@ -21,18 +27,6 @@ namespace Pu
 		_Check_return_ MovementSystem& operator =(_In_ const MovementSystem &other) = delete;
 		/* Move assignment. */
 		_Check_return_ MovementSystem& operator =(_In_ MovementSystem &&other) = default;
-
-		/* Sets the gravitational constant. */
-		inline void SetGravity(_In_ Vector3 value)
-		{
-			g = value;
-		}
-
-		/* Gets the gravitational constant. */
-		_Check_return_ inline Vector3SSE GetGravity(void) const
-		{
-			return g;
-		}
 
 		/* Updates the coefficient of drag for a specific object. */
 		inline void UpdateParameters(_In_ size_t idx, _In_ float CoD, _In_ float imass)
@@ -48,7 +42,7 @@ namespace Pu
 		}
 
 		/* Adds a specific linear and angular force to the specific object. */
-		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ Vector3 torque);
+		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ float pitch, _In_ float yaw, _In_ float roll);
 		/* Adds a single kinematic item to the movement system, return the index. */
 		_Check_return_ size_t AddItem(_In_ Vector3 p, _In_ Vector3 v, _In_ Quaternion theta, _In_ Vector3 omega, _In_ float CoD, _In_ float imass, _In_ const Matrix3 &moi);
 		/* Adds a single static item to the movement system, returns the index. */
@@ -63,9 +57,13 @@ namespace Pu
 		void Integrate(_In_ ofloat dt);
 		/* Creates a transformation matrix for the specified object. */
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
-		/* Returns the velocity of the specified object. */
+		/* Gets the position of the specified object. */
+		_Check_return_ Vector3 GetPosition(_In_ PhysicsHandle handle) const;
+		/* Gets the linear velocity of the specified object. */
 		_Check_return_ Vector3 GetVelocity(_In_ size_t idx) const;
-		/* Returns the indices of the objects that have moved out of their expanded AABB. */
+		/* Gets the angular velocity of the specified object. */
+		_Check_return_ Vector3 GetAngularVelocity(_In_ size_t idx) const;
+		/* Gets the indices of the objects that have moved out of their expanded AABB. */
 		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
 		/* Sets the sleep bit for any object with a velocity magnitude smaller than the specified epsilon. */
 		void TrySleep(_In_ ofloat epsilon);
@@ -76,8 +74,6 @@ namespace Pu
 #endif
 
 	private:
-		Vector3SSE g;
-
 #ifdef _DEBUG
 		struct TimedForce
 		{

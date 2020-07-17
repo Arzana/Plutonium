@@ -288,7 +288,7 @@ void Pu::BVH::Visualize(DebugRenderer & renderer) const
 	/* Display the stats in a seperate window. */
 	if constexpr (ImGuiAvailable)
 	{
-		if (ImGui::Begin("BVH Statistics"))
+		if (ImGui::Begin("BVH Statistics", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			const int32 rootDepth = count > 0 ? nodes[root].get_depth : 0;
 

@@ -164,7 +164,15 @@ void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 
 void Pu::Profiler::VisualizeInternal(void)
 {
-	if (ImGui::Begin("Profiler"))
+	/*
+	We want the profiler to have an automatic height, but a fixed minimum width.
+	This is because it doesn't take the bars into account when determining the auto resize.
+	So the window would not show the full bar with just the auto resize option.
+
+	1100 is about the bar size for 60hz target and the maximum is set to 16K, should be enough.
+	*/
+	ImGui::SetNextWindowSizeConstraints(Vector2(1100.0f, 10.0f), Vector2(15360.0f, 8640.0f));
+	if (ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		/* Render the bar style timers. */
 		RenderSections(cpuSections, "CPU", true);
