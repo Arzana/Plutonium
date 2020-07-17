@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-#define STRESS_TEST
+//#define STRESS_TEST
 #define USE_KNIGHT
 
 using namespace Pu;

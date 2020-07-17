@@ -7,15 +7,15 @@
 namespace Pu
 {
 	/* Defines a helper object that handles fetching values from the Windows registry. */
-	class RegistryFetcher
+	class RegistryHandler
 	{
 	public:
-		RegistryFetcher(void) = delete;
-		RegistryFetcher(_In_ const RegistryFetcher&) = delete;
-		RegistryFetcher(_In_ RegistryFetcher&&) = delete;
+		RegistryHandler(void) = delete;
+		RegistryHandler(_In_ const RegistryHandler&) = delete;
+		RegistryHandler(_In_ RegistryHandler&&) = delete;
 
-		_Check_return_ RegistryFetcher& operator =(_In_ const RegistryFetcher&) = delete;
-		_Check_return_ RegistryFetcher& operator =(_In_ RegistryFetcher&&) = delete;
+		_Check_return_ RegistryHandler& operator =(_In_ const RegistryHandler&) = delete;
+		_Check_return_ RegistryHandler& operator =(_In_ RegistryHandler&&) = delete;
 
 		/* Reads the specified value from the sub-key directory in the specified root as a DWORD. */
 		_Check_return_ static int32 ReadInt32(_In_ HKEY root, _In_ const wstring &subKey, _In_ const wstring &value);
@@ -31,10 +31,19 @@ namespace Pu
 		/* Queries the values in the specified sub-key. */
 		_Check_return_ static vector<wstring> ReadValues(_In_ HKEY root, _In_ const wstring &subKey);
 
+		/* Writes the specified integer to the specified key in the registry. */
+		static void Write(_In_ HKEY root, _In_ const wstring &location, _In_ const wstring &key, _In_ int32 value);
+		/* Writes the specified integer to the specified key in the registry. */
+		static void Write(_In_ HKEY root, _In_ const wstring &location, _In_ const wstring &key, _In_ int64 value);
+		/* Writes the specified string to the specified key in the registry. */
+		static void Write(_In_ HKEY root, _In_ const wstring &location, _In_ const wstring &key, _In_ const wstring &value);
+
 	private:
 		static HKEY OpenKey(HKEY root, REGSAM permission);
 		static HKEY OpenKey(HKEY root, const wstring &subKey, REGSAM permission);
+		static HKEY CreateKey(HKEY root, const wstring &subKey);
 		static DWORD QueryValue(HKEY key, const wstring &name, void *data, size_t &size);
+		static void WriteValue(HKEY key, const wstring &name, DWORD type, const void *data, DWORD size);
 	};
 }
 #endif

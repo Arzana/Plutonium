@@ -1,5 +1,5 @@
 #ifdef _WIN32
-#include "Core/Platform/Windows/RegistryFetcher.h"
+#include "Core/Platform/Windows/RegistryHandler.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Diagnostics/DbgUtils.h"
 
@@ -7,7 +7,7 @@
 constexpr DWORD MAX_KEY_NAME_SIZE = 255;
 constexpr DWORD MAX_VALUE_NAME_SIZE = 16383;
 
-Pu::int32 Pu::RegistryFetcher::ReadInt32(HKEY root, const wstring & subKey, const wstring & value)
+Pu::int32 Pu::RegistryHandler::ReadInt32(HKEY root, const wstring & subKey, const wstring & value)
 {
 	int32 result = 0;
 
@@ -33,7 +33,7 @@ Pu::int32 Pu::RegistryFetcher::ReadInt32(HKEY root, const wstring & subKey, cons
 	return result;
 }
 
-Pu::int64 Pu::RegistryFetcher::ReadInt64(HKEY root, const wstring & subKey, const wstring & value)
+Pu::int64 Pu::RegistryHandler::ReadInt64(HKEY root, const wstring & subKey, const wstring & value)
 {
 	int64 result = 0;
 
@@ -59,7 +59,7 @@ Pu::int64 Pu::RegistryFetcher::ReadInt64(HKEY root, const wstring & subKey, cons
 	return result;
 }
 
-Pu::wstring Pu::RegistryFetcher::ReadString(HKEY root, const wstring & subKey, const wstring & value)
+Pu::wstring Pu::RegistryHandler::ReadString(HKEY root, const wstring & subKey, const wstring & value)
 {
 	wstring result;
 
@@ -91,7 +91,7 @@ Pu::wstring Pu::RegistryFetcher::ReadString(HKEY root, const wstring & subKey, c
 	return result;
 }
 
-Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root)
+Pu::vector<Pu::wstring> Pu::RegistryHandler::ReadKeys(HKEY root)
 {
 	vector<wstring> result;
 
@@ -121,7 +121,7 @@ Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root)
 	return result;
 }
 
-Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root, const wstring & subKey)
+Pu::vector<Pu::wstring> Pu::RegistryHandler::ReadKeys(HKEY root, const wstring & subKey)
 {
 	vector<wstring> result;
 
@@ -151,7 +151,7 @@ Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadKeys(HKEY root, const wstring &
 	return result;
 }
 
-Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadValues(HKEY root, const wstring & subKey)
+Pu::vector<Pu::wstring> Pu::RegistryHandler::ReadValues(HKEY root, const wstring & subKey)
 {
 	vector<wstring> result;
 
@@ -182,7 +182,25 @@ Pu::vector<Pu::wstring> Pu::RegistryFetcher::ReadValues(HKEY root, const wstring
 	return result;
 }
 
-HKEY Pu::RegistryFetcher::OpenKey(HKEY root, REGSAM permission)
+void Pu::RegistryHandler::Write(HKEY root, const wstring & location, const wstring & key, int32 value)
+{
+	const HKEY hkey = CreateKey(root, location);
+	if (hkey) WriteValue(hkey, key, REG_DWORD, &value, sizeof(int32));
+}
+
+void Pu::RegistryHandler::Write(HKEY root, const wstring & location, const wstring & key, int64 value)
+{
+	const HKEY hkey = CreateKey(root, location);
+	if (hkey) WriteValue(hkey, key, REG_QWORD, &value, sizeof(int64));
+}
+
+void Pu::RegistryHandler::Write(HKEY root, const wstring & location, const wstring & key, const wstring & value)
+{
+	const HKEY hkey = CreateKey(root, location);
+	if (hkey) WriteValue(hkey, key, REG_SZ, value.c_str(), static_cast<DWORD>(value.length() + 1) * sizeof(wchar_t));
+}
+
+HKEY Pu::RegistryHandler::OpenKey(HKEY root, REGSAM permission)
 {
 	/* Attempt to open a query to the desired root. */
 	HKEY result;
@@ -194,7 +212,7 @@ HKEY Pu::RegistryFetcher::OpenKey(HKEY root, REGSAM permission)
 	return nullptr;
 }
 
-HKEY Pu::RegistryFetcher::OpenKey(HKEY root, const wstring & subKey, REGSAM permission)
+HKEY Pu::RegistryHandler::OpenKey(HKEY root, const wstring & subKey, REGSAM permission)
 {
 	/* Attempt to open a query to the desired root. */
 	HKEY result;
@@ -206,7 +224,18 @@ HKEY Pu::RegistryFetcher::OpenKey(HKEY root, const wstring & subKey, REGSAM perm
 	return nullptr;
 }
 
-DWORD Pu::RegistryFetcher::QueryValue(HKEY key, const wstring & name, void * data, size_t & size)
+HKEY Pu::RegistryHandler::CreateKey(HKEY root, const wstring & subKey)
+{
+	/* Either create a new key, or open the handle to the old one. */
+	HKEY hkey;
+	const LSTATUS state = RegCreateKeyEx(root, subKey.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, nullptr, &hkey, nullptr);
+	if (state == ERROR_SUCCESS) return hkey;
+
+	Log::Error("Unable to create or open registry key at '%ls' (%ls)", subKey.c_str(), _CrtFormatError(state).c_str());
+	return nullptr;
+}
+
+DWORD Pu::RegistryHandler::QueryValue(HKEY key, const wstring & name, void * data, size_t & size)
 {
 	DWORD type;
 	DWORD winSize;
@@ -222,6 +251,12 @@ DWORD Pu::RegistryFetcher::QueryValue(HKEY key, const wstring & name, void * dat
 	/* Handle errors. */
 	Log::Error("Unable to query value for '%ls' (%ls)!", name.c_str(), _CrtFormatError(state).c_str());
 	return REG_NONE;
+}
+
+void Pu::RegistryHandler::WriteValue(HKEY key, const wstring & name, DWORD type, const void * data, DWORD size)
+{
+	const LSTATUS state = RegSetValueEx(key, name.c_str(), 0, type, reinterpret_cast<const byte*>(data), size);
+	if (state != ERROR_SUCCESS) Log::Error("Unable to set value for key '%ls' (%ls)!", name.c_str(), _CrtFormatError(state).c_str());
 }
 
 #endif

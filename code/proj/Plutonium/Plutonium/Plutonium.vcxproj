@@ -175,7 +175,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Vector3.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector4.h" />
     <ClInclude Include="..\..\..\include\Core\Platform\DynamicLibLoader.h" />
-    <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryFetcher.h" />
+    <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryHandler.h" />
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\Windows.h" />
     <ClInclude Include="..\..\..\include\Core\String.h" />
     <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h" />
@@ -363,7 +363,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\SquareDiamondNoise.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Triangulation.cpp" />
     <ClCompile Include="..\..\..\src\Core\Platform\DynamicLibLoader.cpp" />
-    <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryFetcher.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryHandler.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Scheduler.cpp" />
     <ClCompile Include="..\..\..\src\Core\Threading\Tasks\Task.cpp" />

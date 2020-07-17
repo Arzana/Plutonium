@@ -4,7 +4,7 @@
 
 /* Used for logging implicit layers. */
 #ifdef _WIN32
-#include "Core/Platform/Windows/RegistryFetcher.h"
+#include "Core/Platform/Windows/RegistryHandler.h"
 #include "Streams/FileReader.h"
 
 /* The JSON library defines a global variable 'E'. This conflicts with Pu::E. */
@@ -356,7 +356,7 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 
 #ifdef _WIN32
 		/* Log the implicit layers. */
-		for (const wstring &key : RegistryFetcher::ReadValues(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Khronos\\Vulkan\\ImplicitLayers"))
+		for (const wstring &key : RegistryHandler::ReadValues(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Khronos\\Vulkan\\ImplicitLayers"))
 		{
 			FileReader reader(key);
 			const nlohmann::json file = nlohmann::json::parse(reader.ReadToEnd());
