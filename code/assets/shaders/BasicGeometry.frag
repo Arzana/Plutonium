@@ -16,14 +16,7 @@ layout (location = 1) in vec2 Uv;
 
 layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
-layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical world coorinates.
-
-// Encodes the normal in Lambert Azimuthal Equal-Area projection.
-vec2 EncodeNormal()
-{
-	const float f = sqrt(8.0f * Normal.z + 8.0f);
-	return Normal.xy / f + 0.5f;
-}
+layout (location = 2) out vec4 GBufferNormal;		// Stores the normal in spherical world coorinates.
 
 void main()
 {
@@ -41,5 +34,5 @@ void main()
 	GBufferSpecular = vec4(specular, F0Power.w);
 
 	// Set the third attachment.
-	GBufferNormal = EncodeNormal();
+	GBufferNormal.xyz = Normal * 0.5f + 0.5f;
 }

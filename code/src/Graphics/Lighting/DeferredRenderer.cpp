@@ -64,11 +64,14 @@ constexpr Pu::uint32 PostTimer = 4;
 	0: Swapchain				[r, g, b, a]			-			-				-			Color			5
 	1: G-Buffer (Diffuse)		[r, g, b, r]			Color		Input			-			-				0
 	2: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-			-				1
-	3: G-Buffer (Normal)		[x, y]					Color		Input			-			-				2
+	3: G-Buffer (Normal)		[x, y, z, w]			Color		Input			-			-				2
 	4: HDR-Buffer				[r, g, b, a]			-			Color			Color		Input			0
 	5: G-Buffer (Depth)			[d]						Depth		Input			Depth		-				3 & 1
 
 	We need to override the attachment reference in most of the subpasses.
+
+	G-Buffer attachments should be kept small, <= 128 bytes per pixel.
+	This is so the GPU can use tiled memory.
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, bool wireframe)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
@@ -699,7 +702,7 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	depthBuffer = new DepthBuffer(device, Format::D32_SFLOAT, wnd->GetSize());
 	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::A2R10G10B10_UNORM_PACK32, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 
 	/* Create the new image views and samplers. */

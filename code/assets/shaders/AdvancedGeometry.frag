@@ -17,15 +17,7 @@ layout (location = 1) in mat3 TBN;
 
 layout (location = 0) out vec4 GBufferDiffuseRough;	// Stores the Diffuse color and Roughness.
 layout (location = 1) out vec4 GBufferSpecular;		// Stores the Specular color and power.
-layout (location = 2) out vec2 GBufferNormal;		// Stores the normal in spherical world coorinates.
-
-// Encodes the normal in Lambert Azimuthal Equal-Area projection.
-vec2 EncodeNormal()
-{
-	const vec3 n = normalize(TBN * normalize(textureLod(Bump, Uv, 0.0f).xyz * 2.0f - 1.0f));
-	const float f = sqrt(8.0f * n.z + 8.0f);
-	return n.xy / f + 0.5f;
-}
+layout (location = 2) out vec4 GBufferNormal;		// Stores the normal in spherical world coorinates.
 
 void main()
 {
@@ -43,5 +35,5 @@ void main()
 	GBufferSpecular = vec4(specular, F0Power.w);
 
 	// Set the third attachment.
-	GBufferNormal = EncodeNormal();
+	GBufferNormal.xyz = normalize(TBN * normalize(textureLod(Bump, Uv, 0.0f).xyz * 2.0f - 1.0f)) * 0.5f + 0.5f;
 }
