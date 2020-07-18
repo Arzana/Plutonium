@@ -80,7 +80,7 @@ void Pu::QueryChain::RecordStatistics(CommandBuffer & cmdBuffer)
 		ref.flags &= ~MASK_SET;
 
 		/* End the statistics query if this was the second call. */
-		cmdBuffer.EndQuery(*this, i - 1);
+		cmdBuffer.EndQuery(*this, ref.chain.back());
 	}
 	else
 	{

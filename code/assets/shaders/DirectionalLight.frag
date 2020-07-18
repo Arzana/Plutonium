@@ -68,7 +68,7 @@ vec3 brdf(in vec3 v, in vec3 n)
 	// Get all of the material values out of our G-Buffer.
 	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
 	const vec4 spec = subpassLoad(GBufferSpecular);
-	const vec3 envi = texture(Environment, r).rgb;
+	const vec3 envi = textureLod(Environment, r, 0.0f).rgb;
 
 	// Specular
 	const vec3 f = fresnel(vdh, spec.xyz);
