@@ -115,6 +115,8 @@ namespace Pu
 		void Render(_In_ const DirectionalLight &light);
 		/* Sets the skybox to use. */
 		void SetSkybox(_In_ const TextureCube &texture);
+		/* Displays the pipeline statistics of the deferred renderer (needs to be called before InitializeResources)! */
+		void Visualize(void) const;
 
 	private:
 		DepthBuffer *depthBuffer;
@@ -133,6 +135,7 @@ namespace Pu
 		CommandBuffer *curCmd;
 		const Camera *curCam;
 		QueryChain *timer;
+		QueryChain *stats;
 
 		bool markNeeded, advanced, wireframe;
 

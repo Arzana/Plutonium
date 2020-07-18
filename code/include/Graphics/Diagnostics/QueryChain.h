@@ -11,6 +11,8 @@ namespace Pu
 	public:
 		/* Initializes a new instance of a query chain for either occlusion or timestamp queries. */
 		QueryChain(_In_ LogicalDevice &device, _In_ QueryType type, _In_ size_t chainCount, _In_opt_ size_t bufferCount = 2);
+		/* Initializes a new instance of a query chain for pipeline statisics queries. */
+		QueryChain(_In_ LogicalDevice &device, _In_ QueryPipelineStatisticFlag statistics, _In_opt_ size_t bufferCount = 2);
 		QueryChain(_In_ const QueryChain&) = delete;
 		/* Move constructor. */
 		QueryChain(_In_ QueryChain &&value) = default;
@@ -23,8 +25,14 @@ namespace Pu
 		void Reset(_In_ CommandBuffer &cmdBuffer);
 		/* Records a timestamp to the pool at a specified pipeline stage. */
 		void RecordTimestamp(_In_ CommandBuffer &cmdBuffer, _In_ uint32 chain, _In_ PipelineStageFlag stage);
+		/* Starts or ends the recording of a pipeline statistics query. */
+		void RecordStatistics(_In_ CommandBuffer &cmdBuffer);
 		/* Gets the time between the two timestamps previously recorded to the command buffer. */
 		_Check_return_ float GetTimeDelta(_In_ uint32 chain) const;
+		/* Gets the results of the pipeline queries. */
+		_Check_return_ vector<uint32> GetStatistics(void) const;
+		/* Gets the human readable version of the pipeline statistic at the specified index. */
+		_Check_return_ const char* GetStatisticName(_In_ uint32 idx) const;
 
 		/* Gets the time between two timestamps in milliseconds (used for the profiler). */
 		_Check_return_ inline int64 GetProfilerTimeDelta(_In_ uint32 chain) const
@@ -45,6 +53,7 @@ namespace Pu
 		};
 
 		mutable vector<Chain> chains;
+		mutable QueryPipelineStatisticFlag stats;
 
 #ifdef _DEBUG
 		bool logged;

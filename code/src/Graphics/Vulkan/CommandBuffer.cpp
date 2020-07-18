@@ -389,16 +389,16 @@ void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool
 	device->vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
 }
 
-void Pu::CommandBuffer::BeginOcclusionQuery(QueryPool & pool, uint32 queryIndex, QueryControlFlag flags)
+void Pu::CommandBuffer::BeginQuery(QueryPool & pool, uint32 query, QueryControlFlag flags)
 {
 	DbgCheckIfRecording("begin occlusion query");
-	device->vkCmdBeginQuery(hndl, pool.hndl, queryIndex, flags);
+	device->vkCmdBeginQuery(hndl, pool.hndl, query, flags);
 }
 
-void Pu::CommandBuffer::EndQuery(QueryPool & pool, uint32 queryIndex)
+void Pu::CommandBuffer::EndQuery(QueryPool & pool, uint32 query)
 {
 	DbgCheckIfRecording("end query");
-	device->vkCmdEndQuery(hndl, pool.hndl, queryIndex);
+	device->vkCmdEndQuery(hndl, pool.hndl, query);
 }
 
 void Pu::CommandBuffer::ResetQueries(QueryPool & pool)

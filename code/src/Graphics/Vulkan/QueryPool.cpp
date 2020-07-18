@@ -37,11 +37,11 @@ Pu::QueryPool & Pu::QueryPool::operator=(QueryPool && other)
 	return *this;
 }
 
-Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 queryCount, bool wait, bool partial) const
+Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 resultCount, bool wait, bool partial) const
 {
 	/* Check for if we're not accessing outsize of pool range on debug. */
 #ifdef _DEBUG
-	CheckRange(firstQuery, queryCount);
+	CheckRange(firstQuery, 1);
 #endif
 
 	/* Define the flags. */
@@ -50,8 +50,8 @@ Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 query
 	if (partial) flags |= QueryResultFlag::Partial;
 
 	/* Query the result. */
-	vector<uint32> results(queryCount);
-	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, queryCount, queryCount * sizeof(uint32), results.data(), sizeof(uint32), flags);
+	vector<uint32> results(resultCount);
+	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, 1, resultCount * sizeof(uint32), results.data(), sizeof(uint32), flags);
 
 	/* If the result is not ready, just resturn an empty result. */
 	if (result == VkApiResult::NotReady) return vector<uint32>();
@@ -72,18 +72,26 @@ bool Pu::QueryPool::TryGetTimeDelta(uint32 firstQuery, float & result) const
 
 Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait) const
 {
+	uint32 result = 0;
+	if (GetOcclusionInternal(queryIndex, wait ? QueryResultFlag::Wait : QueryResultFlag::None, result)) return result;
+	return 0;
+}
+
+bool Pu::QueryPool::TryGetOcclusion(uint32 queryIndex, uint32 & result) const
+{
+	return GetOcclusionInternal(queryIndex, QueryResultFlag::None, result);
+}
+
+bool Pu::QueryPool::GetOcclusionInternal(uint32 firstQuery, QueryResultFlag flag, uint32 & value) const
+{
 	/* Check for if we're not accessing outsize of pool range on debug. */
 #ifdef _DEBUG
-	CheckRange(queryIndex, 1);
+	CheckRange(firstQuery, 1);
 #endif
 
-	/* Gets the total amount of fragments passed. */
-	uint32 fragments;
-	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, queryIndex, 1, sizeof(uint32), &fragments, sizeof(uint32), wait ? QueryResultFlag::Wait : QueryResultFlag::None);
-
-	/* if the query was not done yet; just return zero. */
-	if (result == VkApiResult::NotReady) return 0;
-	return fragments;
+	/* Gets the result. */
+	const VkApiResult result = parent->vkGetQueryPoolResults(parent->hndl, hndl, firstQuery, 1, sizeof(uint32), &value, sizeof(uint32), flag);
+	return result != VkApiResult::NotReady;
 }
 
 bool Pu::QueryPool::GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlag flag, float & delta) const

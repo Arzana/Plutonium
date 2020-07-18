@@ -5,6 +5,7 @@
 #include "Graphics/Diagnostics/QueryChain.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
 #include "Core/Diagnostics/Profiler.h"
+#include <imgui/include/imgui.h>
 
 /* Check for invalid state on debug. */
 #ifdef _DEBUG
@@ -79,7 +80,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
 	descPoolInput(nullptr), descSetInput(nullptr), advanced(false)
 {
-	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
+	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
 
 	/* Make sure that we can actually run wireframe mode. */
 	if (wireframe)
@@ -96,6 +97,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	if (wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
 	{
 		terrainShaders = { L"{Shaders}PatchTerrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" };
+		statFlags |= QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations;
 	}
 	else
 	{
@@ -118,6 +120,9 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
 	CreateSizeDependentResources();
+
+	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
+	stats = new QueryChain(wnd.GetDevice(), statFlags);
 }
 
 Pu::DescriptorPool * Pu::DeferredRenderer::CreateTerrainDescriptorPool(uint32 maxTerrains) const
@@ -166,6 +171,7 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 	Profiler::Add("Rendering (Post-Processing)", Color::Green(), timer->GetProfilerTimeDelta(PostTimer));
 
 	timer->Reset(cmdBuffer);
+	stats->Reset(cmdBuffer);
 
 	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
@@ -191,6 +197,7 @@ void Pu::DeferredRenderer::BeginTerrain(void)
 	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
 	curCmd->BindGraphicsPipeline(*gfxTerrain);
 	curCmd->BindGraphicsDescriptors(*gfxTerrain, SubpassTerrain, *curCam);
+	stats->RecordStatistics(*curCmd);
 	timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::TopOfPipe);
 }
 
@@ -258,6 +265,7 @@ void Pu::DeferredRenderer::End(void)
 	timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::BottomOfPipe);
 	DoSkybox();
 	DoTonemap();
+	stats->RecordStatistics(*curCmd);
 	curCmd->EndRenderPass();
 
 	/* Setting these to nullptr gives us the option to catch invalid usage. */
@@ -374,6 +382,26 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 		descSetInput->Write(SubpassSkybox, *skybox, texture);
 	}
 	else Log::Fatal("Cannot set skybox when deferred rendering is not yet finalized!");
+}
+
+void Pu::DeferredRenderer::Visualize(void) const
+{
+	if constexpr (ImGuiAvailable)
+	{
+		const vector<uint32> results = stats->GetStatistics();
+		if (results.size())
+		{
+			if (ImGui::Begin("Pipeline Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				for (uint32 i = 0; i < results.size(); i++)
+				{
+					ImGui::Text("%s: %u", stats->GetStatisticName(i), results[i]);
+				}
+
+				ImGui::End();
+			}
+		}
+	}
 }
 
 void Pu::DeferredRenderer::DoSkybox(void)
@@ -777,6 +805,7 @@ void Pu::DeferredRenderer::Destroy(void)
 
 	/* Queries are always made. */
 	delete timer;
+	delete stats;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);

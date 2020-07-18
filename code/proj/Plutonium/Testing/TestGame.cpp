@@ -34,6 +34,7 @@ void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, Physical
 	enabeled.WideLines = supported.WideLines;											// Debug renderer
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
 	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;							// Textures are loaded with 4 anisotropy by default
+	enabeled.PipelineStatisticsQuery = supported.PipelineStatisticsQuery;				// Nice for performance testing, but optional
 	enabeled.VertexPipelineStoresAndAtomics = true;										// Needed for imageLoad.
 }
 

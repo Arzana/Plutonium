@@ -1128,13 +1128,14 @@ namespace Pu
 
 	/* Defines the queried pipeline statistics. */
 	enum class QueryPipelineStatisticFlag
+		: uint32
 	{
 		/* No flags were set. */
 		None = 0x00000000,
 		/* Specifies that queries managed by the pool will count the number of vertices processed by the input assembly stage. */
 		InputAssemblyVertices = 0x00000001,
 		/* Specifies that queries managed by the pool will count the number of primitives processed by the input assembly stage. */
-		InputAssemblyprimitives = 0x00000002,
+		InputAssemblyPrimitives = 0x00000002,
 		/* Specifies that queries managed by the pool will count the number of vertex shader invocations.  */
 		VertexShaderInvocations = 0x00000004,
 		/* Specifies that queries managed by the pool will count the number of geometry shader invocations. */
@@ -1672,6 +1673,18 @@ namespace Pu
 	_Check_return_ inline constexpr QueueFlag operator &(_In_ QueueFlag a, _In_ QueueFlag b)
 	{
 		return _CrtEnumBitAnd(a, b);
+	}
+
+	/* Appends the flag bits of an query pipeline statistics flag. */
+	_Check_return_ inline constexpr QueryPipelineStatisticFlag operator |(_In_ QueryPipelineStatisticFlag a, _In_ QueryPipelineStatisticFlag b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an query pipeline statistics flag. */
+	_Check_return_ inline constexpr QueryPipelineStatisticFlag operator |=(_In_ QueryPipelineStatisticFlag &a, _In_ QueryPipelineStatisticFlag b)
+	{
+		return a = _CrtEnumBitOr(a, b);
 	}
 
 	/* Gets the number of channels per format. */
@@ -2749,6 +2762,40 @@ namespace Pu
 			return "Dynamic Storage Buffer";
 		case DescriptorType::InputAttachment:
 			return "Input Attachment";
+		default:
+			return "Unknown";
+		}
+	}
+
+	/* Gets a human readable version of the specific pipeline statistics flag. */
+	_Check_return_ inline const char* to_string(_In_ QueryPipelineStatisticFlag flags)
+	{
+		switch (flags)
+		{
+		case QueryPipelineStatisticFlag::None:
+			return "None";
+		case QueryPipelineStatisticFlag::InputAssemblyVertices:
+			return "Input Assembly Vertices";
+		case QueryPipelineStatisticFlag::InputAssemblyPrimitives:
+			return "Input Assembly Primitives";
+		case QueryPipelineStatisticFlag::VertexShaderInvocations:
+			return "Vertex Shader Invocations";
+		case QueryPipelineStatisticFlag::GeometryShaderInvocations:
+			return "Geometry Shader Invocations";
+		case QueryPipelineStatisticFlag::GeometryShaderPrimitives:
+			return "Geometry Shader Primitives";
+		case QueryPipelineStatisticFlag::ClippingInvocations:
+			return "Clipping Invocations";
+		case QueryPipelineStatisticFlag::ClippingPrimitives:
+			return "Clipping Primitives";
+		case QueryPipelineStatisticFlag::FragmentShaderInvocations:
+			return "Fragment Shader Invocations";
+		case QueryPipelineStatisticFlag::TessellationControlShaderPatches:
+			return "Tessellation Control Shader Patches";
+		case QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations:
+			return "Tessellation Evaluation Shader Invocations";
+		case QueryPipelineStatisticFlag::ComputeShaderInvocations:
+			return "Compute Shader Invocations";
 		default:
 			return "Unknown";
 		}

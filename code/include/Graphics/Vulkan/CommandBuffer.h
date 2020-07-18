@@ -137,10 +137,10 @@ namespace Pu
 		void EndLabel(void);
 		/* Writes a timestamp at a specific point in the pipeline to the specific query. */
 		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
-		/* Starts an occlusion query. */
-		void BeginOcclusionQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex, _In_opt_ QueryControlFlag flags = QueryControlFlag::None);
-		/* Ends an occlusion query. */
-		void EndQuery(_In_ QueryPool &pool, _In_ uint32 queryIndex);
+		/* Starts an occlusion or pipeline statistics query. */
+		void BeginQuery(_In_ QueryPool &pool, _In_ uint32 query, _In_opt_ QueryControlFlag flags = QueryControlFlag::None);
+		/* Ends an occlusion or pipline statistics query. */
+		void EndQuery(_In_ QueryPool &pool, _In_ uint32 query);
 		/* Resets all queries in a query pool. */
 		void ResetQueries(_In_ QueryPool &pool);
 		/* Resets specific queries in a query pool. */
