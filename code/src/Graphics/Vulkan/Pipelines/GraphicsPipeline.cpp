@@ -108,7 +108,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 			for (uint32 i = 1; i < columnSize; i++)
 			{
 				desc.Location = attrib.description.Location + i;
-				desc.Offset = attrib.description.Location + i * rowSize;
+				desc.Offset = attrib.description.Offset + i * rowSize;
 				attributeDescriptions.emplace_back(desc);
 			}
 		}

@@ -65,7 +65,7 @@ namespace Pu
 		friend class AssetFetcher;
 		friend class AssetLoader;
 		friend class CommandBuffer;
-		friend class DescriptorSet;
+		friend class DescriptorSetBase;
 		friend class GameWindow;
 		friend class Framebuffer;
 

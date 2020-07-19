@@ -4,6 +4,7 @@
 #include "Graphics/Cameras/Camera.h"
 #include "Content/AssetFetcher.h"
 #include "DirectionalLight.h"
+#include "PointLightPool.h"
 
 namespace Pu
 {
@@ -48,7 +49,7 @@ namespace Pu
 		/* Checks whether the deferred renderer is ready for use. */
 		_Check_return_ inline bool IsUsable(void) const
 		{
-			return renderpass->IsLoaded();
+			return renderpass->IsLoaded() && lightVolumes->Count();
 		}
 
 		/* Gets the renderpass associated with this deferred renderer. */
@@ -107,6 +108,8 @@ namespace Pu
 		void Render(_In_ const Model &model, _In_ const Matrix &transform, _In_ uint32 keyFrame1, _In_ uint32 keyFrame2, _In_ float blending);
 		/* Renders the specified direction light onto the scene. */
 		void Render(_In_ const DirectionalLight &light);
+		/* Renders the specified point lights onto the scene. */
+		void Render(_In_ const PointLightPool &lights);
 		/* Sets the skybox to use. */
 		void SetSkybox(_In_ const TextureCube &texture);
 		/* Displays the pipeline statistics of the deferred renderer (needs to be called before InitializeResources)! */
@@ -124,6 +127,7 @@ namespace Pu
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
+		MeshCollection *lightVolumes;
 		Descriptor *skybox;
 
 		CommandBuffer *curCmd;

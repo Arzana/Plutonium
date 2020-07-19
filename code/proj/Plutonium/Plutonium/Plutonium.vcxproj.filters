@@ -930,6 +930,12 @@
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryHandler.h">
       <Filter>Header Files\Core\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\PointLight.h">
+      <Filter>Header Files\Graphics\VertexLayouts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Lighting\PointLightPool.h">
+      <Filter>Header Files\Graphics\Lighting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1324,6 +1330,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Platform\Windows\RegistryHandler.cpp">
       <Filter>Source Files\Core\Platform\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Lighting\PointLightPool.cpp">
+      <Filter>Source Files\Graphics\Lighting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

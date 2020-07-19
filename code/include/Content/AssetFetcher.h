@@ -72,6 +72,12 @@ namespace Pu
 			return loader->GetScheduler();
 		}
 
+		/* Gets the underlying asset loader. */
+		_Check_return_ inline AssetLoader& GetLoader(void)
+		{
+			return *loader;
+		}
+
 	private:
 		AssetLoader *loader;
 		AssetCache *cache;

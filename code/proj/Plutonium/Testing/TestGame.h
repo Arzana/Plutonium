@@ -38,6 +38,7 @@ private:
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
+	Pu::PointLightPool *lightPoints;
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
 

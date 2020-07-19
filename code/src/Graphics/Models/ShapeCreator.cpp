@@ -6,6 +6,36 @@
 #define DBG_CHECK_BUFFER_SIZE(...)
 #endif
 
+static const Pu::Vector3 origins[6] =
+{
+	Pu::Vector3(-1.0, -1.0, -1.0),
+	Pu::Vector3(1.0, -1.0, -1.0),
+	Pu::Vector3(1.0, -1.0, 1.0),
+	Pu::Vector3(-1.0, -1.0, 1.0),
+	Pu::Vector3(-1.0, 1.0, -1.0),
+	Pu::Vector3(-1.0, -1.0, 1.0)
+};
+
+static const Pu::Vector3 rights[6] =
+{
+	Pu::Vector3(2.0, 0.0, 0.0),
+	Pu::Vector3(0.0, 0.0, 2.0),
+	Pu::Vector3(-2.0, 0.0, 0.0),
+	Pu::Vector3(0.0, 0.0, -2.0),
+	Pu::Vector3(2.0, 0.0, 0.0),
+	Pu::Vector3(2.0, 0.0, 0.0)
+};
+
+static const Pu::Vector3 ups[6] =
+{
+	Pu::Vector3(0.0, 2.0, 0.0),
+	Pu::Vector3(0.0, 2.0, 0.0),
+	Pu::Vector3(0.0, 2.0, 0.0),
+	Pu::Vector3(0.0, 2.0, 0.0),
+	Pu::Vector3(0.0, 0.0, 2.0),
+	Pu::Vector3(0.0, 0.0, -2.0)
+};
+
 Pu::uint32 Pu::ShapeCreator::GetPlaneVertexSize(uint16 divisions)
 {
 	return sqr(divisions) * sizeof(Patched3D);
@@ -14,6 +44,11 @@ Pu::uint32 Pu::ShapeCreator::GetPlaneVertexSize(uint16 divisions)
 Pu::uint32 Pu::ShapeCreator::GetSphereVertexSize(uint16 divisions)
 {
 	return 6 * sqr(divisions + 1) * sizeof(Basic3D);
+}
+
+Pu::uint32 Pu::ShapeCreator::GetVolumeSphereVertexSize(uint16 divisions)
+{
+	return 6 * sqr(divisions + 1) * sizeof(Vector3);
 }
 
 Pu::uint32 Pu::ShapeCreator::GetDomeVertexSize(uint16 divisions)
@@ -56,6 +91,11 @@ size_t Pu::ShapeCreator::GetSphereBufferSize(uint16 divisions)
 				if (i != divisions && j != divisions) 6 indices
 	*/
 	return GetSphereVertexSize(divisions) + 36 * sqr(divisions) * sizeof(uint16);
+}
+
+size_t Pu::ShapeCreator::GetVolumeSphereBufferSize(uint16 divisions)
+{
+	return GetVolumeSphereVertexSize(divisions) + 36 * sqr(divisions) * sizeof(uint16);
 }
 
 size_t Pu::ShapeCreator::GetDomeBufferSize(uint16 divisions)
@@ -432,36 +472,6 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, bool mapMemory)
 /* https://github.com/caosdoar/spheres */
 Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory)
 {
-	static const Vector3 origins[6] =
-	{
-		Vector3(-1.0, -1.0, -1.0),
-		Vector3(1.0, -1.0, -1.0),
-		Vector3(1.0, -1.0, 1.0),
-		Vector3(-1.0, -1.0, 1.0),
-		Vector3(-1.0, 1.0, -1.0),
-		Vector3(-1.0, -1.0, 1.0)
-	};
-
-	static const Vector3 rights[6] =
-	{
-		Vector3(2.0, 0.0, 0.0),
-		Vector3(0.0, 0.0, 2.0),
-		Vector3(-2.0, 0.0, 0.0),
-		Vector3(0.0, 0.0, -2.0),
-		Vector3(2.0, 0.0, 0.0),
-		Vector3(2.0, 0.0, 0.0)
-	};
-
-	static const Vector3 ups[6] =
-	{
-		Vector3(0.0, 2.0, 0.0),
-		Vector3(0.0, 2.0, 0.0),
-		Vector3(0.0, 2.0, 0.0),
-		Vector3(0.0, 2.0, 0.0),
-		Vector3(0.0, 0.0, 2.0),
-		Vector3(0.0, 0.0, -2.0)
-	};
-
 	DBG_CHECK_BUFFER_SIZE(GetSphereBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
@@ -496,6 +506,89 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory
 				*/
 				vertices->Normal = normalize(vertices->Position);
 				vertices->TexCoord = Vector2(x * step, y * step);
+			}
+		}
+	}
+
+	/* Indices. */
+	uint16 *indices = reinterpret_cast<uint16*>(vertices);
+	for (uint16 i = 0, k = divisions + 1; i < 6; i++)
+	{
+		for (uint16 x = 0; x < divisions; x++)
+		{
+			const bool bottom = x < (divisions >> 1);
+			for (uint16 y = 0; y < divisions; y++, indices += 6)
+			{
+				const bool left = y < (divisions >> 1);
+
+				const uint16 a = (i * k + x) * k + y;
+				const uint16 b = (i * k + x) * k + y + 1;
+				const uint16 c = (i * k + x + 1) * k + y;
+				const uint16 d = (i * k + x + 1) * k + y + 1;
+
+				/*
+				The subdivision of the cubes looks better if we orient
+				the faces to the center of the cube.
+				*/
+				if (bottom ^ left)
+				{
+					indices[0] = a;
+					indices[1] = b;
+					indices[2] = c;
+					indices[3] = c;
+					indices[4] = b;
+					indices[5] = d;
+				}
+				else
+				{
+					indices[0] = a;
+					indices[1] = d;
+					indices[2] = c;
+					indices[3] = a;
+					indices[4] = b;
+					indices[5] = d;
+				}
+			}
+		}
+	}
+
+	/* We need to set the bounding box of the mesh as well. */
+	if (mapMemory) src.EndMemoryTransfer();
+	Mesh result{ 36u * sqr(divisions), sizeof(Basic3D), IndexType::UInt16 };
+	result.SetBoundingBox(AABB{ -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f });
+
+	return result;
+}
+
+Pu::Mesh Pu::ShapeCreator::VolumeSphere(Buffer & src, uint16 divisions, bool mapMemory)
+{
+	DBG_CHECK_BUFFER_SIZE(GetVolumeSphereBufferSize(divisions));
+
+	/* Begin the memory transfer operation. */
+	if (mapMemory) src.BeginMemoryTransfer();
+	Vector3 *vertices = reinterpret_cast<Vector3*>(src.GetHostMemory());
+
+	/* Loop through the faces of the box. */
+	const float divs = static_cast<float>(divisions + 1);
+	const float step = recip(divs - 1.0f);
+	for (size_t i = 0; i < 6; i++)
+	{
+		const Vector3 origin = origins[i];
+		const Vector3 right = rights[i];
+		const Vector3 up = ups[i];
+
+		/* Divide the box into subdivisions. */
+		for (float x = 0; x < divs; x++)
+		{
+			for (float y = 0; y < divs; y++, ++vertices)
+			{
+				*vertices = origin + step * (x * right + y * up);
+				const Vector3 p2 = sqr(*vertices);
+
+				/* Set the position, scale down by 2 to get a uniform diameter. */
+				vertices->X *= sqrtf(1.0f - 0.5f * (p2.Y + p2.Z) + p2.Y * p2.Z / 3.0f) * 0.5f;
+				vertices->Y *= sqrtf(1.0f - 0.5f * (p2.Z + p2.X) + p2.Z * p2.X / 3.0f) * 0.5f;
+				vertices->Z *= sqrtf(1.0f - 0.5f * (p2.X + p2.Y) + p2.X * p2.Y / 3.0f) * 0.5f;
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
 
-layout (binding = 1) uniform Camera
+layout (binding = 0) uniform Camera
 {
 	mat4 Projection;
 	mat4 View;

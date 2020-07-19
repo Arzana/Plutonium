@@ -54,6 +54,11 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Desc
 	WriteDescriptors({ write });
 }
 
+Pu::DeviceSize Pu::DescriptorSetBase::GetOffsetAligned(DeviceSize size) const
+{
+	return Pool->renderpass->device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(size);
+}
+
 void Pu::DescriptorSetBase::ValidateDescriptor(const Descriptor & descriptor, uint32 set, DescriptorType type)
 {
 	/* Make sure that the set matches. */

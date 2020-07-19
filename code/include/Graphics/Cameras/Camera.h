@@ -162,7 +162,7 @@ namespace Pu
 		const NativeWindow *window;
 		Frustum frustum;
 
-		DeviceSize offsetSp0, offsetSp1, offsetSp2, offsetSp3, offsetSp4;
+		DeviceSize offsetSp0, offsetSp1, offsetSp2, offsetSp3, offsetSp4, offsetSp5, offsetSp6;
 
 		mutable Matrix iview;
 		mutable bool viewDirty;

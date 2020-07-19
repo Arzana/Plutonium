@@ -1,8 +1,8 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
 
-layout (constant_id = 0) const float iGBufferWidth = 0.0f;
-layout (constant_id = 1) const float iGBufferHeight = 0.0f;
+layout (constant_id = 0) const float iGBufferWidth = 1.0f / 2560.0f;
+layout (constant_id = 1) const float iGBufferHeight = 1.0f / 1440.0f;
 
 const float PI = 3.141592653589793;
 const float EPSLION = 0.00001f;
@@ -19,8 +19,6 @@ layout (input_attachment_index = 1, set = 1, binding = 0) uniform subpassInput G
 layout (input_attachment_index = 2, set = 1, binding = 1) uniform subpassInput GBufferSpecular;		// Stores the Specular color and power.
 layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput GBufferNormal;		// Stores the normal in spherical world coorinates.
 layout (input_attachment_index = 5, set = 1, binding = 3) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
-
-layout (set = 2, binding = 0) uniform samplerCube Environment;
 
 layout (location = 0) in vec3 Position;
 layout (location = 1) in vec3 Attenuation;
@@ -80,7 +78,6 @@ vec3 brdf(in vec3 v, in vec3 n, in vec3 p)
 	// Get all of the material values out of our G-Buffer.
 	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
 	const vec4 spec = subpassLoad(GBufferSpecular);
-	const vec3 envi = textureLod(Environment, r, 0.0f).rgb;
 
 	// Specular
 	const vec3 f = fresnel(vdh, spec.xyz);
@@ -89,7 +86,7 @@ vec3 brdf(in vec3 v, in vec3 n, in vec3 p)
 
 	// Composition
 	const vec3 fd = (1.0f - f) * (diffRough.rgb / PI);
-	const vec3 fs = (f * g * d) * (4.0f * ndl * ndv) * envi;
+	const vec3 fs = (f * g * d) * (4.0f * ndl * ndv);
 	return (fd + fs) * intensity * ndl;
 }
 

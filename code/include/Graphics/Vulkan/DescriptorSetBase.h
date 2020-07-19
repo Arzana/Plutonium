@@ -38,6 +38,8 @@ namespace Pu
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const ImageView &image);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
+		/* Gets the aligned offset for descriptors in a set that is present in multiple shader stages. */
+		_Check_return_ DeviceSize GetOffsetAligned(_In_ DeviceSize size) const;
 
 		/* Copies the specific value into the array. */
 		template <typename value_t>

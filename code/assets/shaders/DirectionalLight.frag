@@ -5,7 +5,7 @@ const float PI = 3.141592653589793;
 const float EPSLION = 0.00001f;
 
 // Defines camera parameters, needed for decoding and light calculations.
-layout (binding = 1) uniform Camera
+layout (binding = 0) uniform Camera
 {
 	mat4 IProjection;
 	mat4 IView;

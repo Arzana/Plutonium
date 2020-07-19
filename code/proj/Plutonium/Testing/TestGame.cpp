@@ -3,7 +3,7 @@
 #include <Core/Diagnostics/Profiler.h>
 #include <imgui.h>
 
-#define STRESS_TEST
+//#define STRESS_TEST
 #define USE_KNIGHT
 
 using namespace Pu;
@@ -59,10 +59,19 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 #else
 	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
 #endif
+
+	lightPoints = new PointLightPool(GetDevice(), 8);
+	for (size_t i = 0; i < 8; i++)
+	{
+		const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
+		const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
+		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::White(), 5.0f, 1.0f, 0.09f, 0.032f);
+	}
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
 {
+	if (lightPoints) delete lightPoints;
 	if (camFree) delete camFree;
 	if (lightMain) delete lightMain;
 	if (lightFill) delete lightFill;
@@ -85,6 +94,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
+		lightPoints->Update(cmd);
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		renderer->InitializeCameraPool(*descPoolConst, 1);								// Camera sets
@@ -140,9 +150,11 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			}
 		}
 #endif
-		renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
-		renderer->Render(*lightMain);
-		renderer->Render(*lightFill);
+		//renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
+		//renderer->Render(*lightMain);
+		//renderer->Render(*lightFill);
+		renderer->Begin(DeferredRenderer::SubpassPointLight);
+		renderer->Render(*lightPoints);
 		renderer->End();
 
 		physics->Visualize(*dbgRenderer, camFree->GetPosition(), dt);

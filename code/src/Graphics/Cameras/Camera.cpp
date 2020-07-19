@@ -17,6 +17,8 @@ Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Render
 	offsetSp2 = Add(DeferredRenderer::SubpassDirectionalLight , renderpass.GetSubpass(DeferredRenderer::SubpassDirectionalLight).GetSetLayout(0));
 	offsetSp3 = Add(DeferredRenderer::SubpassSkybox, renderpass.GetSubpass(DeferredRenderer::SubpassSkybox).GetSetLayout(0));
 	offsetSp4 = Add(DeferredRenderer::SubpassPostProcessing, renderpass.GetSubpass(DeferredRenderer::SubpassPostProcessing).GetSetLayout(0));
+	offsetSp5 = Add(DeferredRenderer::SubpassPointLight, renderpass.GetSubpass(DeferredRenderer::SubpassPointLight).GetSetLayout(0));
+	offsetSp6 = offsetSp5 + GetOffsetAligned(sizeof(Matrix) << 1);
 }
 
 Pu::Camera::Camera(Camera && value)
@@ -24,8 +26,9 @@ Pu::Camera::Camera(Camera && value)
 	view(value.view), proj(value.proj), iproj(value.iproj), iview(value.iview),
 	exposure(value.exposure), brightness(value.brightness), contrast(value.contrast),
 	wndSize(value.wndSize), viewDirty(value.viewDirty), Orientation(value.Orientation),
-	offsetSp0(value.offsetSp0), offsetSp1(value.offsetSp1),
-	offsetSp2(value.offsetSp2), offsetSp3(value.offsetSp3), offsetSp4(value.offsetSp4)
+	offsetSp0(value.offsetSp0), offsetSp1(value.offsetSp1), offsetSp2(value.offsetSp2),
+	offsetSp3(value.offsetSp3), offsetSp4(value.offsetSp4), offsetSp5(value.offsetSp5),
+	offsetSp6(value.offsetSp6)
 {
 	window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 }
@@ -54,6 +57,8 @@ Pu::Camera & Pu::Camera::operator=(Camera && other)
 		offsetSp2 = other.offsetSp2;
 		offsetSp3 = other.offsetSp3;
 		offsetSp4 = other.offsetSp4;
+		offsetSp5 = other.offsetSp5;
+		offsetSp6 = other.offsetSp6;
 
 		window->OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 	}
@@ -148,20 +153,27 @@ void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 	Copy(dest + offsetSp1, &proj);
 	Copy(dest + offsetSp1 + sizeof(Matrix), &view);
 
-	/* Stage the inverse view, projection, and the camera position to the light. */
+	/* Stage the inverse view, projection, and the camera position to the directional light. */
 	Copy(dest + offsetSp2, &iproj);
 	Copy(dest + offsetSp2 + sizeof(Matrix), &GetInverseView());
 	Copy(dest + offsetSp2 + (sizeof(Matrix) << 1), &pos);
 
 	/* Stage the inverse projection matrix for the skybox subpass. */
 	Copy(dest + offsetSp3, &iproj);
-	Copy(dest + offsetSp3 + sizeof(Matrix), &GetInverseView());
+	Copy(dest + offsetSp3 + sizeof(Matrix), &iview);
 	Copy(dest + offsetSp3 + (sizeof(Matrix) << 1), &pos);
 
 	/* Stage the exposure, brightness and contrast to the camera and final subpass. */
 	Copy(dest + offsetSp4, &exposure);
 	Copy(dest + offsetSp4 + sizeof(float), &brightness);
 	Copy(dest + offsetSp4 + sizeof(Vector2), &contrast);
+
+	/* Stage the projection, view, inverse projection, inverse view and position to the point light. */
+	Copy(dest + offsetSp5, &proj);
+	Copy(dest + offsetSp5 + sizeof(Matrix), &view);
+	Copy(dest + offsetSp6, &iproj);
+	Copy(dest + offsetSp6 + sizeof(Matrix), &iview);
+	Copy(dest + offsetSp6 + (sizeof(Matrix) << 1), &pos);
 }
 
 void Pu::Camera::Destroy(void)

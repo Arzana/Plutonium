@@ -1,8 +1,11 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/VertexLayouts/Advanced3D.h"
 #include "Graphics/Textures/TextureInput2D.h"
-#include "Graphics/VertexLayouts/Patched3D.h"
-#include "Graphics/VertexLayouts/Basic3D.h"
+#include "Graphics/Models/ShapeCreator.h"
+#include "Graphics/VertexLayouts/PointLight.h"
+#include "Graphics/Resources/SingleUseCommandBuffer.h"
+
+using namespace Pu;
 
 #ifdef _DEBUG
 #include "Graphics/Diagnostics/QueryChain.h"
@@ -14,28 +17,51 @@
 #define DBG_CHECK_SUBPASS(...)
 #endif
 
-constexpr Pu::uint32 TerrainTimer = 0;
-constexpr Pu::uint32 GeometryTimer = 1;
-constexpr Pu::uint32 SkyboxTimer = 2;
-constexpr Pu::uint32 LightingTimer = 3;
-constexpr Pu::uint32 PostTimer = 4;
+constexpr uint32 TerrainTimer = 0;
+constexpr uint32 GeometryTimer = 1;
+constexpr uint32 SkyboxTimer = 2;
+constexpr uint32 LightingTimer = 3;
+constexpr uint32 PostTimer = 4;
 
-constexpr Pu::int32 SubpassNone = -2;
-constexpr Pu::int32 SubpassInitialized = -1;
-constexpr Pu::uint32 SubpassBeginFinal = Pu::DeferredRenderer::SubpassPointLight;
+constexpr int32 SubpassNone = -2;
+constexpr int32 SubpassInitialized = -1;
+constexpr uint32 SubpassBeginFinal = DeferredRenderer::SubpassPointLight;
 
-constexpr inline bool is_geometry_subpass(Pu::uint32 subpass)
+constexpr inline bool is_geometry_subpass(uint32 subpass)
 {
-	return subpass == Pu::DeferredRenderer::SubpassBasicStaticGeometry
-		|| subpass == Pu::DeferredRenderer::SubpassAdvancedStaticGeometry
-		|| subpass == Pu::DeferredRenderer::SubpassBasicMorphGeometry;
+	return subpass == DeferredRenderer::SubpassBasicStaticGeometry
+		|| subpass == DeferredRenderer::SubpassAdvancedStaticGeometry
+		|| subpass == DeferredRenderer::SubpassBasicMorphGeometry;
 }
 
-constexpr inline bool is_lighting_subpass(Pu::uint32 subpass)
+constexpr inline bool is_lighting_subpass(uint32 subpass)
 {
-	return subpass == Pu::DeferredRenderer::SubpassDirectionalLight
-		|| subpass == Pu::DeferredRenderer::SubpassPointLight;
+	return subpass == DeferredRenderer::SubpassDirectionalLight
+		|| subpass == DeferredRenderer::SubpassPointLight;
 }
+
+class LightVolumeStageTask
+	: public Task
+{
+public:
+	LightVolumeStageTask(AssetFetcher &fetcher, MeshCollection &result)
+		: result(result), fetcher(fetcher)
+	{}
+
+	Result Execute(void) final
+	{
+		StagingBuffer *staging = new StagingBuffer(fetcher.GetDevice(), ShapeCreator::GetVolumeSphereBufferSize(EllipsiodDivs));
+		Mesh mesh = ShapeCreator::VolumeSphere(*staging, EllipsiodDivs);
+		result.Initialize(fetcher.GetDevice(), *staging, ShapeCreator::GetVolumeSphereVertexSize(EllipsiodDivs), std::move(mesh));
+
+		fetcher.GetLoader().StageBuffer(*staging, result.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+		return Result::AutoDelete();
+	}
+
+private:
+	AssetFetcher &fetcher;
+	MeshCollection &result;
+};
 
 /*
 	The shaders define the following descriptor sets:
@@ -96,7 +122,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
 	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
 	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr), advanced(false), 
-	renderpassStarted(false), activeSubpass(SubpassNone)
+	renderpassStarted(false), activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
 {
 #ifdef _DEBUG
 	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
@@ -137,6 +163,10 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
 		});
+
+	/* Create the light volumes. */
+	Task *task = new LightVolumeStageTask(fetcher, *lightVolumes);
+	fetcher.GetScheduler().Spawn(*task);
 
 	/* We need to recreate resources if the window resizes, or the color space is changed. */
 	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
@@ -179,11 +209,12 @@ Pu::DescriptorPool * Pu::DeferredRenderer::CreateMaterialDescriptorPool(uint32 m
 
 void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 maxSets) const
 {
-	pool.AddSet(SubpassTerrain, 0, maxSets);				// Terrain
-	pool.AddSet(SubpassAdvancedStaticGeometry, 0, maxSets);	// Static Geometry
-	pool.AddSet(SubpassDirectionalLight, 0, maxSets);		// Directional Light
-	pool.AddSet(SubpassSkybox, 0, maxSets);					// Skybox
-	pool.AddSet(SubpassPostProcessing, 0, maxSets);			// Post-Processing
+	pool.AddSet(SubpassTerrain, 0, maxSets);
+	pool.AddSet(SubpassAdvancedStaticGeometry, 0, maxSets);
+	pool.AddSet(SubpassDirectionalLight, 0, maxSets);
+	pool.AddSet(SubpassPointLight, 0, maxSets);				
+	pool.AddSet(SubpassSkybox, 0, maxSets);
+	pool.AddSet(SubpassPostProcessing, 0, maxSets);
 }
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
@@ -304,15 +335,25 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 		break;
 	case SubpassDirectionalLight:
 		curGfx = gfxDLight;
-		curCmd->BindGraphicsDescriptors(*curGfx, subpass, *descSetInput);
-		curCmd->BindGraphicsDescriptors(*curGfx, SubpassDirectionalLight, *curCam);
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassDirectionalLight, *descSetInput);
+		curCmd->BindGraphicsDescriptors(*curGfx, subpass, *curCam);
 		break;
 	case SubpassPointLight:
 		curGfx = gfxPLight;
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassDirectionalLight, *descSetInput);
+		curCmd->BindGraphicsDescriptors(*curGfx, subpass, *curCam);
 		break;
 	default:
 		Log::Fatal("This should never occur!");
 		return;
+	}
+
+	if (subpass == SubpassPointLight)
+	{
+		/* Bind the point light volume sphere to the first binding. */
+		const Mesh &sphere = lightVolumes->GetShape(0).second;
+		curCmd->BindVertexBuffer(0, lightVolumes->GetBuffer(), lightVolumes->GetViewOffset(sphere.GetVertexView()));
+		curCmd->BindIndexBuffer(sphere.GetIndexType(), lightVolumes->GetBuffer(), lightVolumes->GetViewOffset(sphere.GetIndexView()));
 	}
 
 	/* A graphics pipeline should always be bound. */
@@ -452,6 +493,13 @@ void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 	DBG_CHECK_SUBPASS(SubpassDirectionalLight);
 	curCmd->BindGraphicsDescriptor(*gfxDLight, light);
 	curCmd->Draw(3, 1, 0, 0);
+}
+
+void Pu::DeferredRenderer::Render(const PointLightPool & lights)
+{
+	DBG_CHECK_SUBPASS(SubpassPointLight);
+	curCmd->BindVertexBuffer(1, lights, 0);
+	lightVolumes->GetShape(0).second.Draw(*curCmd, lights.GetLightCount());
 }
 
 void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
@@ -718,8 +766,8 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		instRad.SetBinding(1);
 		instVol.SetBinding(1);
 
-		instRad.SetOffset(sizeof(Vector3));
-		instVol.SetOffset(sizeof(Vector3) + sizeof(Vector4));
+		instRad.SetOffset(vkoffsetof(PointLight, Radiance));
+		instAtt.SetOffset(vkoffsetof(PointLight, AttenuationC));
 	}
 
 	/* Set all the options for the skybox pass. */
@@ -857,9 +905,10 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxPLight->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxPLight->SetTopology(PrimitiveTopology::TriangleList);
+		gfxPLight->SetCullMode(CullModeFlag::Front);
 		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
 		gfxPLight->AddVertexBinding<Vector3>(0);
-		gfxPLight->AddVertexBinding(1, sizeof(Vector3) + sizeof(Vector4) + sizeof(Matrix), VertexInputRate::Instance);
+		gfxPLight->AddVertexBinding<PointLight>(1, VertexInputRate::Instance);
 		gfxPLight->Finalize();
 		gfxPLight->SetDebugName("Deferred Renderer Point Light");
 	}
@@ -990,6 +1039,8 @@ void Pu::DeferredRenderer::Destroy(void)
 	delete timer;
 	delete stats;
 #endif
+
+	delete lightVolumes;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);
