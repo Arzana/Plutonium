@@ -315,6 +315,10 @@ void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint3
 {
 	DbgCheckIfRecording("bind descriptors to graphics bind point");
 
+#ifdef _DEBUG
+	const uint32 oldBindCalls = bindCalls;
+#endif
+
 	/* We need to bind all of the descriptors in the group that match the subpass index. */
 	for (const auto[id, setHndl] : descriptors.hndls)
 	{
@@ -326,6 +330,11 @@ void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint3
 			++bindCalls;
 		}
 	}
+
+#ifdef _DEBUG
+	/* This might occur if the user passes the wrong handle, it will probably crash later. */
+	if (oldBindCalls == bindCalls) Log::Warning("Could not bind any Graphics DescriptorSet from DescriptorSetGroup!");
+#endif
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)

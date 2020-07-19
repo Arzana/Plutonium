@@ -37,13 +37,20 @@ namespace Pu
 			return *shaders.at(idx);
 		}
 
-		/* Sets the dependency information for this subpass with both access flags set to none, indicating no resource transition. */
+		/* Adds a dependency with access flag None for this subpass on the previous subpass, indicating no resource transition. */
 		inline void SetNoDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_opt_ DependencyFlag flags = DependencyFlag::None)
 		{
-			SetDependency(srcStage, dstStage, AccessFlag::None, AccessFlag::None, flags);
+			AddDependency(SubpassNotSet, srcStage, dstStage, AccessFlag::None, AccessFlag::None, flags);
 		}
-		/* Sets the dependency information for the this subpass. */
-		void SetDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None);
+
+		/* Adds a specific dependency for this subpass on the previous subpass. */
+		inline void SetDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None)
+		{
+			AddDependency(SubpassNotSet, srcStage, dstStage, srcAccess, dstAccess, flags);
+		}
+
+		/* Adds a specific dependency on a specified subpass for the this subpass. */
+		void AddDependency(_In_ uint32 srcSubpass, _In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flags = DependencyFlag::None);
 		/* Adds a depth/stencil buffer to the subpass. */
 		_Check_return_ Output& AddDepthStencil(void);
 		/* Adds a clone of a depth/stencil buffer to the subpass. */
@@ -100,6 +107,8 @@ namespace Pu
 		static Descriptor defDescr;
 		static PushConstant defConst;
 
+		constexpr static uint32 SubpassNotSet = SubpassExternal - 1;
+
 		bool linkSuccessfull;
 		Output *ds;
 		vector<Shader*> shaders;
@@ -109,10 +118,7 @@ namespace Pu
 		vector<PushConstant> pushConstants;
 		vector<DescriptorSetLayout> setLayouts;
 		vector<Output> outputs;
-
-		/* src and dest subpasses are set by the renderpass. */
-		SubpassDependency dependency;
-		bool dependencyUsed;
+		vector<SubpassDependency> dependencies;
 
 		void Link(LogicalDevice &device);
 		void LoadFields(const PhysicalDevice &physicalDevice);

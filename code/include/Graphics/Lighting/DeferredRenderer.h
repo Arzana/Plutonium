@@ -93,16 +93,8 @@ namespace Pu
 		void InitializeCameraPool(_In_ DescriptorPool &pool, _In_ uint32 maxSets) const;
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer, _In_ const Camera &camera);
-		/* Started the deferred rendering pipeline (with terrain rendering). */
-		void BeginTerrain(void);
-		/* Starts the basic section of the static geometry pipeline. */
-		void BeginGeometry(void);
-		/* Starts the advanced section of the static geometry pipeline. */
-		void BeginAdvanced(void);
-		/* Starts the basic section of the animated geometry pipeline. */
-		void BeginMorph(void);
-		/* Starts the second phase of the deferred rendering pipeline. */
-		void BeginLight(void);
+		/* Begins the specified subpass (order should be preserved). */
+		void Begin(_In_ uint32 subpass);
 		/* End the deferred rendering pipeline. */
 		void End(void);
 		/* Renders the specified terrain piece to the G-Buffer. */
@@ -134,11 +126,17 @@ namespace Pu
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
-		QueryChain *timer;
-		QueryChain *stats;
+		bool renderpassStarted;
+		int32 activeSubpass;
 
 		bool markNeeded, advanced, wireframe;
 
+#ifdef _DEBUG
+		QueryChain *timer;
+		QueryChain *stats;
+#endif
+
+		void EndSubpass(uint32 newSubpass, uint32 uActiveSubpass);
 		void DoSkybox(void);
 		void DoTonemap(void);
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);

@@ -114,27 +114,25 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
 		renderer->InitializeResources(cmd, *camFree);
-		renderer->BeginTerrain();
+		renderer->Begin(DeferredRenderer::SubpassTerrain);
 		for (const TerrainChunk *chunk : terrain)
 		{
 			if (chunk->IsUsable()) renderer->Render(*chunk);
 		}
 
-		renderer->BeginGeometry();
 #ifndef USE_KNIGHT
 		if (playerModel->IsLoaded())
 		{
+			renderer->Begin(DeferredRenderer::SubpassBasicStaticGeometry);
 			for (PhysicsHandle hnpc : npcs)
 			{
 				renderer->Render(*playerModel, physics->GetTransform(hnpc) * Matrix::CreateScalar(3.0f));
 			}
 		}
-#endif
-		renderer->BeginAdvanced();
-		renderer->BeginMorph();
-#ifdef USE_KNIGHT
+#else
 		if (playerModel->IsLoaded())
 		{
+			renderer->Begin(DeferredRenderer::SubpassBasicMorphGeometry);
 			for (PhysicsHandle hnpc : npcs)
 			{
 				const Matrix transform = physics->GetTransform(hnpc) * Matrix::CreateScalar(0.05f);
@@ -142,7 +140,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			}
 		}
 #endif
-		renderer->BeginLight();
+		renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
 		renderer->Render(*lightMain);
 		renderer->Render(*lightFill);
 		renderer->End();

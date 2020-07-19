@@ -2,16 +2,16 @@
 #include "Graphics/VertexLayouts/Advanced3D.h"
 #include "Graphics/Textures/TextureInput2D.h"
 #include "Graphics/VertexLayouts/Patched3D.h"
-#include "Graphics/Diagnostics/QueryChain.h"
 #include "Graphics/VertexLayouts/Basic3D.h"
+
+#ifdef _DEBUG
+#include "Graphics/Diagnostics/QueryChain.h"
 #include "Core/Diagnostics/Profiler.h"
 #include <imgui/include/imgui.h>
 
-/* Check for invalid state on debug. */
-#ifdef _DEBUG
-#define DBG_CHECK(obj, stage)	if (!obj) Log::Fatal("InitializeResources should be started before the " stage " pass can start!");
+#define DBG_CHECK_SUBPASS(required)			if (static_cast<int32>(required) != activeSubpass) Log::Fatal("Invalid function call, subpass %u expected, but subpass %d is active!", required, activeSubpass)
 #else
-#define DBG_CHECK(...)
+#define DBG_CHECK_SUBPASS(...)
 #endif
 
 constexpr Pu::uint32 TerrainTimer = 0;
@@ -19,6 +19,21 @@ constexpr Pu::uint32 GeometryTimer = 1;
 constexpr Pu::uint32 SkyboxTimer = 2;
 constexpr Pu::uint32 LightingTimer = 3;
 constexpr Pu::uint32 PostTimer = 4;
+
+constexpr Pu::int32 SubpassNone = -2;
+constexpr Pu::int32 SubpassInitialized = -1;
+
+constexpr inline bool is_geometry_subpass(Pu::uint32 subpass)
+{
+	return subpass == Pu::DeferredRenderer::SubpassBasicStaticGeometry
+		|| subpass == Pu::DeferredRenderer::SubpassAdvancedStaticGeometry
+		|| subpass == Pu::DeferredRenderer::SubpassBasicMorphGeometry;
+}
+
+constexpr inline bool is_lighting_subpass(Pu::uint32 subpass)
+{
+	return subpass == Pu::DeferredRenderer::SubpassDirectionalLight;
+}
 
 /*
 	The shaders define the following descriptor sets:
@@ -78,9 +93,11 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr),
 	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
-	descPoolInput(nullptr), descSetInput(nullptr), advanced(false)
+	descPoolInput(nullptr), descSetInput(nullptr), advanced(false), renderpassStarted(false), activeSubpass(SubpassNone)
 {
+#ifdef _DEBUG
 	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
+#endif
 
 	/* Make sure that we can actually run wireframe mode. */
 	if (wireframe)
@@ -97,7 +114,9 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	if (wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
 	{
 		terrainShaders = { L"{Shaders}PatchTerrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" };
+#ifdef _DEBUG
 		statFlags |= QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations;
+#endif
 	}
 	else
 	{
@@ -121,8 +140,10 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
 	CreateSizeDependentResources();
 
+#ifdef _DEBUG
 	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
 	stats = new QueryChain(wnd.GetDevice(), statFlags);
+#endif
 }
 
 Pu::DescriptorPool * Pu::DeferredRenderer::CreateTerrainDescriptorPool(uint32 maxTerrains) const
@@ -163,6 +184,7 @@ void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 ma
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
 {
+#ifdef _DEBUG
 	/* Update the profiler and reset the queries. */
 	Profiler::Begin("Rendering", Color::Red());
 	Profiler::Add("Rendering (Environment)", Color::Gray(), timer->GetProfilerTimeDelta(TerrainTimer) + timer->GetProfilerTimeDelta(SkyboxTimer));
@@ -172,10 +194,13 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 
 	timer->Reset(cmdBuffer);
 	stats->Reset(cmdBuffer);
+#endif
 
 	/* Make sure we only do this if needed. */
 	curCmd = &cmdBuffer;
 	curCam = &camera;
+	activeSubpass = SubpassInitialized;
+
 	if (markNeeded)
 	{
 		markNeeded = false;
@@ -189,93 +214,135 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 	}
 }
 
-void Pu::DeferredRenderer::BeginTerrain(void)
+void Pu::DeferredRenderer::Begin(uint32 subpass)
 {
-	DBG_CHECK(curCmd, "Terrain");
+	/* Early out if this subpass is already active. */
+	const uint32 uActiveSubpass = static_cast<uint32>(activeSubpass);
+	if (uActiveSubpass == subpass) return;
 
-	curCmd->AddLabel("Deferred Renderer (Terrain)", Color::Blue());
-	curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxTerrain);
-	curCmd->BindGraphicsDescriptors(*gfxTerrain, SubpassTerrain, *curCam);
-	stats->RecordStatistics(*curCmd);
-	timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::TopOfPipe);
-}
+	/* Check if the user is calling in the correct order on debug mode. */
+#ifdef _DEBUG
+	if (activeSubpass == SubpassNone) Log::Fatal("InitializeResources should be called before any Begin subpass call!");
+	if (static_cast<int32>(subpass) < activeSubpass) Log::Fatal("Cannot begin subpass %u after subpass %d!", subpass, activeSubpass);
+	if (subpass > SubpassDirectionalLight) Log::Fatal("Invalid subpass passed!");
+#endif
 
-void Pu::DeferredRenderer::BeginGeometry(void)
-{
-	DBG_CHECK(curCam, "Basic-Geomtry");
+	/* Finalize the old subpass. */
+	EndSubpass(subpass, uActiveSubpass);
 
-	/* End the terrain pass and start the geometry pass. */
-	advanced = false;
-	curCmd->EndLabel();
-	timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::BottomOfPipe);
-	curCmd->AddLabel("Deferred Renderer (Basic Static Geometry)", Color::Blue());
-	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxGPassBasic);
-	curCmd->BindGraphicsDescriptors(*gfxGPassBasic, SubpassAdvancedStaticGeometry, *curCam);
-	timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::TopOfPipe);
-}
+	/* Add a debug label and record a timestamp on debug mode. */
+#ifdef _DEBUG
+	string label = "Deferred Renderer (";
+	switch (subpass)
+	{
+	case SubpassTerrain:
+		label += "Terrain";
+		timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::TopOfPipe);
+		break;
+	case SubpassBasicStaticGeometry:
+		label += "Basic Static";
+		break;
+	case SubpassAdvancedStaticGeometry:
+		label += "Advanced Static";
+		break;
+	case SubpassBasicMorphGeometry:
+		label += "Basic Morph";
+		break;
+	case SubpassDirectionalLight:
+		label += "Directional Light";
+		break;
+	default:
+		Log::Fatal("This should never occur!");
+		return;
+	}
 
-void Pu::DeferredRenderer::BeginAdvanced(void)
-{
-	DBG_CHECK(curCam, "Advanced-Geomtry");
+	label += ')';
+	curCmd->AddLabel(label, Color::Blue());
 
-	/* End the basic pass and start the advanced pass. */
-	advanced = true;
-	curCmd->EndLabel();
-	curCmd->AddLabel("Deferred Renderer (Advanced Static Geometry)", Color::Blue());
-	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxGPassAdv);
-	curCmd->BindGraphicsDescriptors(*gfxGPassAdv, SubpassAdvancedStaticGeometry, *curCam);
-}
+	/* Start the geometry timer if this is the first geometry pass. */
+	if (is_geometry_subpass(subpass) && !is_geometry_subpass(uActiveSubpass))
+	{
+		timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::TopOfPipe);
+	}
 
-void Pu::DeferredRenderer::BeginMorph(void)
-{
-	DBG_CHECK(curCam, "Morph-Geometry");
+	/* Start the lighting timer if this is the first ligh pass. */
+	if (is_lighting_subpass(subpass) && !is_lighting_subpass(uActiveSubpass))
+	{
+		timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::TopOfPipe);
+	}
+#endif
 
-	/* End the advanced pass and start the morph pass. */
-	curCmd->EndLabel();
-	curCmd->AddLabel("Deferred Renderer (Basic Morph Geometry)", Color::Blue());
-	curCmd->NextSubpass(SubpassContents::Inline);
-	curCmd->BindGraphicsPipeline(*gfxGPassBasicMorph);
-	curCmd->BindGraphicsDescriptors(*gfxGPassBasicMorph, SubpassAdvancedStaticGeometry, *curCam);
-}
+	/* 
+	Select the correct graphics pipeline to bind.
+	And bind any additional subpass global graphics descriptors.
+	*/
+	const GraphicsPipeline *curGfx;
+	switch (subpass)
+	{
+	case SubpassTerrain:
+		curGfx = gfxTerrain;
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassTerrain, *curCam);
+		break;
+	case SubpassBasicStaticGeometry:
+		curGfx = gfxGPassBasic;
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassAdvancedStaticGeometry, *curCam);
+		break;
+	case SubpassAdvancedStaticGeometry:
+		curGfx = gfxGPassAdv;
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassAdvancedStaticGeometry, *curCam);
+		break;
+	case SubpassBasicMorphGeometry:
+		curGfx = gfxGPassBasicMorph;
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassAdvancedStaticGeometry, *curCam);
+		break;
+	case SubpassDirectionalLight:
+		curGfx = gfxLightPass;
+		curCmd->BindGraphicsDescriptors(*curGfx, subpass, *descSetInput);
+		curCmd->BindGraphicsDescriptors(*curGfx, SubpassDirectionalLight, *curCam);
+		break;
+	default:
+		Log::Fatal("This should never occur!");
+		return;
+	}
 
-void Pu::DeferredRenderer::BeginLight(void)
-{
-	DBG_CHECK(curCam, "Directional-Light");
-
-	/* End the geometry pass and start the directional light pass. */
-	curCmd->EndLabel();
-	timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::BottomOfPipe);
-	curCmd->AddLabel("Deferred Renderer (Directional Lights)", Color::Blue());
-	curCmd->NextSubpass(SubpassContents::Inline);
-	timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::TopOfPipe);
-	curCmd->BindGraphicsPipeline(*gfxLightPass);
-	curCmd->BindGraphicsDescriptors(*gfxLightPass, SubpassDirectionalLight, *curCam);
-	curCmd->BindGraphicsDescriptors(*gfxLightPass, SubpassDirectionalLight, *descSetInput);
+	/* A graphics pipeline should always be bound. */
+	curCmd->BindGraphicsPipeline(*curGfx);
+	activeSubpass = static_cast<int32>(subpass);
 }
 
 void Pu::DeferredRenderer::End(void)
 {
-	DBG_CHECK(curCam, "final");
+	/* We should ignore this call if nothing was rendered. */
+	if (activeSubpass == SubpassNone) return;
+	const uint32 uActiveSubpass = static_cast<uint32>(activeSubpass);
 
-	/* End the light pass, do tonemapping and end the renderpass. */
-	curCmd->EndLabel();
-	timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::BottomOfPipe);
+	/* End the current subpass on debug mode. */
+	EndSubpass(skybox ? SubpassSkybox : SubpassPostProcessing, activeSubpass);
+
+	/* Attempt to do a skybox pass and do the post-processing pass. */
 	DoSkybox();
 	DoTonemap();
+
+#ifdef _DEBUG
 	stats->RecordStatistics(*curCmd);
+#endif
+
 	curCmd->EndRenderPass();
 
 	/* Setting these to nullptr gives us the option to catch invalid usage. */
 	curCmd = nullptr;
 	curCmd = nullptr;
+	renderpassStarted = false;
+	activeSubpass = SubpassNone;
+
+#ifdef _DEBUG
 	Profiler::End();
+#endif
 }
 
 void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 {
+	DBG_CHECK_SUBPASS(SubpassTerrain);
 	if (curCam->Cull(chunk.GetBoundingBox() + chunk.GetPosition())) return;
 
 	const MeshCollection &meshes = chunk.GetMeshes();
@@ -340,6 +407,8 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 
 void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform, uint32 keyFrame1, uint32 keyFrame2, float blending)
 {
+	DBG_CHECK_SUBPASS(SubpassBasicMorphGeometry);
+
 	/* Only render the model if it can be viewed by the camera. */
 	const MeshCollection &meshes = model.GetMeshes();
 	const AABB bb = lerp(meshes.GetBoundingBox(keyFrame1), meshes.GetBoundingBox(keyFrame2), blending);
@@ -370,6 +439,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform,
 
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 {
+	DBG_CHECK_SUBPASS(SubpassDirectionalLight);
 	curCmd->BindGraphicsDescriptor(*gfxLightPass, light);
 	curCmd->Draw(3, 1, 0, 0);
 }
@@ -386,6 +456,7 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 
 void Pu::DeferredRenderer::Visualize(void) const
 {
+#ifdef _DEBUG
 	if constexpr (ImGuiAvailable)
 	{
 		const vector<uint32> results = stats->GetStatistics();
@@ -402,6 +473,52 @@ void Pu::DeferredRenderer::Visualize(void) const
 			}
 		}
 	}
+#endif
+}
+
+void Pu::DeferredRenderer::EndSubpass(uint32 newSubpass, uint32 uActiveSubpass)
+{
+	if (!renderpassStarted)
+	{
+		/* Begin the renderpass and begin the pipeline statistics recording. */
+		renderpassStarted = true;
+		curCmd->BeginRenderPass(*renderpass, wnd->GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
+
+#ifdef _DEBUG
+		stats->RecordStatistics(*curCmd);
+#endif
+	}
+#ifdef _DEBUG
+	else
+	{
+		/* End the previous subpass. */
+		curCmd->EndLabel();
+
+		/* End the terrain timer if needed. */
+		if (uActiveSubpass == SubpassTerrain)
+		{
+			timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::BottomOfPipe);
+		}
+
+		/* End the geometry timer if needed. */
+		if (is_geometry_subpass(uActiveSubpass) && !is_geometry_subpass(newSubpass))
+		{
+			timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::BottomOfPipe);
+		}
+
+		/* End the lighting timer if needed. */
+		if (is_lighting_subpass(uActiveSubpass) && !is_lighting_subpass(newSubpass))
+		{
+			timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::BottomOfPipe);
+		}
+	}
+#endif
+
+	/* Skip to the correct subpass. */
+	for (uint32 i = 0; i < newSubpass - max(0, activeSubpass); i++)
+	{
+		curCmd->NextSubpass(SubpassContents::Inline);
+	}
 }
 
 void Pu::DeferredRenderer::DoSkybox(void)
@@ -410,14 +527,17 @@ void Pu::DeferredRenderer::DoSkybox(void)
 	if (skybox)
 	{
 		curCmd->AddLabel("Deferred Renderer (Skybox)", Color::Blue());
-		curCmd->NextSubpass(SubpassContents::Inline);
+#ifdef _DEBUG
 		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::TopOfPipe);
+#endif
 		curCmd->BindGraphicsPipeline(*gfxSkybox);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *curCam);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *descSetInput);
 		curCmd->Draw(3, 1, 0, 0);
 		curCmd->EndLabel();
+#ifdef _DEBUG
 		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::BottomOfPipe);
+#endif
 	}
 	else curCmd->NextSubpass(SubpassContents::Inline);
 }
@@ -426,20 +546,24 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
+#ifdef _DEBUG
 	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::TopOfPipe);
+#endif
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *descSetInput);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
+#ifdef _DEBUG
 	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::BottomOfPipe);
+#endif
 }
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
 	/*
 	We can't ignore the event fully if the renderpass isn't loaded yet.
-	The size dependent resources will always need to be recreated, 
+	The size dependent resources will always need to be recreated,
 	but the renderpass and pipeline don't have to change.
 	*/
 	if (renderpass->IsLoaded())
@@ -553,6 +677,8 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the directional light pass. */
 	{
 		Subpass &dlpass = renderpass->GetSubpass(SubpassDirectionalLight);
+
+		/* The depth buffer needs to be moved from a Write Attachment to an Input Attachment. */
 		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
 
 		Output &hdr = dlpass.GetOutput("L0");
@@ -639,11 +765,12 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		}
 
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
-		
+
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxTerrain->SetCullMode(CullModeFlag::Back);
 		gfxTerrain->AddVertexBinding<Patched3D>(0);
 		gfxTerrain->Finalize();
+		gfxTerrain->SetDebugName("Deferred Renderer Terrain");
 	}
 
 	/* Create the graphics pipeline for the basic static geometry pass. */
@@ -655,6 +782,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPassBasic->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxGPassBasic->AddVertexBinding<Basic3D>(0);
 		gfxGPassBasic->Finalize();
+		gfxGPassBasic->SetDebugName("Deferred Renderer Basic Static");
 	}
 
 	/* Create the graphics pipeline for the advanced static geometry pass. */
@@ -666,6 +794,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPassAdv->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxGPassAdv->AddVertexBinding<Advanced3D>(0);
 		gfxGPassAdv->Finalize();
+		gfxGPassAdv->SetDebugName("Deferred Renderer Advanced Static");
 	}
 
 	/* Create the graphics pipeline for the basic morph geometry pass. */
@@ -678,6 +807,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPassBasicMorph->AddVertexBinding<Basic3D>(0);
 		gfxGPassBasicMorph->AddVertexBinding<Basic3D>(1);
 		gfxGPassBasicMorph->Finalize();
+		gfxGPassBasicMorph->SetDebugName("Deferred Renderer Basic Morph");
 	}
 
 	/* Create the graphics pipeline for the directional light pass. */
@@ -686,6 +816,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxLightPass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxLightPass->GetBlendState("L0").SetBlendFactors(BlendFactor::One, BlendFactor::One, BlendFactor::One, BlendFactor::One);
 		gfxLightPass->Finalize();
+		gfxLightPass->SetDebugName("Deferred Renderer Directional Light");
 	}
 
 	/* Create the graphics pipeline for the skybox pass. */
@@ -694,6 +825,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxSkybox->SetTopology(PrimitiveTopology::TriangleList);
 		gfxSkybox->EnableDepthTest(false, CompareOp::LessOrEqual);
 		gfxSkybox->Finalize();
+		gfxSkybox->SetDebugName("Deferred Renderer Skybox");
 	}
 
 	/* Create the graphics pipeline for the camera pass. */
@@ -701,6 +833,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
 		gfxTonePass->Finalize();
+		gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
 	}
 
 	CreateFramebuffer();
@@ -743,6 +876,7 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	gbuffAttach1->SetDebugName("G-Buffer Diffuse/Roughness");
 	gbuffAttach2->SetDebugName("G-Buffer Specular/Power");
 	gbuffAttach3->SetDebugName("G-Buffer World Normal");
+	depthBuffer->SetDebugName("G-Buffer Depth");
 	tmpHdrAttach->SetDebugName("Deferred HDR Buffer");
 #endif
 
@@ -800,12 +934,16 @@ void Pu::DeferredRenderer::DestroyPipelines(void)
 
 void Pu::DeferredRenderer::Destroy(void)
 {
+	if (activeSubpass != SubpassNone) Log::Fatal("Cannot destroy deferred rendering during frame render!");
+
 	DestroyWindowDependentResources();
 	DestroyPipelines();
 
+#ifdef _DEBUG
 	/* Queries are always made. */
 	delete timer;
 	delete stats;
+#endif
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
 	fetcher->Release(*renderpass);

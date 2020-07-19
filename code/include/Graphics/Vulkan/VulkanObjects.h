@@ -1267,7 +1267,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a subpass dependency. */
 		SubpassDependency(void)
-			: SubpassDependency(0, 0)
+			: SubpassDependency(SubpassExternal, SubpassExternal)
 		{}
 
 		/* Initializes a new instance of a subpass dependency. */

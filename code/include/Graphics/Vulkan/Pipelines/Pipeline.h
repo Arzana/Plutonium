@@ -30,6 +30,16 @@ namespace Pu
 			return Hndl;
 		}
 
+		/* Sets a debuggable name for the pipeline (only does something on debug mode). */
+		inline void SetDebugName(_In_ const string &name) const
+		{
+#ifdef _DEBUG
+			Device->SetDebugName(ObjectType::Pipeline, Hndl, name);
+#else
+			(void)name;
+#endif
+		}
+
 	protected:
 		/* The raw Vulkan handle to the pipeline. */
 		PipelineHndl Hndl;

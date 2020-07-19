@@ -10,29 +10,32 @@ Descriptor Subpass::defDescr = Descriptor(defInfo);
 PushConstant Subpass::defConst = PushConstant(defInfo);
 
 Pu::Subpass::Subpass()
-	: linkSuccessfull(false), ds(nullptr), dependencyUsed(false)
+	: linkSuccessfull(false), ds(nullptr)
 {}
 
 Subpass::Subpass(LogicalDevice & device, std::initializer_list<Shader*> shaderModules)
-	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
+	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules)
 {
 	Link(device);
 }
 
 Pu::Subpass::Subpass(LogicalDevice & device, const vector<Shader*>& shaderModules)
-	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules), dependencyUsed(false)
+	: linkSuccessfull(false), ds(nullptr), shaders(shaderModules)
 {
 	Link(device);
 }
 
-void Pu::Subpass::SetDependency(PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flags)
+void Pu::Subpass::AddDependency(uint32 srcSubpass, PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flags)
 {
-	dependencyUsed = true;
+	/* Destination subpass is set by the renderpass. */
+	SubpassDependency dependency{ srcSubpass, SubpassNotSet };
 	dependency.SrcStageMask = srcStage;
 	dependency.SrcAccessMask = srcAccess;
 	dependency.DstStageMask = dstStage;
 	dependency.DstAccessMask = dstAccess;
 	dependency.DependencyFlags = flags;
+
+	dependencies.emplace_back(dependency);
 }
 
 Output & Subpass::AddDepthStencil(void)

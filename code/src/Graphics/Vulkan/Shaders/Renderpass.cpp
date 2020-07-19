@@ -286,15 +286,19 @@ void Pu::Renderpass::CreateRenderpass(void)
 	vector<SubpassDependency> dependencies;
 	for (uint32 i = 0; i < subpasses.size(); i++)
 	{
-		const Subpass &subpass = subpasses[i];
-		if (subpass.dependencyUsed)
+		/* A subpass might have multiple dependencies. */
+		for (SubpassDependency depenceny : subpasses[i].dependencies)
 		{
-			dependencies.emplace_back(subpass.dependency);
-			dependencies.back().DstSubpass = i;
+			/* Set the destination subpass to the current subpass index. */
+			depenceny.DstSubpass = i;
+			
+			/* Override the source to the previous subpass if it's not the first one, but it still has the default value of SubpassNotSet. */
+			if (depenceny.SrcSubpass == Subpass::SubpassNotSet)
+			{
+				depenceny.SrcSubpass = i == 0 ? SubpassExternal : i - 1;
+			}
 
-			/* We must set the source (previous) and destination (current) subpass ourselves. */
-			if (i == 0) dependencies.back().SrcSubpass = SubpassExternal;
-			else dependencies.back().SrcSubpass = i - 1;
+			dependencies.emplace_back(depenceny);
 		}
 	}
 

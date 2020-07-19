@@ -500,6 +500,7 @@ void Pu::DebugRenderer::CreatePipeline(void)
 	}
 
 	pipeline->Finalize();
+	pipeline->SetDebugName("Debug Renderer");
 }
 
 void Pu::DebugRenderer::CreateFrameBuffers(void)
