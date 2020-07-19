@@ -24,6 +24,8 @@
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.geom" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\PointLight.frag" />
+    <SPIRVShader Include="..\..\..\assets\shaders\WorldLight.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\AdvancedStaticGeometry.vert" />

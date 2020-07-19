@@ -256,14 +256,16 @@ void Pu::Renderpass::CreateRenderpass(void)
 				/* It wasn't a color attachment, maybe it was a depth/stencil attachment? */
 				if (!handled)
 				{
-					const SubpassDescription &desc = subpassDescriptions[i - 1];
-					if (desc.DepthStencilAttachment)
+					/* Search all the previous subpasses for a mathcing depth/stencil attachment. */
+					for (size_t j = 0; j < i; j++)
 					{
-						if (desc.DepthStencilAttachment->Attachment == idx)
+						const SubpassDescription &desc = subpassDescriptions[j];
+						if (desc.DepthStencilAttachment && desc.DepthStencilAttachment->Attachment == idx)
 						{
 							/* Depth/stencil attachments will also always have shader read only optimal layout. */
 							inputAttachments[i].emplace_back(idx, ImageLayout::ShaderReadOnlyOptimal);
 							handled = true;
+							break;
 						}
 					}
 				}

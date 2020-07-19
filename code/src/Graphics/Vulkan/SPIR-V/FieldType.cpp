@@ -310,8 +310,11 @@ Pu::Format Pu::FieldType::GetFormat(void) const
 		}
 		break;
 	case SizeType::Matrix2:
+		return Format::R32G32_SFLOAT;
 	case SizeType::Matrix3:
+		return Format::R32G32B32_SFLOAT;
 	case SizeType::Matrix4:
+		return Format::R32G32B32A32_SFLOAT;
 	case SizeType::Cube:
 	default:
 		return Format::Undefined;
@@ -321,4 +324,9 @@ Pu::Format Pu::FieldType::GetFormat(void) const
 bool Pu::FieldType::IsImage(void) const
 {
 	return ComponentType == ComponentType::SampledImage || ComponentType == ComponentType::StoreImage;
+}
+
+bool Pu::FieldType::IsMatrix(void) const
+{
+	return ContainerType == SizeType::Matrix2 || ContainerType == SizeType::Matrix3 || ContainerType == SizeType::Matrix4;
 }

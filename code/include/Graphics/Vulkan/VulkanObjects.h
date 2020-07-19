@@ -2201,6 +2201,12 @@ namespace Pu
 			SrcAlphaBlendFactor(BlendFactor::One), DstAlphaBlendFactor(BlendFactor::Zero), AlphaBlendOp(BlendOp::Add)
 		{}
 
+		/* Enables blending and set all the blend factors for this attachment to the same value. */
+		inline void SetAllBlendFactors(_In_ BlendFactor factor)
+		{
+			SetBlendFactors(factor, factor, factor, factor);
+		}
+
 		/* Enables blending and sets all the blend factors for this attachment. */
 		inline void SetBlendFactors(_In_ BlendFactor srcClr, _In_ BlendFactor srcAlpha, _In_ BlendFactor dstClr, _In_ BlendFactor dstAlpha)
 		{

@@ -25,10 +25,12 @@ namespace Pu
 		static constexpr uint32 SubpassBasicMorphGeometry = 3;
 		/* Defines the index of the directional light subpass. */
 		static constexpr uint32 SubpassDirectionalLight = 4;
+		/* Defines the index of the point light subpass. */
+		static constexpr uint32 SubpassPointLight = 5;
 		/* Defines the index of the skybox subpass. */
-		static constexpr uint32 SubpassSkybox = 5;
+		static constexpr uint32 SubpassSkybox = 6;
 		/* Defines the index of the post-processing subpass. */
-		static constexpr uint32 SubpassPostProcessing = 6;
+		static constexpr uint32 SubpassPostProcessing = 7;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
 		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_opt_ bool wireframe = false);
@@ -118,7 +120,7 @@ namespace Pu
 		AssetFetcher *fetcher;
 		GameWindow *wnd;
 		GraphicsPipeline *gfxTerrain, *gfxGPassBasic, *gfxGPassAdv, *gfxGPassBasicMorph;
-		GraphicsPipeline *gfxLightPass, *gfxSkybox, *gfxTonePass;
+		GraphicsPipeline *gfxDLight, *gfxPLight, *gfxSkybox, *gfxTonePass;
 
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;

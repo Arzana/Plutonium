@@ -108,6 +108,12 @@
     <SPIRVShader Include="..\..\..\assets\shaders\FastTerrain.vert">
       <Filter>Shaders\Deferred\Geometry\Terrain</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\PointLight.frag">
+      <Filter>Shaders\Deferred\Lighting</Filter>
+    </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\WorldLight.vert">
+      <Filter>Shaders\Deferred\Lighting</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">

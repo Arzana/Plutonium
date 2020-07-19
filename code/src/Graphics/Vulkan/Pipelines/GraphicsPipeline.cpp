@@ -85,7 +85,34 @@ void Pu::GraphicsPipeline::Finalize(void)
 
 	/* Add the vertex input binding descriptions to the final create information. */
 	vector<VertexInputAttributeDescription> attributeDescriptions;
-	for (const Attribute &attrib : renderpass->subpasses[subpass].attributes) attributeDescriptions.emplace_back(attrib.description);
+	for (const Attribute &attrib : renderpass->subpasses[subpass].attributes)
+	{
+		attributeDescriptions.emplace_back(attrib.description);
+
+		/* Check if this vertex attribute is a matrix type, if so add the remaining descriptions. */
+		const FieldType &type = attrib.GetInfo().Type;
+		if (type.IsMatrix())
+		{
+			VertexInputAttributeDescription desc = attrib.description;
+
+			/* 
+			Calculate the byte size of the matrix,
+			from that get the column size (2, 3, or 4),
+			and from that get the row size (8, 12, 16).
+			*/
+			const size_t byteSize = type.GetSize();
+			const uint32 columnSize = static_cast<uint32>(sqrtf(byteSize * 0.25f));
+			const uint32 rowSize = columnSize << 2;
+
+			/* Add another vertex attribute for every additional dimension. */
+			for (uint32 i = 1; i < columnSize; i++)
+			{
+				desc.Location = attrib.description.Location + i;
+				desc.Offset = attrib.description.Location + i * rowSize;
+				attributeDescriptions.emplace_back(desc);
+			}
+		}
+	}
 
 	/* Finalize the vertex input state. */
 	vertexInputState.VertexAttributeDescriptionCount = static_cast<uint32>(attributeDescriptions.size());

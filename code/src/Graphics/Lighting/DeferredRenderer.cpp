@@ -22,6 +22,7 @@ constexpr Pu::uint32 PostTimer = 4;
 
 constexpr Pu::int32 SubpassNone = -2;
 constexpr Pu::int32 SubpassInitialized = -1;
+constexpr Pu::uint32 SubpassBeginFinal = Pu::DeferredRenderer::SubpassPointLight;
 
 constexpr inline bool is_geometry_subpass(Pu::uint32 subpass)
 {
@@ -32,7 +33,8 @@ constexpr inline bool is_geometry_subpass(Pu::uint32 subpass)
 
 constexpr inline bool is_lighting_subpass(Pu::uint32 subpass)
 {
-	return subpass == Pu::DeferredRenderer::SubpassDirectionalLight;
+	return subpass == Pu::DeferredRenderer::SubpassDirectionalLight
+		|| subpass == Pu::DeferredRenderer::SubpassPointLight;
 }
 
 /*
@@ -91,9 +93,10 @@ constexpr inline bool is_lighting_subpass(Pu::uint32 subpass)
 */
 Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, bool wireframe)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
-	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxLightPass(nullptr),
-	gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr), wireframe(wireframe),
-	descPoolInput(nullptr), descSetInput(nullptr), advanced(false), renderpassStarted(false), activeSubpass(SubpassNone)
+	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
+	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
+	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr), advanced(false), 
+	renderpassStarted(false), activeSubpass(SubpassNone)
 {
 #ifdef _DEBUG
 	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
@@ -130,6 +133,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
 			{ L"{Shaders}BasicMorphGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
+			{ L"{Shaders}WorldLight.vert.spv", L"{Shaders}PointLight.frag.spv" },
 			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
 		});
@@ -224,7 +228,7 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 #ifdef _DEBUG
 	if (activeSubpass == SubpassNone) Log::Fatal("InitializeResources should be called before any Begin subpass call!");
 	if (static_cast<int32>(subpass) < activeSubpass) Log::Fatal("Cannot begin subpass %u after subpass %d!", subpass, activeSubpass);
-	if (subpass > SubpassDirectionalLight) Log::Fatal("Invalid subpass passed!");
+	if (subpass > SubpassBeginFinal) Log::Fatal("Invalid subpass passed!");
 #endif
 
 	/* Finalize the old subpass. */
@@ -250,6 +254,9 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 		break;
 	case SubpassDirectionalLight:
 		label += "Directional Light";
+		break;
+	case SubpassPointLight:
+		label += "Point Light";
 		break;
 	default:
 		Log::Fatal("This should never occur!");
@@ -296,9 +303,12 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 		curCmd->BindGraphicsDescriptors(*curGfx, SubpassAdvancedStaticGeometry, *curCam);
 		break;
 	case SubpassDirectionalLight:
-		curGfx = gfxLightPass;
+		curGfx = gfxDLight;
 		curCmd->BindGraphicsDescriptors(*curGfx, subpass, *descSetInput);
 		curCmd->BindGraphicsDescriptors(*curGfx, SubpassDirectionalLight, *curCam);
+		break;
+	case SubpassPointLight:
+		curGfx = gfxPLight;
 		break;
 	default:
 		Log::Fatal("This should never occur!");
@@ -440,7 +450,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform,
 void Pu::DeferredRenderer::Render(const DirectionalLight & light)
 {
 	DBG_CHECK_SUBPASS(SubpassDirectionalLight);
-	curCmd->BindGraphicsDescriptor(*gfxLightPass, light);
+	curCmd->BindGraphicsDescriptor(*gfxDLight, light);
 	curCmd->Draw(3, 1, 0, 0);
 }
 
@@ -478,6 +488,10 @@ void Pu::DeferredRenderer::Visualize(void) const
 
 void Pu::DeferredRenderer::EndSubpass(uint32 newSubpass, uint32 uActiveSubpass)
 {
+#ifndef _DEBUG
+	(void)uActiveSubpass;
+#endif
+
 	if (!renderpassStarted)
 	{
 		/* Begin the renderpass and begin the pipeline statistics recording. */
@@ -689,6 +703,25 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		hdr.SetReference(4);
 	}
 
+	/* Set all the options for the point light pass. */
+	{
+		Subpass &plpass = renderpass->GetSubpass(SubpassPointLight);
+		plpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+
+		plpass.CloneOutput("L0", 4);
+
+		Attribute &instAtt = plpass.GetAttribute("InstanceAttenuation");
+		Attribute &instRad = plpass.GetAttribute("InstanceRadiance");
+		Attribute &instVol = plpass.GetAttribute("InstanceVolume");
+
+		instAtt.SetBinding(1);
+		instRad.SetBinding(1);
+		instVol.SetBinding(1);
+
+		instRad.SetOffset(sizeof(Vector3));
+		instVol.SetOffset(sizeof(Vector3) + sizeof(Vector4));
+	}
+
 	/* Set all the options for the skybox pass. */
 	{
 		Subpass &skypass = renderpass->GetSubpass(SubpassSkybox);
@@ -727,7 +760,8 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxGPassBasic = new GraphicsPipeline(*renderpass, SubpassBasicStaticGeometry);
 		gfxGPassAdv = new GraphicsPipeline(*renderpass, SubpassAdvancedStaticGeometry);
 		gfxGPassBasicMorph = new GraphicsPipeline(*renderpass, SubpassBasicMorphGeometry);
-		gfxLightPass = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
+		gfxDLight = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
+		gfxPLight = new GraphicsPipeline(*renderpass, SubpassPointLight);
 		gfxSkybox = new GraphicsPipeline(*renderpass, SubpassSkybox);
 		gfxTonePass = new GraphicsPipeline(*renderpass, SubpassPostProcessing);
 
@@ -812,11 +846,22 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the directional light pass. */
 	{
-		gfxLightPass->SetViewport(wnd->GetNative().GetClientBounds());
-		gfxLightPass->SetTopology(PrimitiveTopology::TriangleList);
-		gfxLightPass->GetBlendState("L0").SetBlendFactors(BlendFactor::One, BlendFactor::One, BlendFactor::One, BlendFactor::One);
-		gfxLightPass->Finalize();
-		gfxLightPass->SetDebugName("Deferred Renderer Directional Light");
+		gfxDLight->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxDLight->SetTopology(PrimitiveTopology::TriangleList);
+		gfxDLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
+		gfxDLight->Finalize();
+		gfxDLight->SetDebugName("Deferred Renderer Directional Light");
+	}
+
+	/* Create the graphics pipeline for the point light pass. */
+	{
+		gfxPLight->SetViewport(wnd->GetNative().GetClientBounds());
+		gfxPLight->SetTopology(PrimitiveTopology::TriangleList);
+		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
+		gfxPLight->AddVertexBinding<Vector3>(0);
+		gfxPLight->AddVertexBinding(1, sizeof(Vector3) + sizeof(Vector4) + sizeof(Matrix), VertexInputRate::Instance);
+		gfxPLight->Finalize();
+		gfxPLight->SetDebugName("Deferred Renderer Point Light");
 	}
 
 	/* Create the graphics pipeline for the skybox pass. */
@@ -925,7 +970,8 @@ void Pu::DeferredRenderer::DestroyPipelines(void)
 	if (gfxGPassBasic) delete gfxGPassBasic;
 	if (gfxGPassAdv) delete gfxGPassAdv;
 	if (gfxGPassBasicMorph) delete gfxGPassBasicMorph;
-	if (gfxLightPass) delete gfxLightPass;
+	if (gfxDLight) delete gfxDLight;
+	if (gfxPLight) delete gfxPLight;
 	if (gfxSkybox) delete gfxSkybox;
 	if (gfxTonePass) delete gfxTonePass;
 	if (descSetInput) delete descSetInput;

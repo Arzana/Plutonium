@@ -265,6 +265,7 @@ void Pu::Profiler::ClearIfNeeded(void)
 
 void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * type, bool addDummy)
 {
+	if (sections.empty()) return;
 	ImGui::Text(type);
 
 	ImDrawList *gfx = ImGui::GetWindowDrawList();

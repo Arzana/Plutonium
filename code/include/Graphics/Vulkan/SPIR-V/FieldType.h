@@ -95,5 +95,7 @@ namespace Pu
 		_Check_return_ Format GetFormat(void) const;
 		/* Gets whether the specified field is an image. */
 		_Check_return_ bool IsImage(void) const;
+		/* Gets whether the specified field is a matrix. */
+		_Check_return_ bool IsMatrix(void) const;
 	};
 }
