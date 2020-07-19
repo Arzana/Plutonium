@@ -905,6 +905,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxPLight->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxPLight->SetTopology(PrimitiveTopology::TriangleList);
+		gfxPLight->SetFrontFace(FrontFace::CounterClockwise);
 		gfxPLight->SetCullMode(CullModeFlag::Front);
 		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
 		gfxPLight->AddVertexBinding<Vector3>(0);

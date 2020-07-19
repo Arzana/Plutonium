@@ -65,7 +65,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	{
 		const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
 		const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
-		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::White(), 5.0f, 1.0f, 0.09f, 0.032f);
+		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::White(), 1.0f, 0.7f, 1.8f);
 	}
 }
 

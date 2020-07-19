@@ -32,7 +32,7 @@ namespace Pu
 		}
 
 		/* Adds a new light to the pool. */
-		void AddLight(_In_ Vector3 position, _In_ Color color, _In_ float intensity, _In_ float attenuationConstant, _In_ float attenuationLinear, _In_ float attenuationQuadratic);
+		void AddLight(_In_ Vector3 position, _In_ Color color, _In_ float attenuationConstant, _In_ float attenuationLinear, _In_ float attenuationQuadratic);
 
 	private:
 		vector<PointLight> buffer;
