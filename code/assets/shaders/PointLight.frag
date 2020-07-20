@@ -1,8 +1,8 @@
 #version 460 core
 #extension GL_KHR_vulkan_glsl : enable
 
-layout (constant_id = 0) const float iGBufferWidth = 1.0f / 2560.0f;
-layout (constant_id = 1) const float iGBufferHeight = 1.0f / 1440.0f;
+layout (constant_id = 0) const float iGBufferWidth = 1.0f / 1920.0f;
+layout (constant_id = 1) const float iGBufferHeight = 1.0f / 1080.0f;
 
 const float PI = 3.141592653589793;
 const float EPSLION = 0.00001f;

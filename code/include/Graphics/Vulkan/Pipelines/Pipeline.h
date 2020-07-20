@@ -23,6 +23,15 @@ namespace Pu
 
 		/* Finalizes the pipeline, creating the underlying Vulkan resource. */
 		virtual void Finalize(void) = 0;
+		/* Sets the data for the specialization constants in the specified shader. */
+		void SetSpecializationData(_In_ uint32 shader, _In_ const void *data, _In_ size_t size);
+
+		/* Sets the specialization constants in the specified shader. */
+		template <typename data_t>
+		inline void SetSpecializationData(_In_ uint32 shader, _In_ const data_t &data)
+		{
+			SetSpecializationData(shader, &data, sizeof(data_t));
+		}
 
 		/* Gets whether this pipeline can be bound. */
 		_Check_return_ inline bool IsUsable(void) const
@@ -57,15 +66,19 @@ namespace Pu
 			return shaderStages;
 		}
 
+		/* Sets the specialization map entries for the pipeline shader stages and validates that all constants have been set. */
+		void InitializeSpecializationConstants(_In_ const Subpass &subpass);
 		/* Releases the pipeline. */
 		void Destroy(void);
 
 	private:
 		friend class CommandBuffer;
-
+		
+		vector<SpecializationInfo> specInfos;
 		vector<PipelineShaderStageCreateInfo> shaderStages;
 
 		void CreatePipelineLayout(const Subpass &subpass);
+		void DestroyBuffers(void);
 		void FullDestroy(void);
 	};
 }

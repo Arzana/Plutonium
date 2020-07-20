@@ -48,6 +48,7 @@ namespace Pu
 
 	private:
 		friend class Shader;
+		friend class Pipeline;
 
 		spv::Id id;
 		string name;

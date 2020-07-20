@@ -123,6 +123,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	/* Finalize the dynamic state. */
 	dynamicState.DynamicStateCount = static_cast<uint32>(dynamicStates.size());
 	dynamicState.DynamicStates = dynamicStates.data();
+	InitializeSpecializationConstants(renderpass->subpasses[subpass]);
 
 	/* Create the graphics pipeline. */
 	GraphicsPipelineCreateInfo createInfo{ GetShaderStages(), LayoutHndl, renderpass->hndl, subpass };
@@ -359,6 +360,11 @@ Pu::uint32 Pu::GraphicsPipeline::GetVertexStride(uint32 binding) const
 
 	Log::Error("Could not get vertex stride for graphics pipeline (binding %u not found)!", binding);
 	return 0;
+}
+
+Pu::SpecializationConstant & Pu::GraphicsPipeline::GetSpecializationConstant(uint32 shader, const string & name)
+{
+	return renderpass->subpasses[subpass].shaders.at(shader)->GetConstant(name);
 }
 
 const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareEnabled(void) const

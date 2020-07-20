@@ -76,6 +76,8 @@ namespace Pu
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendState(_In_ const string &output);
 		/* Gets the stride of the vertex binding at the specified binding. */
 		_Check_return_ uint32 GetVertexStride(_In_ uint32 binding) const;
+		/* Gets the specified specialization constant. */
+		_Check_return_ SpecializationConstant& GetSpecializationConstant(_In_ uint32 shader, _In_ const string &name);
 
 	private:
 		const Renderpass *renderpass;

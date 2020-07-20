@@ -909,6 +909,12 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
 		gfxPLight->AddVertexBinding<Vector3>(0);
 		gfxPLight->AddVertexBinding<PointLight>(1, VertexInputRate::Instance);
+
+		const Extent2D wndSize = wnd->GetNative().GetSize();
+		const Vector2 iWndSize = recip(Vector2(static_cast<float>(wndSize.Width), static_cast<float>(wndSize.Height)));
+		gfxPLight->GetSpecializationConstant(1, "iGBufferHeight").SetOffset(sizeof(float));
+		gfxPLight->SetSpecializationData(1, iWndSize);
+
 		gfxPLight->Finalize();
 		gfxPLight->SetDebugName("Deferred Renderer Point Light");
 	}
@@ -926,6 +932,10 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
+		
+		const float hdrSwapchain = wnd->GetSwapchain().IsNativeHDR();
+		gfxTonePass->SetSpecializationData(1, hdrSwapchain);
+
 		gfxTonePass->Finalize();
 		gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
 	}
