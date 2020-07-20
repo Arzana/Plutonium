@@ -26,7 +26,7 @@ namespace Pu
 		_Check_return_ DynamicBuffer& operator =(_In_ DynamicBuffer &&other);
 
 		/* Updates the dynamic buffer if needed. */
-		void Update(_In_ CommandBuffer &cmdBuffer);
+		virtual void Update(_In_ CommandBuffer &cmdBuffer);
 		/* Starts the process of transfering data from the CPU to this buffer. */
 		virtual void BeginMemoryTransfer(void) override;
 		/* Gets the host mapped memory pointer. */

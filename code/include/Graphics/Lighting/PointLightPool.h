@@ -31,12 +31,17 @@ namespace Pu
 			return static_cast<uint32>(buffer.size());
 		}
 
+		/* Calculates the radius of the point light volume based on the specified parameters and the cutoff point. */
+		_Check_return_ static float GetLightRadius(_In_ Vector3 color, _In_ float intensity, _In_ float falloffLinaer, _In_ float falloffQuadratic, _In_opt_ uint8 cutoff = 5);
 		/* Adds a new light to the pool. */
-		void AddLight(_In_ Vector3 position, _In_ Color color, _In_ float attenuationConstant, _In_ float attenuationLinear, _In_ float attenuationQuadratic);
+		void AddLight(_In_ Vector3 position, _In_ Color color, _In_ float intensity, _In_ float falloffLinear, _In_ float falloffQuadratic);
+		/* Updates the point light pool if needed. */
+		virtual void Update(_In_ CommandBuffer &cmdBuffer) override;
+		/* Forces the host light buffer to update the GPU buffer. */
+		void StageLightBuffer(void);
 
 	private:
+		bool isDirty;
 		vector<PointLight> buffer;
-
-		void StageLightBuffer(void);
 	};
 }

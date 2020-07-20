@@ -767,7 +767,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		instVol.SetBinding(1);
 
 		instRad.SetOffset(vkoffsetof(PointLight, Radiance));
-		instAtt.SetOffset(vkoffsetof(PointLight, AttenuationC));
+		instAtt.SetOffset(vkoffsetof(PointLight, AttenuationL));
 	}
 
 	/* Set all the options for the skybox pass. */
@@ -905,8 +905,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxPLight->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxPLight->SetTopology(PrimitiveTopology::TriangleList);
-		gfxPLight->SetFrontFace(FrontFace::CounterClockwise);
-		gfxPLight->SetCullMode(CullModeFlag::Front);
+		gfxPLight->SetCullMode(CullModeFlag::Back);
 		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
 		gfxPLight->AddVertexBinding<Vector3>(0);
 		gfxPLight->AddVertexBinding<PointLight>(1, VertexInputRate::Instance);

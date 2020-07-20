@@ -1,39 +1,57 @@
 #include "Graphics/Lighting/PointLightPool.h"
 
 Pu::PointLightPool::PointLightPool(LogicalDevice & device, uint32 maxLights)
-	: DynamicBuffer(device, sizeof(PointLight) * maxLights, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst)
+	: DynamicBuffer(device, sizeof(PointLight) * maxLights, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst), isDirty(false)
 {
 	buffer.reserve(maxLights);
 }
 
-void Pu::PointLightPool::AddLight(Vector3 position, Color color, float attenuationConstant, float attenuationLinear, float attenuationQuadratic)
+float Pu::PointLightPool::GetLightRadius(Vector3 color, float intensity, float falloffLinaer, float falloffQuadratic, uint8 cutoff)
+{
+#ifdef _DEBUG
+	if (intensity < 0.0f) Log::Fatal("Point light constant falloff must be greater than zero!");
+	if (falloffLinaer <= 0.0f) Log::Fatal("Point light linear falloff should be greater than zero (light gains energy)!");
+	if (falloffQuadratic <= 0.0f) Log::Fatal("Point light quadratic falloff should be greater than zero (light gains energy)!");
+#endif
+
+	const float lMin = maxv<byte>() / (cutoff / intensity);
+	const float lMax = max(color.X, color.Y, color.Z);
+	return (-falloffLinaer + sqrtf(sqr(falloffLinaer) - 4.0f * falloffQuadratic * (1.0f - lMax * lMin))) / (2.0f * falloffQuadratic);
+}
+
+void Pu::PointLightPool::AddLight(Vector3 position, Color color, float intensity, float falloffLinaer, float falloffQuadratic)
 {
 #ifdef _DEBUG
 	if (!HasSpace()) Log::Fatal("Unable to add point light to pool (out of memory)!");
 #endif
 
-	const Vector3 clr = color.ToVector3();
-
 	/* Calculate the light's radius. */
-	constexpr float cutoff = 255.0f / 5.0f;
-	const float l = max(max(clr.X, clr.Y), clr.Z);
-	const float r = (-attenuationLinear + sqrtf(sqr(attenuationLinear) - 4.0f * attenuationQuadratic * (attenuationConstant - l * cutoff))) / (2.0f * attenuationQuadratic);
+	const Vector3 clr = color.ToVector3();
+	const float r = GetLightRadius(clr, intensity, falloffLinaer, falloffQuadratic);
 
 	/* Add the point light information to our buffer. */
 	buffer.emplace_back(PointLight
 		{
 			Matrix::CreateScaledTranslation(position, r),
 			clr,
-			attenuationConstant,
-			attenuationLinear,
-			attenuationQuadratic
+			intensity,
+			falloffLinaer,
+			falloffQuadratic
 		});
 
-	StageLightBuffer();
+	isDirty = true;
+}
+
+void Pu::PointLightPool::Update(CommandBuffer & cmdBuffer)
+{
+	if (isDirty) StageLightBuffer();
+	DynamicBuffer::Update(cmdBuffer);
 }
 
 void Pu::PointLightPool::StageLightBuffer(void)
 {
+	isDirty = false;
+
 	BeginMemoryTransfer();
 	PointLight *memory = reinterpret_cast<PointLight*>(GetHostMemory());
 

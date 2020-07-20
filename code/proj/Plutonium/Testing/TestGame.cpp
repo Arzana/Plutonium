@@ -60,12 +60,12 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
 #endif
 
-	lightPoints = new PointLightPool(GetDevice(), 8);
-	for (size_t i = 0; i < 8; i++)
+	lightPoints = new PointLightPool(GetDevice(), 256);
+	for (size_t i = 0; i < 256; i++)
 	{
 		const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
 		const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
-		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::White(), 1.0f, 0.7f, 1.8f);
+		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::Random(32), 10.0f, 0.5f, 0.1f);
 	}
 }
 
@@ -150,9 +150,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			}
 		}
 #endif
-		//renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
-		//renderer->Render(*lightMain);
-		//renderer->Render(*lightFill);
+		renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
+		renderer->Render(*lightMain);
+		renderer->Render(*lightFill);
 		renderer->Begin(DeferredRenderer::SubpassPointLight);
 		renderer->Render(*lightPoints);
 		renderer->End();

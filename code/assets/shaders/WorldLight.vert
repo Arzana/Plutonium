@@ -9,13 +9,13 @@ layout (binding = 0) uniform Camera
 
 layout (location = 0) in vec3 Position;
 
-layout (location = 1) in vec3 InstanceAttenuation;
-layout (location = 2) in vec3 InstanceRadiance;
+layout (location = 1) in vec2 InstanceAttenuation;
+layout (location = 2) in vec4 InstanceRadiance;
 layout (location = 3) in mat4 InstanceVolume;
 
 layout (location = 0) out vec3 LightPosition;
-layout (location = 1) out vec3 LightAttenuation;
-layout (location = 2) out vec3 LightRadiance;
+layout (location = 1) out vec2 LightAttenuation;
+layout (location = 2) out vec4 LightRadiance;
 
 void main()
 {

@@ -21,8 +21,8 @@ layout (input_attachment_index = 3, set = 1, binding = 2) uniform subpassInput G
 layout (input_attachment_index = 5, set = 1, binding = 3) uniform subpassInput GBufferDepth;		// Stores the deth of the scene.
 
 layout (location = 0) in vec3 Position;
-layout (location = 1) in vec3 Attenuation;
-layout (location = 2) in vec3 Radiance;
+layout (location = 1) in vec2 Attenuation;
+layout (location = 2) in vec4 Radiance;
 
 layout (location = 0) out vec4 L0;
 
@@ -34,7 +34,7 @@ float mdot(in vec3 a, in vec3 b)
 // Use quadratic polynomial for light falloff.
 float attenuation(in float d)
 {
-	return max(max(Radiance.r, Radiance.g), Radiance.b) / (Attenuation.x + Attenuation.y * d + Attenuation.z * d * d);
+	return max(max(Radiance.r, Radiance.g), Radiance.b) / (1.0f + Attenuation.x * d + Attenuation.y * d * d);
 }
 
 // F: Schlick
@@ -65,7 +65,6 @@ vec3 brdf(in vec3 v, in vec3 n, in vec3 p)
 	// Precalculate frequently used scalars.
 	const vec3 l = normalize(Position - p);
 	const vec3 h = normalize(v + l);
-	const vec3 r = reflect(-v, n);
 	const float ndl = mdot(n, l);
 	const float ndv = mdot(n, v);
 	const float ndh = mdot(n, h);
@@ -73,7 +72,7 @@ vec3 brdf(in vec3 v, in vec3 n, in vec3 p)
 
 	// Calculate the light factors.
 	const float a = attenuation(length(Position - p));
-	const vec3 intensity = a * Radiance.rgb;
+	const vec3 intensity = a * Radiance.w * Radiance.rgb;
 
 	// Get all of the material values out of our G-Buffer.
 	const vec4 diffRough = subpassLoad(GBufferDiffuseRough);
