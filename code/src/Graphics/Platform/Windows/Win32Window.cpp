@@ -165,7 +165,11 @@ void Pu::Win32Window::SetMode(WindowMode newMode)
 	mode = newMode;
 
 	/* Set the new mode. */
-	if (mode == WindowMode::Windowed) SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
+	if (mode == WindowMode::Windowed) 
+	{
+		SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
+		ShowWindow(hndl, SW_SHOWNORMAL);
+	}
 	else if (mode == WindowMode::Borderless)
 	{
 		/* Borderless just means a window that has not border style and has the same dimensions as the display. */
