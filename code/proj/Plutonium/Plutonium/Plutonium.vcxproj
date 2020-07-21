@@ -134,6 +134,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
+    <ClInclude Include="..\..\..\include\Streams\RuntimeConfig.h" />
     <ClInclude Include="..\..\..\include\System.h" />
     <ClInclude Include="..\..\..\include\Config.h" />
     <ClInclude Include="..\..\..\include\Content\Asset.h" />
@@ -343,6 +344,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
+    <ClCompile Include="..\..\..\src\Streams\RuntimeConfig.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />
     <ClCompile Include="..\..\..\src\Content\Asset.cpp" />
     <ClCompile Include="..\..\..\src\Content\AssetCache.cpp" />

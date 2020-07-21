@@ -5,6 +5,7 @@
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Memory.h"
 #include "Core/Diagnostics/Profiler.h"
+#include "Streams/RuntimeConfig.h"
 #include <imgui/include/imgui.h>
 
 #ifdef _WIN32
@@ -288,8 +289,8 @@ void Pu::Application::DoInitialize(void)
 	content = new AssetFetcher(*scheduler, *device);
 	saver = new AssetSaver(*scheduler, *device);
 
-	/* Window must be show at least once to give the correct size to the swapchain. */
-	wnd->SetMode(WindowMode::Borderless);
+	/* Set the default mode for the Window before the swapchain is created, this allows for seamless window transitions. */
+	wnd->SetMode(RuntimeConfig::QueryEnum(L"WindowMode", WindowMode::Borderless));
 	gameWnd = new GameWindow(*wnd, *device);
 
 	/* Move the log window out of the way on debug mode. */

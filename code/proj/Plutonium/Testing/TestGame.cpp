@@ -1,6 +1,7 @@
 #include "TestGame.h"
 #include "Core/Math/Shapes/Sphere.h"
 #include <Core/Diagnostics/Profiler.h>
+#include <Streams/RuntimeConfig.h>
 #include <imgui.h>
 
 //#define STRESS_TEST
@@ -8,7 +9,6 @@
 
 using namespace Pu;
 
-const bool enableTessellation = false;
 const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
@@ -30,6 +30,8 @@ bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 
 void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
 {
+	const bool enableTessellation = RuntimeConfig::QueryBool(L"TessellationEnabled", false);
+
 	enabeled.TessellationShader = supported.TessellationShader && enableTessellation;	// Optional for better terrain rendering.
 	enabeled.WideLines = supported.WideLines;											// Debug renderer
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
