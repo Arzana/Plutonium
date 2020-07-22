@@ -149,7 +149,7 @@ void Pu::ContactSystem::Check(void)
 	ny.clear();
 	nz.clear();
 
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("BVH Update", Color::Abbey());
+	if constexpr (ProfileWorldSystems) Profiler::Begin("BVH Update", Color::Abbey());
 
 	/* Query the movement system for updates to the BVH. */
 	readdCache.clear();
@@ -170,7 +170,7 @@ void Pu::ContactSystem::Check(void)
 		++bvhUpdateCalls;
 	}
 
-	if constexpr (PhysicsProfileSystems) Profiler::End();
+	if constexpr (ProfileWorldSystems) Profiler::End();
 
 	/* Check for collisions. */
 	for (const auto &[hobj, bb] : cachedBroadPhase)
@@ -180,11 +180,11 @@ void Pu::ContactSystem::Check(void)
 		if (world->sysMove->IsSleeping(world->QueryInternalIndex(hobj))) continue;
 
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
-		if constexpr (PhysicsProfileSystems) Profiler::Begin("Broadphase", Color::Crimson());
+		if constexpr (ProfileWorldSystems) Profiler::Begin("Broadphase", Color::Crimson());
 		broadPhaseCache.clear();
 		world->searchTree.Boxcast(bb, broadPhaseCache);
 
-		if constexpr (PhysicsProfileSystems)
+		if constexpr (ProfileWorldSystems)
 		{
 			Profiler::End();
 			Profiler::Begin("Narrowphase", Color::Scarlet());
@@ -196,7 +196,7 @@ void Pu::ContactSystem::Check(void)
 			if (hhit != hobj) TestGeneric(hhit, hobj);
 		}
 
-		if constexpr (PhysicsProfileSystems) Profiler::End();
+		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
 
 #ifdef _DEBUG

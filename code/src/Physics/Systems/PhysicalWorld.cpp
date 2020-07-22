@@ -1,6 +1,7 @@
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Physics/Systems/ContactSolverSystem.h"
 #include "Physics/Systems/MaterialDatabase.h"
+#include "Physics/Systems/RenderingSystem.h"
 #include "Physics/Systems/MovementSystem.h"
 #include "Physics/Systems/ContactSystem.h"
 #include "Core/Diagnostics/Profiler.h"
@@ -14,7 +15,7 @@ const char *STEP_MODES[2] = { "Auto", "Manual" };
 
 #define nameof(x)			#x
 
-Pu::PhysicalWorld::PhysicalWorld(void)
+Pu::PhysicalWorld::PhysicalWorld(DeferredRenderer & renderer)
 	: Substeps(1)
 #ifdef _DEBUG
 	, stepMode(STEP_MODES[0])
@@ -24,6 +25,7 @@ Pu::PhysicalWorld::PhysicalWorld(void)
 	sysMove = new MovementSystem();
 	sysSolv = new ContactSolverSystem(*this);
 	sysCnst = new ContactSystem(*this);
+	sysRender = new RenderingSystem(*this, renderer);
 }
 
 Pu::PhysicalWorld::PhysicalWorld(PhysicalWorld && value)
@@ -69,19 +71,31 @@ Pu::PhysicalWorld & Pu::PhysicalWorld::operator=(PhysicalWorld && other)
 	return *this;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld::AddStatic(const PhysicalObject & obj)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddStatic(const PhysicalObject & obj, const TerrainChunk & chunk)
 {
 	lock.lock();
 	const PhysicsHandle result = AddInternal(obj, PhysicsType::Static);
+	sysRender->Add(result, chunk);
 	lock.unlock();
 
 	return result;
 }
 
-Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(const PhysicalObject & obj)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddStatic(const PhysicalObject & obj, const Model & model, uint32 subpass)
+{
+	lock.lock();
+	const PhysicsHandle result = AddInternal(obj, PhysicsType::Static);
+	sysRender->Add(result, model, subpass); //TODO: automate subpass determination?
+	lock.unlock();
+
+	return result;
+}
+
+Pu::PhysicsHandle Pu::PhysicalWorld::AddKinematic(const PhysicalObject & obj, const Model & model, uint32 subpass)
 {
 	lock.lock();
 	const PhysicsHandle result = AddInternal(obj, PhysicsType::Kinematic);
+	sysRender->Add(result, model, subpass); //TODO: automate subpass determination?
 	lock.unlock();
 
 	return result;
@@ -94,6 +108,13 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & prop
 	lock.unlock();
 
 	return result;
+}
+
+void Pu::PhysicalWorld::AddDirectionalLight(const DirectionalLight & light)
+{
+	lock.lock();
+	sysRender->Add(light);
+	lock.unlock();
 }
 
 void Pu::PhysicalWorld::SetGravity(Vector3 g)
@@ -121,6 +142,13 @@ void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 	lock.unlock();
 }
 
+void Pu::PhysicalWorld::Destroy(const DirectionalLight & light)
+{
+	lock.lock();
+	sysRender->Remove(light);
+	lock.unlock();
+}
+
 Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 {
 	/* We cannot get the transform of a material... obviously. */
@@ -130,6 +158,13 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 #endif
 
 	return sysMove->GetTransform(handleLut[physics_get_lookup_id(handle)]);
+}
+
+void Pu::PhysicalWorld::Render(const Camera & camera, CommandBuffer & cmdBuffer)
+{
+	lock.lock();
+	sysRender->Render(searchTree, camera, cmdBuffer);
+	lock.unlock();
 }
 
 void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, float dt) const
@@ -146,10 +181,15 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 
 		if (ImGui::Begin("Physical World", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			const size_t staticObjects = sysMove->GetStaticObjectCount();
+			const size_t kinematicObjects = handleLut.size() - staticObjects;
+			const size_t activeObjects = kinematicObjects - sysMove->GetSleepingCount();
+
 			/* Statistics. */
-			ImGui::Text("Objects:     %zu", handleLut.size());
-			ImGui::Text("BVH Updates: %zu", ContactSystem::GetBVHUpdateCalls());
-			ImGui::Text("Collisions:  %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
+			ImGui::Text("Static Objects:    %zu", staticObjects);
+			ImGui::Text("Kinematic Objects: %zu/%zu", activeObjects, kinematicObjects);
+			ImGui::Text("BVH Updates:       %zu", ContactSystem::GetBVHUpdateCalls());
+			ImGui::Text("Collisions:        %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
 			ContactSystem::ResetCounters();
 
 			ImGui::Separator();
@@ -222,7 +262,7 @@ void Pu::PhysicalWorld::Update(float dt)
 	else physicsStep = false;
 #endif
 
-	if constexpr (!PhysicsProfileSystems) Profiler::Begin("Physics", Color::Gray());
+	if constexpr (!ProfileWorldSystems) Profiler::Begin("World Update", Color::Gray());
 	lock.lock();
 
 	/*
@@ -260,7 +300,7 @@ void Pu::PhysicalWorld::Update(float dt)
 	}
 
 	lock.unlock();
-	if constexpr (!PhysicsProfileSystems) Profiler::End();
+	if constexpr (!ProfileWorldSystems) Profiler::End();
 }
 
 void Pu::PhysicalWorld::ThrowCorruptHandle(bool condition, const char * func)
@@ -374,6 +414,7 @@ void Pu::PhysicalWorld::DestroyInternal(PhysicsHandle hpublic, PhysicsHandle hin
 	sysCnst->RemoveItem(hpublic);
 	sysSolv->RemoveItem(hpublic);
 	sysMove->RemoveItem(hinternal);
+	sysRender->Remove(hpublic);
 
 	/*
 	Update all the other internal handles in the lookup table.

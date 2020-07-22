@@ -99,7 +99,6 @@
     <ClInclude Include="..\..\..\deps\tinyxml\tinyxml2.h" />
     <ClInclude Include="..\..\..\include\Application.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\cstack.h" />
-    <ClInclude Include="..\..\..\include\Core\Collections\simd_multi_vector.h" />
     <ClInclude Include="..\..\..\include\Core\Collections\simd_vector.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Basics_SIMD.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Matrix3.h" />
@@ -131,6 +130,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\PhysicalWorld.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\RenderingSystem.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
@@ -343,6 +343,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\MovementSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\RenderingSystem.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\Streams\RuntimeConfig.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />

@@ -41,6 +41,12 @@ namespace Pu
 			return sleep.get(idx) == 0.0f;
 		}
 
+		/* Gets the amount of static objects currently in the movement system. */
+		_Check_return_ inline size_t GetStaticObjectCount(void) const
+		{
+			return transforms.size();
+		}
+
 		/* Adds a specific linear and angular force to the specific object. */
 		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ float pitch, _In_ float yaw, _In_ float roll);
 		/* Adds a single kinematic item to the movement system, return the index. */
@@ -67,6 +73,8 @@ namespace Pu
 		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
 		/* Sets the sleep bit for any object with a velocity magnitude smaller than the specified epsilon. */
 		void TrySleep(_In_ ofloat epsilon);
+		/* Gets the amount of kinematic objects that are currently in sleep mode. */
+		_Check_return_ size_t GetSleepingCount(void) const;
 
 #ifdef _DEBUG
 		/* Visualizes the forces being applied to kinematic objects. */

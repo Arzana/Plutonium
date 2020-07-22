@@ -31,6 +31,12 @@ namespace Pu
 			return static_cast<uint32>(buffer.size());
 		}
 
+		/* Clears the host buffer of point lights. */
+		inline void Clear(void)
+		{
+			buffer.clear();
+		}
+
 		/* Calculates the radius of the point light volume based on the specified parameters and the cutoff point. */
 		_Check_return_ static float GetLightRadius(_In_ Vector3 color, _In_ float intensity, _In_ float falloffLinaer, _In_ float falloffQuadratic, _In_opt_ uint8 cutoff = 5);
 		/* Adds a new light to the pool. */

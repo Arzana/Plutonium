@@ -1,14 +1,17 @@
 #pragma once
-#include "Content/AssetFetcher.h"
+#include "Physics/Objects/PhysicsHandle.h"
 #include "Graphics/Models/Terrain.h"
 #include "Core/Math/PerlinNoise.h"
+#include "Content/AssetFetcher.h"
 #include "Core/Math/HeightMap.h"
-#include "Physics/Systems/PhysicalWorld.h"
 
 namespace Pu
 {
+	class PhysicalWorld;
+
 	/* Defines a single terrain chunk that can be created on the fly. */
 	class TerrainChunk
+		: public Asset
 	{
 	public:
 		/* Initializes an empty instance of a terrain chunk. */
@@ -35,12 +38,6 @@ namespace Pu
 			return generated;
 		}
 
-		/* Gets whether this chunk is ready to be used. */
-		_Check_return_ inline bool IsUsable(void) const
-		{
-			return usable.load();
-		}
-
 		/* Gets the meshes associated with this terrain chunk. */
 		_Check_return_ inline const MeshCollection& GetMeshes(void) const
 		{
@@ -65,11 +62,14 @@ namespace Pu
 			return pos;
 		}
 
+	protected:
+		/* This asset cannot be duplicated, this method will throw. */
+		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache&);
+
 	private:
 		friend class ChunkCreator;
 
 		bool generated;
-		std::atomic_bool usable;
 		AssetFetcher *fetcher;
 		AABB bb;
 

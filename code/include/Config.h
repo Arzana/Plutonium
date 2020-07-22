@@ -62,7 +62,7 @@ namespace Pu
 	/* Defines the amount of time (in seconds) that physics debuggers are visually shown. */
 	constexpr float PhysicsDebuggingTTL = 2.0f;
 	/* Defines whether the profiling should be global (false) or system local (true). */
-	constexpr bool PhysicsProfileSystems = true;
+	constexpr bool ProfileWorldSystems = true;
 	/* Defines whether the physics system is allowed to use sleep mode. */
 	constexpr bool PhysicsAllowSleeping = true;
 }

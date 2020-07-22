@@ -33,7 +33,7 @@ void Pu::ContactSolverSystem::SolveConstriants(void)
 	/* We don't need to solve anything if there are no collisions. */
 	if (world->sysCnst->hfirsts.size())
 	{
-		if constexpr (PhysicsProfileSystems) Profiler::Begin("Solver", Color::SunDawn());
+		if constexpr (ProfileWorldSystems) Profiler::Begin("Solver", Color::SunDawn());
 
 		/* First we fill the temporary SSE buffer with our solver data. */
 		EnsureBufferSize();
@@ -43,7 +43,7 @@ void Pu::ContactSolverSystem::SolveConstriants(void)
 		VectorSolve();
 		ApplyImpulses();
 
-		if constexpr (PhysicsProfileSystems) Profiler::End();
+		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
 }
 
@@ -278,6 +278,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		jy[i] = _mm256_mul_ps(tmp_y1, imass2[i]);
 		jz[i] = _mm256_mul_ps(tmp_z1, imass2[i]);
 
+#if 0
 		/* Apply the angular impulse to the first object. */
 		_mm256_cross_v3(rx1, ry1, rz1, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
 		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x2, tmp_y2, tmp_z2, tmp_x3, tmp_y3, tmp_z3);
@@ -286,6 +287,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		_mm256_cross_v3(rx2, ry2, rz2, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
 		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x2, tmp_y2, tmp_z2, jpitch[i], jyaw[i], jroll[i]);
 		_mm256_neg_v3(jpitch[i], jyaw[i], jroll[i], neg);
+#endif
 
 		/* Calculate the tangent of the collision. */
 		ofloat tx = _mm256_sub_ps(vx, _mm256_mul_ps(cosTheta, nx[i]));
@@ -293,7 +295,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		ofloat tz = _mm256_sub_ps(vz, _mm256_mul_ps(cosTheta, nz[i]));
 		_mm256_norm_v3(tx, ty, tz, zero);
 
-		/* Calculate the friction impulse. */
+		/* Calculate the friction impulse TODO: handle static friction. */
 		cosTheta = _mm256_dot_v3(vx, vy, vz, tx, ty, tz);
 		const ofloat e = _mm256_sqrt_ps(_mm256_mul_ps(cof1[i], cof2[i]));
 		j = _mm256_clamp_ps(_mm256_div_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal), _mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_mul_ps(j, e));

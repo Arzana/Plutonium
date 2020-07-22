@@ -20,8 +20,13 @@ namespace Pu
 	D (8-bits):		BVH node depth.
 
 	----------------Constraint Implementation-----------------
-	[TT00000E 00000000 IIIIIIII IIIIIIII]
+	[TT0000SE 00000000 IIIIIIII IIIIIIII]
+	S (1-bit):		Skip bit, if this bit is set, then the contraint system will ignore collisions with this object.
 	E (1-bit):		Event bit, if anything collides with this object it will trigger an event instead of being solved.
+
+	----------------Rendering Implementation------------------
+	[TT000000 0000SSSS IIIIIIII IIIIIIII]
+	S (4-bits):		Subpass index, defines in which subpass specific objects should be rendered.
 	*/
 	using PhysicsHandle = uint32;
 	/* Defines the handle used to denote a null handle. */

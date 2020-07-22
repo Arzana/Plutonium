@@ -1,6 +1,7 @@
 #pragma once
 #include "PointTests.h"
 #include "Core/Math/Shapes/Frustum.h"
+#include "Core/Math/Vector3_SIMD.h"
 
 namespace Pu
 {
@@ -52,6 +53,20 @@ namespace Pu
 	}
 
 	/*
+	Gets whether the specified axis aligned bounding box intersects with the specified plane.
+	Note that this also return true if the axis aligned bounding box is in front of the plane.
+	This function uses AVX vectorization to process all 8 box corners at once.
+	*/
+	_Check_return_ inline bool intersects_or_front(_In_ ofloat zero, _In_ ofloat cx, _In_ ofloat cy, _In_ ofloat cz, _In_ Plane plane)
+	{
+		const ofloat nx = _mm256_set1_ps(plane.N.X);
+		const ofloat ny = _mm256_set1_ps(plane.N.Y);
+		const ofloat nz = _mm256_set1_ps(plane.N.Z);
+		const ofloat d = _mm256_add_ps(_mm256_dot_v3(nx, ny, nz, cx, cy, cz), _mm256_set1_ps(plane.D));
+		return _mm_popcnt_u32(static_cast<uint32>(_mm256_movemask_ps(_mm256_cmp_ps(d, zero, _CMP_GE_OQ))));
+	}
+
+	/*
 	Gets whether the specified sphere intersects with the specified plane.
 	Note that this also return true if the sphere is in front of the plane.
 	*/
@@ -94,6 +109,28 @@ namespace Pu
 		for (uint8 i = 0; i < 6; i++)
 		{
 			if (!intersects_or_front(corners, frustum.Planes[i])) return false;
+		}
+
+		/* The axis aligned bounding box is either fully inside the frustum or it's intersection one or more planes. */
+		return true;
+	}
+
+	/* Gets whether the specified axis aligned bounding box intersects with the specified frustum (uses AVX). */
+	_Check_return_ inline bool intersects_avx(_In_ const Frustum &frustum, _In_ const AABB &box)
+	{
+		/* Precalculate all the corners of the axis aligned bounding box. */
+		const ofloat cx = _mm256_set_ps(box.LowerBound.X, box.UpperBound.X, box.UpperBound.X, box.LowerBound.X, box.LowerBound.X, box.LowerBound.X, box.UpperBound.X, box.UpperBound.X);
+		const ofloat cy = _mm256_set_ps(box.LowerBound.Y, box.LowerBound.Y, box.UpperBound.Y, box.UpperBound.Y, box.UpperBound.Y, box.LowerBound.Y, box.LowerBound.Y, box.UpperBound.Y);
+		const ofloat cz = _mm256_set_ps(box.LowerBound.Z, box.LowerBound.Z, box.LowerBound.Z, box.LowerBound.Z, box.UpperBound.Z, box.UpperBound.Z, box.UpperBound.Z, box.UpperBound.Z);
+
+		/*
+		Check the corners agains all the planes of the frustum.
+		If it's 'outside' of one of the planes then it doesn't intersect.
+		*/
+		const ofloat zero = _mm256_setzero_ps();
+		for (uint8 i = 0; i < 6; i++)
+		{
+			if (!intersects_or_front(zero, cx, cy, cz, frustum.Planes[i])) return false;
 		}
 
 		/* The axis aligned bounding box is either fully inside the frustum or it's intersection one or more planes. */

@@ -4,7 +4,7 @@
 #include <Streams/RuntimeConfig.h>
 #include <imgui.h>
 
-//#define STRESS_TEST
+#define STRESS_TEST
 #define USE_KNIGHT
 
 using namespace Pu;
@@ -17,9 +17,6 @@ TestGame::TestGame(void)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
-
-	AddSystem(physics = new PhysicalWorld());
-	physicsMat = physics->AddMaterial({ 1.0f, 0.5f, 0.8f });
 }
 
 bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
@@ -45,6 +42,9 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	renderer = new DeferredRenderer(fetcher, GetWindow());
 	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 2.0f);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
+
+	AddSystem(world = new PhysicalWorld(*renderer));
+	physicsMat = world->AddMaterial({ 1.0f, 0.5f, 0.8f });
 
 	skybox = &fetcher.FetchSkybox(
 		{
@@ -112,11 +112,13 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		lightMain->SetDirection(PI4, PI4, 0.0f);
 		lightMain->SetEnvironment(*skybox);
 		lightMain->SetIntensity(4.0f);
+		world->AddDirectionalLight(*lightMain);
 
 		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(*skybox);
+		world->AddDirectionalLight(*lightFill);
 
 		renderer->SetSkybox(*skybox);
 	}
@@ -125,41 +127,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 
-		renderer->InitializeResources(cmd, *camFree);
-		renderer->Begin(DeferredRenderer::SubpassTerrain);
-		for (const TerrainChunk *chunk : terrain)
-		{
-			if (chunk->IsUsable()) renderer->Render(*chunk);
-		}
-
-#ifndef USE_KNIGHT
-		if (playerModel->IsLoaded())
-		{
-			renderer->Begin(DeferredRenderer::SubpassBasicStaticGeometry);
-			for (PhysicsHandle hnpc : npcs)
-			{
-				renderer->Render(*playerModel, physics->GetTransform(hnpc) * Matrix::CreateScalar(3.0f));
-			}
-		}
-#else
-		if (playerModel->IsLoaded())
-		{
-			renderer->Begin(DeferredRenderer::SubpassBasicMorphGeometry);
-			for (PhysicsHandle hnpc : npcs)
-			{
-				const Matrix transform = physics->GetTransform(hnpc) * Matrix::CreateScalar(0.05f);
-				renderer->Render(*playerModel, transform, 0, 1, 0.0f);
-			}
-		}
-#endif
-		renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
-		renderer->Render(*lightMain);
-		renderer->Render(*lightFill);
-		renderer->Begin(DeferredRenderer::SubpassPointLight);
-		renderer->Render(*lightPoints);
-		renderer->End();
-
-		physics->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
+		world->Render(*camFree, cmd);
+		world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
@@ -206,13 +175,17 @@ void TestGame::SpawnNPC(void)
 	const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
 	obj.MoI = Matrix3::CreateScalar(nonDomAxis, domAxis, nonDomAxis);
 	obj.State.Cd = 0.82f;
+
+	const uint32 subpass = DeferredRenderer::SubpassBasicMorphGeometry;
 #else
 	/* Moment of Intertia of a solid sphere. */
 	obj.MoI = Matrix3::CreateScalar((2.0f / 5.0f) * obj.State.Mass * sqr(sphere.Radius));
 	obj.State.Cd = 0.5f;
+
+	const uint32 subpas = DeferredRenderer::SubpassBasicStaticGeometry;
 #endif
 
-	npcs.emplace_back(physics->AddKinematic(obj));
+	npcs.emplace_back(world->AddKinematic(obj, *playerModel, subpass));
 }
 
 void TestGame::OnAnyMouseScrolled(const Pu::Mouse &, Pu::int16 value)
@@ -236,7 +209,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			{
 				for (float x = 0; x < terrainSize; x++)
 				{
-					TerrainChunk *chunk = new TerrainChunk(GetContent(), physics);
+					TerrainChunk *chunk = new TerrainChunk(GetContent(), world);
 					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
 						{
 							L"{Textures}Terrain/Water.jpg",

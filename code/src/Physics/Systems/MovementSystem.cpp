@@ -120,19 +120,19 @@ void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
 
 void Pu::MovementSystem::ApplyGravity(ofloat dt)
 {
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+	if constexpr (ProfileWorldSystems) Profiler::Begin("Movement", Color::Gray());
 
 	const size_t size = vx.simd_size();
 	for (size_t i = 0; i < size; i++) vx[i] = _mm256_and_ps(_mm256_add_ps(vx[i], _mm256_mul_ps(Gx, dt)), sleep[i]);
 	for (size_t i = 0; i < size; i++) vy[i] = _mm256_and_ps(_mm256_add_ps(vy[i], _mm256_mul_ps(Gy, dt)), sleep[i]);
 	for (size_t i = 0; i < size; i++) vz[i] = _mm256_and_ps(_mm256_add_ps(vz[i], _mm256_mul_ps(Gz, dt)), sleep[i]);
 
-	if constexpr (PhysicsProfileSystems) Profiler::End();
+	if constexpr (ProfileWorldSystems) Profiler::End();
 }
 
 void Pu::MovementSystem::ApplyDrag(ofloat dt)
 {
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+	if constexpr (ProfileWorldSystems) Profiler::Begin("Movement", Color::Gray());
 
 	const size_t size = vx.simd_size();
 	const ofloat zero = _mm256_set1_ps(0.0f);
@@ -202,12 +202,12 @@ void Pu::MovementSystem::ApplyDrag(ofloat dt)
 		roll = _mm256_sub_ps(roll, _mm256_mul_ps(fz, dt));
 	}
 
-	if constexpr (PhysicsProfileSystems) Profiler::End();
+	if constexpr (ProfileWorldSystems) Profiler::End();
 }
 
 void Pu::MovementSystem::Integrate(ofloat dt)
 {
-	if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+	if constexpr (ProfileWorldSystems) Profiler::Begin("Movement", Color::Gray());
 
 	const size_t size = vx.simd_size();
 	const ofloat zero = _mm256_setzero_ps();
@@ -249,7 +249,7 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 		_mm256_norm_v4(ti[i], tj[i], tk[i], tr[i], zero);
 	}
 
-	if constexpr (PhysicsProfileSystems) Profiler::End();
+	if constexpr (ProfileWorldSystems) Profiler::End();
 }
 
 Pu::Matrix Pu::MovementSystem::GetTransform(PhysicsHandle handle) const
@@ -344,7 +344,7 @@ void Pu::MovementSystem::TrySleep(ofloat epsilon)
 {
 	if constexpr (PhysicsAllowSleeping)
 	{
-		if constexpr (PhysicsProfileSystems) Profiler::Begin("Movement", Color::Gray());
+		if constexpr (ProfileWorldSystems) Profiler::Begin("Movement", Color::Gray());
 
 		/* Predefine the minimum distance for us to consider the object sleepable. */
 		const size_t size_avx = vx.simd_size();
@@ -358,8 +358,20 @@ void Pu::MovementSystem::TrySleep(ofloat epsilon)
 			sleep[i] = _mm256_cmp_ps(d, minMag, _CMP_GT_OQ);
 		}
 
-		if constexpr (PhysicsProfileSystems) Profiler::End();
+		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
+}
+
+size_t Pu::MovementSystem::GetSleepingCount(void) const
+{
+	size_t result = sleep.size();
+
+	for (ofloat cur : sleep)
+	{
+		result -= _mm_popcnt_u32(static_cast<uint32>(_mm256_movemask_ps(cur)));
+	}
+
+	return result;
 }
 
 #ifdef _DEBUG

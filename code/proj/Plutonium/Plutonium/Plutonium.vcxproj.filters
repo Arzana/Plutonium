@@ -885,9 +885,6 @@
     <ClInclude Include="..\..\..\include\Core\Collections\simd_vector.h">
       <Filter>Header Files\Core\Collections</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Collections\simd_multi_vector.h">
-      <Filter>Header Files\Core\Collections</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Math\Basics.h">
       <Filter>Header Files\Core\Math\Single</Filter>
     </ClInclude>
@@ -938,6 +935,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Streams\RuntimeConfig.h">
       <Filter>Header Files\Streams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\RenderingSystem.h">
+      <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1339,6 +1339,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\RuntimeConfig.cpp">
       <Filter>Source Files\Streams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\RenderingSystem.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

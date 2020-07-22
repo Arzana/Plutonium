@@ -42,7 +42,7 @@ private:
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
 
-	Pu::PhysicalWorld *physics;
+	Pu::PhysicalWorld *world;
 	Pu::vector<Pu::PhysicsHandle> npcs;
 	Pu::PhysicsHandle physicsMat;
 

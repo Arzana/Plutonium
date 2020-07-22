@@ -177,6 +177,7 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 
 Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 {
+	if (!count) return PhysicsNullHandle;
 	const Vector3 rd = recip(d);
 
 	/* Start at the root node. */
@@ -206,6 +207,8 @@ Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const
 
 void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 {
+	if (!count) return;
+
 	/* Start at the root node. */
 	cstack<uint16> stack{ BVH_STACK_CAPACITY };
 	stack.push(root);
@@ -230,6 +233,8 @@ void Pu::BVH::Boxcast(const AABB & box, vector<PhysicsHandle>& result) const
 
 void Pu::BVH::Frustumcast(const Frustum & frustum, vector<PhysicsHandle>& result) const
 {
+	if (!count) return;
+
 	/* Start at the root node. */
 	cstack<uint16> stack{ BVH_STACK_CAPACITY };
 	stack.push(root);
@@ -240,7 +245,7 @@ void Pu::BVH::Frustumcast(const Frustum & frustum, vector<PhysicsHandle>& result
 		const uint16 i = stack.pop();
 
 		/* Check if the branch (or leaf) overlaps. */
-		if (intersects(frustum, nodes[i].Box))
+		if (intersects_avx(frustum, nodes[i].Box))
 		{
 			if ((nodes[i].is_leaf) result.emplace_back(nodes[i].pHandle);
 			else

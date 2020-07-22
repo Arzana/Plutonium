@@ -1,5 +1,6 @@
 #include "Procedural/Terrain/TerrainChunk.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Physics/Systems/PhysicalWorld.h"
 #include "Graphics/Models/ShapeCreator.h"
 
 const Pu::uint16 meshSize = 64;
@@ -127,7 +128,7 @@ namespace Pu
 				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
 				PhysicalObject obj{ result->pos, Quaternion{}, collider };
 				obj.Properties = create_physics_handle(PhysicsType::Material, 1ull);
-				result->hcollider = result->world->AddStatic(obj);
+				result->hcollider = result->world->AddStatic(obj, *result);
 			}
 
 			return Result::CustomWait();
@@ -136,7 +137,7 @@ namespace Pu
 		Result Continue(void) final
 		{
 			delete stagingBuffer;
-			result->usable = true;
+			result->MarkAsLoaded(false, L"TerrainChunk");
 			return Result::AutoDelete();
 		}
 
@@ -159,23 +160,21 @@ namespace Pu
 }
 
 Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld * world)
-	: generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
-	displacement(nullptr), textures(nullptr), material(nullptr), usable(false),
-	world(world)
+	: Asset(false), generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
+	displacement(nullptr), textures(nullptr), material(nullptr), world(world)
 {}
 
 Pu::TerrainChunk::TerrainChunk(TerrainChunk && value)
-	: generated(value.generated), fetcher(value.fetcher),
-	hcollider(value.hcollider), mesh(std::move(value.mesh)),
-	displacement(value.displacement), textures(value.textures),
-	material(value.material), albedoMask(value.albedoMask),
-	usable(value.usable.load()), world(value.world)
+	: Asset(std::move(value)), generated(value.generated), 
+	fetcher(value.fetcher), hcollider(value.hcollider), 
+	mesh(std::move(value.mesh)), displacement(value.displacement), 
+	textures(value.textures), material(value.material),
+	albedoMask(value.albedoMask), world(value.world)
 {
 	value.displacement = nullptr;
 	value.textures = nullptr;
 	value.material = nullptr;
 	value.albedoMask = nullptr;
-	value.usable = false;
 }
 
 Pu::TerrainChunk & Pu::TerrainChunk::operator=(TerrainChunk && other)
@@ -183,9 +182,9 @@ Pu::TerrainChunk & Pu::TerrainChunk::operator=(TerrainChunk && other)
 	if (this != &other)
 	{
 		Destroy();
+		Asset::operator=(std::move(other));
 
 		generated = other.generated;
-		usable = other.usable.load();
 		fetcher = other.fetcher;
 		hcollider = other.hcollider;
 		mesh = std::move(other.mesh);
@@ -199,7 +198,6 @@ Pu::TerrainChunk & Pu::TerrainChunk::operator=(TerrainChunk && other)
 		other.textures = nullptr;
 		other.material = nullptr;
 		other.albedoMask = nullptr;
-		other.usable = false;
 	}
 
 	return *this;
@@ -218,6 +216,12 @@ void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, c
 	/* The task will self delete so we can use spawn it and stop caring about it. */
 	ChunkCreator *task = new ChunkCreator(this, pool, layout, noise, offset);
 	fetcher->GetScheduler().Spawn(*task);
+}
+
+Pu::Asset & Pu::TerrainChunk::Duplicate(AssetCache&)
+{
+	Log::Fatal("TerrainChunk cannot be duplicated!");
+	return *this;
 }
 
 void Pu::TerrainChunk::Destroy(void)

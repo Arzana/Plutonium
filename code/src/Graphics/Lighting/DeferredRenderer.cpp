@@ -121,7 +121,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
 	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
-	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr), advanced(false), 
+	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr), advanced(false),
 	renderpassStarted(false), activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
 {
 #ifdef _DEBUG
@@ -212,7 +212,7 @@ void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 ma
 	pool.AddSet(SubpassTerrain, 0, maxSets);
 	pool.AddSet(SubpassAdvancedStaticGeometry, 0, maxSets);
 	pool.AddSet(SubpassDirectionalLight, 0, maxSets);
-	pool.AddSet(SubpassPointLight, 0, maxSets);				
+	pool.AddSet(SubpassPointLight, 0, maxSets);
 	pool.AddSet(SubpassSkybox, 0, maxSets);
 	pool.AddSet(SubpassPostProcessing, 0, maxSets);
 }
@@ -221,7 +221,6 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 {
 #ifdef _DEBUG
 	/* Update the profiler and reset the queries. */
-	Profiler::Begin("Rendering", Color::Red());
 	Profiler::Add("Rendering (Environment)", Color::Gray(), timer->GetProfilerTimeDelta(TerrainTimer) + timer->GetProfilerTimeDelta(SkyboxTimer));
 	Profiler::Add("Rendering (Geometry)", Color::Red(), timer->GetProfilerTimeDelta(GeometryTimer));
 	Profiler::Add("Rendering (Lighting)", Color::Yellow(), timer->GetProfilerTimeDelta(LightingTimer));
@@ -310,7 +309,7 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 	}
 #endif
 
-	/* 
+	/*
 	Select the correct graphics pipeline to bind.
 	And bind any additional subpass global graphics descriptors.
 	*/
@@ -385,16 +384,11 @@ void Pu::DeferredRenderer::End(void)
 	curCmd = nullptr;
 	renderpassStarted = false;
 	activeSubpass = SubpassNone;
-
-#ifdef _DEBUG
-	Profiler::End();
-#endif
 }
 
 void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 {
 	DBG_CHECK_SUBPASS(SubpassTerrain);
-	if (curCam->Cull(chunk.GetBoundingBox() + chunk.GetPosition())) return;
 
 	const MeshCollection &meshes = chunk.GetMeshes();
 	curCmd->BindGraphicsDescriptor(*gfxTerrain, chunk.GetMaterial());
@@ -409,9 +403,7 @@ void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 
 void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 {
-	/* Only render the model if it can be viewed by the camera. */
 	const MeshCollection &meshes = model.GetMeshes();
-	if (curCam->Cull(meshes.GetBoundingBox(), transform)) return;
 
 	/* Set the model matrix. */
 	const GraphicsPipeline &pipeline = *(advanced ? gfxGPassAdv : gfxGPassBasic);
@@ -932,7 +924,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
-		
+
 		const float hdrSwapchain = wnd->GetSwapchain().IsNativeHDR();
 		gfxTonePass->SetSpecializationData(1, hdrSwapchain);
 
