@@ -73,6 +73,38 @@ Pu::Matrix Pu::Matrix::CreateRotation(Quaternion quaternion)
 	return Matrix(a, b, c, 0.0f, e, f, g, 0.0f, i, j, k, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+Pu::Matrix Pu::Matrix::CreateWorld(Vector2 pos, float theta, Vector2 scale)
+{
+	/*
+	Translation * Rotation (Roll) * Scale
+	For 2D any rotation is on the Z-axis, we inline the creating of this matrix.
+	We can use the order of matrix multiplication to eleminate the other multiplications.
+	*/
+	const float s = sinf(theta);
+	const float c = cosf(theta);
+
+	return Matrix(
+		c * scale.X, -s, 0.0f, pos.X,
+		s, c * scale.Y, 0.0f, pos.Y,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+Pu::Matrix Pu::Matrix::CreateWorld(Vector3 pos, Quaternion orientation, Vector3 scale)
+{
+	const Matrix3 rot = Matrix3::CreateRotation(orientation);
+
+	/*
+	Translation * Rotation * Scale
+	Can be done without matrix multiplication because the order of multiplication is known.
+	*/
+	return Matrix(
+		scale.X * rot.c1.X, rot.c2.X, rot.c3.X, pos.X,
+		rot.c1.Y, scale.Y * rot.c2.Y, rot.c3.Y, pos.Y,
+		rot.c1.Z, rot.c2.Z, scale.Z * rot.c3.Z, pos.Z,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Pu::Matrix Pu::Matrix::CreateOrtho(float width, float height, float near, float far)
 {
 	const float a = 2.0f / width;

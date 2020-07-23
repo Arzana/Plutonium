@@ -110,11 +110,20 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddMaterial(const PhysicalProperties & prop
 	return result;
 }
 
-void Pu::PhysicalWorld::AddDirectionalLight(const DirectionalLight & light)
+Pu::PhysicsHandle Pu::PhysicalWorld::AddLight(const DirectionalLight & light)
 {
 	lock.lock();
-	sysRender->Add(light);
+	const PhysicsHandle result = sysRender->Add(light);
 	lock.unlock();
+	return result;
+}
+
+Pu::PhysicsHandle Pu::PhysicalWorld::AddLight(const PointLight & light)
+{
+	lock.lock();
+	const PhysicsHandle result = sysRender->Add(light);
+	lock.unlock();
+	return result;
 }
 
 void Pu::PhysicalWorld::SetGravity(Vector3 g)
@@ -134,18 +143,19 @@ void Pu::PhysicalWorld::Destroy(PhysicsHandle handle)
 	ValidateHandle(handle);
 #endif
 
+	/* Light sources are just handled by the rendering system. */
+	if (physics_get_type(handle) == PhysicsType::LightSource)
+	{
+		sysRender->Remove(handle);
+		lock.unlock();
+		return;
+	}
+
 	/* Destroy the object associated with the internal handle and reset the public handle. */
 	PhysicsHandle &hinternal = handleLut[physics_get_lookup_id(handle)];
 	DestroyInternal(handle, hinternal);
 	hinternal = PhysicsNullHandle;
 
-	lock.unlock();
-}
-
-void Pu::PhysicalWorld::Destroy(const DirectionalLight & light)
-{
-	lock.lock();
-	sysRender->Remove(light);
 	lock.unlock();
 }
 
@@ -155,6 +165,7 @@ Pu::Matrix Pu::PhysicalWorld::GetTransform(PhysicsHandle handle) const
 #ifdef _DEBUG
 	ValidateHandle(handle);
 	ThrowCorruptHandle(physics_get_type(handle) == PhysicsType::Material, nameof(GetTransform));
+	ThrowCorruptHandle(physics_get_type(handle) == PhysicsType::LightSource, nameof(GetTransform));
 #endif
 
 	return sysMove->GetTransform(handleLut[physics_get_lookup_id(handle)]);
@@ -305,7 +316,7 @@ void Pu::PhysicalWorld::Update(float dt)
 
 void Pu::PhysicalWorld::ThrowCorruptHandle(bool condition, const char * func)
 {
-	if (condition) Log::Fatal("Corrupt physics handle detected at %s::%s!", nameof(PhysicalWorld2), func);
+	if (condition) Log::Fatal("Corrupt physics handle detected at %s::%s!", nameof(PhysicalWorld), func);
 }
 
 void Pu::PhysicalWorld::ValidatePhysicalObject(const PhysicalObject & obj)
@@ -370,7 +381,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	/* Create the public handle (to give to the user) and query the internal handle. */
 	const PhysicsHandle hpublic = AllocPublicHandle(type, idx);
 
-	/* 
+	/*
 	Add the object parameters to the systems that require the handle.
 	Scale needs to be applied to the broadphase, narrowphase takes the full transform into account.
 	*/
@@ -438,5 +449,6 @@ void Pu::PhysicalWorld::Destroy(void)
 	if (sysCnst) delete sysCnst;
 	if (sysSolv) delete sysSolv;
 	if (sysMove) delete sysMove;
+	if (sysRender) delete sysRender;
 	if (db) delete db;
 }

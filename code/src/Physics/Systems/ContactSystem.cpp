@@ -15,7 +15,7 @@ static Pu::uint32 narrowPhaseChecks = 0;
 static Pu::uint32 collisionCount = 0;
 
 Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
-	: world(&world)
+	: world(&world), OnTriggerHit("ContactSystemOnTriggerHit")
 #ifdef _DEBUG
 	, addContacts(false)
 #endif
@@ -24,10 +24,12 @@ Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
 }
 
 Pu::ContactSystem::ContactSystem(ContactSystem && value)
-	: checkers(std::move(value.checkers)), world(value.world),
+	: OnTriggerHit(std::move(value.OnTriggerHit)),
+	checkers(std::move(value.checkers)), world(value.world),
 	rawBroadPhase(std::move(value.rawBroadPhase)),
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
 	rawNarrowPhase(std::move(value.rawNarrowPhase)),
+	hitTriggers(std::move(value.hitTriggers)),
 	hfirsts(std::move(value.hfirsts)), hseconds(std::move(value.hseconds)),
 	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz)),
 	px(std::move(value.px)), py(std::move(value.py)), pz(std::move(value.pz))
@@ -41,6 +43,7 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 	{
 		Destroy();
 
+		OnTriggerHit = std::move(other.OnTriggerHit);
 		hfirsts = std::move(other.hfirsts);
 		hseconds = std::move(other.hseconds);
 		px = std::move(other.px);
@@ -54,6 +57,7 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 		rawBroadPhase = std::move(other.rawBroadPhase);
 		cachedBroadPhase = std::move(other.cachedBroadPhase);
 		rawNarrowPhase = std::move(other.rawNarrowPhase);
+		hitTriggers = std::move(other.hitTriggers);
 	}
 
 	return *this;
@@ -176,7 +180,7 @@ void Pu::ContactSystem::Check(void)
 	for (const auto &[hobj, bb] : cachedBroadPhase)
 	{
 		/* We don't have to check sleeping or static objects. */
-		if (physics_get_type(hobj) == PhysicsType::Static) continue;
+		if (physics_get_type(hobj) == PhysicsType::Static || hobj & PhysicsHandleSkipBit) continue;
 		if (world->sysMove->IsSleeping(world->QueryInternalIndex(hobj))) continue;
 
 		/* Traverse the BVH to perform broad phase for this kinematic object. */
@@ -193,7 +197,7 @@ void Pu::ContactSystem::Check(void)
 		/* Perform narrow phase for all the hits, ignoring self. */
 		for (const PhysicsHandle hhit : broadPhaseCache)
 		{
-			if (hhit != hobj) TestGeneric(hhit, hobj);
+			if (hhit != hobj && hhit ^ PhysicsHandleSkipBit) TestGeneric(hhit, hobj);
 		}
 
 		if constexpr (ProfileWorldSystems) Profiler::End();
@@ -202,6 +206,16 @@ void Pu::ContactSystem::Check(void)
 #ifdef _DEBUG
 	addContacts = false;
 #endif
+}
+
+void Pu::ContactSystem::ProcessTriggers(void)
+{
+	for (const auto[hfirst, hsecond] : hitTriggers)
+	{
+		OnTriggerHit.Post(*this, hfirst, hsecond);
+	}
+
+	hitTriggers.clear();
 }
 
 #ifdef _DEBUG
@@ -360,6 +374,10 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 
 	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */
 	if (dot(relVloc, normal) > 0.0f) return;
+
+	/* Add the event triggers to a specific buffer for later processing. */
+	if (hfirst & PhysicsHandleEventBit) hitTriggers.emplace_back(std::make_pair(hfirst, hsecond));
+	if (hsecond & PhysicsHandleEventBit) hitTriggers.emplace_back(std::make_pair(hsecond, hfirst));
 
 	hfirsts.emplace_back(hfirst);
 	hseconds.emplace_back(hsecond);

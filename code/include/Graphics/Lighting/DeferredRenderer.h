@@ -58,6 +58,12 @@ namespace Pu
 			return *renderpass;
 		}
 
+		/* Gets the logical device associated with this deferred renderer. */
+		_Check_return_ inline LogicalDevice& GetDevice(void) const
+		{
+			return wnd->GetDevice();
+		}
+
 		/* Gets the descriptor set layout for the terrain details. */
 		_Check_return_ inline const DescriptorSetLayout& GetTerrainLayout(void) const
 		{
@@ -137,8 +143,8 @@ namespace Pu
 
 		bool markNeeded, advanced, wireframe;
 
-#ifdef _DEBUG
 		QueryChain *timer;
+#ifdef _DEBUG
 		QueryChain *stats;
 #endif
 

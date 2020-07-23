@@ -2,6 +2,8 @@
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Core/Diagnostics/Profiler.h"
 
+constexpr Pu::uint32 PointLightPoolSize = 256;
+
 constexpr inline Pu::uint32 physics_get_subpass(Pu::PhysicsHandle handle)
 {
 	return handle >> 16 & 0xF;
@@ -21,7 +23,7 @@ constexpr inline void physics_set_subpass(Pu::PhysicsHandle &handle, Pu::uint32 
 	handle |= subpass << 16;
 }
 
-constexpr inline bool physics_handle_sort(const std::pair<Pu::PhysicsHandle, Pu::PhysicsHandle> &first, const std::pair<Pu::PhysicsHandle, Pu::PhysicsHandle> &second)
+constexpr inline bool physics_handle_sort_pair(const Pu::PhysicsHandlePair &first, const Pu::PhysicsHandlePair &second)
 {
 	return physics_get_subpass(first.second) < physics_get_subpass(second.second);
 }
@@ -29,6 +31,38 @@ constexpr inline bool physics_handle_sort(const std::pair<Pu::PhysicsHandle, Pu:
 Pu::RenderingSystem::RenderingSystem(const PhysicalWorld & world, DeferredRenderer & renderer)
 	: world(&world), renderer(&renderer)
 {}
+
+Pu::RenderingSystem::RenderingSystem(RenderingSystem && value)
+	: world(value.world), renderer(value.renderer), handleLut(std::move(value.handleLut)),
+	visualTree(std::move(value.visualTree)), pntLightPools(std::move(value.pntLightPools)),
+	dirLights(std::move(value.dirLights)), terrains(std::move(value.terrains)),
+	models(std::move(value.models)), pntLights(std::move(pntLights)), 
+	cacheCast(std::move(cacheCast)), cacheHandles(std::move(value.cacheHandles)),
+	loadingAssets(std::move(value.loadingAssets))
+{}
+
+Pu::RenderingSystem & Pu::RenderingSystem::operator=(RenderingSystem && other)
+{
+	if (this != &other)
+	{
+		Destroy();
+
+		world = other.world;
+		renderer = other.renderer;
+		handleLut = std::move(other.handleLut);
+		visualTree = std::move(other.visualTree);
+		pntLightPools = std::move(other.pntLightPools);
+		dirLights = std::move(other.dirLights);
+		terrains = std::move(other.terrains);
+		models = std::move(other.models);
+		pntLights = std::move(other.pntLights);
+		cacheCast = std::move(other.cacheCast);
+		cacheHandles = std::move(other.cacheHandles);
+		loadingAssets = std::move(other.loadingAssets);
+	}
+
+	return *this;
+}
 
 void Pu::RenderingSystem::Add(PhysicsHandle handle, const TerrainChunk & chunk)
 {
@@ -71,9 +105,77 @@ void Pu::RenderingSystem::Add(PhysicsHandle handle, const Model & model, uint32 
 	AddHandleToLuT(handle, idx, subpass);
 }
 
+Pu::PhysicsHandle Pu::RenderingSystem::Add(const PointLight & light)
+{
+	/* The light volume is a sphere and thusly the scale is uniform across all axis. */
+	const float ir = -light.Volume.GetRight().X;
+	const float d = light.Volume.GetRight().X * 2.0f;
+	const AABB bb{ ir, ir, ir, d, d, d };
+
+	const size_t idx = pntLights.size();
+	const PhysicsHandle hpublic = AllocLightHandle(DeferredRenderer::SubpassPointLight);
+
+	/* Point lights don't have to be loaded, so we can add them right away. */
+	pntLights.emplace_back(light);
+	AddHandleToLuT(hpublic, idx, DeferredRenderer::SubpassPointLight);
+	visualTree.Insert(hpublic, bb + light.Volume.GetTranslation());
+
+	/* Add a new pool if needed. */
+	if (!(idx % PointLightPoolSize)) pntLightPools.emplace_back(new PointLightPool(renderer->GetDevice(), PointLightPoolSize));
+	return hpublic;
+}
+
+Pu::PhysicsHandle Pu::RenderingSystem::Add(const DirectionalLight & light)
+{
+	const size_t idx = dirLights.size();
+	const PhysicsHandle hpublic = AllocLightHandle(DeferredRenderer::SubpassDirectionalLight);
+
+	/* Directional light aren't in the tree so we can just add and return. */
+	dirLights.emplace_back(&light);
+	AddHandleToLuT(hpublic, idx, DeferredRenderer::SubpassDirectionalLight);
+	return hpublic;
+}
+
 void Pu::RenderingSystem::Render(const BVH & bvh, const Camera & camera, CommandBuffer & cmdBuffer)
 {
+	/* Handle all the visual-only objects. */
 	if constexpr (ProfileWorldSystems) Profiler::Begin("Culling", Color::Abbey());
+	UpdateCaches(visualTree, camera);
+
+	if constexpr (ProfileWorldSystems)
+	{
+		Profiler::End();
+		Profiler::Begin("Batching", Color::Gray());
+	}
+
+	size_t pntLightCnt = 0, pntLightIdx = 0;
+	for (const PhysicsHandlePair &handles : cacheHandles)
+	{
+		const uint32 subpass = physics_get_subpass(handles.second);
+		const uint16 i = physics_get_lookup_id(handles.second);
+
+		if (subpass == DeferredRenderer::SubpassPointLight)
+		{
+			/* Add the light to the correct pool. */
+			pntLightPools[pntLightIdx]->AddLight(pntLights[i]);
+			if (++pntLightCnt >= PointLightPoolSize)
+			{
+				pntLightCnt = 0;
+				++pntLightIdx;
+			}
+		}
+		else Log::Warning("RenderingSystem is unable to render object 0x%X in subpass %u!", handles.first, subpass);
+	}
+
+	/* Stage the point light pool. */
+	for (PointLightPool *pool : pntLightPools) pool->Update(cmdBuffer);
+
+	if constexpr (ProfileWorldSystems)
+	{
+		Profiler::End();
+		Profiler::Begin("Culling", Color::Abbey());
+	}
+	
 	CheckLoadingAssets();
 	UpdateCaches(bvh, camera);
 
@@ -110,15 +212,22 @@ void Pu::RenderingSystem::Render(const BVH & bvh, const Camera & camera, Command
 			const Matrix transform = world->GetTransform(handles.first);
 			renderer->Render(*models[i].first, transform, 0, 1, 0.0f);
 		}
-		else Log::Warning("RenderingSystem is unable to render object in subpass 0x%h, %u!", handles.first, subpass);
+		else Log::Warning("RenderingSystem is unable to render object 0x%X in subpass %u!", handles.first, subpass);
 	}
 
-	//TODO handle point lights.
-
+	/* Render all the directional lights. */
 	for (const DirectionalLight *light : dirLights)
 	{
 		renderer->Begin(DeferredRenderer::SubpassDirectionalLight);
 		renderer->Render(*light);
+	}
+
+	/* Render all the point lights. */
+	for (PointLightPool *pool : pntLightPools)
+	{
+		renderer->Begin(DeferredRenderer::SubpassPointLight);
+		renderer->Render(*pool);
+		pool->Clear();
 	}
 
 	/* Finalize the rendering. */
@@ -133,6 +242,12 @@ void Pu::RenderingSystem::Remove(PhysicsHandle handle)
 	const uint16 idx = physics_get_lookup_id(hinternal);
 
 	if (subpass == DeferredRenderer::SubpassTerrain) terrains.removeAt(idx);
+	else if (subpass == DeferredRenderer::SubpassDirectionalLight) dirLights.removeAt(idx);
+	else if (subpass == DeferredRenderer::SubpassPointLight)
+	{
+		visualTree.Remove(handle);
+		pntLights.removeAt(idx);
+	}
 	else
 	{
 		/* Dereference the model and remove it from the list if no more references exist. */
@@ -177,6 +292,19 @@ void Pu::RenderingSystem::CheckLoadingAssets(void)
 	}
 }
 
+Pu::PhysicsHandle Pu::RenderingSystem::AllocLightHandle(uint32 subpass)
+{
+	/* Get the index + 1 of the last light source of the specified subpass. */
+	size_t i = 0;
+	for (const auto[hpublic, hinternal] : handleLut)
+	{
+		i += physics_get_type(hpublic) == PhysicsType::LightSource && physics_get_subpass(hinternal) == subpass;
+	}
+
+	/* Return a public handle. */
+	return create_physics_handle(PhysicsType::LightSource, i);
+}
+
 void Pu::RenderingSystem::AddHandleToLuT(PhysicsHandle handle, size_t idx, uint32 subpass)
 {
 	PhysicsHandle hinternal = create_physics_handle(physics_get_type(handle), idx);
@@ -200,5 +328,10 @@ void Pu::RenderingSystem::UpdateCaches(const BVH & bvh, const Camera & cam)
 	}
 
 	/* Sort the items basic on their rendering order. */
-	std::sort(cacheHandles.begin(), cacheHandles.end(), physics_handle_sort);
+	std::sort(cacheHandles.begin(), cacheHandles.end(), physics_handle_sort_pair);
+}
+
+void Pu::RenderingSystem::Destroy(void)
+{
+	for (PointLightPool *pool : pntLightPools) delete pool;
 }

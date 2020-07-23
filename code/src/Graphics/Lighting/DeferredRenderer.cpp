@@ -1,15 +1,15 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/VertexLayouts/Advanced3D.h"
-#include "Graphics/Textures/TextureInput2D.h"
-#include "Graphics/Models/ShapeCreator.h"
 #include "Graphics/VertexLayouts/PointLight.h"
+#include "Graphics/Textures/TextureInput2D.h"
+#include "Graphics/Diagnostics/QueryChain.h"
+#include "Graphics/Models/ShapeCreator.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 
 using namespace Pu;
 
 #ifdef _DEBUG
-#include "Graphics/Diagnostics/QueryChain.h"
-#include "Core/Diagnostics/Profiler.h"
 #include <imgui/include/imgui.h>
 
 #define DBG_CHECK_SUBPASS(required)			if (static_cast<int32>(required) != activeSubpass) Log::Fatal("Invalid function call, subpass %u expected, but subpass %d is active!", required, activeSubpass)
@@ -174,8 +174,8 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
 	CreateSizeDependentResources();
 
-#ifdef _DEBUG
 	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
+#ifdef _DEBUG
 	stats = new QueryChain(wnd.GetDevice(), statFlags);
 #endif
 }
@@ -219,7 +219,6 @@ void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 ma
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
 {
-#ifdef _DEBUG
 	/* Update the profiler and reset the queries. */
 	Profiler::Add("Rendering (Environment)", Color::Gray(), timer->GetProfilerTimeDelta(TerrainTimer) + timer->GetProfilerTimeDelta(SkyboxTimer));
 	Profiler::Add("Rendering (Geometry)", Color::Red(), timer->GetProfilerTimeDelta(GeometryTimer));
@@ -227,6 +226,7 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 	Profiler::Add("Rendering (Post-Processing)", Color::Green(), timer->GetProfilerTimeDelta(PostTimer));
 
 	timer->Reset(cmdBuffer);
+#ifdef _DEBUG
 	stats->Reset(cmdBuffer);
 #endif
 
@@ -264,7 +264,7 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 	/* Finalize the old subpass. */
 	EndSubpass(subpass, uActiveSubpass);
 
-	/* Add a debug label and record a timestamp on debug mode. */
+	/* Add a debug label on debug mode. */
 #ifdef _DEBUG
 	string label = "Deferred Renderer (";
 	switch (subpass)
@@ -295,6 +295,7 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 
 	label += ')';
 	curCmd->AddLabel(label, Color::Blue());
+#endif
 
 	/* Start the geometry timer if this is the first geometry pass. */
 	if (is_geometry_subpass(subpass) && !is_geometry_subpass(uActiveSubpass))
@@ -307,7 +308,6 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 	{
 		timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::TopOfPipe);
 	}
-#endif
 
 	/*
 	Select the correct graphics pipeline to bind.
@@ -542,11 +542,12 @@ void Pu::DeferredRenderer::EndSubpass(uint32 newSubpass, uint32 uActiveSubpass)
 		stats->RecordStatistics(*curCmd);
 #endif
 	}
-#ifdef _DEBUG
 	else
 	{
+#ifdef _DEBUG
 		/* End the previous subpass. */
 		curCmd->EndLabel();
+#endif
 
 		/* End the terrain timer if needed. */
 		if (uActiveSubpass == SubpassTerrain)
@@ -566,7 +567,6 @@ void Pu::DeferredRenderer::EndSubpass(uint32 newSubpass, uint32 uActiveSubpass)
 			timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::BottomOfPipe);
 		}
 	}
-#endif
 
 	/* Skip to the correct subpass. */
 	for (uint32 i = 0; i < newSubpass - max(0, activeSubpass); i++)
@@ -581,17 +581,13 @@ void Pu::DeferredRenderer::DoSkybox(void)
 	if (skybox)
 	{
 		curCmd->AddLabel("Deferred Renderer (Skybox)", Color::Blue());
-#ifdef _DEBUG
 		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::TopOfPipe);
-#endif
 		curCmd->BindGraphicsPipeline(*gfxSkybox);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *curCam);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *descSetInput);
 		curCmd->Draw(3, 1, 0, 0);
 		curCmd->EndLabel();
-#ifdef _DEBUG
 		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::BottomOfPipe);
-#endif
 	}
 	else curCmd->NextSubpass(SubpassContents::Inline);
 }
@@ -600,17 +596,13 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-#ifdef _DEBUG
 	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::TopOfPipe);
-#endif
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *descSetInput);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
-#ifdef _DEBUG
 	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::BottomOfPipe);
-#endif
 }
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
@@ -1036,9 +1028,9 @@ void Pu::DeferredRenderer::Destroy(void)
 	DestroyWindowDependentResources();
 	DestroyPipelines();
 
-#ifdef _DEBUG
 	/* Queries are always made. */
 	delete timer;
+#ifdef _DEBUG
 	delete stats;
 #endif
 

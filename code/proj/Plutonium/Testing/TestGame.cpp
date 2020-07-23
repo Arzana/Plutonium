@@ -62,18 +62,16 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
 #endif
 
-	lightPoints = new PointLightPool(GetDevice(), 256);
 	for (size_t i = 0; i < 256; i++)
 	{
 		const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
 		const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
-		lightPoints->AddLight(Vector3(x, 20.0f, z), Color::Random(32), 10.0f, 0.5f, 0.1f);
+		world->AddLight(PointLightPool::CalculateStruct(Vector3(x, 20.0f, z), Color::Random(32), 10.0f, 0.5f, 0.1f));
 	}
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
 {
-	if (lightPoints) delete lightPoints;
 	if (camFree) delete camFree;
 	if (lightMain) delete lightMain;
 	if (lightFill) delete lightFill;
@@ -96,7 +94,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
-		lightPoints->Update(cmd);
 
 		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
 		renderer->InitializeCameraPool(*descPoolConst, 1);								// Camera sets
@@ -112,13 +109,13 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		lightMain->SetDirection(PI4, PI4, 0.0f);
 		lightMain->SetEnvironment(*skybox);
 		lightMain->SetIntensity(4.0f);
-		world->AddDirectionalLight(*lightMain);
+		world->AddLight(*lightMain);
 
 		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(*skybox);
-		world->AddDirectionalLight(*lightFill);
+		world->AddLight(*lightFill);
 
 		renderer->SetSkybox(*skybox);
 	}

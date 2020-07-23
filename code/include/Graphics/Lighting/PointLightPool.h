@@ -39,8 +39,13 @@ namespace Pu
 
 		/* Calculates the radius of the point light volume based on the specified parameters and the cutoff point. */
 		_Check_return_ static float GetLightRadius(_In_ Vector3 color, _In_ float intensity, _In_ float falloffLinaer, _In_ float falloffQuadratic, _In_opt_ uint8 cutoff = 5);
+		/* Converts the input data to a point light structure for caching. */
+		_Check_return_ static PointLight CalculateStruct(_In_ Vector3 position, _In_ Color color, _In_ float intensity, _In_ float falloffLinear, _In_ float falloffQuadratic);
+
 		/* Adds a new light to the pool. */
 		void AddLight(_In_ Vector3 position, _In_ Color color, _In_ float intensity, _In_ float falloffLinear, _In_ float falloffQuadratic);
+		/* Adds a new pre-calculated with to the pool. */
+		void AddLight(_In_ const PointLight &light);
 		/* Updates the point light pool if needed. */
 		virtual void Update(_In_ CommandBuffer &cmdBuffer) override;
 		/* Forces the host light buffer to update the GPU buffer. */

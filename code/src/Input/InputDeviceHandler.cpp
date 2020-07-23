@@ -150,7 +150,7 @@ void Pu::InputDeviceHandler::HandleWin32InputEvent(const Win32Window &, const RA
 	}
 
 	/* This should only occur if we could not find the input device in the lists. */
-	Log::Warning("Input event received from unknown %s (0x%x)!", type, input.header.hDevice);
+	Log::Warning("Input event received from unknown %s (0x%X)!", type, input.header.hDevice);
 }
 
 void Pu::InputDeviceHandler::HandleWin32InputDeviceRemoved(const Win32Window &, HANDLE hndl)

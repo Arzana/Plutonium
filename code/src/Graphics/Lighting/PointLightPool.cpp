@@ -19,26 +19,36 @@ float Pu::PointLightPool::GetLightRadius(Vector3 color, float intensity, float f
 	return (-falloffLinaer + sqrtf(sqr(falloffLinaer) - 4.0f * falloffQuadratic * (1.0f - lMax * lMin))) / (2.0f * falloffQuadratic);
 }
 
+Pu::PointLight Pu::PointLightPool::CalculateStruct(Vector3 position, Color color, float intensity, float falloffLinear, float falloffQuadratic)
+{
+	/* Calculate the light's radius. */
+	const Vector3 clr = color.ToVector3();
+	const float r = GetLightRadius(clr, intensity, falloffLinear, falloffQuadratic);
+
+	PointLight result
+	{
+		Matrix::CreateScaledTranslation(position, r),
+		clr,
+		intensity,
+		falloffLinear,
+		falloffQuadratic
+	};
+
+	return result;
+}
+
 void Pu::PointLightPool::AddLight(Vector3 position, Color color, float intensity, float falloffLinaer, float falloffQuadratic)
+{
+	AddLight(CalculateStruct(position, color, intensity, falloffLinaer, falloffQuadratic));
+}
+
+void Pu::PointLightPool::AddLight(const PointLight & light)
 {
 #ifdef _DEBUG
 	if (!HasSpace()) Log::Fatal("Unable to add point light to pool (out of memory)!");
 #endif
 
-	/* Calculate the light's radius. */
-	const Vector3 clr = color.ToVector3();
-	const float r = GetLightRadius(clr, intensity, falloffLinaer, falloffQuadratic);
-
-	/* Add the point light information to our buffer. */
-	buffer.emplace_back(PointLight
-		{
-			Matrix::CreateScaledTranslation(position, r),
-			clr,
-			intensity,
-			falloffLinaer,
-			falloffQuadratic
-		});
-
+	buffer.emplace_back(light);
 	isDirty = true;
 }
 

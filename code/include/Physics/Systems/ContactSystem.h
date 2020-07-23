@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include "Core/Events/EventBus.h"
 #include "Core/Math/Shapes/AABB.h"
 #include "Core/Collections/simd_vector.h"
 #include "Physics/Objects/PhysicsHandle.h"
@@ -14,6 +15,9 @@ namespace Pu
 	class ContactSystem
 	{
 	public:
+		/* Occurs when a non-static object collides with a trigger. */
+		EventBus<const ContactSystem, PhysicsHandle, PhysicsHandle> OnTriggerHit;
+
 		/* Specifies the first handles for the current collisions. */
 		vector<PhysicsHandle> hfirsts;
 		/* Specifies the second handles for the current collisions. */
@@ -61,6 +65,8 @@ namespace Pu
 		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Checks whether any of the kinematic objects have collided with anything in the scene. */
 		void Check(void);
+		/* Calls the OnTriggerHit event for all trigger hit events. */
+		void ProcessTriggers(void);
 
 #ifdef _DEBUG
 		/* Visualizes the colliders in the world. */
@@ -81,6 +87,7 @@ namespace Pu
 		std::map<PhysicsHandle, AABB> cachedBroadPhase;
 		vector<std::pair<size_t, Vector3>> readdCache;
 		vector<PhysicsHandle> broadPhaseCache;
+		vector<PhysicsHandlePair> hitTriggers;
 
 #ifdef _DEBUG
 		mutable bool addContacts;

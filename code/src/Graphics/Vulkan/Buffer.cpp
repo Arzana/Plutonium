@@ -192,7 +192,7 @@ void Pu::Buffer::Allocate(MemoryPropertyFlag optional)
 			if (gpuSize > size)
 			{
 				if (HasName()) Log::Warning("Buffer '%s'is wasting %zu bytes!", GetName().c_str(), gpuSize - size);
-				else Log::Warning("Buffer 0x%x is wasting %zu bytes!", bufferHndl, gpuSize - size);
+				else Log::Warning("Buffer 0x%X is wasting %zu bytes!", bufferHndl, gpuSize - size);
 			}
 		}
 

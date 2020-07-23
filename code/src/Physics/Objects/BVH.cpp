@@ -8,7 +8,7 @@
 #include <imgui/include/imgui.h>
 #endif
 
-#define BVH_HNULL				0xC000FFFF
+#define BVH_HNULL				0xF000FFFF
 #define BVH_INULL				0xFFFF
 #define BVH_STACK_CAPACITY		0x40
 
@@ -172,7 +172,7 @@ void Pu::BVH::Remove(PhysicsHandle handle)
 		}
 	}
 
-	Log::Error("Unable to remove leaf node from BVH (handle wasn't found)!");
+	Log::Error("Unable to remove leaf node from BVH (handle 0x%X wasn't found)!", handle);
 }
 
 Pu::PhysicsHandle Pu::BVH::Raycast(Vector3 p, Vector3 d) const

@@ -46,13 +46,13 @@ namespace Pu
 		/* Adds the specified material to this world. */
 		_Check_return_ PhysicsHandle AddMaterial(_In_ const PhysicalProperties &prop);
 		/* Adds the specified directional light to this world. */
-		void AddDirectionalLight(_In_ const DirectionalLight &light);
+		_Check_return_ PhysicsHandle AddLight(_In_ const DirectionalLight &light);
+		/* Adds the specified point light to this world. */
+		_Check_return_ PhysicsHandle AddLight(_In_ const PointLight &light);
 		/* Sets the gravitational constant. */
 		void SetGravity(_In_ Vector3 g);
 		/* Removes the specified object or material from this world. */
 		void Destroy(_In_ PhysicsHandle handle);
-		/* Removes the specified directional light from this world. */
-		void Destroy(_In_ const DirectionalLight &light);
 		/* Gets the transform of the specified object. */
 		_Check_return_ Matrix GetTransform(_In_ PhysicsHandle handle) const;
 		/* Renders the physical world. */
