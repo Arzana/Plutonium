@@ -16,8 +16,10 @@ namespace Pu
 		Quaternion Theta;
 		/* Specifies the linear velocity of the object. */
 		Vector3 V;
-		/* Specifies the torque of the object. */
+		/* Specifies the angular velocity of the object. */
 		Vector3 Omega;
+		/* Specified the scale of the object. */
+		Vector3 Scale;
 
 		/* Specifies the moment of inertia of the object. */
 		Matrix3 MoI;
@@ -35,17 +37,19 @@ namespace Pu
 
 		/* Initializes an empty instance of a physical object. */
 		PhysicalObject(void)
-			: Properties(PhysicsNullHandle)
+			: Properties(PhysicsNullHandle), Scale(1.0f)
 		{}
 
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, const Pu::Collider &collider)
-			: P(pos), Theta(orien), Properties(PhysicsNullHandle), Collider(collider)
+			: P(pos), Theta(orien), Scale(1.0f), Properties(PhysicsNullHandle),
+			Collider(collider)
 		{}
 
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, Pu::Collider &&collider)
-			: P(pos), Theta(orien), Properties(PhysicsNullHandle), Collider(std::move(collider))
+			: P(pos), Theta(orien),  Scale(1.0f), Properties(PhysicsNullHandle), 
+			Collider(std::move(collider))
 		{}
 	};
 }

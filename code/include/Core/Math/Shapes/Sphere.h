@@ -17,6 +17,11 @@ namespace Pu
 			: Radius(0.0f)
 		{}
 
+		/* Initializes a new instance of a sphere at the origin. */
+		Sphere(_In_ float radius)
+			: Radius(radius)
+		{}
+
 		/* Initializes a new instance of a sphere. */
 		Sphere(_In_ Vector3 center, _In_ float radius)
 			: Center(center), Radius(radius)

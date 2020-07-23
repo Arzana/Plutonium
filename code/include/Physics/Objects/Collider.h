@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Math/Shapes/AABB.h"
+#include "Core/Math/Shapes/Sphere.h"
 #include "Physics/Properties/CollisionShapes.h"
 
 namespace Pu
@@ -24,6 +25,12 @@ namespace Pu
 		/* Initializes a new instance of a collider. */
 		Collider(_In_ AABB broad, _In_ CollisionShapes narrow, _In_ void *params)
 			: BroadPhase(broad), NarrowPhaseShape(narrow), NarrowPhaseParameters(params)
+		{}
+
+		/* Initializes a new instance of a sphere collider. */
+		Collider(_In_ Sphere &sphere)
+			: BroadPhase(-sphere.Radius, -sphere.Radius, -sphere.Radius, sphere.Radius * 2.0f, sphere.Radius * 2.0f, sphere.Radius * 2.0f),
+			NarrowPhaseShape(CollisionShapes::Sphere), NarrowPhaseParameters(&sphere)
 		{}
 	};
 }

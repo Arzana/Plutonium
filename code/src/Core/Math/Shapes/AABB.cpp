@@ -3,6 +3,11 @@
 
 using namespace Pu;
 
+AABB Pu::AABB::operator*(Vector3 scalar) const
+{
+	return AABB(LowerBound * scalar, UpperBound * scalar);
+}
+
 AABB Pu::AABB::operator*(const Matrix & m) const
 {
 	return AABB(m * LowerBound, m * UpperBound);

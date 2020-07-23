@@ -50,7 +50,7 @@ namespace Pu
 		/* Adds a specific linear and angular force to the specific object. */
 		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ float pitch, _In_ float yaw, _In_ float roll);
 		/* Adds a single kinematic item to the movement system, return the index. */
-		_Check_return_ size_t AddItem(_In_ Vector3 p, _In_ Vector3 v, _In_ Quaternion theta, _In_ Vector3 omega, _In_ float CoD, _In_ float imass, _In_ const Matrix3 &moi);
+		_Check_return_ size_t AddItem(_In_ Vector3 p, _In_ Vector3 v, _In_ Quaternion theta, _In_ Vector3 omega, _In_ Vector3 scale, _In_ float CoD, _In_ float imass, _In_ const Matrix3 &moi);
 		/* Adds a single static item to the movement system, returns the index. */
 		_Check_return_ size_t AddItem(_In_ const Matrix &transform);
 		/* Removes the item at the specified index. */
@@ -112,6 +112,7 @@ namespace Pu
 		avxf_vector pz;
 
 		vector<Matrix> transforms;
+		vector<Vector3> scales;
 		mutable avxf_vector qx;
 		mutable avxf_vector qy;
 		mutable avxf_vector qz;

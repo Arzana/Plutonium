@@ -31,6 +31,8 @@ namespace Pu
 			: LowerBound(x, y, z), UpperBound(x + w, y + h, z + d)
 		{}
 
+		/* Scales the box with the specified dimensional scalar. */
+		_Check_return_ AABB operator *(_In_ Vector3 scalar) const;
 		/* Transforms the box with the specified matrix. */
 		_Check_return_ AABB operator *(_In_ const Matrix &m) const;
 		/* Gets the corner at the specified index. */

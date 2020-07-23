@@ -34,7 +34,7 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, float p
 #endif
 }
 
-size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, float CoD, float imass, const Matrix3 &moi)
+size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, Vector3 scale, float CoD, float imass, const Matrix3 &moi)
 {
 	/* 
 	We need to put a mask of all ones into the affected by gravity buffer. 
@@ -78,6 +78,7 @@ size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vecto
 	qy.push(p.Y);
 	qz.push(p.Z);
 	sleep.push(cnvrt.f);
+	scales.emplace_back(scale);
 
 	return cod.size() - 1;
 }
@@ -114,7 +115,8 @@ void Pu::MovementSystem::RemoveItem(PhysicsHandle handle)
 		qx.erase(idx);
 		qy.erase(idx);
 		qz.erase(idx);
-		sleep.erase(idx);
+		sleep.erase(idx); 
+		scales.removeAt(idx);
 	}
 }
 
@@ -259,9 +261,9 @@ Pu::Matrix Pu::MovementSystem::GetTransform(PhysicsHandle handle) const
 	/* Static objects are cached as they don't move. */
 	if (physics_get_type(handle) == PhysicsType::Static) return transforms[idx];
 
-	const Matrix translation = Matrix::CreateTranslation(px.get(idx), py.get(idx), pz.get(idx));
-	const Matrix orientation = Matrix::CreateRotation(Quaternion(tr.get(idx), ti.get(idx), tj.get(idx), tk.get(idx)));
-	return translation * orientation;
+	const Vector3 translation{ px.get(idx), py.get(idx), pz.get(idx) };
+	const Quaternion orientation{ tr.get(idx), ti.get(idx), tj.get(idx), tk.get(idx) };
+	return Matrix::CreateWorld(translation, orientation, scales[idx]);
 }
 
 Pu::Vector3 Pu::MovementSystem::GetPosition(PhysicsHandle handle) const

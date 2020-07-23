@@ -364,15 +364,18 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	const Matrix3 imoi = obj.MoI.GetInverse();
 
 	size_t idx;
-	if (type == PhysicsType::Static) idx = sysMove->AddItem(Matrix::CreateWorld(obj.P, obj.Theta, Vector3{ 1.0f }));
-	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.State.Cd, imass, imoi);
+	if (type == PhysicsType::Static) idx = sysMove->AddItem(Matrix::CreateWorld(obj.P, obj.Theta, obj.Scale));
+	else idx = sysMove->AddItem(obj.P, obj.V, obj.Theta, obj.Omega, obj.Scale, obj.State.Cd, imass, imoi);
 
 	/* Create the public handle (to give to the user) and query the internal handle. */
 	const PhysicsHandle hpublic = AllocPublicHandle(type, idx);
 
-	/* Add the object parameters to the systems that require the handle. */
+	/* 
+	Add the object parameters to the systems that require the handle.
+	Scale needs to be applied to the broadphase, narrowphase takes the full transform into account.
+	*/
 	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoF);
-	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
+	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase * obj.Scale, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
 
 	return hpublic;
 }
