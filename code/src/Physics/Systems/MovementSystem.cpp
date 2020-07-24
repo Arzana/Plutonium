@@ -292,7 +292,7 @@ foreach object
 		q = p
 		add current object to result
 */
-void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & result) const
+void Pu::MovementSystem::CheckDistance(vector<size_t> & result) const
 {
 	const size_t size_avx = vx.simd_size();
 	const size_t size = vx.size();
@@ -325,17 +325,13 @@ void Pu::MovementSystem::CheckDistance(vector<std::pair<size_t, Vector3>> & resu
 
 		if (masks[j].V[k])
 		{
-			const float x = px.get(i);
-			const float y = py.get(i);
-			const float z = pz.get(i);
-
 			/* The old location needs to be overriden when it reaches this point. */
-			qx.set(i, x);
-			qy.set(i, y);
-			qz.set(i, z);
+			qx.set(i, px.get(i));
+			qy.set(i, py.get(i));
+			qz.set(i, pz.get(i));
 
 			/* Return both the index and the new location. */
-			result.emplace_back(std::make_pair(i, Vector3(x, y, z)));
+			result.emplace_back(i);
 		}
 	}
 

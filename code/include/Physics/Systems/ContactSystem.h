@@ -85,7 +85,7 @@ namespace Pu
 		std::map<PhysicsHandle, std::pair<CollisionShapes, float*>> rawNarrowPhase;
 
 		std::map<PhysicsHandle, AABB> cachedBroadPhase;
-		vector<std::pair<size_t, Vector3>> readdCache;
+		vector<size_t> readdCache;
 		vector<PhysicsHandle> broadPhaseCache;
 		vector<PhysicsHandlePair> hitTriggers;
 
@@ -98,6 +98,7 @@ namespace Pu
 		void TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond);
 		void TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere);
 		void TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere);
+		void TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb);
 		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal);
 		void SetGenericCheckers(void);
 		void Destroy(void);

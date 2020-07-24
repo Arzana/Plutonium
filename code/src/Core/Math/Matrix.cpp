@@ -84,8 +84,8 @@ Pu::Matrix Pu::Matrix::CreateWorld(Vector2 pos, float theta, Vector2 scale)
 	const float c = cosf(theta);
 
 	return Matrix(
-		c * scale.X, -s, 0.0f, pos.X,
-		s, c * scale.Y, 0.0f, pos.Y,
+		c * scale.X, -s * scale.Y, 0.0f, pos.X,
+		s * scale.X, c * scale.Y, 0.0f, pos.Y,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
@@ -99,9 +99,9 @@ Pu::Matrix Pu::Matrix::CreateWorld(Vector3 pos, Quaternion orientation, Vector3 
 	Can be done without matrix multiplication because the order of multiplication is known.
 	*/
 	return Matrix(
-		scale.X * rot.c1.X, rot.c2.X, rot.c3.X, pos.X,
-		rot.c1.Y, scale.Y * rot.c2.Y, rot.c3.Y, pos.Y,
-		rot.c1.Z, rot.c2.Z, scale.Z * rot.c3.Z, pos.Z,
+		scale.X * rot.c1.X, scale.Y * rot.c2.X, scale.Z * rot.c3.X, pos.X,
+		scale.X * rot.c1.Y, scale.Y * rot.c2.Y, scale.Z * rot.c3.Y, pos.Y,
+		scale.X * rot.c1.Z, scale.Y * rot.c2.Z, scale.Z * rot.c3.Z, pos.Z,
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 

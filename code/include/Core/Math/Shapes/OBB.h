@@ -1,5 +1,6 @@
 #pragma once
-#include "Core/Math/Matrix3.h"
+#include "AABB.h"
+#include "Core/Math/Matrix.h"
 
 namespace Pu
 {
@@ -12,45 +13,37 @@ namespace Pu
 		/* Defines half of the size of the oriented box. */
 		Vector3 Extent;
 		/* Defines the orientation of the box. */
-		Matrix3 Orientation;
+		Quaternion Orientation;
 
 		/* Initializes an empty instance of an oriented bounding box. */
-		OBB(void)
-		{}
+		OBB(void) = default;
 
 		/* Initializes a new instance of an oriented bounding box. */
-		OBB(_In_ Vector3 center, _In_ Vector3 extent, _In_ Matrix3 orientation)
+		OBB(_In_ Vector3 center, _In_ Vector3 extent, _In_ Quaternion orientation)
 			: Center(center), Extent(extent), Orientation(orientation)
 		{}
 
-		/* Gets the right vector from the orientation matrix. */
-		_Check_return_ inline Vector3 GetRight(void) const
+		/* Applies the specified transform to this OBB and returns the result. */
+		_Check_return_ OBB operator *(_In_ const Matrix &transform) const;
+		/* Calculates the bounding box for this OBB. */
+		_Check_return_ AABB GetBoundingBox(void) const;
+
+		/* Gets the X-axis of this OBB. */
+		_Check_return_ Vector3 GetRight(void) const
 		{
-			return Orientation.GetRight();
+			return Orientation * Vector3::Right();
+		}
+		
+		/* Gets the Y-axis of this OBB. */
+		_Check_return_ Vector3 GetUp(void) const
+		{
+			return Orientation * Vector3::Up();
 		}
 
-		/* Gets the up vector from the orientation matrix. */
-		_Check_return_ inline Vector3 GetUp(void) const
+		/* Gets the Z-axis of this OBB. */
+		_Check_return_ Vector3 GetForward(void) const
 		{
-			return Orientation.GetUp();
-		}
-
-		/* Gets the forward vector from the orientation matrix. */
-		_Check_return_ inline Vector3 GetForward(void) const
-		{
-			return Orientation.GetForward();
-		}
-
-		/* Gets the lower bound of the oriented box. */
-		_Check_return_ Vector3 LowerBound(void) const
-		{
-			return Center - Orientation * (Extent * 0.5f);
-		}
-
-		/* Gets the upper bound of the oriented box. */
-		_Check_return_ Vector3 UpperBound(void) const
-		{
-			return Center + Orientation * (Extent * 0.5f);
+			return Orientation * Vector3::Forward();
 		}
 	};
 }

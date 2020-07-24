@@ -180,14 +180,47 @@ void Pu::DebugRenderer::AddBox(const AABB & box, const Matrix & transform, Color
 {
 	CapacityEarlyOut(24);
 
-	const Vector3 ftl = transform * box[0];
-	const Vector3 ftr = transform * box[1];
-	const Vector3 fbr = transform * box[2];
-	const Vector3 fbl = transform * box[3];
-	const Vector3 btl = transform * box[4];
-	const Vector3 btr = transform * box[5];
-	const Vector3 bbr = transform * box[6];
-	const Vector3 bbl = transform * box[7];
+	const Vector3 fbl = transform * box[0];
+	const Vector3 fbr = transform * box[1];
+	const Vector3 ftr = transform * box[2];
+	const Vector3 ftl = transform * box[3];
+	const Vector3 bbl = transform * box[4];
+	const Vector3 bbr = transform * box[5];
+	const Vector3 btr = transform * box[6];
+	const Vector3 btl = transform * box[7];
+
+	/* Front face */
+	AddLineInternal(ftl, ftr, color);
+	AddLineInternal(ftr, fbr, color);
+	AddLineInternal(fbr, fbl, color);
+	AddLineInternal(fbl, ftl, color);
+
+	/* Back face */
+	AddLineInternal(btl, btr, color);
+	AddLineInternal(btr, bbr, color);
+	AddLineInternal(bbr, bbl, color);
+	AddLineInternal(bbl, btl, color);
+
+	/* Inbetween lines */
+	AddLineInternal(ftl, btl, color);
+	AddLineInternal(ftr, btr, color);
+	AddLineInternal(fbr, bbr, color);
+	AddLineInternal(fbl, bbl, color);
+}
+
+void Pu::DebugRenderer::AddBox(const OBB & box, Color color)
+{
+	CapacityEarlyOut(24);
+
+	/* Calculate the corners. */
+	const Vector3 fbl = box.Center - box.Orientation * box.Extent;
+	const Vector3 fbr = box.Center - box.Orientation * Vector3(-box.Extent.X, box.Extent.Y, box.Extent.Z);
+	const Vector3 ftr = box.Center + box.Orientation * Vector3(box.Extent.X, box.Extent.Y, -box.Extent.Z);
+	const Vector3 ftl = box.Center - box.Orientation * Vector3(box.Extent.X, -box.Extent.Y, box.Extent.Z);
+	const Vector3 bbl = box.Center - box.Orientation * Vector3(box.Extent.X, box.Extent.Y, -box.Extent.Z);
+	const Vector3 bbr = box.Center + box.Orientation * Vector3(box.Extent.X, -box.Extent.Y, box.Extent.Z);
+	const Vector3 btr = box.Center + box.Orientation * box.Extent;
+	const Vector3 btl = box.Center + box.Orientation * Vector3(-box.Extent.X, box.Extent.Y, box.Extent.Z);
 
 	/* Front face */
 	AddLineInternal(ftl, ftr, color);

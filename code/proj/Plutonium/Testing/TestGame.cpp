@@ -68,6 +68,16 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 #else
 	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
 #endif
+
+	rampModel = &fetcher.CreateModel(ShapeType::Box, *renderer);
+
+	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
+	Collider collider{ obb };
+
+	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI4), collider };
+	obj.Properties = physicsMat;
+	obj.Scale = Vector3(10.0f, 10.0f, 30.0f);
+	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -80,6 +90,7 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (dbgRenderer) delete dbgRenderer;
 
 	fetcher.Release(*playerModel);
+	fetcher.Release(*rampModel);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
@@ -228,8 +239,8 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 #else
 			SpawnNPC();
 #endif
-		}
 	}
+}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();

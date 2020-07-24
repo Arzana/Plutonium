@@ -34,7 +34,7 @@ private:
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
-	Pu::Model *playerModel;
+	Pu::Model *playerModel, *rampModel;
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;

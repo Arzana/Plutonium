@@ -334,6 +334,7 @@
     <ClCompile Include="..\..\..\src\Core\Collections\simd_vector.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Matrix3.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp" />
+    <ClCompile Include="..\..\..\src\Core\Math\Shapes\OBB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\PointLightPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />

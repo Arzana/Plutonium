@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Math/Spline.h"
 #include "Content/AssetFetcher.h"
+#include "Core/Math/Shapes/OBB.h"
 #include "Core/Math/Shapes/Line.h"
 #include "Core/Math/Shapes/Sphere.h"
 #include "Graphics/Cameras/Camera.h"
@@ -45,6 +46,8 @@ namespace Pu
 		void AddBox(_In_ const AABB &box, _In_ Color color);
 		/* Adds a box to the debug renderer queue. */
 		void AddBox(_In_ const AABB &box, _In_ const Matrix &transform, _In_ Color color);
+		/* Adds a box to the debug renderer queue. */
+		void AddBox(_In_ const OBB &box, _In_ Color color);
 		/* Adds a sphere to the debug renderer queue. */
 		void AddSphere(_In_ Sphere sphere, _In_ Color color);
 		/* Adds a sphere to the debug renderer queue. */

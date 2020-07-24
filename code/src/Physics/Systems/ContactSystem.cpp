@@ -7,8 +7,7 @@
 #include "Core/Math/HeightMap.h"
 
 #define create_collision_t(first, second)		(static_cast<Pu::uint16>(static_cast<Pu::uint16>(first) | static_cast<Pu::uint16>(second) << 8))
-#define as_sphere(params)						(*reinterpret_cast<const Pu::Sphere*>(params))
-#define as_height(params)						(*reinterpret_cast<const Pu::HeightMap*>(params))
+#define as_shape(type, params)					(*reinterpret_cast<const Pu::type*>(params))
 
 static Pu::uint32 bvhUpdateCalls = 0;
 static Pu::uint32 narrowPhaseChecks = 0;
@@ -116,6 +115,10 @@ void Pu::ContactSystem::AddItem(PhysicsHandle handle, const AABB & bb, Collision
 		copy = reinterpret_cast<float*>(malloc(sizeof(Sphere)));
 		memcpy(copy, collider, sizeof(Sphere));
 		break;
+	case CollisionShapes::OBB:
+		copy = reinterpret_cast<float*>(malloc(sizeof(OBB)));
+		memcpy(copy, collider, sizeof(OBB));
+		break;
 	case CollisionShapes::HeightMap:
 		copy = reinterpret_cast<float*>(malloc(sizeof(HeightMap)));
 		new(copy) HeightMap(*reinterpret_cast<const HeightMap*>(collider));
@@ -158,14 +161,14 @@ void Pu::ContactSystem::Check(void)
 	/* Query the movement system for updates to the BVH. */
 	readdCache.clear();
 	world->sysMove->CheckDistance(readdCache);
-	for (auto[idx, pos] : readdCache)
+	for (size_t idx : readdCache)
 	{
 		/* Remove the old bounding box from the BVH. */
 		const PhysicsHandle hobj = world->QueryPublicHandle(create_physics_handle(PhysicsType::Kinematic, idx));
 		world->searchTree.Remove(hobj);
 
 		/* Create the new cached bounding box. */
-		AABB newBB = rawBroadPhase[idx] + pos;
+		AABB newBB = rawBroadPhase[idx] * world->GetTransform(hobj);
 		newBB.Inflate(KinematicExpansion, KinematicExpansion, KinematicExpansion);
 
 		/* Insert the new bounding box. */
@@ -237,10 +240,11 @@ void Pu::ContactSystem::VisualizeColliders(DebugRenderer & dbgRenderer, Vector3 
 		const Matrix transform = world->GetTransform(hcur);
 
 		if (narrow.first == CollisionShapes::None) dbgRenderer.AddBox(cachedBroadPhase.at(hcur), clr);
-		else if (narrow.first == CollisionShapes::Sphere) dbgRenderer.AddSphere(as_sphere(narrow.second) * transform, clr);
+		else if (narrow.first == CollisionShapes::Sphere) dbgRenderer.AddSphere(as_shape(Sphere, narrow.second) * transform, clr);
+		else if (narrow.first == CollisionShapes::OBB) dbgRenderer.AddBox(as_shape(OBB, narrow.second) * transform, clr);
 		else if (narrow.first == CollisionShapes::HeightMap)
 		{
-			const HeightMap &collider = as_height(narrow.second);
+			const HeightMap &collider = as_shape(HeightMap, narrow.second);
 			const Vector3 offset = transform.GetTranslation();
 
 			/* The heightmap is incredibly expensive to debug render, so only do it for one. */
@@ -299,8 +303,8 @@ void Pu::ContactSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
 void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	/* Query the colliders and transform them to the correct position. */
-	const Sphere sphere1 = as_sphere(rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
-	const Sphere sphere2 = as_sphere(rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
+	const Sphere sphere1 = as_shape(Sphere, rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
+	const Sphere sphere2 = as_shape(Sphere, rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
 
 	/* Check for collision. */
 	if (intersects(sphere1, sphere2))
@@ -314,7 +318,7 @@ void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hse
 void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere)
 {
 	/* Query the sphere collider and transform it to the correct position. */
-	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
+	const Sphere sphere = as_shape(Sphere, rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
 	/* Check for collision with the cached bounding box. */
 	const Vector3 q = closest(cachedBroadPhase.at(haabb), sphere.Center);
@@ -329,9 +333,9 @@ void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hspher
 void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere)
 {
 	/* Query the colliders and transform them to the correct position. */
-	const HeightMap &heightmap = as_height(rawNarrowPhase.at(hmap).second);
+	const HeightMap &heightmap = as_shape(HeightMap, rawNarrowPhase.at(hmap).second);
 	const Vector3 offset = world->GetTransform(hmap).GetTranslation();
-	const Sphere sphere = as_sphere(rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
+	const Sphere sphere = as_shape(Sphere, rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
 	float h;
 	Vector3 n;
@@ -342,6 +346,22 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 	{
 		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
 		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, Vector3(sphere.Center.X, h, sphere.Center.Z), n);
+	}
+}
+
+void Pu::ContactSystem::TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb)
+{
+	/* Query the colliders and transform them to the correct location. */
+	const Sphere sphere = as_shape(Sphere, rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
+	const OBB &obb = as_shape(OBB, rawNarrowPhase.at(hobb).second) * world->GetTransform(hobb);
+
+	/* Check for collision. */
+	const Vector3 q = closest(obb, sphere.Center);
+	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
+	{
+		const Vector3 n = dir(q, sphere.Center);
+		const Vector3 p = sphere.Center + sphere.Radius * -n;
+		AddManifold(hobb, hsphere, p, n);
 	}
 }
 
@@ -408,6 +428,7 @@ void Pu::ContactSystem::SetGenericCheckers(void)
 	checkers.emplace(create_collision_t(CollisionShapes::None, CollisionShapes::Sphere), &ContactSystem::TestAABBSphere);
 	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ContactSystem::TestSphereSphere);
 	checkers.emplace(create_collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ContactSystem::TestHeightmapSphere);
+	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::OBB), &ContactSystem::TestSphereOBB);
 }
 
 void Pu::ContactSystem::Destroy(void)

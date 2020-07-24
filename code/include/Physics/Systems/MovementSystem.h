@@ -70,7 +70,7 @@ namespace Pu
 		/* Gets the angular velocity of the specified object. */
 		_Check_return_ Vector3 GetAngularVelocity(_In_ size_t idx) const;
 		/* Gets the indices of the objects that have moved out of their expanded AABB. */
-		void CheckDistance(_Out_ vector<std::pair<size_t, Vector3>> &result) const;
+		void CheckDistance(_Out_ vector<size_t> &result) const;
 		/* Sets the sleep bit for any object with a velocity magnitude smaller than the specified epsilon. */
 		void TrySleep(_In_ ofloat epsilon);
 		/* Gets the amount of kinematic objects that are currently in sleep mode. */

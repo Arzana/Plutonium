@@ -52,7 +52,7 @@ namespace Pu
 	}
 
 	/* Initializes the specified AVX 3x3 matrix union with the specified parameters at the specified index. */
-	static inline void _mm256_seti_m3(_Inout_ AVX_MAT3_UNION &obj, _In_ const float components[8], _In_ size_t i)
+	static inline void _mm256_seti_m3(_Inout_ AVX_MAT3_UNION &obj, _In_ const float components[9], _In_ size_t i)
 	{
 		obj.M00[i] = components[0];
 		obj.M01[i] = components[1];

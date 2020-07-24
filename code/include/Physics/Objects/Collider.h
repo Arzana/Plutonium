@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Math/Shapes/AABB.h"
 #include "Core/Math/Shapes/Sphere.h"
+#include "Core/Math/Shapes/OBB.h"
 #include "Physics/Properties/CollisionShapes.h"
 
 namespace Pu
@@ -31,6 +32,11 @@ namespace Pu
 		Collider(_In_ Sphere &sphere)
 			: BroadPhase(-sphere.Radius, -sphere.Radius, -sphere.Radius, sphere.Radius * 2.0f, sphere.Radius * 2.0f, sphere.Radius * 2.0f),
 			NarrowPhaseShape(CollisionShapes::Sphere), NarrowPhaseParameters(&sphere)
+		{}
+
+		/* Initializes a new instance of a oriented bounding box collider. */
+		Collider(_In_ OBB &obb)
+			: BroadPhase(obb.GetBoundingBox()), NarrowPhaseShape(CollisionShapes::OBB), NarrowPhaseParameters(&obb)
 		{}
 	};
 }

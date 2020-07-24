@@ -389,7 +389,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	Scale needs to be applied to the broadphase, narrowphase takes the full transform into account.
 	*/
 	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoFs);
-	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase * obj.Scale, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
+	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
 
 	return hpublic;
 }

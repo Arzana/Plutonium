@@ -921,9 +921,6 @@
     <ClInclude Include="..\..\..\include\Core\Math\Vector4_SIMD.h">
       <Filter>Header Files\Core\Math\SIMD</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Math\Matrix3_SIMD.h">
-      <Filter>Header Files\Core\Math\SIMD</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Platform\Windows\RegistryHandler.h">
       <Filter>Header Files\Core\Platform\Windows</Filter>
     </ClInclude>
@@ -938,6 +935,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\include\Physics\Systems\RenderingSystem.h">
       <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Core\Math\Matrix3_SIMD.h">
+      <Filter>Header Files\Core\Math\SIMD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1342,6 +1342,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\RenderingSystem.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Core\Math\Shapes\OBB.cpp">
+      <Filter>Source Files\Core\Math\Shapes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
