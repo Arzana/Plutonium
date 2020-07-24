@@ -5,7 +5,7 @@
 #include <imgui.h>
 
 //#define STRESS_TEST
-#define USE_KNIGHT
+//#define USE_KNIGHT
 
 using namespace Pu;
 
@@ -47,7 +47,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 
 	PhysicalProperties aluminum;
 	aluminum.Density = 1.0f;
-	aluminum.Mechanical.CoR = 0.1f;
+	aluminum.Mechanical.CoR = 0.2f;
 	aluminum.Mechanical.CoFs = 1.15f;
 	aluminum.Mechanical.CoFk = 1.4f;
 	aluminum.Mechanical.CoFr = 0.001f;
@@ -74,9 +74,9 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
 	Collider collider{ obb };
 
-	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI4), collider };
+	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI4 * 0.5f), collider };
 	obj.Properties = physicsMat;
-	obj.Scale = Vector3(10.0f, 10.0f, 30.0f);
+	obj.Scale = Vector3(40.0f, 1.0f, 100.0f);
 	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 }
 
@@ -151,6 +151,8 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (ImGui::BeginMainMenuBar())
 	{
 		ImGui::Text("FPS: %d", iround(recip(dt)));
+		ImGui::Separator();
+		if (camFree) ImGui::Text("Cam: %s", camFree->GetPosition().ToString().c_str());
 		ImGui::EndMainMenuBar();
 	}
 
@@ -163,12 +165,16 @@ void TestGame::SpawnNPC(void)
 	const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
 	const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
 #else
-	const float x = random(10.0f, 20.0f);
-	const float z = random(10.0f, 20.0f);
+	const float x = 0.0f;
+	const float z = -30.0f;
 #endif
 
 	/* Simple sphere is good for height, but bad for width. */
+#ifdef USE_KNIGHT
 	Sphere sphere{ 25.0f };
+#else
+	Sphere sphere{ 0.5f };
+#endif
 	Collider collider{ sphere };
 
 	/* Use the default physical material. */
@@ -192,7 +198,7 @@ void TestGame::SpawnNPC(void)
 	obj.State.Cd = 0.5f;
 	obj.Scale = 3.0f;
 
-	const uint32 subpas = DeferredRenderer::SubpassBasicStaticGeometry;
+	const uint32 subpass = DeferredRenderer::SubpassBasicStaticGeometry;
 #endif
 
 	npcs.emplace_back(world->AddKinematic(obj, *playerModel, subpass));

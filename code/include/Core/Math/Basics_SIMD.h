@@ -15,6 +15,12 @@ namespace Pu
 		return _mm256_mul_ps(_mm256_mul_ps(v, v), v);
 	}
 
+	/* Performs a safe division. */
+	_Check_return_ inline ofloat _mm256_divs_ps(_In_ ofloat num, _In_ ofloat denom, _In_ ofloat zero)
+	{
+		return _mm256_andnot_ps(_mm256_cmp_ps(zero, denom, _CMP_EQ_OQ), _mm256_div_ps(num, denom));
+	}
+
 	/* Clamps the specified packed single between the specified minimum and maximum. */
 	_Check_return_ inline ofloat _mm256_clamp_ps(_In_ ofloat v, _In_ ofloat a, _In_ ofloat b)
 	{

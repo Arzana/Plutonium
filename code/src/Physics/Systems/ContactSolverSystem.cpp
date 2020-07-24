@@ -158,8 +158,8 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		}
 		else
 		{
-			/* 
-			The position of the static object needs to be equal to the point of contact. 
+			/*
+			The position of the static object needs to be equal to the point of contact.
 			This will make the relative velocity equal to the velocity of the second object
 			at the contact point.
 			*/
@@ -247,7 +247,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 
 		/* Calculate the numerator of the impulse magnitude. */
 		ofloat cosTheta = _mm256_dot_v3(vx, vy, vz, nx[i], ny[i], nz[i]);
-		const ofloat num = _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, _mm256_min_ps(cor1[i], cor2[i])), neg), cosTheta);
+		ofloat num = _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, _mm256_min_ps(cor1[i], cor2[i])), neg), cosTheta);
 
 		/* Calculate the denominator of the impulse magnitude. */
 		_mm256_cross_v3(rx1, ry1, rz1, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
@@ -260,10 +260,10 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		tmp_y2 = _mm256_add_ps(tmp_y1, tmp_y3);
 		tmp_z2 = _mm256_add_ps(tmp_z1, tmp_z3);
 		const ofloat imassTotal = _mm256_add_ps(imass1[i], imass2[i]);
-		const ofloat denom = _mm256_add_ps(imassTotal, _mm256_dot_v3(nx[i], ny[i], nz[i], tmp_x2, tmp_y2, tmp_z2));
+		ofloat denom = _mm256_add_ps(imassTotal, _mm256_dot_v3(nx[i], ny[i], nz[i], tmp_x2, tmp_y2, tmp_z2));
 
 		/* Safely calculate the final impulse to apply. */
-		ofloat j = _mm256_andnot_ps(_mm256_cmp_ps(zero, denom, _CMP_EQ_OQ), _mm256_div_ps(num, denom));
+		ofloat j = _mm256_divs_ps(num, denom, zero);
 		tmp_x1 = _mm256_mul_ps(j, nx[i]);
 		tmp_y1 = _mm256_mul_ps(j, ny[i]);
 		tmp_z1 = _mm256_mul_ps(j, nz[i]);
@@ -295,23 +295,34 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		ofloat tz = _mm256_sub_ps(vz, _mm256_mul_ps(cosTheta, nz[i]));
 		_mm256_norm_v3(tx, ty, tz, zero);
 
-		/* Calculate the friction impulse TODO: handle static friction. */
-		cosTheta = _mm256_dot_v3(vx, vy, vz, tx, ty, tz);
+		//TODO: handle static friction
 		const ofloat e = _mm256_sqrt_ps(_mm256_mul_ps(cof1[i], cof2[i]));
-		j = _mm256_clamp_ps(_mm256_div_ps(_mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(e, one), neg), cosTheta), imassTotal), _mm256_mul_ps(_mm256_mul_ps(j, neg), e), _mm256_mul_ps(j, e));
-		tmp_x1 = _mm256_mul_ps(j, tx);
-		tmp_y1 = _mm256_mul_ps(j, ty);
-		tmp_z1 = _mm256_mul_ps(j, tz);
 
-		/* Apply friction impulse to the first object. */
-		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(tmp_x1, imass1[i]));
-		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(tmp_y1, imass1[i]));
-		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(tmp_z1, imass1[i]));
+		/* Calculate the friction impulse for the first object. */
+		num = _mm256_dot_v3(_mm256_mul_ps(vx1[i], neg), _mm256_mul_ps(vy1[i], neg), _mm256_mul_ps(vz1[i], neg), tx, ty, tz);
+		_mm256_cross_v3(rx1, ry1, rz1, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
+		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_cross_v3(tmp_x1, tmp_y1, tmp_z1, rx1, ry1, rz1, tmp_x3, tmp_y3, tmp_z3);
+		denom = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x3, tmp_y3, tmp_z3, tx, ty, tz));
+		j = _mm256_mul_ps(e, _mm256_divs_ps(num, denom, zero));
+
+		/* Apply frictio to the first object. */
+		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(_mm256_mul_ps(j, tx), imass1[i]));
+		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(_mm256_mul_ps(j, ty), imass1[i]));
+		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(_mm256_mul_ps(j, tz), imass1[i]));
+
+		/* Calculate the friction impulse for the second object. */
+		num = _mm256_dot_v3(_mm256_mul_ps(vx2[i], neg), _mm256_mul_ps(vy2[i], neg), _mm256_mul_ps(vz2[i], neg), tx, ty, tz);
+		_mm256_cross_v3(rx2, ry2, rz2, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
+		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+		_mm256_cross_v3(tmp_x1, tmp_y1, tmp_z1, rx2, ry2, rz2, tmp_x3, tmp_y3, tmp_z3);
+		denom = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x3, tmp_y3, tmp_z3, tx, ty, tz));
+		j = _mm256_mul_ps(e, _mm256_divs_ps(num, denom, zero));
 
 		/* Apply friction impulse to the second object. */
-		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(tmp_x1, imass2[i]));
-		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(tmp_y1, imass2[i]));
-		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(tmp_z1, imass2[i]));
+		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), imass2[i]));
+		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), imass2[i]));
+		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), imass2[i]));
 	}
 }
 
@@ -325,7 +336,7 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 	{
 		const size_t j = i >> 0x3;
 		const size_t k = i & 0x7;
-		
+
 		const PhysicsHandle hfirst = world->sysCnst->hfirsts[i];
 		const PhysicsHandle hsecond = world->sysCnst->hseconds[i];
 
