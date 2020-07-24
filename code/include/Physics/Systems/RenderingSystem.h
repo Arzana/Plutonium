@@ -40,6 +40,12 @@ namespace Pu
 		/* Removes the specified object from the renderer. */
 		void Remove(_In_ PhysicsHandle handle);
 
+		/* Gets the visual BVH. */
+		_Check_return_ inline const BVH& GetVisualBVH(void) const
+		{
+			return visualTree;
+		}
+
 	private:
 		const PhysicalWorld *world;
 		DeferredRenderer *renderer;

@@ -2,7 +2,6 @@
 #extension GL_KHR_vulkan_glsl : enable
 
 const float PI = 3.141592653589793;
-const float EPSLION = 0.00001f;
 
 // Defines camera parameters, needed for decoding and light calculations.
 layout (binding = 0) uniform Camera

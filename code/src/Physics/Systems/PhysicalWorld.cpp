@@ -206,8 +206,11 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 			ImGui::Separator();
 
 			/* Options. */
-			ImGui::Checkbox("Visualize BVH", &showBvh);
-			if (showBvh) searchTree.Visualize(dbgRenderer);
+			ImGui::Checkbox("Visualize Collision BVH", &showBvh1);
+			if (showBvh1) searchTree.Visualize(dbgRenderer);
+
+			ImGui::Checkbox("Visualize Visual BVH", &showBvh2);
+			if (showBvh2) sysRender->GetVisualBVH().Visualize(dbgRenderer);
 
 			ImGui::Checkbox("Visualize Colliders", &showColliders);
 			if (showColliders) sysCnst->VisualizeColliders(dbgRenderer, camPos);
@@ -242,7 +245,7 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 			/* Legend. */
 			ImGui::Separator();
 			ImGui::Text("Legend:");
-			if (showBvh) ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
+			if (showBvh1 || showBvh2) ImGui::TextColored(Color::Blue().ToVector4(), "BVH Nodes");
 			if (showColliders)
 			{
 				ImGui::TextColored(Color::Green().ToVector4(), "Static Colliders");
@@ -385,7 +388,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	Add the object parameters to the systems that require the handle.
 	Scale needs to be applied to the broadphase, narrowphase takes the full transform into account.
 	*/
-	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoF);
+	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoFs);
 	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase * obj.Scale, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
 
 	return hpublic;

@@ -4,7 +4,7 @@
 #include <Streams/RuntimeConfig.h>
 #include <imgui.h>
 
-#define STRESS_TEST
+//#define STRESS_TEST
 #define USE_KNIGHT
 
 using namespace Pu;
@@ -44,7 +44,14 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddSystem(world = new PhysicalWorld(*renderer));
-	physicsMat = world->AddMaterial({ 1.0f, 0.5f, 0.8f });
+
+	PhysicalProperties aluminum;
+	aluminum.Density = 1.0f;
+	aluminum.Mechanical.CoR = 0.1f;
+	aluminum.Mechanical.CoFs = 1.15f;
+	aluminum.Mechanical.CoFk = 1.4f;
+	aluminum.Mechanical.CoFr = 0.001f;
+	physicsMat = world->AddMaterial(aluminum);
 
 	skybox = &fetcher.FetchSkybox(
 		{
@@ -61,13 +68,6 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 #else
 	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
 #endif
-
-	for (size_t i = 0; i < 256; i++)
-	{
-		const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
-		const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
-		world->AddLight(PointLightPool::CalculateStruct(Vector3(x, 20.0f, z), Color::Random(32), 10.0f, 0.5f, 0.1f));
-	}
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)

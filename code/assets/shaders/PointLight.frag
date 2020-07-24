@@ -5,7 +5,6 @@ layout (constant_id = 0) const float iGBufferWidth = 1.0f / 1920.0f;
 layout (constant_id = 1) const float iGBufferHeight = 1.0f / 1080.0f;
 
 const float PI = 3.141592653589793;
-const float EPSLION = 0.00001f;
 
 // Defines camera parameters, needed for decoding and light calculations.
 layout (binding = 1) uniform Camera

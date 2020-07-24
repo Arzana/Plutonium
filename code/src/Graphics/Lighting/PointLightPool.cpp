@@ -14,7 +14,7 @@ float Pu::PointLightPool::GetLightRadius(Vector3 color, float intensity, float f
 	if (falloffQuadratic <= 0.0f) Log::Fatal("Point light quadratic falloff should be greater than zero (light gains energy)!");
 #endif
 
-	const float lMin = maxv<byte>() / (cutoff / intensity);
+	const float lMin = intensity * (256.0f / cutoff);
 	const float lMax = max(color.X, color.Y, color.Z);
 	return (-falloffLinaer + sqrtf(sqr(falloffLinaer) - 4.0f * falloffQuadratic * (1.0f - lMax * lMin))) / (2.0f * falloffQuadratic);
 }

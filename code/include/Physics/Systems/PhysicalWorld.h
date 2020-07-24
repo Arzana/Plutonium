@@ -79,7 +79,7 @@ namespace Pu
 		vector<PhysicsHandle> handleLut;
 
 #ifdef _DEBUG
-		mutable bool showBvh;
+		mutable bool showBvh1, showBvh2;
 		mutable bool showColliders;
 		mutable bool showContacts;
 		mutable bool showForces;
