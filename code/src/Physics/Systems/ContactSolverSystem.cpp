@@ -202,6 +202,21 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 }
 #pragma warning(pop)
 
+/*
+Values are per component (v in the comment is vx, vy and vz in code).
+The order of these operations matters.
+	Friction impulse is relative to linear impulse.
+	Angular impulse is relative to linear + friction impulse.
+
+Loop over all the AVX types (8 packed manifold) and solve them in parallel.
+	Calculate the relative vector from the center of mass to the collision point (r1, r2).
+	Calculate the relative velocity at the contact point (v).
+	Calculate the linear collision impulse (j).
+	Add linear impulse to result buffer, for both objects.
+	Calculate the tangent of the collision (t).
+	Calculate friction impulse (reuse j).
+	Calculate angular impulse and apply it to both objects.
+*/
 void Pu::ContactSolverSystem::VectorSolve(void)
 {
 	/* Predefine often used constants. */
@@ -278,17 +293,6 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		jy[i] = _mm256_mul_ps(tmp_y1, imass2[i]);
 		jz[i] = _mm256_mul_ps(tmp_z1, imass2[i]);
 
-#if 0
-		/* Apply the angular impulse to the first object. */
-		_mm256_cross_v3(rx1, ry1, rz1, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x2, tmp_y2, tmp_z2, tmp_x3, tmp_y3, tmp_z3);
-
-		/* Apply the angular impulse to the second object. */
-		_mm256_cross_v3(rx2, ry2, rz2, tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x2, tmp_y2, tmp_z2, jpitch[i], jyaw[i], jroll[i]);
-		_mm256_neg_v3(jpitch[i], jyaw[i], jroll[i], neg);
-#endif
-
 		/* Calculate the tangent of the collision. */
 		ofloat tx = _mm256_sub_ps(vx, _mm256_mul_ps(cosTheta, nx[i]));
 		ofloat ty = _mm256_sub_ps(vy, _mm256_mul_ps(cosTheta, ny[i]));
@@ -323,6 +327,15 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), imass2[i]));
 		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), imass2[i]));
 		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), imass2[i]));
+
+		/* Apply the angular impulse to the first object. */
+		_mm256_cross_v3(rx1, ry1, rz1, jx[k], jy[k], jz[k], tmp_x2, tmp_y2, tmp_z2);
+		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x2, tmp_y2, tmp_z2, jpitch[k], jyaw[k], jroll[k]);
+		_mm256_neg_v3(jpitch[k], jyaw[k], jroll[k], neg);
+
+		/* Apply the angular impulse to the second object. */
+		_mm256_cross_v3(rx2, ry2, rz2, jx[i], jy[i], jz[i], tmp_x2, tmp_y2, tmp_z2);
+		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x2, tmp_y2, tmp_z2, jpitch[i], jyaw[i], jroll[i]);
 	}
 }
 
