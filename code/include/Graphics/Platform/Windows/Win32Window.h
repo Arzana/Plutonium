@@ -86,8 +86,10 @@ namespace Pu
 		friend class InputDeviceHandler;
 		friend class Mouse;
 
-		HINSTANCE instance;
-		HWND hndl;
+		HINSTANCE hinst;
+		HWND hwnd;
+		HICON hicon;
+
 		const wstring title;
 		Viewport vp;
 		Vector2 pos;

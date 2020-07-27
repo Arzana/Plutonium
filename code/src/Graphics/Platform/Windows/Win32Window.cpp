@@ -10,7 +10,7 @@
 
 static Pu::vector<Pu::Win32Window*> activeWindows;
 
-IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static constexpr int GetLowWord(LPARAM lParam)
 {
@@ -36,23 +36,27 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title)
 	input = reinterpret_cast<PRAWINPUT>(calloc(1, sizeof(RAWINPUT)));
 
 	/* Create new module handle for this module. */
-	instance = GetModuleHandle(nullptr);
+	hinst = GetModuleHandle(nullptr);
+
+	/* Load the icon. This is in a seperate file that's copied on build to the output directory. */
+	hicon = (HICON)LoadImage(hinst, L"Plutonium.ico", IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+	if (!hicon) Log::Error("Unable to load window icon (%ls)", _CrtGetErrorString().c_str());
 
 	/* Create window creation information. */
 	WNDCLASSEX wndEx =
 	{
-		sizeof(WNDCLASSEX),					// size
-		CS_DBLCLKS,							// style
-		Win32Window::WndProc,				// proc
-		0,									// cls extra
-		0,									// wnd extra
-		instance,							// instance
-		nullptr,							// icon
-		LoadCursor(nullptr, IDC_ARROW),		// cursor
-		(HBRUSH)(COLOR_WINDOW + 1),			// background 
-		nullptr,							// menu name
-		title.c_str(),						// class name
-		nullptr								// icon handle
+		sizeof(WNDCLASSEX),								// size
+		CS_DBLCLKS,										// style
+		Win32Window::WndProc,							// proc
+		0,												// cls extra
+		0,												// wnd extra
+		hinst,											// instance
+		hicon,											// icon
+		LoadCursor(hinst, IDC_ARROW),					// cursor
+		(HBRUSH)(COLOR_WINDOW + 1),						// background 
+		nullptr,										// menu name
+		title.c_str(),									// class name
+		nullptr											// icon handle
 	};
 
 	/* Register new window class. */
@@ -61,17 +65,17 @@ Pu::Win32Window::Win32Window(VulkanInstance & vulkan, const wstring & title)
 	/*
 	Create new window, we can only start with a windowed window as all other windows call messages that we can't handle set i.e. resize, move.
 	*/
-	hndl = CreateWindow(title.c_str(), title.c_str(), WS_WINDOWED, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, nullptr, instance, nullptr);
-	if (!hndl) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
+	hwnd = CreateWindow(title.c_str(), title.c_str(), WS_WINDOWED, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, nullptr, hinst, nullptr);
+	if (!hwnd) Log::Fatal("Unable to create Win32 window (%ls)!", _CrtGetErrorString().c_str());
 
 	if constexpr (ImGuiAvailable)
 	{
 		/* Setup ImGui for this Win32 window. */
-		if (!ImGui_ImplWin32_Init(hndl)) Log::Fatal("Unable to setup ImGui for Win32!");
+		if (!ImGui_ImplWin32_Init(hwnd)) Log::Fatal("Unable to setup ImGui for Win32!");
 	}
 
 	/* Create new surface. */
-	surface = new Surface(vulkan, instance, hndl);
+	surface = new Surface(vulkan, hinst, hwnd);
 }
 
 Pu::Win32Window::~Win32Window(void)
@@ -86,8 +90,9 @@ Pu::Win32Window::~Win32Window(void)
 
 	/* Destroy handles. */
 	delete surface;
-	if (hndl) DestroyWindow(hndl);
-	if (instance) UnregisterClass(title.c_str(), instance);
+	if (hwnd) DestroyWindow(hwnd);
+	if (hicon) DestroyIcon(hicon);
+	if (hinst) UnregisterClass(title.c_str(), hinst);
 
 	/* Remove this window from the active windows. */
 	activeWindows.remove(this);
@@ -98,7 +103,7 @@ bool Pu::Win32Window::operator==(const NativeWindow & other)
 	try
 	{
 		const Win32Window &otherWin32 = dynamic_cast<const Win32Window&>(other);
-		return otherWin32.hndl == hndl;
+		return otherWin32.hwnd == hwnd;
 	}
 	catch (std::bad_cast)
 	{
@@ -111,7 +116,7 @@ bool Pu::Win32Window::operator!=(const NativeWindow & other)
 	try
 	{
 		const Win32Window &otherWin32 = dynamic_cast<const Win32Window&>(other);
-		return otherWin32.hndl != hndl;
+		return otherWin32.hwnd != hwnd;
 	}
 	catch (std::bad_cast)
 	{
@@ -133,13 +138,13 @@ Pu::int32 Pu::Win32Window::GetDefaultTitleBarHeight(void)
 
 void Pu::Win32Window::Show(void)
 {
-	ShowWindow(hndl, mode == WindowMode::Windowed ? SW_SHOWNORMAL : SW_SHOWMAXIMIZED);
-	SetFocus(hndl);
+	ShowWindow(hwnd, mode == WindowMode::Windowed ? SW_SHOWNORMAL : SW_SHOWMAXIMIZED);
+	SetFocus(hwnd);
 }
 
 void Pu::Win32Window::Hide(void)
 {
-	ShowWindow(hndl, SW_HIDE);
+	ShowWindow(hwnd, SW_HIDE);
 }
 
 void Pu::Win32Window::Close(void)
@@ -167,14 +172,14 @@ void Pu::Win32Window::SetMode(WindowMode newMode)
 	/* Set the new mode. */
 	if (mode == WindowMode::Windowed) 
 	{
-		SetWindowLong(hndl, GWL_STYLE, WS_WINDOWED);
-		ShowWindow(hndl, SW_SHOWNORMAL);
+		SetWindowLong(hwnd, GWL_STYLE, WS_WINDOWED);
+		ShowWindow(hwnd, SW_SHOWNORMAL);
 	}
 	else if (mode == WindowMode::Borderless)
 	{
 		/* Borderless just means a window that has not border style and has the same dimensions as the display. */
-		SetWindowLong(hndl, GWL_STYLE, WS_BORDERLESS);
-		ShowWindow(hndl, SW_SHOWMAXIMIZED);
+		SetWindowLong(hwnd, GWL_STYLE, WS_BORDERLESS);
+		ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 	}
 	else if (mode == WindowMode::Fullscreen) Log::Warning("Full-screen mode is handled on Swapchain level not NativeWindow level!");
 	else Log::Warning("Unknown Window mode passed to NativeWindow SetMode!");
@@ -184,7 +189,7 @@ bool Pu::Win32Window::Update(void)
 {
 	/* Query all messages. */
 	MSG message;
-	while (PeekMessage(&message, hndl, 0, 0, PM_REMOVE))
+	while (PeekMessage(&message, hwnd, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&message);
 		DispatchMessage(&message);
@@ -198,7 +203,7 @@ LRESULT Pu::Win32Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 {
 	for (Win32Window *window : activeWindows)
 	{
-		if (window->hndl == hWnd)
+		if (window->hwnd == hWnd)
 		{
 			if constexpr (ImGuiAvailable) ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
 			return window->HandleProc(message, wParam, lParam);
@@ -247,7 +252,7 @@ void Pu::Win32Window::Resize(int w, int h)
 
 void Pu::Win32Window::UpdateClientArea(void)
 {
-	if (!SetWindowPos(hndl, HWND_TOPMOST, ipart(pos.X), ipart(pos.Y), ipart(vp.Width), ipart(vp.Height), 0))
+	if (!SetWindowPos(hwnd, HWND_TOPMOST, ipart(pos.X), ipart(pos.Y), ipart(vp.Width), ipart(vp.Height), 0))
 	{
 		Log::Warning("Win32 window client area update failed, reason: '%ls'!", _CrtGetErrorString().c_str());
 	}
@@ -303,7 +308,7 @@ LRESULT Pu::Win32Window::HandleProc(UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 
-	return DefWindowProc(hndl, message, wParam, lParam);
+	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 LRESULT Pu::Win32Window::HandleSysCmd(WPARAM wParam, LPARAM lParam)
@@ -326,7 +331,7 @@ LRESULT Pu::Win32Window::HandleSysCmd(WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	return DefWindowProc(hndl, WM_SYSCOMMAND, wParam, lParam);
+	return DefWindowProc(hwnd, WM_SYSCOMMAND, wParam, lParam);
 }
 
 LRESULT Pu::Win32Window::HandleInput(WPARAM wParam, LPARAM lParam)
@@ -366,6 +371,6 @@ LRESULT Pu::Win32Window::HandleInput(WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	return DefWindowProc(hndl, WM_INPUT, wParam, lParam);
+	return DefWindowProc(hwnd, WM_INPUT, wParam, lParam);
 }
 #endif

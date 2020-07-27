@@ -144,7 +144,7 @@ void Pu::Mouse::ClipMouse(const NativeWindow & window, ValueChangedEventArgs<Vec
 	POINT points[] = { { 0, -titleBarHeight }, { static_cast<LONG>(extent.Width), static_cast<LONG>(extent.Height - titleBarHeight) } };
 
 	/* Convert from window space to screen space. */
-	MapWindowPoints(wnd.hndl, nullptr, points, 2);
+	MapWindowPoints(wnd.hwnd, nullptr, points, 2);
 
 	/* Construct the clipping rectangle and lock the cursor to it. */
 	const RECT clip{ points[0].x, points[0].y, points[1].x, points[1].y };

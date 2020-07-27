@@ -1410,4 +1410,9 @@
       <Filter>Resource Files\BuildTargets\PuM</Filter>
     </Xml>
   </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\..\..\assets\images\Plutonium.ico">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
+  </ItemGroup>
 </Project>

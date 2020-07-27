@@ -51,7 +51,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
 		_CrtEnum2Int(HIDUsageGenericDesktop::Mouse),
 		RIDEV_DEVNOTIFY,
-		wnd.hndl
+		wnd.hwnd
 	};
 
 	/* Enable add and remove events, we want legacy keyboard events for WM_CHAR. */
@@ -60,7 +60,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
 		_CrtEnum2Int(HIDUsageGenericDesktop::Keyboard),
 		RIDEV_DEVNOTIFY,
-		wnd.hndl
+		wnd.hwnd
 	};
 
 	/* Enable add and remove events. */
@@ -69,7 +69,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		_CrtEnum2Int(HIDUsagePage::GenericDesktop),
 		_CrtEnum2Int(HIDUsageGenericDesktop::GamePad),
 		RIDEV_DEVNOTIFY,
-		wnd.hndl
+		wnd.hwnd
 	};
 
 	/* Enable precision touchpad add and remove events. */
@@ -78,7 +78,7 @@ void Pu::InputDeviceHandler::RegisterInputDevicesWin32(const Win32Window & wnd) 
 		_CrtEnum2Int(HIDUsagePage::Digitizer),
 		_CrtEnum2Int(HIDUsageDigitizer::TouchPad),
 		RIDEV_DEVNOTIFY,
-		wnd.hndl
+		wnd.hwnd
 	};
 
 	devices.emplace_back(cursorDevices);
