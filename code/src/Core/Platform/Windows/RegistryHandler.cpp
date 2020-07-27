@@ -407,7 +407,7 @@ HKEY Pu::RegistryHandler::OpenKey(HKEY root, const wstring & subKey, REGSAM perm
 DWORD Pu::RegistryHandler::QueryValue(HKEY key, const wstring & name, void * data, size_t & size, bool raise)
 {
 	DWORD type;
-	DWORD winSize;
+	DWORD winSize = static_cast<DWORD>(size);
 
 	/* Attempt to query the value. */
 	const LSTATUS state = RegQueryValueEx(key, name.c_str(), nullptr, &type, reinterpret_cast<byte*>(data), &winSize);

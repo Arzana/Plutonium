@@ -20,15 +20,15 @@ namespace Pu
 		_Check_return_ static vector<wstring> QueryKeys(void);
 
 		/* Queries a specified boolean configuration value. */
-		_Check_return_ static bool QueryBool(_In_ const wstring &key, _In_ bool defaultValue);
+		_Check_return_ static bool QueryBool(_In_ const wstring &key, _In_ bool defaultValue = false);
 		/* Queries a specified integer configuration value. */
-		_Check_return_ static int32 QueryInt(_In_ const wstring &key, _In_ int32 defaultValue);
+		_Check_return_ static int32 QueryInt(_In_ const wstring &key, _In_ int32 defaultValue = 0);
 		/* Queries a specified long integer configuration value. */
-		_Check_return_ static int64 QueryLong(_In_ const wstring &key, _In_ int64 defaultValue);
+		_Check_return_ static int64 QueryLong(_In_ const wstring &key, _In_ int64 defaultValue = 0);
 		/* Queries a specified floating point configuration value. */
-		_Check_return_ static float QuerySingle(_In_ const wstring &key, _In_ float defaultValue);
+		_Check_return_ static float QuerySingle(_In_ const wstring &key, _In_ float defaultValue = 0.0f);
 		/* Queries a specified string configuration value. */
-		_Check_return_ static wstring QueryString(_In_ const wstring &key, _In_ const wstring &defaultValue);
+		_Check_return_ static wstring QueryString(_In_ const wstring &key, _In_ const wstring &defaultValue = L"");
 
 		/* Queries a specified enum configuration value. */
 		template <typename enum_t>
