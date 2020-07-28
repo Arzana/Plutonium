@@ -1,5 +1,4 @@
 #include "TestGame.h"
-#include "Core/Math/Shapes/Sphere.h"
 #include <Core/Diagnostics/Profiler.h>
 #include <Streams/RuntimeConfig.h>
 #include <imgui.h>
@@ -27,7 +26,7 @@ bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 
 void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
 {
-	const bool enableTessellation = RuntimeConfig::QueryBool(L"TessellationEnabled", false);
+	const bool enableTessellation = RuntimeConfig::QueryBool(L"TessellationEnabled");
 
 	enabeled.TessellationShader = supported.TessellationShader && enableTessellation;	// Optional for better terrain rendering.
 	enabeled.WideLines = supported.WideLines;											// Debug renderer
@@ -112,8 +111,10 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
-		camFree->Move(-16.0f, 57.0f, -34.0f);
-		camFree->Yaw = PI4;
+		camFree->Move(RuntimeConfig::QuerySingle(L"CamX"), RuntimeConfig::QuerySingle(L"CamY"), RuntimeConfig::QuerySingle(L"CamZ"));
+		camFree->Pitch = RuntimeConfig::QuerySingle(L"CamPitch");
+		camFree->Yaw = RuntimeConfig::QuerySingle(L"CamYaw");
+		camFree->Roll = RuntimeConfig::QuerySingle(L"CamRoll");
 		camFree->SetExposure(2.5f);
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
@@ -137,6 +138,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		world->Render(*camFree, cmd);
 		world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
+		dbgRenderer->AddTransform(Matrix{}, 2.0f, Vector3(0.0f, 20.0f, 0.0f));
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
@@ -152,7 +154,15 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		ImGui::Text("FPS: %d", iround(recip(dt)));
 		ImGui::Separator();
-		if (camFree) ImGui::Text("Cam: %s", camFree->GetPosition().ToString().c_str());
+		if (ImGui::Button("Save Camera") && camFree)
+		{
+			RuntimeConfig::Set(L"CamX", camFree->GetPosition().X);
+			RuntimeConfig::Set(L"CamY", camFree->GetPosition().Y);
+			RuntimeConfig::Set(L"CamZ", camFree->GetPosition().Z);
+			RuntimeConfig::Set(L"CamPitch", camFree->Pitch);
+			RuntimeConfig::Set(L"CamYaw", camFree->Yaw);
+			RuntimeConfig::Set(L"CamRoll", camFree->Roll);
+		}
 		ImGui::EndMainMenuBar();
 	}
 
@@ -163,9 +173,11 @@ void TestGame::SpawnNPC(void)
 {
 #ifdef STRESS_TEST
 	const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
+	const float y = 50.0f;
 	const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
 #else
 	const float x = 0.0f;
+	const float y = 15.0f;
 	const float z = -30.0f;
 #endif
 
@@ -178,7 +190,7 @@ void TestGame::SpawnNPC(void)
 	Collider collider{ sphere };
 
 	/* Use the default physical material. */
-	PhysicalObject obj{ Vector3(x, 50.0f, z), Quaternion{}, collider };
+	PhysicalObject obj{ Vector3(x, y, z), Quaternion{}, collider };
 	obj.Properties = physicsMat;
 	obj.State.Mass = 80.0f;
 	obj.CoM = obj.P;

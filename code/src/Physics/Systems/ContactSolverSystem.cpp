@@ -13,11 +13,11 @@ Pu::ContactSolverSystem::ContactSolverSystem(PhysicalWorld & world)
 /* imass hides class member. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & iMoI, float imass, float CoR, float CoF)
+void Pu::ContactSolverSystem::AddItem(PhysicsHandle handle, const Matrix3 & iMoI, float imass, const MechanicalProperties & props)
 {
 	imoi.emplace(handle, iMoI);
 	this->imass.emplace(handle, imass);
-	coefficients.emplace(handle, Vector2{ CoR, CoF });
+	coefficients.emplace(handle, props);
 }
 #pragma warning(pop)
 
@@ -128,8 +128,8 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		const size_t k = i & 0x7;
 
 		/* Gets the coefficients of both objects. */
-		const Vector2 coeff1 = coefficients[hfirst];
-		const Vector2 coeff2 = coefficients[hsecond];
+		const MechanicalProperties &mat1 = coefficients[hfirst];
+		const MechanicalProperties &mat2 = coefficients[hsecond];
 
 		/* We have to fill the buffers with different data depending on whether one of the types was static. */
 		const bool isKinematic = physics_get_type(hfirst) != PhysicsType::Static;
@@ -144,16 +144,18 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		const Vector3 w1 = isKinematic ? world->sysMove->GetAngularVelocity(idx1) : Vector3();
 		const Vector3 w2 = world->sysMove->GetAngularVelocity(idx2);
 
+		const bool sliding2 = nrlyneql(v2, w2, PhysicsRollingTolerance);
 		const Vector3 p2 = world->sysMove->GetPosition(world->QueryInternalHandle(hsecond));
 
 		/* The mass scalars need to be properly set in the case of a kinematic collision. */
 		if (isKinematic)
 		{
+			const bool sliding1 = nrlyneql(v1, w1, PhysicsRollingTolerance);
 			const Vector3 p1 = world->sysMove->GetPosition(world->QueryInternalHandle(hfirst));
 
 			_mm256_seti_v3(tmp_p1, p1.X, p1.Y, p1.Z, k);
+			tmp_cof1.V[k] = sliding1 ? mat1.CoFk : mat1.CoFs;
 			tmp_imass1.V[k] = imass[hfirst];
-			tmp_imass2.V[k] = imass[hsecond];
 			_mm256_seti_m3(tmp_moi1, imoi[hfirst].GetComponents(), k);
 		}
 		else
@@ -164,15 +166,15 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 			at the contact point.
 			*/
 			_mm256_seti_v3(tmp_p1, world->sysCnst->px.get(i), world->sysCnst->py.get(i), world->sysCnst->pz.get(i), k);
+			tmp_cof1.V[k] = sliding2 ? mat2.CoFk : mat2.CoFs;
 			tmp_imass1.V[k] = 0.0f;
-			tmp_imass2.V[k] = 1.0f;
 			_mm256_setzero_m3(tmp_moi1, k);
 		}
 
-		tmp_cor1.V[k] = coeff1.X;
-		tmp_cor2.V[k] = coeff2.X;
-		tmp_cof1.V[k] = coeff1.Y;
-		tmp_cof2.V[k] = coeff2.Y;
+		tmp_cor1.V[k] = mat1.CoR;
+		tmp_cor2.V[k] = mat2.CoR;
+		tmp_cof2.V[k] = sliding2 ? mat2.CoFk : mat2.CoFs;
+		tmp_imass2.V[k] = imass[hsecond];
 		_mm256_seti_v3(tmp_p2, p2.X, p2.Y, p2.Z, k);
 		_mm256_seti_v3(tmp_v1, v1.X, v1.Y, v1.Z, k);
 		_mm256_seti_v3(tmp_v2, v2.X, v2.Y, v2.Z, k);
@@ -239,6 +241,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 	ofloat tmp_x1, tmp_y1, tmp_z1;
 	ofloat tmp_x2, tmp_y2, tmp_z2;
 	ofloat tmp_x3, tmp_y3, tmp_z3;
+	ofloat e, j, num, d1, d2;
 
 	/* Solve collision per AVX type (i = second, k = first). */
 	for (size_t i = 0, k = avxCnt; i < avxCnt; i++, k++)
@@ -259,83 +262,83 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 		const ofloat vx = _mm256_sub_ps(_mm256_add_ps(vx2[i], tmp_x2), _mm256_add_ps(vx1[i], tmp_x1));
 		const ofloat vy = _mm256_sub_ps(_mm256_add_ps(vy2[i], tmp_y2), _mm256_add_ps(vy1[i], tmp_y1));
 		const ofloat vz = _mm256_sub_ps(_mm256_add_ps(vz2[i], tmp_z2), _mm256_add_ps(vz1[i], tmp_z1));
+		const ofloat vdn = _mm256_dot_v3(vx, vy, vz, nx[i], ny[i], nz[i]);
 
-		/* Calculate the numerator of the impulse magnitude. */
-		ofloat cosTheta = _mm256_dot_v3(vx, vy, vz, nx[i], ny[i], nz[i]);
-		ofloat num = _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, _mm256_min_ps(cor1[i], cor2[i])), neg), cosTheta);
+		/* Calculate and apply the normal force. */
+		{
+			/* Calculate the impulse. */
+			e = _mm256_min_ps(cor1[i], cor2[i]);
+			num = _mm256_mul_ps(_mm256_mul_ps(_mm256_add_ps(one, e), neg), vdn);
+			_mm256_cross_v3(rx1, ry1, rz1, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
+			_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+			d1 = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x1, tmp_y1, tmp_x1, tmp_x2, tmp_y2, tmp_z2));
+			_mm256_cross_v3(rx2, ry2, rz2, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
+			_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3);
+			d2 = _mm256_add_ps(imass2[i], _mm256_dot_v3(tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3));
+			j = _mm256_divs_ps(num, _mm256_add_ps(d1, d2), zero);
 
-		/* Calculate the denominator of the impulse magnitude. */
-		_mm256_cross_v3(rx1, ry1, rz1, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
-		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_cross_v3(tmp_x2, tmp_y2, tmp_z2, rx1, ry1, rz1, tmp_x3, tmp_y3, tmp_z3);
-		_mm256_cross_v3(rx2, ry2, rz2, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
-		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_cross_v3(tmp_x2, tmp_y2, tmp_z2, rx2, ry2, rz2, tmp_x1, tmp_y1, tmp_z1);
-		tmp_x2 = _mm256_add_ps(tmp_x1, tmp_x3);
-		tmp_y2 = _mm256_add_ps(tmp_y1, tmp_y3);
-		tmp_z2 = _mm256_add_ps(tmp_z1, tmp_z3);
-		const ofloat imassTotal = _mm256_add_ps(imass1[i], imass2[i]);
-		ofloat denom = _mm256_add_ps(imassTotal, _mm256_dot_v3(nx[i], ny[i], nz[i], tmp_x2, tmp_y2, tmp_z2));
+			/* Calculate the directional impulse. */
+			tmp_x1 = _mm256_mul_ps(j, nx[i]);
+			tmp_y1 = _mm256_mul_ps(j, ny[i]);
+			tmp_z1 = _mm256_mul_ps(j, nz[i]);
 
-		/* Safely calculate the final impulse to apply. */
-		ofloat j = _mm256_divs_ps(num, denom, zero);
-		tmp_x1 = _mm256_mul_ps(j, nx[i]);
-		tmp_y1 = _mm256_mul_ps(j, ny[i]);
-		tmp_z1 = _mm256_mul_ps(j, nz[i]);
+			/* Apply the normal impulse to the first object. */
+			jx[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_x1, imass1[i]), neg);
+			jy[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_y1, imass1[i]), neg);
+			jz[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_z1, imass1[i]), neg);
+			jpitch[k] = _mm256_mul_ps(_mm256_mul_ps(j, tmp_x2), neg);
+			jyaw[k] = _mm256_mul_ps(_mm256_mul_ps(j, tmp_y2), neg);
+			jroll[k] = _mm256_mul_ps(_mm256_mul_ps(j, tmp_z2), neg);
 
-		/* Apply the linear impulse to the first object. */
-		jx[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_x1, imass1[i]), neg);
-		jy[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_y1, imass1[i]), neg);
-		jz[k] = _mm256_mul_ps(_mm256_mul_ps(tmp_z1, imass1[i]), neg);
+			/* Apply the normal impulse to the second object. */
+			jx[i] = _mm256_mul_ps(tmp_x1, imass2[i]);
+			jy[i] = _mm256_mul_ps(tmp_y1, imass2[i]);
+			jz[i] = _mm256_mul_ps(tmp_z1, imass2[i]);
+			jpitch[i] = _mm256_mul_ps(j, tmp_x3);
+			jyaw[i] = _mm256_mul_ps(j, tmp_y3);
+			jroll[i] = _mm256_mul_ps(j, tmp_z3);
+		}
 
-		/* Apply the linear impulse to the second object. */
-		jx[i] = _mm256_mul_ps(tmp_x1, imass2[i]);
-		jy[i] = _mm256_mul_ps(tmp_y1, imass2[i]);
-		jz[i] = _mm256_mul_ps(tmp_z1, imass2[i]);
+		/* Calculate and apply the kinetic friction force. */
+		{
+			/* Calcualte the tangent of the collision. */
+			ofloat tx = _mm256_sub_ps(vx, _mm256_mul_ps(vdn, nx[i]));
+			ofloat ty = _mm256_sub_ps(vy, _mm256_mul_ps(vdn, ny[i]));
+			ofloat tz = _mm256_sub_ps(vz, _mm256_mul_ps(vdn, nz[i]));
+			_mm256_norm_v3(tx, ty, tz, zero);
 
-		/* Calculate the tangent of the collision. */
-		ofloat tx = _mm256_sub_ps(vx, _mm256_mul_ps(cosTheta, nx[i]));
-		ofloat ty = _mm256_sub_ps(vy, _mm256_mul_ps(cosTheta, ny[i]));
-		ofloat tz = _mm256_sub_ps(vz, _mm256_mul_ps(cosTheta, nz[i]));
-		_mm256_norm_v3(tx, ty, tz, zero);
+			/* Calculate the impulse. */
+			e = _mm256_sqrt_ps(_mm256_mul_ps(cof1[i], cof2[i]));
+			num = _mm256_mul_ps(_mm256_dot_v3(vx, vy, vz, tx, ty, tz), neg);
+			_mm256_cross_v3(rx1, ry1, rz1, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
+			_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
+			d1 = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x1, tmp_y1, tmp_x1, tmp_x2, tmp_y2, tmp_z2));
+			_mm256_cross_v3(rx2, ry2, rz2, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
+			_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3);
+			d2 = _mm256_add_ps(imass2[i], _mm256_dot_v3(tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3));
+			j = _mm256_clamp_ps(_mm256_divs_ps(num, _mm256_add_ps(d1, d2), zero), _mm256_mul_ps(_mm256_mul_ps(e, neg), j), _mm256_mul_ps(e, j));
 
-		//TODO: handle static friction
-		const ofloat e = _mm256_sqrt_ps(_mm256_mul_ps(cof1[i], cof2[i]));
+			/* Calculate the directional impulse. */
+			tmp_x1 = _mm256_mul_ps(j, tx);
+			tmp_y1 = _mm256_mul_ps(j, ty);
+			tmp_z1 = _mm256_mul_ps(j, tz);
 
-		/* Calculate the friction impulse for the first object. */
-		num = _mm256_dot_v3(_mm256_mul_ps(vx1[i], neg), _mm256_mul_ps(vy1[i], neg), _mm256_mul_ps(vz1[i], neg), tx, ty, tz);
-		_mm256_cross_v3(rx1, ry1, rz1, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
-		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_cross_v3(tmp_x1, tmp_y1, tmp_z1, rx1, ry1, rz1, tmp_x3, tmp_y3, tmp_z3);
-		denom = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x3, tmp_y3, tmp_z3, tx, ty, tz));
-		j = _mm256_mul_ps(e, _mm256_divs_ps(num, denom, zero));
+			/* Apply the kinetic friction impulse to the first object. */
+			jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(tmp_x1, imass1[i]));
+			jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(tmp_y1, imass1[i]));
+			jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(tmp_z1, imass1[i]));
+			jpitch[k] = _mm256_sub_ps(jpitch[k], _mm256_mul_ps(j, tmp_x2));
+			jyaw[k] = _mm256_sub_ps(jyaw[k], _mm256_mul_ps(j, tmp_y2));
+			jroll[k] = _mm256_sub_ps(jroll[k], _mm256_mul_ps(j, tmp_z2));
 
-		/* Apply frictio to the first object. */
-		jx[k] = _mm256_sub_ps(jx[k], _mm256_mul_ps(_mm256_mul_ps(j, tx), imass1[i]));
-		jy[k] = _mm256_sub_ps(jy[k], _mm256_mul_ps(_mm256_mul_ps(j, ty), imass1[i]));
-		jz[k] = _mm256_sub_ps(jz[k], _mm256_mul_ps(_mm256_mul_ps(j, tz), imass1[i]));
-
-		/* Calculate the friction impulse for the second object. */
-		num = _mm256_dot_v3(_mm256_mul_ps(vx2[i], neg), _mm256_mul_ps(vy2[i], neg), _mm256_mul_ps(vz2[i], neg), tx, ty, tz);
-		_mm256_cross_v3(rx2, ry2, rz2, tx, ty, tz, tmp_x1, tmp_y1, tmp_z1);
-		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x2, tmp_y2, tmp_z2);
-		_mm256_cross_v3(tmp_x1, tmp_y1, tmp_z1, rx2, ry2, rz2, tmp_x3, tmp_y3, tmp_z3);
-		denom = _mm256_add_ps(imass1[i], _mm256_dot_v3(tmp_x3, tmp_y3, tmp_z3, tx, ty, tz));
-		j = _mm256_mul_ps(e, _mm256_divs_ps(num, denom, zero));
-
-		/* Apply friction impulse to the second object. */
-		jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(_mm256_mul_ps(j, tx), imass2[i]));
-		jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(_mm256_mul_ps(j, ty), imass2[i]));
-		jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(_mm256_mul_ps(j, tz), imass2[i]));
-
-		/* Apply the angular impulse to the first object. */
-		_mm256_cross_v3(rx1, ry1, rz1, jx[k], jy[k], jz[k], tmp_x2, tmp_y2, tmp_z2);
-		_mm256_mat3mul_v3(m001[i], m011[i], m021[i], m101[i], m111[i], m121[i], m201[i], m211[i], m221[i], tmp_x2, tmp_y2, tmp_z2, jpitch[k], jyaw[k], jroll[k]);
-		_mm256_neg_v3(jpitch[k], jyaw[k], jroll[k], neg);
-
-		/* Apply the angular impulse to the second object. */
-		_mm256_cross_v3(rx2, ry2, rz2, jx[i], jy[i], jz[i], tmp_x2, tmp_y2, tmp_z2);
-		_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x2, tmp_y2, tmp_z2, jpitch[i], jyaw[i], jroll[i]);
+			/* Apply the kinetic friction impulse to the second object. */
+			jx[i] = _mm256_add_ps(jx[i], _mm256_mul_ps(tmp_x1, imass2[i]));
+			jy[i] = _mm256_add_ps(jy[i], _mm256_mul_ps(tmp_y1, imass2[i]));
+			jz[i] = _mm256_add_ps(jz[i], _mm256_mul_ps(tmp_z1, imass2[i]));
+			jpitch[i] = _mm256_add_ps(jpitch[i], _mm256_mul_ps(j, tmp_x3));
+			jyaw[i] = _mm256_add_ps(jyaw[i], _mm256_mul_ps(j, tmp_y3));
+			jroll[i] = _mm256_add_ps(jroll[i], _mm256_mul_ps(j, tmp_z3));
+		}
 	}
 }
 

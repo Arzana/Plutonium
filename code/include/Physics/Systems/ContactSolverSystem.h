@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "Physics/Objects/PhysicsHandle.h"
+#include "Physics/Properties/MechanicalProperties.h"
 #include "Core/Math/Matrix3.h"
 
 namespace Pu
@@ -25,7 +26,7 @@ namespace Pu
 		_Check_return_ ContactSolverSystem& operator =(_In_ ContactSolverSystem &&other) = delete;
 
 		/* Adds a single item to the solver system, returns the index. */
-		void AddItem(_In_ PhysicsHandle handle, _In_ const Matrix3 &iMoI, _In_ float imass, _In_ float CoR, _In_ float CoF);
+		void AddItem(_In_ PhysicsHandle handle, _In_ const Matrix3 &iMoI, _In_ float imass, _In_ const MechanicalProperties &props);
 		/* Removes the item at the specified index. */
 		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Solves all the collision events currently stored in the system and adds the impulses to the movement system. */
@@ -36,7 +37,7 @@ namespace Pu
 
 		std::map<PhysicsHandle, Matrix3> imoi;
 		std::map<PhysicsHandle, float> imass;
-		std::map<PhysicsHandle, Vector2> coefficients;
+		std::map<PhysicsHandle, MechanicalProperties> coefficients;
 
 		ofloat *cor1;
 		ofloat *cor2;

@@ -65,4 +65,6 @@ namespace Pu
 	constexpr bool ProfileWorldSystems = true;
 	/* Defines whether the physics system is allowed to use sleep mode. */
 	constexpr bool PhysicsAllowSleeping = true;
+	/* Defines the tolerance for a physics object to be considered rolling instead of sliding. */
+	constexpr float PhysicsRollingTolerance = 0.5f;
 }

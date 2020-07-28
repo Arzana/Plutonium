@@ -413,7 +413,7 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	if (addContacts)
 	{
 		/* Make sure we don't show the same contact multiple times. */
-		if (!contacts.contains([pos](const std::pair<float, Vector3> &cur) { return nrlyeql(cur.second, pos); }))
+		if (!contacts.contains([pos](const std::pair<float, Vector3> &cur) { return nrlyeql(cur.second, pos, 0.01f); }))
 		{
 			contacts.emplace_back(std::make_pair(PhysicsDebuggingTTL, pos));
 		}

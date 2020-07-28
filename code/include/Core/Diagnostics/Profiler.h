@@ -26,6 +26,9 @@ namespace Pu
 		static void End(void);
 		/* Adds a time segment (in milliseconds) to the specified GPU category. */
 		static void Add(_In_ const string &category, _In_ Color color, _In_ int64 time);
+		/* Starts a new value series or adds a new entry to an existing one. */
+		static void Entry(_In_ const string &serie, _In_ float value, _In_ Vector2 size);
+
 		/* Renders the current profiler data to ImGUI and clears the list. */
 		static void Visualize(void);
 		/* Logs the current profiler data to disk and clears the list. */
@@ -45,6 +48,7 @@ namespace Pu
 		friend class Application;
 		
 		using Section = std::tuple<string, Color, int64>;
+		using Serie = std::pair<vector<float>, Vector2>;
 		using Timer = std::pair<size_t, Stopwatch>;
 
 		std::map<uint64, std::stack<Timer>> activeThreads;
@@ -52,6 +56,7 @@ namespace Pu
 
 		vector<Section> cpuSections;
 		vector<Section> gpuSections;
+		std::map<string, Serie> series;
 
 		int64 target, ticks;
 		float spacing, height, length, offset, interval;
@@ -62,6 +67,7 @@ namespace Pu
 		void BeginInternal(const string &category, Color color, uint64 thread);
 		void EndInternal(uint64 thread);
 		void AddInternal(const string &category, Color color, int64 time);
+		void EntryInternal(const string &serie, float value, Vector2 size);
 		void VisualizeInternal(void);
 		void SaveInternal(const wstring &path);
 		void ClearIfNeeded(void);

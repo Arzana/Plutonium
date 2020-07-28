@@ -388,7 +388,7 @@ Pu::PhysicsHandle Pu::PhysicalWorld::AddInternal(const PhysicalObject & obj, Phy
 	Add the object parameters to the systems that require the handle.
 	Scale needs to be applied to the broadphase, narrowphase takes the full transform into account.
 	*/
-	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical.CoR, mat.Mechanical.CoFs);
+	sysSolv->AddItem(hpublic, imoi, imass, mat.Mechanical);
 	sysCnst->AddItem(hpublic, obj.Collider.BroadPhase, obj.Collider.NarrowPhaseShape, reinterpret_cast<float*>(obj.Collider.NarrowPhaseParameters));
 
 	return hpublic;

@@ -21,30 +21,31 @@ static inline Pu::int64 sec_to_ms(float sec)
 
 void Pu::Profiler::Begin(const string & category, Color color)
 {
-	lock.lock();
-
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
+	lock.lock();
 	GetInstance().BeginInternal(category, color, _CrtGetCurrentThreadId());
-
 	lock.unlock();
 }
 
 void Pu::Profiler::End(void)
 {
-	lock.lock();
-
 	/* We need the thread ID to make sure we end the correct section. */
+	lock.lock();
 	GetInstance().EndInternal(_CrtGetCurrentThreadId());
-
 	lock.unlock();
 }
 
 void Pu::Profiler::Add(const string & category, Color color, int64 time)
 {
 	lock.lock();
-
 	GetInstance().AddInternal(category, color, time);
+	lock.unlock();
+}
 
+void Pu::Profiler::Entry(const string & serie, float value, Vector2 size)
+{
+	lock.lock();
+	GetInstance().EntryInternal(serie, value, size);
 	lock.unlock();
 }
 
@@ -162,6 +163,19 @@ void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 	gpuSections.emplace_back(std::make_tuple(category, color, time));
 }
 
+void Pu::Profiler::EntryInternal(const string & serie, float value, Vector2 size)
+{
+	/* Add the value to a serie with the same name if one is present. */
+	decltype(series)::iterator it = series.find(serie);
+	if (it != series.end()) it->second.first.emplace_back(value);
+	else
+	{
+		/* Otherwise create a new series. */
+		vector<float> buffer = { value };
+		series.emplace(serie, std::make_pair(std::move(buffer), size));
+	}
+}
+
 void Pu::Profiler::VisualizeInternal(void)
 {
 	/*
@@ -171,42 +185,71 @@ void Pu::Profiler::VisualizeInternal(void)
 
 	1100 is about the bar size for 60hz target and the maximum is set to 16K, should be enough.
 	*/
-	ImGui::SetNextWindowSizeConstraints(Vector2(1100.0f, 10.0f), Vector2(15360.0f, 8640.0f));
-	if (ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if constexpr (ImGuiAvailable)
 	{
-		/* Render the bar style timers. */
-		RenderSections(cpuSections, "CPU", true);
-		ImGui::Separator();
-		RenderSections(gpuSections, "GPU", false);
-
-		/* Rendering/compute frame stats. */
-		ImGui::Separator();
-		ImGui::Text("Draw Calls:      %u", CommandBuffer::GetDrawCalls());
-		ImGui::Text("Bind Calls:      %u", CommandBuffer::GetBindCalls());
-		ImGui::Text("Shaders Used:    %u", CommandBuffer::GetShaderCalls());
-		ImGui::Text("Transfers:       %u", CommandBuffer::GetTransferCalls());
-		ImGui::Text("Barriers:        %u", CommandBuffer::GetBarrierCalls());
-		CommandBuffer::ResetCounters();
-
-		/* CPU/RAM stats. */
-		ImGui::Separator();
-		const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();
-		ImGui::Text("%s:\n%zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
-
-		/* GPU stats. */
-		if (vkInstance)
+		ImGui::SetNextWindowSizeConstraints(Vector2(1100.0f, 10.0f), Vector2(15360.0f, 8640.0f));
+		if (ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
+			/* Render the bar style timers. */
+			RenderSections(cpuSections, "CPU", true);
+			ImGui::Separator();
+			RenderSections(gpuSections, "GPU", false);
+
+			/* Rendering/compute frame stats. */
+			ImGui::Separator();
+			ImGui::Text("Draw Calls:      %u", CommandBuffer::GetDrawCalls());
+			ImGui::Text("Bind Calls:      %u", CommandBuffer::GetBindCalls());
+			ImGui::Text("Shaders Used:    %u", CommandBuffer::GetShaderCalls());
+			ImGui::Text("Transfers:       %u", CommandBuffer::GetTransferCalls());
+			ImGui::Text("Barriers:        %u", CommandBuffer::GetBarrierCalls());
+			CommandBuffer::ResetCounters();
+
+			/* CPU/RAM stats. */
+			ImGui::Separator();
+			const MemoryFrame cpuMem = MemoryFrame::GetCPUMemStats();
+			ImGui::Text("%s:\n%zu MB / %zu MB", CPU::GetName(), b2mb(cpuMem.UsedVRam), b2mb(cpuMem.TotalVRam));
+
+			/* GPU stats. */
+			if (vkInstance)
 			{
-				const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
-				ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u",
-					device.GetName(),
-					b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam),
-					device.GetAllocationsCount(), device.GetLimits().MaxMemoryAllocationCount);
+				for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
+				{
+					const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
+					ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u",
+						device.GetName(),
+						b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam),
+						device.GetAllocationsCount(), device.GetLimits().MaxMemoryAllocationCount);
+				}
 			}
+
+			ImGui::End();
 		}
 
-		ImGui::End();
+		if (series.size())
+		{
+			/* All the series are in one unified window. */
+			int i = 0;
+			if (ImGui::Begin("Series", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+			{
+				for (decltype(series)::const_iterator it = series.cbegin(); it != series.end(); i++)
+				{
+					const vector<float> &list = it->second.first;
+					const Vector2 size = it->second.second;
+
+					ImGui::PlotLines(it->first.c_str(), list.data(), static_cast<int>(list.size()), 0, nullptr, FLT_MAX, FLT_MAX, size);
+
+					ImGui::SameLine();
+					ImGui::PushID(i);
+
+					/* Only remove the series if desired by the user. */
+					if (ImGui::Button("Remove")) series.erase(it++);
+					else ++it;
+
+					ImGui::PopID();
+				}
+				ImGui::End();
+			}
+		}
 	}
 
 	ClearIfNeeded();
