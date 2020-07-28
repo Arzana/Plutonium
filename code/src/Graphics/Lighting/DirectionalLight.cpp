@@ -22,7 +22,7 @@ void Pu::DirectionalLight::RenderGUI(void)
 void Pu::DirectionalLight::Stage(byte * dest)
 {
 	/* The direction is given from the source to the target, but we need to store it the other way around. */
-	const Vector3 dir = GetDirection();
+	const Vector3 dir = -GetDirection();
 
 	Copy(dest, &dir);
 	Copy(dest + sizeof(Vector4), &radiance);

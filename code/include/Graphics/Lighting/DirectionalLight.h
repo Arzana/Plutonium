@@ -26,7 +26,7 @@ namespace Pu
 		/* Gets the direction of this light. */
 		_Check_return_ inline Vector3 GetDirection(void) const
 		{
-			return orien.GetRight();
+			return orien.GetForward();
 		}
 
 		/* Gets the up vector of this light. */
