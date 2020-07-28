@@ -144,17 +144,13 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 		const Vector3 w1 = isKinematic ? world->sysMove->GetAngularVelocity(idx1) : Vector3();
 		const Vector3 w2 = world->sysMove->GetAngularVelocity(idx2);
 
-		const bool sliding2 = nrlyneql(v2, w2, PhysicsRollingTolerance);
 		const Vector3 p2 = world->sysMove->GetPosition(world->QueryInternalHandle(hsecond));
 
 		/* The mass scalars need to be properly set in the case of a kinematic collision. */
 		if (isKinematic)
 		{
-			const bool sliding1 = nrlyneql(v1, w1, PhysicsRollingTolerance);
 			const Vector3 p1 = world->sysMove->GetPosition(world->QueryInternalHandle(hfirst));
-
 			_mm256_seti_v3(tmp_p1, p1.X, p1.Y, p1.Z, k);
-			tmp_cof1.V[k] = sliding1 ? mat1.CoFk : mat1.CoFs;
 			tmp_imass1.V[k] = imass[hfirst];
 			_mm256_seti_m3(tmp_moi1, imoi[hfirst].GetComponents(), k);
 		}
@@ -166,14 +162,14 @@ void Pu::ContactSolverSystem::FillBuffers(void)
 			at the contact point.
 			*/
 			_mm256_seti_v3(tmp_p1, world->sysCnst->px.get(i), world->sysCnst->py.get(i), world->sysCnst->pz.get(i), k);
-			tmp_cof1.V[k] = sliding2 ? mat2.CoFk : mat2.CoFs;
 			tmp_imass1.V[k] = 0.0f;
 			_mm256_setzero_m3(tmp_moi1, k);
 		}
 
 		tmp_cor1.V[k] = mat1.CoR;
 		tmp_cor2.V[k] = mat2.CoR;
-		tmp_cof2.V[k] = sliding2 ? mat2.CoFk : mat2.CoFs;
+		tmp_cof1.V[k] = mat1.CoFk;
+		tmp_cof2.V[k] = mat2.CoFk;
 		tmp_imass2.V[k] = imass[hsecond];
 		_mm256_seti_v3(tmp_p2, p2.X, p2.Y, p2.Z, k);
 		_mm256_seti_v3(tmp_v1, v1.X, v1.Y, v1.Z, k);

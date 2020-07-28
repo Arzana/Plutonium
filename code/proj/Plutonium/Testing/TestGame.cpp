@@ -77,6 +77,10 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	obj.Properties = physicsMat;
 	obj.Scale = Vector3(40.0f, 1.0f, 100.0f);
 	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
+
+	obj.P.Z = 90.0f;
+	obj.Theta = Quaternion::CreatePitch(TAU - PI4 * 0.5f);
+	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)

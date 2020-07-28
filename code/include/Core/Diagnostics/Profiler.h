@@ -28,6 +28,12 @@ namespace Pu
 		static void Add(_In_ const string &category, _In_ Color color, _In_ int64 time);
 		/* Starts a new value series or adds a new entry to an existing one. */
 		static void Entry(_In_ const string &serie, _In_ float value, _In_ Vector2 size);
+		/* Starts a new vector series or adds a new entry to an existing one. */
+		static void Entry(_In_ const string &serie, _In_ Vector2 value, _In_ Vector2 size);
+		/* Starts a new vector series or adds a new entry to an existing one. */
+		static void Entry(_In_ const string &serie, _In_ Vector3 value, _In_ Vector2 size);
+		/* Starts a new vector series or adds a new entry to an existing one. */
+		static void Entry(_In_ const string &serie, _In_ Vector4 value, _In_ Vector2 size);
 
 		/* Renders the current profiler data to ImGUI and clears the list. */
 		static void Visualize(void);

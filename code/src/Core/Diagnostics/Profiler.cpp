@@ -49,6 +49,33 @@ void Pu::Profiler::Entry(const string & serie, float value, Vector2 size)
 	lock.unlock();
 }
 
+void Pu::Profiler::Entry(const string & serie, Vector2 value, Vector2 size)
+{
+	lock.lock();
+	GetInstance().EntryInternal(serie + " (X)", value.X, size);
+	GetInstance().EntryInternal(serie + " (Y)", value.Y, size);
+	lock.unlock();
+}
+
+void Pu::Profiler::Entry(const string & serie, Vector3 value, Vector2 size)
+{
+	lock.lock();
+	GetInstance().EntryInternal(serie + " (X)", value.X, size);
+	GetInstance().EntryInternal(serie + " (Y)", value.Y, size);
+	GetInstance().EntryInternal(serie + " (Z)", value.Z, size);
+	lock.unlock();
+}
+
+void Pu::Profiler::Entry(const string & serie, Vector4 value, Vector2 size)
+{
+	lock.lock();
+	GetInstance().EntryInternal(serie + " (X)", value.X, size);
+	GetInstance().EntryInternal(serie + " (Y)", value.Y, size);
+	GetInstance().EntryInternal(serie + " (Z)", value.Z, size);
+	GetInstance().EntryInternal(serie + " (W)", value.W, size);
+	lock.unlock();
+}
+
 void Pu::Profiler::Visualize(void)
 {
 	lock.lock();
