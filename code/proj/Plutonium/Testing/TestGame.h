@@ -30,6 +30,7 @@ protected:
 private:
 	Pu::FreeCamera *camFree;
 	bool firstRun, updateCam, spawnToggle;
+	bool showProfiler, showCamOpt, showPhysics;
 	Pu::DebugRenderer *dbgRenderer;
 	const Pu::SurfaceFormat *desiredFormat;
 

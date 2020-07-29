@@ -109,6 +109,35 @@ void TestGame::Update(float)
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
 {
+	if (ImGui::BeginMainMenuBar())
+	{
+		ImGui::Text("FPS: %d", iround(recip(dt)));
+
+		if (ImGui::BeginMenu("Settings"))
+		{
+			const vector<SurfaceFormat> &formats = GetWindow().GetSupportedFormats();
+			if (ImGui::BeginCombo("SurfaceFormat", to_string(GetWindow().GetSwapchain().GetColorSpace())))
+			{
+				for (const SurfaceFormat &format : formats)
+				{
+					bool selected = false;
+					ImGui::Selectable(to_string(format.ColorSpace), &selected);
+					if (selected) desiredFormat = &format;
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
+			ImGui::MenuItem("Physics", nullptr, &showPhysics);
+			ImGui::MenuItem("Camera", nullptr, &showCamOpt);
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();
+	}
+
 	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
 	{
 		firstRun = false;
@@ -119,10 +148,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
 
 		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
-		camFree->Move(RuntimeConfig::QuerySingle(L"CamX"), RuntimeConfig::QuerySingle(L"CamY"), RuntimeConfig::QuerySingle(L"CamZ"));
-		camFree->Pitch = RuntimeConfig::QuerySingle(L"CamPitch");
-		camFree->Yaw = RuntimeConfig::QuerySingle(L"CamYaw");
-		camFree->Roll = RuntimeConfig::QuerySingle(L"CamRoll");
 		camFree->SetExposure(2.5f);
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
@@ -145,10 +170,10 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	{
 		camFree->Update(dt * updateCam);
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
-
 		world->Render(*camFree, cmd);
-		world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
-		camFree->Visualize();
+
+		if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
+		if (showCamOpt) camFree->Visualize();
 		dbgRenderer->AddTransform(Matrix{}, 2.0f, Vector3(0.0f, 20.0f, 0.0f));
 		dbgRenderer->Render(cmd, *camFree);
 	}
@@ -161,41 +186,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	}
 #endif
 
-	if (ImGui::BeginMainMenuBar())
-	{
-		ImGui::Text("FPS: %d", iround(recip(dt)));
-		ImGui::Separator();
-		if (ImGui::Button("Save Camera") && camFree)
-		{
-			RuntimeConfig::Set(L"CamX", camFree->GetPosition().X);
-			RuntimeConfig::Set(L"CamY", camFree->GetPosition().Y);
-			RuntimeConfig::Set(L"CamZ", camFree->GetPosition().Z);
-			RuntimeConfig::Set(L"CamPitch", camFree->Pitch);
-			RuntimeConfig::Set(L"CamYaw", camFree->Yaw);
-			RuntimeConfig::Set(L"CamRoll", camFree->Roll);
-		}
-
-		const vector<SurfaceFormat> &formats = GetWindow().GetSupportedFormats();
-		if (ImGui::BeginCombo("Formats", GetWindow().GetSwapchain().GetFormat().ToString().c_str()))
-		{
-			for (const SurfaceFormat &format : formats)
-			{
-				bool selected = false;
-				ImGui::Selectable(format.ToString().c_str(), &selected);
-				if (selected)
-				{
-					desiredFormat = &format;
-					break;
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-
-		ImGui::EndMainMenuBar();
-	}
-
-	Profiler::Visualize();
+	if (showProfiler) Profiler::Visualize();
 }
 
 void TestGame::SpawnNPC(void)
@@ -286,8 +277,8 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 #else
 			SpawnNPC();
 #endif
+		}
 	}
-}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();

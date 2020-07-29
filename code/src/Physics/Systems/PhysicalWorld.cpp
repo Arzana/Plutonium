@@ -16,7 +16,7 @@ const char *STEP_MODES[2] = { "Auto", "Manual" };
 #define nameof(x)			#x
 
 Pu::PhysicalWorld::PhysicalWorld(DeferredRenderer & renderer)
-	: Substeps(1)
+	: System(), Substeps(1)
 #ifdef _DEBUG
 	, stepMode(STEP_MODES[0])
 #endif
@@ -29,7 +29,7 @@ Pu::PhysicalWorld::PhysicalWorld(DeferredRenderer & renderer)
 }
 
 Pu::PhysicalWorld::PhysicalWorld(PhysicalWorld && value)
-	: db(value.db), sysMove(value.sysMove), sysCnst(value.sysCnst),
+	: System(std::move(value)), db(value.db), sysMove(value.sysMove), sysCnst(value.sysCnst),
 	sysSolv(value.sysSolv), searchTree(std::move(value.searchTree)),
 	handleLut(std::move(value.handleLut)), Substeps(value.Substeps)
 {

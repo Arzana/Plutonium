@@ -31,7 +31,7 @@ namespace Pu
 		void AddSystem(_In_ System *system);
 		/* Removes and deletes the specified system from the application. */
 		void RemoveSystem(_In_ System &system);
-		/* Sets the target time setp in Hz. */
+		/* Sets the target time step in Hz. */
 		void SetTargetTimeStep(_In_ int32 hertz);
 
 		/* Gets the delta time used for the last render. */

@@ -1,8 +1,15 @@
 #include "Graphics/Cameras/FreeCamera.h"
-#include "Input/Keys.h"
-#include "Core/EnumUtils.h"
-#include "Application.h"
+#include "Streams/RuntimeConfig.h"
 #include <imgui/include/imgui.h>
+#include "Input/Keys.h"
+#include "Application.h"
+
+constexpr const wchar_t *ConfigPosX = L"CamRight";
+constexpr const wchar_t *ConfigPosY = L"CamUp";
+constexpr const wchar_t *ConfigPosZ = L"CamForward";
+constexpr const wchar_t *ConfigRotP = L"CamPitch";
+constexpr const wchar_t *ConfigRotY = L"CamYaw";
+constexpr const wchar_t *ConfigRotR = L"CamRroll";
 
 /*
 The state of the camera currently hold 5 values.
@@ -24,6 +31,12 @@ Pu::FreeCamera::FreeCamera(const NativeWindow & wnd, DescriptorPool & pool, cons
 	MoveSpeed(1.0f), LookSpeed(6.0f), Inverted(false), DeadZone(0.05f)
 {
 	SetCallbacks();
+
+	/* Get the start location and orientation from the config. */
+	SetPosition(Vector3(RuntimeConfig::QuerySingle(ConfigPosX), RuntimeConfig::QuerySingle(ConfigPosY), RuntimeConfig::QuerySingle(ConfigPosZ)));
+	Pitch = RuntimeConfig::QuerySingle(ConfigRotP);
+	Yaw = RuntimeConfig::QuerySingle(ConfigRotY);
+	Roll = RuntimeConfig::QuerySingle(ConfigRotR);
 }
 
 Pu::FreeCamera::FreeCamera(FreeCamera && value)
@@ -80,6 +93,16 @@ void Pu::FreeCamera::VisualizeInternal(void)
 {
 	FpsCamera::VisualizeInternal();
 	ImGui::Checkbox("Invert Y", &Inverted);
+	ImGui::SameLine();
+	if (ImGui::Button("Save"))
+	{
+		RuntimeConfig::Set(ConfigPosX, GetPosition().X);
+		RuntimeConfig::Set(ConfigPosY, GetPosition().Y);
+		RuntimeConfig::Set(ConfigPosZ, GetPosition().Z);
+		RuntimeConfig::Set(ConfigRotP, Pitch);
+		RuntimeConfig::Set(ConfigRotY, Yaw);
+		RuntimeConfig::Set(ConfigRotR, Roll);
+	}
 }
 
 void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)
