@@ -124,7 +124,8 @@ namespace Pu
 	private:
 		DepthBuffer *depthBuffer;
 		Renderpass *renderpass;
-		vector<TextureInput2D*> textures;
+		vector<Texture*> textures;
+		Sampler *hdrSampler;
 		
 		AssetFetcher *fetcher;
 		GameWindow *wnd;

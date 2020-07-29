@@ -6,6 +6,7 @@
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Streams/RuntimeConfig.h"
 
 using namespace Pu;
 
@@ -109,7 +110,7 @@ private:
 	1: G-Buffer (Diffuse)		[r, g, b, r]			Color		Input			-			-				0
 	2: G-Buffer (Specular)		[r, g, b, power]		Color		Input			-			-				1
 	3: G-Buffer (Normal)		[x, y, z, w]			Color		Input			-			-				2
-	4: HDR-Buffer				[r, g, b, a]			-			Color			Color		Input			0
+	4: HDR-Buffer				[r, g, b, a]			-			Color			Color		Descriptor		0
 	5: G-Buffer (Depth)			[d]						Depth		Input			Depth		-				3 & 1
 
 	We need to override the attachment reference in most of the subpasses.
@@ -163,6 +164,8 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
 			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
 		});
+
+	hdrSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::ClampToEdge });
 
 	/* Create the light volumes. */
 	Task *task = new LightVolumeStageTask(fetcher, *lightVolumes);
@@ -241,7 +244,7 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 
 		/* Mark all the framebuffer images as writable. */
 		depthBuffer->MakeWritable(cmdBuffer);
-		for (const TextureInput2D *attachment : textures)
+		for (const Texture *attachment : textures)
 		{
 			cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
 		}
@@ -764,14 +767,14 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		Output &hdr = skypass.GetOutput("Hdr");
 		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal);
 		hdr.SetFormat(textures[3]->GetImage().GetFormat());
-		hdr.SetStoreOperation(AttachmentStoreOp::DontCare);
+		hdr.SetStoreOperation(AttachmentStoreOp::Store);
 		hdr.SetReference(4);
 	}
 
 	/* Set all the options for the camera pass. */
 	{
 		Subpass &fpass = renderpass->GetSubpass(SubpassPostProcessing);
-		fpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
+		fpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::ColorAttachmentRead);
 
 		Output &screen = fpass.GetOutput("FragColor");
 		screen.SetDescription(wnd->GetSwapchain());
@@ -916,6 +919,10 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
+
+		const bool enableFxaa = RuntimeConfig::QueryBool(L"FXAA", true);
+		gfxTonePass->SetSpecializationData(1, enableFxaa);
+
 		gfxTonePass->Finalize();
 		gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
 	}
@@ -931,7 +938,7 @@ The function is only called on two events:
 void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 {
 	/* Make sure we can actually use the input attachments on this system. */
-	if (wnd->GetDevice().GetPhysicalDevice().GetLimits().MaxDescriptorSetInputAttachments < 5)
+	if (wnd->GetDevice().GetPhysicalDevice().GetLimits().MaxDescriptorSetInputAttachments < 4)
 	{
 		Log::Fatal("Cannot run deferred renderer on this system (cannot use Vulkan input attachments)!");
 	}
@@ -948,13 +955,13 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
 	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::A2R10G10B10_UNORM_PACK32, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
+	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::ColorAttachment | ImageUsageFlag::Sampled));
 
 	/* Create the new image views and samplers. */
 	textures.emplace_back(new TextureInput2D(*gbuffAttach1));
 	textures.emplace_back(new TextureInput2D(*gbuffAttach2));
 	textures.emplace_back(new TextureInput2D(*gbuffAttach3));
-	textures.emplace_back(new TextureInput2D(*tmpHdrAttach));
+	textures.emplace_back(new Texture2D(*tmpHdrAttach, *hdrSampler));
 
 #ifdef _DEBUG
 	gbuffAttach1->SetDebugName("G-Buffer Diffuse/Roughness");
@@ -970,9 +977,9 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 
 void Pu::DeferredRenderer::WriteDescriptors(void)
 {
-	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDiffuseRough"), *textures[0]);
-	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferSpecular"), *textures[1]);
-	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferNormal"), *textures[2]);
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDiffuseRough"), *reinterpret_cast<const TextureInput2D*>(textures[0]));
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferSpecular"), *reinterpret_cast<const TextureInput2D*>(textures[1]));
+	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferNormal"), *reinterpret_cast<const TextureInput2D*>(textures[2]));
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDepth"), *depthBuffer);
 	descSetInput->Write(SubpassPostProcessing, renderpass->GetSubpass(SubpassPostProcessing).GetDescriptor("HdrBuffer"), *textures[3]);
 }
@@ -988,7 +995,7 @@ void Pu::DeferredRenderer::CreateFramebuffer(void)
 	vector<const ImageView*> attachments;
 	attachments.reserve(textures.size() + 1);
 
-	for (const TextureInput2D *cur : textures) attachments.emplace_back(&cur->GetView());
+	for (const Texture *cur : textures) attachments.emplace_back(&cur->GetView());
 	attachments.emplace_back(&depthBuffer->GetView());
 
 	wnd->CreateFramebuffers(*renderpass, attachments);
@@ -997,7 +1004,7 @@ void Pu::DeferredRenderer::CreateFramebuffer(void)
 void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 {
 	/* The textures store the images for us. */
-	for (const TextureInput2D *cur : textures) delete cur;
+	for (const Texture *cur : textures) delete cur;
 	textures.clear();
 
 	if (depthBuffer) delete depthBuffer;
@@ -1033,6 +1040,7 @@ void Pu::DeferredRenderer::Destroy(void)
 	delete lightVolumes;
 
 	/* Release the renderpass to the content manager and remove the event handler for window resizes. */
+	fetcher->Release(*hdrSampler);
 	fetcher->Release(*renderpass);
 	wnd->SwapchainRecreated.Remove(*this, &DeferredRenderer::OnSwapchainRecreated);
 }
