@@ -60,15 +60,14 @@ void Pu::Log::Error(const char * format, ...)
 void Pu::Log::Fatal(const char * format, ...)
 {
 	/*
-	Skip last four frames:
+	Skip last three frames:
 	- StackFrame::GetStackTrace
-	- Log::LogExcFtr
 	- Log::LogExc
 	- Log::Fatal
 	*/
 	va_list args;
 	va_start(args, format);
-	GetInstance().LogExc(nullptr, format, 4, args);
+	GetInstance().LogExc(nullptr, format, 3, args);
 	va_end(args);
 }
 

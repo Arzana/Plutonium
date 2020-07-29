@@ -67,12 +67,6 @@ namespace Pu
 			return format;
 		}
 
-		/* Gets whether the swapchain image format is compatible with native HDR. */
-		_Check_return_ inline bool IsNativeHDR(void) const
-		{
-			return format_component_format(format.Format) == NumericFormat::SFloat;
-		}
-
 		/* Gets the amount of images created by the operating system. */
 		_Check_return_ inline size_t GetImageCount(void) const
 		{

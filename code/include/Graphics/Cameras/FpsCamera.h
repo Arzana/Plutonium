@@ -49,6 +49,8 @@ namespace Pu
 	protected:
 		/* Occurs when the native window changes it's size. */
 		virtual void OnWindowResize(const NativeWindow &sender, ValueChangedEventArgs<Vector2> args);
+		/* Occurs when the user visualizes the camera. */
+		virtual void VisualizeInternal(void);
 
 		/* Converts the inverted boolean to [1, -1] range. */
 		inline static constexpr float BoolToScalar(_In_ bool v)

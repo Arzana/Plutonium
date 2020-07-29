@@ -106,6 +106,7 @@ namespace Pu
 		void HandleMemberDecorate(SPIRVReader &reader);
 		void HandleDecoration(SPIRVReader &reader, spv::Id target, spv::Word idx, spv::Decoration decoration);
 		void HandleType(SPIRVReader &reader);
+		void HandleBool(SPIRVReader &reader);
 		void HandleInt(SPIRVReader &reader);
 		void HandleFloat(SPIRVReader &reader);
 		void HandleVector(SPIRVReader &reader);

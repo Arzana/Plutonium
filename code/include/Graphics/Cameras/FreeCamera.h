@@ -70,6 +70,10 @@ namespace Pu
 			keyRight = key;
 		}
 
+	protected:
+		/* Occurs when the user visualizes the camera. */
+		virtual void VisualizeInternal(void);
+
 	private:
 		uint16 keyFrwd, keyBkwd, keyLeft, keyRight;
 		byte state;

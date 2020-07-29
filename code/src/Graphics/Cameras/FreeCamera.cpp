@@ -2,6 +2,7 @@
 #include "Input/Keys.h"
 #include "Core/EnumUtils.h"
 #include "Application.h"
+#include <imgui/include/imgui.h>
 
 /*
 The state of the camera currently hold 5 values.
@@ -73,6 +74,12 @@ void Pu::FreeCamera::Update(float dt)
 	/* Update the orientation and the view matrix. */
 	Orientation = Quaternion::Create(Pitch, Yaw, Roll);
 	SetView(Matrix::CreateLookIn(GetPosition(), Orientation * Vector3::Forward(), Orientation * Vector3::Up()));
+}
+
+void Pu::FreeCamera::VisualizeInternal(void)
+{
+	FpsCamera::VisualizeInternal();
+	ImGui::Checkbox("Invert Y", &Inverted);
 }
 
 void Pu::FreeCamera::KeyDownEventHandler(const InputDevice &, const ButtonEventArgs & args)

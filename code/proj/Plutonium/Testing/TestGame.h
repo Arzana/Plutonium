@@ -31,6 +31,7 @@ private:
 	Pu::FreeCamera *camFree;
 	bool firstRun, updateCam, spawnToggle;
 	Pu::DebugRenderer *dbgRenderer;
+	const Pu::SurfaceFormat *desiredFormat;
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;

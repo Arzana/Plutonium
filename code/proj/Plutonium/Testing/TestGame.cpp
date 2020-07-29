@@ -11,8 +11,7 @@ using namespace Pu;
 const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame"),
-	updateCam(false), firstRun(true), spawnToggle(false)
+	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false), desiredFormat(nullptr)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
@@ -101,6 +100,11 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 void TestGame::Update(float)
 {
 	if (spawnToggle) SpawnNPC();
+	if (desiredFormat)
+	{
+		GetWindow().SetColorSpace(*desiredFormat);
+		desiredFormat = nullptr;
+	}
 }
 
 void TestGame::Render(float dt, CommandBuffer &cmd)
@@ -122,6 +126,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		camFree->SetExposure(2.5f);
 
 		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+		lightMain->SetRadiance(Color::SunDay());
 		lightMain->SetDirection(PI4, PI4, 0.0f);
 		lightMain->SetEnvironment(*skybox);
 		lightMain->SetIntensity(4.0f);
@@ -129,6 +134,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
 		lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
+		lightMain->SetRadiance(Color::SunDay());
 		lightFill->SetIntensity(0.5f);
 		lightFill->SetEnvironment(*skybox);
 		world->AddLight(*lightFill);
@@ -142,6 +148,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 		world->Render(*camFree, cmd);
 		world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
+		camFree->Visualize();
 		dbgRenderer->AddTransform(Matrix{}, 2.0f, Vector3(0.0f, 20.0f, 0.0f));
 		dbgRenderer->Render(cmd, *camFree);
 	}
@@ -167,6 +174,24 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			RuntimeConfig::Set(L"CamYaw", camFree->Yaw);
 			RuntimeConfig::Set(L"CamRoll", camFree->Roll);
 		}
+
+		const vector<SurfaceFormat> &formats = GetWindow().GetSupportedFormats();
+		if (ImGui::BeginCombo("Formats", GetWindow().GetSwapchain().GetFormat().ToString().c_str()))
+		{
+			for (const SurfaceFormat &format : formats)
+			{
+				bool selected = false;
+				ImGui::Selectable(format.ToString().c_str(), &selected);
+				if (selected)
+				{
+					desiredFormat = &format;
+					break;
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+
 		ImGui::EndMainMenuBar();
 	}
 

@@ -42,11 +42,16 @@ size_t Pu::FieldType::GetSize(void) const
 
 	switch (ComponentType)
 	{
+	case ComponentType::Bool:
 	case ComponentType::Byte:
 	case ComponentType::SByte:
+		result = 1;
+		break;
 	case ComponentType::Short:
 	case ComponentType::UShort:
 	case ComponentType::HalfFloat:
+		result = 2;
+		break;
 	case ComponentType::Int:
 	case ComponentType::UInt:
 	case ComponentType::Float:
@@ -116,6 +121,8 @@ Pu::string Pu::FieldType::GetName(void) const
 	{
 	case ComponentType::Invalid:
 		return "Invalid";
+	case ComponentType::Bool:
+		return "Bool";
 	case ComponentType::Byte:
 		result = "UInt8";
 		break;

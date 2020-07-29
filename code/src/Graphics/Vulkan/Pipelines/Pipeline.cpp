@@ -68,15 +68,15 @@ void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
 	if (specInfos.empty()) return;
 
 #ifdef _DEBUG
-	/* Make sure a data buffer is supplied for every specialization constant. */
+	/* Make sure none of the constant buffer are set to invalid values. */
 	uint32 idx = 0;
 	for (const PipelineShaderStageCreateInfo &stageInfo : shaderStages)
 	{
 		if (stageInfo.SpecializationInfo)
 		{
-			if (!(stageInfo.SpecializationInfo->Data || stageInfo.SpecializationInfo->DataSize))
+			if ((stageInfo.SpecializationInfo->Data != nullptr) ^ (stageInfo.SpecializationInfo->DataSize != 0))
 			{
-				Log::Fatal("No valid specialization constant data was supplied for shader %ls!", subpass[idx].GetName().c_str());
+				Log::Error("Specialization constant data for shader %ls was not initialized properly!", subpass[idx].GetName().c_str());
 			}
 		}
 
@@ -94,8 +94,11 @@ void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
 		const Shader &shader = subpass[i];
 		if (shader.specializationConstants.empty()) continue;
 
-		/* Allocate a heap buffer for the entries so they'll be kept alive. */
+		/* Just don't add a map entry for specialization constants left default. */
 		SpecializationInfo &specInfo = specInfos[j++];
+		if (!(specInfo.Data && specInfo.DataSize))  continue;
+
+		/* Allocate a heap buffer for the entries so they'll be kept alive. */
 		specInfo.MapEntryCount = static_cast<uint32>(shader.specializationConstants.size());
 		specInfo.MapEntries = reinterpret_cast<SpecializationMapEntry*>(malloc(sizeof(SpecializationMapEntry) * specInfo.MapEntryCount));
 

@@ -165,13 +165,13 @@ void Pu::GameWindow::SetColorSpace(const SurfaceFormat & format)
 	{
 		if (format == checkFormat)
 		{
-			Log::Warning("Changing window format and color space, this might cause loag!");
+			Log::Warning("Changing window format and color space, this might cause lag!");
 			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs{ false, true, false });
 			return;
 		}
 	}
 
-	Log::Warning("Format %s is not supported by the surface!", ((string)format).c_str());
+	Log::Warning("Format %s is not supported by the surface!", format.ToString().c_str());
 }
 
 void Pu::GameWindow::SetMode(WindowMode mode)
@@ -236,6 +236,9 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 
 void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs & args)
 {
+	/* The command buffer will throw an error a bit later, but this is clearer. */
+	if (!GetCommandBuffer().CanBegin()) Log::Fatal("Cannot recreate swapchain during GameWindow render!");
+
 	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
 	Finalize();
 

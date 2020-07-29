@@ -9,6 +9,8 @@ namespace Pu
 	{
 		/* The type is either unknown, invalid or not supported. */
 		Invalid,
+		/* A boolean value. */
+		Bool,
 		/* A unsigned int with width 8. */
 		Byte,
 		/* A signed int with width 8. */

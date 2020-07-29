@@ -2,11 +2,11 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Physics/Systems/ShapeTests.h"
 #include "Application.h"
+#include <imgui/include/imgui.h>
 
 Pu::Camera::Camera(const NativeWindow & wnd, DescriptorPool & pool, const Renderpass & renderpass)
-	: DescriptorSetGroup(pool), viewDirty(false),
-	exposure(1.0f), brightness(0.0f), contrast(1.0f),
-	window(&wnd)
+	: DescriptorSetGroup(pool), viewDirty(false), window(&wnd),
+	exposure(1.0f), brightness(1.0f), contrast(1.0f), saturation(1.0f)
 {
 	wnd.OnSizeChanged.Add(*this, &Camera::OnWindowResize);
 	OnWindowResize(wnd, ValueChangedEventArgs<Vector2>(Vector2(), Vector2()));
@@ -127,6 +127,20 @@ bool Pu::Camera::Cull(const AABB & boundingBox, const Matrix & transform) const
 	return !intersects(frustum, boundingBox * transform);
 }
 
+void Pu::Camera::Visualize(void)
+{
+	if constexpr (ImGuiAvailable)
+	{
+		ImGui::PushID(this);
+		if (ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			VisualizeInternal();
+			ImGui::End();
+		}
+		ImGui::PopID();
+	}
+}
+
 void Pu::Camera::SetView(const Matrix & value)
 {
 	view = value;
@@ -163,10 +177,11 @@ void Pu::Camera::Stage(DescriptorPool&, byte * dest)
 	Copy(dest + offsetSp3 + sizeof(Matrix), &iview);
 	Copy(dest + offsetSp3 + (sizeof(Matrix) << 1), &pos);
 
-	/* Stage the exposure, brightness and contrast to the camera and final subpass. */
+	/* Stage the exposure, brightness, contrast and saturation to the camera and final subpass. */
 	Copy(dest + offsetSp4, &exposure);
 	Copy(dest + offsetSp4 + sizeof(float), &brightness);
 	Copy(dest + offsetSp4 + sizeof(Vector2), &contrast);
+	Copy(dest + offsetSp4 + sizeof(Vector3), &saturation);
 
 	/* Stage the projection, view, inverse projection, inverse view and position to the point light. */
 	Copy(dest + offsetSp5, &proj);
@@ -191,4 +206,12 @@ void Pu::Camera::OnWindowResize(const NativeWindow&, ValueChangedEventArgs<Vecto
 	const Viewport vp = window->GetClientBounds();
 	wndSize.X = vp.Width;
 	wndSize.Y = vp.Height;
+}
+
+void Pu::Camera::VisualizeInternal(void)
+{
+	ImGui::SliderFloat("Exposure", &exposure, 0.0f, 10.0f);
+	ImGui::SliderFloat("Brightness", &brightness, 0.0f, 2.0f);
+	ImGui::SliderFloat("Contrast", &contrast, 0.0f, 3.0f);
+	ImGui::SliderFloat("Saturation", &saturation, 0.0f, 2.0f);
 }

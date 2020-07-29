@@ -720,16 +720,6 @@ namespace Pu
 			: Format(format), ColorSpace(colorSpace)
 		{}
 
-		/* Gets the string representation of the surface format. */
-		_Check_return_ inline operator string(void) const
-		{
-			string result = to_string(ColorSpace);
-			result += " (";
-			result += to_string(Format);
-			result += ')';
-			return result;
-		}
-
 		/* Checks whether the two surface formats are the same. */
 		_Check_return_ inline bool operator ==(_In_ const SurfaceFormat &other) const
 		{
@@ -740,6 +730,16 @@ namespace Pu
 		_Check_return_ inline bool operator !=(_In_ const SurfaceFormat &other) const
 		{
 			return Format != other.Format || ColorSpace != other.ColorSpace;
+		}
+
+		/* Gets the string representation of the surface format. */
+		_Check_return_ inline string ToString(void) const
+		{
+			string result = to_string(ColorSpace);
+			result += " (";
+			result += to_string(Format);
+			result += ')';
+			return result;
 		}
 	};
 

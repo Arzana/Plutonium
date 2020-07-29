@@ -39,13 +39,6 @@ namespace Pu
 			return type;
 		}
 
-		/* Gets the default value of the specialization constant. */
-		template <typename value_t>
-		_Check_return_ value_t GetDefaultValue(void) const
-		{
-			return static_cast<value_t>(defaultValue);
-		}
-
 	private:
 		friend class Shader;
 		friend class Pipeline;
@@ -54,7 +47,6 @@ namespace Pu
 		string name;
 		FieldType type;
 		SpecializationMapEntry entry;
-		double defaultValue;
 
 		SpecializationConstant(spv::Id id, const string &name, FieldType type);
 	};

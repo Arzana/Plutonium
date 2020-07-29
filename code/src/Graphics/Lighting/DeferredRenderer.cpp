@@ -916,10 +916,6 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
-
-		const float hdrSwapchain = wnd->GetSwapchain().IsNativeHDR();
-		gfxTonePass->SetSpecializationData(1, hdrSwapchain);
-
 		gfxTonePass->Finalize();
 		gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
 	}

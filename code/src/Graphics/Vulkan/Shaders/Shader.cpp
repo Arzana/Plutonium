@@ -215,6 +215,9 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 	case (spv::Op::OpTypePointer):
 		HandleType(reader);
 		break;
+	case (spv::Op::OpTypeBool):
+		HandleBool(reader);
+		break;
 	case (spv::Op::OpTypeInt):
 		HandleInt(reader);
 		break;
@@ -246,6 +249,8 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 		HandleConstant(reader);
 		break;
 	case (spv::Op::OpSpecConstant):
+	case (spv::Op::OpSpecConstantFalse):
+	case (spv::Op::OpSpecConstantTrue):
 		HandleSpecConstant(reader);
 		break;
 	}
@@ -336,6 +341,13 @@ void Pu::Shader::HandleType(SPIRVReader & reader)
 	const spv::Id id = reader.ReadWord();
 	reader.AdvanceWord();	// storage class.
 	typedefs.emplace(id, reader.ReadWord());
+}
+
+void Pu::Shader::HandleBool(SPIRVReader & reader)
+{
+	const spv::Id id = reader.ReadWord();
+	const FieldType type{ ComponentType::Bool, SizeType::Scalar };
+	types.emplace(id, type);
 }
 
 void Pu::Shader::HandleInt(SPIRVReader & reader)
@@ -512,14 +524,13 @@ void Pu::Shader::HandleConstant(SPIRVReader & reader)
 void Pu::Shader::HandleSpecConstant(SPIRVReader & reader)
 {
 	/* The type and decoration are already defined before this specialization constant is defined. */
-	FieldType type = types[reader.ReadWord()];
+	const FieldType type = types[reader.ReadWord()];
 	const spv::Id id = reader.ReadWord();
 	Decoration &decoration = decorations[std::make_pair(id, GlobalMemberIndex)];
 
 	/* The default value for this constant is stored at the end of this sub-stream. */
 	SpecializationConstant value{ id, names[id], type };
 	value.entry.ConstantID = decoration.Numbers[spv::Decoration::SpecId];
-	value.defaultValue = reader.ReadComponentType(type.ComponentType);
 
 	specializationConstants.emplace_back(std::move(value));
 }

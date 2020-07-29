@@ -41,6 +41,8 @@ namespace Pu
 		_Check_return_ bool Cull(_In_ const AABB &boundingBox) const;
 		/* Gets whether the specified AABB with the specified transform applied is outside the camera's view frustum. */
 		_Check_return_ bool Cull(_In_ const AABB &boundingBox, _In_ const Matrix &transform) const;
+		/* Gives the user the option to alter the camera settings. */
+		void Visualize(void);
 
 		/* Gets the position of the camera. */
 		_Check_return_ inline Vector3 GetPosition(void) const
@@ -138,6 +140,12 @@ namespace Pu
 			contrast = value;
 		}
 
+		/* Sets the saturation of the camera. */
+		inline void SetSaturation(_In_ float value)
+		{
+			saturation = value;
+		}
+
 	protected:
 		/* Defines the orientation of the camera. */
 		Quaternion Orientation;
@@ -153,11 +161,13 @@ namespace Pu
 		void Stage(DescriptorPool&, byte *dest) final;
 		/* Occurs when the native window changes it's size. */
 		virtual void OnWindowResize(const NativeWindow&, ValueChangedEventArgs<Vector2>);
+		/* Occurs when the user visualizes the camera. */
+		virtual void VisualizeInternal(void);
 
 	private:
 		Vector3 pos;
 		Matrix view, proj, iproj;
-		float exposure, brightness, contrast;
+		float exposure, brightness, contrast, saturation;
 		Vector2 wndSize;
 		const NativeWindow *window;
 		Frustum frustum;
