@@ -306,12 +306,15 @@ void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hse
 	const Sphere sphere1 = as_shape(Sphere, rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
 	const Sphere sphere2 = as_shape(Sphere, rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
 
+	const float d2 = sqrdist(sphere1.Center, sphere2.Center);
+	const float r2 = sqr(sphere1.Radius + sphere2.Radius);
+
 	/* Check for collision. */
-	if (intersects(sphere1, sphere2))
+	if (d2 < r2)
 	{
 		const Vector3 n = dir(sphere1.Center, sphere2.Center);
 		const Vector3 p = sphere1.Center + sphere1.Radius * n;
-		AddManifold(hfirst, hsecond, p, n);
+		AddManifold(hfirst, hsecond, p, n, r2 - d2);
 	}
 }
 
@@ -320,13 +323,16 @@ void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hspher
 	/* Query the sphere collider and transform it to the correct position. */
 	const Sphere sphere = as_shape(Sphere, rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 
-	/* Check for collision with the cached bounding box. */
 	const Vector3 q = closest(cachedBroadPhase.at(haabb), sphere.Center);
-	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
+	const float d2 = sqrdist(q, sphere.Center);
+	const float r2 = sqr(sphere.Radius);
+
+	/* Check for collision with the cached bounding box. */
+	if (d2 < r2)
 	{
 		const Vector3 n = dir(q, sphere.Center);
 		const Vector3 p = sphere.Center + sphere.Radius * -n;
-		AddManifold(haabb, hsphere, p, n);
+		AddManifold(haabb, hsphere, p, n, r2 - d2);
 	}
 }
 
@@ -344,8 +350,14 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 	const Vector2 query = Vector2(sphere.Center.X - offset.X, sphere.Center.Z - offset.Z);
 	if (heightmap.TryGetHeightAndNormal(query, h, n))
 	{
+		const float low = sphere.Center.Y - sphere.Radius;
+
 		/* The sphere collides with the heightmap is it's lowest point is below the sample height. */
-		if (h >= sphere.Center.Y - sphere.Radius) AddManifold(hmap, hsphere, Vector3(sphere.Center.X, h, sphere.Center.Z), n);
+		if (h >= low)
+		{
+			const Vector3 p{ sphere.Center.X, h, sphere.Center.Z };
+			AddManifold(hmap, hsphere, p, n, h - low);
+		}
 	}
 }
 
@@ -355,17 +367,20 @@ void Pu::ContactSystem::TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb)
 	const Sphere sphere = as_shape(Sphere, rawNarrowPhase.at(hsphere).second) * world->GetTransform(hsphere);
 	const OBB &obb = as_shape(OBB, rawNarrowPhase.at(hobb).second) * world->GetTransform(hobb);
 
-	/* Check for collision. */
 	const Vector3 q = closest(obb, sphere.Center);
-	if (sqrdist(q, sphere.Center) < sqr(sphere.Radius))
+	const float d2 = sqrdist(q, sphere.Center);
+	const float r2 = sqr(sphere.Radius);
+
+	/* Check for collision. */
+	if (d2 < r2)
 	{
 		const Vector3 n = dir(q, sphere.Center);
 		const Vector3 p = sphere.Center + sphere.Radius * -n;
-		AddManifold(hobb, hsphere, p, n);
+		AddManifold(hobb, hsphere, p, n, r2 - d2);
 	}
 }
 
-void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal)
+void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth)
 {
 	/* Ignore any duplicate collisions. */
 	for (size_t i = 0; i < hfirsts.size(); i++)
@@ -384,12 +399,26 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	/* Subtract the first velocity from the relative velocity if the second object is also kinematic. */
 	if (physics_get_type(hfirst) != PhysicsType::Static)
 	{
+		if constexpr (PhysicsCorrectPosition)
+		{
+			/* Both objects are kinematic, so move them both equal amounts. */
+			depth *= 0.5f;
+			world->sysMove->AddOffset(i, normal * depth);
+		}
+
 		hinteral = world->QueryInternalHandle(hfirst);
 		i = physics_get_lookup_id(hinteral);
 		v = world->sysMove->GetVelocity(i);
 		w = world->sysMove->GetAngularVelocity(i);
 		r = pos - world->sysMove->GetPosition(hinteral);
-		relVloc -= v - cross(w, r);		
+		relVloc -= v - cross(w, r);
+
+		if constexpr (PhysicsCorrectPosition) world->sysMove->AddOffset(i, normal * -depth);
+	}
+	else if constexpr (PhysicsCorrectPosition)
+	{
+		/* The second item is the only kinematic item, so this is the only item that should be corrected. */
+		world->sysMove->AddOffset(i, normal * depth);
 	}
 
 	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */

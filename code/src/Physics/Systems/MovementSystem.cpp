@@ -11,6 +11,13 @@ Pu::MovementSystem::MovementSystem(void)
 	: Gx(_mm256_setzero_ps()), Gy(_mm256_set1_ps(-9.81f)), Gz(_mm256_setzero_ps())
 {}
 
+void Pu::MovementSystem::AddOffset(size_t idx, Vector3 offset)
+{
+	px.add(idx, offset.X);
+	py.add(idx, offset.Y);
+	pz.add(idx, offset.Z);
+}
+
 void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, float pitch, float yaw, float roll)
 {
 	/* Add the linear force to the velocity. */

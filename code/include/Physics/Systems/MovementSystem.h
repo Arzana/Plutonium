@@ -47,6 +47,8 @@ namespace Pu
 			return transforms.size();
 		}
 
+		/* Adds a specific offset to the specified object. */
+		void AddOffset(_In_ size_t idx, _In_ Vector3 offset);
 		/* Adds a specific linear and angular force to the specific object. */
 		void AddForce(_In_ size_t idx, _In_ float x, _In_ float y, _In_ float z, _In_ float pitch, _In_ float yaw, _In_ float roll);
 		/* Adds a single kinematic item to the movement system, return the index. */

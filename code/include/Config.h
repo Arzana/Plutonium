@@ -67,4 +67,6 @@ namespace Pu
 	constexpr bool PhysicsAllowSleeping = false;
 	/* Defines the tolerance for a physics object to be considered rolling instead of sliding. */
 	constexpr float PhysicsRollingTolerance = 0.5f;
+	/* Defines whether physical objects should be teleported out of each other if they intersect. */
+	constexpr bool PhysicsCorrectPosition = true;
 }
