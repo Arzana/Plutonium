@@ -126,6 +126,12 @@ Pu::Quaternion Pu::Quaternion::Delta(Quaternion q1, Quaternion q2)
 	return q1 * q2.Inverse();
 }
 
+Pu::Quaternion Pu::Quaternion::Delta(Vector3 pos, Vector3 target)
+{
+	const Vector3 d = dir(pos, target);
+	return Quaternion::Create(d, tangent(d));
+}
+
 Pu::Quaternion Pu::Quaternion::Near(Quaternion q1, Quaternion q2, float a)
 {
 	return a < 0.5f ? q1 : q2;

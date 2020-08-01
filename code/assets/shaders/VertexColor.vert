@@ -7,7 +7,8 @@ layout (push_constant) uniform Transforms
 };
 
 layout (location = 0) in vec3 Position;
-layout (location = 1) in uint Color;
+layout (location = 1) in mat4 Model;
+layout (location = 5) in uint Color;
 
 layout (location = 0) out vec4 VertexColor;
 
@@ -24,6 +25,6 @@ void main()
 	const float b = unpack(16);
 
 	// Blending is not enabled so just set alpha to one.
-	gl_Position = Projection * View * vec4(Position, 1.0f);
+	gl_Position = Projection * View * Model * vec4(Position, 1.0f);
 	VertexColor = vec4(r, g, b, 1.0f);
 }

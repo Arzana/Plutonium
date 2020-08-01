@@ -23,6 +23,15 @@ Pu::Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, float scalar
 		0.0f, 0.0f, 0.0f, 1.0f);
 }
 
+Pu::Matrix Pu::Matrix::CreateScaledTranslation(Vector3 translation, Vector3 scalar)
+{
+	return Matrix(
+		scalar.X, 0.0f, 0.0f, translation.X,
+		0.0f, scalar.Y, 0.0f, translation.Y,
+		0.0f, 0.0f, scalar.Z, translation.Z,
+		0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 Pu::Matrix Pu::Matrix::CreateRotation(float theta, Vector3 axis)
 {
 	const float cc = cosf(theta);

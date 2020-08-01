@@ -113,6 +113,8 @@ namespace Pu
 		_Check_return_ static Matrix CreateFrom3x3(_In_ const Matrix3 &matrix, _In_ Vector3 translation);
 		/* Creates a scale and translation matrix. */
 		_Check_return_ static Matrix CreateScaledTranslation(_In_ Vector3 translation, _In_ float scalar);
+		/* Creatyes a scale and translation matrix. */
+		_Check_return_ static Matrix CreateScaledTranslation(_In_ Vector3 translation, _In_ Vector3 scalar);
 		/* Creates a rotation matrix around a specified axis. */
 		_Check_return_ static Matrix CreateRotation(_In_ float theta, _In_ Vector3 axis);
 		/* Creates a rotation matrix from a quaternion. */

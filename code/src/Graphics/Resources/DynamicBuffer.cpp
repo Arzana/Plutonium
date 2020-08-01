@@ -61,6 +61,12 @@ void Pu::DynamicBuffer::EndMemoryTransfer(void)
 	stagingBuffer->EndMemoryTransfer();
 }
 
+void Pu::DynamicBuffer::Flush(DeviceSize size, DeviceSize offset)
+{
+	stagingBuffer->Flush(size, offset);
+	isDirty = true;
+}
+
 void Pu::DynamicBuffer::Destroy(void)
 {
 	if (stagingBuffer) delete stagingBuffer;

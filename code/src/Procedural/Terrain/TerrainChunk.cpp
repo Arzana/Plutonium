@@ -43,7 +43,8 @@ namespace Pu
 
 			/* Set the position and uv's for the mesh. */
 			Mesh mesh = canPatch ? ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false) : ShapeCreator::LodPlane(*stagingBuffer, meshSize, false);
-			result->mesh.Initialize(device, static_cast<uint32>(meshBufferSize - vrtxSize), vrtxSize, std::move(mesh));
+			result->mesh.AddMesh(mesh, 0u, vrtxSize, vrtxSize, static_cast<uint32>(meshBufferSize - vrtxSize));
+			result->mesh.Finalize(device, meshBufferSize);
 
 			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
 			const float step = recip(meshBound);

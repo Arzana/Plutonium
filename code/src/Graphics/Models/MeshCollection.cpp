@@ -1,10 +1,9 @@
 #include "Graphics/Models/MeshCollection.h"
 
-/* Checks (on debug) if initialize hasn't been called yet. */
 #ifdef _DEBUG
-#define DBG_INIT_CHECK(...)	if (memory) Log::Fatal("MeshCollection cannot be initialized twice!")
+#define DBG_ADD_CHECK()		if (memory) Log::Fatal("Cannot add additional meshes to MeshCollection after it has been finalized!");
 #else
-#define DBG_INIT_CHECK(...)
+#define DBG_ADD_CHECK()
 #endif
 
 Pu::MeshCollection::MeshCollection(void)
@@ -14,7 +13,8 @@ Pu::MeshCollection::MeshCollection(void)
 Pu::MeshCollection::MeshCollection(LogicalDevice & device, const PuMData & data)
 	: memory(nullptr)
 {
-	Initialize(device, data);
+	AddMeshes(data, 0u);
+	Finalize(device, data.Buffer->GetSize());
 }
 
 Pu::MeshCollection::MeshCollection(MeshCollection && value)
@@ -41,41 +41,71 @@ Pu::MeshCollection & Pu::MeshCollection::operator=(MeshCollection && other)
 	return *this;
 }
 
-void Pu::MeshCollection::Initialize(LogicalDevice & device, const PuMData & data)
+void Pu::MeshCollection::AddMesh(const Mesh & mesh)
 {
-	DBG_INIT_CHECK();
+	DBG_ADD_CHECK();
+	meshes.emplace_back(std::make_pair(0u, mesh));
+}
 
-	/* Allocate the GPU memory and set the views. */
-	Alloc(device, data.Buffer->GetSize());
-	views = data.Views;
+Pu::uint32 Pu::MeshCollection::AddView(size_t offset, size_t size)
+{
+	DBG_ADD_CHECK();
+	views.emplace_back(offset, size);
+	return static_cast<uint32>(views.size() - 1);
+}
 
-	/* Add all the meshes to the list. */
-	for (const PumMesh &geom : data.Geometry)
+void Pu::MeshCollection::AddMesh(const Mesh & mesh, uint32 vertexStart, uint32 vertexSize, uint32 indexStart, uint32 indexSize)
+{
+	DBG_ADD_CHECK();
+
+	views.emplace_back(vertexStart, vertexSize);
+	views.emplace_back(indexStart, indexSize);
+	meshes.emplace_back(std::make_pair(0u, mesh));
+}
+
+void Pu::MeshCollection::AddMesh(const Mesh & mesh, StagingBuffer & src, uint32 vertexStart, uint32 vertexSize)
+{
+	AddMesh(mesh, vertexStart, vertexSize, vertexSize, static_cast<uint32>(src.GetSize() - vertexSize));
+}
+
+void Pu::MeshCollection::AddMeshes(const PuMData & data, uint32 vertexStart)
+{
+	DBG_ADD_CHECK();
+
+	/* Add the views to the buffer and add the specific offset. */
+	for (PumView view : data.Views)
 	{
-		const uint32 matIdx = geom.HasMaterial ? geom.Material : DefaultMaterialIdx;
-		meshes.emplace_back(std::make_pair(matIdx, Mesh{ geom }));
+		view.Offset += vertexStart;
+		views.emplace_back(view);
 	}
 
+	/* Add all the meshes. */
+	for (const PumMesh &geom : data.Geometry)
+	{
+		const uint32 mat = geom.HasMaterial ? geom.Material : DefaultMaterialIdx;
+		meshes.emplace_back(std::make_pair(mat, Mesh{ geom }));
+	}
+}
+
+void Pu::MeshCollection::Finalize(LogicalDevice & device, DeviceSize size)
+{
+#ifdef _DEBUG
+	/* Calculate the final range of the views. */
+	size_t begin = maxv<uint32>(), end = 0u;
+	for (const PumView view : views)
+	{
+		begin = min(begin, view.Offset);
+		end = max(end, view.Offset + view.Size);
+	}
+
+	/* Check for invalid usage. */
+	if (end > size) Log::Fatal("Views in MeshCollection are larger than supplied buffer size!");
+	if (begin) Log::Warning("MeshCollection is wasting memory (No mesh starts at 0)!");
+	if (end < size) Log::Warning("MeshCollection is wasting memory (Unnecessary padding was added at the end)!");
+#endif
+
+	Alloc(device, size);
 	SetBoundingBox();
-}
-
-void Pu::MeshCollection::Initialize(LogicalDevice & device, StagingBuffer & src, uint32 vrtxSize, Mesh &&mesh)
-{
-	Initialize(device, static_cast<uint32>(src.GetSize() - vrtxSize), vrtxSize, std::move(mesh));
-}
-
-void Pu::MeshCollection::Initialize(LogicalDevice & device, uint32 idxSize, uint32 vrtxSize, Mesh && mesh)
-{
-	DBG_INIT_CHECK();
-
-	/* Allocate the destination buffer and add the vertex and index view. */
-	Alloc(device, idxSize + vrtxSize);
-	views.emplace_back(0, vrtxSize);
-	views.emplace_back(vrtxSize, idxSize);
-
-	/* Add the mesh to the collection and set the bounding box. */
-	meshes.emplace_back(std::make_pair(0u, std::move(mesh)));
-	boundingBox = mesh.GetBoundingBox();
 }
 
 void Pu::MeshCollection::Bind(CommandBuffer & cmdBuffer, uint32 binding, uint32 mesh) const
@@ -93,6 +123,7 @@ void Pu::MeshCollection::Bind(CommandBuffer & cmdBuffer, uint32 binding, uint32 
 void Pu::MeshCollection::Alloc(LogicalDevice & device, size_t size)
 {
 	memory = new Buffer(device, size, BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, MemoryPropertyFlag::None);
+	memory->SetDebugName("MeshCollection");
 }
 
 void Pu::MeshCollection::SetBoundingBox(void)

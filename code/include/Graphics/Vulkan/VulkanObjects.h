@@ -3511,12 +3511,12 @@ namespace Pu
 
 		/* Initializes an empty instance of the draw indirect command object. */
 		DrawIndirectCommand(void)
-			: DrawIndirectCommand(0, 0, 0)
+			: DrawIndirectCommand(0, 0, 0, 1)
 		{}
 
 		/* Initializes a new instance of the draw indirect command object. */
-		DrawIndirectCommand(_In_ uint32 firstVertex, _In_ uint32 vertexCnt, _In_ uint32 firstInstance)
-			: VertexCount(vertexCnt), InstanceCount(1),
+		DrawIndirectCommand(_In_ uint32 firstVertex, _In_ uint32 vertexCnt, _In_ uint32 firstInstance, _In_ uint32 instanceCnt)
+			: VertexCount(vertexCnt), InstanceCount(instanceCnt),
 			FirstVertex(firstVertex), FirstInstance(firstInstance)
 		{}
 	};

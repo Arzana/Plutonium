@@ -147,6 +147,8 @@ namespace Pu
 		_Check_return_ static Quaternion CreateRoll(_In_ float theta);
 		/* Gets the rotational delta between two quaternions. */
 		_Check_return_ static Quaternion Delta(_In_ Quaternion q1, _In_ Quaternion q2);
+		/* Creates a quaternion rotating towards the second specified point from the first specified point. */
+		_Check_return_ static Quaternion Delta(_In_ Vector3 pos, _In_ Vector3 target);
 		/* Performs nearest neightbor interpolation between two quaternions. */
 		_Check_return_ static Quaternion Near(_In_ Quaternion q1, _In_ Quaternion q2, _In_ float a);
 		/* Performs linear interpolation between two quaternions. */

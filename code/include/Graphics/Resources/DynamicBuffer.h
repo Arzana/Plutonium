@@ -35,6 +35,8 @@ namespace Pu
 		virtual void* GetHostMemory(void) override;
 		/* Ends the process of transfering data from the CPU to this buffer. */
 		virtual void EndMemoryTransfer(void) override;
+		/* Ensures that the contents of the CPU buffer as visible to the GPU. */
+		virtual void Flush(_In_ DeviceSize size, _In_ DeviceSize offset) override;
 
 	private:
 		StagingBuffer *stagingBuffer;

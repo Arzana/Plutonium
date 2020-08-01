@@ -39,14 +39,16 @@ namespace Pu
 
 	/* Euler's constant. */
 	constexpr float E = 2.71828182845904523536f;
-	/* The circle constant. */
+	/* The circle constant (180 degrees). */
 	constexpr float PI = 3.14159265358979323846f;
-	/* PI multiplied by two. */
+	/* PI multiplied by two (360 degrees). */
 	constexpr float TAU = PI * 2.0f;
-	/* PI divided by two. */
+	/* PI divided by two (90 degrees). */
 	constexpr float PI2 = PI / 2.0f;
-	/* PI divided by four */
+	/* PI divided by four (45 degrees) */
 	constexpr float PI4 = PI / 4.0f;
+	/* PI divided by eight (22.5 degrees). */
+	constexpr float PI8 = PI / 8.0f;
 	/* Pythagoras's constant. */
 	constexpr float SQRT2 = 1.41421356237309504880f;
 	/* SQRT2 divided by two. */

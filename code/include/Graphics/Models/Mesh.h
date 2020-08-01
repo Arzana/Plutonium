@@ -13,6 +13,8 @@ namespace Pu
 
 		/* Default initializes the mesh. */
 		Mesh(void);
+		/* Initializes a new instance of a mesh with a specific vertex buffer. */
+		Mesh(_In_ uint32 vertexView, _In_ uint32 first, _In_ uint32 stride, _In_ uint32 count);
 		/* Initializes a new instance of a mesh with a specific vertex and index buffer. */
 		Mesh(_In_ uint32 indexCount, _In_ uint32 vertexView, _In_ uint32 indexView, _In_ uint32 firstIndex, _In_ size_t vertexStride, _In_ IndexType indexType);
 		/* Initializes a new instance of a mesh with a specific stride and type (views will be set to zero). */
@@ -30,7 +32,9 @@ namespace Pu
 		_Check_return_ Mesh& operator =(_In_ Mesh &&other) = default;
 
 		/* Draws the mesh a specified amount of times. */
-		void Draw(_In_ CommandBuffer &cmdBuffer, _In_ uint32 instanceCount) const;
+		void Draw(_In_ CommandBuffer &cmdBuffer, _In_ uint32 firstInstance, _In_ uint32 instanceCount) const;
+		/* Creates the indirect drawing parameters for a specified amount of instances. */
+		_Check_return_ DrawIndirectCommand Indirect(_In_ uint32 instanceCount) const;
 
 		/* Sets the bounding box of this mesh (automatically set when using PuM). */
 		inline void SetBoundingBox(_In_ AABB bb)

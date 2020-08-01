@@ -5,6 +5,11 @@ Pu::Mesh::Mesh(void)
 	indexView(DefaultViewIdx), first(0), count(0)
 {}
 
+Pu::Mesh::Mesh(uint32 vertexView, uint32 first, uint32 stride, uint32 count)
+	: offset(0), stride(stride), count(count), first(first), 
+	vertexView(vertexView), indexView(DefaultViewIdx)
+{}
+
 Pu::Mesh::Mesh(uint32 indexCount, uint32 vertexView, uint32 indexView, uint32 firstIndex, size_t vertexStride, IndexType indexType)
 	: type(indexType), stride(static_cast<uint32>(vertexStride)), vertexView(vertexView), 
 	count(indexCount), indexView(indexView), first(firstIndex), offset(0)
@@ -36,8 +41,13 @@ Pu::Mesh::Mesh(const PumMesh & mesh)
 	}
 }
 
-void Pu::Mesh::Draw(CommandBuffer & cmdBuffer, uint32 instanceCount) const
+void Pu::Mesh::Draw(CommandBuffer & cmdBuffer, uint32 firstInstance, uint32 instanceCount) const
 {
-	if (indexView != DefaultViewIdx) cmdBuffer.Draw(count, instanceCount, first, 0, offset);
-	else cmdBuffer.Draw(count, instanceCount, first, 0);
+	if (indexView != DefaultViewIdx) cmdBuffer.Draw(count, instanceCount, first, firstInstance, offset);
+	else cmdBuffer.Draw(count, instanceCount, first, firstInstance);
+}
+
+Pu::DrawIndirectCommand Pu::Mesh::Indirect(uint32 instanceCount) const
+{
+	return DrawIndirectCommand{ first, count, 0, instanceCount };
 }

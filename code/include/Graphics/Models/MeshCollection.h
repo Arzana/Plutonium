@@ -29,14 +29,41 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ MeshCollection& operator =(_In_ MeshCollection &&other);
 
-		/* Initializes the mesh collection from a PuM source if it hasn't been initialized yet. */
-		void Initialize(_In_ LogicalDevice &device, _In_ const PuMData &data);
-		/* Initializes the mesh collection with a single mesh from the specified source buffer. */
-		void Initialize(_In_ LogicalDevice &device, _In_ StagingBuffer &src, _In_ uint32 vrtxSize, _In_ Mesh &&mesh);
-		/* Initializes the mesh collection with a single mesh from the specified source buffer. */
-		void Initialize(_In_ LogicalDevice &device, _In_ _In_ uint32 idxSize, _In_ uint32 vrtxSize, _In_ Mesh &&mesh);
+		/* Adds a specific mesh to the collection. */
+		void AddMesh(_In_ const Mesh &mesh);
+		/* Adds a specific view to the collection. */
+		_Check_return_ uint32 AddView(_In_ size_t offset, _In_ size_t size);
+
+		/* Adds a specific mesh to the collection with specified index and vertex views. */
+		void AddMesh(_In_ const Mesh &mesh, _In_ uint32 vertexStart, _In_ uint32 vertexSize, _In_ uint32 indexStart, _In_ uint32 indexSize);
+		/* Adds a specific mesh to the collection from a specific staging buffer. */
+		void AddMesh(_In_ const Mesh &mesh, _In_ StagingBuffer &src, _In_ uint32 vertexStart, _In_ uint32 vertexSize);
+		/* Populates the mesh collection with the specified PuM source. */
+		void AddMeshes(_In_ const PuMData &data, _In_ uint32 vertexStart);
+		/* Finalizes the collection, locking it and making it ready for use. */
+		void Finalize(_In_ LogicalDevice &device, _In_ DeviceSize size);
 		/* Binds the specified mesh directly to the command buffer, ignoring possible view optimizations. */
 		void Bind(_In_ CommandBuffer &cmdBuffer, _In_ uint32 binding, _In_ uint32 mesh) const;
+
+		/* Initializes the mesh collection from a single PuM source. */
+		inline void Initialize(_In_ LogicalDevice &device, _In_ const PuMData &data)
+		{
+			AddMeshes(data, 0u);
+			Finalize(device, data.Buffer->GetSize());
+		}
+
+		/* Initializes the mesh collection from a single source mesh. */
+		inline void Initialize(_In_ LogicalDevice &device, _In_ StagingBuffer &src, _In_ uint32 vertexSize, _In_ const Mesh &mesh)
+		{
+			AddMesh(mesh, src, 0u, vertexSize);
+			Finalize(device, src.GetSize());
+		}
+
+		/* Gets the mesh at the specified index. */
+		_Check_return_ const Mesh& GetMesh(_In_ size_t idx) const
+		{
+			return meshes[idx].second;
+		}
 
 		/* Gets an AABB that is a combination of all mesh bounding boxes. */
 		_Check_return_ inline AABB GetBoundingBox(void) const
@@ -90,6 +117,12 @@ namespace Pu
 		_Check_return_ inline size_t Count(void) const
 		{
 			return meshes.size();
+		}
+
+		/* Gets whether this mesh collection is fully loaded on the GPU. */
+		_Check_return_ inline bool IsUsable(void) const
+		{
+			return memory && memory->IsLoaded();
 		}
 
 	private:

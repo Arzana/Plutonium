@@ -1,10 +1,10 @@
 #include "Content/AssetLoader.h"
-#include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
-#include "Streams/FileReader.h"
-#include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/Lighting/LightProbeRenderer.h"
+#include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/Models/ShapeCreator.h"
+#include "Core/Diagnostics/Stopwatch.h"
+#include "Streams/FileReader.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
 	: cache(cache), scheduler(scheduler), device(device),
@@ -463,7 +463,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 			result.nodes = std::move(data.Nodes);
 
 			/* Stage the vertex and index buffer to the GPU on the graphics queue. */
-			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"GPU Mesh");
 			return Result::CustomWait();
 		}
 
@@ -589,31 +589,31 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			switch (meshType)
 			{
 			case ShapeType::Plane:
-				mesh = std::move(ShapeCreator::Plane(*src));
+				mesh = ShapeCreator::Plane(*src);
 				break;
 			case ShapeType::Box:
-				mesh = std::move(ShapeCreator::Box(*src));
+				mesh = ShapeCreator::Box(*src);
 				break;
 			case ShapeType::Sphere:
-				mesh = std::move(ShapeCreator::Sphere(*src, SPHERE_DIVS));
+				mesh = ShapeCreator::Sphere(*src, SPHERE_DIVS);
 				break;
 			case ShapeType::Dome:
-				mesh = std::move(ShapeCreator::Dome(*src, DOME_DIVS));
+				mesh = ShapeCreator::Dome(*src, DOME_DIVS);
 				break;
 			case ShapeType::Torus: 
-				mesh = std::move(ShapeCreator::Torus(*src, TORUS_DIVS, 0.5f));
+				mesh = ShapeCreator::Torus(*src, TORUS_DIVS, 0.5f);
 				break;
 			case ShapeType::Cylinder:
-				mesh = std::move(ShapeCreator::Cylinder(*src, CYLINDER_DIVS));
+				mesh = ShapeCreator::Cylinder(*src, CYLINDER_DIVS);
 				break;
 			case ShapeType::Cone:
-				mesh = std::move(ShapeCreator::Cone(*src, CONE_DIVS));
+				mesh = ShapeCreator::Cone(*src, CONE_DIVS);
 				break;
 			}
 
 			/* Add the basic mesh to the model's list. */
-			result.meshes.Initialize(parent.GetDevice(), *src, vrtxSize, std::move(mesh));
-			parent.StageBuffer(*src, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+			result.meshes.Initialize(parent.GetDevice(), *src, vrtxSize, mesh);
+			parent.StageBuffer(*src, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"Procedural Mesh");
 			return Result::CustomWait();
 		}
 
@@ -672,18 +672,22 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 	scheduler.Spawn(*task);
 }
 
-void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlag dstStage, AccessFlag access)
+void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlag dstStage, AccessFlag access, const wstring & name)
 {
 	class StageTask
 		: public Task
 	{
 	public:
-		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlag dstStage, AccessFlag access)
-			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access)
+		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlag dstStage, AccessFlag access, const wstring &name)
+			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name)
 		{}
 
 		Result Execute(void) final
 		{
+#ifdef _DEBUG
+			timer.Start();
+#endif
+
 			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
 
 			/* We need to copy the entire staging buffer to the destination buffer and move the destination buffer to the correct access. */
@@ -700,7 +704,13 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 		Result Continue(void) final
 		{
 			delete source;
-			destination.MarkAsLoaded(false, L"GPU Buffer");
+			destination.MarkAsLoaded(false, std::move(name));
+
+#ifdef _DEBUG
+			timer.End();
+			Log::Verbose("Finished Host to GPU copy for '%ls', took %dms", destination.GetName().c_str(), timer.Milliseconds());
+#endif
+
 			return Result::AutoDelete();
 		}
 
@@ -717,8 +727,13 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 		SingleUseCommandBuffer cmdBuffer;
 		PipelineStageFlag dstStage;
 		AccessFlag access;
+		wstring name;
+
+#ifdef _DEBUG
+		Stopwatch timer;
+#endif
 	};
 
-	StageTask *task = new StageTask(*this, source, destination, dstStage, access);
+	StageTask *task = new StageTask(*this, source, destination, dstStage, access, name);
 	scheduler.Spawn(*task);
 }

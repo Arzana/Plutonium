@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, MemoryPropertyFlag requiredProperties, MemoryPropertyFlag optionalProperties)
-	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr), 
+	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr),
 	srcAccess(AccessFlag::None), Mutable(true), memoryProperties(requiredProperties)
 {
 	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage), optionalProperties);
@@ -92,19 +92,34 @@ void * Pu::Buffer::GetHostMemory(void)
 
 void Pu::Buffer::EndMemoryTransfer(void)
 {
+	/* Just flush the entire buffer. */
+	Flush(WholeSize, 0);
+	UnMap();
+}
+
+/* size hides class member, checked and works as intended. */
+#pragma warning(push)
+#pragma warning(disable:4458)
+void Pu::Buffer::Flush(DeviceSize size, DeviceSize offset)
+{
 #ifdef _DEBUG
 	/* Make sure the buffer was actually started. */
 	if (!buffer)
 	{
-		Log::Error("Attempting to end memory transfer on non-started buffer!");
+		Log::Error("Attempting to flush buffer on non-started buffer!");
 		return;
 	}
 #endif
 
-	/* Flush the entire buffer (if it's not host coherent) and unmap the memory. */
-	if (!_CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCoherent)) Flush(WholeSize, 0);
-	UnMap();
+	/* We don't have to flush if the buffer is Host Coherent. */
+	if (!_CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCoherent))
+	{
+		/* Flush the section of the buffer indicated by the user. */
+		const MappedMemoryRange range{ memoryHndl, offset, size };
+		VK_VALIDATE(parent->vkFlushMappedMemoryRanges(parent->hndl, 1, &range), PFN_vkFlushMappedMemoryRanges);
+	}
 }
+#pragma warning(pop)
 
 void Pu::Buffer::SetData(const void * data, size_t dataSize, size_t dataStride, size_t offset, size_t stride)
 {
@@ -152,17 +167,6 @@ void Pu::Buffer::UnMap(void)
 	parent->vkUnmapMemory(parent->hndl, memoryHndl);
 	buffer = nullptr;
 }
-
-/* size hides class member, checked and works as intended. */
-#pragma warning(push)
-#pragma warning(disable:4458)
-void Pu::Buffer::Flush(size_t size, size_t offset)
-{
-	/* Flush the section of the buffer indicated by the user. */
-	const MappedMemoryRange range{ memoryHndl, static_cast<DeviceSize>(offset), static_cast<DeviceSize>(size) };
-	VK_VALIDATE(parent->vkFlushMappedMemoryRanges(parent->hndl, 1, &range), PFN_vkFlushMappedMemoryRanges);
-}
-#pragma warning(pop)
 
 void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlag optional)
 {

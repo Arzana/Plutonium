@@ -68,6 +68,8 @@ namespace Pu
 		virtual void* GetHostMemory(void);
 		/* Ends the process of transfering data from the CPU to this buffer. */
 		virtual void EndMemoryTransfer(void);
+		/* Ensures that the contents of the CPU buffer as visible to the GPU. */
+		virtual void Flush(_In_ DeviceSize size, _In_ DeviceSize offset);
 
 	protected:
 		/* Whether to allow the user to change the data of this buffer. */
@@ -99,7 +101,6 @@ namespace Pu
 
 		void Map(size_t size, size_t offset);
 		void UnMap(void);
-		void Flush(size_t size, size_t offset);
 
 		void Create(const BufferCreateInfo &createInfo, MemoryPropertyFlag optional);
 		void Destroy(void);

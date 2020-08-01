@@ -111,7 +111,7 @@ void Pu::LightProbeRenderer::Render(CommandBuffer & cmdBuffer, const Model & mod
 			cmdBuffer.BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(oldIdxView));
 		}
 
-		mesh.Draw(cmdBuffer, 1);
+		mesh.Draw(cmdBuffer, 0, 1);
 	}
 }
 

@@ -49,8 +49,8 @@ namespace Pu
 	constexpr bool VulkanRaiseOnError = true;
 	/* Defines whether ImGui should be available. */
 	constexpr bool ImGuiAvailable = true;
-	/* Defines the maximum amount of vertices that can be rendered in one frame of the debug renderer. */
-	constexpr size_t MaxDebugRendererVertices = 0x100000;
+	/* Defines the maximum amount of objects (per type) that can be rendered in one frame of the debug renderer. */
+	constexpr size_t MaxDebugRendererObjects = 0x2000;
 	/* Defines whether to log warnings about wasted GPU memory due to allignment or minimum buffer sizes. */
 	constexpr bool LogWastedMemory = false;
 	/* Defines the amount of lines that should be used to draw a single ellipse in an ellipsoid. */

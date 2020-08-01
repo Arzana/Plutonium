@@ -39,7 +39,7 @@ namespace Pu
 		/* Adds a spline to the debug renderer queue, with a specified amount of segments. */
 		void AddSpline(_In_ const Spline &spline, _In_ Color color, _In_ uint32 segments);
 		/* Adds an arrow to the debug renderer queue. */
-		void AddArrow(_In_ Vector3 start, _In_ Vector3 direction, _In_ Color color, _In_opt_ float length = 1.0f, _In_opt_ float headAngle = PI / 8.0f);
+		void AddArrow(_In_ Vector3 start, _In_ Vector3 direction, _In_ Color color, _In_opt_ float length = 1.0f);
 		/* Adds a matrix transform to the debug renderer queue. */
 		void AddTransform(_In_ const Matrix &transform, _In_opt_ float scale = 1.0f, _In_opt_ Vector3 offset = Vector3{});
 		/* Adds an axis aligned box to the debug renderer queue. */
@@ -56,8 +56,6 @@ namespace Pu
 		void AddEllipsoid(_In_ Vector3 center, _In_ float xRadius, _In_ float yRadius, _In_ float zRadius, _In_ Color color);
 		/* Adds a capsule to the debug renderer queue. */
 		void AddCapsule(_In_ Vector3 center, _In_ float height, _In_ float radius, _In_ Color color);
-		/* Adds a rectangle to the debug renderer queue. */
-		void AddRectangle(_In_ Vector3 lower, _In_ Vector3 upper, _In_ Color color);
 		/* Adds a frustum to the debug renderer queue. */
 		void AddFrustum(_In_ const Frustum &frustum, _In_ Color color);
 		/* Renders all shapes stored in the debug renderer. */
@@ -65,11 +63,16 @@ namespace Pu
 		/* Resets the debug renderer with a new depth buffer if the old depth buffer changed. */
 		void Reset(_In_ const DepthBuffer &depthBuffer);
 
-	private: 
-		constexpr static uint32 END_ANGLE = EllipsiodDivs << 1;
+	private:
+		struct VertexLayout
+		{
+			Matrix mdl;
+			Color clr;
+		};
 
 		AssetFetcher &loader;
 		GameWindow &wnd;
+		MeshCollection *meshes;
 
 		Renderpass *renderpass;
 		GraphicsPipeline *pipeline;
@@ -77,20 +80,18 @@ namespace Pu
 
 		DynamicBuffer *buffer;
 		const DepthBuffer *depthBuffer;
-		ColoredVertex3D *queue;
-		uint32 size, invalidated;
+		uint32 cntLine, cntArrow, cntBox, cntEllipsoid, cntHemisphere;
 
 #ifdef _DEBUG
 		mutable uint32 culled;
 #endif
 
 		float lineWidth;
+		uint32 invalidated;
 		bool dynamicLineWidth, thrown;
-		float cosines[END_ANGLE];
-		float sines[END_ANGLE];
 
-		bool CheckCapacity(uint32 addition) const;
-		void AddVertex(Vector3 p, Color c);
+		bool CheckCapacity(uint32 list, uint32 addition) const;
+		void AddLineInternal(Vector3 start, Vector3 end, Color color);
 		void InitializeRenderpass(Renderpass&);
 		void InitializePipeline(Renderpass&);
 		void CreatePipeline(void);

@@ -55,7 +55,7 @@ public:
 		Mesh mesh = ShapeCreator::VolumeSphere(*staging, EllipsiodDivs);
 		result.Initialize(fetcher.GetDevice(), *staging, ShapeCreator::GetVolumeSphereVertexSize(EllipsiodDivs), std::move(mesh));
 
-		fetcher.GetLoader().StageBuffer(*staging, result.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
+		fetcher.GetLoader().StageBuffer(*staging, result.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"Deferred Renderer Light Volumes");
 		return Result::AutoDelete();
 	}
 
@@ -400,7 +400,7 @@ void Pu::DeferredRenderer::Render(const TerrainChunk & chunk)
 	{
 		curCmd->BindVertexBuffer(0, meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetVertexView()));
 		curCmd->BindIndexBuffer(mesh.GetIndexType(), meshes.GetBuffer(), meshes.GetViewOffset(mesh.GetIndexView()));
-		mesh.Draw(*curCmd, 1);
+		mesh.Draw(*curCmd, 0, 1);
 	}
 }
 
@@ -447,7 +447,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 		}
 
 		/* Render the mesh. */
-		mesh.Draw(*curCmd, 1);
+		mesh.Draw(*curCmd, 0, 1);
 	}
 }
 
@@ -494,7 +494,7 @@ void Pu::DeferredRenderer::Render(const PointLightPool & lights)
 {
 	DBG_CHECK_SUBPASS(SubpassPointLight);
 	curCmd->BindVertexBuffer(1, lights, 0);
-	lightVolumes->GetShape(0).second.Draw(*curCmd, lights.GetLightCount());
+	lightVolumes->GetShape(0).second.Draw(*curCmd, 0, lights.GetLightCount());
 }
 
 void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
