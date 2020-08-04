@@ -6,6 +6,11 @@
 #include "Core/Math/Vector3_SIMD.h"
 #include "Core/Math/Matrix3_SIMD.h"
 
+#ifdef _DEBUG
+#include "Graphics/Diagnostics/DebugRenderer.h"
+#define DBG_ADD_FORCE()		appliedForces.emplace_back(TimedForce{ pu_now(), mag, at, f / mag })
+#endif
+
 Pu::ContactSolverSystem::ContactSolverSystem(PhysicalWorld & world)
 	: world(&world), capacity(0)
 {}
@@ -46,6 +51,25 @@ void Pu::ContactSolverSystem::SolveConstriants(void)
 		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
 }
+
+#ifdef _DEBUG
+void Pu::ContactSolverSystem::Visualize(DebugRenderer & dbgRenderer) const
+{
+	/* Remove all the old forces. */
+	for (size_t i = 0; i < appliedForces.size();)
+	{
+		const int64 ms = pu_ms(appliedForces[i].Time, pu_now());
+		if ((ms * 0.001f) > PhysicsDebuggingTTL) appliedForces.removeAt(i);
+		else ++i;
+	}
+
+	/* Display the forces. */
+	for (const TimedForce &f : appliedForces)
+	{
+		dbgRenderer.AddArrow(f.At, f.Dir, Color::WhiteSmoke(), f.Magnitude);
+	}
+}
+#endif
 
 void Pu::ContactSolverSystem::EnsureBufferSize(void)
 {
@@ -363,6 +387,15 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 
 		world->sysMove->AddForce(world->QueryInternalIndex(hsecond), x, y, z, pitch, yaw, roll);
 
+		/* Add the total applied impulse to the debugging list. */
+#ifdef _DEBUG
+		const Vector3 at{ world->sysCnst->px.get(i), world->sysCnst->py.get(i), world->sysCnst->pz.get(i) };
+
+		Vector3 f{ x, y, z };
+		float mag = f.Length();
+		DBG_ADD_FORCE();
+#endif
+
 		/* The second object might not need impulses to be applied. */
 		if (physics_get_type(hfirst) != PhysicsType::Static)
 		{
@@ -375,6 +408,14 @@ void Pu::ContactSolverSystem::ApplyImpulses(void)
 			roll = AVX_FLOAT_UNION{ jroll[j + avxCnt] }.V[k];
 
 			world->sysMove->AddForce(world->QueryInternalIndex(hfirst), x, y, z, pitch, yaw, roll);
+
+#ifdef _DEBUG
+			f.X = x;
+			f.Y = y;
+			f.Z = z;
+			mag = f.Length();
+			DBG_ADD_FORCE();
+#endif
 		}
 	}
 }

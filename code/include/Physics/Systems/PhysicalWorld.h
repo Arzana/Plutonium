@@ -58,7 +58,7 @@ namespace Pu
 		/* Renders the physical world. */
 		void Render(_In_ const Camera &camera, _In_ CommandBuffer &cmdBuffer);
 		/* Allows the user to visualize the physical world. */
-		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos, _In_ float dt) const;
+		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
 
 	protected:
 		/* Updates the physical world. */

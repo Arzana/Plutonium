@@ -5,8 +5,6 @@
 
 namespace Pu
 {
-	class DebugRenderer;
-
 	/* Defines a system that handles the integration of position. */
 	class MovementSystem
 	{
@@ -78,25 +76,7 @@ namespace Pu
 		/* Gets the amount of kinematic objects that are currently in sleep mode. */
 		_Check_return_ size_t GetSleepingCount(void) const;
 
-#ifdef _DEBUG
-		/* Visualizes the forces being applied to kinematic objects. */
-		void Visualize(_In_ DebugRenderer &dbgRenderer, _In_ float dt) const;
-#endif
-
 	private:
-#ifdef _DEBUG
-		struct TimedForce
-		{
-			float TTL;
-			float Magnitude;
-			Vector3 Position;
-			Vector3 Direction;
-		};
-
-		mutable bool addForces;
-		mutable vector<TimedForce> forces;
-#endif
-
 		avxf_vector cod;
 		avxf_vector m;
 		avxf_vector m00;

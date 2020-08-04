@@ -4,9 +4,14 @@
 #include "Physics/Properties/MechanicalProperties.h"
 #include "Core/Math/Matrix3.h"
 
+#ifdef _DEBUG
+#include "Core/Time.h"
+#endif
+
 namespace Pu
 {
 	class PhysicalWorld;
+	class DebugRenderer;
 
 	/* Defines a system used to solve collision manifolds. */
 	class ContactSolverSystem
@@ -32,8 +37,14 @@ namespace Pu
 		/* Solves all the collision events currently stored in the system and adds the impulses to the movement system. */
 		void SolveConstriants(void);
 
+#ifdef _DEBUG
+		/* Visualizes the forces being applied to kinematic objects. */
+		void Visualize(_In_ DebugRenderer &dbgRenderer) const;
+#endif
+
 	private:
 		PhysicalWorld *world;
+		size_t capacity;
 
 		std::map<PhysicsHandle, Matrix3> imoi;
 		std::map<PhysicsHandle, float> imass;
@@ -89,7 +100,17 @@ namespace Pu
 		ofloat *jyaw;
 		ofloat *jroll;
 
-		size_t capacity;
+#ifdef _DEBUG
+		struct TimedForce
+		{
+			pu_clock::time_point Time;
+			float Magnitude;
+			Vector3 At;
+			Vector3 Dir;
+		};
+
+		mutable vector<TimedForce> appliedForces;
+#endif
 
 		void EnsureBufferSize(void);
 		void FillBuffers(void);

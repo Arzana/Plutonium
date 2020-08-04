@@ -15,9 +15,6 @@ static Pu::uint32 collisionCount = 0;
 
 Pu::ContactSystem::ContactSystem(PhysicalWorld & world)
 	: world(&world), OnTriggerHit("ContactSystemOnTriggerHit")
-#ifdef _DEBUG
-	, addContacts(false)
-#endif
 {
 	SetGenericCheckers();
 }
@@ -205,10 +202,6 @@ void Pu::ContactSystem::Check(void)
 
 		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
-
-#ifdef _DEBUG
-	addContacts = false;
-#endif
 }
 
 void Pu::ContactSystem::ProcessTriggers(void)
@@ -254,14 +247,14 @@ void Pu::ContactSystem::VisualizeColliders(DebugRenderer & dbgRenderer, Vector3 
 	}
 }
 
-void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer, float dt) const
+void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer) const
 {
-	addContacts = true;
-
 	/* Remove all the contact point that have timed out. */
-	for (size_t i = 0; i < contacts.size(); i++)
+	for (size_t i = 0; i < contacts.size();)
 	{
-		if ((contacts[i].first -= dt) <= 0.0f) contacts.removeAt(i);
+		const int64 ms = pu_ms(contacts[i].first, pu_now());
+		if ((ms * 0.001f) > PhysicsDebuggingTTL) contacts.removeAt(i);
+		else ++i;
 	}
 
 	/* Render all the remaining contact points. */
@@ -395,7 +388,7 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	Vector3 w = world->sysMove->GetAngularVelocity(i);
 	Vector3 r = pos - world->sysMove->GetPosition(hinteral);
 	Vector3 relVloc = v + cross(w, r);
-	
+
 	/* Subtract the first velocity from the relative velocity if the second object is also kinematic. */
 	if (physics_get_type(hfirst) != PhysicsType::Static)
 	{
@@ -438,14 +431,10 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	nz.push(normal.Z);
 
 #ifdef _DEBUG
-	/* We only want to add the contact point to the debug list if debugging is enabled. */
-	if (addContacts)
+	/* Make sure we don't show the same contact multiple times. */
+	if (!contacts.contains([pos](const std::pair<pu_clock::time_point, Vector3> &cur) { return nrlyeql(cur.second, pos, 0.01f); }))
 	{
-		/* Make sure we don't show the same contact multiple times. */
-		if (!contacts.contains([pos](const std::pair<float, Vector3> &cur) { return nrlyeql(cur.second, pos, 0.01f); }))
-		{
-			contacts.emplace_back(std::make_pair(PhysicsDebuggingTTL, pos));
-		}
+		contacts.emplace_back(std::make_pair(pu_now(), pos));
 	}
 #endif
 

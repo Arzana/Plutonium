@@ -178,7 +178,7 @@ void Pu::PhysicalWorld::Render(const Camera & camera, CommandBuffer & cmdBuffer)
 	lock.unlock();
 }
 
-void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, float dt) const
+void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) const
 {
 	/*
 	We only allow visualization of the physics system on debug mode.
@@ -216,10 +216,10 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos, f
 			if (showColliders) sysCnst->VisualizeColliders(dbgRenderer, camPos);
 
 			ImGui::Checkbox("Visualize Contacts", &showContacts);
-			if (showContacts) sysCnst->VisualizeContacts(dbgRenderer, dt);
+			if (showContacts) sysCnst->VisualizeContacts(dbgRenderer);
 
 			ImGui::Checkbox("Visualize Impulses", &showForces);
-			if (showForces) sysMove->Visualize(dbgRenderer, dt);
+			if (showForces) sysSolv->Visualize(dbgRenderer);
 
 			ImGui::PushItemWidth(100.0f);
 			if (ImGui::BeginCombo("Physics Step Mode", stepMode))

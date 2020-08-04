@@ -6,6 +6,10 @@
 #include "Physics/Objects/PhysicsHandle.h"
 #include "Physics/Properties/CollisionShapes.h"
 
+#ifdef _DEBUG
+#include "Core/Time.h"
+#endif
+
 namespace Pu
 {
 	class PhysicalWorld;
@@ -72,7 +76,7 @@ namespace Pu
 		/* Visualizes the colliders in the world. */
 		void VisualizeColliders(_In_ DebugRenderer &dbgRenderer, _In_ Vector3 camPos) const;
 		/* Visualizes the contact point in the world. */
-		void VisualizeContacts(_In_ DebugRenderer &dbgRenderer, _In_ float dt) const;
+		void VisualizeContacts(_In_ DebugRenderer &dbgRenderer) const;
 #endif
 
 	private:
@@ -90,8 +94,7 @@ namespace Pu
 		vector<PhysicsHandlePair> hitTriggers;
 
 #ifdef _DEBUG
-		mutable bool addContacts;
-		mutable vector<std::pair<float, Vector3>> contacts;
+		mutable vector<std::pair<pu_clock::time_point, Vector3>> contacts;
 #endif
 
 		void TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond);

@@ -1,6 +1,6 @@
 #pragma once
-#include <chrono>
-#include "Core\Diagnostics\Logging.h"
+#include "Core/Time.h"
+#include "Core/Diagnostics/Logging.h"
 
 namespace Pu
 {
@@ -8,9 +8,6 @@ namespace Pu
 	class Stopwatch
 	{
 	public:
-		/* Specifies the type of clock used. */
-		using clock_t = std::chrono::high_resolution_clock;
-
 		/* Initializes a new instance of a stopwatch. */
 		Stopwatch(void)
 			: start(), end(), endCalled(false)
@@ -34,7 +31,7 @@ namespace Pu
 			if (startCalled) Log::Warning("Calling Start on stopwatch before calling end!");
 			startCalled = true;
 #endif
-			start = clock_t::now();
+			start = pu_now();
 		}
 
 		/* Stops the measuring. */
@@ -44,7 +41,7 @@ namespace Pu
 			if (!startCalled) Log::Warning("Calling End on stopwatch before calling Start!");
 #endif
 			endCalled = true;
-			end = clock_t::now();
+			end = pu_now();
 		}
 
 		/* Resets the stopwatch making it ready to be used again. */
@@ -54,8 +51,8 @@ namespace Pu
 			startCalled = false;
 #endif
 			endCalled = false;
-			start = clock_t::time_point();
-			end = clock_t::time_point();
+			start = pu_clock::time_point();
+			end = pu_clock::time_point();
 		}
 
 		/* Restarts the stopwatch reseting the timer and starting time measuring. */
@@ -65,35 +62,35 @@ namespace Pu
 			startCalled = true;
 #endif
 			endCalled = false;
-			start = clock_t::now();
-			end = clock_t::time_point();
+			start = pu_now();
+			end = pu_clock::time_point();
 		}
 
 		/* Gets the amount of nanoseconds since End was called or now. */
 		_Check_return_ inline int64 Nanoseconds(void) const
 		{
-			return GetDuration<std::chrono::nanoseconds>();
+			return pu_ns(start, get_end());
 		}
 
 		/* Gets the amount of microseconds since End was called or now. */
 		_Check_return_ inline int64 Microseconds(void) const
 		{
-			return GetDuration<std::chrono::microseconds>();
+			return pu_us(start, get_end());
 		}
 
 		/* Gets the amount of milliseconds since End was called or now. */
 		_Check_return_ inline int64 Milliseconds(void) const
 		{
-			return GetDuration<std::chrono::milliseconds>();
+			return pu_ms(start, get_end());
 		}
 
 		/* Gets the amount of seconds since End was called or now. */
 		_Check_return_ inline int64 Seconds(void) const
 		{
-			return GetDuration<std::chrono::seconds>();
+			return pu_sec(start, get_end());
 		}
 
-		/* Gets the amount of seconds since End was called or now with great accutacy. */
+		/* Gets the amount of seconds since End was called or now with great accuracy. */
 		_Check_return_ inline float SecondsAccurate(void) const
 		{
 			return static_cast<float>(Nanoseconds()) * 0.000000001f;
@@ -102,25 +99,22 @@ namespace Pu
 		/* Gets the amount of minutes since End was called or now. */
 		_Check_return_ inline int64 Minutes(void) const
 		{
-			return GetDuration<std::chrono::minutes>();
+			return pu_min(start, get_end());
 		}
 
 	private:
-		clock_t::time_point start, end;
+		pu_clock::time_point start, end;
 		bool endCalled;
 #ifdef _DEBUG
 		bool startCalled;
 #endif
 
-		/* Gets the amount of clock ticks since End was called or now. */
-		template <typename duration_t>
-		_Check_return_ inline int64 GetDuration(void) const
+		inline pu_clock::time_point get_end(void) const
 		{
 #ifdef _DEBUG
 			if (!startCalled) Log::Warning("Cannot get time of stopwatch that hasn't been started!");
 #endif
-
-			return std::chrono::duration_cast<duration_t>((endCalled ? end : clock_t::now()) - start).count();
+			return endCalled ? end : pu_now();
 		}
 	};
 }

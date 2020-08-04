@@ -1,5 +1,4 @@
 #include "Physics/Systems/MovementSystem.h"
-#include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/Vector3_SIMD.h"
 #include "Core/Math/Vector4_SIMD.h"
@@ -29,16 +28,6 @@ void Pu::MovementSystem::AddForce(size_t idx, float x, float y, float z, float p
 	wp.add(idx, pitch);
 	wy.add(idx, yaw);
 	wr.add(idx, roll);
-
-	/* Save this impulse on debug mode, so we can display it. */
-#ifdef _DEBUG
-	if (addForces)
-	{
-		const Vector3 at = Vector3(px.get(idx), py.get(idx), pz.get(idx));
-		const Vector3 force = Vector3(x, y, z);
-		forces.emplace_back(TimedForce{ PhysicsDebuggingTTL, force.Length(), at, normalize(force) });
-	}
-#endif
 }
 
 size_t Pu::MovementSystem::AddItem(Vector3 p, Vector3 v, Quaternion theta, Vector3 omega, Vector3 scale, float CoD, float imass, const Matrix3 &moi)
@@ -223,10 +212,6 @@ void Pu::MovementSystem::Integrate(ofloat dt)
 	const ofloat half = _mm256_set1_ps(0.5f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
 
-#ifdef _DEBUG
-	addForces = false;
-#endif
-
 	/* Add linear velocity to position (scaled by delta time). */
 	for (size_t i = 0; i < size; i++) px[i] = _mm256_add_ps(px[i], _mm256_mul_ps(vx[i], dt));
 	for (size_t i = 0; i < size; i++) py[i] = _mm256_add_ps(py[i], _mm256_mul_ps(vy[i], dt));
@@ -378,23 +363,3 @@ size_t Pu::MovementSystem::GetSleepingCount(void) const
 
 	return result;
 }
-
-#ifdef _DEBUG
-void Pu::MovementSystem::Visualize(DebugRenderer & dbgRenderer, float dt) const
-{
-	addForces = true;
-
-	/* Remove any old impulses. from the list. */
-	for (size_t i = 0; i < forces.size();)
-	{
-		if ((forces[i].TTL -= dt) <= 0.0f) forces.removeAt(i);
-		else i++;
-	}
-
-	/* Display the forces. */
-	for (const TimedForce &force : forces)
-	{
-		dbgRenderer.AddArrow(force.Position, force.Direction, Color::WhiteSmoke(), force.Magnitude);
-	}
-}
-#endif

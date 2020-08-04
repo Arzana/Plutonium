@@ -112,6 +112,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Shapes\Sphere.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector3_SIMD.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector4_SIMD.h" />
+    <ClInclude Include="..\..\..\include\Core\Time.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\PointLightPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\PointLight.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\SpecializationConstant.h" />
@@ -152,7 +153,6 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\DbgUtils.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Memory.h" />
-    <ClInclude Include="..\..\..\include\Core\Diagnostics\NotImplementedException.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Profiler.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h" />
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Stopwatch.h" />

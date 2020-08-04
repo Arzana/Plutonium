@@ -172,9 +172,12 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
 		world->Render(*camFree, cmd);
 
-		if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition(), dt);
+		if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition());
 		if (showCamOpt) camFree->Visualize();
-		dbgRenderer->AddTransform(Matrix{}, 2.0f, Vector3(0.0f, 20.0f, 0.0f));
+
+		const float rayLen = 0.01f;
+		const Vector3 p = camFree->NDCToWorld(Vector3{ 0.9f, 0.9f, camFree->GetNear() + rayLen });
+		dbgRenderer->AddTransform(Matrix{}, rayLen, p);
 		dbgRenderer->Render(cmd, *camFree);
 	}
 
