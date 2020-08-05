@@ -33,7 +33,7 @@ void Pu::ContactSolverSystem::RemoveItem(PhysicsHandle handle)
 	coefficients.erase(handle);
 }
 
-void Pu::ContactSolverSystem::SolveConstriants(void)
+void Pu::ContactSolverSystem::SolveConstriants(ofloat dt)
 {
 	/* We don't need to solve anything if there are no collisions. */
 	if (world->sysCnst->hfirsts.size())
@@ -45,7 +45,7 @@ void Pu::ContactSolverSystem::SolveConstriants(void)
 		FillBuffers();
 
 		/* Then we solve these constraints in SSE and apply the impulses the the movement system. */
-		VectorSolve();
+		VectorSolve(dt);
 		ApplyImpulses();
 
 		if constexpr (ProfileWorldSystems) Profiler::End();
@@ -239,7 +239,7 @@ Loop over all the AVX types (8 packed manifold) and solve them in parallel.
 	Calculate friction impulse (reuse j).
 	Calculate angular impulse and apply it to both objects.
 */
-void Pu::ContactSolverSystem::VectorSolve(void)
+void Pu::ContactSolverSystem::VectorSolve(ofloat dt)
 {
 	/* Predefine often used constants. */
 	const size_t count = world->sysCnst->hfirsts.size();
@@ -247,6 +247,7 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 	const ofloat zero = _mm256_setzero_ps();
 	const ofloat one = _mm256_set1_ps(1.0f);
 	const ofloat neg = _mm256_set1_ps(-1.0f);
+	const ofloat beta = _mm256_set1_ps(PhysicsBaumgarteFactor);
 
 	/* Cache pointers to the collision normal and contact point. */
 	const ofloat *nx = world->sysCnst->nx.data();
@@ -317,6 +318,18 @@ void Pu::ContactSolverSystem::VectorSolve(void)
 			jpitch[i] = _mm256_mul_ps(j, tmp_x3);
 			jyaw[i] = _mm256_mul_ps(j, tmp_y3);
 			jroll[i] = _mm256_mul_ps(j, tmp_z3);
+
+			/* Stabalize using Baumgarte. */
+			d1 = _mm256_mul_ps(beta, _mm256_div_ps(world->sysCnst->sd[i], dt));
+			tmp_x1 = _mm256_mul_ps(d1, nx[i]);
+			tmp_y1 = _mm256_mul_ps(d1, ny[i]);
+			tmp_z1 = _mm256_mul_ps(d1, nz[i]);
+			jx[k] = _mm256_sub_ps(jx[k], tmp_x1);
+			jy[k] = _mm256_sub_ps(jy[k], tmp_y1);
+			jz[k] = _mm256_sub_ps(jz[k], tmp_z1);
+			jx[i] = _mm256_add_ps(jx[i], tmp_x1);
+			jy[i] = _mm256_add_ps(jy[i], tmp_y1);
+			jz[i] = _mm256_add_ps(jz[i], tmp_z1);
 		}
 
 		/* Calculate and apply the kinetic friction force. */

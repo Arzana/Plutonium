@@ -35,7 +35,7 @@ namespace Pu
 		/* Removes the item at the specified index. */
 		void RemoveItem(_In_ PhysicsHandle handle);
 		/* Solves all the collision events currently stored in the system and adds the impulses to the movement system. */
-		void SolveConstriants(void);
+		void SolveConstriants(_In_ ofloat dt);
 
 #ifdef _DEBUG
 		/* Visualizes the forces being applied to kinematic objects. */
@@ -114,7 +114,7 @@ namespace Pu
 
 		void EnsureBufferSize(void);
 		void FillBuffers(void);
-		void VectorSolve(void);
+		void VectorSolve(ofloat dt);
 		void ApplyImpulses(void);
 		void Destroy(void);
 	};

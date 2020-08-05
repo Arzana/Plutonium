@@ -61,11 +61,15 @@ void Pu::DynamicBuffer::EndMemoryTransfer(void)
 	stagingBuffer->EndMemoryTransfer();
 }
 
+/* size hides class member, size is private in the base class, MSVC doesn't realize that I can't access it anyway. */
+#pragma warning(push)
+#pragma warning(disable:4458)
 void Pu::DynamicBuffer::Flush(DeviceSize size, DeviceSize offset)
 {
 	stagingBuffer->Flush(size, offset);
 	isDirty = true;
 }
+#pragma warning(pop)
 
 void Pu::DynamicBuffer::Destroy(void)
 {

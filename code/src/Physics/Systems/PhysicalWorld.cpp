@@ -262,7 +262,6 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) c
 #else
 	(void)dbgRenderer;
 	(void)camPos;
-	(void)dt;
 #endif
 }
 
@@ -308,7 +307,7 @@ void Pu::PhysicalWorld::Update(float dt)
 		sysCnst->Check();
 		sysMove->ApplyGravity(dt8);
 		sysMove->ApplyDrag(dt8);
-		sysSolv->SolveConstriants();
+		sysSolv->SolveConstriants(dt8);
 		sysMove->TrySleep(threshold);
 		sysMove->Integrate(dt8);
 	}

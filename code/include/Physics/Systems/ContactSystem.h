@@ -38,6 +38,8 @@ namespace Pu
 		avxf_vector ny;
 		/* Defines the z-component of the collision normal. */
 		avxf_vector nz;
+		/* Defines the intersection depth. */
+		avxf_vector sd;
 
 		/* Initializes a new instance of a constraint system. */
 		ContactSystem(_In_ PhysicalWorld &world);

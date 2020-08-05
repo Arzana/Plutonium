@@ -25,7 +25,7 @@ Pu::ContactSystem::ContactSystem(ContactSystem && value)
 	rawBroadPhase(std::move(value.rawBroadPhase)),
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
 	rawNarrowPhase(std::move(value.rawNarrowPhase)),
-	hitTriggers(std::move(value.hitTriggers)),
+	hitTriggers(std::move(value.hitTriggers)), sd(std::move(value.sd)),
 	hfirsts(std::move(value.hfirsts)), hseconds(std::move(value.hseconds)),
 	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz)),
 	px(std::move(value.px)), py(std::move(value.py)), pz(std::move(value.pz))
@@ -48,6 +48,7 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 		nx = std::move(other.nx);
 		ny = std::move(other.ny);
 		nz = std::move(other.nz);
+		sd = std::move(other.sd);
 
 		world = other.world;
 		rawBroadPhase = std::move(other.rawBroadPhase);
@@ -152,6 +153,7 @@ void Pu::ContactSystem::Check(void)
 	nx.clear();
 	ny.clear();
 	nz.clear();
+	sd.clear();
 
 	if constexpr (ProfileWorldSystems) Profiler::Begin("BVH Update", Color::Abbey());
 
@@ -392,26 +394,12 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	/* Subtract the first velocity from the relative velocity if the second object is also kinematic. */
 	if (physics_get_type(hfirst) != PhysicsType::Static)
 	{
-		if constexpr (PhysicsCorrectPosition)
-		{
-			/* Both objects are kinematic, so move them both equal amounts. */
-			depth *= 0.5f;
-			world->sysMove->AddOffset(i, normal * depth);
-		}
-
 		hinteral = world->QueryInternalHandle(hfirst);
 		i = physics_get_lookup_id(hinteral);
 		v = world->sysMove->GetVelocity(i);
 		w = world->sysMove->GetAngularVelocity(i);
 		r = pos - world->sysMove->GetPosition(hinteral);
 		relVloc -= v - cross(w, r);
-
-		if constexpr (PhysicsCorrectPosition) world->sysMove->AddOffset(i, normal * -depth);
-	}
-	else if constexpr (PhysicsCorrectPosition)
-	{
-		/* The second item is the only kinematic item, so this is the only item that should be corrected. */
-		world->sysMove->AddOffset(i, normal * depth);
 	}
 
 	/* Ignore the collision if we have a seperating velocity (i.e. moving away from each other). */
@@ -429,13 +417,11 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	nx.push(normal.X);
 	ny.push(normal.Y);
 	nz.push(normal.Z);
+	sd.push(depth);
 
 #ifdef _DEBUG
-	/* Make sure we don't show the same contact multiple times. */
-	if (!contacts.contains([pos](const std::pair<pu_clock::time_point, Vector3> &cur) { return nrlyeql(cur.second, pos, 0.01f); }))
-	{
-		contacts.emplace_back(std::make_pair(pu_now(), pos));
-	}
+	/* Add the collision point to the contacts list (checking for duplicates just slows it down). */
+	contacts.emplace_back(std::make_pair(pu_now(), pos));
 #endif
 
 	++collisionCount;

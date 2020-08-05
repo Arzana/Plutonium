@@ -354,11 +354,15 @@ void Pu::MovementSystem::TrySleep(ofloat epsilon)
 
 size_t Pu::MovementSystem::GetSleepingCount(void) const
 {
+	size_t remaining = sleep.size();
 	size_t result = sleep.size();
 
+	size_t mask;
 	for (ofloat cur : sleep)
 	{
-		result -= _mm_popcnt_u32(static_cast<uint32>(_mm256_movemask_ps(cur)));
+		mask = 0xFF >> (remaining < 8) * (8 - (remaining & 0x7));
+		result -= _mm_popcnt_u32(_mm256_movemask_ps(cur) & mask);
+		remaining -= 8;
 	}
 
 	return result;
