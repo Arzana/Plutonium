@@ -25,10 +25,11 @@ Pu::ContactSystem::ContactSystem(ContactSystem && value)
 	rawBroadPhase(std::move(value.rawBroadPhase)),
 	cachedBroadPhase(std::move(value.cachedBroadPhase)),
 	rawNarrowPhase(std::move(value.rawNarrowPhase)),
-	hitTriggers(std::move(value.hitTriggers)), sd(std::move(value.sd)),
+	hitTriggers(std::move(value.hitTriggers)),
 	hfirsts(std::move(value.hfirsts)), hseconds(std::move(value.hseconds)),
 	nx(std::move(value.nx)), ny(std::move(value.ny)), nz(std::move(value.nz)),
-	px(std::move(value.px)), py(std::move(value.py)), pz(std::move(value.pz))
+	px(std::move(value.px)), py(std::move(value.py)), pz(std::move(value.pz)),
+	sd(std::move(value.sd)), em(std::move(value.em))
 {
 	SetGenericCheckers();
 }
@@ -49,6 +50,7 @@ Pu::ContactSystem & Pu::ContactSystem::operator=(ContactSystem && other)
 		ny = std::move(other.ny);
 		nz = std::move(other.nz);
 		sd = std::move(other.sd);
+		em = std::move(other.em);
 
 		world = other.world;
 		rawBroadPhase = std::move(other.rawBroadPhase);
@@ -251,18 +253,30 @@ void Pu::ContactSystem::VisualizeColliders(DebugRenderer & dbgRenderer, Vector3 
 
 void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer) const
 {
-	/* Remove all the contact point that have timed out. */
-	for (size_t i = 0; i < contacts.size();)
-	{
-		const int64 ms = pu_ms(contacts[i].first, pu_now());
-		if ((ms * 0.001f) > PhysicsDebuggingTTL) contacts.removeAt(i);
-		else ++i;
-	}
+	TryClearOldContacts();
 
 	/* Render all the remaining contact points. */
 	for (const auto[ttl, pos] : contacts)
 	{
 		dbgRenderer.AddSphere(pos, 0.1f, Color::Yellow());
+	}
+}
+
+void Pu::ContactSystem::TryClearOldContacts(void) const
+{
+	/* Don't just call this clear code every time it's called. */
+	const pu_clock::time_point now = pu_now();
+	if (pu_sec(lastDebugContactClear, now) > PhysicsDebuggingTTL)
+	{
+		lastDebugContactClear = now;
+
+		/* Remove all the contact point that have timed out. */
+		for (size_t i = 0; i < contacts.size();)
+		{
+			const int64 ms = pu_ms(contacts[i].first, now);
+			if ((ms * 0.001f) > PhysicsDebuggingTTL) contacts.removeAt(i);
+			else ++i;
+		}
 	}
 }
 #endif
@@ -309,7 +323,7 @@ void Pu::ContactSystem::TestSphereSphere(PhysicsHandle hfirst, PhysicsHandle hse
 	{
 		const Vector3 n = dir(sphere1.Center, sphere2.Center);
 		const Vector3 p = sphere1.Center + sphere1.Radius * n;
-		AddManifold(hfirst, hsecond, p, n, r2 - d2);
+		AddManifold(hfirst, hsecond, p, n, r2 - d2, 1.0f);
 	}
 }
 
@@ -327,7 +341,7 @@ void Pu::ContactSystem::TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hspher
 	{
 		const Vector3 n = dir(q, sphere.Center);
 		const Vector3 p = sphere.Center + sphere.Radius * -n;
-		AddManifold(haabb, hsphere, p, n, r2 - d2);
+		AddManifold(haabb, hsphere, p, n, r2 - d2, 1.0f);
 	}
 }
 
@@ -351,7 +365,7 @@ void Pu::ContactSystem::TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hs
 		if (h >= low)
 		{
 			const Vector3 p{ sphere.Center.X, h, sphere.Center.Z };
-			AddManifold(hmap, hsphere, p, n, h - low);
+			AddManifold(hmap, hsphere, p, n, h - low, 1.0f);
 		}
 	}
 }
@@ -371,11 +385,31 @@ void Pu::ContactSystem::TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb)
 	{
 		const Vector3 n = dir(q, sphere.Center);
 		const Vector3 p = sphere.Center + sphere.Radius * -n;
-		AddManifold(hobb, hsphere, p, n, r2 - d2);
+		AddManifold(hobb, hsphere, p, n, r2 - d2, 1.0f);
 	}
 }
 
-void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth)
+void Pu::ContactSystem::TestOBBOBB(PhysicsHandle hfirst, PhysicsHandle hsecond)
+{
+	/* Query the colliders and transform them to the correct location. */
+	const OBB &obb1 = as_shape(OBB, rawNarrowPhase.at(hfirst).second) * world->GetTransform(hfirst);
+	const OBB &obb2 = as_shape(OBB, rawNarrowPhase.at(hsecond).second) * world->GetTransform(hsecond);
+
+	/* Check for collision. */
+	if (sat.Run(obb1, obb2))
+	{
+		const vector<Vector3> points = sat.GetContacts(obb1, obb2);
+		const float mul = 1.0f / points.size();
+
+		/* Should make a different solver for this, but for now this works. */
+		for (Vector3 p : points)
+		{
+			AddManifold(hfirst, hsecond, p, sat.GetIntersectionAxis(), sat.GetIntersectionDepth(), mul);
+		}
+	}
+}
+
+void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth, float mul)
 {
 	/* Ignore any duplicate collisions. */
 	for (size_t i = 0; i < hfirsts.size(); i++)
@@ -418,8 +452,12 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	ny.push(normal.Y);
 	nz.push(normal.Z);
 	sd.push(depth);
+	em.push(mul);
 
 #ifdef _DEBUG
+	/* Make sure we don't just leak memory if visualize isn't called. */
+	TryClearOldContacts();
+
 	/* Add the collision point to the contacts list (checking for duplicates just slows it down). */
 	contacts.emplace_back(std::make_pair(pu_now(), pos));
 #endif
@@ -433,6 +471,7 @@ void Pu::ContactSystem::SetGenericCheckers(void)
 	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ContactSystem::TestSphereSphere);
 	checkers.emplace(create_collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ContactSystem::TestHeightmapSphere);
 	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::OBB), &ContactSystem::TestSphereOBB);
+	checkers.emplace(create_collision_t(CollisionShapes::OBB, CollisionShapes::OBB), &ContactSystem::TestOBBOBB);
 }
 
 void Pu::ContactSystem::Destroy(void)

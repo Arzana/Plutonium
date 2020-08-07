@@ -11,7 +11,8 @@ using namespace Pu;
 const uint16 terrainSize = 10;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false), desiredFormat(nullptr)
+	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false), 
+	desiredFormat(nullptr), vsynchMode(-1)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
@@ -64,7 +65,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 #ifdef USE_KNIGHT
 	playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
 #else
-	playerModel = &fetcher.CreateModel(ShapeType::Sphere, *renderer, nullptr, L"{Textures}uv.png");
+	playerModel = &fetcher.CreateModel(ShapeType::Box, *renderer, nullptr, L"{Textures}uv.png");
 #endif
 
 	rampModel = &fetcher.CreateModel(ShapeType::Box, *renderer);
@@ -72,13 +73,13 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
 	Collider collider{ obb };
 
-	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI4 * 0.5f), collider };
+	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(0.0f), collider };
 	obj.Properties = physicsMat;
 	obj.Scale = Vector3(40.0f, 1.0f, 100.0f);
 	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 
 	obj.P.Z = 90.0f;
-	obj.Theta = Quaternion::CreatePitch(TAU - PI4 * 0.5f);
+	obj.Theta = Quaternion::CreatePitch(TAU - PI8);
 	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 }
 
@@ -100,10 +101,24 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 void TestGame::Update(float)
 {
 	if (spawnToggle) SpawnNPC();
+
 	if (desiredFormat)
 	{
 		GetWindow().SetColorSpace(*desiredFormat);
 		desiredFormat = nullptr;
+	}
+
+	if (vsynchMode == 0)
+	{
+		vsynchMode = -1;
+		IsFixedTimeStep = false;
+		GetWindow().SetPresentMode(PresentMode::Immediate);
+	}
+	else if (vsynchMode == 1)
+	{
+		vsynchMode = -1;
+		IsFixedTimeStep = true;
+		GetWindow().SetPresentMode(PresentMode::MailBox);
 	}
 }
 
@@ -128,6 +143,9 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 				ImGui::EndCombo();
 			}
 
+			bool selected = GetWindow().GetSwapchain().GetPresentMode() == PresentMode::MailBox;
+			if (ImGui::Checkbox("VSync", &selected)) vsynchMode = selected;
+			
 			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
 			ImGui::MenuItem("Physics", nullptr, &showPhysics);
 			ImGui::MenuItem("Camera", nullptr, &showCamOpt);
@@ -209,8 +227,9 @@ void TestGame::SpawnNPC(void)
 	Sphere sphere{ 25.0f };
 #else
 	Sphere sphere{ 0.5f };
+	OBB coll{ Vector3{}, Vector3{0.5f}, Quaternion{} };
 #endif
-	Collider collider{ sphere };
+	Collider collider{ coll };
 
 	/* Use the default physical material. */
 	PhysicalObject obj{ Vector3(x, y, z), Quaternion{}, collider };

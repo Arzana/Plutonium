@@ -201,7 +201,9 @@ void Pu::PhysicalWorld::Visualize(DebugRenderer & dbgRenderer, Vector3 camPos) c
 			ImGui::Text("Kinematic Objects: %zu/%zu", activeObjects, kinematicObjects);
 			ImGui::Text("BVH Updates:       %zu", ContactSystem::GetBVHUpdateCalls());
 			ImGui::Text("Collisions:        %u/%u", ContactSystem::GetCollisionsCount(), ContactSystem::GetNarrowPhaseChecks());
+			ImGui::Text("SAT calls:         %u", SAT::GetCallCount());
 			ContactSystem::ResetCounters();
+			SAT::ResetCounter();
 
 			ImGui::Separator();
 

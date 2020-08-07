@@ -12,15 +12,6 @@ namespace Pu
 
 		/* Initializes a new instance of the GJK helper object. */
 		GJK(void);
-		/* Copy constructor. */
-		GJK(_In_ const GJK &value) = default;
-		/* Move constructor. */
-		GJK(_In_ GJK &&avlue) = default;
-
-		/* Copy assignment. */
-		_Check_return_ GJK& operator =(_In_ const GJK &other) = default;
-		/* Move assignment. */
-		_Check_return_ GJK& operator =(_In_ GJK &&other) = default;
 
 		/* Gets the amount of GJK calls that occured since the last reset. */
 		_Check_return_ static uint32 GetCallCount(void);
@@ -28,6 +19,7 @@ namespace Pu
 		_Check_return_ static uint32 GetAverageIterations(void);
 		/* Resets the GJK call counter. */
 		static void ResetCounters(void);
+
 		/* Runs a generic version of the GJK algorithm for the two specified shapes and their support functions; returning whether the two shapes intersect. */
 		_Check_return_ bool Run(_In_ const void *shape1, _In_ const void *shape2, _In_ Support_t support1, _In_ Support_t support2);
 

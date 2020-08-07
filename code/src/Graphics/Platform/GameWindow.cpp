@@ -22,12 +22,15 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	/* Make sure we update the swapchains size upon a window size change. */
 	native.OnSizeChanged.Add(*this, &GameWindow::OnNativeSizeChangedHandler);
 
+	/* FiFo is always available, but mailbox is preferred. */
+	const PresentMode initialMode = GetSupportedPresentModes().contains(PresentMode::MailBox) ? PresentMode::MailBox : PresentMode::FiFo;
+
 	/* Non-linear sRGB is always supported so search for that one and use it. */
 	for (const SurfaceFormat &format : GetSupportedFormats())
 	{
 		if (format.ColorSpace == ColorSpace::SRGB)
 		{
-			CreateSwapchain(native.GetClientBounds().GetSize(), format, true);
+			CreateSwapchain(native.GetClientBounds().GetSize(), format, initialMode, true);
 			break;
 		}
 	}
@@ -129,6 +132,13 @@ const vector<SurfaceFormat>& Pu::GameWindow::GetSupportedFormats(void) const
 	return supportedFormats;
 }
 
+const vector<PresentMode>& Pu::GameWindow::GetSupportedPresentModes(void) const
+{
+	/* This operation is quite slow so we use a cache to speed it up, this list only needs to be updated once anyway. */
+	if (supportedPresentModes.empty()) supportedPresentModes = native.GetSurface().GetSupportedPresentModes(device.GetPhysicalDevice());
+	return supportedPresentModes;
+}
+
 void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
 {
 	/* Make sure that we don't change if it's not needed. */
@@ -144,7 +154,7 @@ void Pu::GameWindow::SetColorSpace(ColorSpace colorSpace)
 		{
 			/* Make sure non of the resources are in use. */
 			Log::Warning("Changing window color space, this might cause lag!");
-			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs(false, true, false));
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, swapchain->mode, SwapchainReCreatedEventArgs{ false, true, false, false });
 			return;
 		}
 	}
@@ -160,18 +170,38 @@ void Pu::GameWindow::SetColorSpace(const SurfaceFormat & format)
 		if (format == swapchain->GetFormat()) return;
 	}
 
-	/* Check if the desired format is supported by the monitor. */
+	/* Check if the desired format is supported by the surface. */
 	for (const SurfaceFormat &checkFormat : GetSupportedFormats())
 	{
 		if (format == checkFormat)
 		{
-			Log::Warning("Changing window format and color space, this might cause lag!");
-			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, SwapchainReCreatedEventArgs{ false, true, false });
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), format, swapchain->mode, SwapchainReCreatedEventArgs{ false, true, false, false });
 			return;
 		}
 	}
 
 	Log::Warning("Format %s is not supported by the surface!", format.ToString().c_str());
+}
+
+void Pu::GameWindow::SetPresentMode(PresentMode mode)
+{
+	/* Don't change the present mode if it's not needed. */
+	if (swapchain)
+	{
+		if (mode == swapchain->GetPresentMode()) return;
+	}
+
+	/* Check if the desired mode is supported by the surface. */
+	for (PresentMode checkMode : GetSupportedPresentModes())
+	{
+		if (mode == checkMode)
+		{
+			ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, mode, SwapchainReCreatedEventArgs{ false, false, true, false });
+			return;
+		}
+	}
+
+	Log::Warning("Present mode %s if not supported by the surface!", to_string(mode));
 }
 
 void Pu::GameWindow::SetMode(WindowMode mode)
@@ -204,7 +234,7 @@ void Pu::GameWindow::ReleaseFullScreen(void)
 	{
 		/* Otherwise we have to recreate the swapchain. */
 		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::Disallowed;
-		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, swapchain->mode, SwapchainReCreatedEventArgs{ false, false, false, true });
 	}
 }
 
@@ -220,7 +250,7 @@ void Pu::GameWindow::AquireFullScreen(void)
 	{
 		/* Otherwise we have to recreate the swapchain. */
 		fullScreenInfo.FullScreenExclusive = FullScreenExclusive::Default;
-		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs{ false, false, true });
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, swapchain->mode, SwapchainReCreatedEventArgs{ false, false, false, true });
 	}
 }
 
@@ -230,11 +260,11 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 	if (swapchain)
 	{
 		Log::Warning("Window is being resized, this might cause lag!");
-		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, SwapchainReCreatedEventArgs{ true, false, false });
+		ReCreateSwapchain(Extent2D(ipart(args.NewValue.X), ipart(args.NewValue.Y)), swapchain->format, swapchain->mode, SwapchainReCreatedEventArgs{ true, false, false, false });
 	}
 }
 
-void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs & args)
+void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, PresentMode mode, const SwapchainReCreatedEventArgs & args)
 {
 	/* The command buffer will throw an error a bit later, but this is clearer. */
 	if (!GetCommandBuffer().CanBegin()) Log::Fatal("Cannot recreate swapchain during GameWindow render!");
@@ -242,23 +272,24 @@ void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, cons
 	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
 	Finalize();
 
-	/* Free all framebuffers bound to the native window size. */
-	DestroyFramebuffers();
+	/* Free all framebuffers bound to the native window size or format. */
+	if (args.FormatChanged || args.AreaChanged || args.ImagesInvalidated) DestroyFramebuffers();
 
 	/* Update the swapchain images. */
-	CreateSwapchain(size, format, false);
+	CreateSwapchain(size, format, mode, false);
 
 	/* Notify the subscribers of the change in size or format. */
 	SwapchainRecreated.Post(*this, args);
 }
 
-void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall)
+void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, PresentMode mode, bool firstCall)
 {
 	/* Update the orthographics matrix used to convert the coordinates from viewport space to clip space. */
 	ortho = Matrix::CreateOrtho(static_cast<float>(size.Width), static_cast<float>(size.Height), 0.0f, 1.0f);
 
 	/* Create swapchain information for a general LDR color RT, just pick the first available format. */
 	SwapchainCreateInfo info{ native.GetSurface().hndl, size };
+	info.PresentMode = mode;
 	info.ImageColorSpace = format.ColorSpace;
 	info.ImageFormat = format.Format;
 	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
@@ -370,7 +401,7 @@ void Pu::GameWindow::BeginRender(void)
 	{
 		device.WaitIdle();
 		swapchainOutOfDate = false;
-		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, SwapchainReCreatedEventArgs(false, false, true));
+		ReCreateSwapchain(native.GetClientBounds().GetSize(), swapchain->format, swapchain->mode, SwapchainReCreatedEventArgs{ false, false, false, true });
 	}
 
 	/* Request new image from the swapchain. */

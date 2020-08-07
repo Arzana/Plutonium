@@ -32,7 +32,7 @@ namespace Pu
 		{
 			CreateFramebuffers(renderpass, vector<const ImageView*>());
 		}
-		/* Creates a framebuffer for each swapchain image for the specific render pass with the specific image views (framebuffers are deleted if the window is resized!). */
+		/* Creates a framebuffer for each swapchain image for the specific render pass with the specific image views (framebuffers are deleted if the window is resized or format is changed!). */
 		void CreateFramebuffers(_In_ const Renderpass &renderpass, _In_ const vector<const ImageView*> &views);
 		/* Removes the framebuffers for a specified renderpass. */
 		void DestroyFramebuffers(_In_ const Renderpass &renderpass);
@@ -40,10 +40,14 @@ namespace Pu
 		_Check_return_ const Framebuffer& GetCurrentFramebuffer(_In_ const Renderpass &renderPass) const;
 		/* Gets the surface formats supported by the native window. */
 		const vector<SurfaceFormat>& GetSupportedFormats(void) const;
+		/* Gets the present modes supported by the native window. */
+		const vector<PresentMode>& GetSupportedPresentModes(void) const;
 		/* Sets the color space used by the window. */
 		void SetColorSpace(_In_ ColorSpace colorSpace);
 		/* Sets the color space and format used by the window. */
 		void SetColorSpace(_In_ const SurfaceFormat &format);
+		/* Sets the present mode used by the window. */
+		void SetPresentMode(_In_ PresentMode mode);
 		/* Sets the display mode of the window. */
 		void SetMode(_In_ WindowMode mode);
 
@@ -119,13 +123,14 @@ namespace Pu
 		vector<CommandBuffer> buffers;
 		vector<Semaphore> semaphores;
 		mutable vector<SurfaceFormat> supportedFormats;
+		mutable vector<PresentMode> supportedPresentModes;
 		std::map<RenderPassHndl, vector<Framebuffer*>> framebuffers;
 
 		void ReleaseFullScreen(void);
 		void AquireFullScreen(void);
 		void OnNativeSizeChangedHandler(const NativeWindow&, ValueChangedEventArgs<Vector2> args);
-		void ReCreateSwapchain(Extent2D size, SurfaceFormat format, const SwapchainReCreatedEventArgs &args);
-		void CreateSwapchain(Extent2D size, SurfaceFormat format, bool firstCall);
+		void ReCreateSwapchain(Extent2D size, SurfaceFormat format, PresentMode mode, const SwapchainReCreatedEventArgs &args);
+		void CreateSwapchain(Extent2D size, SurfaceFormat format, PresentMode mode, bool firstCall);
 		void MakeSwapchainImageWritable(void);
 		void BeginRender(void);
 		void EndRender(void);

@@ -296,7 +296,7 @@ void Pu::ContactSolverSystem::VectorSolve(ofloat dt)
 			_mm256_cross_v3(rx2, ry2, rz2, nx[i], ny[i], nz[i], tmp_x1, tmp_y1, tmp_z1);
 			_mm256_mat3mul_v3(m002[i], m012[i], m022[i], m102[i], m112[i], m122[i], m202[i], m212[i], m222[i], tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3);
 			d2 = _mm256_add_ps(imass2[i], _mm256_dot_v3(tmp_x1, tmp_y1, tmp_z1, tmp_x3, tmp_y3, tmp_z3));
-			j = _mm256_divs_ps(num, _mm256_add_ps(d1, d2), zero);
+			j = _mm256_mul_ps(_mm256_divs_ps(num, _mm256_add_ps(d1, d2), zero), world->sysCnst->em[i]);
 
 			/* Calculate the directional impulse. */
 			tmp_x1 = _mm256_mul_ps(j, nx[i]);

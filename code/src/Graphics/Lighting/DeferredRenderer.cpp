@@ -610,11 +610,7 @@ void Pu::DeferredRenderer::DoTonemap(void)
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
 {
-	/*
-	We can't ignore the event fully if the renderpass isn't loaded yet.
-	The size dependent resources will always need to be recreated,
-	but the renderpass and pipeline don't have to change.
-	*/
+	/* We can't ignore the event fully if the renderpass isn't loaded yet. */
 	if (renderpass->IsLoaded())
 	{
 		/*
@@ -622,13 +618,13 @@ void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const Swapcha
 		but we only have to recreate the framebuffers and pipelines if the area changed.
 		*/
 		if (args.FormatChanged) renderpass->Recreate();
-		if (args.AreaChanged)
+		else if (args.AreaChanged)
 		{
 			CreateSizeDependentResources();
 			FinalizeRenderpass(*renderpass);
 		}
+		else if (args.ImagesInvalidated) CreateFramebuffer();
 	}
-	else CreateSizeDependentResources();
 }
 
 void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
@@ -989,6 +985,7 @@ This function is called when either of the following events occur:
 - The initial framebuffer creation (after renderpass create).
 - After the window resizes.
 - When the window format changed.
+- If the swapchain images were invalidated.
 */
 void Pu::DeferredRenderer::CreateFramebuffer(void)
 {

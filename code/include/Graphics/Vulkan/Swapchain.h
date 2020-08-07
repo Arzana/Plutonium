@@ -61,6 +61,12 @@ namespace Pu
 			return format.ColorSpace;
 		}
 
+		/* Gets the present mode of the swapchain. */
+		_Check_return_ inline PresentMode GetPresentMode(void) const
+		{
+			return mode;
+		}
+
 		/* Gets the surface format of the swapchain images. */
 		_Check_return_ inline const SurfaceFormat& GetFormat(void) const
 		{
@@ -82,6 +88,7 @@ namespace Pu
 		vector<Image> images;
 		vector<ImageView> views;
 		SurfaceFormat format;
+		PresentMode mode;
 		AttachmentDescription attachmentDesc;
 
 		static bool CanCreateInternal(const PhysicalDevice &physicalDevice, const Surface &surface, const SwapchainCreateInfo &createInfo, bool raise);

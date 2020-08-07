@@ -52,81 +52,6 @@ namespace Pu
 		return result;
 	}
 
-	/* Checks whether the two specified oriented bounding boxes overlap on the specified axis. */
-	_Check_return_ inline bool intersects_axis(_In_ const Vector3 c1[8], _In_ const Vector3 c2[8], _In_ Vector3 axis)
-	{
-		const Vector2 a = interval(c1, axis);
-		const Vector2 b = interval(c2, axis);
-		return b.X <= a.Y && a.X <= b.Y;
-	}
-
-	/* Gets whether the two specified oriented bounding boxes intersect. */
-	_Check_return_ inline bool intersects(_In_ const OBB &obb1, _In_ const OBB &obb2)
-	{
-		const Vector3 c1[8] =
-		{
-			obb1.Center - obb1.Extent,
-			obb1.Center - Vector3(-obb1.Extent.X, obb1.Extent.Y, obb1.Extent.Z),
-			obb1.Center + Vector3(obb1.Extent.X, obb1.Extent.Y, -obb1.Extent.Z),
-			obb1.Center + Vector3(obb1.Extent.X, obb1.Extent.Y, -obb1.Extent.Z),
-			obb1.Center - Vector3(obb1.Extent.X, -obb1.Extent.Y, obb1.Extent.Z),
-			obb1.Center - Vector3(obb1.Extent.X, obb1.Extent.Y, -obb1.Extent.Z),
-			obb1.Center + Vector3(obb1.Extent.X, -obb1.Extent.Y, obb1.Extent.Z),
-			obb1.Center + obb1.Extent
-		};
-
-		const Vector3 c2[8] =
-		{
-			obb2.Center - obb2.Extent,
-			obb2.Center - Vector3(-obb2.Extent.X, obb2.Extent.Y, obb2.Extent.Z),
-			obb2.Center + Vector3(obb2.Extent.X, obb2.Extent.Y, -obb2.Extent.Z),
-			obb2.Center + Vector3(obb2.Extent.X, obb2.Extent.Y, -obb2.Extent.Z),
-			obb2.Center - Vector3(obb2.Extent.X, -obb2.Extent.Y, obb2.Extent.Z),
-			obb2.Center - Vector3(obb2.Extent.X, obb2.Extent.Y, -obb2.Extent.Z),
-			obb2.Center + Vector3(obb2.Extent.X, -obb2.Extent.Y, obb2.Extent.Z),
-			obb2.Center + obb2.Extent
-		};
-
-		Vector3 axis[15] =
-		{
-			obb1.GetRight(),
-			obb1.GetUp(),
-			obb1.GetForward(),
-			obb2.GetRight(),
-			obb2.GetUp(),
-			obb2.GetForward()
-		};
-
-		for (size_t i = 0; i < 3; i++)
-		{
-			axis[6 + i * 3] = cross(axis[i], axis[0]);
-			axis[6 + i * 3 + 1] = cross(axis[i], axis[1]);
-			axis[6 + i * 3 + 2] = cross(axis[i], axis[2]);
-		}
-
-		for (Vector3 cur : axis)
-		{
-			if (!intersects_axis(c1, c2, cur)) return false;
-		}
-
-		return true;
-	}
-
-	/*
-	Gets whether the specified axis aligned bounding box intersects with the specified plane. 
-	Note that this also return true if the axis aligned bounding box is in front of the plane.
-	*/
-	_Check_return_ inline bool intersects_or_front(_In_ const Vector3 corners[8], _In_ Plane plane)
-	{
-		uint8 cnt = 8;
-		for (uint8 i = 0; i < 8; i++)
-		{
-			cnt -= halfspace(plane, corners[i]) < 0.0f;
-		}
-
-		return cnt > 0;
-	}
-
 	/*
 	Gets whether the specified axis aligned bounding box intersects with the specified plane.
 	Note that this also return true if the axis aligned bounding box is in front of the plane.
@@ -161,37 +86,8 @@ namespace Pu
 		return true;
 	}
 
-	/* Gets whether the specified axis aligned bounding box intersects with the specified frustum. */
-	_Check_return_ inline bool intersects(_In_ const Frustum &frustum, _In_ const AABB &box)
-	{
-		/* Precalculate all the corners of the axis aligned bounding box. */
-		const Vector3 corners[8] =
-		{
-			box.LowerBound,
-			Vector3(box.UpperBound.X, box.LowerBound.Y, box.LowerBound.Z),
-			Vector3(box.UpperBound.X, box.UpperBound.Y, box.LowerBound.Z),
-			Vector3(box.LowerBound.X, box.UpperBound.Y, box.LowerBound.Z),
-			Vector3(box.LowerBound.X, box.UpperBound.Y, box.UpperBound.Z),
-			Vector3(box.LowerBound.X, box.LowerBound.Y, box.UpperBound.Z),
-			Vector3(box.UpperBound.X, box.LowerBound.Y, box.UpperBound.Z),
-			box.UpperBound
-		};
-
-		/* 
-		Check the corners agains all the planes of the frustum.
-		If it's 'outside' of one of the planes then it doesn't intersect.
-		*/
-		for (uint8 i = 0; i < 6; i++)
-		{
-			if (!intersects_or_front(corners, frustum.Planes[i])) return false;
-		}
-
-		/* The axis aligned bounding box is either fully inside the frustum or it's intersection one or more planes. */
-		return true;
-	}
-
 	/* Gets whether the specified axis aligned bounding box intersects with the specified frustum (uses AVX). */
-	_Check_return_ inline bool intersects_avx(_In_ const Frustum &frustum, _In_ const AABB &box)
+	_Check_return_ inline bool intersects(_In_ const Frustum &frustum, _In_ const AABB &box)
 	{
 		/* Precalculate all the corners of the axis aligned bounding box. */
 		const ofloat cx = _mm256_set_ps(box.LowerBound.X, box.UpperBound.X, box.UpperBound.X, box.LowerBound.X, box.LowerBound.X, box.LowerBound.X, box.UpperBound.X, box.UpperBound.X);

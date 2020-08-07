@@ -132,6 +132,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\PointTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\Raycasts.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\RenderingSystem.h" />
+    <ClInclude Include="..\..\..\include\Physics\Systems\SAT.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
@@ -345,6 +346,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\PhysicalWorld.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\RenderingSystem.cpp" />
+    <ClCompile Include="..\..\..\src\Physics\Systems\SAT.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\Streams\RuntimeConfig.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />

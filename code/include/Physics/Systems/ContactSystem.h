@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include "SAT.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Math/Shapes/AABB.h"
 #include "Core/Collections/simd_vector.h"
@@ -40,6 +41,8 @@ namespace Pu
 		avxf_vector nz;
 		/* Defines the intersection depth. */
 		avxf_vector sd;
+		/* Defines the effect multiplier. */
+		avxf_vector em;
 
 		/* Initializes a new instance of a constraint system. */
 		ContactSystem(_In_ PhysicalWorld &world);
@@ -86,6 +89,7 @@ namespace Pu
 
 		std::map<uint16, CollisionChecker_t> checkers;
 		PhysicalWorld *world;
+		SAT sat;
 
 		vector<AABB> rawBroadPhase;
 		std::map<PhysicsHandle, std::pair<CollisionShapes, float*>> rawNarrowPhase;
@@ -96,7 +100,10 @@ namespace Pu
 		vector<PhysicsHandlePair> hitTriggers;
 
 #ifdef _DEBUG
+		mutable pu_clock::time_point lastDebugContactClear;
 		mutable vector<std::pair<pu_clock::time_point, Vector3>> contacts;
+
+		void TryClearOldContacts(void) const;
 #endif
 
 		void TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond);
@@ -104,7 +111,8 @@ namespace Pu
 		void TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere);
 		void TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere);
 		void TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb);
-		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth);
+		void TestOBBOBB(PhysicsHandle hfirst, PhysicsHandle hsecond);
+		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth, float mul);
 		void SetGenericCheckers(void);
 		void Destroy(void);
 	};

@@ -939,6 +939,9 @@
     <ClInclude Include="..\..\..\include\Core\Time.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Physics\Systems\SAT.h">
+      <Filter>Header Files\Physics\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1345,6 +1348,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\OBB.cpp">
       <Filter>Source Files\Core\Math\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Physics\Systems\SAT.cpp">
+      <Filter>Source Files\Physics\Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

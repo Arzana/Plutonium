@@ -33,6 +33,7 @@ private:
 	bool showProfiler, showCamOpt, showPhysics;
 	Pu::DebugRenderer *dbgRenderer;
 	const Pu::SurfaceFormat *desiredFormat;
+	int vsynchMode;
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;

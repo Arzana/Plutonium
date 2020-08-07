@@ -2407,6 +2407,24 @@ namespace Pu
 		}
 	}
 
+	/* Converts the present mode to string. */
+	_Check_return_ inline const char* to_string(_In_ PresentMode presentMode)
+	{
+		switch (presentMode)
+		{
+		case PresentMode::Immediate:
+			return "Immediate";
+		case PresentMode::MailBox:
+			return "Mailbox";
+		case PresentMode::FiFo:
+			return "First in, First out";
+		case PresentMode::FiFoRelaxed:
+			return "First in, First out Relaxed";
+		default:
+			return "Unknown";
+		}
+	}
+
 	/* Converts an image format to string. */
 	_Check_return_ inline const char* to_string(_In_ Format format)
 	{

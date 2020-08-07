@@ -617,5 +617,6 @@ void Pu::DebugRenderer::SwapchainRecreated(const GameWindow&, const SwapchainReC
 			if (depthBuffer && !invalidated) invalidated = 1;
 			else if (invalidated != 1) CreateFrameBuffers();
 		}
+		else if (args.ImagesInvalidated) CreateFrameBuffers();
 	}
 }

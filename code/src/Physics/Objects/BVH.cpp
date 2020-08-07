@@ -245,7 +245,7 @@ void Pu::BVH::Frustumcast(const Frustum & frustum, vector<PhysicsHandle>& result
 		const uint16 i = stack.pop();
 
 		/* Check if the branch (or leaf) overlaps. */
-		if (intersects_avx(frustum, nodes[i].Box))
+		if (intersects(frustum, nodes[i].Box))
 		{
 			if ((nodes[i].is_leaf) result.emplace_back(nodes[i].pHandle);
 			else

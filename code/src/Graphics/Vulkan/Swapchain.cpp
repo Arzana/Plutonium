@@ -3,7 +3,7 @@
 #include "Core/EnumUtils.h"
 
 Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const SwapchainCreateInfo & createInfo)
-	: parent(&device), format(createInfo.ImageFormat, createInfo.ImageColorSpace)
+	: parent(&device), format(createInfo.ImageFormat, createInfo.ImageColorSpace), mode(createInfo.PresentMode)
 {
 	/* Check if the information specified is correct. */
 #ifdef _DEBUG
@@ -24,7 +24,7 @@ Pu::Swapchain::Swapchain(LogicalDevice & device, const Surface & surface, const 
 
 Pu::Swapchain::Swapchain(Swapchain && value)
 	: parent(value.parent), hndl(value.hndl), format(value.format), attachmentDesc(value.attachmentDesc),
-	images(std::move(value.images)), views(std::move(value.views))
+	images(std::move(value.images)), views(std::move(value.views)), mode(value.mode)
 {
 	value.hndl = nullptr;
 }
@@ -40,6 +40,7 @@ Pu::Swapchain & Pu::Swapchain::operator=(Swapchain && other)
 		attachmentDesc = other.attachmentDesc;
 		images = std::move(other.images);
 		views = std::move(other.views);
+		mode = other.mode;
 
 		other.hndl = nullptr;
 	}

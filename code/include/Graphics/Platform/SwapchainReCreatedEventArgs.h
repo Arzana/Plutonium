@@ -13,12 +13,14 @@ namespace Pu
 		bool AreaChanged;
 		/* Specifies whether the image format of the swapchain was changed. */
 		bool FormatChanged;
+		/* Specifies whether the images of the swapchain had to be recreated. */
+		bool ImagesInvalidated;
 		/* Specifies whether the swapchain no longer has access to the surface. */
 		bool SurfaceLost;
 
 		/* Initializes a new instance of a swapchain re-create event args object. */
-		SwapchainReCreatedEventArgs(_In_ bool area, _In_ bool format, _In_ bool surface)
-			: AreaChanged(area), FormatChanged(format), SurfaceLost(surface)
+		SwapchainReCreatedEventArgs(_In_ bool area, _In_ bool format, _In_ bool images, _In_ bool surface)
+			: AreaChanged(area), FormatChanged(format), ImagesInvalidated(images), SurfaceLost(surface)
 		{}
 	};
 }
