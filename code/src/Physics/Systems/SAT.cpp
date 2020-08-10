@@ -122,7 +122,7 @@ void Pu::SAT::FillBuffer(Line * buffer, const Vector3 * corners)
 
 /*
    3 +-----------+ 7
-    /|          /|
+	/|          /|
    / |         / |
 2 +-----------+ 6|
   |  |        |  |
@@ -150,13 +150,13 @@ void Pu::SAT::FillBuffer(Vector3 * buffer, Vector3 * axes, const AABB & aabb)
 
 void Pu::SAT::FillBuffer(Vector3 * buffer, Vector3 * axes, const OBB & obb)
 {
-	buffer[0] = obb.Center - obb.Orientation * obb.Extent;
-	buffer[1] = obb.Center - obb.Orientation * Vector3(-obb.Extent.X, obb.Extent.Y, obb.Extent.Z);
-	buffer[2] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, obb.Extent.Y, -obb.Extent.Z);
-	buffer[3] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, obb.Extent.Y, -obb.Extent.Z);
-	buffer[4] = obb.Center - obb.Orientation * Vector3(obb.Extent.X, -obb.Extent.Y, obb.Extent.Z);
-	buffer[5] = obb.Center - obb.Orientation * Vector3(obb.Extent.X, obb.Extent.Y, -obb.Extent.Z);
-	buffer[6] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, -obb.Extent.Y, obb.Extent.Z);
+	buffer[0] = obb.Center + obb.Orientation * -obb.Extent;
+	buffer[1] = obb.Center + obb.Orientation * Vector3(-obb.Extent.X, -obb.Extent.Y, obb.Extent.Z);
+	buffer[2] = obb.Center + obb.Orientation * Vector3(-obb.Extent.X, obb.Extent.Y, -obb.Extent.Z);
+	buffer[3] = obb.Center + obb.Orientation * Vector3(-obb.Extent.X, obb.Extent.Y, obb.Extent.Z);
+	buffer[4] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, -obb.Extent.Y, -obb.Extent.Z);
+	buffer[5] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, -obb.Extent.Y, obb.Extent.Z);
+	buffer[6] = obb.Center + obb.Orientation * Vector3(obb.Extent.X, obb.Extent.Y, -obb.Extent.Z);
 	buffer[7] = obb.Center + obb.Orientation * obb.Extent;
 
 	axes[0] = obb.GetRight();

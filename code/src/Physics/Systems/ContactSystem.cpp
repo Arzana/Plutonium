@@ -264,8 +264,6 @@ void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer) const
 
 void Pu::ContactSystem::TryClearOldContacts(void) const
 {
-	return; //TODO remove!
-
 	/* Don't just call this clear code every time it's called. */
 	const pu_clock::time_point now = pu_now();
 	if (pu_sec(lastDebugContactClear, now) > PhysicsDebuggingTTL)
