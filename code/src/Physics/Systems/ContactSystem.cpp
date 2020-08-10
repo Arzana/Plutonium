@@ -264,6 +264,8 @@ void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer) const
 
 void Pu::ContactSystem::TryClearOldContacts(void) const
 {
+	return; //TODO remove!
+
 	/* Don't just call this clear code every time it's called. */
 	const pu_clock::time_point now = pu_now();
 	if (pu_sec(lastDebugContactClear, now) > PhysicsDebuggingTTL)
@@ -398,7 +400,7 @@ void Pu::ContactSystem::TestOBBOBB(PhysicsHandle hfirst, PhysicsHandle hsecond)
 	/* Check for collision. */
 	if (sat.Run(obb1, obb2))
 	{
-		const vector<Vector3> points = sat.GetContacts(obb1, obb2);
+		const vector<Vector3> &points = sat.GetContacts(obb1, obb2);
 		const float mul = 1.0f / points.size();
 
 		/* Should make a different solver for this, but for now this works. */

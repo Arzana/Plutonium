@@ -21,7 +21,7 @@ namespace Pu
 		/* Specified the scale of the object. */
 		Vector3 Scale;
 
-		/* Specifies the moment of inertia of the object. */
+		/* Specifies the moment of inertia of the object (not scaled by scale!). */
 		Matrix3 MoI;
 		/* Specifies the center of mass of the object. */
 		Vector3 CoM;
@@ -37,16 +37,15 @@ namespace Pu
 			: Properties(PhysicsNullHandle), Scale(1.0f)
 		{}
 
+		/* Initializes a new instance of a physical object without a collider. */
+		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien)
+			: P(pos), Theta(orien), Scale(1.0f), Properties(PhysicsNullHandle)
+		{}
+
 		/* Initializes a new instance of a physical object. */
 		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, const Pu::Collider &collider)
 			: P(pos), Theta(orien), Scale(1.0f), Properties(PhysicsNullHandle),
 			Collider(collider)
-		{}
-
-		/* Initializes a new instance of a physical object. */
-		PhysicalObject(_In_ Vector3 pos, _In_ Quaternion orien, Pu::Collider &&collider)
-			: P(pos), Theta(orien),  Scale(1.0f), Properties(PhysicsNullHandle), 
-			Collider(std::move(collider))
 		{}
 	};
 }

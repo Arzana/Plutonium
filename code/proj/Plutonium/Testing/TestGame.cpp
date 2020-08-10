@@ -3,15 +3,20 @@
 #include <Streams/RuntimeConfig.h>
 #include <imgui.h>
 
-//#define STRESS_TEST
-//#define USE_KNIGHT
+enum class NPC_t
+{
+	Knight,
+	Sphere,
+	Box
+};
 
 using namespace Pu;
 
 const uint16 terrainSize = 10;
+const NPC_t npc_type = NPC_t::Box;
 
 TestGame::TestGame(void)
-	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false), 
+	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false),
 	desiredFormat(nullptr), vsynchMode(-1)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
@@ -39,7 +44,7 @@ void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, Physical
 void TestGame::LoadContent(AssetFetcher & fetcher)
 {
 	renderer = new DeferredRenderer(fetcher, GetWindow());
-	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 2.0f);
+	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 5.0f);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddSystem(world = new PhysicalWorld(*renderer));
@@ -62,14 +67,13 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-#ifdef USE_KNIGHT
-	playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
-#else
-	playerModel = &fetcher.CreateModel(ShapeType::Box, *renderer, nullptr, L"{Textures}uv.png");
-#endif
+	if constexpr  (npc_type == NPC_t::Knight)
+	{
+		playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
+	}
+	else playerModel = &fetcher.CreateModel(npc_type == NPC_t::Sphere ? ShapeType::Sphere : ShapeType::Box, *renderer, nullptr, L"{Textures}uv.png");
 
 	rampModel = &fetcher.CreateModel(ShapeType::Box, *renderer);
-
 	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
 	Collider collider{ obb };
 
@@ -145,7 +149,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 
 			bool selected = GetWindow().GetSwapchain().GetPresentMode() == PresentMode::MailBox;
 			if (ImGui::Checkbox("VSync", &selected)) vsynchMode = selected;
-			
+
 			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
 			ImGui::MenuItem("Physics", nullptr, &showPhysics);
 			ImGui::MenuItem("Camera", nullptr, &showCamOpt);
@@ -222,43 +226,65 @@ void TestGame::SpawnNPC(void)
 	const float z = -30.0f;
 #endif
 
-	/* Simple sphere is good for height, but bad for width. */
-#ifdef USE_KNIGHT
-	Sphere sphere{ 25.0f };
-#else
-	Sphere sphere{ 0.5f };
-	OBB coll{ Vector3{}, Vector3{0.5f}, Quaternion{} };
-#endif
-	Collider collider{ coll };
-
 	/* Use the default physical material. */
-	PhysicalObject obj{ Vector3(x, y, z), Quaternion{}, collider };
+	PhysicalObject obj{ Vector3{x, y, z}, Quaternion{} };
 	obj.Properties = physicsMat;
 	obj.State.Mass = 80.0f;
 	obj.CoM = obj.P;
 
-#ifdef USE_KNIGHT
-	/* Moment of Inertia is that of a cylinder (using h = 1). */
-	const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
-	const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
-	obj.MoI = Matrix3::CreateScalar(nonDomAxis, domAxis, nonDomAxis);
-	obj.State.Cd = 0.82f;
-	obj.Scale = 0.05f;
+	uint32 subpass;
+	if constexpr (npc_type == NPC_t::Knight)
+	{
+		/* Sphere is the only one that properly works now, but it's not good for the knight. */
+		Sphere sphere{ 25.0f };
+		obj.Collider = Collider{ sphere };
 
-	const uint32 subpass = DeferredRenderer::SubpassBasicMorphGeometry;
-#else
-	/* Moment of Intertia of a solid sphere. */
-	obj.MoI = Matrix3::CreateScalar((2.0f / 5.0f) * obj.State.Mass * sqr(sphere.Radius));
-	obj.State.Cd = 0.5f;
-	obj.Scale = 3.0f;
+		/* Moment of Inertia is that of a cylinder (using h = 1). */
+		const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
+		const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
+		obj.MoI = Matrix3::CreateScalar(nonDomAxis, domAxis, nonDomAxis);
+		obj.State.Cd = 0.82f;
+		obj.Scale = 0.05f;
 
-	const uint32 subpass = DeferredRenderer::SubpassBasicStaticGeometry;
-#endif
+		subpass = DeferredRenderer::SubpassBasicMorphGeometry;
+	}
+	else if constexpr (npc_type == NPC_t::Sphere)
+	{
+		/* Sphere model is not unit length so scale down collider. */
+		Sphere sphere{ 0.5f };
+		obj.Collider = Collider{ sphere };
+
+		/* Moment of Intertia of a solid sphere. */
+		obj.MoI = Matrix3::CreateScalar((2.0f / 5.0f) * obj.State.Mass * sqr(sphere.Radius));
+		obj.State.Cd = 0.5f;
+		obj.Scale = 3.0f;
+
+		subpass = DeferredRenderer::SubpassBasicStaticGeometry;
+	}
+	else if constexpr (npc_type == NPC_t::Box)
+	{
+		OBB obb{ Vector3{}, Vector3{ 0.5f }, Quaternion{} };
+		obj.Collider = Collider{ obb };
+
+		const float w2 = sqr(obb.GetWidth());
+		const float h2 = sqr(obb.GetHeight());
+		const float d2 = sqr(obb.GetDepth());
+
+		/* Moment of Intertia of a solid box. */
+		const float xTensor = recip(12.0f) * obj.State.Mass * (h2 + d2);
+		const float yTensor = recip(12.0f) * obj.State.Mass * (w2 + d2);
+		const float zTensor = recip(12.0f) * obj.State.Mass * (w2 + h2);
+		obj.MoI = Matrix3::CreateScalar(xTensor, yTensor, zTensor);
+		obj.State.Cd = 2.1f;
+		//obj.Scale = 3.0f;
+
+		subpass = DeferredRenderer::SubpassBasicStaticGeometry;
+	}
 
 	npcs.emplace_back(world->AddKinematic(obj, *playerModel, subpass));
 }
 
-void TestGame::OnAnyMouseScrolled(const Pu::Mouse &, Pu::int16 value)
+void TestGame::OnAnyMouseScrolled(const Mouse&, int16 value)
 {
 	if (camFree) camFree->MoveSpeed += value;
 }
@@ -299,8 +325,8 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 #else
 			SpawnNPC();
 #endif
-		}
 	}
+}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();

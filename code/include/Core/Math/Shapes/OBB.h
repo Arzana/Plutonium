@@ -45,5 +45,23 @@ namespace Pu
 		{
 			return Orientation * Vector3::Forward();
 		}
+
+		/* Gets the width of the oriented bounding box. */
+		_Check_return_ float GetWidth(void) const
+		{
+			return Extent.X * 2.0f;
+		}
+
+		/* Gets the height of the oriented bounding box. */
+		_Check_return_ float GetHeight(void) const
+		{
+			return Extent.Y * 2.0f;
+		}
+
+		/* Gets the depth of the oriented bounding box. */
+		_Check_return_ float GetDepth(void) const
+		{
+			return Extent.Z * 2.0f;
+		}
 	};
 }

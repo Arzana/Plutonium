@@ -27,15 +27,14 @@ bool Pu::SAT::Run(const OBB & obb1, const OBB & obb2)
 	return RunInternal();
 }
 
-Pu::vector<Pu::Vector3> Pu::SAT::GetContacts(const OBB & obb1, const OBB & obb2)
+const Pu::vector<Pu::Vector3> & Pu::SAT::GetContacts(const OBB & obb1, const OBB & obb2)
 {
+	/* Prepare the buffers. */
+	contacts.clear();
 	FillBuffer(l1, c1);
 	FillBuffer(l2, c2);
 	FillBuffer(p1, obb1);
 	FillBuffer(p2, obb2);
-
-	vector<Vector3> contacts;
-	contacts.reserve(12 * 6 * 2);
 
 	/* Get all the points on the edges of the second OBB that intersect with the first OBB. */
 	Vector3 p;
@@ -68,7 +67,7 @@ Pu::vector<Pu::Vector3> Pu::SAT::GetContacts(const OBB & obb1, const OBB & obb2)
 	p = obb1.Center + n * d;
 
 	/* Transform the contact points to world space and remove duplicates. */
-	TransformAndCull(contacts, p);
+	TransformAndCull(p);
 	return contacts;
 }
 
@@ -107,20 +106,32 @@ void Pu::SAT::FillBuffer(Plane * buffer, const OBB & obb)
 
 void Pu::SAT::FillBuffer(Line * buffer, const Vector3 * corners)
 {
-	buffer[0] = Line{ corners[6], corners[1] };
-	buffer[1] = Line{ corners[6], corners[3] };
-	buffer[2] = Line{ corners[6], corners[4] };
-	buffer[3] = Line{ corners[2], corners[7] };
-	buffer[4] = Line{ corners[2], corners[5] };
-	buffer[5] = Line{ corners[2], corners[0] };
-	buffer[6] = Line{ corners[0], corners[1] };
-	buffer[7] = Line{ corners[0], corners[3] };
-	buffer[8] = Line{ corners[7], corners[1] };
-	buffer[9] = Line{ corners[7], corners[4] };
-	buffer[10] = Line{ corners[4], corners[5] };
-	buffer[11] = Line{ corners[5], corners[3] };
+	buffer[0] = Line{ corners[0], corners[1] };
+	buffer[1] = Line{ corners[1], corners[5] };
+	buffer[2] = Line{ corners[5], corners[4] };
+	buffer[3] = Line{ corners[4], corners[0] };
+	buffer[4] = Line{ corners[2], corners[3] };
+	buffer[5] = Line{ corners[3], corners[7] };
+	buffer[6] = Line{ corners[7], corners[6] };
+	buffer[7] = Line{ corners[6], corners[2] };
+	buffer[8] = Line{ corners[0], corners[2] };
+	buffer[9] = Line{ corners[1], corners[3] };
+	buffer[10] = Line{ corners[4], corners[6] };
+	buffer[11] = Line{ corners[5], corners[7] };
 }
 
+/*
+   3 +-----------+ 7
+    /|          /|
+   / |         / |
+2 +-----------+ 6|
+  |  |        |  |
+  |  |        |  |
+  |1 +--------|--+ 5
+  | /         | /
+  |/          |/
+0 +-----------+ 4
+*/
 void Pu::SAT::FillBuffer(Vector3 * buffer, Vector3 * axes, const AABB & aabb)
 {
 	buffer[0] = aabb.LowerBound;
@@ -153,7 +164,7 @@ void Pu::SAT::FillBuffer(Vector3 * buffer, Vector3 * axes, const OBB & obb)
 	axes[2] = obb.GetForward();
 }
 
-void Pu::SAT::TransformAndCull(vector<Vector3>& contacts, Vector3 p) const
+void Pu::SAT::TransformAndCull(Vector3 p)
 {
 	for (int64 i = contacts.size() - 1; i >= 0; i--)
 	{

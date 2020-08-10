@@ -19,7 +19,7 @@ namespace Pu
 		/* Performs SAT on the two specified oriented bounding boxes. */
 		_Check_return_ bool Run(_In_ const OBB &obb1, _In_ const OBB &obb2);
 		/* Gets the contact points for the last collision [1, 4]. */
-		_Check_return_ vector<Vector3> GetContacts(_In_ const OBB &obb1, _In_ const OBB &obb2);
+		_Check_return_ const vector<Vector3>& GetContacts(_In_ const OBB &obb1, _In_ const OBB &obb2);
 
 		/* Gets the axis of intersection for the last SAT call. */
 		_Check_return_ inline Vector3 GetIntersectionAxis(void) const
@@ -41,6 +41,7 @@ namespace Pu
 
 		Vector3 n;
 		float minDepth;
+		vector<Vector3> contacts;
 
 		static bool PlaneClipLine(Plane plane, Line line, Vector3 &result);
 		static void FillBuffer(Plane *buffer, const OBB &obb);
@@ -48,7 +49,7 @@ namespace Pu
 		static void FillBuffer(Vector3 *buffer, Vector3 *axes, const AABB &aabb);
 		static void FillBuffer(Vector3 *buffer, Vector3 *axes, const OBB &obb);
 
-		void TransformAndCull(vector<Vector3> &contacts, Vector3 p) const;
+		void TransformAndCull(Vector3 p);
 		bool RunInternal(void);
 	};
 }
