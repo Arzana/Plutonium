@@ -100,10 +100,8 @@ namespace Pu
 		vector<PhysicsHandlePair> hitTriggers;
 
 #ifdef _DEBUG
-		mutable pu_clock::time_point lastDebugContactClear;
+		mutable bool visualizeContacts;
 		mutable vector<std::pair<pu_clock::time_point, Vector3>> contacts;
-
-		void TryClearOldContacts(void) const;
 #endif
 
 		void TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond);

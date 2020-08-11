@@ -258,6 +258,9 @@ void Pu::Profiler::VisualizeInternal(void)
 			int i = 0;
 			if (ImGui::Begin("Series", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 			{
+				/* Series can be saved as CSV for easier comparison. */
+				if (ImGui::Button("Save")) SaveSeries();
+
 				for (decltype(series)::const_iterator it = series.cbegin(); it != series.end(); i++)
 				{
 					const vector<float> &list = it->second.first;
@@ -280,6 +283,30 @@ void Pu::Profiler::VisualizeInternal(void)
 	}
 
 	ClearIfNeeded();
+}
+
+void Pu::Profiler::SaveSeries(void) const
+{
+	/* Just save it in a debug directory with the executable. */
+	FileWriter writer{ L"Debug\\Series.csv" };
+	size_t lineCnt = 0;
+
+	/* Write the columns. */
+	for (const auto &[name, values] : series)
+	{
+		writer.Write(name + ',');
+		lineCnt = max(lineCnt, values.first.size());
+	}
+
+	/* Write the cells. */
+	for (size_t i = 0; i < lineCnt; i++)
+	{
+		writer.Write('\n');
+		for (const auto &[name, values] : series)
+		{
+			if (values.first.size() > i) writer.Write(string::from(values.first[i]) + ',');
+		}
+	}
 }
 
 void Pu::Profiler::SaveInternal(const wstring & path)

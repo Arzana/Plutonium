@@ -156,6 +156,7 @@ void Pu::ContactSystem::Check(void)
 	ny.clear();
 	nz.clear();
 	sd.clear();
+	em.clear();
 
 	if constexpr (ProfileWorldSystems) Profiler::Begin("BVH Update", Color::Abbey());
 
@@ -206,6 +207,10 @@ void Pu::ContactSystem::Check(void)
 
 		if constexpr (ProfileWorldSystems) Profiler::End();
 	}
+
+#ifdef _DEBUG
+	visualizeContacts = false;
+#endif
 }
 
 void Pu::ContactSystem::ProcessTriggers(void)
@@ -253,31 +258,18 @@ void Pu::ContactSystem::VisualizeColliders(DebugRenderer & dbgRenderer, Vector3 
 
 void Pu::ContactSystem::VisualizeContacts(DebugRenderer & dbgRenderer) const
 {
-	TryClearOldContacts();
-
-	/* Render all the remaining contact points. */
-	for (const auto[ttl, pos] : contacts)
-	{
-		dbgRenderer.AddSphere(pos, 0.1f, Color::Yellow());
-	}
-}
-
-void Pu::ContactSystem::TryClearOldContacts(void) const
-{
-	/* Don't just call this clear code every time it's called. */
+	Profiler::BeginDebug();
+	visualizeContacts = true;
 	const pu_clock::time_point now = pu_now();
-	if (pu_sec(lastDebugContactClear, now) > PhysicsDebuggingTTL)
-	{
-		lastDebugContactClear = now;
 
-		/* Remove all the contact point that have timed out. */
-		for (size_t i = 0; i < contacts.size();)
-		{
-			const int64 ms = pu_ms(contacts[i].first, now);
-			if ((ms * 0.001f) > PhysicsDebuggingTTL) contacts.removeAt(i);
-			else ++i;
-		}
+	/* Render all the point that haven't timed out. */
+	for (size_t i = 0; i < contacts.size();)
+	{
+		if (pu_ms(contacts[i].first, now) * 0.001f > PhysicsDebuggingTTL) contacts.removeAt(i);
+		else dbgRenderer.AddSphere(contacts[i++].second, 0.1f, Color::Yellow());
 	}
+
+	Profiler::End();
 }
 #endif
 
@@ -455,11 +447,8 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 	em.push(mul);
 
 #ifdef _DEBUG
-	/* Make sure we don't just leak memory if visualize isn't called. */
-	TryClearOldContacts();
-
 	/* Add the collision point to the contacts list (checking for duplicates just slows it down). */
-	contacts.emplace_back(std::make_pair(pu_now(), pos));
+	if (visualizeContacts) contacts.emplace_back(std::make_pair(pu_now(), pos));
 #endif
 
 	++collisionCount;

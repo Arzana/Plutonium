@@ -75,6 +75,7 @@ namespace Pu
 		void AddInternal(const string &category, Color color, int64 time);
 		void EntryInternal(const string &serie, float value, Vector2 size);
 		void VisualizeInternal(void);
+		void SaveSeries(void) const;
 		void SaveInternal(const wstring &path);
 		void ClearIfNeeded(void);
 		void RenderSections(const vector<Section> &sections, const char *type, bool addDummy);
