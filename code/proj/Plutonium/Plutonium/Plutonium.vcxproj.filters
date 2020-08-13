@@ -1421,4 +1421,9 @@
       <Filter>Resource Files</Filter>
     </CopyFileToFolders>
   </ItemGroup>
+  <ItemGroup>
+    <PuNatJMC Include="..\..\..\targets\PuNatJMC.natjmc">
+      <Filter>Resource Files</Filter>
+    </PuNatJMC>
+  </ItemGroup>
 </Project>

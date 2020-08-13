@@ -496,6 +496,10 @@
       <DeploymentContent>true</DeploymentContent>
     </CopyFileToFolders>
   </ItemGroup>
+  <ItemGroup>
+    <PuNatJMC Include="..\..\..\targets\PuNatJMC.natjmc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\..\..\targets\natjmc.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

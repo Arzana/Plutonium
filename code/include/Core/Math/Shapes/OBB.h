@@ -23,6 +23,11 @@ namespace Pu
 			: Center(center), Extent(extent), Orientation(orientation)
 		{}
 
+		/* Initializes a new instance of an oriented bounding box from an axis-aligned bounding box. */
+		OBB(_In_ const AABB &aabb)
+			: Center(aabb.GetCenter()), Extent(aabb.GetSize() * 0.5f)
+		{}
+
 		/* Applies the specified transform to this OBB and returns the result. */
 		_Check_return_ OBB operator *(_In_ const Matrix &transform) const;
 		/* Calculates the bounding box for this OBB. */

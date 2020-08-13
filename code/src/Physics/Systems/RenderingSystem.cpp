@@ -82,6 +82,11 @@ void Pu::RenderingSystem::Add(PhysicsHandle handle, const TerrainChunk & chunk)
 
 void Pu::RenderingSystem::Add(PhysicsHandle handle, const Model & model, uint32 subpass)
 {
+	/* Validate the user defined subpass. */
+#ifdef _DEBUG
+	if (subpass > DeferredRenderer::SubpassPostProcessing) Log::Fatal("Unknown subpass %u passed to RenderingSystem::Add!", subpass);
+#endif
+
 	size_t idx;
 
 	/* Models are not unique, so check if this model was already added. */

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ItemType Name="PuNatJMC" DisplayName="Native Just My Code"/>
+  <ContentType Name="PuNatJMC" ItemType="PuNatJMC" DisplayName="Native Just My Code"/>
+
+  <FileExtension Name=".natjmc" ContentType="PuNatJMC"/>
+</ProjectSchemaDefinitions>

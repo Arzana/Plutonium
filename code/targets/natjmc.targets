@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)natjmc.xml" />
+    <AvailableItemName Include="PuNatJMC">
+      <Targets>CopyNatJMC</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+
+  <Target Name="CopyNatJMC" Condition="'@(PuNatJMC)' != ''" BeforeTargets="FinalizeBuildStatus">
+    <Copy SourceFiles="%(PuNatJMC.FullPath)" DestinationFiles="$(VisualStudioDir)\Visualizers\%(PuNatJMC.Filename).natjmc"/>
+  </Target>
+</Project>

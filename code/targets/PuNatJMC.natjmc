@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NonUserCode xmlns="http://schemas.microsoft.com/vstudio/debugger/jmc/2013">
+  <File Name="*\include\Core\Math\Vector2.h"/>
+  <File Name="*\include\Core\Math\Vector3.h"/>
+  <File Name="*\include\Core\Math\Vector4.h"/>
+  <File Name="*\include\Core\Math\Matrix.h"/>
+  <File Name="*\src\Core\Math\Matrix.cpp"/>
+  <File Name="*\include\Core\Math\Matrix3.h"/>
+  <File Name="*\src\Core\Math\Matrix3.cpp"/>
+  <File Name="*\include\Core\Math\Quaternion.h"/>
+  <File Name="*\src\Core\Math\Quaternion.cpp"/>
+  <File Name="*\include\Core\Math\Shapes\Rectangle.h"/>
+  <File Name="*\src\Core\Math\Shapes\Rectangle.cpp"/>
+  <File Name="*\include\Core\Math\Shapes\AABB.h"/>
+  <File Name="*\src\Core\Math\Shapes\AABB.cpp"/>
+  <File Name="*\include\Core\Math\Shapes\OBB.h"/>
+  <File Name="*\src\Core\Math\Shapes\OBB.cpp"/>
+  <File Name="*\include\Core\Events\EventBus.h"/>
+  <File Name="*\src\Core\Diagnostics\Logging.cpp"/>
+  <File Name="*\include\Core\String.h"/>
+  <File Name="*\include\Core\Collections\vector.h"/>
+  <File Name="*\include\Core\Time.h"/>
+  <File Name="*\include\Core\EnumUtils.h"/>
+</NonUserCode>

@@ -30,7 +30,7 @@ namespace Pu
 		static constexpr uint32 SubpassPointLight = 5;
 		/* Defines the index of the skybox subpass. */
 		static constexpr uint32 SubpassSkybox = 6;
-		/* Defines the index of the post-processing subpass. */
+		/* Defines the index of the post-processing subpass (always last!). */
 		static constexpr uint32 SubpassPostProcessing = 7;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
