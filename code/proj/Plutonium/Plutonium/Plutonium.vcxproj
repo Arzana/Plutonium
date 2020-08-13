@@ -469,21 +469,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\..\visualizers\AABB.natvis" />
+    <Natvis Include="..\..\..\visualizers\Shapes.natvis" />
     <Natvis Include="..\..\..\visualizers\Color.natvis" />
     <Natvis Include="..\..\..\visualizers\CommandBuffer.natvis" />
     <Natvis Include="..\..\..\visualizers\EventBus.natvis" />
-    <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis" />
     <Natvis Include="..\..\..\visualizers\FieldInfo.natvis" />
     <Natvis Include="..\..\..\visualizers\Font.natvis" />
     <Natvis Include="..\..\..\visualizers\InputDevice.natvis" />
-    <Natvis Include="..\..\..\visualizers\Matrix.natvis" />
-    <Natvis Include="..\..\..\visualizers\Rectangle.natvis" />
     <Natvis Include="..\..\..\visualizers\Asset.natvis" />
     <Natvis Include="..\..\..\visualizers\Subpass.natvis" />
-    <Natvis Include="..\..\..\visualizers\Vector2.natvis" />
-    <Natvis Include="..\..\..\visualizers\Vector3.natvis" />
-    <Natvis Include="..\..\..\visualizers\Vector4.natvis" />
+    <Natvis Include="..\..\..\visualizers\Algebra.natvis" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\..\targets\pum.xml" />

@@ -27,6 +27,50 @@ bool Pu::SAT::Run(const OBB & obb1, const OBB & obb2)
 	return RunInternal();
 }
 
+const Pu::vector<Pu::Vector3>& Pu::SAT::GetContacts(const AABB & aabb, const OBB & obb)
+{
+	/* Prepare the buffers. */
+	contacts.clear();
+	FillBuffer(l1, c1);
+	FillBuffer(l2, c2);
+	FillBuffer(p1, aabb);
+	FillBuffer(p2, obb);
+
+	/* Get all the points on the edges of the second OBB that intersect with the first OBB. */
+	Vector3 p;
+	for (Plane plane : p1)
+	{
+		for (Line line : l2)
+		{
+			if (PlaneClipLine(plane, line, p))
+			{
+				if (contains(aabb, p)) contacts.emplace_back(p);
+			}
+		}
+	}
+
+	/* Get all the points on the edges of the first OBB that intersect with the second OBB. */
+	for (Plane plane : p2)
+	{
+		for (Line line : l1)
+		{
+			if (PlaneClipLine(plane, line, p))
+			{
+				if (contains(obb, p)) contacts.emplace_back(p);
+			}
+		}
+	}
+
+	/* Calculate the relative point of impact. */
+	const Vector2 i = interval(c1, n);
+	const float d = (i.Y - i.X) * 0.5f - minDepth * 0.5f;
+	p = aabb.GetCenter() + n * d;
+
+	/* Transform the contact points to world space and remove duplicates. */
+	TransformAndCull(p);
+	return contacts;
+}
+
 const Pu::vector<Pu::Vector3> & Pu::SAT::GetContacts(const OBB & obb1, const OBB & obb2)
 {
 	/* Prepare the buffers. */
@@ -88,6 +132,16 @@ bool Pu::SAT::PlaneClipLine(Plane plane, Line line, Vector3 & result)
 	}
 
 	return false;
+}
+
+void Pu::SAT::FillBuffer(Plane * buffer, const AABB & aabb)
+{
+	buffer[0] = Plane{ Vector3::Right(), aabb.UpperBound.X };
+	buffer[1] = Plane{ Vector3::Left(), aabb.LowerBound.X };
+	buffer[2] = Plane{ Vector3::Up(), aabb.UpperBound.Y };
+	buffer[3] = Plane{ Vector3::Down(), aabb.LowerBound.Y };
+	buffer[4] = Plane{ Vector3::Forward(), aabb.UpperBound.Z };
+	buffer[5] = Plane{ Vector3::Backward(), aabb.LowerBound.Z };
 }
 
 void Pu::SAT::FillBuffer(Plane * buffer, const OBB & obb)

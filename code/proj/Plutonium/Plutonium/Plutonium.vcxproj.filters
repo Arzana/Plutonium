@@ -1354,25 +1354,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="..\..\..\visualizers\Vector2.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
     <Natvis Include="..\..\..\visualizers\EventBus.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
-    <Natvis Include="..\..\..\visualizers\EventSubscriber.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
-    <Natvis Include="..\..\..\visualizers\Matrix.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
-    <Natvis Include="..\..\..\visualizers\Rectangle.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
-    <Natvis Include="..\..\..\visualizers\Vector4.natvis">
-      <Filter>Resource Files\Visualizers</Filter>
-    </Natvis>
-    <Natvis Include="..\..\..\visualizers\AABB.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
     <Natvis Include="..\..\..\visualizers\FieldInfo.natvis">
@@ -1396,7 +1378,10 @@
     <Natvis Include="..\..\..\visualizers\Subpass.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
-    <Natvis Include="..\..\..\visualizers\Vector3.natvis">
+    <Natvis Include="..\..\..\visualizers\Shapes.natvis">
+      <Filter>Resource Files\Visualizers</Filter>
+    </Natvis>
+    <Natvis Include="..\..\..\visualizers\Algebra.natvis">
       <Filter>Resource Files\Visualizers</Filter>
     </Natvis>
   </ItemGroup>

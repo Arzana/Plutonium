@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Pu::Vector2">
+    <DisplayString>[X: {X}, Y: {Y}]</DisplayString>
+    <Expand>
+      <Item Name="X">X</Item>
+      <Item Name="Y">Y</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Pu::Vector3">
+    <DisplayString>[X: {X}, Y: {Y}, Z: {Z}]</DisplayString>
+    <Expand>
+      <Item Name="X">X</Item>
+      <Item Name="Y">Y</Item>
+      <Item Name="Z">Z</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Pu::Vector4">
+    <DisplayString>[X: {X}, Y: {Y}, Z: {Z}, W: {W}]</DisplayString>
+    <Expand>
+      <Item Name="X">X</Item>
+      <Item Name="Y">Y</Item>
+      <Item Name="Z">Z</Item>
+      <Item Name="W">W</Item>
+    </Expand>
+  </Type>
+
+  <Type Name="Pu::Quaternion">
+    <DisplayString Condition="I == 0.0f &amp;&amp; J == 0.0f &amp;&amp; K == 0.0f &amp;&amp; R == 1.0f">[Identity]</DisplayString>
+    <DisplayString Condition="I == 1.0f &amp;&amp; J == 0.0f &amp;&amp; K == 0.0f &amp;&amp; R == 0.0f">[180 Pitch]</DisplayString>
+    <DisplayString Condition="I == 0.0f &amp;&amp; J == 1.0f &amp;&amp; K == 0.0f &amp;&amp; R == 0.0f">[180 Yaw]</DisplayString>
+    <DisplayString Condition="I == 0.0f &amp;&amp; J == 0.0f &amp;&amp; K == 1.0f &amp;&amp; R == 0.0f">[180 Roll]</DisplayString>
+  </Type>
+
+  <Type Name="Pu::Matrix3">
+    <DisplayString Condition="c1.X == 1.0f &amp;&amp; c1.Y == 0.0f &amp;&amp; c1.Z == 0.0f &amp;&amp; c2.X == 0.0f &amp;&amp; c2.Y == 1.0f &amp;&amp; c2.Z == 0.0f &amp;&amp; c3.X == 0.0f &amp;&amp; c3.Y == 0.0f &amp;&amp; c3.Z == 1.0f">[Identity]</DisplayString>
+    <DisplayString>[{c1} {c2} {c3}]</DisplayString>
+    <Expand>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.X}, {c2.X}, {c3.X} |</DisplayString>
+      </Synthetic>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.Y}, {c2.Y}, {c3.Y} |</DisplayString>
+      </Synthetic>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.Z}, {c2.Z}, {c3.Z} |</DisplayString>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <Type Name="Pu::Matrix">
+    <DisplayString Condition="c1.X == 1.0f &amp;&amp; c1.Y == 0.0f &amp;&amp; c1.Z == 0.0f &amp;&amp; c1.W == 0.0f &amp;&amp; c2.X == 0.0f &amp;&amp; c2.Y == 1.0f &amp;&amp; c2.Z == 0.0f &amp;&amp; c2.W == 0.0f &amp;&amp; c3.X == 0.0f &amp;&amp; c3.Y == 0.0f &amp;&amp; c3.Z == 1.0f &amp;&amp; c3.W == 0.0f &amp;&amp; c4.X == 0.0f &amp;&amp; c4.Y == 0.0f &amp;&amp; c4.Z == 0.0f &amp;&amp; c4.W == 1.0f">[Identity]</DisplayString>
+    <DisplayString>[{c1} {c2} {c3} {c4}]</DisplayString>
+    <Expand>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.X}, {c2.X}, {c3.X}, {c4.X} |</DisplayString>
+      </Synthetic>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.Y}, {c2.Y}, {c3.Y}, {c4.Y} |</DisplayString>
+      </Synthetic>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.Z}, {c2.Z}, {c3.Z}, {c4.Z} |</DisplayString>
+      </Synthetic>
+      <Synthetic Name=" ">
+        <DisplayString>| {c1.W}, {c2.W}, {c3.W}, {c4.W} |</DisplayString>
+      </Synthetic>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -6,8 +6,8 @@
 #include "Core/Diagnostics/Profiler.h"
 #include "Core/Math/HeightMap.h"
 
-#define create_collision_t(first, second)		(static_cast<Pu::uint16>(static_cast<Pu::uint16>(first) | static_cast<Pu::uint16>(second) << 8))
-#define as_shape(type, params)					(*reinterpret_cast<const Pu::type*>(params))
+#define collision_t(first, second)	(static_cast<Pu::uint16>(static_cast<Pu::uint16>(first) | static_cast<Pu::uint16>(second) << 8))
+#define as_shape(type, params)		(*reinterpret_cast<const Pu::type*>(params))
 
 static Pu::uint32 bvhUpdateCalls = 0;
 static Pu::uint32 narrowPhaseChecks = 0;
@@ -120,6 +120,12 @@ void Pu::ContactSystem::AddItem(PhysicsHandle handle, const AABB & bb, Collision
 		memcpy(copy, collider, sizeof(OBB));
 		break;
 	case CollisionShapes::HeightMap:
+		if (physics_get_type(handle) == PhysicsType::Kinematic)
+		{
+			Log::Error("Kinematic objects cannot have a HeightMap collider!");
+			return;
+		}
+
 		copy = reinterpret_cast<float*>(malloc(sizeof(HeightMap)));
 		new(copy) HeightMap(*reinterpret_cast<const HeightMap*>(collider));
 		break;
@@ -284,14 +290,14 @@ void Pu::ContactSystem::TestGeneric(PhysicsHandle hfirst, PhysicsHandle hsecond)
 	If not, try again, but with reverse order.
 	Otherwise it's an invalid collision.
 	*/
-	decltype(checkers)::iterator it = checkers.find(create_collision_t(shape1, shape2));
+	decltype(checkers)::iterator it = checkers.find(collision_t(shape1, shape2));
 	if (it != checkers.end())
 	{
 		((*this).*it->second)(hfirst, hsecond);
 		return;
 	}
 
-	it = checkers.find(create_collision_t(shape2, shape1));
+	it = checkers.find(collision_t(shape2, shape1));
 	if (it != checkers.end())
 	{
 		((*this).*it->second)(hsecond, hfirst);
@@ -381,6 +387,26 @@ void Pu::ContactSystem::TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb)
 	}
 }
 
+void Pu::ContactSystem::TestAABBOBB(PhysicsHandle haabb, PhysicsHandle hobb)
+{
+	/* Query the colliders and transform them to the correct location. */
+	const AABB &aabb = cachedBroadPhase.at(haabb);
+	const OBB &obb = as_shape(OBB, rawNarrowPhase.at(hobb).second) * world->GetTransform(hobb);
+
+	/* Check for collision. */
+	if (sat.Run(aabb, obb))
+	{
+		const vector<Vector3> &points = sat.GetContacts(aabb, obb);
+		const float mul = 1.0f / points.size();
+
+		/* Should make a different solver for this, but for now this works. */
+		for (Vector3 p : points)
+		{
+			AddManifold(haabb, hobb, p, sat.GetIntersectionAxis(), sat.GetIntersectionDepth(), mul);
+		}
+	}
+}
+
 void Pu::ContactSystem::TestOBBOBB(PhysicsHandle hfirst, PhysicsHandle hsecond)
 {
 	/* Query the colliders and transform them to the correct location. */
@@ -456,11 +482,38 @@ void Pu::ContactSystem::AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond,
 
 void Pu::ContactSystem::SetGenericCheckers(void)
 {
-	checkers.emplace(create_collision_t(CollisionShapes::None, CollisionShapes::Sphere), &ContactSystem::TestAABBSphere);
-	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ContactSystem::TestSphereSphere);
-	checkers.emplace(create_collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ContactSystem::TestHeightmapSphere);
-	checkers.emplace(create_collision_t(CollisionShapes::Sphere, CollisionShapes::OBB), &ContactSystem::TestSphereOBB);
-	checkers.emplace(create_collision_t(CollisionShapes::OBB, CollisionShapes::OBB), &ContactSystem::TestOBBOBB);
+	/*
+	Current Support:
+	' ': Not needed
+	'?': Not supported
+	'v': Working
+
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|           | AABB | Sphere | Capsule | OBB | Hull | Mesh | HeightMap |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|   AABB    |      |    v   |    ?    |  v  |  ?   |  ?   |           |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|   Sphere  |  v   |    v   |    ?    |  v  |  ?   |  ?   |     v     |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|  Capsule  |  ?   |    ?   |    ?    |  ?  |  ?   |  ?   |     ?     |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|    OBB    |  v   |    v   |    ?    |  v  |  ?   |  ?   |     ?     |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|   Hull    |  ?   |    ?   |    ?    |  ?  |  ?   |  ?   |     ?     |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	|   Mesh    |  ?   |    ?   |    ?    |  ?  |  ?   |  ?   |     ?     |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+	| HeightMap |      |    v   |    ?    |  ?  |  ?   |  ?   |           |
+	+-----------+------+--------+---------+-----+------+------+-----------+
+
+	AABB and Heightmap should only be used for static objects, it makes no sense to check for any combination of them.
+	*/
+	checkers.emplace(collision_t(CollisionShapes::None, CollisionShapes::Sphere), &ContactSystem::TestAABBSphere);
+	checkers.emplace(collision_t(CollisionShapes::Sphere, CollisionShapes::Sphere), &ContactSystem::TestSphereSphere);
+	checkers.emplace(collision_t(CollisionShapes::HeightMap, CollisionShapes::Sphere), &ContactSystem::TestHeightmapSphere);
+	checkers.emplace(collision_t(CollisionShapes::Sphere, CollisionShapes::OBB), &ContactSystem::TestSphereOBB);
+	checkers.emplace(collision_t(CollisionShapes::None, CollisionShapes::OBB), &ContactSystem::TestAABBOBB);
+	checkers.emplace(collision_t(CollisionShapes::OBB, CollisionShapes::OBB), &ContactSystem::TestOBBOBB);
 }
 
 void Pu::ContactSystem::Destroy(void)

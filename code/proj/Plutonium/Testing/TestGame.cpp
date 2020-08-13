@@ -44,7 +44,7 @@ void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, Physical
 void TestGame::LoadContent(AssetFetcher & fetcher)
 {
 	renderer = new DeferredRenderer(fetcher, GetWindow());
-	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 5.0f);
+	dbgRenderer = new DebugRenderer(GetWindow(), fetcher, &renderer->GetDepthBuffer(), 2.0f);
 	GetWindow().SwapchainRecreated.Add(*this, &TestGame::OnSwapchainRecreated);
 
 	AddSystem(world = new PhysicalWorld(*renderer));
@@ -77,7 +77,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
 	Collider collider{ obb };
 
-	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(0.0f), collider };
+	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI8), collider };
 	obj.Properties = physicsMat;
 	obj.Scale = Vector3(40.0f, 1.0f, 100.0f);
 	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);

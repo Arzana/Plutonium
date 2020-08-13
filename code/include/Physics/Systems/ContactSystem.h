@@ -109,6 +109,7 @@ namespace Pu
 		void TestAABBSphere(PhysicsHandle haabb, PhysicsHandle hsphere);
 		void TestHeightmapSphere(PhysicsHandle hmap, PhysicsHandle hsphere);
 		void TestSphereOBB(PhysicsHandle hsphere, PhysicsHandle hobb);
+		void TestAABBOBB(PhysicsHandle haabb, PhysicsHandle hobb);
 		void TestOBBOBB(PhysicsHandle hfirst, PhysicsHandle hsecond);
 		void AddManifold(PhysicsHandle hfirst, PhysicsHandle hsecond, Vector3 pos, Vector3 normal, float depth, float mul);
 		void SetGenericCheckers(void);

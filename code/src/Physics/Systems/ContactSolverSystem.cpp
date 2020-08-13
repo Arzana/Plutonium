@@ -320,7 +320,7 @@ void Pu::ContactSolverSystem::VectorSolve(ofloat dt)
 			jroll[i] = _mm256_mul_ps(j, tmp_z3);
 
 			/* Stabalize using Baumgarte. */
-			d1 = _mm256_mul_ps(beta, _mm256_div_ps(world->sysCnst->sd[i], dt));
+			d1 = _mm256_mul_ps(_mm256_div_ps(beta, world->sysCnst->em[i]), _mm256_div_ps(world->sysCnst->sd[i], dt));
 			tmp_x1 = _mm256_mul_ps(d1, nx[i]);
 			tmp_y1 = _mm256_mul_ps(d1, ny[i]);
 			tmp_z1 = _mm256_mul_ps(d1, nz[i]);

@@ -54,7 +54,7 @@ namespace Pu
 	{
 		return box.LowerBound.X <= point.X && box.UpperBound.X >= point.X
 			&& box.LowerBound.Y <= point.Y && box.UpperBound.Y >= point.Y
-			&& box.UpperBound.Z <= point.Z && box.UpperBound.Z >= point.Z;
+			&& box.LowerBound.Z <= point.Z && box.UpperBound.Z >= point.Z;
 	}
 
 	/* Gets whether the specified point is within the specified oriented bounding box. */
