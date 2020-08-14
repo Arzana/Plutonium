@@ -122,7 +122,7 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd,
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
 	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
-	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr), advanced(false),
+	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr),
 	renderpassStarted(false), activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
 {
 #ifdef _DEBUG
@@ -409,7 +409,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 	const MeshCollection &meshes = model.GetMeshes();
 
 	/* Set the model matrix. */
-	const GraphicsPipeline &pipeline = *(advanced ? gfxGPassAdv : gfxGPassBasic);
+	const GraphicsPipeline &pipeline = *(activeSubpass == SubpassAdvancedStaticGeometry ? gfxGPassAdv : gfxGPassBasic);
 	curCmd->PushConstants(pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
 
 	const uint32 requiredStride = pipeline.GetVertexStride(0);

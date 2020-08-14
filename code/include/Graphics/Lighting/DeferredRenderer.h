@@ -142,7 +142,7 @@ namespace Pu
 		bool renderpassStarted;
 		int32 activeSubpass;
 
-		bool markNeeded, advanced, wireframe;
+		bool markNeeded, wireframe;
 
 		QueryChain *timer;
 #ifdef _DEBUG

@@ -28,9 +28,8 @@ void main()
 	Uv = TexCoord;
 
 	// Set the bump-mapped normal.
-	const mat3 scaled = mat3(transpose(inverse(Model)));
-	const vec3 t = normalize(scaled * Tangent.xyz.xyz);
-	const vec3 n = normalize(scaled * Normal.xyz);
+	const vec3 t = normalize(Model * vec4(Tangent.xyz, 0.0f)).xyz;
+	const vec3 n = normalize(Model * vec4(Normal.xyz, 0.0f)).xyz;
 	const vec3 b = cross(n, t) * Tangent.w;
 	TBN = mat3(t, b, n);
 }
