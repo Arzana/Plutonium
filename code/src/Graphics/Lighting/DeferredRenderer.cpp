@@ -118,24 +118,26 @@ private:
 	G-Buffer attachments should be kept small, <= 128 bytes per pixel.
 	This is so the GPU can use tiled memory.
 */
-Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd, bool wireframe)
+Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
-	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr), curCam(nullptr),
-	wireframe(wireframe), descPoolInput(nullptr), descSetInput(nullptr),
+	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr),
+	curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr),
 	renderpassStarted(false), activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
 {
 #ifdef _DEBUG
 	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
 #endif
 
-	/* Make sure that we can actually run wireframe mode. */
-	if (wireframe)
+	/* Used for debugging. */
+	polygonMode = RuntimeConfig::QueryEnum(L"DeferredRendererPolygonMode", PolygonMode::Fill);
+	if (polygonMode != PolygonMode::Fill)
 	{
-		if (!wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().FillModeNonSolid)
+		/* Make sure that we can actually run wireframe/point mode. */
+		if (!GetDevice().GetPhysicalDevice().GetEnabledFeatures().FillModeNonSolid)
 		{
-			Log::Warning("Cannot use DeferredRenderer in wireframe mode (FillModeNonSolid was not enabled)!");
-			wireframe = false;
+			Log::Warning("Deferred Renderer PolygonMode is not supported (FillModeNonSolid was not enabled)!");
+			polygonMode = PolygonMode::Fill;
 		}
 	}
 
@@ -813,12 +815,6 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the terrain pass. */
 	{
-		if (wireframe)
-		{
-			gfxTerrain->SetPolygonMode(PolygonMode::Line);
-			gfxTerrain->SetLineWidth(2.0f);
-		}
-
 		if (wnd->GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
 		{
 			gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
@@ -829,8 +825,8 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 			gfxTerrain->SetTopology(PrimitiveTopology::TriangleList);
 		}
 
+		gfxTerrain->SetPolygonMode(polygonMode);
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
-
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
 		gfxTerrain->SetCullMode(CullModeFlag::Back);
 		gfxTerrain->AddVertexBinding<Patched3D>(0);
@@ -840,8 +836,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the basic static geometry pass. */
 	{
-		if (wireframe) gfxGPassBasic->SetPolygonMode(PolygonMode::Line);
-
+		gfxGPassBasic->SetPolygonMode(polygonMode);
 		gfxGPassBasic->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPassBasic->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPassBasic->EnableDepthTest(true, CompareOp::LessOrEqual);
@@ -852,8 +847,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the advanced static geometry pass. */
 	{
-		if (wireframe) gfxGPassAdv->SetPolygonMode(PolygonMode::Line);
-
+		gfxGPassAdv->SetPolygonMode(polygonMode);
 		gfxGPassAdv->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPassAdv->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPassAdv->EnableDepthTest(true, CompareOp::LessOrEqual);
@@ -864,8 +858,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the basic morph geometry pass. */
 	{
-		if (wireframe) gfxGPassBasicMorph->SetPolygonMode(PolygonMode::Line);
-
+		gfxGPassBasicMorph->SetPolygonMode(polygonMode);
 		gfxGPassBasicMorph->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxGPassBasicMorph->SetTopology(PrimitiveTopology::TriangleList);
 		gfxGPassBasicMorph->EnableDepthTest(true, CompareOp::LessOrEqual);
@@ -916,7 +909,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
 
-		const bool enableFxaa = RuntimeConfig::QueryBool(L"FXAA", true);
+		const bool enableFxaa = RuntimeConfig::QueryBool(L"FXAAEnabled", true);
 		gfxTonePass->SetSpecializationData(1, enableFxaa);
 
 		gfxTonePass->Finalize();

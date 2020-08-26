@@ -186,7 +186,7 @@ bool Pu::GraphicsPipeline::EnableDepthClamp(void)
 bool Pu::GraphicsPipeline::SetPolygonMode(PolygonMode mode)
 {
 	/* Fill mode is always supported but line and point might not be. */
-	if ((mode != PolygonMode::Fill && GetHardwareEnabled().FillModeNonSolid) || mode == PolygonMode::Fill)
+	if (((mode == PolygonMode::Point || mode == PolygonMode::Line) && GetHardwareEnabled().FillModeNonSolid) || mode == PolygonMode::Fill)
 	{
 		rasterizationState.PolygonMode = mode;
 		return true;

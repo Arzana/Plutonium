@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/String.h"
 #include <type_traits>
 
 namespace Pu
@@ -84,6 +85,13 @@ namespace Pu
 	_Check_return_ inline constexpr enum_t _CrtEnumRemoveFlag(_In_ enum_t e, _In_ enum_t flag)
 	{
 		return _CrtEnumBitAnd(e, _CrtEnumBitNot(flag));
+	}
+
+	/* Gets the human readable version of the enum name. */
+	template <typename enum_t>
+	_Check_return_ inline string _CrtEnumGetName(void)
+	{
+		return string(typeid(enum_t).name()).trim_front_split("::");
 	}
 #pragma endregion
 }

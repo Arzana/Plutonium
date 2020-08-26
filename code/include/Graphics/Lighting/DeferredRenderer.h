@@ -34,7 +34,7 @@ namespace Pu
 		static constexpr uint32 SubpassPostProcessing = 7;
 
 		/* Initializes a new instance of a deferred renderer for the specified window. */
-		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd, _In_opt_ bool wireframe = false);
+		DeferredRenderer(_In_ AssetFetcher &fetcher, _In_ GameWindow &wnd);
 		DeferredRenderer(_In_ const DeferredRenderer&) = delete;
 		DeferredRenderer(_In_ DeferredRenderer&&) = delete;
 		/* Releases the resources allocated by the deferred renderer. */
@@ -142,7 +142,8 @@ namespace Pu
 		bool renderpassStarted;
 		int32 activeSubpass;
 
-		bool markNeeded, wireframe;
+		PolygonMode polygonMode;
+		bool markNeeded;
 
 		QueryChain *timer;
 #ifdef _DEBUG

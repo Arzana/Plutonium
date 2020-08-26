@@ -2,8 +2,6 @@
 #include <Application.h>
 #include <Graphics/Cameras/FreeCamera.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
-#include <Graphics/Lighting/DeferredRenderer.h>
-#include <Procedural/Terrain/TerrainChunk.h>
 #include <Physics/Systems/PhysicalWorld.h>
 
 class TestGame

@@ -6,6 +6,12 @@
 #include "Core/Platform/Windows/RegistryHandler.h"
 #include "Core/Math/Conversion.h"
 
+constexpr const wchar_t *BOOL_PREFIX = L"Bool_";
+constexpr const wchar_t *INT_PREFIX = L"Int32_";
+constexpr const wchar_t *LONG_PREFIX = L"Int64_";
+constexpr const wchar_t *SINGLE_PREFIX = L"Float_";
+constexpr const wchar_t *STRING_PREFIX = L"String_";
+
 static HKEY hroot;
 static void pu_reg_init_win32(const Pu::wstring &processName)
 {
@@ -39,20 +45,32 @@ Pu::wstring Pu::RuntimeConfig::QueryHumanReadable(const wstring & key)
 	pu_config_init();
 
 #ifdef _WIN32
-	const DWORD type = RegistryHandler::QueryType(hroot, key);
-
-	switch (type)
+	if (RegistryHandler::Exists(hroot, BOOL_PREFIX + key))
 	{
-	case REG_DWORD:
-		return wstring::from(QueryInt(key, 0));
-	case REG_QWORD:
-		return wstring::from(QueryLong(key, 0ll));
-	case REG_SZ:
-		return QueryString(key, L"");
-	default:
-		Log::Error("Unable to parse registry to %u to string!", type);
-		return L"Undefined";
+		return QueryBool(key) ? L"True" : L"False";
 	}
+
+	if (RegistryHandler::Exists(hroot, INT_PREFIX + key))
+	{
+		return wstring::from(QueryInt(key));
+	}
+
+	if (RegistryHandler::Exists(hroot, LONG_PREFIX + key))
+	{
+		return wstring::from(QueryLong(key));
+	}
+
+	if (RegistryHandler::Exists(hroot, SINGLE_PREFIX + key))
+	{
+		return QueryStringInternal(SINGLE_PREFIX, key, L"");
+	}
+
+	if (RegistryHandler::Exists(hroot, STRING_PREFIX + key))
+	{
+		return QueryString(key);
+	}
+
+	return L"<Unknown Key>";
 #else
 	NOT_IMPLEMENTED_ERROR(QueryHumanReadable);
 	return "NULL";
@@ -64,7 +82,10 @@ Pu::vector<Pu::wstring> Pu::RuntimeConfig::QueryKeys(void)
 	pu_config_init();
 
 #ifdef _WIN32
-	return RegistryHandler::ReadKeys(hroot);
+	/* Remove the prefixes from the result. */
+	vector<wstring> result = RegistryHandler::ReadValues(hroot, L"");
+	for (wstring &cur : result) cur = cur.trim_front_split(L'_');
+	return result;
 #else
 	NOT_IMPLEMENTED_ERROR(QueryKeys);
 	return vector<wstring>();
@@ -73,19 +94,19 @@ Pu::vector<Pu::wstring> Pu::RuntimeConfig::QueryKeys(void)
 
 bool Pu::RuntimeConfig::QueryBool(const wstring & key, bool defaultValue)
 {
-	return QueryInt(key, defaultValue);
+	pu_config_init();
+
+#ifdef _WIN32
+	return RegistryHandler::TryReadInt32(hroot, BOOL_PREFIX + key, defaultValue);
+#else
+	NOT_IMPLEMENTED_FATAL(QueryBool);
+	return false;
+#endif
 }
 
 Pu::int32 Pu::RuntimeConfig::QueryInt(const wstring & key, int32 defaultValue)
 {
-	pu_config_init();
-
-#ifdef _WIN32
-	return RegistryHandler::TryReadInt32(hroot, key, defaultValue);
-#else
-	NOT_IMPLEMENTED_FATAL(QueryInt);
-	return 0;
-#endif
+	return QueryIntInternal(INT_PREFIX, key, defaultValue);
 }
 
 Pu::int64 Pu::RuntimeConfig::QueryLong(const wstring & key, int64 defaultValue)
@@ -93,7 +114,7 @@ Pu::int64 Pu::RuntimeConfig::QueryLong(const wstring & key, int64 defaultValue)
 	pu_config_init();
 
 #ifdef _WIN32
-	return RegistryHandler::TryReadInt64(hroot, key, defaultValue);
+	return RegistryHandler::TryReadInt64(hroot, LONG_PREFIX + key, defaultValue);
 #else
 	NOT_IMPLEMENTED_FATAL(QueryLong);
 	return 0;
@@ -102,7 +123,7 @@ Pu::int64 Pu::RuntimeConfig::QueryLong(const wstring & key, int64 defaultValue)
 
 float Pu::RuntimeConfig::QuerySingle(const wstring & key, float defaultValue)
 {
-	const string raw = QueryString(key, wstring::from(defaultValue)).toUTF8();
+	const string raw = QueryStringInternal(SINGLE_PREFIX, key, wstring::from(defaultValue)).toUTF8();
 
 	float result;
 	if (tryParse(raw.c_str(), raw.c_str() + raw.length(), &result)) return result;
@@ -111,19 +132,18 @@ float Pu::RuntimeConfig::QuerySingle(const wstring & key, float defaultValue)
 
 Pu::wstring Pu::RuntimeConfig::QueryString(const wstring & key, const wstring & defaultValue)
 {
-	pu_config_init();
-
-#ifdef _WIN32
-	return RegistryHandler::TryReadString(hroot, key, defaultValue);
-#else
-	NOT_IMPLEMENTED_FATAL(QueryString);
-	return 0;
-#endif
+	return QueryStringInternal(STRING_PREFIX, key, defaultValue);
 }
 
 void Pu::RuntimeConfig::Set(const wstring & key, bool value)
 {
-	Set(key, value ? 1 : 0);
+	pu_config_init();
+
+#ifdef _WIN32
+	RegistryHandler::Write(hroot, BOOL_PREFIX + key, value ? 1 : 0);
+#else
+	NOT_IMPLEMENTED_ERROR(Set);
+#endif
 }
 
 void Pu::RuntimeConfig::Set(const wstring & key, int32 value)
@@ -131,7 +151,7 @@ void Pu::RuntimeConfig::Set(const wstring & key, int32 value)
 	pu_config_init();
 
 #ifdef _WIN32
-	RegistryHandler::Write(hroot, key, value);
+	RegistryHandler::Write(hroot, INT_PREFIX + key, value);
 #else
 	NOT_IMPLEMENTED_ERROR(Set);
 #endif
@@ -142,7 +162,7 @@ void Pu::RuntimeConfig::Set(const wstring & key, int64 value)
 	pu_config_init();
 
 #ifdef _WIN32
-	RegistryHandler::Write(hroot, key, value);
+	RegistryHandler::Write(hroot, LONG_PREFIX + key, value);
 #else
 	NOT_IMPLEMENTED_ERROR(Set);
 #endif
@@ -150,7 +170,13 @@ void Pu::RuntimeConfig::Set(const wstring & key, int64 value)
 
 void Pu::RuntimeConfig::Set(const wstring & key, float value)
 {
-	Set(key, wstring::from(value));
+	pu_config_init();
+
+#ifdef _WIN32
+	RegistryHandler::Write(hroot, SINGLE_PREFIX + key, wstring::from(value));
+#else
+	NOT_IMPLEMENTED_ERROR(Set);
+#endif
 }
 
 void Pu::RuntimeConfig::Set(const wstring & key, const wstring & value)
@@ -158,8 +184,32 @@ void Pu::RuntimeConfig::Set(const wstring & key, const wstring & value)
 	pu_config_init();
 
 #ifdef _WIN32
-	RegistryHandler::Write(hroot, key, value);
+	RegistryHandler::Write(hroot, STRING_PREFIX + key, value);
 #else
 	NOT_IMPLEMENTED_ERROR(Set);
+#endif
+}
+
+Pu::int32 Pu::RuntimeConfig::QueryIntInternal(const wchar_t * prefix, const wstring & key, int32 defaultValue)
+{
+	pu_config_init();
+
+#ifdef _WIN32
+	return RegistryHandler::TryReadInt32(hroot, prefix + key, defaultValue);
+#else
+	NOT_IMPLEMENTED_FATAL(QueryInt);
+	return 0;
+#endif
+}
+
+Pu::wstring Pu::RuntimeConfig::QueryStringInternal(const wchar_t * prefix, const wstring & key, const wstring & defaultValue)
+{
+	pu_config_init();
+
+#ifdef _WIN32
+	return RegistryHandler::TryReadString(hroot, prefix + key, defaultValue);
+#else
+	NOT_IMPLEMENTED_FATAL(QueryString);
+	return L"";
 #endif
 }

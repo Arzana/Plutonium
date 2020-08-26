@@ -34,7 +34,7 @@ namespace Pu
 		template <typename enum_t>
 		_Check_return_ static inline enum_t QueryEnum(_In_ const wstring &key, _In_ enum_t defaultValue)
 		{
-			return _CrtInt2Enum<enum_t>(QueryInt(key, static_cast<int32>(defaultValue)));
+			return _CrtInt2Enum<enum_t>(QueryIntInternal((_CrtEnumGetName<enum_t>().toWide() + L'_').c_str(), key, static_cast<int32>(defaultValue)));
 		}
 
 		/* Sets a specified boolean configuration value. */
@@ -47,5 +47,9 @@ namespace Pu
 		static void Set(_In_ const wstring &key, _In_ float value);
 		/* Sets a specified string configuration value. */
 		static void Set(_In_ const wstring &key, _In_ const wstring &value);
+
+	private:
+		static int32 QueryIntInternal(const wchar_t *prefix, const wstring &key, int32 defaultValue);
+		static wstring QueryStringInternal(const wchar_t *prefix, const wstring &key, const wstring &defaultValue);
 	};
 }
