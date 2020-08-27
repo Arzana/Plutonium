@@ -55,10 +55,10 @@ void main()
 	{
 		// Sample the neightbouring texels and convert them to luma.
 		const float luma = rgbToLuma(raw);
-		const float lumaNW = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(-1, 1)).rgb);
-		const float lumaNE = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(1, 1)).rgb);
-		const float lumaSW = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(-1, -1)).rgb);
-		const float lumaSE = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(1, -1)).rgb);
+		const float lumaNW = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(-1, -1)).rgb);
+		const float lumaNE = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(1, -1)).rgb);
+		const float lumaSW = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(-1, 1)).rgb);
+		const float lumaSE = rgbToLuma(textureLodOffset(HdrBuffer, Uv, 0.0f, ivec2(1, 1)).rgb);
 
 		// Get the luma range.
 		const float lumaMin = min(luma, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));

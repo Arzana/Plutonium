@@ -1,6 +1,7 @@
 #include "Graphics/Platform/GameWindow.h"
 #include "Core/EnumUtils.h"
 #include "Graphics/Vulkan/Instance.h"
+#include "Core/Diagnostics/Stopwatch.h"
 #include <imgui/include/imgui.h>
 #include <imgui/include/imgui_impl_vulkan.h>
 
@@ -266,8 +267,8 @@ void Pu::GameWindow::OnNativeSizeChangedHandler(const NativeWindow &, ValueChang
 
 void Pu::GameWindow::ReCreateSwapchain(Extent2D size, SurfaceFormat format, PresentMode mode, const SwapchainReCreatedEventArgs & args)
 {
-	/* The command buffer will throw an error a bit later, but this is clearer. */
-	if (!GetCommandBuffer().CanBegin()) Log::Fatal("Cannot recreate swapchain during GameWindow render!");
+	/* Wait until the current rendering command buffer is done. */
+	device.GetGraphicsQueue(1).WaitIdle();
 
 	/* The swapchain images or the framebuffers might still be in use by the command buffers, so wait until they're available again. */
 	Finalize();

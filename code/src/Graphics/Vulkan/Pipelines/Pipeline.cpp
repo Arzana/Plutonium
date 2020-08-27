@@ -130,14 +130,6 @@ void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
 void Pu::Pipeline::Destroy(void)
 {
 	if (Hndl) Device->vkDestroyPipeline(Device->hndl, Hndl, nullptr);
-
-#ifdef _DEBUG
-	for (SpecializationInfo &cur : specInfos)
-	{
-		cur.Data = nullptr;
-		cur.DataSize = 0;
-	}
-#endif
 }
 
 void Pu::Pipeline::CreatePipelineLayout(const Subpass & subpass)
