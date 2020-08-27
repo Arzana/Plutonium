@@ -63,10 +63,10 @@ void Pu::DescriptorPool::AddSet(uint32 subpass, uint32 set, uint32 max)
 	if (layout.HasUniformBufferMemory())
 	{
 		/* Calculate the end of the last set. */
-		const DeviceSize end = sets.empty() ? 0 : sets.back().Offset + sets.back().MaxSets * stride;
+		const DeviceSize end = sets.empty() ? 0 : sets.back().Offset + sets.back().GetMaxSets() * stride;
 
-		/* 
-		Add the current set to the list and set the last stride. 
+		/*
+		Add the current set to the list and set the last stride.
 		stride is always alligned so the end pointer will also be alligned.
 		*/
 		sets.emplace_back(subpass, set, max, end);
@@ -112,6 +112,11 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 	}
 }
 
+void Pu::DescriptorPool::Reset(void)
+{
+	VK_VALIDATE(device->vkResetDescriptorPool(device->hndl, hndl, 0), PFN_vkResetDescriptorPool);
+}
+
 Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayout & layout, DescriptorSetHndl * result)
 {
 	/* Lazily create if needed. */
@@ -123,26 +128,57 @@ Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayo
 	VK_VALIDATE(device->vkAllocateDescriptorSets(device->hndl, &info, result), PFN_vkAllocateDescriptorSets);
 
 	/* Return the buffer offset if this set is a uniform buffer. */
-	DeviceSize offset = 0;
 	if (buffer)
 	{
 		/* Get the base offset of the set in the buffer. */
 		const uint64 id = MakeId(subpass, layout.set);
 		decltype(sets)::iterator it = sets.iteratorOf([id](const SetInfo &cur) { return cur.Id == id; });
-		if (it != sets.end()) offset = it->Offset + layout.GetAllignedStride() * it->AllocCnt++;
-		else
+		if (it != sets.end())
 		{
-			Log::Fatal("Cannot allocate set %u (subpass %u) from descriptor pool (combination wasn't specified during creation)!", layout.set, subpass);
+			/* Find an unused space in the buffer. */
+			for (uint32 i = 0; i < it->spaces.size(); i++)
+			{
+				if (!it->spaces[i])
+				{
+					/* Mark the space as used and return the offset of it. */
+					it->spaces[i] = *result;
+					lock.unlock();
+
+					return it->Offset + layout.GetAllignedStride() * i;
+				}
+			}
+
+			ThrowInvalidAlloc(subpass, layout.set, "max set allocations reached");
 		}
+		else ThrowInvalidAlloc(subpass, layout.set, "combination wasn't specified during creation");
 	}
 
+	/* No offset is needed as the descriptor set doesn't have buffer memory. */
 	lock.unlock();
-	return offset;
+	return 0;
 }
 
 void Pu::DescriptorPool::Free(DescriptorSetHndl set)
 {
 	lock.lock();
+
+	if (buffer)
+	{
+		for (SetInfo &info : sets)
+		{
+			for (DescriptorSetHndl &space : info.spaces)
+			{
+				if (space == set)
+				{
+					/* Goto is used to break out of nested for loop. */
+					space = nullptr;
+					goto FreeDescriptorSet;
+				}
+			}
+		}
+	}
+
+FreeDescriptorSet:
 	VK_VALIDATE(device->vkFreeDescriptorSets(device->hndl, hndl, 1, &set), PFN_vkFreeDescriptorSets);
 	lock.unlock();
 }
@@ -156,7 +192,7 @@ void Pu::DescriptorPool::Create(void)
 	if (sets.size())
 	{
 		/* We must allign the final set stride to the physical device allignment, otherwise multiple sets will not start at proper allignment. */
-		const DeviceSize size = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(sets.back().Offset + stride * sets.back().MaxSets);
+		const DeviceSize size = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(sets.back().Offset + stride * sets.back().GetMaxSets());
 		buffer = new DynamicBuffer(*device, size, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
 		buffer->SetDebugName("Uniform Buffer");
 	}
@@ -171,6 +207,11 @@ void Pu::DescriptorPool::Destroy(void)
 	}
 }
 
+void Pu::DescriptorPool::ThrowInvalidAlloc(uint32 subpass, uint32 set, const char * reason)
+{
+	Log::Fatal("Cannot allocate set %u (subpass %u) from descriptor pool (%s)!", set, subpass, reason);
+}
+
 Pu::uint64 Pu::DescriptorPool::MakeId(uint32 subpass, uint32 set)
 {
 	constexpr Pu::uint64 bits_per_uint32 = sizeof(Pu::uint32) << 3;
@@ -178,5 +219,7 @@ Pu::uint64 Pu::DescriptorPool::MakeId(uint32 subpass, uint32 set)
 }
 
 Pu::DescriptorPool::SetInfo::SetInfo(uint32 subpass, uint32 set, uint32 max, DeviceSize offset)
-	: Id(MakeId(subpass, set)), MaxSets(max), Offset(offset), AllocCnt(0)
-{}
+	: Id(MakeId(subpass, set)), Offset(offset)
+{
+	spaces.resize(max, nullptr);
+}

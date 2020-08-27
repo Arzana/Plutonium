@@ -36,7 +36,7 @@ Pu::RenderingSystem::RenderingSystem(RenderingSystem && value)
 	: world(value.world), renderer(value.renderer), handleLut(std::move(value.handleLut)),
 	visualTree(std::move(value.visualTree)), pntLightPools(std::move(value.pntLightPools)),
 	dirLights(std::move(value.dirLights)), terrains(std::move(value.terrains)),
-	models(std::move(value.models)), pntLights(std::move(pntLights)), 
+	models(std::move(value.models)), pntLights(std::move(pntLights)),
 	cacheCast(std::move(cacheCast)), cacheHandles(std::move(value.cacheHandles)),
 	loadingAssets(std::move(value.loadingAssets))
 {}
@@ -180,7 +180,7 @@ void Pu::RenderingSystem::Render(const BVH & bvh, const Camera & camera, Command
 		Profiler::End();
 		Profiler::Begin("Culling", Color::Abbey());
 	}
-	
+
 	CheckLoadingAssets();
 	UpdateCaches(bvh, camera);
 
@@ -201,7 +201,7 @@ void Pu::RenderingSystem::Render(const BVH & bvh, const Camera & camera, Command
 		{
 			/* Render all the terrain chunks. */
 			renderer->Begin(subpass);
-			renderer->Render(*terrains[i]);
+			if (i < terrains.size()) renderer->Render(*terrains[i]);
 		}
 		else if (subpass == DeferredRenderer::SubpassBasicStaticGeometry || subpass == DeferredRenderer::SubpassAdvancedStaticGeometry)
 		{
@@ -264,6 +264,8 @@ void Pu::RenderingSystem::Remove(PhysicsHandle handle)
 	{
 		hprivate -= physics_get_subpass(hprivate) == subpass && physics_get_lookup_id(hprivate) > idx;
 	}
+
+	handleLut.erase(handle);
 }
 
 void Pu::RenderingSystem::CheckLoadingAssets(void)

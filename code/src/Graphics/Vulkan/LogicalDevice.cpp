@@ -239,6 +239,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	/* Descriptor pool/set related functions. */
 	LOAD_DEVICE_PROC(vkCreateDescriptorPool);
 	LOAD_DEVICE_PROC(vkDestroyDescriptorPool);
+	LOAD_DEVICE_PROC(vkResetDescriptorPool);
 	LOAD_DEVICE_PROC(vkAllocateDescriptorSets);
 	LOAD_DEVICE_PROC(vkFreeDescriptorSets);
 	LOAD_DEVICE_PROC(vkCreateDescriptorSetLayout);

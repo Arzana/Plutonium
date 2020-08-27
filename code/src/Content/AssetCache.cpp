@@ -168,3 +168,16 @@ void Pu::AssetCache::Store(Asset * asset)
 	assets.emplace_back(asset);
 	lock.unlock();
 }
+
+void Pu::AssetCache::Update(Asset * asset, size_t newHash)
+{
+	lock.lock();
+
+	/* Remove the new hash from the reserve list. */
+	if (Contains(newHash, false, true)) reserved.remove(newHash);
+	else Log::Warning("Asset %zu has updated its hash before first reserving it, this is unsafe!", newHash);
+
+	/* Update the hash safely. */
+	asset->SetHash(newHash);
+	lock.unlock();
+}

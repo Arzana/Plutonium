@@ -33,6 +33,8 @@ namespace Pu
 		void AddSet(_In_ uint32 subpass, _In_ uint32 set, _In_ uint32 max);
 		/* Updates the descriptor pool, staging all the descriptors to the GPU. */
 		void Update(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlag dstStage);
+		/* Recycles all the resources from all descriptor sets allocated from the pool back into the pool. */
+		void Reset(void);
 
 	private:
 		friend class DescriptorSetBase;
@@ -44,10 +46,14 @@ namespace Pu
 		{
 			uint64 Id;
 			DeviceSize Offset;
-			uint32 MaxSets;
-			uint32 AllocCnt;
+			vector<DescriptorSetHndl> spaces;
 
 			SetInfo(uint32 subpass, uint32 set, uint32 max, DeviceSize offset);
+
+			inline uint32 GetMaxSets(void) const
+			{
+				return static_cast<uint32>(spaces.size());
+			}
 		};
 
 		DescriptorPoolHndl hndl;
@@ -67,6 +73,7 @@ namespace Pu
 		void Create(void);
 		void Destroy(void);
 
+		static void ThrowInvalidAlloc(uint32 subpass, uint32 set, const char *reason);
 		static uint64 MakeId(uint32 subpass, uint32 set);
 	};
 }

@@ -166,7 +166,7 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 	buffer->BeginMemoryTransfer();
 
 	query = new QueryChain(window.GetDevice(), QueryType::Timestamp, 1);
-	renderpass = &loader.FetchRenderpass({ { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
+	renderpass = &loader.FetchRenderpass(nullptr, { { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
 	window.SwapchainRecreated.Add(*this, &DebugRenderer::SwapchainRecreated);

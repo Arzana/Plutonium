@@ -9,6 +9,7 @@
 #include "Streams/RuntimeConfig.h"
 
 using namespace Pu;
+#define delete_s(x)							if (x) { delete x; x = nullptr; }
 
 #ifdef _DEBUG
 #include <imgui/include/imgui.h>
@@ -122,11 +123,13 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	: wnd(&wnd), depthBuffer(nullptr), markNeeded(true), fetcher(&fetcher), skybox(nullptr),
 	gfxTerrain(nullptr), gfxGPassBasic(nullptr), gfxGPassAdv(nullptr), gfxDLight(nullptr),
 	gfxPLight(nullptr), gfxSkybox(nullptr), gfxTonePass(nullptr), curCmd(nullptr),
-	curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr),
-	renderpassStarted(false), activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
+	curCam(nullptr), descPoolInput(nullptr), descSetInput(nullptr), renderpassStarted(false),
+	activeSubpass(SubpassNone), lightVolumes(new MeshCollection())
 {
 #ifdef _DEBUG
+	/* Only add the tessellation flag if it's supported. */
 	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
+	statFlags |= _CrtInt2Enum<QueryPipelineStatisticFlag>(_CrtEnum2Int(QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations) & GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader);
 #endif
 
 	/* Used for debugging. */
@@ -141,32 +144,8 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 		}
 	}
 
-	/* We can only use tessellation on the terrain if it's supported. */
-	vector<wstring> terrainShaders;
-	if (wnd.GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
-	{
-		terrainShaders = { L"{Shaders}PatchTerrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" };
-#ifdef _DEBUG
-		statFlags |= QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations;
-#endif
-	}
-	else
-	{
-		terrainShaders = { L"{Shaders}FastTerrain.vert.spv", L"{Shaders}Terrain.frag.spv" };
-	}
-
-	renderpass = &fetcher.FetchRenderpass(
-		{
-			terrainShaders,
-			{ L"{Shaders}BasicStaticGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
-			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
-			{ L"{Shaders}BasicMorphGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
-			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
-			{ L"{Shaders}WorldLight.vert.spv", L"{Shaders}PointLight.frag.spv" },
-			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
-			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
-		});
-
+	/* Load the first iteration of the renderpass (might be updated later) and fetch the sampler for the HDR buffer. */
+	CreateRenderpass(RuntimeConfig::QueryBool(L"TessellationEnabled"));
 	hdrSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::ClampToEdge });
 
 	/* Create the light volumes. */
@@ -175,8 +154,6 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 
 	/* We need to recreate resources if the window resizes, or the color space is changed. */
 	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
-	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
-	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
 	CreateSizeDependentResources();
 
 	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
@@ -220,6 +197,36 @@ void Pu::DeferredRenderer::InitializeCameraPool(DescriptorPool & pool, uint32 ma
 	pool.AddSet(SubpassPointLight, 0, maxSets);
 	pool.AddSet(SubpassSkybox, 0, maxSets);
 	pool.AddSet(SubpassPostProcessing, 0, maxSets);
+}
+
+void Pu::DeferredRenderer::UpdateConfigurableProperties(void)
+{
+	/* Update whether to use tessellation. */
+	if (renderpass->IsLoaded())
+	{
+		/* The non-tessellation shader stages use only two shaders for the subpass. */
+		const bool tessellationDesired = RuntimeConfig::QueryBool(L"TessellationEnabled");
+		if (tessellationDesired && renderpass->GetSubpass(SubpassTerrain).GetShaders().size() == 2)
+		{
+			/* Make sure it's actually supported. */
+			if (GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
+			{
+				/* We need to recreate the entire renderpass, this will check for the other properties later. */
+				CreateRenderpass(true);
+				return;
+			}
+			else Log::Error("Tessellation is not supported on this device!");
+		}
+		else if (!tessellationDesired && renderpass->GetSubpass(SubpassTerrain).GetShaders().size() > 2)
+		{
+			/* We need to recreate the entire renderpass, this will check for the other properties later. */
+			CreateRenderpass(false);
+			return;
+		}
+	}
+
+	/* Update whether to use FXAA. */
+	if (gfxTonePass) FinalizeTonePass();
 }
 
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
@@ -503,8 +510,8 @@ void Pu::DeferredRenderer::SetSkybox(const TextureCube & texture)
 {
 	if (descSetInput)
 	{
-		skybox = &renderpass->GetSubpass(SubpassSkybox).GetDescriptor("Skybox");
-		descSetInput->Write(SubpassSkybox, *skybox, texture);
+		skybox = &texture;
+		descSetInput->Write(SubpassSkybox, renderpass->GetSubpass(SubpassSkybox).GetDescriptor("Skybox"), texture);
 	}
 	else Log::Fatal("Cannot set skybox when deferred rendering is not yet finalized!");
 }
@@ -787,17 +794,17 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 {
 	/* We need to allocate the pipelines on the first renderpass finalize call. */
-	if (!gfxTonePass)
-	{
-		gfxTerrain = new GraphicsPipeline(*renderpass, SubpassTerrain);
-		gfxGPassBasic = new GraphicsPipeline(*renderpass, SubpassBasicStaticGeometry);
-		gfxGPassAdv = new GraphicsPipeline(*renderpass, SubpassAdvancedStaticGeometry);
-		gfxGPassBasicMorph = new GraphicsPipeline(*renderpass, SubpassBasicMorphGeometry);
-		gfxDLight = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
-		gfxPLight = new GraphicsPipeline(*renderpass, SubpassPointLight);
-		gfxSkybox = new GraphicsPipeline(*renderpass, SubpassSkybox);
-		gfxTonePass = new GraphicsPipeline(*renderpass, SubpassPostProcessing);
+	if (!gfxTonePass) gfxTerrain = new GraphicsPipeline(*renderpass, SubpassTerrain);
+	if (!gfxGPassBasic) gfxGPassBasic = new GraphicsPipeline(*renderpass, SubpassBasicStaticGeometry);
+	if (!gfxGPassAdv) gfxGPassAdv = new GraphicsPipeline(*renderpass, SubpassAdvancedStaticGeometry);
+	if (!gfxGPassBasicMorph) gfxGPassBasicMorph = new GraphicsPipeline(*renderpass, SubpassBasicMorphGeometry);
+	if (!gfxDLight) gfxDLight = new GraphicsPipeline(*renderpass, SubpassDirectionalLight);
+	if (!gfxPLight) gfxPLight = new GraphicsPipeline(*renderpass, SubpassPointLight);
+	if (!gfxSkybox) gfxSkybox = new GraphicsPipeline(*renderpass, SubpassSkybox);
+	if (!gfxTonePass) gfxTonePass = new GraphicsPipeline(*renderpass, SubpassPostProcessing);
 
+	if (!descPoolInput)
+	{
 		/* We only need to create the descriptor set for the input attachments once. */
 		descPoolInput = new DescriptorPool(*renderpass);
 		descPoolInput->AddSet(SubpassDirectionalLight, 1, 1);
@@ -815,7 +822,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 
 	/* Create the graphics pipeline for the terrain pass. */
 	{
-		if (wnd->GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader)
+		if (RuntimeConfig::QueryBool(L"TessellationEnabled"))
 		{
 			gfxTerrain->SetTopology(PrimitiveTopology::PatchList);
 			gfxTerrain->SetPatchControlPoints(4);
@@ -908,15 +915,23 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxTonePass->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTonePass->SetTopology(PrimitiveTopology::TriangleList);
-
-		const bool enableFxaa = RuntimeConfig::QueryBool(L"FXAAEnabled", true);
-		gfxTonePass->SetSpecializationData(1, enableFxaa);
-
-		gfxTonePass->Finalize();
-		gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
+		FinalizeTonePass();
 	}
 
 	CreateFramebuffer();
+}
+
+/*
+The function is called either on pipeline creation
+or when the user requestes the configurable properties to be reloaded.
+*/
+void Pu::DeferredRenderer::FinalizeTonePass(void)
+{
+	const bool enableFxaa = RuntimeConfig::QueryBool(L"FXAAEnabled", true);
+	gfxTonePass->SetSpecializationData(1, enableFxaa);
+
+	gfxTonePass->Finalize();
+	gfxTonePass->SetDebugName("Deferred Renderer Post-Processing");
 }
 
 /*
@@ -970,6 +985,7 @@ void Pu::DeferredRenderer::WriteDescriptors(void)
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferSpecular"), *reinterpret_cast<const TextureInput2D*>(textures[1]));
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferNormal"), *reinterpret_cast<const TextureInput2D*>(textures[2]));
 	descSetInput->Write(SubpassDirectionalLight, renderpass->GetSubpass(SubpassDirectionalLight).GetDescriptor("GBufferDepth"), *depthBuffer);
+	if (skybox) descSetInput->Write(SubpassSkybox, renderpass->GetSubpass(SubpassSkybox).GetDescriptor("Skybox"), *skybox);
 	descSetInput->Write(SubpassPostProcessing, renderpass->GetSubpass(SubpassPostProcessing).GetDescriptor("HdrBuffer"), *textures[3]);
 }
 
@@ -991,6 +1007,36 @@ void Pu::DeferredRenderer::CreateFramebuffer(void)
 	wnd->CreateFramebuffers(*renderpass, attachments);
 }
 
+void Pu::DeferredRenderer::CreateRenderpass(bool useTessellation)
+{
+	/* Both the old pipelines and the old renderpass need to be deleted if this is called again. */
+	if (renderpass)
+	{
+		DestroyPipelines();
+		wnd->DestroyFramebuffers(*renderpass);
+	}
+
+	/* Make sure to load the correct shaders for the terrain pass. */
+	vector<wstring> terrainShaders;
+	if (!useTessellation) terrainShaders = { L"{Shaders}FastTerrain.vert.spv", L"{Shaders}Terrain.frag.spv" };
+	else terrainShaders = { L"{Shaders}PatchTerrain.vert.spv", L"{Shaders}Terrain.tesc.spv", L"{Shaders}Terrain.tese.spv", L"{Shaders}Terrain.frag.spv" };
+
+	renderpass = &fetcher->FetchRenderpass(renderpass,
+		{
+			terrainShaders,
+			{ L"{Shaders}BasicStaticGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
+			{ L"{Shaders}AdvancedStaticGeometry.vert.spv", L"{Shaders}AdvancedGeometry.frag.spv" },
+			{ L"{Shaders}BasicMorphGeometry.vert.spv", L"{Shaders}BasicGeometry.frag.spv" },
+			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}DirectionalLight.frag.spv" },
+			{ L"{Shaders}WorldLight.vert.spv", L"{Shaders}PointLight.frag.spv" },
+			{ L"{Shaders}Skybox.vert.spv", L"{Shaders}Skybox.frag.spv" },
+			{ L"{Shaders}FullscreenQuad.vert.spv", L"{Shaders}CameraEffects.frag.spv" }
+		});
+
+	renderpass->PreCreate.Add(*this, &DeferredRenderer::InitializeRenderpass);
+	renderpass->PostCreate.Add(*this, &DeferredRenderer::FinalizeRenderpass);
+}
+
 void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 {
 	/* The textures store the images for us. */
@@ -1002,16 +1048,16 @@ void Pu::DeferredRenderer::DestroyWindowDependentResources(void)
 
 void Pu::DeferredRenderer::DestroyPipelines(void)
 {
-	if (gfxTerrain) delete gfxTerrain;
-	if (gfxGPassBasic) delete gfxGPassBasic;
-	if (gfxGPassAdv) delete gfxGPassAdv;
-	if (gfxGPassBasicMorph) delete gfxGPassBasicMorph;
-	if (gfxDLight) delete gfxDLight;
-	if (gfxPLight) delete gfxPLight;
-	if (gfxSkybox) delete gfxSkybox;
-	if (gfxTonePass) delete gfxTonePass;
-	if (descSetInput) delete descSetInput;
-	if (descPoolInput) delete descPoolInput;
+	delete_s(gfxTerrain);
+	delete_s(gfxGPassBasic);
+	delete_s(gfxGPassAdv);
+	delete_s(gfxGPassBasicMorph);
+	delete_s(gfxDLight);
+	delete_s(gfxPLight);
+	delete_s(gfxSkybox);
+	delete_s(gfxTonePass);
+	delete_s(descSetInput);
+	delete_s(descPoolInput);
 }
 
 void Pu::DeferredRenderer::Destroy(void)
@@ -1020,6 +1066,7 @@ void Pu::DeferredRenderer::Destroy(void)
 
 	DestroyWindowDependentResources();
 	DestroyPipelines();
+	wnd->DestroyFramebuffers(*renderpass);
 
 	/* Queries are always made. */
 	delete timer;

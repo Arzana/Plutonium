@@ -17,7 +17,7 @@ const NPC_t npc_type = NPC_t::Box;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false),
-	desiredFormat(nullptr), vsynchMode(-1)
+	desiredFormat(nullptr), vsynchMode(-1), updateRenderer(false)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
@@ -31,14 +31,12 @@ bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
 
 void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
 {
-	const bool enableTessellation = RuntimeConfig::QueryBool(L"TessellationEnabled");
-
-	enabeled.TessellationShader = supported.TessellationShader && enableTessellation;	// Optional for better terrain rendering.
-	enabeled.WideLines = supported.WideLines;											// Debug renderer
-	enabeled.FillModeNonSolid = supported.FillModeNonSolid;								// Easy wireframe mode
-	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;							// Textures are loaded with 4 anisotropy by default
-	enabeled.PipelineStatisticsQuery = supported.PipelineStatisticsQuery;				// Nice for performance testing, but optional
-	enabeled.VertexPipelineStoresAndAtomics = true;										// Needed for imageLoad.
+	enabeled.TessellationShader = supported.TessellationShader;				// Optional for better terrain rendering.
+	enabeled.WideLines = supported.WideLines;								// Debug renderer
+	enabeled.FillModeNonSolid = supported.FillModeNonSolid;					// Easy wireframe mode
+	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;				// Textures are loaded with 4 anisotropy by default
+	enabeled.PipelineStatisticsQuery = supported.PipelineStatisticsQuery;	// Nice for performance testing, but optional
+	enabeled.VertexPipelineStoresAndAtomics = true;							// Needed for imageLoad.
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)
@@ -112,6 +110,12 @@ void TestGame::Update(float)
 		desiredFormat = nullptr;
 	}
 
+	if (updateRenderer)
+	{
+		updateRenderer = false;
+		renderer->UpdateConfigurableProperties();
+	}
+
 	if (vsynchMode == 0)
 	{
 		vsynchMode = -1;
@@ -150,6 +154,23 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			bool selected = GetWindow().GetSwapchain().GetPresentMode() == PresentMode::MailBox;
 			if (ImGui::Checkbox("VSync", &selected)) vsynchMode = selected;
 
+			selected = RuntimeConfig::QueryBool(L"FXAAEnabled");
+			if (ImGui::Checkbox("FXAA", &selected))
+			{
+				RuntimeConfig::Set(L"FXAAEnabled", selected);
+				updateRenderer = true;
+			}
+
+			selected = RuntimeConfig::QueryBool(L"TessellationEnabled");
+			if (ImGui::Checkbox("Tessellation", &selected))
+			{
+				RuntimeConfig::Set(L"TessellationEnabled", selected);
+				updateRenderer = true;
+
+				for (TerrainChunk *chunk : terrain) delete chunk;
+				terrain.clear();
+			}
+
 			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
 			ImGui::MenuItem("Physics", nullptr, &showPhysics);
 			ImGui::MenuItem("Camera", nullptr, &showCamOpt);
@@ -160,47 +181,50 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		ImGui::EndMainMenuBar();
 	}
 
-	if (firstRun && renderer->IsUsable() && skybox->IsUsable())
+	if (renderer->IsUsable())
 	{
-		firstRun = false;
+		if (firstRun && skybox->IsUsable())
+		{
+			firstRun = false;
 
-		descPoolConst = new DescriptorPool(renderer->GetRenderpass());
-		renderer->InitializeCameraPool(*descPoolConst, 1);								// Camera sets
-		descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);			// Light set
-		descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
+			descPoolConst = new DescriptorPool(renderer->GetRenderpass());
+			renderer->InitializeCameraPool(*descPoolConst, 1);								// Camera sets
+			descPoolConst->AddSet(DeferredRenderer::SubpassDirectionalLight, 2, 2);			// Light set
+			descPoolConst->AddSet(DeferredRenderer::SubpassTerrain, 1, sqr(terrainSize));	// Terrain set
 
-		camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
-		camFree->SetExposure(2.5f);
+			camFree = new FreeCamera(GetWindow().GetNative(), *descPoolConst, renderer->GetRenderpass(), GetInput());
+			camFree->SetExposure(2.5f);
 
-		lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		lightMain->SetRadiance(Color::SunDay());
-		lightMain->SetDirection(PI4, PI4, 0.0f);
-		lightMain->SetEnvironment(*skybox);
-		lightMain->SetIntensity(4.0f);
-		world->AddLight(*lightMain);
+			lightMain = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+			lightMain->SetRadiance(Color::SunDay());
+			lightMain->SetDirection(PI4, PI4, 0.0f);
+			lightMain->SetEnvironment(*skybox);
+			lightMain->SetIntensity(4.0f);
+			world->AddLight(*lightMain);
 
-		lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
-		lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
-		lightMain->SetRadiance(Color::SunDay());
-		lightFill->SetIntensity(0.5f);
-		lightFill->SetEnvironment(*skybox);
-		world->AddLight(*lightFill);
+			lightFill = new DirectionalLight(*descPoolConst, renderer->GetDirectionalLightLayout());
+			lightFill->SetDirection(Quaternion::Create(PI, lightMain->GetUp()) * lightMain->GetOrientation());
+			lightMain->SetRadiance(Color::SunDay());
+			lightFill->SetIntensity(0.5f);
+			lightFill->SetEnvironment(*skybox);
+			world->AddLight(*lightFill);
 
-		renderer->SetSkybox(*skybox);
-	}
-	else if (!firstRun)
-	{
-		camFree->Update(dt * updateCam);
-		descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
-		world->Render(*camFree, cmd);
+			renderer->SetSkybox(*skybox);
+		}
+		else if (!firstRun)
+		{
+			camFree->Update(dt * updateCam);
+			descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
+			world->Render(*camFree, cmd);
 
-		if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition());
-		if (showCamOpt) camFree->Visualize();
+			if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition());
+			if (showCamOpt) camFree->Visualize();
 
-		const float rayLen = 0.01f;
-		const Vector3 p = camFree->NDCToWorld(Vector3{ 0.9f, 0.9f, camFree->GetNear() + rayLen });
-		dbgRenderer->AddTransform(Matrix{}, rayLen, p);
-		dbgRenderer->Render(cmd, *camFree);
+			const float rayLen = 0.01f;
+			const Vector3 p = camFree->NDCToWorld(Vector3{ 0.9f, 0.9f, camFree->GetNear() + rayLen });
+			dbgRenderer->AddTransform(Matrix{}, rayLen, p);
+			dbgRenderer->Render(cmd, *camFree);
+		}
 	}
 
 #ifndef _DEBUG

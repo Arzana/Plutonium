@@ -124,6 +124,7 @@ namespace Pu
 	PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
 	PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
 	PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
+	PFN_vkResetDescriptorPool vkResetDescriptorPool;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -241,6 +242,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCmdResetQueryPool);
 	LOAD_INSTANCE_PROC(vkCmdDrawIndirect);
 	LOAD_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
+	LOAD_INSTANCE_PROC(vkResetDescriptorPool);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{

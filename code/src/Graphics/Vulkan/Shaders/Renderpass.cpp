@@ -344,6 +344,8 @@ void Pu::Renderpass::Destroy(void)
 			for (const Shader *shader : subpass.GetShaders()) delete shader;
 		}
 	}
+
+	subpasses.clear();
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, size_t, wstring>>& toLoad)

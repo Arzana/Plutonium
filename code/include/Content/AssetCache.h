@@ -30,6 +30,8 @@ namespace Pu
 		void Release(_In_ Asset &asset);
 		/* Stores a new asset in the cache. */
 		void Store(_In_ Asset *asset);
+		/* Updates the hash of a reserved asset in tha cache. */
+		void Update(_In_ Asset *asset, _In_ size_t newHash);
 
 	private:
 		mutable std::mutex lock;

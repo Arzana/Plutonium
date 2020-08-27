@@ -2,6 +2,7 @@
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Graphics/Models/ShapeCreator.h"
+#include "Streams/RuntimeConfig.h"
 
 const Pu::uint16 meshSize = 64;
 const Pu::uint16 meshBound = meshSize - 1;
@@ -30,7 +31,7 @@ namespace Pu
 			result->view = new ImageView(*result->displacement, ImageViewType::Image2D, ImageAspectFlag::Color);
 
 			/* Allocate a single staging buffer for both the displacement image and the mesh. */
-			const bool canPatch = device.GetPhysicalDevice().GetEnabledFeatures().TessellationShader;
+			const bool canPatch = RuntimeConfig::QueryBool(L"TessellationEnabled");
 			const size_t meshBufferSize = canPatch ? ShapeCreator::GetPatchPlaneBufferSize(meshSize) : ShapeCreator::GetPlaneBufferSize(meshSize);
 			const uint32 vrtxSize = ShapeCreator::GetPlaneVertexSize(meshSize);
 			const size_t stagingBufferSize = meshBufferSize + sqr(meshSize) * sizeof(float);
@@ -163,7 +164,9 @@ namespace Pu
 Pu::TerrainChunk::TerrainChunk(AssetFetcher & fetcher, PhysicalWorld * world)
 	: Asset(false), generated(false), fetcher(&fetcher), hcollider(PhysicsNullHandle),
 	displacement(nullptr), textures(nullptr), material(nullptr), world(world)
-{}
+{
+	SetHash(random(0u, 0xFFFFFFFE));
+}
 
 Pu::TerrainChunk::TerrainChunk(TerrainChunk && value)
 	: Asset(std::move(value)), generated(value.generated), 

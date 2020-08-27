@@ -133,6 +133,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkReleaseFullScreenExclusiveModeEXT);
 	EXT_INSTANCE_PROC(vkCmdDrawIndirect);
 	EXT_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
+	EXT_INSTANCE_PROC(vkResetDescriptorPool);
 
 #ifdef _WIN32
 	EXT_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

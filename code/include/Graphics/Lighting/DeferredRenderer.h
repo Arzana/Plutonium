@@ -100,12 +100,16 @@ namespace Pu
 		_Check_return_ DescriptorPool* CreateMaterialDescriptorPool(_In_ uint32 maxBasicMaterials, _In_ uint32 maxAdvancedMaterials) const;
 		/* Initializes a descriptor pool for use with the deferred renderer cameras. */
 		void InitializeCameraPool(_In_ DescriptorPool &pool, _In_ uint32 maxSets) const;
+		/* Queries the configurable properties again from the run time configuration and updates the renderer accordingly. */
+		void UpdateConfigurableProperties(void);
+
 		/* Performs needed resource transitions. */
 		void InitializeResources(_In_ CommandBuffer &cmdBuffer, _In_ const Camera &camera);
 		/* Begins the specified subpass (order should be preserved). */
 		void Begin(_In_ uint32 subpass);
 		/* End the deferred rendering pipeline. */
 		void End(void);
+
 		/* Renders the specified terrain piece to the G-Buffer. */
 		void Render(_In_ const TerrainChunk &chunk);
 		/* Renders the specified model to the G-Buffer. */
@@ -116,6 +120,7 @@ namespace Pu
 		void Render(_In_ const DirectionalLight &light);
 		/* Renders the specified point lights onto the scene. */
 		void Render(_In_ const PointLightPool &lights);
+
 		/* Sets the skybox to use. */
 		void SetSkybox(_In_ const TextureCube &texture);
 		/* Displays the pipeline statistics of the deferred renderer (needs to be called before InitializeResources)! */
@@ -135,7 +140,7 @@ namespace Pu
 		DescriptorPool *descPoolInput;
 		DescriptorSetGroup *descSetInput;
 		MeshCollection *lightVolumes;
-		Descriptor *skybox;
+		const TextureCube *skybox;
 
 		CommandBuffer *curCmd;
 		const Camera *curCam;
@@ -156,9 +161,11 @@ namespace Pu
 		void OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs &args);
 		void InitializeRenderpass(Renderpass&);
 		void FinalizeRenderpass(Renderpass&);
+		void FinalizeTonePass(void);
 		void CreateSizeDependentResources(void);
 		void WriteDescriptors(void);
 		void CreateFramebuffer(void);
+		void CreateRenderpass(bool useTessellation);
 		void DestroyWindowDependentResources(void);
 		void DestroyPipelines(void);
 		void Destroy(void);

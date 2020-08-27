@@ -27,7 +27,7 @@ Pu::AssetFetcher::~AssetFetcher(void)
 	delete cache;
 }
 
-Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(const vector<vector<wstring>> & shaders)
+Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(Renderpass * old, const vector<vector<wstring>> & shaders)
 {
 	/* Make sure the wildcards are solved. */
 	vector<vector<wstring>> mutableShaders;
@@ -48,12 +48,25 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(const vector<vector<wstring>>
 	const size_t hash = std::hash<wstring>{}(hashParameter);
 	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<Renderpass>(*cache);
 
-	/* Create a new renderpass and start loading it. */
-	Renderpass *renderpass = new Renderpass(loader->GetDevice());
-	renderpass->SetHash(hash);
-	loader->PopulateRenderpass(*renderpass, mutableShaders);
-	cache->Store(renderpass);
-	return *renderpass;
+	/* Either reset the old renderpass, or create a new one. */
+	if (old)
+	{
+		/* We only need to destroy the old shaders and update the hash. */
+		old->MarkAsLoading();
+		old->Destroy();
+		cache->Update(old, hash);
+	}
+	else
+	{
+		/* This is a new renderpass so set the hash and store it. */
+		old = new Renderpass(loader->GetDevice());
+		old->SetHash(hash);
+		cache->Store(old);
+	}
+
+	/* Populate the renderpass and return a reference to it. */
+	loader->PopulateRenderpass(*old, mutableShaders);
+	return *old;
 }
 
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const PumTexture & texture)

@@ -41,11 +41,7 @@ void Pu::Subpass::AddDependency(uint32 srcSubpass, PipelineStageFlag srcStage, P
 Output & Subpass::AddDepthStencil(void)
 {
 	/* Make sure we don't attach multiple depth/stencil attachment. */
-	if (ds)
-	{
-		Log::Warning("A depth/stencil attachment has already added to the subpass, returning old one!");
-		return *ds;
-	}
+	if (ds) return *ds;
 
 	/* Create a dummy output and add it to our list. */
 	outputs.emplace_back(Output(dsInfo, static_cast<uint32>(outputs.size()), OutputUsage::DepthStencil));
@@ -350,10 +346,14 @@ bool Pu::Subpass::CheckSets(void) const
 
 						result = false;
 					}
-					else if (first->GetType() != DescriptorType::UniformBuffer)
+					else if (first->GetInfo().Name != second->GetInfo().Name)
 					{
-						Log::Error("Binding %u in set %u is used for both %s and %s!", first->GetBinding(), set, first->GetInfo().Name.c_str(), second->GetInfo().Name.c_str());
-						result = false;
+						/* Only UniformBuffers can share a binding when the name is not the same. */
+						if (first->GetType() != DescriptorType::UniformBuffer)
+						{
+							Log::Error("Binding %u in set %u is used for both %s and %s!", first->GetBinding(), set, first->GetInfo().Name.c_str(), second->GetInfo().Name.c_str());
+							result = false;
+						}
 					}
 				}
 			}

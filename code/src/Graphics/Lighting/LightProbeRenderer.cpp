@@ -8,7 +8,7 @@ Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProb
 	: loader(&loader), gfx(nullptr), pool(nullptr), maxSets(maxProbeCount)
 {
 	/* Load the renderpass and initialize it if needed. */
-	renderpass = &loader.FetchRenderpass({ { L"{Shaders}LightProbe.vert.spv", L"{Shaders}LightProbe.geom.spv", L"{Shaders}LightProbe.frag.spv" } });
+	renderpass = &loader.FetchRenderpass(nullptr, { { L"{Shaders}LightProbe.vert.spv", L"{Shaders}LightProbe.geom.spv", L"{Shaders}LightProbe.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &LightProbeRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &LightProbeRenderer::InitializePipeline);
 	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);

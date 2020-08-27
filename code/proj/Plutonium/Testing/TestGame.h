@@ -28,7 +28,7 @@ protected:
 private:
 	Pu::FreeCamera *camFree;
 	bool firstRun, updateCam, spawnToggle;
-	bool showProfiler, showCamOpt, showPhysics;
+	bool showProfiler, showCamOpt, showPhysics, updateRenderer;
 	Pu::DebugRenderer *dbgRenderer;
 	const Pu::SurfaceFormat *desiredFormat;
 	int vsynchMode;

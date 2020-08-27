@@ -190,6 +190,7 @@ namespace Pu
 		PFN_vkDestroySampler vkDestroySampler;
 		PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
 		PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+		PFN_vkResetDescriptorPool vkResetDescriptorPool;
 		PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
 		PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
 		PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
