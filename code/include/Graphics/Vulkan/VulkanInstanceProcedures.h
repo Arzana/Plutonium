@@ -20,7 +20,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkEnumeratePhysicalDevices);
 	EXT_INSTANCE_PROC(vkCreateInstance);
 	EXT_INSTANCE_PROC(vkDestroyInstance);
-	EXT_INSTANCE_PROC(vkGetPhysicalDeviceProperties);
+	EXT_INSTANCE_PROC(vkGetPhysicalDeviceProperties2);
 	EXT_INSTANCE_PROC(vkGetPhysicalDeviceFeatures);
 	EXT_INSTANCE_PROC(vkGetPhysicalDeviceQueueFamilyProperties);
 	EXT_INSTANCE_PROC(vkCreateDevice);
@@ -128,7 +128,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkGetPipelineCacheData);
 	EXT_INSTANCE_PROC(vkMergePipelineCaches);
 	EXT_INSTANCE_PROC(vkCmdResetQueryPool);
-	EXT_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2KHR);
+	EXT_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2);
 	EXT_INSTANCE_PROC(vkAcquireFullScreenExclusiveModeEXT);
 	EXT_INSTANCE_PROC(vkReleaseFullScreenExclusiveModeEXT);
 	EXT_INSTANCE_PROC(vkCmdDrawIndirect);

@@ -132,11 +132,16 @@ DeviceSize Pu::PhysicalDevice::GetUniformBufferOffsetAllignment(DeviceSize size)
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(&parent), allocations(0)
 {
+	PhysicalDeviceProperties2 prop2;
+	prop2.Next = &subgroup;
+
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
-	parent.vkGetPhysicalDeviceProperties(hndl, &properties);
+	parent.vkGetPhysicalDeviceProperties2(hndl, &prop2);
 	parent.vkGetPhysicalDeviceFeatures(hndl, &supportedFeatures);
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
+
+	properties = prop2.Properties;
 
 	/* Querying whether the extensions are supported is slow, so just query it on creation. */
 	canQueryMemoryUsage = IsExtensionSupported(u8"VK_EXT_memory_budget");
@@ -267,7 +272,7 @@ bool Pu::PhysicalDevice::TryGetUsedDeviceLocalBytes(DeviceSize & result) const
 	/* Query the memory budget properties from the physical device. */
 	PhysicalDeviceMemoryBudgetProperties budget;
 	PhysicalDeviceMemoryProperties2 properties2{ &budget };
-	parent->vkGetPhysicalDeviceMemoryProperties2KHR(hndl, &properties2);
+	parent->vkGetPhysicalDeviceMemoryProperties2(hndl, &properties2);
 
 	/* Add the used memory for each of the device local flagged heaps. */
 	for (uint32 i = 0; i < properties2.MemoryProperties.MemoryHeapCount; i++)

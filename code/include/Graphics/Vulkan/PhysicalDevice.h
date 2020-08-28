@@ -143,6 +143,24 @@ namespace Pu
 			return properties.SparseProperties.ResidencyNonResidentStrict;
 		}
 
+		/* Gets the default number of invocations per subgroup. */
+		_Check_return_ inline uint32 GetSubgroupSize(void) const
+		{
+			return subgroup.SubgroupSize;
+		}
+
+		/* Gets which shader stages support subgroup operations (compute is always supported). */
+		_Check_return_ inline ShaderStageFlag GetSubgroupSupportedStages(void) const
+		{
+			return subgroup.SupportedStages;
+		}
+
+		/* Gets which subgroup operations are supported. */
+		_Check_return_ inline SubgroupFeatureFlags GetSubgroupFeatures(void) const
+		{
+			return subgroup.SupportedOperations;
+		}
+
 		/* Gets the Vulkan instance of this physical device. */
 		_Check_return_ inline const VulkanInstance& GetInstance(void) const
 		{
@@ -168,6 +186,7 @@ namespace Pu
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
+		PhysicalDeviceSubgroupProperties subgroup;
 		PhysicalDeviceFeatures supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
 		bool canQueryMemoryUsage, exclusiveFullScreenSupported;

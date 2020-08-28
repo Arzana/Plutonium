@@ -8,7 +8,6 @@ namespace Pu
 	/* Defines application info. */
 	struct ApplicationInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -42,7 +41,6 @@ namespace Pu
 	/* Defines parameters of a newly created instance. */
 	struct InstanceCreateInfo
 	{
-	public:
 		/* The type of this structure  */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -80,7 +78,6 @@ namespace Pu
 	/* Defines an object that contains callback function pointers for memory allocation. */
 	struct AllocationCallbacks
 	{
-	public:
 		/* Defines user-interpreted data to be send to the callbacks. */
 		void *UserData;
 		/* Pointer to an application-defined memory allocation function. */
@@ -116,7 +113,6 @@ namespace Pu
 	/* Defines the fine-grained features that can be supported by an implementation. */
 	struct PhysicalDeviceFeatures
 	{
-	public:
 		/* Specifies that accesses to buffers are bound-checked against the range of the buffer desriptor. */
 		Bool32 RobustBufferAccess;
 		/* Specifies the full 32-bit range of indices is supported for indexed draw calls. */
@@ -249,7 +245,6 @@ namespace Pu
 	/* Defines image format properties. */
 	struct FormatProperties
 	{
-	public:
 		/* Specifies the features supported by images created with a tiling parameter of Linear. */
 		FormatFeatureFlag LinearTilingFeatures;
 		/* Specifies the features supported by images created with a tiling parameter of Optimal. */
@@ -266,7 +261,6 @@ namespace Pu
 	/* Defines a two-dimensional extent. */
 	struct Extent2D
 	{
-	public:
 		/* The width of the extent. */
 		uint32 Width;
 		/* The height of the extent. */
@@ -297,7 +291,6 @@ namespace Pu
 	/* Defines a three-dimensional extent. */
 	struct Extent3D
 	{
-	public:
 		/* The width of the extent. */
 		uint32 Width;
 		/* The height of the extent. */
@@ -336,7 +329,6 @@ namespace Pu
 	/* Defines image format properties. */
 	struct ImageFormatProperties
 	{
-	public:
 		/* Specifies the maximum image dimensions. */
 		Extent3D MaxExtent;
 		/* Specifies the maximum number of mipmap levels. */
@@ -357,7 +349,6 @@ namespace Pu
 	/* Defines the implementation-dependent physical device limits. */
 	struct PhysicalDeviceLimits
 	{
-	public:
 		uint32 MaxImageDimension1D;
 		uint32 MaxImageDimension2D;
 		uint32 MaxImageDimension3D;
@@ -469,7 +460,6 @@ namespace Pu
 	/* Defines the physical device sparse memory properties. */
 	struct PhysicalDeviceSparseProperties
 	{
-	public:
 		/* True if the physical device will access all single-sample 2D sprase resources using the standard sparse image block shapes. */
 		Bool32 ResidencyStandard2DBlockShape;
 		/* True if the physical device will access all multisample 2D sprase resources using the standard sparse image block shapes. */
@@ -491,7 +481,6 @@ namespace Pu
 	/* Defines the physical device properties. */
 	struct PhysicalDeviceProperties
 	{
-	public:
 		/* The version of Vulkan supported by the device. */
 		uint32 ApiVersion;
 		/* The vendor-specified version of the driver. */
@@ -518,10 +507,47 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the physical device properties with extensions. */
+	struct PhysicalDeviceProperties2
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Describes the base properties for all physical devices. */
+		PhysicalDeviceProperties Properties;
+
+		/* Initializes an empty instance of a physical device properties V2 object. */
+		PhysicalDeviceProperties2(void)
+			: Type(StructureType::PhysicalDeviceProperties2), Next(nullptr)
+		{}
+	};
+
+	/* Defines the physical device properties for subgroup support. */
+	struct PhysicalDeviceSubgroupProperties
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the default number of invocations in each subgroup. */
+		uint32 SubgroupSize;
+		/* Specifies in which shader stages subgroup operations are supported (compute is always supported). */
+		ShaderStageFlag SupportedStages;
+		/* Specifies which subgroup operations are supported. */
+		SubgroupFeatureFlags SupportedOperations;
+		/* Specifies whether quad group operations are supported in all stage, or just fragment and compute stages. */
+		Bool32 QuadOperationsInAllStages;
+
+		/* Initializes an empty instance of the physical device subgroup properties object. */
+		PhysicalDeviceSubgroupProperties(void)
+			: Type(StructureType::PhysicalDeviceSubgroupProperties), Next(nullptr)
+		{}
+	};
+
 	/* Defines the properties of an extension. */
 	struct ExtensionProperties
 	{
-	public:
 		/* A null-terminated UTF-8 string specifying the name of the extension. */
 		char ExtensionName[MaxExtensionNameSize];
 		/* Specifies the version of the extension. */
@@ -546,7 +572,6 @@ namespace Pu
 	/* Defines the properties of a layer. */
 	struct LayerProperties
 	{
-	public:
 		/* A null-terminated UTF-8 string specifying the name of the layer. */
 		char LayerName[MaxExtensionNameSize];
 		/* Specifies the Vulkan version the layer was written to. */
@@ -576,7 +601,6 @@ namespace Pu
 	/* Defines information about a queue family. */
 	struct QueueFamilyProperties
 	{
-	public:
 		/* Specifies the capabilities of the queues in this queue family. */
 		QueueFlag Flags;
 		/* Specifies the amount of queus in the queue family. */
@@ -595,7 +619,6 @@ namespace Pu
 	/* Defines information for creating new device queues. */
 	struct DeviceQueueCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -624,7 +647,6 @@ namespace Pu
 	/* Defines information for creating new logical devices. */
 	struct DeviceCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -665,7 +687,6 @@ namespace Pu
 	/* Defines the capabilities of a surface. */
 	struct SurfaceCapabilities
 	{
-	public:
 		/* The minimum number of images the specified device supports for a swapchain. */
 		uint32 MinImageCount;
 		/* The maximum number of images the specified device supports for a swapchain. */
@@ -704,7 +725,6 @@ namespace Pu
 	/* Defines the surface pixel format. */
 	struct SurfaceFormat
 	{
-	public:
 		/* The color format compatible with the surface. */
 		Format Format;
 		/* The color space compatible with the surface. */
@@ -746,7 +766,6 @@ namespace Pu
 	/* Defines the information required to create a swapchain. */
 	struct SwapchainCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -804,7 +823,6 @@ namespace Pu
 	/* Defines information for presenting images. */
 	struct PresentInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -839,7 +857,6 @@ namespace Pu
 	/* Defines the information required to create a semaphore. */
 	struct SemaphoreCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -855,7 +872,6 @@ namespace Pu
 	/* Defines the information required to perform a queue submit operation. */
 	struct SubmitInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -886,7 +902,6 @@ namespace Pu
 	/* Defines the information required to create a new command pool. */
 	struct CommandPoolCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -911,7 +926,6 @@ namespace Pu
 	/* Defines the information required to allocate a new command buffer. */
 	struct CommandBufferAllocateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -938,7 +952,6 @@ namespace Pu
 	/* Defines the inheritance information for secondary conmmand buffers. */
 	struct CommandBufferInheritanceInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -972,7 +985,6 @@ namespace Pu
 	/* Defines a command buffer begin operation. */
 	struct CommandBufferBeginInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -997,7 +1009,6 @@ namespace Pu
 	/*  Defines an image subresource range. */
 	struct ImageSubresourceRange
 	{
-	public:
 		/* Specifies which aspect(s) of the image are included in the view. */
 		ImageAspectFlag AspectMask;
 		/* Specifies the first mipmap level accessible to the view. */
@@ -1024,7 +1035,6 @@ namespace Pu
 	/* Defines the required information of an image memory barrier. */
 	struct ImageMemoryBarrier
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1074,7 +1084,6 @@ namespace Pu
 	/* Defines a global memory barrier. */
 	struct MemoryBarrier
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1099,7 +1108,6 @@ namespace Pu
 	/* Defines a buffer memory barrier. */
 	struct BufferMemoryBarrier
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1136,7 +1144,6 @@ namespace Pu
 	/* Defines information that describes an attachment. */
 	struct AttachmentDescription
 	{
-	public:
 		/* Specifies additional properties of the attachment. */
 		AttachmentDescriptionFlag Flags;
 		/* Specifies the format of the image view that will be used for the attachment. */
@@ -1173,7 +1180,6 @@ namespace Pu
 	/* Defines a refrence to a specified attachment. */
 	struct AttachmentReference
 	{
-	public:
 		/* Defines an attachment pointer that indicates that the attachment reference is not in use. */
 		static constexpr const AttachmentReference *Unused = reinterpret_cast<const AttachmentReference*>(static_cast<uint64>(~0U));
 
@@ -1196,7 +1202,6 @@ namespace Pu
 	/* Defines information describing a subpass. */
 	struct SubpassDescription
 	{
-	public:
 		/* Specifies the usage of the subpass. */
 		SubpassDescriptionFlag Flags;
 		/* Specifies whether this is a compute or graphics subpass. */
@@ -1249,7 +1254,6 @@ namespace Pu
 	/* Defines a subpass dependency. */
 	struct SubpassDependency
 	{
-	public:
 		/* Specifies the index of the first subpass in the dependency. */
 		uint32 SrcSubpass;
 		/* Specifies the index of this subpass in the dependency. */
@@ -1281,7 +1285,6 @@ namespace Pu
 	/* Defines the information required to create a render pass. */
 	struct RenderPassCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1336,7 +1339,6 @@ namespace Pu
 	/* Defines the information required to create a new shader module. */
 	struct ShaderModuleCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1363,7 +1365,6 @@ namespace Pu
 	/* Defines a color component mapping. */
 	struct ComponentMapping
 	{
-	public:
 		/* Specifies the component value placed in the R component. */
 		ComponentSwizzle R;
 		/* Specifies the component value placed in the G component. */
@@ -1387,7 +1388,6 @@ namespace Pu
 	/* Defines the information required to create a image view. */
 	struct ImageViewCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1420,7 +1420,6 @@ namespace Pu
 	/* Defines the information required to create a framebuffer. */
 	struct FramebufferCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1456,7 +1455,6 @@ namespace Pu
 	/* Defines a specialization map entry. */
 	struct SpecializationMapEntry
 	{
-	public:
 		/* Specifies the ID of the specialization constant in SPIR-V. */
 		uint32 ConstantID;
 		/* Specifies the offset (in bytes) of the constant value within the supplied data buffer. */
@@ -1478,7 +1476,6 @@ namespace Pu
 	/* Defines information about specialization. */
 	struct SpecializationInfo
 	{
-	public:
 		/* Specifies the number of map entries. */
 		uint32 MapEntryCount;
 		/* Specifies all entries in the supplied data buffer. */
@@ -1502,7 +1499,6 @@ namespace Pu
 	/* Defines the information of a pipeline shader stage. */
 	struct PipelineShaderStageCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1548,7 +1544,6 @@ namespace Pu
 	/* Defines how a vertex input should be bound. */
 	struct VertexInputBindingDescription
 	{
-	public:
 		/* Specifies the binding number of the vertex input. */
 		uint32 Binding;
 		/* Specifies the distance (in bytes) between two consecutive elements. */
@@ -1570,7 +1565,6 @@ namespace Pu
 	/* Defines the attributes of a vertex input. */
 	struct VertexInputAttributeDescription
 	{
-	public:
 		/* Specifies the location number of this attribute. */
 		uint32 Location;
 		/* Specifies the binding number of the attribute. */
@@ -1594,7 +1588,6 @@ namespace Pu
 	/* Defines the information of a pipeline vertex input. */
 	struct PipelineVertexInputStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1646,7 +1639,6 @@ namespace Pu
 	/* Defines the information of a pipeline assembly state. */
 	struct PipelineInputAssemblyStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1693,7 +1685,6 @@ namespace Pu
 	/* Defines the information for a pipeline tessellation state. */
 	struct PipelineTessellationStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1737,7 +1728,6 @@ namespace Pu
 	/* Defines a two-dimensional offset. */
 	struct Offset2D
 	{
-	public:
 		/* The horizontal component. */
 		int32 X;
 		/* The vertical component. */
@@ -1757,7 +1747,6 @@ namespace Pu
 	/* Defines a three-dimensional offset. */
 	struct Offset3D
 	{
-	public:
 		/* The horizontal component. */
 		int32 X;
 		/* The vertical component. */
@@ -1793,7 +1782,6 @@ namespace Pu
 	/* Defines a two-dimensional subregion. */
 	struct Rect2D
 	{
-	public:
 		/* Specifies the rectangles offset. */
 		Offset2D Offset;
 		/* Specifies the rectnagles extent. */
@@ -1839,7 +1827,6 @@ namespace Pu
 	/* Defines a Vulkan compatible viewport. */
 	struct Viewport
 	{
-	public:
 		/* Specifies left left-most coordinate of the viewport. */
 		float X;
 		/* Specifies the top-most coordinate of the viewport. */
@@ -1892,7 +1879,6 @@ namespace Pu
 	/* Defines the information for a pipeline viewport. */
 	struct PipelineViewportStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -1947,7 +1933,6 @@ namespace Pu
 	/* Defines the information for a pipeline rasterizer. */
 	struct PipelineRasterizationStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2023,7 +2008,6 @@ namespace Pu
 	/* Defines the information for a pipeline multisample state. */
 	struct PipelineMultisampleStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2086,7 +2070,6 @@ namespace Pu
 	/* Defines how stencil testing should be performed. */
 	struct StencilOpState
 	{
-	public:
 		/* Specifies what action to perform on samples that fail the stencil test. */
 		StencilOp FailOp;
 		/* Specifies what action to perform on samples that pass both the depth and stencil test. */
@@ -2112,7 +2095,6 @@ namespace Pu
 	/* Defines the information for a pipeline depth/stencil state. */
 	struct PipelineDepthStencilStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2176,7 +2158,6 @@ namespace Pu
 	/* Defines the information for a pipeline color blend attachment state. */
 	struct PipelineColorBlendAttachmentState
 	{
-	public:
 		/* Specifies if blending is enabled. */
 		Bool32 BlendEnable;
 		/* Specifies the blending factor for the incoming color. */
@@ -2221,7 +2202,6 @@ namespace Pu
 	/* Defines the information for a pipeline color blend state. */
 	struct PipelineColorBlendStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2282,7 +2262,6 @@ namespace Pu
 	/* Defines the information for a pipeline dynamic state. */
 	struct PipelineDynamicStateCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2330,7 +2309,6 @@ namespace Pu
 	/* Defines a push constant range. */
 	struct PushConstantRange
 	{
-	public:
 		/* Specifies the shader stages that will acces a range of push constants. */
 		ShaderStageFlag StageFlags;
 		/* Specifies the offset (in bytes) of the range (must be a multiple of 4!). */
@@ -2352,7 +2330,6 @@ namespace Pu
 	/* Defines the information for a pipeline layout. */
 	struct PipelineLayoutCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2385,7 +2362,6 @@ namespace Pu
 	/* Defines the information required to create a graphics pipeline. */
 	struct GraphicsPipelineCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2446,7 +2422,6 @@ namespace Pu
 	/* Defines the value used to clear a depth/stencil buffer. */
 	struct ClearDepthStencilValue
 	{
-	public:
 		/* Specifies the clear value for the depth aspect. */
 		float Depth;
 		/* Specifies the clear value for the stencil aspect. */
@@ -2490,7 +2465,6 @@ namespace Pu
 	/* Defines the information required to start a render pass. */
 	struct RenderPassBeginInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2521,7 +2495,6 @@ namespace Pu
 	/* Defines the parameters of a label region. */
 	struct DebugUtilsLabel
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2541,7 +2514,6 @@ namespace Pu
 	/* Defines the information needed to name an object. */
 	struct DebugUtilsObjectNameInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2568,7 +2540,6 @@ namespace Pu
 	/* Defines information to the debug utils messanger callback function. */
 	struct DebugUtilsMessengerCallbackData
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2605,7 +2576,6 @@ namespace Pu
 	/* Defines the information required to create a debug message callback. */
 	struct DebugUtilsMessengerCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2637,7 +2607,6 @@ namespace Pu
 	/* Defines the information required to create a new fence. */
 	struct FenceCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2659,7 +2628,6 @@ namespace Pu
 	/* Defines the information required to create a memory buffer. */
 	struct BufferCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2700,7 +2668,6 @@ namespace Pu
 	/* Defines the requirement that need to be fulfilled for memory allocation. */
 	struct MemoryRequirements
 	{
-	public:
 		/* Specifies the size (in bytes) of the memory allocation. */
 		DeviceSize Size;
 		/* Specifies the allignment (in bytes) of the offset within the allocation. */
@@ -2717,7 +2684,6 @@ namespace Pu
 	/* Defines a unique memory type on a physical device. */
 	struct MemoryType
 	{
-	public:
 		/* Specifies the properties of the memory heap. */
 		MemoryPropertyFlag PropertyFlags;
 		/* Specifies which memory heap this memory type corresponds to. */
@@ -2732,7 +2698,6 @@ namespace Pu
 	/* Defines a unique memory heap on a physical device. */
 	struct MemoryHeap
 	{
-	public:
 		/* Specifies the total size (in bytes) of the heap. */
 		DeviceSize Size;
 		/* Specifies the properties of the heap. */
@@ -2747,7 +2712,6 @@ namespace Pu
 	/* Defines the properties of a physical device's memory. */
 	struct PhysicalDeviceMemoryProperties
 	{
-	public:
 		/* Specifies the amount of memory types available. */
 		uint32 MemoryTypeCount;
 		/* Specifies all memory types that can be used to access memory allocated from the heaps. */
@@ -2766,7 +2730,6 @@ namespace Pu
 	/* Defines a chain structure for getting extended memory properties for a phsyical device. */
 	struct PhysicalDeviceMemoryProperties2
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2788,7 +2751,6 @@ namespace Pu
 	/* Defines the information required to allocate memory on a physical device. */
 	struct MemoryAllocateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2813,7 +2775,6 @@ namespace Pu
 	/* Defines information about a mapped memory change. */
 	struct MappedMemoryRange
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2845,7 +2806,6 @@ namespace Pu
 	/* Defines the region of a buffer copy command. */
 	struct BufferCopy
 	{
-	public:
 		/* Specifies the offset (in bytes) from the start of the source buffer. */
 		DeviceSize SrcOffset;
 		/* Specifies the offset (in bytes) from the start of the destination buffer. */
@@ -2867,7 +2827,6 @@ namespace Pu
 	/* Defines the information required to create a new image. */
 	struct ImageCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -2917,7 +2876,6 @@ namespace Pu
 	/* Defines a region of an image. */
 	struct ImageSubresourceLayers
 	{
-	public:
 		/* Specifies the color, depth and/or stencil aspects to be copied. */
 		ImageAspectFlag AspectMask;
 		/* Specifies the mipmap level to copy from. */
@@ -2937,7 +2895,6 @@ namespace Pu
 	/* Defines the region of an buffer to image copy command. */
 	struct BufferImageCopy
 	{
-	public:
 		/* Specifies the offset (in bytes) from the start of the buffer to where the image data is stored. */
 		DeviceSize BufferOffset;
 		/* Specifies an optional texel subregion of a larger two- or three-dimensional image. */
@@ -2972,7 +2929,6 @@ namespace Pu
 	/* Defines the information required to create a new sampler. */
 	struct SamplerCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3029,7 +2985,6 @@ namespace Pu
 	/* Defines how many units of a specific descriptor type should be created. */
 	struct DescriptorPoolSize
 	{
-	public:
 		/* Specifies the type of descriptor. */
 		DescriptorType Type;
 		/* Specifies the amount of descriptors of that type of allocate. */
@@ -3049,7 +3004,6 @@ namespace Pu
 	/* Defines the information required to create a new descriptor pool. */
 	struct DescriptorPoolCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3079,7 +3033,6 @@ namespace Pu
 	/* Defines a layout for a descriptor set. */
 	struct DescriptorSetLayoutBinding
 	{
-	public:
 		/* Specifies the binding number of this entry. */
 		uint32 Binding;
 		/* Specifies the type of resource descriptors used for this binding. */
@@ -3106,7 +3059,6 @@ namespace Pu
 	/* Defines the information required to create a new descriptor set layout. */
 	struct DescriptorSetLayoutCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3134,7 +3086,6 @@ namespace Pu
 	/* Defines the information required to allocate a new descriptor set. */
 	struct DescriptorSetAllocateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3162,7 +3113,6 @@ namespace Pu
 	/* Defines the information needed for an image descriptor. */
 	struct DescriptorImageInfo
 	{
-	public:
 		/* Specifies the sampler the image uses. */
 		SamplerHndl Sampler;
 		/* Specifies the image view for the image. */
@@ -3184,7 +3134,6 @@ namespace Pu
 	/* Defines the information needed for a buffer descriptor. */
 	struct DescriptorBufferInfo
 	{
-	public:
 		/* Specifies the buffer resource. */
 		BufferHndl Buffer;
 		/* Specifies the offset (in bytes) from where to start. */
@@ -3206,7 +3155,6 @@ namespace Pu
 	/* Defines the parameters of a descriptor set write operation. */
 	struct WriteDescriptorSet
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3267,7 +3215,6 @@ namespace Pu
 	/* Defines the parameters of a descriptor set copy operation. */
 	struct CopyDescriptorSet
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3298,7 +3245,6 @@ namespace Pu
 	/* Defines the information needed to create a new query pool. */
 	struct QueryPoolCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3332,7 +3278,6 @@ namespace Pu
 	/* Defines the information needed to create a new pipeline cache. */
 	struct PipelineCacheCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3359,7 +3304,6 @@ namespace Pu
 	/* Defines information about the available and used memory heaps. */
 	struct PhysicalDeviceMemoryBudgetProperties
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3378,7 +3322,6 @@ namespace Pu
 	/* Defines the information about the full screen behavior. */
 	struct SurfaceFullScreenExclusiveInfoExt
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3401,7 +3344,6 @@ namespace Pu
 	/* Defines whether exclusive full-screen capabilies are available. */
 	struct SurfaceCapabilitiesFullScreenExclusiveExt
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3441,7 +3383,6 @@ namespace Pu
 	/* Defines a chain structure for getting additional surface capabilities. */
 	struct SurfaceCapabilities2Khr
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3463,7 +3404,6 @@ namespace Pu
 	/* Defines the region of an image blit operation. */
 	struct ImageBlit
 	{
-	public:
 		/* The subresource to blit from. */
 		ImageSubresourceLayers SrcSubresource;
 		/* Specifies a box region of the source region within the subresource. */
@@ -3551,7 +3491,6 @@ namespace Pu
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
@@ -3578,7 +3517,6 @@ namespace Pu
 	/* Defines additional Window information about exclusive full-screen mode. */
 	struct SurfaceFullScreenExclusiveWin32InfoExt
 	{
-	public:
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */

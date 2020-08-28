@@ -159,6 +159,8 @@ namespace Pu
 		SurfaceFullScreenExclusiveWin32InfoExt = 1000255001,
 		SurfaceCapabilitiesFullScreenExclusiveExt = 1000255002,
 		PhysicalDeviceSurfaceInfo2Khr = 1000119000,
+		PhysicalDeviceProperties2 = 1000059001,
+		PhysicalDeviceSubgroupProperties = 1000094000,
 		SurfaceCapabilities2Khr = 1000119001
 	};
 
@@ -1625,6 +1627,27 @@ namespace Pu
 		Disallowed = 2,
 		/* Indicates that the application will manage full-screen exclusive modes. */
 		ApplicationControlled = 3
+	};
+
+	/* Defines what subgroup operations are supported. */
+	enum class SubgroupFeatureFlags
+	{
+		/* SPIR-V GroupNonUniform capability is supported (this flag is always set). */
+		Basic,
+		/* SPIR-V GroupNonUniformVote capability is supported. */
+		Vote,
+		/* SPIR-V GroupNonUniformArithmetic capability is suported. */
+		Arithmetic,
+		/* SPIR-V GroupNonUniformBallot capability is suported. */
+		Ballot,
+		/* SPIR-V GroupNonUniformShuffle capability is suported. */
+		Shuffle,
+		/* SPIR-V GroupNonUniformShuffleRelative capability is suported. */
+		ShuffleRelative,
+		/* SPIR-V GroupNonUniformClustered capability is suported. */
+		Clustured,
+		/* SPIR-V GroupNonUniformQuad capability is suported. */
+		Quad
 	};
 
 	/* Appends the flag bits of an image usage flag. */

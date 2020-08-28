@@ -11,7 +11,7 @@ namespace Pu
 	PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 	PFN_vkCreateInstance vkCreateInstance;
 	PFN_vkDestroyInstance vkDestroyInstance;
-	PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
+	PFN_vkGetPhysicalDeviceProperties2 vkGetPhysicalDeviceProperties2;
 	PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 	PFN_vkCreateDevice vkCreateDevice;
@@ -119,7 +119,7 @@ namespace Pu
 	PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
 	PFN_vkMergePipelineCaches vkMergePipelineCaches;
 	PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
-	PFN_vkGetPhysicalDeviceMemoryProperties2KHR vkGetPhysicalDeviceMemoryProperties2KHR;
+	PFN_vkGetPhysicalDeviceMemoryProperties2 vkGetPhysicalDeviceMemoryProperties2;
 	PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
 	PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
 	PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
@@ -144,7 +144,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkEnumeratePhysicalDevices);
 	LOAD_INSTANCE_PROC(vkCreateInstance);
 	LOAD_INSTANCE_PROC(vkDestroyInstance);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceProperties);
+	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceProperties2);
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceFeatures);
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceQueueFamilyProperties);
 	LOAD_INSTANCE_PROC(vkCreateDevice);
@@ -272,7 +272,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 
 	if (enabledExtensions.contains(u8"VK_KHR_get_physical_device_properties2"))
 	{
-		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2KHR);
+		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2);
 	}
 
 #ifdef _WIN32

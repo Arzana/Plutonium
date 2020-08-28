@@ -9,7 +9,7 @@ namespace Pu
 	using PFN_vkEnumeratePhysicalDevices = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _Inout_ uint32 *physicalDeviceCount, _Out_ PhysicalDeviceHndl *physicalDevices);
 	using PFN_vkCreateInstance = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ const InstanceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ InstanceHndl *instance);
 	using PFN_vkDestroyInstance = void(VKAPI_PTR)(_In_ InstanceHndl instance, _In_opt_ const AllocationCallbacks *allocator);
-	using PFN_vkGetPhysicalDeviceProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceProperties *properties);
+	using PFN_vkGetPhysicalDeviceProperties2 = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceProperties2 *properties);
 	using PFN_vkGetPhysicalDeviceFeatures = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceFeatures *features);
 	using PFN_vkGetPhysicalDeviceQueueFamilyProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Inout_ uint32 *queueFamilyPropertyCount, _Out_ QueueFamilyProperties *queueFamilyProperties);
 	using PFN_vkCreateDevice = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ const DeviceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ DeviceHndl *device);
@@ -117,7 +117,7 @@ namespace Pu
 	using PFN_vkGetPipelineCacheData = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl pipelineCache, _Out_ size_t *dataSize, _Out_ void *data);
 	using PFN_vkMergePipelineCaches = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl dstCache, _In_ uint32 srcCacheCount, _In_ const PipelineCacheHndl *srcCaches);
 	using PFN_vkCmdResetQueryPool = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 firstQuery, _In_ uint32 queryCount);
-	using PFN_vkGetPhysicalDeviceMemoryProperties2KHR = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceMemoryProperties2 *memoryProperties);
+	using PFN_vkGetPhysicalDeviceMemoryProperties2 = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _Out_ PhysicalDeviceMemoryProperties2 *memoryProperties);
 	using PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ const PhysicalDeviceSurfaceInfo2Khr *surfaceInfo, _Inout_ uint32 *presentModeCount, _Out_ PresentMode presentModes);
 	using PFN_vkAcquireFullScreenExclusiveModeEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain);
 	using PFN_vkReleaseFullScreenExclusiveModeEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ SwapchainHndl swapchain);

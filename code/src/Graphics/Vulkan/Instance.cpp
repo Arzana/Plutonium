@@ -260,7 +260,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	/* Physical device related functions. */
 	VK_LOAD_INSTANCE_PROC(hndl, vkEnumeratePhysicalDevices);
 	VK_LOAD_INSTANCE_PROC(hndl, vkDestroyInstance);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties2);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties);
@@ -283,7 +283,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 
 	if (IsExtensionEnabled(u8"VK_KHR_get_physical_device_properties2"))
 	{
-		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties2KHR);
+		VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties2);
 	}
 
 	if (IsExtensionEnabled(u8"VK_KHR_get_surface_capabilities2"))
