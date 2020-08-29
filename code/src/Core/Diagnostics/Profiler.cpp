@@ -242,10 +242,11 @@ void Pu::Profiler::VisualizeInternal(void)
 				for (const PhysicalDevice &device : vkInstance->GetPhysicalDevices())
 				{
 					const MemoryFrame gpuMem = MemoryFrame::GetGPUMemStats(device);
-					ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u",
+					ImGui::Text("%s:\n%zu MB / %zu MB\nAllocations: %u / %u\nSamplers: %u / %u",
 						device.GetName(),
 						b2mb(gpuMem.UsedVRam), b2mb(gpuMem.TotalVRam),
-						device.GetAllocationsCount(), device.GetLimits().MaxMemoryAllocationCount);
+						device.GetAllocationsCount(), device.GetLimits().MaxMemoryAllocationCount,
+						device.GetSamplerCount(), device.GetLimits().MaxSamplerAllocationCount);
 				}
 			}
 

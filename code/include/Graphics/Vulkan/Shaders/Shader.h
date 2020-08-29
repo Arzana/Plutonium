@@ -97,7 +97,7 @@ namespace Pu
 
 		void Load(const wstring &path, bool viaLoader);
 		void Create(SPIRVReader &reader);
-		void SetFieldInfo(void);
+		void SetFieldInfo(const wchar_t *name);
 		void HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass storage);
 		void HandleModule(SPIRVReader &reader, spv::Op opCode, size_t wordCnt);
 		void HandleName(SPIRVReader &reader);

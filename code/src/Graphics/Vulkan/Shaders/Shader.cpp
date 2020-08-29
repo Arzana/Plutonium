@@ -1,6 +1,7 @@
 #include "Graphics/Vulkan/Shaders/Shader.h"
 #include "Streams/FileReader.h"
 #include "Graphics/Vulkan/SPIR-V/SPIR-VReader.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
 const Pu::FieldInfo Pu::Shader::invalid = Pu::FieldInfo();
 constexpr spv::Word GlobalMemberIndex = ~0u;
@@ -25,7 +26,7 @@ Pu::Shader::Shader(LogicalDevice & device, const void *src, size_t size, ShaderS
 
 	/* Set the shader information. */
 	info.Stage = stage;
-	SetFieldInfo();
+	SetFieldInfo(L"<Raw SPIR-V>");
 
 	/* Mark the asset as loaded and set a default name. */
 	wstring name = L"Raw SPIR-V ";
@@ -103,8 +104,12 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 	}
 	else Log::Fatal("'%ls' cannot be loaded as a shader (only SPIR-V shaders are valid)!", ext.c_str());
 
-	/* Set the information of the subpass. */
-	SetFieldInfo();
+	/* 
+	Set the information of the subpass.
+	The path has the following format <location>/<shader name>.<shader type>.spv
+	We want the name + type for the asset, but only the name for the field checking.
+	*/
+	SetFieldInfo(path.fileName().trim_back_split(L'.').c_str());
 	MarkAsLoaded(viaLoader, path.fileName());
 }
 
@@ -119,12 +124,21 @@ void Pu::Shader::Create(SPIRVReader & reader)
 	reader.HandleAllModules(handler);
 }
 
-void Pu::Shader::SetFieldInfo(void)
+void Pu::Shader::SetFieldInfo(const wchar_t * name)
 {
 	/* Create field information for all fields. */
 	for (const auto&[id, typeId, storage] : variables)
 	{
 		HandleVariable(id, typeId, storage);
+	}
+	
+	/* Log an error if we exceed the maximum amount of input attachments. */
+	uint32 inputAttachments = 0;
+	for (const auto &[ids, dec] : decorations) inputAttachments += dec.Contains(spv::Decoration::InputAttachmentIndex);
+	if (inputAttachments > parent->parent->GetLimits().MaxPerStageDescriptorInputAttachments)
+	{
+		Log::Error("%s shader '%ls' exceeds the maximum amount of input attachments of %u with %u input attachments defined!",
+			to_string(info.Stage), name, inputAttachments, parent->parent->GetLimits().MaxPerStageDescriptorInputAttachments);
 	}
 
 	/* Clear the temporary buffers. */
@@ -530,7 +544,7 @@ void Pu::Shader::HandleSpecConstant(SPIRVReader & reader)
 
 	/* The default value for this constant is stored at the end of this sub-stream. */
 	SpecializationConstant value{ id, names[id], type };
-	value.entry.ConstantID = decoration.Numbers[spv::Decoration::SpecId];
+	value.entry.ConstantID = decoration.Numbers.at(spv::Decoration::SpecId);
 
 	specializationConstants.emplace_back(std::move(value));
 }

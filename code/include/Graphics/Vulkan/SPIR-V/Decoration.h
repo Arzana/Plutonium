@@ -24,6 +24,12 @@ namespace Pu
 			: MemberOffset(offset)
 		{}
 
+		/* Gets whether the specified SPIR-V decoration is present. */
+		inline bool Contains(_In_ spv::Decoration key) const
+		{
+			return Numbers.find(key) != Numbers.end();
+		}
+
 		/* Merges the specifies decoration into this one. */
 		inline void Merge(_In_ const Decoration &other)
 		{

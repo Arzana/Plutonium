@@ -1,4 +1,5 @@
 #include "Graphics/Textures/Sampler.h"
+#include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::Sampler::Sampler(LogicalDevice & device, const SamplerCreateInfo & createInfo)
 	: Asset(true, CreateHash(createInfo)), parent(&device), 
@@ -8,6 +9,12 @@ Pu::Sampler::Sampler(LogicalDevice & device, const SamplerCreateInfo & createInf
 	anisotropy(createInfo.AnisotropyEnable), compare(createInfo.CompareModeEnable), unnormalizedCoordinates(createInfo.UnnormalizedCoordinates),
 	cmpOp(createInfo.CompareOp), clr(createInfo.BorderColor)
 {
+	/* Make sure we can actually allocate a new sampler. */
+	if (++device.parent->samplerAllocs > device.parent->GetLimits().MaxSamplerAllocationCount)
+	{
+		Log::Fatal("Unable to allocate sampler (max sampler allocations (%u) reached)!", device.parent->GetLimits().MaxSamplerAllocationCount);
+	}
+
 	VK_VALIDATE(parent->vkCreateSampler(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateSampler);
 	MarkAsLoaded(false, L"Sampler");	// Default to not loaded via load, loader will override this.
 }
@@ -102,5 +109,9 @@ size_t Pu::Sampler::CreateHash(const SamplerCreateInfo & info)
 
 void Pu::Sampler::Destroy(void)
 {
-	if (hndl) parent->vkDestroySampler(parent->hndl, hndl, nullptr);
+	if (hndl)
+	{
+		parent->vkDestroySampler(parent->hndl, hndl, nullptr);
+		--parent->parent->samplerAllocs;
+	}
 }

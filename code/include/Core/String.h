@@ -509,21 +509,21 @@ namespace Pu
 		}
 
 		/* Removes leading characters from the string until the seperator is found (removes seperator). */
-		_Check_return_ inline basic_string<char_t> trim_front_split(_In_ char_t seperator)
+		_Check_return_ inline basic_string<char_t> trim_front_split(_In_ char_t seperator) const
 		{
 			const size_type pos = string_t::find_first_of(seperator);
 			if (pos == string_t::npos) return *this;
-			return string_t::substr(pos + 1, string_t::size() - pos - 1);
+			return string_t::substr(pos + 1, string_t::length() - pos - 1);
 		}
 
 		/* Removes leading characters from the string until the seperation sequence is found (removes seperator). */
-		_Check_return_ inline basic_string<char_t> trim_front_split(_In_ const basic_string<char_t> &seperationSequence)
+		_Check_return_ inline basic_string<char_t> trim_front_split(_In_ const basic_string<char_t> &seperationSequence) const
 		{
 			size_type pos = string_t::find(seperationSequence);
 			if (pos == string_t::npos) return *this;
 
-			pos += seperationSequence.size();
-			return string_t::substr(pos, string_t::size() - pos);
+			pos += seperationSequence.length();
+			return string_t::substr(pos, string_t::length() - pos);
 		}
 
 		/* Removes trailing characters from the string. */
@@ -532,6 +532,14 @@ namespace Pu
 			const size_type end = string_t::find_last_not_of(characters);
 			if (end == string_t::npos) return basic_string<char_t>();
 			return string_t::substr(0, end + 1);
+		}
+
+		/* Removes all trailing characters from the string after the seperator is first found (removes seperator). */
+		_Check_return_ inline basic_string<char_t> trim_back_split(_In_ char_t seperator) const
+		{
+			const size_type pos = string_t::find_first_of(seperator);
+			if (pos == string_t::npos) return *this;
+			return string_t::substr(0, pos);
 		}
 #pragma endregion
 #pragma region converters

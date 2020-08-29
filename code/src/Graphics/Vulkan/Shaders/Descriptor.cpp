@@ -18,7 +18,7 @@ Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo
 	layoutBinding.StageFlags = stage;
 	layoutBinding.DescriptorCount = 1;
 
-	if (data.Decorations.Numbers.find(spv::Decoration::InputAttachmentIndex) != data.Decorations.Numbers.end())
+	if (data.Decorations.Contains(spv::Decoration::InputAttachmentIndex))
 	{
 		/* The descriptor is an input attachment. */
 		layoutBinding.DescriptorType = DescriptorType::InputAttachment;

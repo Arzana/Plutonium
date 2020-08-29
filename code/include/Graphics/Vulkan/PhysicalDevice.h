@@ -89,6 +89,12 @@ namespace Pu
 			return properties.Limits;
 		}
 
+		/* Gets the sparse properties of the physical device. */
+		_Check_return_ inline const PhysicalDeviceSparseProperties& GetSparseProperties()
+		{
+			return properties.SparseProperties;
+		}
+
 		/* Gets the capabilities of the physical device.  */
 		_Check_return_ inline const PhysicalDeviceFeatures& GetSupportedFeatures(void) const
 		{
@@ -110,37 +116,13 @@ namespace Pu
 		/* Gets the amount of memory allocations created by vkAllocateMemory from this physical device. */
 		_Check_return_ inline uint32 GetAllocationsCount(void) const
 		{
-			return allocations;
+			return memAllocs;
 		}
 
-		/* Gets whether all single-sample 2D sparse resources use standard image block shapes. */
-		_Check_return_ inline bool IsStandard2DBlockShape(void) const
+		/* Gets the amount of sampler allocations created by vkCreateSampler from this physical device. */
+		_Check_return_ inline uint32 GetSamplerCount(void) const
 		{
-			return properties.SparseProperties.ResidencyStandard2DBlockShape;
-		}
-
-		/* Gets whether all multisample 2D sparse resources use standard image block shapes. */
-		_Check_return_ inline bool IsStandard2DMutisampleBlockShape(void) const
-		{
-			return properties.SparseProperties.ResidencyStandard2DMultisampleBlockShape;
-		}
-
-		/* Gets whether all 3D sparse resources use standard image block shapes. */
-		_Check_return_ inline bool IsStandard3DBlockShape(void) const
-		{
-			return properties.SparseProperties.ResidencyStandard3DBlockShape;
-		}
-
-		/* Gets whether images with mip level dimensions that are not integer multiples of the corresponding dimensions of the sparse image block may be places in the mip tail. */
-		_Check_return_ inline bool IsAlignedMipSize(void) const
-		{
-			return properties.SparseProperties.ResidencyAlignedMipSize;
-		}
-
-		/* Specifies whether the physical device can consistently access non-resident regions of a resource. */
-		_Check_return_ inline bool IsNonResidentStrict(void) const
-		{
-			return properties.SparseProperties.ResidencyNonResidentStrict;
+			return samplerAllocs;
 		}
 
 		/* Gets the default number of invocations per subgroup. */
@@ -179,6 +161,7 @@ namespace Pu
 		friend class Surface;
 		friend class Buffer;
 		friend class Image;
+		friend class Sampler;
 		friend class Application;
 		friend class GameWindow;
 		friend class PipelineCache;
@@ -190,7 +173,7 @@ namespace Pu
 		PhysicalDeviceFeatures supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
 		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
-		uint32 allocations;
+		uint32 memAllocs, samplerAllocs;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 

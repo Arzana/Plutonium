@@ -49,7 +49,7 @@ namespace Pu
 		/* Gets whether this asset has a name. */
 		_Check_return_ inline bool HasName(void) const
 		{
-			return !identifier.empty();
+			return identifier.size();
 		}
 
 		/* Gets the human readable indentifier of the asset. */

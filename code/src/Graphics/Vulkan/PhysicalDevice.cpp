@@ -8,7 +8,8 @@ Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
 	: parent(value.parent), hndl(value.hndl), properties(std::move(value.properties)),
 	supportedFeatures(std::move(value.supportedFeatures)), memory(std::move(value.memory)),
 	enabledFeatures(std::move(value.enabledFeatures)), canQueryMemoryUsage(value.canQueryMemoryUsage),
-	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported), allocations(value.allocations)
+	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported), 
+	memAllocs(value.memAllocs), samplerAllocs(value.samplerAllocs)
 {
 	value.hndl = nullptr;
 }
@@ -32,7 +33,8 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 		memory = std::move(other.memory);
 		canQueryMemoryUsage = other.canQueryMemoryUsage;
 		exclusiveFullScreenSupported = other.exclusiveFullScreenSupported;
-		allocations = other.allocations;
+		memAllocs = other.memAllocs;
+		samplerAllocs = other.samplerAllocs;
 
 		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 		other.hndl = nullptr;
@@ -130,7 +132,7 @@ DeviceSize Pu::PhysicalDevice::GetUniformBufferOffsetAllignment(DeviceSize size)
 }
 
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
-	: hndl(hndl), parent(&parent), allocations(0)
+	: hndl(hndl), parent(&parent), memAllocs(0), samplerAllocs(0)
 {
 	PhysicalDeviceProperties2 prop2;
 	prop2.Next = &subgroup;

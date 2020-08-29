@@ -162,6 +162,12 @@ void Pu::Pipeline::CreatePipelineLayout(const Subpass & subpass)
 	/* Create the pipeline layout. */
 	const PipelineLayoutCreateInfo createInfo{ hndls, pushRanges };
 	VK_VALIDATE(Device->vkCreatePipelineLayout(Device->hndl, &createInfo, nullptr, &LayoutHndl), PFN_vkCreatePipelineLayout);
+
+	/* Checks whether the pipeline can actually bind all required descriptor sets. */
+	if (hndls.size() > Device->parent->GetLimits().MaxBoundDescriptorSets)
+	{
+		Log::Error("Pipeline 0x%P cannot bind all descriptor sets at once (%zu > %u)!", hndls.size(), Device->parent->GetLimits().MaxBoundDescriptorSets);
+	}
 }
 
 void Pu::Pipeline::DestroyBuffers(void)

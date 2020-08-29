@@ -349,37 +349,69 @@ namespace Pu
 	/* Defines the implementation-dependent physical device limits. */
 	struct PhysicalDeviceLimits
 	{
+		/* Specifies the largest width that is guaranteed to be supported for 1D images. */
 		uint32 MaxImageDimension1D;
+		/* Specifies the largest width or height that is guaranteed to be supported for 2D images. */
 		uint32 MaxImageDimension2D;
+		/* Specifies the largest width, height or depth that is guaranteed to be supported for 3D images. */
 		uint32 MaxImageDimension3D;
+		/* Specifies the largest width or height that is guaranteed to be supported for 2D cube images. */
 		uint32 MaxImageDimensionCube;
+		/* Specifies the maximum amount of layers supported for an image. */
 		uint32 MaxImageArrayLayers;
+		/* Specifies the maximum number of addressable texels for a texel buffer. */
 		uint32 MaxTexelBufferElements;
+		/* Specifies the maximum range of a uniform buffer in the DescriptorBufferInfo structure. */
 		uint32 MaxUniformBufferRange;
+		/* Specifies the maximum range of a storage buffer in the DescriptorBufferInfo structure. */
 		uint32 MaxStorageBufferRange;
+		/* Specifies the maximum size (in bytes) of a pool of push constants. */
 		uint32 MaxPushConstantsSize;
+		/* Specifies the maximum number of device memory allocations. */
 		uint32 MaxMemoryAllocationCount;
+		/* Specifies the maximum number of sampler allocations. */
 		uint32 MaxSamplerAllocationCount;
+		/* Specifies the granularity (in bytes) between two adjacent buffers or images in the same device memory object without aliasing. */
 		DeviceSize BufferImageGranularity;
+		/* Specifies the amount of address space (in bytes) for sparse memory resources. */
 		DeviceSize SparseAddressSpaceSize;
+		/* Specifies the maximum amount of descriptor sets that can be simultaneously bound to a pipeline. */
 		uint32 MaxBoundDescriptorSets;
+		/* Specifies the maximum amount of samplers or combined image/samplers accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorSamplers;
+		/* Specifies the maximum amount of uniform buffer accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorUniformBuffers;
+		/* Specifies the maximum amount of (dynamic) storage buffers accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorStorageBuffers;
+		/* Specifies the maximum amount of sampled, combined image/sampler or uniform texel buffers accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorSampledImages;
+		/* Specifies the maximum amount of storage images/texel buffers accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorStorageImages;
+		/* Specifies the maximum amount of input attachments accessible to a single shader stage. */
 		uint32 MaxPerStageDescriptorInputAttachments;
+		/* Specifies the maximum amount of total resources that can be accessible to a single shader stage. */
 		uint32 MaxPerStageResources;
+		/* Specifies the maximum number of samplers or combined image/samplers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetSamplers;
+		/* Specifies the maximum number of (dynamic) uniform buffers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetUniformBuffers;
+		/* Specifies the maximum number of dynamic uniform buffers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetUniformBuffersDynamic;
+		/* Specifies the maximum number of (dynamic) storage buffers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetStorageBuffers;
+		/* Specifies the maximum number of dynamic storage buffers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetStorageBuffersDynamic;
+		/* Specifies the maximum number of sampeld or combined image/samplers that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetSampledImages;
+		/* Specifies the maximum number of storage images/texel buffer that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetStorageImages;
+		/* Specifies the maximum number of input attachments that can be included in a pipeline layout. */
 		uint32 MaxDescriptorSetInputAttachments;
+		/* Specifies the maximum number of vertex input attributes that can be specified for a graphics pipeline. */
 		uint32 MaxVertexInputAttributes;
+		/* Specifies the maximum number of vertex buffer that can provide vertex attributes to a graphics pipeline. */
 		uint32 MaxVertexInputBindings;
+		/* Specifies the maximum vertex input attribute offset that can be added to a vertex input binding. */
 		uint32 MaxVertexInputAttributeOffset;
 		uint32 MaxVertexInputBindingStride;
 		uint32 MaxVertexOutputComponents;

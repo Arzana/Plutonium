@@ -202,7 +202,7 @@ void Pu::Buffer::Allocate(MemoryPropertyFlag optional)
 
 		/* Allocate the memory. */
 		const MemoryAllocateInfo info{ requirements.Size, memoryType };
-		++parent->parent->allocations;
+		++parent->parent->memAllocs;
 		VK_VALIDATE(parent->vkAllocateMemory(parent->hndl, &info, nullptr, &memoryHndl), PFN_vkAllocateMemory);
 
 		/* Bind the memory to the buffer. */
@@ -221,6 +221,6 @@ void Pu::Buffer::Free(void)
 	if (memoryHndl)
 	{
 		parent->vkFreeMemory(parent->hndl, memoryHndl, nullptr);
-		--parent->parent->allocations;
+		--parent->parent->memAllocs;
 	}
 }
