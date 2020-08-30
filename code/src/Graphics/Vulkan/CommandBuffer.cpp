@@ -29,6 +29,7 @@ const char* to_string(Pu::CommandBuffer::State state)
 
 static Pu::uint32 bindCalls = 0;
 static Pu::uint32 drawCalls = 0;
+static Pu::uint32 dispatchCalls = 0;
 static Pu::uint32 transferCalls = 0;
 static Pu::uint32 barrierCalls = 0;
 static Pu::uint32 shaderCalls = 0;
@@ -281,6 +282,14 @@ void Pu::CommandBuffer::BindGraphicsPipeline(const GraphicsPipeline & pipeline)
 	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Graphics, pipeline.Hndl);
 }
 
+void Pu::CommandBuffer::BindComputePipeline(const ComputePipeline & pipeline)
+{
+	DbgCheckIfRecording("bind compute pipeline");
+	++bindCalls;
+
+	device->vkCmdBindPipeline(hndl, PipelineBindPoint::Compute, pipeline.Hndl);
+}
+
 void Pu::CommandBuffer::BindVertexBuffer(uint32 binding, const Buffer & buffer, DeviceSize offset)
 {
 	DbgCheckIfRecording("bind vertex buffer");
@@ -351,6 +360,14 @@ void Pu::CommandBuffer::Draw(uint32 indexCount, uint32 instanceCount, uint32 fir
 	++drawCalls;
 
 	device->vkCmdDrawIndexed(hndl, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+}
+
+void Pu::CommandBuffer::Dispatch(uint32 groupCountX, uint32 groupCountY, uint32 groupCountZ)
+{
+	DbgCheckIfRecording("dispatch");
+	++dispatchCalls;
+
+	device->vkCmdDispatch(hndl, groupCountX, groupCountY, groupCountZ);
 }
 
 void Pu::CommandBuffer::NextSubpass(SubpassContents contents)
@@ -469,6 +486,11 @@ Pu::uint32 Pu::CommandBuffer::GetDrawCalls(void)
 	return drawCalls;
 }
 
+Pu::uint32 Pu::CommandBuffer::GetDispatchCalls(void)
+{
+	return dispatchCalls;
+}
+
 Pu::uint32 Pu::CommandBuffer::GetBindCalls(void)
 {
 	return bindCalls;
@@ -492,6 +514,7 @@ Pu::uint32 Pu::CommandBuffer::GetShaderCalls(void)
 void Pu::CommandBuffer::ResetCounters(void)
 {
 	drawCalls = 0;
+	dispatchCalls = 0;
 	bindCalls = 0;
 	transferCalls = 0;
 	barrierCalls = 0;

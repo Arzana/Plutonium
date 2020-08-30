@@ -135,6 +135,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkCmdDrawIndirect);
 	EXT_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
 	EXT_INSTANCE_PROC(vkResetDescriptorPool);
+	EXT_INSTANCE_PROC(vkCmdDispatch);
 
 #ifdef _WIN32
 	EXT_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

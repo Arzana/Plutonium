@@ -13,6 +13,8 @@ void Pu::ComputePipeline::Finalize(void)
 		Destroy();
 	}
 
+	InitializeSpecializationConstants(*program);
+
 	/* Create the new compute pipeline. */
 	ComputePipelineCreateInfo createInfo{ GetShaderStages().front(), CreateFlags, LayoutHndl };
 	VK_VALIDATE(Device->vkCreateComputePipelines(Device->hndl, nullptr, 1, &createInfo, nullptr, &Hndl), PFN_vkCreateComputePipelines);

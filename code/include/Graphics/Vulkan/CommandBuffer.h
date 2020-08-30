@@ -1,5 +1,6 @@
 #pragma once
 #include "Pipelines/GraphicsPipeline.h"
+#include "Pipelines/ComputePipeline.h"
 #include "DescriptorSetGroup.h"
 #include "Graphics/Color.h"
 #include "DescriptorSet.h"
@@ -57,9 +58,11 @@ namespace Pu
 			return other.hndl != hndl;
 		}
 
-		/* Gets the amount of draw calls current handled by Plutonium. */
+		/* Gets the amount of draw calls currently handled by Plutonium. */
 		_Check_return_ static uint32 GetDrawCalls(void);
-		/* Gets the amount of bind calls current handled by Plutonium */
+		/* Gets the amount of dispatch calls currently handled by Plutonium. */
+		_Check_return_ static uint32 GetDispatchCalls(void);
+		/* Gets the amount of bind calls current handledly by Plutonium */
 		_Check_return_ static uint32 GetBindCalls(void);
 		/* Gets the amount of transfer calls currently handled by Plutonium. */
 		_Check_return_ static uint32 GetTransferCalls(void);
@@ -113,6 +116,8 @@ namespace Pu
 		void BeginRenderPass(_In_ const Renderpass &renderPass, _In_ const Framebuffer &framebuffer, _In_ Rect2D renderArea, _In_ SubpassContents contents);
 		/* Appends a graphics pipeline bind command to the command buffer. */
 		void BindGraphicsPipeline(_In_ const GraphicsPipeline &pipeline);
+		/* appends a compute pipeline bind command to the command buffer. */
+		void BindComputePipeline(_In_ const ComputePipeline &pipeline);
 		/* Appends a vertex buffer bind command to the command buffer. */
 		void BindVertexBuffer(_In_ uint32 binding, _In_ const Buffer &buffer, _In_ DeviceSize offset);
 		/* Appends a index buffer bind command to the command buffer. */
@@ -127,6 +132,8 @@ namespace Pu
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 		/* Appends an indexed draw command to the command buffer. */
 		void Draw(_In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ uint32 firstInstance, _In_ int32 vertexOffset);
+		/* Appends a dispatch command to the command buffer. */
+		void Dispatch(_In_ uint32 groupCountX, _In_ uint32 groupCountY, _In_ uint32 groupCountZ);
 		/* Transitions to the next subpass of a render pass. */
 		void NextSubpass(_In_ SubpassContents contents);
 		/* Appends a render pass end command to the command buffer. */

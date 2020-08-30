@@ -126,6 +126,7 @@ namespace Pu
 	using PFN_vkCmdDrawIndirect = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ uint32 drawCount, _In_ uint32 stride);
 	using PFN_vkCmdDrawIndexedIndirect = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ uint32 drawCount, _In_ uint32 stride);
 	using PFN_vkResetDescriptorPool = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DescriptorPoolHndl descriptorPool, _In_ uint32 flags);
+	using PFN_vkCmdDispatch = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 groupCountX, _In_ uint32 groupCountY, _In_ uint32 groupCountZ);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);
