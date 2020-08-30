@@ -1,8 +1,10 @@
 #include "Graphics/Vulkan/Pipelines/ComputePipeline.h"
 
-Pu::ComputePipeline::ComputePipeline(const ShaderProgram & program)
+Pu::ComputePipeline::ComputePipeline(const ShaderProgram & program, bool finalize)
 	: Pipeline(program.GetShaders().front()->GetDevice(), program), program(&program)
-{}
+{
+	if (finalize) Finalize();
+}
 
 void Pu::ComputePipeline::Finalize(void)
 {

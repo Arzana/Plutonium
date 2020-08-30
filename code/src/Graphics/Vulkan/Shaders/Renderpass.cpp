@@ -390,7 +390,7 @@ bool Pu::Renderpass::LoadTask::ShouldContinue(void) const
 Pu::Task::Result Pu::Renderpass::LoadTask::Continue(void)
 {
 	/* Make sure that the subpasses are compatible and initialized. */
-	for (Subpass &subpass : renderpass.subpasses) subpass.Link(*renderpass.device);
+	for (Subpass &subpass : renderpass.subpasses) subpass.Link(*renderpass.device, true);
 
 	/* Delete the underlying shader load tasks, create the renderpass and finally allow the scheduler to delete this task. */
 	for (const Shader::LoadTask *task : children) delete task;

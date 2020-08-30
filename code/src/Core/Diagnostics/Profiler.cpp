@@ -225,6 +225,7 @@ void Pu::Profiler::VisualizeInternal(void)
 			/* Rendering/compute frame stats. */
 			ImGui::Separator();
 			ImGui::Text("Draw Calls:      %u", CommandBuffer::GetDrawCalls());
+			ImGui::Text("Dispatch Calls:  %u", CommandBuffer::GetDispatchCalls());
 			ImGui::Text("Bind Calls:      %u", CommandBuffer::GetBindCalls());
 			ImGui::Text("Shaders Used:    %u", CommandBuffer::GetShaderCalls());
 			ImGui::Text("Transfers:       %u", CommandBuffer::GetTransferCalls());

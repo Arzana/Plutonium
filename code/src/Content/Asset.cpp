@@ -9,7 +9,10 @@ Pu::Asset::~Asset(void)
 	They are responsible for safe releases.
 	All other assets should be released via the asset fetcher, thusly removing its references.
 	*/
-	if (allowDuplication && loadedViaLoader && refCnt > 0) Log::Warning("Releasing referenced asset '%zu'!", hash);
+	if (allowDuplication && loadedViaLoader && refCnt > 0)
+	{
+		Log::Warning("Releasing referenced asset '%zu'!", hash);
+	}
 }
 
 Pu::Asset::Asset(bool allowDuplication)
@@ -59,8 +62,9 @@ Pu::Asset & Pu::Asset::operator=(Asset && other)
 /* Warning checked and nothing is wrong. */
 #pragma warning(push)
 #pragma warning(disable:4458)
-void Pu::Asset::SetHash(size_t hash)
+void Pu::Asset::SetHash(size_t hash, size_t instance)
 {
 	this->hash = hash;
+	this->instance = instance;
 }
 #pragma warning(pop)

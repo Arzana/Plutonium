@@ -4,13 +4,18 @@
 #include "Attribute.h"
 #include "PushConstant.h"
 #include "DescriptorSetLayout.h"
+#include "Core/Events/EventBus.h"
 
 namespace Pu
 {
 	/* Defines an instance of a linked graphics or compute shader program. */
 	class ShaderProgram
+		: public Asset
 	{
 	public:
+		/* Occurs when the shader program finishes linking. */
+		EventBus<ShaderProgram> PostLink;
+
 		/* Initializes an empty instance of a shader program. */
 		ShaderProgram(void);
 		/* Initializes a new instance of a shader program from specific shader modules. */
@@ -41,8 +46,8 @@ namespace Pu
 			return setLayouts.at(set);
 		}
 
-		/* Gets whether this shader program was created with valid arguments. */
-		_Check_return_ inline bool IsUsable(void) const
+		/* Gets whether this shader program linked without errors. */
+		_Check_return_ inline bool LinkSuccessfull(void) const
 		{
 			return linkSuccessfull;
 		}
@@ -70,6 +75,10 @@ namespace Pu
 		/* Gets the specified push constant. */
 		_Check_return_ const PushConstant& GetPushConstant(_In_ const string &name) const;
 
+	protected:
+		/* Creates a copy of this shader program. */
+		_Check_return_ Asset& Duplicate(_In_ AssetCache &cache) final;
+
 	private:
 		friend class Subpass;
 		friend class Pipeline;
@@ -92,7 +101,7 @@ namespace Pu
 		vector<DescriptorSetLayout> setLayouts;
 		vector<Output> outputs;
 
-		void Link(LogicalDevice &device);
+		void Link(LogicalDevice &device, bool viaLoader);
 		void LoadFields(const PhysicalDevice &physicalDevice);
 		bool CheckIO(const Shader &a, const Shader &b) const;
 		bool CheckSets(void) const;

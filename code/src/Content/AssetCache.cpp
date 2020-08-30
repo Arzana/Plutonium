@@ -42,11 +42,14 @@ size_t Pu::AssetCache::RngHash(void)
 	size_t result;
 	std::hash<string> hasher;
 
-	/* Just create random 64-length string hashes until we find one this isn't used yet. */
+	/* 
+	Just create random 64-length string hashes until we find one this isn't used yet. 
+	By either the hash or the instance hash.
+	*/
 	do
 	{
 		result = hasher(random(64));
-	} while (Contains(result, true, true));
+	} while (Contains(result, true, true, true));
 
 	/* Reserve the hash and return it to the user. */
 	reserved.emplace_back(result);
@@ -58,22 +61,22 @@ bool Pu::AssetCache::Reserve(size_t hash)
 {
 	lock.lock();
 
-	/* 
+	/*
 	Spin if the specified hash has already been reserved,
 	but isn't in the full asset cache yet.
 	*/
-	while (Contains(hash, false, true))
+	while (Contains(hash, false, false, true))
 	{
 		lock.unlock();
 		PuThread::Sleep(1);
 		lock.lock();
 	}
 
-	/* 
+	/*
 	Check whether the asset is in the cache,
 	if so we can't reserve it so return false.
 	*/
-	if (Contains(hash, true, false))
+	if (Contains(hash, false, true, false))
 	{
 		lock.unlock();
 		return false;
@@ -85,13 +88,17 @@ bool Pu::AssetCache::Reserve(size_t hash)
 	return true;
 }
 
-bool Pu::AssetCache::Contains(size_t hash, bool asset, bool reserve) const
+bool Pu::AssetCache::Contains(size_t hash, bool instance, bool asset, bool reserve) const
 {
 	if (asset)
 	{
 		for (const Asset *cur : assets)
 		{
-			if (cur->hash == hash) return true;
+			if (cur->hash == hash)
+			{
+				if (!instance)  return true;
+				if (cur->instance == hash) return true;
+			}
 		}
 	}
 
@@ -146,7 +153,7 @@ void Pu::AssetCache::Release(Asset & asset)
 	}
 
 	lock.unlock();
-	if (!asset.loadedViaLoader) Log::Warning("Attempting to release unknown asset '%zu'!", asset.hash);
+	Log::Warning("Attempting to release unknown asset '%zu'!", asset.hash);
 }
 
 void Pu::AssetCache::Store(Asset * asset)
@@ -154,7 +161,7 @@ void Pu::AssetCache::Store(Asset * asset)
 	lock.lock();
 
 	/* Only check if the asset is already added if the hash isn't zero (indicates hash hasn't been set yet). */
-	if (asset->hash != 0 && Contains(asset->hash, true, false))
+	if (asset->hash != 0 && Contains(asset->hash, true, true, false))
 	{
 		lock.unlock();
 		Log::Error("Attempting to add already added asset %zu!", asset->hash);
@@ -162,7 +169,8 @@ void Pu::AssetCache::Store(Asset * asset)
 	}
 
 	/* Make sure to remove the asset from the reserve list, and throw a warning if it was just added without reserving. */
-	if (Contains(asset->hash, false, true)) reserved.remove(asset->hash);
+	if (Contains(asset->hash, false, false, true)) reserved.remove(asset->hash);
+	else if (Contains(asset->instance, false, false, true)) reserved.remove(asset->instance);
 	else Log::Warning("Asset %zu was added before first reserving it, this is unsafe!", asset->hash);
 
 	assets.emplace_back(asset);
@@ -174,7 +182,7 @@ void Pu::AssetCache::Update(Asset * asset, size_t newHash)
 	lock.lock();
 
 	/* Remove the new hash from the reserve list. */
-	if (Contains(newHash, false, true)) reserved.remove(newHash);
+	if (Contains(newHash, false, false, true)) reserved.remove(newHash);
 	else Log::Warning("Asset %zu has updated its hash before first reserving it, this is unsafe!", newHash);
 
 	/* Update the hash safely. */

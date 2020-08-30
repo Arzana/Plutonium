@@ -204,6 +204,7 @@ namespace Pu
 		_Check_return_ inline vector<result_t> select(_In_ selector_t selector) const
 		{
 			vector<result_t> result;
+			result.reserve(vector_t::size());
 
 			for (const element_t &cur : *this)
 			{

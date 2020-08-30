@@ -1,4 +1,5 @@
 #include "Graphics/Vulkan/Shaders/ShaderProgram.h"
+#include "Content/AssetCache.h"
 
 using namespace Pu;
 
@@ -9,13 +10,14 @@ Descriptor ShaderProgram::defDescr = Descriptor(defInfo);
 PushConstant ShaderProgram::defConst = PushConstant(defInfo);
 
 Pu::ShaderProgram::ShaderProgram(void)
-	: linkSuccessfull(false)
+	: Asset(true), linkSuccessfull(false), PostLink("ShaderProgramPostLink")
 {}
 
 Pu::ShaderProgram::ShaderProgram(LogicalDevice & device, const vector<Shader*>& shaderModules)
-	: linkSuccessfull(false), shaders(shaderModules)
+	: Asset(true), linkSuccessfull(false), shaders(shaderModules), PostLink("ShaderProgramPostLink")
 {
-	Link(device);
+	SetHash(std::hash<wstring>{}(shaderModules.select<wstring>([](const Shader *shader) { return shader->GetName(); })));
+	Link(device, false);
 }
 
 Output & Pu::ShaderProgram::GetOutput(const string & name)
@@ -106,7 +108,20 @@ const PushConstant & Pu::ShaderProgram::GetPushConstant(const string & name) con
 	return defConst;
 }
 
-void Pu::ShaderProgram::Link(LogicalDevice & device)
+Asset & Pu::ShaderProgram::Duplicate(AssetCache & cache)
+{
+	/* The underlying shaders are assets, so reference them. */
+	for (Shader *shader : shaders) shader->Reference();
+
+	/* Create a new shader program and override the hash and give it a new instance hash. */
+	ShaderProgram *result = new ShaderProgram(shaders.front()->GetDevice(), shaders);
+	result->SetHash(GetHash(), cache.RngHash());
+	cache.Store(result);
+
+	return *result;
+}
+
+void Pu::ShaderProgram::Link(LogicalDevice & device, bool viaLoader)
 {
 #ifdef _DEBUG
 	for (size_t i = 0; i < shaders.size(); i++)
@@ -115,6 +130,7 @@ void Pu::ShaderProgram::Link(LogicalDevice & device)
 		if (shaders.size() > 1 && shaders[i]->GetType() == ShaderStageFlags::Compute)
 		{
 			Log::Error("Compute shaders can only apear as seperate entities in a shader program!");
+			PostLink.Post(*this);
 			return;
 		}
 
@@ -124,6 +140,7 @@ void Pu::ShaderProgram::Link(LogicalDevice & device)
 			if (i != j && shaders[i]->GetType() == shaders[j]->GetType())
 			{
 				Log::Error("Cannot add two %s shaders in one shader prorgam!", to_string(shaders[i]->GetType()));
+				PostLink.Post(*this);
 				return;
 			}
 		}
@@ -147,6 +164,7 @@ void Pu::ShaderProgram::Link(LogicalDevice & device)
 			{
 				/* Shader is done loading but failed linking because of I/O issues. */
 				Log::Error("Unable to link %s shader to %s shader!", to_string(shaders[i]->GetType()), to_string(shaders[j]->GetType()));
+				PostLink.Post(*this);
 				return;
 			}
 		}
@@ -161,6 +179,7 @@ void Pu::ShaderProgram::Link(LogicalDevice & device)
 	{
 		/* Shader is done loading but failed linking because of descriptor set overlap. */
 		Log::Error("Unable to link %zu shaders!", shaders.size());
+		PostLink.Post(*this);
 		return;
 	}
 #endif
@@ -180,6 +199,9 @@ void Pu::ShaderProgram::Link(LogicalDevice & device)
 
 	Log::Verbose("Successfully created shader program %ls.", modules.c_str());
 #endif
+
+	PostLink.Post(*this);
+	MarkAsLoaded(viaLoader, L"ShaderProgram");
 }
 
 void Pu::ShaderProgram::LoadFields(const PhysicalDevice & physicalDevice)

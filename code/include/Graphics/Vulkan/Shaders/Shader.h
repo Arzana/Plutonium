@@ -57,6 +57,7 @@ namespace Pu
 
 	private:
 		friend class ShaderProgram;
+		friend class AssetLoader;
 		friend class Renderpass;
 		friend class Pipeline;
 

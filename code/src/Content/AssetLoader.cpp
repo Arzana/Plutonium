@@ -56,6 +56,61 @@ void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<v
 	scheduler.Force(*task);
 }
 
+void Pu::AssetLoader::PopulateComputepass(ShaderProgram & program, const wstring & shader)
+{
+	class LoadTask
+		: public Task
+	{
+	public:
+		LoadTask(LogicalDevice &device, AssetCache &cache, ShaderProgram &result, const wstring &path)
+			: device(device), cache(cache), result(result), path(path)
+		{}
+
+		Result Execute(void) final
+		{
+			/* Check if the shader was already loaded. */
+			const size_t shaderHash = std::hash<wstring>{}(path);
+			if (!cache.Reserve(shaderHash))
+			{
+				result.shaders.emplace_back(&cache.Get(shaderHash).Duplicate<Shader>(cache));
+				return Result::AutoDelete();
+			}
+
+			/* Create the new shader asset and store it. */
+			Shader *shader = new Shader(device);
+			shader->SetHash(shaderHash);
+			cache.Store(shader);
+
+			/* Create the shader load task and make it a child of this task. */
+			result.shaders.emplace_back(shader);
+			child = new Shader::LoadTask(*shader, path);
+			child->SetParent(*this);
+			scheduler->Spawn(*child);
+
+			return Result::CustomWait();
+		}
+
+		Result Continue(void) final
+		{
+			/* Parse the required information from the shader and clean up. */
+			result.Link(device, true);
+			delete child;
+			return Result::AutoDelete();
+		}
+
+	private:
+		LogicalDevice &device;
+		AssetCache &cache;
+		ShaderProgram &result;
+		Shader::LoadTask *child;
+		wstring path;
+	};
+
+	/* The load task is deleted by the scheduler as the continue has an auto delete set. */
+	LoadTask *task = new LoadTask(device, cache, program, shader);
+	scheduler.Spawn(*task);
+}
+
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)
 {
 	class StageTask
@@ -495,7 +550,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 			/* Finalization is done once the command buffer can begin again. */
 			if (cmdBuffer.IsInitialized()) return cmdBuffer.CanBegin();
 
-			/* 
+			/*
 			We can only finalize the model once:
 			- All textures are loaded
 			- The GPU data is staged.
@@ -600,7 +655,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 			case ShapeType::Dome:
 				mesh = ShapeCreator::Dome(*src, DOME_DIVS);
 				break;
-			case ShapeType::Torus: 
+			case ShapeType::Torus:
 				mesh = ShapeCreator::Torus(*src, TORUS_DIVS, 0.5f);
 				break;
 			case ShapeType::Cylinder:

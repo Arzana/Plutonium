@@ -9,7 +9,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a Vulkan compute pipeline from a specific shader program. */
-		ComputePipeline(_In_ const ShaderProgram &program);
+		ComputePipeline(_In_ const ShaderProgram &program, _In_opt_ bool finalize = false);
 		ComputePipeline(_In_ const ComputePipeline&) = delete;
 		/* Move constructor. */
 		ComputePipeline(_In_ ComputePipeline &&value) = default;

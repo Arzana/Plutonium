@@ -85,8 +85,14 @@ namespace Pu
 
 		/* Duplicates the asset, either returning a reference of itself or a memberwise copy. */
 		_Check_return_ virtual Asset& Duplicate(_In_ AssetCache &cache) = 0;
-		/* Initializes the hash of the asset, cannot replace valid hash! */
-		void SetHash(_In_ size_t hash);
+		/* Initializes the hashes of the asset. */
+		void SetHash(_In_ size_t hash, _In_ size_t instance = 0);
+
+		/* Gets the hash currently used by the asset. */
+		_Check_return_ inline size_t GetHash(void) const
+		{
+			return hash;
+		}
 
 		/* Marks the current asset as temporarily loading. */
 		inline void MarkAsLoading(void)

@@ -21,6 +21,7 @@ namespace Pu
 
 		/* Creates a random hash that isn't yet used by the asset cache. */
 		_Check_return_ size_t RngHash(void);
+
 		/* Attempts to reserve the specific asset hash, returns false if it already exists. */
 		_Check_return_ bool Reserve(_In_ size_t hash);
 		/* Gets the asset with the specified hash. */
@@ -38,6 +39,6 @@ namespace Pu
 		vector<Asset*> assets;
 		vector<size_t> reserved;
 
-		bool Contains(size_t hash, bool asset, bool reserve) const;
+		bool Contains(size_t hash, bool instance, bool asset, bool reserve) const;
 	};
 }

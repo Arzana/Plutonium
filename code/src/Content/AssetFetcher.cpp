@@ -69,6 +69,26 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(Renderpass * old, const vecto
 	return *old;
 }
 
+Pu::ShaderProgram & Pu::AssetFetcher::FetchComputepass(const wstring & shader)
+{
+	/* Solve for the wildcards. */
+	wstring mutablePath = shader;
+	Solve(mutablePath);
+
+	/* Check if this compute shader was already loaded. */
+	const size_t hash = std::hash<wstring>{}(L"ShaderProgram" + mutablePath);
+	if (!cache->Reserve(hash)) return cache->Get(hash).Duplicate<ShaderProgram>(*cache);
+
+	/* Create a new shader program and store it in the cache. */
+	ShaderProgram *result = new ShaderProgram();
+	result->SetHash(hash);
+	cache->Store(result);
+
+	/* Load the shader and return the program. */
+	loader->PopulateComputepass(*result, mutablePath);
+	return *result;
+}
+
 Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const PumTexture & texture)
 {
 	return FetchTexture2D(texture.Path.toWide(), texture.GetSamplerCreateInfo(), texture.IsSRGB);
@@ -316,8 +336,15 @@ Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer
 void Pu::AssetFetcher::Release(Renderpass & renderpass)
 {
 	/* Make sure to release the subpasses as well. */
-	for (const Subpass &subpass : renderpass.subpasses)
+	for (Subpass &subpass : renderpass.subpasses)
 	{
+		/* 
+		The shader program will be marked as loaded via the loader, 
+		but it's not in the cache because the renderpass owns it.
+		Therefor we just derefernce this program outselves.
+		*/
+		--subpass.refCnt;
+
 		for (Shader *shader : subpass.GetShaders())
 		{
 			cache->Release(*shader);
@@ -325,6 +352,17 @@ void Pu::AssetFetcher::Release(Renderpass & renderpass)
 	}
 
 	cache->Release(renderpass);
+}
+
+void Pu::AssetFetcher::Release(ShaderProgram & program)
+{
+	/* Make sure we release the underlying shaders. */
+	for (Shader *shader : program.GetShaders())
+	{
+		cache->Release(*shader);
+	}
+
+	cache->Release(program);
 }
 
 void Pu::AssetFetcher::Release(Texture & texture)

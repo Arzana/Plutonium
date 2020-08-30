@@ -34,8 +34,10 @@ namespace Pu
 			return scheduler;
 		}
 
-		/* Loads the renderpass with the specified subpasses and finalizes the graphics pipeline. */
+		/* Loads the renderpass with the specified subpasses and finalizes the renderpass. */
 		void PopulateRenderpass(_In_ Renderpass &renderpass, _In_ const vector<vector<wstring>> &shaders);
+		/* Loads the shader program with the specified compute shader. */
+		void PopulateComputepass(_In_ ShaderProgram &program, _In_ const wstring &shader);
 		/* Loads and stages a texture from a specific path. */
 		void InitializeTexture(_In_ Texture &texture, _In_ const wstring &path, _In_ const ImageInformation &info);
 		/* Loads and stages a texture from 6 individual cube map image paths. */

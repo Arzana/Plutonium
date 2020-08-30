@@ -23,6 +23,8 @@ namespace Pu
 
 		/* Fetches the desired renderpass or replaces an already existing one. */
 		_Check_return_ Renderpass& FetchRenderpass(_In_ Renderpass *old, _In_ const vector<vector<wstring>> &shaders);
+		/* Fetches the desired compute program. */
+		_Check_return_ ShaderProgram& FetchComputepass(_In_ const wstring &shader);
 		/* Fetches the desired 2D texture with the correct sampler and color space. */
 		_Check_return_ Texture2D& FetchTexture2D(_In_ const PumTexture &texture);
 		/* Fetches the desired 2D texture. */
@@ -51,6 +53,8 @@ namespace Pu
 
 		/* Releases the renderpass. */
 		void Release(_In_ Renderpass &renderpass);
+		/* Releases the shader program. */
+		void Release(_In_ ShaderProgram &program);
 		/* Releases the texture. */
 		void Release(_In_ Texture &texture);
 		/* Releases the sampler. */
