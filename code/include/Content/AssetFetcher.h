@@ -82,6 +82,12 @@ namespace Pu
 			return *loader;
 		}
 
+		/* Visualizes the assets currently active through this loader. */
+		inline void Visualize(void) const
+		{
+			cache->Visualize();
+		}
+
 	private:
 		AssetLoader *loader;
 		AssetCache *cache;

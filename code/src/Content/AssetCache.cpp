@@ -1,6 +1,7 @@
 #include "Content/AssetCache.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Threading/PuThread.h"
+#include <imgui/include/imgui.h>
 
 Pu::AssetCache::AssetCache(AssetCache && value)
 {
@@ -42,8 +43,8 @@ size_t Pu::AssetCache::RngHash(void)
 	size_t result;
 	std::hash<string> hasher;
 
-	/* 
-	Just create random 64-length string hashes until we find one this isn't used yet. 
+	/*
+	Just create random 64-length string hashes until we find one this isn't used yet.
 	By either the hash or the instance hash.
 	*/
 	do
@@ -188,4 +189,45 @@ void Pu::AssetCache::Update(Asset * asset, size_t newHash)
 	/* Update the hash safely. */
 	asset->SetHash(newHash);
 	lock.unlock();
+}
+
+void Pu::AssetCache::Visualize(void) const
+{
+	if constexpr (ImGuiAvailable)
+	{
+		if (ImGui::Begin("Assets"))
+		{
+			const ImVec4 clr = Color::Astronaut().ToVector4();
+
+			lock.lock();
+			ImGui::Text("Total Assets %zu", assets.size());
+
+			ImGui::Columns(3);
+			ImGui::SetColumnWidth(-1, 100.0f);
+			ImGui::TextColored(clr, "Hash");
+			for (const Asset *asset : assets)
+			{
+				ImGui::Text("0x%X", asset->hash);
+			}
+
+			ImGui::NextColumn();
+			ImGui::SetColumnWidth(-1, 300.0f);
+			ImGui::TextColored(clr, "Name");
+			for (const Asset *asset : assets)
+			{
+				ImGui::Text("%ls", asset->identifier.c_str());
+			}
+
+			ImGui::NextColumn();
+			ImGui::SetColumnWidth(-1, 100.0f);
+			ImGui::TextColored(clr, "References");
+			for (const Asset *asset : assets)
+			{
+				ImGui::Text("%d", asset->refCnt);
+			}
+
+			lock.unlock();
+			ImGui::End();
+		}
+	}
 }

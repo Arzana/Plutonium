@@ -17,7 +17,7 @@ const NPC_t npc_type = NPC_t::Box;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false),
-	desiredFormat(nullptr), vsynchMode(-1), updateRenderer(false)
+	desiredFormat(nullptr), vsynchMode(-1), updateRenderer(false), showAssets(false)
 {
 	GetInput().AnyKeyDown.Add(*this, &TestGame::OnAnyKeyDown);
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
@@ -174,6 +174,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
 			ImGui::MenuItem("Physics", nullptr, &showPhysics);
 			ImGui::MenuItem("Camera", nullptr, &showCamOpt);
+			ImGui::MenuItem("Assets", nullptr, &showAssets);
 
 			ImGui::EndMenu();
 		}
@@ -236,6 +237,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 #endif
 
 	if (showProfiler) Profiler::Visualize();
+	if (showAssets) GetContent().Visualize();
 }
 
 void TestGame::SpawnNPC(void)

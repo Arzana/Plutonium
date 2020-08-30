@@ -33,6 +33,8 @@ namespace Pu
 		void Store(_In_ Asset *asset);
 		/* Updates the hash of a reserved asset in tha cache. */
 		void Update(_In_ Asset *asset, _In_ size_t newHash);
+		/* Visualizes the assets currently active in this cache store. */
+		void Visualize(void) const;
 
 	private:
 		mutable std::mutex lock;

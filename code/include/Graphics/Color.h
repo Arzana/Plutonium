@@ -116,6 +116,13 @@ namespace Pu
 			return result;
 		}
 
+		/* Defines the default Dear ImGui blue. */
+		_Check_return_ static inline Color Astronaut(void)
+		{
+			static Color result((byte)0x29, 0x4A, 0x7A);
+			return result;
+		}
+
 		/* Defines a black opaque color. */
 		_Check_return_ static inline Color Black(void)
 		{
