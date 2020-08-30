@@ -2,7 +2,8 @@
 
 Pu::Pipeline::Pipeline(Pipeline && value)
 	: Hndl(value.Hndl), LayoutHndl(value.LayoutHndl), Device(value.Device),
-	specInfos(std::move(value.specInfos)), shaderStages(std::move(value.shaderStages))
+	specInfos(std::move(value.specInfos)), shaderStages(std::move(value.shaderStages)),
+	CreateFlags(value.CreateFlags)
 {
 	value.Hndl = nullptr;
 	value.LayoutHndl = nullptr;
@@ -17,6 +18,7 @@ Pu::Pipeline & Pu::Pipeline::operator=(Pipeline && other)
 		Hndl = other.Hndl;
 		LayoutHndl = other.LayoutHndl;
 		Device = other.Device;
+		CreateFlags = other.CreateFlags;
 		specInfos = std::move(other.specInfos);
 		shaderStages = std::move(other.shaderStages);
 
@@ -39,13 +41,13 @@ void Pu::Pipeline::SetSpecializationData(uint32 shader, const void * data, size_
 	specInfo.Data = data;
 }
 
-Pu::Pipeline::Pipeline(LogicalDevice & device, const Subpass & subpass)
-	: Device(&device)
+Pu::Pipeline::Pipeline(LogicalDevice & device, const ShaderProgram & program)
+	: Device(&device), CreateFlags(PipelineCreateFlags::None)
 {
 	/* Set the shader stage information. */
 	size_t bufferCnt = 0;
-	shaderStages.reserve(subpass.GetShaders().size());
-	for (const Shader *shader : subpass.GetShaders())
+	shaderStages.reserve(program.shaders.size());
+	for (const Shader *shader : program.shaders)
 	{
 		bufferCnt += shader->specializationConstants.size() > 0;
 		shaderStages.emplace_back(shader->info);
@@ -55,15 +57,15 @@ Pu::Pipeline::Pipeline(LogicalDevice & device, const Subpass & subpass)
 	specInfos.resize(bufferCnt);
 	for (size_t i = 0, j = 0; i < shaderStages.size(); i++)
 	{
-		if (subpass.GetShaders()[i]->specializationConstants.empty()) continue;
+		if (program.shaders[i]->specializationConstants.empty()) continue;
 		shaderStages[i].SpecializationInfo = specInfos.data() + j++;
 	}
 
 	/* Create the pipeline layout. */
-	CreatePipelineLayout(subpass);
+	CreatePipelineLayout(program);
 }
 
-void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
+void Pu::Pipeline::InitializeSpecializationConstants(const ShaderProgram & program)
 {
 	if (specInfos.empty()) return;
 
@@ -76,7 +78,7 @@ void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
 		{
 			if ((stageInfo.SpecializationInfo->Data != nullptr) ^ (stageInfo.SpecializationInfo->DataSize != 0))
 			{
-				Log::Error("Specialization constant data for shader %ls was not initialized properly!", subpass[idx].GetName().c_str());
+				Log::Error("Specialization constant data for shader %ls was not initialized properly!", program.shaders[idx]->GetName().c_str());
 			}
 		}
 
@@ -88,10 +90,10 @@ void Pu::Pipeline::InitializeSpecializationConstants(const Subpass & subpass)
 	DestroyBuffers();
 
 	/* Process the specialization constants. */
-	for (size_t i = 0, j = 0, k = 0; i < subpass.GetShaders().size(); i++, k = 0)
+	for (size_t i = 0, j = 0, k = 0; i < program.shaders.size(); i++, k = 0)
 	{
 		/* Skip any shader that doesn't have any specialization constants. */
-		const Shader &shader = subpass[i];
+		const Shader &shader = *program.shaders[i];
 		if (shader.specializationConstants.empty()) continue;
 
 		/* Just don't add a map entry for specialization constants left default. */
@@ -132,11 +134,11 @@ void Pu::Pipeline::Destroy(void)
 	if (Hndl) Device->vkDestroyPipeline(Device->hndl, Hndl, nullptr);
 }
 
-void Pu::Pipeline::CreatePipelineLayout(const Subpass & subpass)
+void Pu::Pipeline::CreatePipelineLayout(const ShaderProgram & program)
 {
 	/* Scan the subpass for push constant ranges. */
 	vector<PushConstantRange> pushRanges;
-	for (const PushConstant &pushConstant : subpass.pushConstants)
+	for (const PushConstant &pushConstant : program.pushConstants)
 	{
 		/* Add the size of the push constant if we find multiple in the same shader stage. */
 		bool add = true;
@@ -156,8 +158,8 @@ void Pu::Pipeline::CreatePipelineLayout(const Subpass & subpass)
 
 	/* Just get a list of the descriptor set Vulkan handles. */
 	vector<DescriptorSetHndl> hndls;
-	hndls.reserve(subpass.setLayouts.size());
-	for (const DescriptorSetLayout &layout : subpass.setLayouts) hndls.emplace_back(layout.hndl);
+	hndls.reserve(program.setLayouts.size());
+	for (const DescriptorSetLayout &layout : program.setLayouts) hndls.emplace_back(layout.hndl);
 
 	/* Create the pipeline layout. */
 	const PipelineLayoutCreateInfo createInfo{ hndls, pushRanges };

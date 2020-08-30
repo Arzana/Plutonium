@@ -41,7 +41,7 @@ namespace Pu
 		}
 
 	private:
-		friend class Subpass;
+		friend class ShaderProgram;
 		friend class GraphicsPipeline;
 
 		VertexInputAttributeDescription description;

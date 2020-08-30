@@ -27,8 +27,8 @@ namespace Pu
 		{
 			/* Allocate the displacement GPU image. */
 			LogicalDevice &device = result->fetcher->GetDevice();
-			result->displacement = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Storage | ImageUsageFlag::TransferDst });
-			result->view = new ImageView(*result->displacement, ImageViewType::Image2D, ImageAspectFlag::Color);
+			result->displacement = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlags::Pixel1Bit, ImageUsageFlags::Storage | ImageUsageFlags::TransferDst });
+			result->view = new ImageView(*result->displacement, ImageViewType::Image2D, ImageAspectFlags::Color);
 
 			/* Allocate a single staging buffer for both the displacement image and the mesh. */
 			const bool canPatch = RuntimeConfig::QueryBool(L"TessellationEnabled");
@@ -93,17 +93,17 @@ namespace Pu
 			}
 
 			stagingBuffer->EndMemoryTransfer();
-			const ImageSubresourceRange range = result->displacement->GetFullRange(ImageAspectFlag::Color);
+			const ImageSubresourceRange range = result->displacement->GetFullRange(ImageAspectFlags::Color);
 
 			/* Stage the mesh and displacement texture to the GPU. */
 			cmd.Initialize(device, device.GetGraphicsQueueFamily());
 			cmd.Begin();
-			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
-			cmd.MemoryBarrier(*result->displacement, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, range);
+			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, AccessFlags::TransferWrite);
+			cmd.MemoryBarrier(*result->displacement, PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, range);
 			cmd.CopyBuffer(*stagingBuffer, result->mesh.GetBuffer(), BufferCopy{ 0, 0, meshBufferSize });
 			cmd.CopyBuffer(*stagingBuffer, *result->displacement, BufferImageCopy{ meshBufferSize, result->displacement->GetExtent() });
-			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlag::Transfer, PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead);
-			cmd.MemoryBarrier(*result->displacement, PipelineStageFlag::Transfer, canPatch ? PipelineStageFlag::TessellationControlShader : PipelineStageFlag::VertexShader, ImageLayout::General, AccessFlag::ShaderRead, range);
+			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlags::Transfer, PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead);
+			cmd.MemoryBarrier(*result->displacement, PipelineStageFlags::Transfer, canPatch ? PipelineStageFlags::TessellationControlShader : PipelineStageFlags::VertexShader, ImageLayout::General, AccessFlags::ShaderRead, range);
 			cmd.End();
 			device.GetGraphicsQueue(0).Submit(cmd);
 

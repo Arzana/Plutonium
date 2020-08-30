@@ -32,13 +32,13 @@ namespace Pu
 
 
 	private:
-		friend class Subpass;
+		friend class ShaderProgram;
 		friend class Pipeline;
 
 		PushConstantRange range;
 		size_t maxRange;
 
 		PushConstant(const FieldInfo &data);
-		PushConstant(const PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
+		PushConstant(const PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlags stage);
 	};
 }

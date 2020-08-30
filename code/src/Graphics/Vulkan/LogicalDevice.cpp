@@ -207,10 +207,11 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCreateFramebuffer);
 	LOAD_DEVICE_PROC(vkDestroyFramebuffer);
 
-	/* Graphics pipeline related functions. */
+	/* Pipeline related functions. */
 	LOAD_DEVICE_PROC(vkCreatePipelineLayout);
 	LOAD_DEVICE_PROC(vkDestroyPipelineLayout);
 	LOAD_DEVICE_PROC(vkCreateGraphicsPipelines);
+	LOAD_DEVICE_PROC(vkCreateComputePipelines);
 	LOAD_DEVICE_PROC(vkDestroyPipeline);
 
 	/* Fence related functions. */

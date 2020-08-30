@@ -210,8 +210,8 @@ const Pu::PhysicalDevice & Pu::Application::ChoosePhysicalDevice(void)
 
 				for (const QueueFamilyProperties &family : physicalDevice.GetQueueFamilies())
 				{
-					if ((family.Flags & QueueFlag::TypeMask) == QueueFlag::Transfer) ++score;
-					else if ((family.Flags & QueueFlag::TypeMask) == QueueFlag::Compute) ++score;
+					if ((family.Flags & QueueFlags::TypeMask) == QueueFlags::Transfer) ++score;
+					else if ((family.Flags & QueueFlags::TypeMask) == QueueFlags::Compute) ++score;
 				}
 
 				/* Set new highscore and update choosen physical device if needed. */

@@ -37,7 +37,7 @@ namespace Pu
 	using PFN_vkEndCommandBuffer = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
 	using PFN_vkDeviceWaitIdle = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device);
 	using PFN_vkCmdClearColorImage = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl image, _In_ ImageLayout imageLayout, _In_ ClearColorValue color, uint32 rangeCount, const ImageSubresourceRange *ranges);
-	using PFN_vkCmdPipelineBarrier = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ DependencyFlag dependencyFlags, _In_ uint32 memoryBarrierCount, _In_opt_ const MemoryBarrier *memoryBarriers, _In_ uint32 bufferMemoryBarrierCount, _In_opt_ const BufferMemoryBarrier *bufferMemoryBarriers, _In_ uint32 imageMemoryBarrierCount, _In_opt_ const ImageMemoryBarrier *imageMemoryBarriers);
+	using PFN_vkCmdPipelineBarrier = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlags srcStageMask, _In_ PipelineStageFlags dstStageMask, _In_ DependencyFlags dependencyFlags, _In_ uint32 memoryBarrierCount, _In_opt_ const MemoryBarrier *memoryBarriers, _In_ uint32 bufferMemoryBarrierCount, _In_opt_ const BufferMemoryBarrier *bufferMemoryBarriers, _In_ uint32 imageMemoryBarrierCount, _In_opt_ const ImageMemoryBarrier *imageMemoryBarriers);
 	using PFN_vkCreateRenderPass = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const RenderPassCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ RenderPassHndl *renderPass);
 	using PFN_vkDestroyRenderPass = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ RenderPassHndl renderPass, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCreateShaderModule = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const ShaderModuleCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ ShaderModuleHndl *shaderModule);
@@ -49,6 +49,7 @@ namespace Pu
 	using PFN_vkCreatePipelineLayout = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineLayoutCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineLayoutHndl *pipelineLayout);
 	using PFN_vkDestroyPipelineLayout = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineLayoutHndl pipelineLayout, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCreateGraphicsPipelines = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_opt_ PipelineCacheHndl pipelineCache, _In_ uint32 createInfoCount, _In_ const GraphicsPipelineCreateInfo *createInfos, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineHndl *pipelines);
+	using PFN_vkCreateComputePipelines = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineCacheHndl pipelineCache, _In_ uint32 createInfoCount, _In_ const ComputePipelineCreateInfo *createInfos, _In_opt_ const AllocationCallbacks *allocator, _Out_ PipelineHndl *pipelines);
 	using PFN_vkDestroyPipeline = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ PipelineHndl pipeline, _In_opt_ const AllocationCallbacks *allocator);
 	using PFN_vkCmdBeginRenderPass = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ const RenderPassBeginInfo *renderPassBegin, _In_ SubpassContents contents);
 	using PFN_vkCmdBindPipeline = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineBindPoint pipelineBindPoint, _In_ PipelineHndl pipeline);
@@ -91,7 +92,7 @@ namespace Pu
 	using PFN_vkCmdBindIndexBuffer = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ BufferHndl buffer, _In_ DeviceSize offset, _In_ IndexType indexType);
 	using PFN_vkCmdDrawIndexed = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 indexCount, _In_ uint32 instanceCount, _In_ uint32 firstIndex, _In_ int32 vertexOffset, _In_ uint32 firstInstance);
 	using PFN_vkGetPhysicalDeviceFormatProperties = void(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ Format format, _Out_ FormatProperties *formatProperties);
-	using PFN_vkGetPhysicalDeviceImageFormatProperties = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ Format format, _In_ ImageType type, _In_ ImageTiling tilling, _In_ ImageUsageFlag usage, _In_ ImageCreateFlag flags, _Out_ ImageFormatProperties *imageFormatProperties);
+	using PFN_vkGetPhysicalDeviceImageFormatProperties = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ PhysicalDeviceHndl physicalDevice, _In_ Format format, _In_ ImageType type, _In_ ImageTiling tilling, _In_ ImageUsageFlags usage, _In_ ImageCreateFlags flags, _Out_ ImageFormatProperties *imageFormatProperties);
 	using PFN_vkCmdCopyImageToBuffer = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl srcImage, _In_ ImageLayout srcImageLayout, _In_ BufferHndl dstBuffer, _In_ uint32 regionCount, _In_ const BufferImageCopy *regions);
 	using PFN_vkSetDebugUtilsObjectNameEXT = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const DebugUtilsObjectNameInfo *nameInfo);
 	using PFN_vkQueueBeginDebugUtilsLabelEXT = void(VKAPI_PTR)(_In_ QueueHndl queue, _In_ const DebugUtilsLabel *labelInfo);
@@ -100,15 +101,15 @@ namespace Pu
 	using PFN_vkCmdEndDebugUtilsLabelEXT = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer);
 	using PFN_vkCreateQueryPool = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const QueryPoolCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ QueryPoolHndl *queryPool);
 	using PFN_vkDestroyQueryPool = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_opt_ const AllocationCallbacks *allocator);
-	using PFN_vkGetQueryPoolResults = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ size_t dataSize, _Out_ void *data, _In_ DeviceSize stride, _In_ QueryResultFlag flags);
-	using PFN_vkCmdWriteTimestamp = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlag pipelineStage, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
+	using PFN_vkGetQueryPoolResults = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ QueryPoolHndl queryPool, _In_ uint32 firstQuery, _In_ uint32 queryCount, _In_ size_t dataSize, _Out_ void *data, _In_ DeviceSize stride, _In_ QueryResultFlags flags);
+	using PFN_vkCmdWriteTimestamp = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineStageFlags pipelineStage, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
 	using PFN_vkCmdSetViewport = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 firstViewport, _In_ uint32 viewportCount, const Viewport *viewports);
 	using PFN_vkCmdSetScissor = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 firstScissor, _In_ uint32 scissorCount, _In_ const Rect2D *scissors);
-	using PFN_vkCmdPushConstants = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineLayoutHndl layout, _In_ ShaderStageFlag stageFlags, _In_ uint32 offset, _In_ uint32 size, _In_ const void *values);
+	using PFN_vkCmdPushConstants = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ PipelineLayoutHndl layout, _In_ ShaderStageFlags stageFlags, _In_ uint32 offset, _In_ uint32 size, _In_ const void *values);
 	using PFN_vkCmdSetLineWidth = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ float lineWidth);
 	using PFN_vkCmdNextSubpass = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ SubpassContents contents);
 	using PFN_vkQueueWaitIdle = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ QueueHndl queue);
-	using PFN_vkCmdBeginQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query, _In_ QueryControlFlag flags);
+	using PFN_vkCmdBeginQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query, _In_ QueryControlFlags flags);
 	using PFN_vkCmdEndQuery = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ QueryPoolHndl queryPool, _In_ uint32 query);
 	using PFN_vkGetDeviceMemoryCommitment = void(VKAPI_PTR)(_In_ DeviceHndl device, _In_ DeviceMemoryHndl memory, _Out_ DeviceSize *size);
 	using PFN_vkCmdBlitImage = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ ImageHndl srcImage, _In_ ImageLayout srcImageLayout, _In_ ImageHndl dstImage, _In_ ImageLayout dstImageLayout, _In_ uint32 regionCount, _In_ const ImageBlit *regions, _In_ Filter filter);;

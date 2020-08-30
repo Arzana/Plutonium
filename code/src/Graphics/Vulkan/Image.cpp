@@ -3,7 +3,7 @@
 
 Pu::Image::Image(LogicalDevice & device, const ImageCreateInfo & createInfo)
 	: Asset(true), parent(&device), type(createInfo.ImageType), format(createInfo.Format), dimensions(createInfo.Extent),
-	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlag::None),
+	mipmaps(createInfo.MipLevels), usage(createInfo.Usage), layout(createInfo.InitialLayout), access(AccessFlags::None),
 	layers(createInfo.ArrayLayers)
 {
 	Create(createInfo);
@@ -70,7 +70,7 @@ Pu::DeviceSize Pu::Image::GetLazyMemory(void) const
 	else return 0;
 }
 
-Pu::ImageSubresourceRange Pu::Image::GetFullRange(ImageAspectFlag aspect) const
+Pu::ImageSubresourceRange Pu::Image::GetFullRange(ImageAspectFlags aspect) const
 {
 	ImageSubresourceRange result(aspect);
 	result.LevelCount = mipmaps;
@@ -85,7 +85,7 @@ Pu::Asset & Pu::Image::Duplicate(AssetCache &)
 }
 
 /* We don't allow this image to be copied as it's memory is handled by another system (like the OS). */
-Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access)
+Pu::Image::Image(LogicalDevice & device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlags usage, ImageLayout layout, AccessFlags access)
 	: Asset(false, std::hash<ImageHndl>{}(hndl)), parent(&device), imageHndl(hndl), layers(1),
 	memoryHndl(nullptr), type(type), format(format), dimensions(extent), mipmaps(mipmaps), usage(usage), layout(layout), access(access)
 {
@@ -97,8 +97,8 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 {
 	/* Try to throw a better error than Vulkan. */
 	CanCreate(createInfo);
-	const bool lazy = _CrtEnumCheckFlag(createInfo.Usage, ImageUsageFlag::TransientAttachment);
-	MemoryPropertyFlag properties = MemoryPropertyFlag::None;
+	const bool lazy = _CrtEnumCheckFlag(createInfo.Usage, ImageUsageFlags::TransientAttachment);
+	MemoryPropertyFlags memProps = MemoryPropertyFlags::None;
 
 	/* Create image object. */
 	VK_VALIDATE(parent->vkCreateImage(parent->hndl, &createInfo, nullptr, &imageHndl), PFN_vkCreateImage);
@@ -110,7 +110,7 @@ void Pu::Image::Create(const ImageCreateInfo & createInfo)
 	*/
 	uint32 typeIdx;
 	const MemoryRequirements requirements = GetMemoryRequirements();
-	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, properties, lazy ? MemoryPropertyFlag::LazilyAllocated : MemoryPropertyFlag::None, typeIdx))
+	if (parent->parent->GetBestMemoryType(requirements.MemoryTypeBits, memProps, lazy ? MemoryPropertyFlags::LazilyAllocated : MemoryPropertyFlags::None, typeIdx))
 	{
 		/* Allocate the image's data. */
 		const MemoryAllocateInfo allocateInfo(requirements.Size, typeIdx);
@@ -129,7 +129,7 @@ void Pu::Image::CanCreate(const ImageCreateInfo & info)
 	string error = "Unable to create image";
 
 	const FormatProperties formatProps = parent->parent->GetFormatProperties(info.Format);
-	if (!_CrtEnumCheckFlag(info.Tiling == ImageTiling::Optimal ? formatProps.OptimalTilingFeatures : formatProps.LinearTilingFeatures, FormatFeatureFlag::SampledImage))
+	if (!_CrtEnumCheckFlag(info.Tiling == ImageTiling::Optimal ? formatProps.OptimalTilingFeatures : formatProps.LinearTilingFeatures, FormatFeatureFlags::SampledImage))
 	{
 		log = true;
 		error += ", cannot create sampled image with '";

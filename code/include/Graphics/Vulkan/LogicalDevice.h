@@ -96,6 +96,7 @@ namespace Pu
 		friend class ImageView;
 		friend class Framebuffer;
 		friend class GraphicsPipeline;
+		friend class ComputePipeline;
 		friend class Fence;
 		friend class Buffer;
 		friend class Image;
@@ -167,6 +168,7 @@ namespace Pu
 		PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
 		PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
 		PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+		PFN_vkCreateComputePipelines vkCreateComputePipelines;
 		PFN_vkDestroyPipeline vkDestroyPipeline;
 		PFN_vkCreateFence vkCreateFence;
 		PFN_vkDestroyFence vkDestroyFence;

@@ -106,9 +106,9 @@ Pu::Texture2D & Pu::AssetFetcher::FetchTexture2D(const wstring & path, const Sam
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height));
-		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		const ImageUsageFlags usage = ImageUsageFlags::TransferSrc | ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled;
 
-		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
+		const ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, 1, SampleCountFlags::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
 		image->SetDebugName(mutablePath.toUTF8().fileNameWithoutExtension());
 		image->SetHash(hash);
@@ -258,9 +258,9 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height);
-		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		const ImageUsageFlags usage = ImageUsageFlags::TransferSrc | ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled;
 
-		const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlag::Pixel1Bit, usage);
+		const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlags::Pixel1Bit, usage);
 		Image *image = new Image(loader->GetDevice(), createInfo);
 		image->SetDebugName(id);
 		image->SetHash(hash);
@@ -418,7 +418,7 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 	{
 		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
 		mipMapLevels = min(mipMapLevels, Image::GetMaxMipLayers(info.Width, info.Height));
-		const ImageUsageFlag usage = ImageUsageFlag::TransferSrc | ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled;
+		const ImageUsageFlags usage = ImageUsageFlags::TransferSrc | ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled;
 		const uint32 layers = static_cast<uint32>(paths.size());
 
 		/* Do an expensive check on debug to see if all image extends are the same. */
@@ -433,8 +433,8 @@ Pu::Texture2DArray & Pu::AssetFetcher::FetchMultiTexture(const string & name, co
 		}
 #endif
 
-		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, layers, SampleCountFlag::Pixel1Bit, usage);
-		if (view == ImageViewType::ImageCube) createInfo.Flags = ImageCreateFlag::CubeCompatible;
+		ImageCreateInfo createInfo(ImageType::Image2D, info.GetImageFormat(sRGB), Extent3D(info.Width, info.Height, 1), mipMapLevels, layers, SampleCountFlags::Pixel1Bit, usage);
+		if (view == ImageViewType::ImageCube) createInfo.Flags = ImageCreateFlags::CubeCompatible;
 		Image *image = new Image(loader->GetDevice(), createInfo);
 		image->SetDebugName(name.toUTF8());
 		image->SetHash(hash);

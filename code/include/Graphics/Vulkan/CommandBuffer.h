@@ -100,11 +100,11 @@ namespace Pu
 		/* Appends a single image region copy to the command buffer, this copy command potentially performs a format conversion. */
 		void BlitImage(_In_ const Image &source, _In_ ImageLayout srcLayout, _In_ Image &destination, _In_ ImageLayout dstLayout, _In_ const ImageBlit &region, _In_ Filter filter);
 		/* Appends a pipeline buffer memory barrier command to the command buffer. */
-		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None);
+		void MemoryBarrier(_In_ const Buffer &buffer, _In_ PipelineStageFlags srcStageMask, _In_ PipelineStageFlags dstStageMask, _In_ AccessFlags dstAccess, _In_ DependencyFlags dependencyFlags = DependencyFlags::None);
 		/* Appends a pipeline image memory barrier command to the command buffer. */
-		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
+		void MemoryBarrier(_In_ const Image &image, _In_ PipelineStageFlags srcStageMask, _In_ PipelineStageFlags dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlags dstAccess, _In_ ImageSubresourceRange range, _In_ DependencyFlags dependencyFlags = DependencyFlags::None, _In_ uint32 queueFamilyIndex = QueueFamilyIgnored);
 		/* Appends a pipeline image memory barrier command to the command buffer for multiple images. */
-		void MemoryBarrier(_In_ const vector<std::pair<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlag srcStageMask, _In_ PipelineStageFlag dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlag dstAccess, _In_ DependencyFlag dependencyFlags = DependencyFlag::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
+		void MemoryBarrier(_In_ const vector<std::pair<const Image*, ImageSubresourceRange>> &images, _In_ PipelineStageFlags srcStageMask, _In_ PipelineStageFlags dstStageMask, _In_ ImageLayout newLayout, _In_ AccessFlags dstAccess, _In_ DependencyFlags dependencyFlags = DependencyFlags::None, _In_ uint32 queueFamiltyIndex = QueueFamilyIgnored);
 		/* Appends an image color clear command to the command buffer. */
 		void ClearImage(_In_ Image &image, _In_ Color color);
 		/* Appends a render pass begin command for the entire framebuffer to the command buffer. */
@@ -118,7 +118,7 @@ namespace Pu
 		/* Appends a index buffer bind command to the command buffer. */
 		void BindIndexBuffer(_In_ IndexType type, _In_ const Buffer &buffer, _In_ DeviceSize offset);
 		/* Appends a update for the push constrant to the command buffer. */
-		void PushConstants(_In_ const Pipeline &pipeline, _In_ ShaderStageFlag stage, _In_ uint32 offset, _In_ size_t size, _In_ const void *constants);
+		void PushConstants(_In_ const Pipeline &pipeline, _In_ ShaderStageFlags stage, _In_ uint32 offset, _In_ size_t size, _In_ const void *constants);
 		/* Appends a graphics descriptor bind command to the command buffer. */
 		void BindGraphicsDescriptor(_In_ const Pipeline &pipeline, _In_ const DescriptorSet &descriptor);
 		/* Appends multiple graphics descriptor bind commands to the command buffer. */
@@ -136,9 +136,9 @@ namespace Pu
 		/* Ends the last added label in the command buffer (only active on debug). */
 		void EndLabel(void);
 		/* Writes a timestamp at a specific point in the pipeline to the specific query. */
-		void WriteTimestamp(_In_ PipelineStageFlag stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
+		void WriteTimestamp(_In_ PipelineStageFlags stage, _In_ QueryPool &pool, _In_ uint32 queryIndex);
 		/* Starts an occlusion or pipeline statistics query. */
-		void BeginQuery(_In_ QueryPool &pool, _In_ uint32 query, _In_opt_ QueryControlFlag flags = QueryControlFlag::None);
+		void BeginQuery(_In_ QueryPool &pool, _In_ uint32 query, _In_opt_ QueryControlFlags flags = QueryControlFlags::None);
 		/* Ends an occlusion or pipline statistics query. */
 		void EndQuery(_In_ QueryPool &pool, _In_ uint32 query);
 		/* Resets all queries in a query pool. */
@@ -156,7 +156,7 @@ namespace Pu
 
 	protected:
 		/* Defines how this command buffer will be used. */
-		CommandBufferUsageFlag Usage;
+		CommandBufferUsageFlags Usage;
 
 	private:
 		friend class CommandPool;

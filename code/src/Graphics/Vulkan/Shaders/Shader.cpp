@@ -17,7 +17,7 @@ Pu::Shader::Shader(LogicalDevice & device, const wstring & path)
 	Load(path, false);
 }
 
-Pu::Shader::Shader(LogicalDevice & device, const void *src, size_t size, ShaderStageFlag stage)
+Pu::Shader::Shader(LogicalDevice & device, const void *src, size_t size, ShaderStageFlags stage)
 	: Asset(true), parent(&device)
 {
 	/* Create a new reader and immediately load the shader. */
@@ -551,12 +551,12 @@ void Pu::Shader::HandleSpecConstant(SPIRVReader & reader)
 
 void Pu::Shader::SetInfo(const wstring & ext)
 {
-	if (ext == L"VERT") info.Stage = ShaderStageFlag::Vertex;
-	else if (ext == L"TESC") info.Stage = ShaderStageFlag::TessellationControl;
-	else if (ext == L"TESE") info.Stage = ShaderStageFlag::TessellationEvaluation;
-	else if (ext == L"GEOM") info.Stage = ShaderStageFlag::Geometry;
-	else if (ext == L"FRAG") info.Stage = ShaderStageFlag::Fragment;
-	else if (ext == L"COMP") info.Stage = ShaderStageFlag::Compute;
+	if (ext == L"VERT") info.Stage = ShaderStageFlags::Vertex;
+	else if (ext == L"TESC") info.Stage = ShaderStageFlags::TessellationControl;
+	else if (ext == L"TESE") info.Stage = ShaderStageFlags::TessellationEvaluation;
+	else if (ext == L"GEOM") info.Stage = ShaderStageFlags::Geometry;
+	else if (ext == L"FRAG") info.Stage = ShaderStageFlags::Fragment;
+	else if (ext == L"COMP") info.Stage = ShaderStageFlags::Compute;
 }
 
 void Pu::Shader::Destroy(void)

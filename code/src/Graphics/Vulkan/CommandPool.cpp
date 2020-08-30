@@ -1,7 +1,7 @@
 #include "Graphics/Vulkan/CommandPool.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex, CommandPoolCreateFlag flags)
+Pu::CommandPool::CommandPool(LogicalDevice & device, uint32 queueFamilyIndex, CommandPoolCreateFlags flags)
 	: parent(&device)
 {
 	const CommandPoolCreateInfo createInfo(queueFamilyIndex, flags);

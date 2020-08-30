@@ -10,7 +10,7 @@ Pu::Descriptor::Descriptor(const FieldInfo & data)
 	: Field(data), physicalDevice(nullptr), set(0)
 {}
 
-Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo & data, ShaderStageFlag stage)
+Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo & data, ShaderStageFlags stage)
 	: Field(data), physicalDevice(&physicalDevice), size(0),
 	set(data.Decorations.Numbers.at(spv::Decoration::DescriptorSet))
 {

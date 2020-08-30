@@ -3,7 +3,7 @@
 Pu::Fence::Fence(LogicalDevice & device, bool signaled)
 	: parent(&device)
 {
-	const FenceCreateInfo createInfo(signaled ? FenceCreateFlag::Signaled : FenceCreateFlag::None);
+	const FenceCreateInfo createInfo(signaled ? FenceCreateFlags::Signaled : FenceCreateFlags::None);
 	VK_VALIDATE(parent->vkCreateFence(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateFence);
 }
 

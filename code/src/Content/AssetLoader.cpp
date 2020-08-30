@@ -96,7 +96,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 
 				/*  We start by staging the image from disk to the firt mip level (0). */
 				cmdBuffer.Begin();
-				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, ImageSubresourceRange{ ImageAspectFlag::Color });
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlags::TopOfPipe, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, ImageSubresourceRange{ ImageAspectFlags::Color });
 				cmdBuffer.CopyEntireBuffer(child->GetStagingBuffer(), *result.Image);
 				cmdBuffer.End();
 
@@ -172,9 +172,9 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 
 				/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 				cmdBuffer.Begin();
-				ImageSubresourceRange range{ ImageAspectFlag::Color };
+				ImageSubresourceRange range{ ImageAspectFlags::Color };
 				range.LayerCount = static_cast<uint32>(children.size());
-				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, range);
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlags::TopOfPipe, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, range);
 
 				/* Copy actual data and end the buffer. */
 				uint32 face = 0;
@@ -245,7 +245,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 			/*  Begin the command buffer and add the memory barrier to ensure a good layout. */
 			cmdBuffer.Begin();
-			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, result.GetFullRange());
+			cmdBuffer.MemoryBarrier(result, PipelineStageFlags::TopOfPipe, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, result.GetFullRange());
 
 			/* Copy actual data and end the buffer. */
 			cmdBuffer.CopyEntireBuffer(*stagingBuffer, *result.Image);
@@ -303,35 +303,35 @@ void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
 			for (uint32 arrayLayer = 0; arrayLayer < result.GetArrayLayers(); arrayLayer++)
 			{
 				/* We need to override out default state after every layer except for the last, sow e just override at the start instead, because it doesn't matter for the first one. */
-				result.OverrideState(ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite);
+				result.OverrideState(ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite);
 
 				/* Make sure that the origional mip (level 0) is transitioned to a transfer source. */
-				ImageSubresourceRange srcRange{ ImageAspectFlag::Color };
+				ImageSubresourceRange srcRange{ ImageAspectFlags::Color };
 				srcRange.BaseArraylayer = arrayLayer;
-				cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, srcRange);
+				cmdBuffer.MemoryBarrier(result, PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::TransferSrcOptimal, AccessFlags::TransferRead, srcRange);
 
 				for (uint32 srcLevel = 0, dstLevel = 1; dstLevel < result.GetMipLevels(); srcLevel++, dstLevel++)
 				{
 					/* We have yet to access this mip level in the image so its layout is undefined. */
-					result.OverrideState(ImageLayout::Undefined, AccessFlag::None);
+					result.OverrideState(ImageLayout::Undefined, AccessFlags::None);
 
 					/* Transition the destination mip level to a transfer destination. */
-					ImageSubresourceRange dstRange{ ImageAspectFlag::Color };
+					ImageSubresourceRange dstRange{ ImageAspectFlags::Color };
 					dstRange.BaseArraylayer = arrayLayer;
 					dstRange.BaseMipLevel = dstLevel;
-					cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferDstOptimal, AccessFlag::TransferWrite, dstRange);
+					cmdBuffer.MemoryBarrier(result, PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, dstRange);
 
 					/* Blit the source mip level to the destination mip level, resizing the image by 50%. */
 					const ImageBlit blit{ arrayLayer, srcLevel, dstLevel, result.GetExtent().To2D() };
 					cmdBuffer.BlitImage(result, ImageLayout::TransferSrcOptimal, result, ImageLayout::TransferDstOptimal, blit, Filter::Linear);
 
 					/* Transition the current mip level to a transfer source so we can use it in our next rotation. */
-					cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, dstRange);
+					cmdBuffer.MemoryBarrier(result, PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::TransferSrcOptimal, AccessFlags::TransferRead, dstRange);
 				}
 			}
 
 			/* Transition the entire image from a transfer source to shader read only optimal so it can be used by the user. */
-			cmdBuffer.MemoryBarrier(result, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, result.GetFullRange(ImageAspectFlag::Color));
+			cmdBuffer.MemoryBarrier(result, PipelineStageFlags::Transfer, PipelineStageFlags::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlags::ShaderRead, result.GetFullRange(ImageAspectFlags::Color));
 
 			/* We need to wait for the queue to process our command before we can mark the image as done, image blitting also needs to be done on a graphics queue. */
 			cmdBuffer.End();
@@ -392,17 +392,17 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 			/* Create the result image. */
 			const Extent3D extent(static_cast<uint32>(imgSize.X), static_cast<uint32>(imgSize.Y), 1);
-			ImageCreateInfo info(ImageType::Image2D, Format::R8_UNORM, extent, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::TransferDst | ImageUsageFlag::Sampled);
+			ImageCreateInfo info(ImageType::Image2D, Format::R8_UNORM, extent, 1, 1, SampleCountFlags::Pixel1Bit, ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled);
 			result.atlasImg = new Image(parent.device, info);
 
 			/* Make sure the atlas has the correct layout. */
 			cmdBuffer.Begin();
 			cmdBuffer.MemoryBarrier(*result.atlasImg,
-				PipelineStageFlag::TopOfPipe,
-				PipelineStageFlag::Transfer,
+				PipelineStageFlags::TopOfPipe,
+				PipelineStageFlags::Transfer,
 				ImageLayout::TransferDstOptimal,
-				AccessFlag::TransferWrite,
-				result.atlasImg->GetFullRange(ImageAspectFlag::Color));
+				AccessFlags::TransferWrite,
+				result.atlasImg->GetFullRange(ImageAspectFlags::Color));
 
 			/* Copy actual data and end the buffer. */
 			cmdBuffer.CopyEntireBuffer(*buffer, *result.atlasImg);
@@ -463,7 +463,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 			result.nodes = std::move(data.Nodes);
 
 			/* Stage the vertex and index buffer to the GPU on the graphics queue. */
-			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"GPU Mesh");
+			parent.StageBuffer(*data.Buffer, result.meshes.GetBuffer(), PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead, L"GPU Mesh");
 			return Result::CustomWait();
 		}
 
@@ -613,7 +613,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 
 			/* Add the basic mesh to the model's list. */
 			result.meshes.Initialize(parent.GetDevice(), *src, vrtxSize, mesh);
-			parent.StageBuffer(*src, result.meshes.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"Procedural Mesh");
+			parent.StageBuffer(*src, result.meshes.GetBuffer(), PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead, L"Procedural Mesh");
 			return Result::CustomWait();
 		}
 
@@ -672,13 +672,13 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 	scheduler.Spawn(*task);
 }
 
-void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlag dstStage, AccessFlag access, const wstring & name)
+void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlags dstStage, AccessFlags access, const wstring & name)
 {
 	class StageTask
 		: public Task
 	{
 	public:
-		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlag dstStage, AccessFlag access, const wstring &name)
+		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlags dstStage, AccessFlags access, const wstring &name)
 			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name)
 		{}
 
@@ -693,7 +693,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 			/* We need to copy the entire staging buffer to the destination buffer and move the destination buffer to the correct access. */
 			cmdBuffer.Begin();
 			cmdBuffer.CopyEntireBuffer(*source, destination);
-			cmdBuffer.MemoryBarrier(destination, PipelineStageFlag::Transfer, dstStage, access);
+			cmdBuffer.MemoryBarrier(destination, PipelineStageFlags::Transfer, dstStage, access);
 			cmdBuffer.End();
 
 			/* The access might be graphics related, so perform this action on the graphics queue. */
@@ -725,8 +725,8 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 		StagingBuffer *source;
 		Buffer &destination;
 		SingleUseCommandBuffer cmdBuffer;
-		PipelineStageFlag dstStage;
-		AccessFlag access;
+		PipelineStageFlags dstStage;
+		AccessFlags access;
 		wstring name;
 
 #ifdef _DEBUG

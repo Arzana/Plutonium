@@ -35,7 +35,7 @@ static Pu::uint32 shaderCalls = 0;
 
 Pu::CommandBuffer::CommandBuffer(void)
 	: parent(nullptr), device(nullptr), hndl(nullptr), 
-	state(State::Invalid), submitFence(nullptr), Usage(CommandBufferUsageFlag::None)
+	state(State::Invalid), submitFence(nullptr), Usage(CommandBufferUsageFlags::None)
 {}
 
 Pu::CommandBuffer::CommandBuffer(CommandBuffer && value)
@@ -180,7 +180,7 @@ void Pu::CommandBuffer::BlitImage(const Image & source, ImageLayout srcLayout, I
 	device->vkCmdBlitImage(hndl, source.imageHndl, srcLayout, destination.imageHndl, dstLayout, 1, &region, filter);
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, AccessFlag dstAccess, DependencyFlag dependencyFlags)
+void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, AccessFlags dstAccess, DependencyFlags dependencyFlags)
 {
 	DbgCheckIfRecording("setup buffer pipeline barrier");
 	++barrierCalls;
@@ -197,7 +197,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Buffer & buffer, PipelineStageFlag s
 	buffer.srcAccess = dstAccess;
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, ImageSubresourceRange range, DependencyFlag dependencyFlags, uint32 queueFamilyIndex)
+void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, ImageLayout newLayout, AccessFlags dstAccess, ImageSubresourceRange range, DependencyFlags dependencyFlags, uint32 queueFamilyIndex)
 {
 	/* We can skip memory barriers that change no resources. */
 	if (image.layout == newLayout && image.access == dstAccess) return;
@@ -220,7 +220,7 @@ void Pu::CommandBuffer::MemoryBarrier(const Image & image, PipelineStageFlag src
 	image.layout = newLayout;
 }
 
-void Pu::CommandBuffer::MemoryBarrier(const vector<std::pair<const Image*, ImageSubresourceRange>>& images, PipelineStageFlag srcStageMask, PipelineStageFlag dstStageMask, ImageLayout newLayout, AccessFlag dstAccess, DependencyFlag dependencyFlags, uint32 queueFamiltyIndex)
+void Pu::CommandBuffer::MemoryBarrier(const vector<std::pair<const Image*, ImageSubresourceRange>>& images, PipelineStageFlags srcStageMask, PipelineStageFlags dstStageMask, ImageLayout newLayout, AccessFlags dstAccess, DependencyFlags dependencyFlags, uint32 queueFamiltyIndex)
 {
 	DbgCheckIfRecording("setup image pipeline barriers");
 	++barrierCalls;
@@ -258,7 +258,7 @@ void Pu::CommandBuffer::ClearImage(Image & image, Color color)
 {
 	DbgCheckIfRecording("clear image");
 
-	static const ImageSubresourceRange range(ImageAspectFlag::Color);
+	static const ImageSubresourceRange range(ImageAspectFlags::Color);
 	device->vkCmdClearColorImage(hndl, image.imageHndl, image.layout, color.ToClearColor(), 1, &range);
 }
 
@@ -297,7 +297,7 @@ void Pu::CommandBuffer::BindIndexBuffer(IndexType type, const Buffer & buffer, D
 	device->vkCmdBindIndexBuffer(hndl, buffer.bufferHndl, offset, type);
 }
 
-void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag stage, uint32 offset, size_t size, const void * constants)
+void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlags stage, uint32 offset, size_t size, const void * constants)
 {
 	DbgCheckIfRecording("push constants");
 	device->vkCmdPushConstants(hndl, pipeline.LayoutHndl, stage, offset, static_cast<uint32>(size), constants);
@@ -392,13 +392,13 @@ void Pu::CommandBuffer::EndLabel(void)
 #endif
 }
 
-void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlag stage, QueryPool & pool, uint32 queryIndex)
+void Pu::CommandBuffer::WriteTimestamp(PipelineStageFlags stage, QueryPool & pool, uint32 queryIndex)
 {
 	DbgCheckIfRecording("write timestamp");
 	device->vkCmdWriteTimestamp(hndl, stage, pool.hndl, queryIndex);
 }
 
-void Pu::CommandBuffer::BeginQuery(QueryPool & pool, uint32 query, QueryControlFlag flags)
+void Pu::CommandBuffer::BeginQuery(QueryPool & pool, uint32 query, QueryControlFlags flags)
 {
 	DbgCheckIfRecording("begin occlusion query");
 	device->vkCmdBeginQuery(hndl, pool.hndl, query, flags);
@@ -449,7 +449,7 @@ void Pu::CommandBuffer::SetLineWidth(float width)
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
-	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), Usage(CommandBufferUsageFlag::None)
+	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), Usage(CommandBufferUsageFlags::None)
 {
 	submitFence = new Fence(*device);
 }

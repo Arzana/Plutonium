@@ -214,7 +214,7 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		else if (!firstRun)
 		{
 			camFree->Update(dt * updateCam);
-			descPoolConst->Update(cmd, PipelineStageFlag::VertexShader);
+			descPoolConst->Update(cmd, PipelineStageFlags::VertexShader);
 			world->Render(*camFree, cmd);
 
 			if (showPhysics) world->Visualize(*dbgRenderer, camFree->GetPosition());

@@ -246,15 +246,15 @@ namespace Pu
 	struct FormatProperties
 	{
 		/* Specifies the features supported by images created with a tiling parameter of Linear. */
-		FormatFeatureFlag LinearTilingFeatures;
+		FormatFeatureFlags LinearTilingFeatures;
 		/* Specifies the features supported by images created with a tiling parameter of Optimal. */
-		FormatFeatureFlag OptimalTilingFeatures;
+		FormatFeatureFlags OptimalTilingFeatures;
 		/* Specifies the features supported by buffers. */
-		FormatFeatureFlag BufferFeatures;
+		FormatFeatureFlags BufferFeatures;
 
 		/* Initializes an empty instance of a format properties object. */
 		FormatProperties(void)
-			: LinearTilingFeatures(FormatFeatureFlag::None), OptimalTilingFeatures(FormatFeatureFlag::None), BufferFeatures(FormatFeatureFlag::None)
+			: LinearTilingFeatures(FormatFeatureFlags::None), OptimalTilingFeatures(FormatFeatureFlags::None), BufferFeatures(FormatFeatureFlags::None)
 		{}
 	};
 
@@ -336,13 +336,13 @@ namespace Pu
 		/* Specifies the maximum number of array layers. */
 		uint32 MaxArrayLayers;
 		/* Specifies all supported sample counts for this image. */
-		SampleCountFlag SampleCounts;
+		SampleCountFlags SampleCounts;
 		/* Specifies an upper bounds on the total image size in bytes. */
 		DeviceSize MaxResourceSize;
 
 		/* Initializes an empty instance of an image format properties object. */
 		ImageFormatProperties(void)
-			: MaxExtent(), MaxMipLevels(0), MaxArrayLayers(0), SampleCounts(SampleCountFlag::None), MaxResourceSize(0)
+			: MaxExtent(), MaxMipLevels(0), MaxArrayLayers(0), SampleCounts(SampleCountFlags::None), MaxResourceSize(0)
 		{}
 	};
 
@@ -461,16 +461,16 @@ namespace Pu
 		uint32 MaxFramebufferWidth;
 		uint32 MaxFramebufferHeight;
 		uint32 MaxFramebufferLayers;
-		SampleCountFlag FramebufferColorSampleCounts;
-		SampleCountFlag FramebufferDepthSampleCounts;
-		SampleCountFlag FramebufferStencilSampleCounts;
-		SampleCountFlag FramebufferNoAttachmentsSampleCounts;
+		SampleCountFlags FramebufferColorSampleCounts;
+		SampleCountFlags FramebufferDepthSampleCounts;
+		SampleCountFlags FramebufferStencilSampleCounts;
+		SampleCountFlags FramebufferNoAttachmentsSampleCounts;
 		uint32 MaxColorAttachments;
-		SampleCountFlag SampledImageColorSampleCounts;
-		SampleCountFlag SampledImageIntegerSampleCounts;
-		SampleCountFlag SampledImageDepthSampleCounts;
-		SampleCountFlag SampledImageStencilSampleCounts;
-		SampleCountFlag StorageImageSampleCounts;
+		SampleCountFlags SampledImageColorSampleCounts;
+		SampleCountFlags SampledImageIntegerSampleCounts;
+		SampleCountFlags SampledImageDepthSampleCounts;
+		SampleCountFlags SampledImageStencilSampleCounts;
+		SampleCountFlags StorageImageSampleCounts;
 		uint32 MaxSampleMaskWords;
 		Bool32 TimestampComputeAndGraphics;
 		float TimestampPeriod;
@@ -565,7 +565,7 @@ namespace Pu
 		/* Specifies the default number of invocations in each subgroup. */
 		uint32 SubgroupSize;
 		/* Specifies in which shader stages subgroup operations are supported (compute is always supported). */
-		ShaderStageFlag SupportedStages;
+		ShaderStageFlags SupportedStages;
 		/* Specifies which subgroup operations are supported. */
 		SubgroupFeatureFlags SupportedOperations;
 		/* Specifies whether quad group operations are supported in all stage, or just fragment and compute stages. */
@@ -634,7 +634,7 @@ namespace Pu
 	struct QueueFamilyProperties
 	{
 		/* Specifies the capabilities of the queues in this queue family. */
-		QueueFlag Flags;
+		QueueFlags Flags;
 		/* Specifies the amount of queus in the queue family. */
 		uint32 QueueCount;
 		/* Specifies the meaningful bits in the timestamps, valid range: [36, 64] or zero. */
@@ -644,7 +644,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a queue family properties object. */
 		QueueFamilyProperties(void)
-			: Flags(QueueFlag::None), QueueCount(0), TimestampValidBits(0), MinImageTransferGranularity()
+			: Flags(QueueFlags::None), QueueCount(0), TimestampValidBits(0), MinImageTransferGranularity()
 		{}
 	};
 
@@ -656,7 +656,7 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies behaviour of the queue. */
-		DeviceQueueCreateFlag Flags;
+		DeviceQueueCreateFlags Flags;
 		/* Indicates the index of the queu family to create on this device. */
 		uint32 QueueFamilyIndex;
 		/* Specifies the amount of queues to create in the queue family. */
@@ -670,7 +670,7 @@ namespace Pu
 		{}
 
 		/* Initializes a new instance of a queue create information object. */
-		DeviceQueueCreateInfo(_In_ uint32 familyIndex, _In_ uint32 count, _In_ const float *priorities, _In_opt_ DeviceQueueCreateFlag flags = DeviceQueueCreateFlag::None)
+		DeviceQueueCreateInfo(_In_ uint32 familyIndex, _In_ uint32 count, _In_ const float *priorities, _In_opt_ DeviceQueueCreateFlags flags = DeviceQueueCreateFlags::None)
 			: Type(StructureType::DeviceQueueCreateInfo), Next(nullptr),
 			Flags(flags), QueueFamilyIndex(familyIndex), Count(count), QueuePriorities(priorities)
 		{}
@@ -732,19 +732,19 @@ namespace Pu
 		/* The maximum number of layers a swapchain image can have. */
 		uint32 MaxImageArrayLayers;
 		/* Specifies the supported surface transforms for the surface. */
-		SurfaceTransformFlag SupportedTransforms;
+		SurfaceTransformFlags SupportedTransforms;
 		/* Specifies the current surface transform. */
-		SurfaceTransformFlag CurrentTransform;
+		SurfaceTransformFlags CurrentTransform;
 		/* Specifies the supported alpha composition models. */
-		CompositeAlphaFlag SupportedCompositeAlpha;
+		CompositeAlphaFlags SupportedCompositeAlpha;
 		/* Specifies the way applications can use the presentable images of a swapchain created for the surface. */
-		ImageUsageFlag SupportedUsages;
+		ImageUsageFlags SupportedUsages;
 
 		/* Initializes an empty instance of the surface capabilities object. */
 		SurfaceCapabilities(void)
 			: MinImageCount(0), MaxImageCount(0), CurrentExtent(), MinImageExtent(), MaxImageExtent(),
-			MaxImageArrayLayers(0), SupportedTransforms(SurfaceTransformFlag::Identity), CurrentTransform(SurfaceTransformFlag::Identity),
-			SupportedCompositeAlpha(CompositeAlphaFlag::Inherit), SupportedUsages(ImageUsageFlag::None)
+			MaxImageArrayLayers(0), SupportedTransforms(SurfaceTransformFlags::Identity), CurrentTransform(SurfaceTransformFlags::Identity),
+			SupportedCompositeAlpha(CompositeAlphaFlags::Inherit), SupportedUsages(ImageUsageFlags::None)
 		{}
 
 		/* Checks whether the current extent is determined by the extent of the swapchain targeting the surface. */
@@ -817,7 +817,7 @@ namespace Pu
 		/* The number of views in a multiview/stereo surface. */
 		uint32 ImageArrayLayers;
 		/* Specifies how the application will use the swapchain's presentable images. */
-		ImageUsageFlag ImageUsage;
+		ImageUsageFlags ImageUsage;
 		/* Specifies the sharing mode for the presentable images. */
 		SharingMode ImageSharingMode;
 		/* The number of queue families having access to the images of the swapchain. */
@@ -825,9 +825,9 @@ namespace Pu
 		/* The queue families having access to the images of the swapchain. */
 		const uint32 *QueueFamilyIndeces;
 		/* Specifies the transform applied to the presentable images when presenting. */
-		SurfaceTransformFlag Transform;
+		SurfaceTransformFlags Transform;
 		/* Specifies the alpha composition mode of the images. */
-		CompositeAlphaFlag CompositeAlpha;
+		CompositeAlphaFlags CompositeAlpha;
 		/* Specifies the presentation mode the swapchain will use. */
 		PresentMode PresentMode;
 		/* Specifies whether the Vulkan implementation is allowed to discard rendering operataions that affect regions of the surface which are not visible. */
@@ -845,9 +845,9 @@ namespace Pu
 			: Type(StructureType::SwapChainCreateInfoKhr), Next(nullptr), Flags(0),
 			Surface(surface), MinImageCount(3), ImageFormat(Format::Undefined),
 			ImageColorSpace(ColorSpace::SRGB), ImageExtent(size), ImageArrayLayers(1),
-			ImageUsage(ImageUsageFlag::None), ImageSharingMode(SharingMode::Exclusive),
-			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlag::Identity),
-			CompositeAlpha(CompositeAlphaFlag::Opaque), PresentMode(PresentMode::MailBox),
+			ImageUsage(ImageUsageFlags::None), ImageSharingMode(SharingMode::Exclusive),
+			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr), Transform(SurfaceTransformFlags::Identity),
+			CompositeAlpha(CompositeAlphaFlags::Opaque), PresentMode(PresentMode::MailBox),
 			Clipped(true), OldSwapChain(nullptr)
 		{}
 	};
@@ -913,7 +913,7 @@ namespace Pu
 		/* Specifies the semaphores upon which to wait before executing the command buffers. */
 		const SemaphoreHndl *WaitSemaphores;
 		/* Specifies pipeline stages at which each corresponding semaphore wait will occur. */
-		const PipelineStageFlag *WaitDstStageMask;
+		const PipelineStageFlags *WaitDstStageMask;
 		/* Specifies the amount of command buffers to execute in the batch. */
 		uint32 CommandBufferCount;
 		/* Specified the command buffers to execute in the batch. */
@@ -939,17 +939,17 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Indicates usage behaviour for the pool and command buffers allocated from it. */
-		CommandPoolCreateFlag Flags;
+		CommandPoolCreateFlags Flags;
 		/* Specifies the designated queue family. */
 		uint32 QueueFamilyIndex;
 
 		/* Initializes an empty instance of the command pool create info object. */
 		CommandPoolCreateInfo(void)
-			: CommandPoolCreateInfo(0, CommandPoolCreateFlag::None)
+			: CommandPoolCreateInfo(0, CommandPoolCreateFlags::None)
 		{}
 
 		/* Initializes a new instance of the command pool create info object. */
-		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex, _In_ CommandPoolCreateFlag flags)
+		CommandPoolCreateInfo(_In_ uint32 queueFamilyIndex, _In_ CommandPoolCreateFlags flags)
 			: Type(StructureType::CommandPoolCreateInfo), Next(nullptr),
 			Flags(flags), QueueFamilyIndex(queueFamilyIndex)
 		{}
@@ -997,9 +997,9 @@ namespace Pu
 		/* Specifies whether the command buffer can be executed while an occlusion query is active in the primary command buffer. */
 		Bool32 OcclusionQueryEnable;
 		/* Specifies the flags that can be used by an active occlusion query in the primary command buffer. */
-		QueryControlFlag QueryFlags;
+		QueryControlFlags QueryFlags;
 		/* Specifies the statistics that can be counted by an active query. */
-		QueryPipelineStatisticFlag PipelineStatistics;
+		QueryPipelineStatisticFlags PipelineStatistics;
 
 		/* Initializes an empty instance of a secondary command buffer inheritance info object. */
 		CommandBufferInheritanceInfo(void)
@@ -1010,7 +1010,7 @@ namespace Pu
 		CommandBufferInheritanceInfo(_In_ RenderPassHndl renderPass)
 			: Type(StructureType::CommandBufferInheritanceInfo), Next(nullptr), RenderPass(renderPass),
 			Subpass(0), FrameBuffer(nullptr), OcclusionQueryEnable(false),
-			QueryFlags(QueryControlFlag::None), PipelineStatistics(QueryPipelineStatisticFlag::None)
+			QueryFlags(QueryControlFlags::None), PipelineStatistics(QueryPipelineStatisticFlags::None)
 		{}
 	};
 
@@ -1022,17 +1022,17 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the usage of the command buffer. */
-		CommandBufferUsageFlag Flags;
+		CommandBufferUsageFlags Flags;
 		/* Specifies extra information for secondary command buffers. */
 		const CommandBufferInheritanceInfo *InheritanceInfo;
 
 		/* Initializes a new instance of the command buffer begin info object. */
 		CommandBufferBeginInfo(void)
-			: CommandBufferBeginInfo(CommandBufferUsageFlag::None)
+			: CommandBufferBeginInfo(CommandBufferUsageFlags::None)
 		{}
 
 		/* Initializes a new instance of the command buffer begin info object. */
-		CommandBufferBeginInfo(_In_ CommandBufferUsageFlag flags)
+		CommandBufferBeginInfo(_In_ CommandBufferUsageFlags flags)
 			: Type(StructureType::CommandBufferBeginInfo), Next(nullptr),
 			Flags(flags), InheritanceInfo(nullptr)
 		{}
@@ -1042,7 +1042,7 @@ namespace Pu
 	struct ImageSubresourceRange
 	{
 		/* Specifies which aspect(s) of the image are included in the view. */
-		ImageAspectFlag AspectMask;
+		ImageAspectFlags AspectMask;
 		/* Specifies the first mipmap level accessible to the view. */
 		uint32 BaseMipLevel;
 		/* Specifies the number of mipmap levels accessible to the view. */
@@ -1054,11 +1054,11 @@ namespace Pu
 
 		/* Initializes an empty instance of the image subresrouce range object. */
 		ImageSubresourceRange(void)
-			: ImageSubresourceRange(ImageAspectFlag::Color)
+			: ImageSubresourceRange(ImageAspectFlags::Color)
 		{}
 
 		/* Initializes a new instace of the image subresource range object. */
-		ImageSubresourceRange(_In_ ImageAspectFlag aspect)
+		ImageSubresourceRange(_In_ ImageAspectFlags aspect)
 			: AspectMask(aspect), BaseMipLevel(0),
 			LevelCount(1), BaseArraylayer(0), LayerCount(1)
 		{}
@@ -1072,9 +1072,9 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the access mask for the source. */
-		AccessFlag SrcAccessMask;
+		AccessFlags SrcAccessMask;
 		/* Specifies the access mask for the destination. */
-		AccessFlag DstAccessMask;
+		AccessFlags DstAccessMask;
 		/* Specifies the old image layout. */
 		ImageLayout OldLayout;
 		/* Specifies the new image layout. */
@@ -1096,7 +1096,7 @@ namespace Pu
 		/* Initializes a new instance of the image memory barrier object. */
 		ImageMemoryBarrier(_In_ ImageHndl image, _In_ uint32 queueFamilyIdx)
 			: Type(StructureType::ImageMemoryBarrier), Next(nullptr),
-			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
+			SrcAccessMask(AccessFlags::None), DstAccessMask(AccessFlags::None),
 			OldLayout(ImageLayout::Undefined), NewLayout(ImageLayout::Undefined),
 			SrcQueueFamilyIndex(queueFamilyIdx), DstQueueFamilyIndex(queueFamilyIdx), Image(image), SubresourceRange()
 		{}
@@ -1121,17 +1121,17 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the source access mask. */
-		AccessFlag SrcAccessMask;
+		AccessFlags SrcAccessMask;
 		/* Specifies the destination access mask. */
-		AccessFlag DstAccessMask;
+		AccessFlags DstAccessMask;
 
 		/* Initializes an empty instance of a global memory barrier. */
 		MemoryBarrier()
-			: MemoryBarrier(AccessFlag::None, AccessFlag::None)
+			: MemoryBarrier(AccessFlags::None, AccessFlags::None)
 		{}
 
 		/* Initializes a new instance of a global memory barrier. */
-		MemoryBarrier(_In_ AccessFlag src, _In_ AccessFlag dst)
+		MemoryBarrier(_In_ AccessFlags src, _In_ AccessFlags dst)
 			: Type(StructureType::MemoryBarrier), Next(nullptr),
 			SrcAccessMask(src), DstAccessMask(dst)
 		{}
@@ -1145,9 +1145,9 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the access mask for the source. */
-		AccessFlag SrcAccessMask;
+		AccessFlags SrcAccessMask;
 		/* Specifies the access mask for the destination. */
-		AccessFlag DstAccessMask;
+		AccessFlags DstAccessMask;
 		/* Specifies the queue family index for the source. */
 		uint32 SrcQueueFamilyIndex;
 		/* Specifies the queue family index for the destination. */
@@ -1167,7 +1167,7 @@ namespace Pu
 		/* Initializes a new instance of the buffer memory barrier object. */
 		BufferMemoryBarrier(_In_ BufferHndl buffer, _In_opt_ DeviceSize offset = 0, _In_opt_ DeviceSize size = WholeSize)
 			: Type(StructureType::BufferMemoryBarrier), Next(nullptr),
-			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None),
+			SrcAccessMask(AccessFlags::None), DstAccessMask(AccessFlags::None),
 			SrcQueueFamilyIndex(QueueFamilyIgnored), DstQueueFamilyIndex(QueueFamilyIgnored), Buffer(buffer),
 			Offset(offset), Size(size)
 		{}
@@ -1177,11 +1177,11 @@ namespace Pu
 	struct AttachmentDescription
 	{
 		/* Specifies additional properties of the attachment. */
-		AttachmentDescriptionFlag Flags;
+		AttachmentDescriptionFlags Flags;
 		/* Specifies the format of the image view that will be used for the attachment. */
 		Format Format;
 		/* Specified the amount of samples of the image. */
-		SampleCountFlag Samples;
+		SampleCountFlags Samples;
 		/* Specifies how the color and depth components should be treated at the beginning of the subpass. */
 		AttachmentLoadOp LoadOp;
 		/* Specifies what should be done with the color and depth components after the subpass. */
@@ -1202,7 +1202,7 @@ namespace Pu
 
 		/* Initializes a new instance of the attachment description object. */
 		AttachmentDescription(_In_ Pu::Format format, _In_ ImageLayout initialLayout, _In_ ImageLayout finalLayout)
-			: Flags(AttachmentDescriptionFlag::None), Format(format), Samples(SampleCountFlag::Pixel1Bit),
+			: Flags(AttachmentDescriptionFlags::None), Format(format), Samples(SampleCountFlags::Pixel1Bit),
 			LoadOp(AttachmentLoadOp::Clear), StoreOp(AttachmentStoreOp::Store),
 			StencilLoadOp(AttachmentLoadOp::DontCare), StencilStoreOp(AttachmentStoreOp::DontCare),
 			InitialLayout(initialLayout), FinalLayout(finalLayout)
@@ -1235,7 +1235,7 @@ namespace Pu
 	struct SubpassDescription
 	{
 		/* Specifies the usage of the subpass. */
-		SubpassDescriptionFlag Flags;
+		SubpassDescriptionFlags Flags;
 		/* Specifies whether this is a compute or graphics subpass. */
 		PipelineBindPoint BindPoint;
 		/* Specifies the amount of input attachments. */
@@ -1257,7 +1257,7 @@ namespace Pu
 
 		/* Initializes an empty instance of a subpass description object. */
 		SubpassDescription(void)
-			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
+			: Flags(SubpassDescriptionFlags::None), BindPoint(PipelineBindPoint::Graphics),
 			InputAttachmentCount(0), InputAttachments(nullptr), ColorAttachmentCount(0),
 			ColorAttachments(nullptr), ResolveAttachments(nullptr), DepthStencilAttachment(nullptr),
 			PreserveAttachmentCount(0), PreserveAttachments(nullptr)
@@ -1265,7 +1265,7 @@ namespace Pu
 
 		/* Initializes a new instance of a subpass description object. */
 		SubpassDescription(_In_ const AttachmentReference &colorAttachment)
-			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics),
+			: Flags(SubpassDescriptionFlags::None), BindPoint(PipelineBindPoint::Graphics),
 			InputAttachmentCount(0), InputAttachments(nullptr),
 			ColorAttachmentCount(1), ColorAttachments(&colorAttachment),
 			ResolveAttachments(nullptr), DepthStencilAttachment(nullptr),
@@ -1275,7 +1275,7 @@ namespace Pu
 		/* Initializes a new instance of a subpass description object. */
 		SubpassDescription(_In_ const vector<AttachmentReference> &colorAttachments,
 			_In_ const vector<AttachmentReference> &inputAttachments, _In_ const vector<AttachmentReference> &resolveAttachments)
-			: Flags(SubpassDescriptionFlag::None), BindPoint(PipelineBindPoint::Graphics), DepthStencilAttachment(nullptr),
+			: Flags(SubpassDescriptionFlags::None), BindPoint(PipelineBindPoint::Graphics), DepthStencilAttachment(nullptr),
 			InputAttachmentCount(static_cast<uint32>(inputAttachments.size())), InputAttachments(inputAttachments.data()),
 			ColorAttachmentCount(static_cast<uint32>(colorAttachments.size())),
 			ColorAttachments(colorAttachments.data()), ResolveAttachments(resolveAttachments.data()),
@@ -1291,15 +1291,15 @@ namespace Pu
 		/* Specifies the index of this subpass in the dependency. */
 		uint32 DstSubpass;
 		/* Specifies the source stage mask. */
-		PipelineStageFlag SrcStageMask;
+		PipelineStageFlags SrcStageMask;
 		/* Specifies the destination stage mask. */
-		PipelineStageFlag DstStageMask;
+		PipelineStageFlags DstStageMask;
 		/* Specifies the source access. */
-		AccessFlag SrcAccessMask;
+		AccessFlags SrcAccessMask;
 		/* Specifies the destination access. */
-		AccessFlag DstAccessMask;
+		AccessFlags DstAccessMask;
 		/* Specifies optional parameters for the subpass dependency.  */
-		DependencyFlag DependencyFlags;
+		DependencyFlags DependencyFlags;
 
 		/* Initializes an empty instance of a subpass dependency. */
 		SubpassDependency(void)
@@ -1309,8 +1309,8 @@ namespace Pu
 		/* Initializes a new instance of a subpass dependency. */
 		SubpassDependency(_In_ uint32 source, _In_ uint32 destination)
 			: SrcSubpass(source), DstSubpass(destination),
-			SrcStageMask(PipelineStageFlag::AllCommands), DstStageMask(PipelineStageFlag::AllCommands),
-			SrcAccessMask(AccessFlag::None), DstAccessMask(AccessFlag::None), DependencyFlags(DependencyFlag::None)
+			SrcStageMask(PipelineStageFlags::AllCommands), DstStageMask(PipelineStageFlags::AllCommands),
+			SrcAccessMask(AccessFlags::None), DstAccessMask(AccessFlags::None), DependencyFlags(DependencyFlags::None)
 		{}
 	};
 
@@ -1439,11 +1439,11 @@ namespace Pu
 
 		/* Initializes an empty instance of the image view create info object. */
 		ImageViewCreateInfo(void)
-			: ImageViewCreateInfo(nullptr, ImageViewType::Image2D, Format::Undefined, ImageAspectFlag::Color)
+			: ImageViewCreateInfo(nullptr, ImageViewType::Image2D, Format::Undefined, ImageAspectFlags::Color)
 		{}
 
 		/* Initializes a new instance of an image view create info object. */
-		ImageViewCreateInfo(_In_ ImageHndl image, _In_ ImageViewType type, _In_ Pu::Format format, _In_ ImageAspectFlag aspect)
+		ImageViewCreateInfo(_In_ ImageHndl image, _In_ ImageViewType type, _In_ Pu::Format format, _In_ ImageAspectFlags aspect)
 			: Type(StructureType::ImageViewCreateInfo), Next(nullptr), Flags(0),
 			Image(image), ViewType(type), Format(format), Components(), SubresourceRange(aspect)
 		{}
@@ -1538,7 +1538,7 @@ namespace Pu
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the single pipeline stage. */
-		ShaderStageFlag Stage;
+		ShaderStageFlags Stage;
 		/* Specifies the object that contains the shader for this stage. */
 		ShaderModuleHndl Module;
 		/* Specifies a null-terminated UTF-8 string with the entry point name of the shader. */
@@ -1548,11 +1548,11 @@ namespace Pu
 
 		/* Initializes a empty instance of the pipeline shader stage create info object. */
 		PipelineShaderStageCreateInfo(void)
-			: PipelineShaderStageCreateInfo(ShaderStageFlag::Unknown, nullptr)
+			: PipelineShaderStageCreateInfo(ShaderStageFlags::Unknown, nullptr)
 		{}
 
 		/* Initializes a new instance of the pipeline shader stage create info object. */
-		PipelineShaderStageCreateInfo(_In_ ShaderStageFlag stage, _In_ ShaderModuleHndl moduleHndl)
+		PipelineShaderStageCreateInfo(_In_ ShaderStageFlags stage, _In_ ShaderModuleHndl moduleHndl)
 			: Type(StructureType::PipelineShaderStageCreateInfo), Next(nullptr), Flags(0),
 			Stage(stage), Module(moduleHndl), Name("main"), SpecializationInfo(nullptr)
 		{}
@@ -1978,7 +1978,7 @@ namespace Pu
 		/* Specifies how a polygon should be rasterized. */
 		PolygonMode PolygonMode;
 		/* Specifies which polygons to cull. */
-		CullModeFlag CullMode;
+		CullModeFlags CullMode;
 		/* Specifies what to consider the front face of a polygon. */
 		FrontFace FrontFace;
 		/* Specifies whether depth biasing is enabled. */
@@ -1994,11 +1994,11 @@ namespace Pu
 
 		/* Initializes an empty instance of the pipeline rasterization state create info object. */
 		PipelineRasterizationStateCreateInfo(void)
-			: PipelineRasterizationStateCreateInfo(CullModeFlag::None)
+			: PipelineRasterizationStateCreateInfo(CullModeFlags::None)
 		{}
 
 		/* Initializes a new instance of the pipeline rasterization state create info object. */
-		PipelineRasterizationStateCreateInfo(_In_ CullModeFlag cullMode)
+		PipelineRasterizationStateCreateInfo(_In_ CullModeFlags cullMode)
 			: Type(StructureType::PipelineRasterizationStateCreateInfo), Next(nullptr), Flags(0),
 			DepthClampEnable(false), RasterizerDiscardEnable(false), PolygonMode(PolygonMode::Fill),
 			CullMode(cullMode), FrontFace(FrontFace::CounterClockwise), DepthBiasEnable(false),
@@ -2047,7 +2047,7 @@ namespace Pu
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the number of samples to use per pixel. */
-		SampleCountFlag RasterizationSamples;
+		SampleCountFlags RasterizationSamples;
 		/* Specifies whether shading should occur per sample rather than per fragment. */
 		Bool32 SampleShading;
 		/* Specifies the minimum number of unique sample locations to use during fragment shading. */
@@ -2061,11 +2061,11 @@ namespace Pu
 
 		/* Initializes an empty instance of a pipeline multisample state create info object. */
 		PipelineMultisampleStateCreateInfo(void)
-			: PipelineMultisampleStateCreateInfo(SampleCountFlag::Pixel1Bit)
+			: PipelineMultisampleStateCreateInfo(SampleCountFlags::Pixel1Bit)
 		{}
 
 		/* Initializes a new instance of a pipeline multisample create info object. */
-		PipelineMultisampleStateCreateInfo(_In_ SampleCountFlag samples)
+		PipelineMultisampleStateCreateInfo(_In_ SampleCountFlags samples)
 			: Type(StructureType::PipelineMultiSampleStateCreateInfo), Next(nullptr), Flags(0),
 			RasterizationSamples(samples), SampleShading(false), MinSampleShading(0.0f),
 			SampleMask(nullptr), AlphaToCoverageEnable(false), AlphaToOneEnable(false)
@@ -2205,11 +2205,11 @@ namespace Pu
 		/* Specifies the operation to perform on the alpha. */
 		BlendOp AlphaBlendOp;
 		/* Specifies which components are enabled for writing. */
-		ColorComponentFlag ColorWriteMask;
+		ColorComponentFlags ColorWriteMask;
 
 		/* Initializes an empty instance of a pipeline color blend attachment state. */
 		PipelineColorBlendAttachmentState(void)
-			: BlendEnable(false), ColorWriteMask(ColorComponentFlag::RGBA),
+			: BlendEnable(false), ColorWriteMask(ColorComponentFlags::RGBA),
 			SrcColorBlendFactor(BlendFactor::One), DstColorBlendFactor(BlendFactor::Zero), ColorBlendOp(BlendOp::Add),
 			SrcAlphaBlendFactor(BlendFactor::One), DstAlphaBlendFactor(BlendFactor::Zero), AlphaBlendOp(BlendOp::Add)
 		{}
@@ -2342,7 +2342,7 @@ namespace Pu
 	struct PushConstantRange
 	{
 		/* Specifies the shader stages that will acces a range of push constants. */
-		ShaderStageFlag StageFlags;
+		ShaderStageFlags StageFlags;
 		/* Specifies the offset (in bytes) of the range (must be a multiple of 4!). */
 		uint32 Offset;
 		/* Specifies the size (in bytes) of the range (must be a multiple of 4!). */
@@ -2350,11 +2350,11 @@ namespace Pu
 
 		/* Initializes an empty instance of a push constant range object. */
 		PushConstantRange(void)
-			: PushConstantRange(ShaderStageFlag::Unknown, 0, 0)
+			: PushConstantRange(ShaderStageFlags::Unknown, 0, 0)
 		{}
 
 		/* Initializes a new instance of a push constant range object. */
-		PushConstantRange(_In_ ShaderStageFlag stages, _In_ uint32 offset, _In_ uint32 size)
+		PushConstantRange(_In_ ShaderStageFlags stages, _In_ uint32 offset, _In_ uint32 size)
 			: StageFlags(stages), Offset(offset), Size(size)
 		{}
 	};
@@ -2399,7 +2399,7 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies how the pipeline should be generated. */
-		PipelineCreateFlag Flags;
+		PipelineCreateFlags Flags;
 		/* Specifies the amount of entries in the Stages field. */
 		uint32 StageCount;
 		/* Specifies the shader stages included in the pipeline. */
@@ -2435,19 +2435,50 @@ namespace Pu
 
 		/* Initializes an empty instance of a graphics pipeline create info object. */
 		GraphicsPipelineCreateInfo(void)
-			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
+			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlags::None),
 			StageCount(0), Stages(nullptr), VertexInputState(nullptr), InputAssemblyState(nullptr), TessellationState(nullptr), ViewportState(nullptr),
 			RasterizationState(nullptr), MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr),
 			DynamicState(nullptr), Layout(nullptr), Renderpass(nullptr), Subpass(0), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
 
 		/* Initializes a new instance of a graphics pipeline create info object. */
-		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass, _In_ uint32 subpass)
-			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlag::None),
+		GraphicsPipelineCreateInfo(_In_ const vector<PipelineShaderStageCreateInfo> &stages, _In_ PipelineCreateFlags flags, _In_ PipelineLayoutHndl layout, _In_ RenderPassHndl renderpass, _In_ uint32 subpass)
+			: Type(StructureType::GraphicsPipelineCreateInfo), Next(nullptr), Flags(flags),
 			StageCount(static_cast<uint32>(stages.size())), Stages(stages.data()), VertexInputState(nullptr),
 			InputAssemblyState(nullptr), ViewportState(nullptr), TessellationState(nullptr), RasterizationState(nullptr),
 			MultisampleState(nullptr), DepthStencilState(nullptr), ColorBlendState(nullptr), DynamicState(nullptr),
 			Layout(layout), Renderpass(renderpass), Subpass(subpass), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
+		{}
+	};
+
+	/* Defines the information needed to create a compute pipeline. */
+	struct ComputePipelineCreateInfo
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies how the pipeline should be generated. */
+		PipelineCreateFlags Flags;
+		/* Specifies the compute stage. */
+		PipelineShaderStageCreateInfo Stage;
+		/* Specifies the binding locations used by the pipeline and descriptor sets. */
+		PipelineLayoutHndl Layout;
+		/* Specifies the parent pipeline. */
+		PipelineHndl BasePipelineHandle;
+		/* Specifies which create info to derive from. */
+		int32 BasePipelineIndex;
+
+		/* Initializes an empty instance of a compute pipeline create info object. */
+		ComputePipelineCreateInfo(void)
+			: Type(StructureType::ComputePipelineCreateInfo), Next(nullptr), Flags(PipelineCreateFlags::None),
+			Layout(nullptr), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
+		{}
+
+		/* Initializes a new instance of a compute pipeline create info object. */
+		ComputePipelineCreateInfo(_In_ const PipelineShaderStageCreateInfo &stage, _In_ PipelineCreateFlags flags, _In_ PipelineLayoutHndl layout)
+			: Type(StructureType::ComputePipelineCreateInfo), Next(nullptr), Flags(flags),
+			Stage(stage), Layout(layout), BasePipelineHandle(nullptr), BasePipelineIndex(-1)
 		{}
 	};
 
@@ -2615,9 +2646,9 @@ namespace Pu
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies which severity of event(s) will cause this callback to be invoked. */
-		DebugUtilsMessageSeverityFlag MessageSeverity;
+		DebugUtilsMessageSeverityFlags MessageSeverity;
 		/* Specifeis which type of event(s) will cause this callback to be invoked. */
-		DebugUtilsMessageTypeFlag MessageType;
+		DebugUtilsMessageTypeFlags MessageType;
 		/* Specifies the function to be called upon event trigger. */
 		DebugUtilsMessengerCallback UserCallback;
 		/* Specifies user data passed to the callback. */
@@ -2631,7 +2662,7 @@ namespace Pu
 		/* Initializes a new instance of a debug utils messenger create info object. */
 		DebugUtilsMessengerCreateInfo(_In_ DebugUtilsMessengerCallback callback)
 			: Type(StructureType::DebugUtilsMessengerCreateInfoExt), Next(nullptr), Flags(0),
-			MessageSeverity(DebugUtilsMessageSeverityFlag::Critical), MessageType(DebugUtilsMessageTypeFlag::All),
+			MessageSeverity(DebugUtilsMessageSeverityFlags::Critical), MessageType(DebugUtilsMessageTypeFlags::All),
 			UserCallback(callback), UserData(nullptr)
 		{}
 	};
@@ -2644,15 +2675,15 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies the initial state and behavior of the fence. */
-		FenceCreateFlag Flags;
+		FenceCreateFlags Flags;
 
 		/* Initializes an empty instance of the fence create info object. */
 		FenceCreateInfo(void)
-			: FenceCreateInfo(FenceCreateFlag::None)
+			: FenceCreateInfo(FenceCreateFlags::None)
 		{}
 
 		/* Initializes a new instanace of the fence create info object. */
-		FenceCreateInfo(_In_ FenceCreateFlag flags)
+		FenceCreateInfo(_In_ FenceCreateFlags flags)
 			: Type(StructureType::FenceCreateInfo), Next(nullptr), Flags(flags)
 		{}
 	};
@@ -2665,11 +2696,11 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies additional parameters for the buffer. */
-		BufferCreateFlag Flags;
+		BufferCreateFlags Flags;
 		/* Specifies the size (in bytes) of the buffer. */
 		DeviceSize Size;
 		/* Specifies the allowed usages of the buffer. */
-		BufferUsageFlag Usage;
+		BufferUsageFlags Usage;
 		/* Specifies how the buffer should be accessed by multiple queues. */
 		SharingMode SharingMode;
 		/* Specifies the number of elements of queue family indeces. */
@@ -2679,19 +2710,19 @@ namespace Pu
 
 		/* Initializes an empty instance of the buffer create info object. */
 		BufferCreateInfo(void)
-			: BufferCreateInfo(0, BufferUsageFlag::Undefinfed)
+			: BufferCreateInfo(0, BufferUsageFlags::Undefinfed)
 		{}
 
 		/* Initializes a new instance of the buffer create info object. */
-		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlag usage)
-			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlag::None),
+		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlags usage)
+			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlags::None),
 			Size(size), Usage(usage), SharingMode(SharingMode::Exclusive),
 			QueueFamilyIndexCount(0), QueueFamilyIndeces(nullptr)
 		{}
 
 		/* Initializes a new instance of the buffer create info object. */
-		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlag usage, _In_ const vector<uint32> &queueFamilies)
-			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlag::None),
+		BufferCreateInfo(_In_ DeviceSize size, _In_ BufferUsageFlags usage, _In_ const vector<uint32> &queueFamilies)
+			: Type(StructureType::BufferCreateInfo), Next(nullptr), Flags(BufferCreateFlags::None),
 			Size(size), Usage(usage), SharingMode(SharingMode::Concurrent),
 			QueueFamilyIndexCount(static_cast<uint32>(queueFamilies.size())), QueueFamilyIndeces(queueFamilies.data())
 		{}
@@ -2717,13 +2748,13 @@ namespace Pu
 	struct MemoryType
 	{
 		/* Specifies the properties of the memory heap. */
-		MemoryPropertyFlag PropertyFlags;
+		MemoryPropertyFlags PropertyFlags;
 		/* Specifies which memory heap this memory type corresponds to. */
 		uint32 HeapIndex;
 
 		/* Initializes an empty instance of the memory type object. */
 		MemoryType(void)
-			: PropertyFlags(MemoryPropertyFlag::None), HeapIndex(0)
+			: PropertyFlags(MemoryPropertyFlags::None), HeapIndex(0)
 		{}
 	};
 
@@ -2733,11 +2764,11 @@ namespace Pu
 		/* Specifies the total size (in bytes) of the heap. */
 		DeviceSize Size;
 		/* Specifies the properties of the heap. */
-		MemoryHeapFlag Flags;
+		MemoryHeapFlags Flags;
 
 		/* Initializes an empty insatnce of a memory heap object. */
 		MemoryHeap(void)
-			: Size(0), Flags(MemoryHeapFlag::None)
+			: Size(0), Flags(MemoryHeapFlags::None)
 		{}
 	};
 
@@ -2864,7 +2895,7 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies aditional parameters of the image. */
-		ImageCreateFlag Flags;
+		ImageCreateFlags Flags;
 		/* Specifies the basic dimensionality of the image. */
 		ImageType ImageType;
 		/* Specifies the texel format for the image. */
@@ -2876,11 +2907,11 @@ namespace Pu
 		/* Specifies the number of layers in the image. */
 		uint32 ArrayLayers;
 		/* Specifies the number of samples per texel. */
-		SampleCountFlag Samples;
+		SampleCountFlags Samples;
 		/* Specifies the tiling arrangement of the texel blocks in memory. */
 		ImageTiling Tiling;
 		/* Specifies the intended usage of the image. */
-		ImageUsageFlag Usage;
+		ImageUsageFlags Usage;
 		/* Specifies how the image behaves when accessed by multiple queue families. */
 		SharingMode SharingMode;
 		/* Specifies the amount of elements in the QueueFamilyIndeces array. */
@@ -2892,12 +2923,12 @@ namespace Pu
 
 		/* Initializes an empty instance of the image create info object. */
 		ImageCreateInfo(void)
-			: ImageCreateInfo(ImageType::Image2D, Format::Undefined, Extent3D(), 0, 0, SampleCountFlag::None, ImageUsageFlag::None)
+			: ImageCreateInfo(ImageType::Image2D, Format::Undefined, Extent3D(), 0, 0, SampleCountFlags::None, ImageUsageFlags::None)
 		{}
 
 		/* Initializes a new instance of the image create info object. */
-		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ uint32 mipLevels, _In_ uint32 arrayLayers, _In_ SampleCountFlag samples, _In_ ImageUsageFlag usage)
-			: Type(StructureType::ImageCreateInfo), Next(nullptr), Flags(ImageCreateFlag::None),
+		ImageCreateInfo(_In_ Pu::ImageType type, _In_ Pu::Format format, _In_ Extent3D extent, _In_ uint32 mipLevels, _In_ uint32 arrayLayers, _In_ SampleCountFlags samples, _In_ ImageUsageFlags usage)
+			: Type(StructureType::ImageCreateInfo), Next(nullptr), Flags(ImageCreateFlags::None),
 			ImageType(type), Format(format), Extent(extent), MipLevels(mipLevels),
 			ArrayLayers(arrayLayers), Samples(samples), Tiling(ImageTiling::Optimal),
 			Usage(usage), SharingMode(SharingMode::Exclusive), QueueFamilyIndexCount(0),
@@ -2909,7 +2940,7 @@ namespace Pu
 	struct ImageSubresourceLayers
 	{
 		/* Specifies the color, depth and/or stencil aspects to be copied. */
-		ImageAspectFlag AspectMask;
+		ImageAspectFlags AspectMask;
 		/* Specifies the mipmap level to copy from. */
 		uint32 MipLevel;
 		/* Specifies the starting layer of layers to copy. */
@@ -2919,7 +2950,7 @@ namespace Pu
 
 		/* Initializes a default instance of the image sub-resource layers object. */
 		ImageSubresourceLayers(void)
-			: AspectMask(ImageAspectFlag::Color), MipLevel(0),
+			: AspectMask(ImageAspectFlags::Color), MipLevel(0),
 			BaseArrayLayer(0), LayerCount(1)
 		{}
 	};
@@ -3041,7 +3072,7 @@ namespace Pu
 		/* Pointer to an extension-specific structure or nullptr. */
 		const void *Next;
 		/* Specifies additional parameter for a descriptor pool. */
-		DescriptorPoolCreateFlag Flags;
+		DescriptorPoolCreateFlags Flags;
 		/* Specifies the maximum amount of descriptor sets that can be allocated from the pool. */
 		uint32 MaxSets;
 		/* Specifies the amount of elements in the PoolSize field. */
@@ -3051,13 +3082,13 @@ namespace Pu
 
 		/* Initializes an empty instance of the descriptor pool create info object. */
 		DescriptorPoolCreateInfo(void)
-			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlag::None),
+			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlags::None),
 			MaxSets(0), PoolSizeCount(0), PoolSizes(nullptr)
 		{}
 
 		/* Initializes a new instance of the descriptor pool create info object. */
 		DescriptorPoolCreateInfo(_In_ uint32 maxSets, _In_ const vector<DescriptorPoolSize> &sizes)
-			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlag::FreeDescriptorSet),
+			: Type(StructureType::DescriptorPoolCreateInfo), Next(nullptr), Flags(DescriptorPoolCreateFlags::FreeDescriptorSet),
 			MaxSets(maxSets), PoolSizeCount(static_cast<uint32>(sizes.size())), PoolSizes(sizes.data())
 		{}
 	};
@@ -3072,7 +3103,7 @@ namespace Pu
 		/* Specifies the amount of descriptors contained in the binding. */
 		uint32 DescriptorCount;
 		/* Specifies the parts of the graphics pipeline that can access a resource for this binding. */
-		ShaderStageFlag StageFlags;
+		ShaderStageFlags StageFlags;
 		/* Specifies an optional set of constant samplers that cannot be changed later. */
 		const SamplerHndl *ImmutableSamplers;
 
@@ -3084,7 +3115,7 @@ namespace Pu
 		/* Initializes a new instance of the descriptor set layout binding object. */
 		DescriptorSetLayoutBinding(_In_ uint32 binding, _In_ Pu::DescriptorType type, _In_ uint32 count)
 			: Binding(binding), DescriptorType(type), DescriptorCount(count),
-			StageFlags(ShaderStageFlag::All), ImmutableSamplers(nullptr)
+			StageFlags(ShaderStageFlags::All), ImmutableSamplers(nullptr)
 		{}
 	};
 
@@ -3288,7 +3319,7 @@ namespace Pu
 		/* The number of queries managed by the pool. */
 		uint32 QueryCount;
 		/* Specifies which counters will be returned in queries on the new pool. */
-		QueryPipelineStatisticFlag PipelineStatistics;
+		QueryPipelineStatisticFlags PipelineStatistics;
 
 		/* Initializes an empty instance of a query pool create info object. */
 		QueryPoolCreateInfo(void)
@@ -3297,11 +3328,11 @@ namespace Pu
 
 		/* Initializes a new instance of a query pool create info object. */
 		QueryPoolCreateInfo(_In_ Pu::QueryType type, _In_ uint32 count)
-			: QueryPoolCreateInfo(type, count, QueryPipelineStatisticFlag::None)
+			: QueryPoolCreateInfo(type, count, QueryPipelineStatisticFlags::None)
 		{}
 
 		/* Initializes a new instance of a query pool create info object. */
-		QueryPoolCreateInfo(_In_ Pu::QueryType type, _In_ uint32 count, _In_ QueryPipelineStatisticFlag stats)
+		QueryPoolCreateInfo(_In_ Pu::QueryType type, _In_ uint32 count, _In_ QueryPipelineStatisticFlags stats)
 			: Type(StructureType::QueryPoolCreatInfo), Next(nullptr), Flags(0),
 			QueryType(type), QueryCount(count), PipelineStatistics(stats)
 		{}

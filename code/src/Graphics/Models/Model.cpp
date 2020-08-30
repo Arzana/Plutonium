@@ -76,7 +76,7 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 	for (const PumMaterial &raw : data.Materials) AddMaterial(raw, deferred, probes);
 
 	/* Only the material pool needs to update. */
-	poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
+	poolMaterials->Update(cmdBuffer, PipelineStageFlags::FragmentShader);
 }
 
 /* This finalize is used to finalize created models. */
@@ -90,7 +90,7 @@ void Pu::Model::Finalize(CommandBuffer & cmdBuffer, const DeferredRenderer & def
 	material.SetSpecular(*textures[1]);
 	material.SetParameters(1.0f, 2.0f, Color::Black(), Color::White(), 1.0f);
 
-	poolMaterials->Update(cmdBuffer, PipelineStageFlag::FragmentShader);
+	poolMaterials->Update(cmdBuffer, PipelineStageFlags::FragmentShader);
 }
 
 void Pu::Model::AddMaterial(const PumMaterial & info, const DeferredRenderer & deferred, const LightProbeRenderer * probes)

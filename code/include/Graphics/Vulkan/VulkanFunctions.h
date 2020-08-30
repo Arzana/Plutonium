@@ -19,5 +19,5 @@ namespace Pu
 	/* Defines a dummy function pointer type for query returns. */
 	using VoidFunction = void(VKAPI_PTR)(void);
 	/* Defines a callback function for debug messages. */
-	using DebugUtilsMessengerCallback = _Check_return_ Bool32(VKAPI_PTR)(_In_ DebugUtilsMessageSeverityFlag messageSeverity, _In_ DebugUtilsMessageTypeFlag messageTypes, _In_ const DebugUtilsMessengerCallbackData *callbackData, _In_opt_ void *userData);
+	using DebugUtilsMessengerCallback = _Check_return_ Bool32(VKAPI_PTR)(_In_ DebugUtilsMessageSeverityFlags messageSeverity, _In_ DebugUtilsMessageTypeFlags messageTypes, _In_ const DebugUtilsMessengerCallbackData *callbackData, _In_opt_ void *userData);
 }

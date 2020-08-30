@@ -41,10 +41,10 @@ Pu::LightProbe::LightProbe(LightProbeRenderer & renderer, Extent2D resolution)
 	near(0.1f), far(100.0f), interval(1.0f), locked(true), renderer(&renderer)
 {
 	/* The output image is just a 2D cube map image, but we render to it like it's a 2D texture array, so we only have to do 1 draw call per object. */
-	ImageCreateInfo imgCreateInfo{ ImageType::Image2D, Format::R8G8B8A8_SRGB, Extent3D(resolution, 1), 1, 6, SampleCountFlag::Pixel1Bit, ImageUsageFlag::Sampled | ImageUsageFlag::ColorAttachment };
-	imgCreateInfo.Flags = ImageCreateFlag::CubeCompatible;
+	ImageCreateInfo imgCreateInfo{ ImageType::Image2D, Format::R8G8B8A8_SRGB, Extent3D(resolution, 1), 1, 6, SampleCountFlags::Pixel1Bit, ImageUsageFlags::Sampled | ImageUsageFlags::ColorAttachment };
+	imgCreateInfo.Flags = ImageCreateFlags::CubeCompatible;
 	image = new Image(fetcher->GetDevice(), imgCreateInfo);
-	view = new ImageView(*image, ImageViewType::Image2DArray, ImageAspectFlag::Color);
+	view = new ImageView(*image, ImageViewType::Image2DArray, ImageAspectFlags::Color);
 
 	/* The sampler used for the output image as color attachment is just the default sampler. */
 	sampler = &fetcher->FetchSampler(SamplerCreateInfo{});

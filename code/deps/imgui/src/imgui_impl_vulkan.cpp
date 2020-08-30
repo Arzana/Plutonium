@@ -70,7 +70,7 @@ struct ImGui_ImplVulkanH_WindowRenderBuffers
 static ImGui_ImplVulkan_InitInfo g_VulkanInitInfo = {};
 static Pu::RenderPassHndl             g_RenderPass = nullptr;
 static Pu::DeviceSize                 g_BufferMemoryAlignment = 256;
-static Pu::PipelineCreateFlag         g_PipelineCreateFlags = Pu::PipelineCreateFlag::None;
+static Pu::PipelineCreateFlags         g_PipelineCreateFlags = Pu::PipelineCreateFlags::None;
 static Pu::DescriptorSetLayoutHndl    g_DescriptorSetLayout = nullptr;
 static Pu::PipelineLayoutHndl         g_PipelineLayout = nullptr;
 static Pu::DescriptorSetHndl          g_DescriptorSet = nullptr;
@@ -210,7 +210,7 @@ static uint32_t __glsl_shader_frag_spv[] =
 // FUNCTIONS
 //-----------------------------------------------------------------------------
 
-static uint32_t ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlag properties, uint32_t type_bits)
+static uint32_t ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlags properties, uint32_t type_bits)
 {
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     Pu::PhysicalDeviceMemoryProperties prop;
@@ -228,7 +228,7 @@ static void check_vk_result(Pu::VkApiResult err)
         v->CheckVkResultFn(err);
 }
 
-static void CreateOrResizeBuffer(Pu::BufferHndl& buffer, Pu::DeviceMemoryHndl& buffer_memory, Pu::DeviceSize& p_buffer_size, size_t new_size, Pu::BufferUsageFlag usage)
+static void CreateOrResizeBuffer(Pu::BufferHndl& buffer, Pu::DeviceMemoryHndl& buffer_memory, Pu::DeviceSize& p_buffer_size, size_t new_size, Pu::BufferUsageFlags usage)
 {
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     Pu::VkApiResult err;
@@ -250,7 +250,7 @@ static void CreateOrResizeBuffer(Pu::BufferHndl& buffer, Pu::DeviceMemoryHndl& b
     g_BufferMemoryAlignment = (g_BufferMemoryAlignment > req.Alignment) ? g_BufferMemoryAlignment : req.Alignment;
     Pu::MemoryAllocateInfo alloc_info = {};
     alloc_info.AllocationSize = req.Size;
-    alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlag::HostVisible, req.MemoryTypeBits);
+    alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlags::HostVisible, req.MemoryTypeBits);
     err = Pu::vkAllocateMemory(v->Device, &alloc_info, v->Allocator, &buffer_memory);
     check_vk_result(err);
 
@@ -297,8 +297,8 @@ static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, Pu::Command
         float translate[2];
         translate[0] = -1.0f - draw_data->DisplayPos.x * scale[0];
         translate[1] = -1.0f - draw_data->DisplayPos.y * scale[1];
-        Pu::vkCmdPushConstants(command_buffer, g_PipelineLayout, Pu::ShaderStageFlag::Vertex, sizeof(float) * 0, sizeof(float) * 2, scale);
-        Pu::vkCmdPushConstants(command_buffer, g_PipelineLayout, Pu::ShaderStageFlag::Vertex, sizeof(float) * 2, sizeof(float) * 2, translate);
+        Pu::vkCmdPushConstants(command_buffer, g_PipelineLayout, Pu::ShaderStageFlags::Vertex, sizeof(float) * 0, sizeof(float) * 2, scale);
+        Pu::vkCmdPushConstants(command_buffer, g_PipelineLayout, Pu::ShaderStageFlags::Vertex, sizeof(float) * 2, sizeof(float) * 2, translate);
     }
 }
 
@@ -333,9 +333,9 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, Pu::CommandBufferHnd
     size_t vertex_size = draw_data->TotalVtxCount * sizeof(ImDrawVert);
     size_t index_size = draw_data->TotalIdxCount * sizeof(ImDrawIdx);
     if (rb->VertexBuffer == nullptr || rb->VertexBufferSize < vertex_size)
-        CreateOrResizeBuffer(rb->VertexBuffer, rb->VertexBufferMemory, rb->VertexBufferSize, vertex_size, Pu::BufferUsageFlag::VertexBuffer);
+        CreateOrResizeBuffer(rb->VertexBuffer, rb->VertexBufferMemory, rb->VertexBufferSize, vertex_size, Pu::BufferUsageFlags::VertexBuffer);
     if (rb->IndexBuffer == nullptr || rb->IndexBufferSize < index_size)
-        CreateOrResizeBuffer(rb->IndexBuffer, rb->IndexBufferMemory, rb->IndexBufferSize, index_size, Pu::BufferUsageFlag::IndexBuffer);
+        CreateOrResizeBuffer(rb->IndexBuffer, rb->IndexBufferMemory, rb->IndexBufferSize, index_size, Pu::BufferUsageFlags::IndexBuffer);
 
     // Upload vertex/index data into a single contiguous GPU buffer
     {
@@ -446,9 +446,9 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
         info.Extent.Depth = 1;
         info.MipLevels = 1;
         info.ArrayLayers = 1;
-        info.Samples = Pu::SampleCountFlag::Pixel1Bit;
+        info.Samples = Pu::SampleCountFlags::Pixel1Bit;
         info.Tiling = Pu::ImageTiling::Optimal;
-        info.Usage = Pu::ImageUsageFlag::Sampled | Pu::ImageUsageFlag::TransferDst;
+        info.Usage = Pu::ImageUsageFlags::Sampled | Pu::ImageUsageFlags::TransferDst;
         info.SharingMode = Pu::SharingMode::Exclusive;
         info.InitialLayout = Pu::ImageLayout::Undefined;
         err = Pu::vkCreateImage(v->Device, &info, v->Allocator, &g_FontImage);
@@ -457,7 +457,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
 		Pu::vkGetImageMemoryRequirements(v->Device, g_FontImage, &req);
         Pu::MemoryAllocateInfo alloc_info = {};
         alloc_info.AllocationSize = req.Size;
-        alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlag::DeviceLocal, req.MemoryTypeBits);
+        alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlags::DeviceLocal, req.MemoryTypeBits);
         err = Pu::vkAllocateMemory(v->Device, &alloc_info, v->Allocator, &g_FontMemory);
         check_vk_result(err);
         err = Pu::vkBindImageMemory(v->Device, g_FontImage, g_FontMemory, 0);
@@ -470,7 +470,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
         info.Image = g_FontImage;
         info.ViewType = Pu::ImageViewType::Image2D;
         info.Format = Pu::Format::R8G8B8A8_UNORM;
-        info.SubresourceRange.AspectMask = Pu::ImageAspectFlag::Color;
+        info.SubresourceRange.AspectMask = Pu::ImageAspectFlags::Color;
         info.SubresourceRange.LevelCount = 1;
         info.SubresourceRange.LayerCount = 1;
         err = Pu::vkCreateImageView(v->Device, &info, v->Allocator, &g_FontView);
@@ -495,7 +495,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
     {
         Pu::BufferCreateInfo buffer_info = {};
         buffer_info.Size = upload_size;
-        buffer_info.Usage = Pu::BufferUsageFlag::TransferSrc;
+        buffer_info.Usage = Pu::BufferUsageFlags::TransferSrc;
         buffer_info.SharingMode = Pu::SharingMode::Exclusive;
         err = Pu::vkCreateBuffer(v->Device, &buffer_info, v->Allocator, &g_UploadBuffer);
         check_vk_result(err);
@@ -504,7 +504,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
         g_BufferMemoryAlignment = (g_BufferMemoryAlignment > req.Alignment) ? g_BufferMemoryAlignment : req.Alignment;
         Pu::MemoryAllocateInfo alloc_info = {};
         alloc_info.AllocationSize = req.Size;
-        alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlag::HostVisible, req.MemoryTypeBits);
+        alloc_info.MemoryTypeIndex = ImGui_ImplVulkan_MemoryType(Pu::MemoryPropertyFlags::HostVisible, req.MemoryTypeBits);
         err = Pu::vkAllocateMemory(v->Device, &alloc_info, v->Allocator, &g_UploadBufferMemory);
         check_vk_result(err);
         err = Pu::vkBindBufferMemory(v->Device, g_UploadBuffer, g_UploadBufferMemory, 0);
@@ -528,19 +528,19 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
     // Copy to Image:
     {
         Pu::ImageMemoryBarrier copy_barrier[1] = {};
-        copy_barrier[0].DstAccessMask = Pu::AccessFlag::TransferWrite;
+        copy_barrier[0].DstAccessMask = Pu::AccessFlags::TransferWrite;
         copy_barrier[0].OldLayout = Pu::ImageLayout::Undefined;
         copy_barrier[0].NewLayout = Pu::ImageLayout::TransferDstOptimal;
         copy_barrier[0].SrcQueueFamilyIndex = Pu::QueueFamilyIgnored;
         copy_barrier[0].DstQueueFamilyIndex = Pu::QueueFamilyIgnored;
         copy_barrier[0].Image = g_FontImage;
-        copy_barrier[0].SubresourceRange.AspectMask = Pu::ImageAspectFlag::Color;
+        copy_barrier[0].SubresourceRange.AspectMask = Pu::ImageAspectFlags::Color;
         copy_barrier[0].SubresourceRange.LevelCount = 1;
         copy_barrier[0].SubresourceRange.LayerCount = 1;
-		Pu::vkCmdPipelineBarrier(command_buffer, Pu::PipelineStageFlag::Host, Pu::PipelineStageFlag::Transfer, Pu::DependencyFlag::None, 0, NULL, 0, NULL, 1, copy_barrier);
+		Pu::vkCmdPipelineBarrier(command_buffer, Pu::PipelineStageFlags::Host, Pu::PipelineStageFlags::Transfer, Pu::DependencyFlags::None, 0, NULL, 0, NULL, 1, copy_barrier);
 
         Pu::BufferImageCopy region = {};
-        region.ImageSubresource.AspectMask = Pu::ImageAspectFlag::Color;
+        region.ImageSubresource.AspectMask = Pu::ImageAspectFlags::Color;
         region.ImageSubresource.LayerCount = 1;
         region.ImageExtent.Width = width;
         region.ImageExtent.Height = height;
@@ -548,17 +548,17 @@ bool ImGui_ImplVulkan_CreateFontsTexture(Pu::CommandBufferHndl command_buffer)
 		Pu::vkCmdCopyBufferToImage(command_buffer, g_UploadBuffer, g_FontImage, Pu::ImageLayout::TransferDstOptimal, 1, &region);
 
         Pu::ImageMemoryBarrier use_barrier[1] = {};
-        use_barrier[0].SrcAccessMask = Pu::AccessFlag::TransferWrite;
-        use_barrier[0].DstAccessMask = Pu::AccessFlag::ShaderRead;
+        use_barrier[0].SrcAccessMask = Pu::AccessFlags::TransferWrite;
+        use_barrier[0].DstAccessMask = Pu::AccessFlags::ShaderRead;
         use_barrier[0].OldLayout = Pu::ImageLayout::TransferDstOptimal;
         use_barrier[0].NewLayout = Pu::ImageLayout::ShaderReadOnlyOptimal;
         use_barrier[0].SrcQueueFamilyIndex = Pu::QueueFamilyIgnored;
         use_barrier[0].DstQueueFamilyIndex = Pu::QueueFamilyIgnored;
         use_barrier[0].Image = g_FontImage;
-        use_barrier[0].SubresourceRange.AspectMask = Pu::ImageAspectFlag::Color;
+        use_barrier[0].SubresourceRange.AspectMask = Pu::ImageAspectFlags::Color;
         use_barrier[0].SubresourceRange.LevelCount = 1;
         use_barrier[0].SubresourceRange.LayerCount = 1;
-		Pu::vkCmdPipelineBarrier(command_buffer, Pu::PipelineStageFlag::Transfer, Pu::PipelineStageFlag::FragmentShader, Pu::DependencyFlag::None, 0, NULL, 0, NULL, 1, use_barrier);
+		Pu::vkCmdPipelineBarrier(command_buffer, Pu::PipelineStageFlags::Transfer, Pu::PipelineStageFlags::FragmentShader, Pu::DependencyFlags::None, 0, NULL, 0, NULL, 1, use_barrier);
     }
 
     // Store our identifier
@@ -610,7 +610,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
         Pu::DescriptorSetLayoutBinding binding[1] = {};
         binding[0].DescriptorType = Pu::DescriptorType::CombinedImageSampler;
         binding[0].DescriptorCount = 1;
-        binding[0].StageFlags = Pu::ShaderStageFlag::Fragment;
+        binding[0].StageFlags = Pu::ShaderStageFlags::Fragment;
         binding[0].ImmutableSamplers = sampler;
         Pu::DescriptorSetLayoutCreateInfo info = {};
         info.BindingCount = 1;
@@ -633,7 +633,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
     {
         // Constants: we are using 'vec2 offset' and 'vec2 scale' instead of a full 3d projection matrix
         Pu::PushConstantRange push_constants[1] = {};
-        push_constants[0].StageFlags = Pu::ShaderStageFlag::Vertex;
+        push_constants[0].StageFlags = Pu::ShaderStageFlags::Vertex;
         push_constants[0].Offset = sizeof(float) * 0;
         push_constants[0].Size = sizeof(float) * 4;
         Pu::DescriptorSetLayoutHndl set_layout[1] = { g_DescriptorSetLayout };
@@ -647,10 +647,10 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
     }
 
     Pu::PipelineShaderStageCreateInfo stage[2] = {};
-    stage[0].Stage = Pu::ShaderStageFlag::Vertex;
+    stage[0].Stage = Pu::ShaderStageFlags::Vertex;
     stage[0].Module = vert_module;
     stage[0].Name = "main";
-    stage[1].Stage = Pu::ShaderStageFlag::Fragment;
+    stage[1].Stage = Pu::ShaderStageFlags::Fragment;
     stage[1].Module = frag_module;
     stage[1].Name = "main";
 
@@ -687,12 +687,12 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
 
     Pu::PipelineRasterizationStateCreateInfo raster_info = {};
     raster_info.PolygonMode = Pu::PolygonMode::Fill;
-    raster_info.CullMode = Pu::CullModeFlag::None;
+    raster_info.CullMode = Pu::CullModeFlags::None;
     raster_info.FrontFace = Pu::FrontFace::CounterClockwise;
     raster_info.LineWidth = 1.0f;
 
     Pu::PipelineMultisampleStateCreateInfo ms_info = {};
-    ms_info.RasterizationSamples = Pu::SampleCountFlag::Pixel1Bit;
+    ms_info.RasterizationSamples = Pu::SampleCountFlags::Pixel1Bit;
 
     Pu::PipelineColorBlendAttachmentState color_attachment[1] = {};
     color_attachment[0].BlendEnable = true;
@@ -702,7 +702,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
     color_attachment[0].SrcAlphaBlendFactor = Pu::BlendFactor::ISrcAlpha;
     color_attachment[0].DstAlphaBlendFactor = Pu::BlendFactor::Zero;
     color_attachment[0].AlphaBlendOp = Pu::BlendOp::Add;
-    color_attachment[0].ColorWriteMask = Pu::ColorComponentFlag::RGBA;
+    color_attachment[0].ColorWriteMask = Pu::ColorComponentFlags::RGBA;
 
     Pu::PipelineDepthStencilStateCreateInfo depth_info = {};
 
@@ -907,7 +907,7 @@ void ImGui_ImplVulkanH_CreateWindowCommandBuffers(Pu::PhysicalDeviceHndl physica
         ImGui_ImplVulkanH_FrameSemaphores* fsd = &wd->FrameSemaphores[i];
         {
             Pu::CommandPoolCreateInfo info = {};
-            info.Flags = Pu::CommandPoolCreateFlag::ResetCommandBuffer;
+            info.Flags = Pu::CommandPoolCreateFlags::ResetCommandBuffer;
             info.QueueFamilyIndex = queue_family;
             err = Pu::vkCreateCommandPool(device, &info, allocator, &fd->CommandPool);
             check_vk_result(err);
@@ -922,7 +922,7 @@ void ImGui_ImplVulkanH_CreateWindowCommandBuffers(Pu::PhysicalDeviceHndl physica
         }
         {
             Pu::FenceCreateInfo info = {};
-            info.Flags = Pu::FenceCreateFlag::Signaled;
+            info.Flags = Pu::FenceCreateFlags::Signaled;
             err = Pu::vkCreateFence(device, &info, allocator, &fd->Fence);
             check_vk_result(err);
         }
@@ -983,10 +983,10 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(Pu::PhysicalDeviceHndl physical_dev
         info.ImageFormat = wd->SurfaceFormat.Format;
         info.ImageColorSpace = wd->SurfaceFormat.ColorSpace;
         info.ImageArrayLayers = 1;
-        info.ImageUsage = Pu::ImageUsageFlag::ColorAttachment;
+        info.ImageUsage = Pu::ImageUsageFlags::ColorAttachment;
         info.ImageSharingMode = Pu::SharingMode::Exclusive;           // Assume that graphics family == present family
-        info.Transform = Pu::SurfaceTransformFlag::Identity;
-        info.CompositeAlpha = Pu::CompositeAlphaFlag::Opaque;
+        info.Transform = Pu::SurfaceTransformFlags::Identity;
+        info.CompositeAlpha = Pu::CompositeAlphaFlags::Opaque;
         info.PresentMode = wd->PresentMode;
         info.Clipped = true;
         info.OldSwapChain = old_swapchain;
@@ -1033,7 +1033,7 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(Pu::PhysicalDeviceHndl physical_dev
     {
         Pu::AttachmentDescription attachment = {};
         attachment.Format = wd->SurfaceFormat.Format;
-        attachment.Samples = Pu::SampleCountFlag::Pixel1Bit;
+        attachment.Samples = Pu::SampleCountFlags::Pixel1Bit;
         attachment.LoadOp = wd->ClearEnable ? Pu::AttachmentLoadOp::Clear : Pu::AttachmentLoadOp::DontCare;
         attachment.StoreOp = Pu::AttachmentStoreOp::Store;
         attachment.StencilLoadOp = Pu::AttachmentLoadOp::DontCare;
@@ -1050,10 +1050,10 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(Pu::PhysicalDeviceHndl physical_dev
         Pu::SubpassDependency dependency = {};
         dependency.SrcSubpass = Pu::SubpassExternal;
         dependency.DstSubpass = 0;
-        dependency.SrcStageMask = Pu::PipelineStageFlag::ColorAttachmentOutput;
-        dependency.DstStageMask = Pu::PipelineStageFlag::ColorAttachmentOutput;
-        dependency.SrcAccessMask = Pu::AccessFlag::None;
-        dependency.DstAccessMask = Pu::AccessFlag::ColorAttachmentWrite;
+        dependency.SrcStageMask = Pu::PipelineStageFlags::ColorAttachmentOutput;
+        dependency.DstStageMask = Pu::PipelineStageFlags::ColorAttachmentOutput;
+        dependency.SrcAccessMask = Pu::AccessFlags::None;
+        dependency.DstAccessMask = Pu::AccessFlags::ColorAttachmentWrite;
         Pu::RenderPassCreateInfo info = {};
         info.AttachmentCount = 1;
         info.Attachments = &attachment;

@@ -12,7 +12,7 @@ namespace Pu
 		/* Initializes a new instance of a query chain for either occlusion or timestamp queries. */
 		QueryChain(_In_ LogicalDevice &device, _In_ QueryType type, _In_ size_t chainCount, _In_opt_ size_t bufferCount = 2);
 		/* Initializes a new instance of a query chain for pipeline statisics queries. */
-		QueryChain(_In_ LogicalDevice &device, _In_ QueryPipelineStatisticFlag statistics, _In_opt_ size_t bufferCount = 2);
+		QueryChain(_In_ LogicalDevice &device, _In_ QueryPipelineStatisticFlags statistics, _In_opt_ size_t bufferCount = 2);
 		QueryChain(_In_ const QueryChain&) = delete;
 		/* Move constructor. */
 		QueryChain(_In_ QueryChain &&value) = default;
@@ -24,7 +24,7 @@ namespace Pu
 		/* Resets the queries that need to be reset. */
 		void Reset(_In_ CommandBuffer &cmdBuffer);
 		/* Records a timestamp to the pool at a specified pipeline stage. */
-		void RecordTimestamp(_In_ CommandBuffer &cmdBuffer, _In_ uint32 chain, _In_ PipelineStageFlag stage);
+		void RecordTimestamp(_In_ CommandBuffer &cmdBuffer, _In_ uint32 chain, _In_ PipelineStageFlags stage);
 		/* Starts or ends the recording of a pipeline statistics query. */
 		void RecordStatistics(_In_ CommandBuffer &cmdBuffer);
 		/* Gets the time between the two timestamps previously recorded to the command buffer. */
@@ -53,7 +53,7 @@ namespace Pu
 		};
 
 		mutable vector<Chain> chains;
-		mutable QueryPipelineStatisticFlag stats;
+		mutable QueryPipelineStatisticFlags stats;
 
 #ifdef _DEBUG
 		bool logged;

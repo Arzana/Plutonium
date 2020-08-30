@@ -2,7 +2,7 @@
 
 using namespace Pu;
 
-Pu::ImageView::ImageView(const Image & image, ImageViewType type, ImageAspectFlag aspect)
+Pu::ImageView::ImageView(const Image & image, ImageViewType type, ImageAspectFlags aspect)
 	: parent(image.parent)
 {
 	ImageViewCreateInfo createInfo(image.imageHndl, type, image.format, aspect);

@@ -55,7 +55,7 @@ namespace Pu
 		_Check_return_ DeviceSize GetAllignedOffset(_In_ DeviceSize offset) const;
 
 	private:
-		friend class Subpass;
+		friend class ShaderProgram;
 		friend class DescriptorSetLayout;
 		friend class DescriptorSetBase;
 
@@ -67,6 +67,6 @@ namespace Pu
 		DescriptorSetLayoutBinding layoutBinding;
 
 		Descriptor(const FieldInfo &data);
-		Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlag stage);
+		Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo &data, ShaderStageFlags stage);
 	};
 }

@@ -60,6 +60,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkCreatePipelineLayout);
 	EXT_INSTANCE_PROC(vkDestroyPipelineLayout);
 	EXT_INSTANCE_PROC(vkCreateGraphicsPipelines);
+	EXT_INSTANCE_PROC(vkCreateComputePipelines);
 	EXT_INSTANCE_PROC(vkDestroyPipeline);
 	EXT_INSTANCE_PROC(vkCmdBeginRenderPass);
 	EXT_INSTANCE_PROC(vkCmdBindPipeline);

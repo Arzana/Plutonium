@@ -95,6 +95,7 @@ namespace Pu
 	private:
 		friend class Subpass;
 		friend class Renderpass;
+		friend class ShaderProgram;
 		friend class GraphicsPipeline;
 
 		bool clone;

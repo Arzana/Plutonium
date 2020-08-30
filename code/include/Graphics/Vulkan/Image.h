@@ -33,7 +33,7 @@ namespace Pu
 		/* Gets the amount of lazily-allocated bytes that are committed for the image. */
 		_Check_return_ DeviceSize GetLazyMemory(void) const;
 		/* Gets a sub-resource range spaning all sub-resources. */
-		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlag aspect) const;
+		_Check_return_ ImageSubresourceRange GetFullRange(_In_ ImageAspectFlags aspect) const;
 
 		/* Gets the amount of channels in this image. */
 		_Check_return_ inline size_t GetChannels(void) const
@@ -106,7 +106,7 @@ namespace Pu
 		this can be used when external calls changed the image layout.
 		For instance, a subpass final layout.
 		*/
-		inline void OverrideState(_In_ ImageLayout newLayout, _In_ AccessFlag newAccess)
+		inline void OverrideState(_In_ ImageLayout newLayout, _In_ AccessFlags newAccess)
 		{
 			layout = newLayout;
 			access = newAccess;
@@ -139,11 +139,11 @@ namespace Pu
 		Format format;
 		Extent3D dimensions;
 		uint32 mipmaps, layers;
-		ImageUsageFlag usage;
+		ImageUsageFlags usage;
 		mutable ImageLayout layout;
-		mutable AccessFlag access;
+		mutable AccessFlags access;
 
-		Image(LogicalDevice &device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlag usage, ImageLayout layout, AccessFlag access);
+		Image(LogicalDevice &device, ImageHndl hndl, ImageType type, Format format, Extent3D extent, uint32 mipmaps, ImageUsageFlags usage, ImageLayout layout, AccessFlags access);
 
 		void Create(const ImageCreateInfo &createInfo);
 		void CanCreate(const ImageCreateInfo &info);

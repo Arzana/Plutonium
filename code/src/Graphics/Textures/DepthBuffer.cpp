@@ -34,7 +34,7 @@ void Pu::DepthBuffer::MakeWritable(CommandBuffer & cmdBuffer)
 	The access mask needs to read write as we want to use it for writing and depth testing.
 	The earliest stage where read/writes to this depth buffer can occur is the early fragment tests.
 	*/
-	cmdBuffer.MemoryBarrier(*this, PipelineStageFlag::TopOfPipe, PipelineStageFlag::EarlyFragmentTests, ImageLayout::DepthStencilAttachmentOptimal, AccessFlag::DepthStencilAttachmentReadWrite, GetFullRange(aspect));
+	cmdBuffer.MemoryBarrier(*this, PipelineStageFlags::TopOfPipe, PipelineStageFlags::EarlyFragmentTests, ImageLayout::DepthStencilAttachmentOptimal, AccessFlags::DepthStencilAttachmentReadWrite, GetFullRange(aspect));
 }
 
 /* layers, hide decleration in image, but this is not accessible anyways. */
@@ -49,8 +49,8 @@ Pu::ImageCreateInfo Pu::DepthBuffer::CreateImageInfo(Format depthFormat, Extent2
 		Extent3D(size, 1),
 		1,
 		layers,
-		SampleCountFlag::Pixel1Bit,
-		ImageUsageFlag::DepthStencilAttachment | ImageUsageFlag::TransientAttachment | ImageUsageFlag::InputAttachment
+		SampleCountFlags::Pixel1Bit,
+		ImageUsageFlags::DepthStencilAttachment | ImageUsageFlags::TransientAttachment | ImageUsageFlags::InputAttachment
 	};
 }
 #pragma warning(pop)
@@ -62,13 +62,13 @@ void Pu::DepthBuffer::SetAspect(Format depthFormat)
 	case Format::D16_UNORM:
 	case Format::X8_D24_UNORM_PACK32:
 	case Format::D32_SFLOAT:
-		aspect = ImageAspectFlag::Depth;
+		aspect = ImageAspectFlags::Depth;
 		break;
 	case Format::S8_UINT:
 	case Format::D16_UNORM_S8_UINT:
 	case Format::D24_UNORM_S8_UINT:
 	case Format::D32_SFLOAT_S8_UINT:
-		aspect = ImageAspectFlag::Depth | ImageAspectFlag::Stencil;
+		aspect = ImageAspectFlags::Depth | ImageAspectFlags::Stencil;
 		break;
 	default:
 		Log::Fatal("Non depth-stencil format passed to DepthBuffer!");

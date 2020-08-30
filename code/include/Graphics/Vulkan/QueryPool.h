@@ -10,7 +10,7 @@ namespace Pu
 		/* Initializes a new instance of a query pool for either occlusion or timestamp queries. */
 		QueryPool(_In_ LogicalDevice &device, _In_ QueryType type, _In_ size_t count);
 		/* Initializes a new instance of a query pool for pipeline statistics queries. */
-		QueryPool(_In_ LogicalDevice &device, _In_ size_t count, _In_ QueryPipelineStatisticFlag statistics);
+		QueryPool(_In_ LogicalDevice &device, _In_ size_t count, _In_ QueryPipelineStatisticFlags statistics);
 		QueryPool(_In_ const QueryPool&) = delete;
 		/* Move constructor. */
 		QueryPool(_In_ QueryPool &&value);
@@ -48,8 +48,8 @@ namespace Pu
 		QueryPoolHndl hndl;
 		uint32 count;
 
-		bool GetOcclusionInternal(uint32 firstQuery, QueryResultFlag flag, uint32 &value) const;
-		bool GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlag flag, float &delta) const;
+		bool GetOcclusionInternal(uint32 firstQuery, QueryResultFlags flag, uint32 &value) const;
+		bool GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlags flag, float &delta) const;
 		void CheckRange(uint32 start, uint32 cnt) const;
 		void Destroy(void);
 	};

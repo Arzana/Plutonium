@@ -51,6 +51,7 @@ namespace Pu
 	PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
 	PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
 	PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+	PFN_vkCreateComputePipelines vkCreateComputePipelines;
 	PFN_vkDestroyPipeline vkDestroyPipeline;
 	PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
 	PFN_vkCmdBindPipeline vkCmdBindPipeline;
@@ -179,6 +180,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCreatePipelineLayout);
 	LOAD_INSTANCE_PROC(vkDestroyPipelineLayout);
 	LOAD_INSTANCE_PROC(vkCreateGraphicsPipelines);
+	LOAD_INSTANCE_PROC(vkCreateComputePipelines);
 	LOAD_INSTANCE_PROC(vkDestroyPipeline);
 	LOAD_INSTANCE_PROC(vkCmdBeginRenderPass);
 	LOAD_INSTANCE_PROC(vkCmdBindPipeline);

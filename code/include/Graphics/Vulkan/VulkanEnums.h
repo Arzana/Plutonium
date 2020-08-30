@@ -907,7 +907,7 @@ namespace Pu
 	};
 
 	/* Defines the bits that can be set in the FormatProperties features. */
-	enum class FormatFeatureFlag
+	enum class FormatFeatureFlags
 	{
 		/* Specifies that no features are enabled. */
 		None = 0x00000000,
@@ -940,7 +940,7 @@ namespace Pu
 	};
 
 	/* Defines the bits that can be set to specify the intended usage of an image. */
-	enum class ImageUsageFlag
+	enum class ImageUsageFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -963,7 +963,7 @@ namespace Pu
 	};
 
 	/* Defines additional parameters of an image. */
-	enum class ImageCreateFlag
+	enum class ImageCreateFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -980,7 +980,7 @@ namespace Pu
 	};
 
 	/* Defines the sample count limits. */
-	enum class SampleCountFlag
+	enum class SampleCountFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -1001,7 +1001,7 @@ namespace Pu
 	};
 
 	/* Defines the capabilities of queues in a queue family. */
-	enum class QueueFlag
+	enum class QueueFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -1020,7 +1020,7 @@ namespace Pu
 	};
 
 	/* Defines the properties of a memory heap. */
-	enum class MemoryPropertyFlag
+	enum class MemoryPropertyFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1039,7 +1039,7 @@ namespace Pu
 	};
 
 	/* Defines the attribute flags for heaps. */
-	enum class MemoryHeapFlag
+	enum class MemoryHeapFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1050,7 +1050,7 @@ namespace Pu
 	};
 
 	/* Defines the synchronization scopes of pipeline stages. */
-	enum class PipelineStageFlag
+	enum class PipelineStageFlags
 	{
 		/* Specifies the stage of the pipeline where any commands are initially received by the queue. */
 		TopOfPipe = 0x00000001,
@@ -1089,7 +1089,7 @@ namespace Pu
 	};
 
 	/* Defines the aspects of an image for purposes such as indentifying a subresource. */
-	enum class ImageAspectFlag
+	enum class ImageAspectFlags
 	{
 		/* Specifies the color aspect. */
 		Color = 0x00000001,
@@ -1102,7 +1102,7 @@ namespace Pu
 	};
 
 	/* Defines additional information about the sparse resource. */
-	enum class SparseImageFormatFlag
+	enum class SparseImageFormatFlags
 	{
 		/* Specifies that the image uses a single mip tail region for all array layers. */
 		SingleMipTail = 0x00000001,
@@ -1113,14 +1113,14 @@ namespace Pu
 	};
 
 	/* Defines the usage of a sparse memory binding operation. */
-	enum class SparseMemoryBindFlag
+	enum class SparseMemoryBindFlags
 	{
 		/* Specifies that the memory being bound is only for the metadata aspect. */
 		MetaData = 0x00000001
 	};
 
 	/* Defines the initial state and behaviour of a fence. */
-	enum class FenceCreateFlag
+	enum class FenceCreateFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1129,7 +1129,7 @@ namespace Pu
 	};
 
 	/* Defines the queried pipeline statistics. */
-	enum class QueryPipelineStatisticFlag
+	enum class QueryPipelineStatisticFlags
 		: uint32
 	{
 		/* No flags were set. */
@@ -1159,7 +1159,7 @@ namespace Pu
 	};
 
 	/* Defines how and when result are returned. */
-	enum class QueryResultFlag
+	enum class QueryResultFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1174,7 +1174,7 @@ namespace Pu
 	};
 
 	/* Defines additional parameters of a buffer. */
-	enum class BufferCreateFlag
+	enum class BufferCreateFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1189,7 +1189,7 @@ namespace Pu
 	};
 
 	/* Defines the usage behaviour of a buffer. */
-	enum class BufferUsageFlag
+	enum class BufferUsageFlags
 	{
 		/* Specifies that the buffer usage is not defined. */
 		Undefinfed = 0x00000000,
@@ -1214,7 +1214,7 @@ namespace Pu
 	};
 
 	/* Defines how a pipeline is created. */
-	enum class PipelineCreateFlag
+	enum class PipelineCreateFlags
 	{
 		/* No flags where set. */
 		None = 0x00000000,
@@ -1231,7 +1231,7 @@ namespace Pu
 	};
 
 	/* Defines the shader stages. */
-	enum class ShaderStageFlag
+	enum class ShaderStageFlags
 	{
 		/* Shader stage is unknown. */
 		Unknown = 0x00000000,
@@ -1254,7 +1254,7 @@ namespace Pu
 	};
 
 	/* Defines the types of triangle culling. */
-	enum class CullModeFlag
+	enum class CullModeFlags
 	{
 		/* Specified that no triangle are discarded. */
 		None = 0,
@@ -1267,7 +1267,7 @@ namespace Pu
 	};
 
 	/* Defines the color components that are writen to the framebuffer. */
-	enum class ColorComponentFlag
+	enum class ColorComponentFlags
 	{
 		/* Specifies that the Red value is written to the color attachment. */
 		R = 0x00000001,
@@ -1284,7 +1284,7 @@ namespace Pu
 	};
 
 	/* Defines the operations available on a descriptor pool. */
-	enum class DescriptorPoolCreateFlag
+	enum class DescriptorPoolCreateFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -1295,7 +1295,7 @@ namespace Pu
 	};
 
 	/* Defines additional properties of attachments. */
-	enum class AttachmentDescriptionFlag
+	enum class AttachmentDescriptionFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -1304,7 +1304,7 @@ namespace Pu
 	};
 
 	/* Defines the memory access types that will participate in a memory dependency. */
-	enum class AccessFlag
+	enum class AccessFlags
 	{
 		/* No flags where set. */
 		None = 0x00000000,
@@ -1349,7 +1349,7 @@ namespace Pu
 	};
 
 	/* Defines how execution and memory dependencies are formed. */
-	enum class DependencyFlag
+	enum class DependencyFlags
 	{
 		/* No flags where set. */
 		None = 0x00000000,
@@ -1362,7 +1362,7 @@ namespace Pu
 	};
 
 	/* Defines the usage behaviour for a command pool. */
-	enum class CommandPoolCreateFlag
+	enum class CommandPoolCreateFlags
 	{
 		/* No flags have been set. */
 		None = 0x00000000,
@@ -1375,14 +1375,14 @@ namespace Pu
 	};
 
 	/* Defines the controlling behaviour of a command pool reset. */
-	enum class CommandPoolResetFlag
+	enum class CommandPoolResetFlags
 	{
 		/* Specifies that resetting a command pool recycles all of the resources from the command pool. */
 		ReleaseResources = 0x00000001
 	};
 
 	/* Defines the usage behaviour for command buffers. */
-	enum class CommandBufferUsageFlag
+	enum class CommandBufferUsageFlags
 	{
 		/* No slags were set. */
 		None = 0x00000000,
@@ -1395,7 +1395,7 @@ namespace Pu
 	};
 
 	/* Defines the specific constraints on a query. */
-	enum class QueryControlFlag
+	enum class QueryControlFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1404,14 +1404,14 @@ namespace Pu
 	};
 
 	/* Defines the behavior of a command buffer reset. */
-	enum class CommandBufferResetFlag
+	enum class CommandBufferResetFlags
 	{
 		/* Specifies that most or all memory resources currently owned by the command buffer should be returned to the parent command pool. */
 		ReleaseResrouces = 0x00000001
 	};
 
 	/* Defines sets of stencil state for which to update the compare mask. */
-	enum class StencilFaceFlag
+	enum class StencilFaceFlags
 	{
 		/* Specifies that only the front set of stencil state is updated. */
 		Front = 0x00000001,
@@ -1422,7 +1422,7 @@ namespace Pu
 	};
 
 	/* Defines behaviour of the queue. */
-	enum class DeviceQueueCreateFlag
+	enum class DeviceQueueCreateFlags
 	{
 		/* No flags are set. */
 		None = 0x00000000,
@@ -1431,7 +1431,7 @@ namespace Pu
 	};
 
 	/* Defines surface presentation transformations. */
-	enum class SurfaceTransformFlag
+	enum class SurfaceTransformFlags
 	{
 		/* No transformation is applied when presenting. */
 		Identity = 0x00000001,
@@ -1454,7 +1454,7 @@ namespace Pu
 	};
 
 	/* Defines how the alpha channel in an image should be handled. */
-	enum class CompositeAlphaFlag
+	enum class CompositeAlphaFlags
 	{
 		/* The alpha channel (if it exists) is ignored. */
 		Opaque = 0x00000001,
@@ -1521,7 +1521,7 @@ namespace Pu
 	};
 
 	/* Defines the usage of a subpass. */
-	enum class SubpassDescriptionFlag
+	enum class SubpassDescriptionFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1532,7 +1532,7 @@ namespace Pu
 	};
 
 	/* Defines the types of message severities in the debug extension. */
-	enum class DebugUtilsMessageSeverityFlag
+	enum class DebugUtilsMessageSeverityFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1551,7 +1551,7 @@ namespace Pu
 	};
 
 	/* Defines the type of message event. */
-	enum class DebugUtilsMessageTypeFlag
+	enum class DebugUtilsMessageTypeFlags
 	{
 		/* No flags were set. */
 		None = 0x00000000,
@@ -1651,61 +1651,61 @@ namespace Pu
 	};
 
 	/* Appends the flag bits of an image usage flag. */
-	_Check_return_ inline constexpr ImageUsageFlag operator |(_In_ ImageUsageFlag a, _In_ ImageUsageFlag b)
+	_Check_return_ inline constexpr ImageUsageFlags operator |(_In_ ImageUsageFlags a, _In_ ImageUsageFlags b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an image usage flag. */
-	_Check_return_ inline ImageUsageFlag operator |=(_In_ ImageUsageFlag &a, _In_ ImageUsageFlag b)
+	_Check_return_ inline ImageUsageFlags operator |=(_In_ ImageUsageFlags &a, _In_ ImageUsageFlags b)
 	{
 		return a = _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an buffer usage flag. */
-	_Check_return_ inline constexpr BufferUsageFlag operator |(_In_ BufferUsageFlag a, _In_ BufferUsageFlag b)
+	_Check_return_ inline constexpr BufferUsageFlags operator |(_In_ BufferUsageFlags a, _In_ BufferUsageFlags b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an image aspect flag. */
-	_Check_return_ inline constexpr ImageAspectFlag operator |(_In_ ImageAspectFlag a, _In_ ImageAspectFlag b)
+	_Check_return_ inline constexpr ImageAspectFlags operator |(_In_ ImageAspectFlags a, _In_ ImageAspectFlags b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an shader stage flag. */
-	_Check_return_ inline ShaderStageFlag operator |=(_In_ ShaderStageFlag &a, _In_ ShaderStageFlag b)
+	_Check_return_ inline ShaderStageFlags operator |=(_In_ ShaderStageFlags &a, _In_ ShaderStageFlags b)
 	{
 		return a = _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an query result flag. */
-	_Check_return_ inline QueryResultFlag operator |=(_In_ QueryResultFlag &a, _In_ QueryResultFlag b)
+	_Check_return_ inline QueryResultFlags operator |=(_In_ QueryResultFlags &a, _In_ QueryResultFlags b)
 	{
 		return a = _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an queue flag. */
-	_Check_return_ inline constexpr QueueFlag operator |(_In_ QueueFlag a, _In_ QueueFlag b)
+	_Check_return_ inline constexpr QueueFlags operator |(_In_ QueueFlags a, _In_ QueueFlags b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Masks the flag bits of an queue flag. */
-	_Check_return_ inline constexpr QueueFlag operator &(_In_ QueueFlag a, _In_ QueueFlag b)
+	_Check_return_ inline constexpr QueueFlags operator &(_In_ QueueFlags a, _In_ QueueFlags b)
 	{
 		return _CrtEnumBitAnd(a, b);
 	}
 
 	/* Appends the flag bits of an query pipeline statistics flag. */
-	_Check_return_ inline constexpr QueryPipelineStatisticFlag operator |(_In_ QueryPipelineStatisticFlag a, _In_ QueryPipelineStatisticFlag b)
+	_Check_return_ inline constexpr QueryPipelineStatisticFlags operator |(_In_ QueryPipelineStatisticFlags a, _In_ QueryPipelineStatisticFlags b)
 	{
 		return _CrtEnumBitOr(a, b);
 	}
 
 	/* Appends the flag bits of an query pipeline statistics flag. */
-	_Check_return_ inline constexpr QueryPipelineStatisticFlag operator |=(_In_ QueryPipelineStatisticFlag &a, _In_ QueryPipelineStatisticFlag b)
+	_Check_return_ inline constexpr QueryPipelineStatisticFlags operator |=(_In_ QueryPipelineStatisticFlags &a, _In_ QueryPipelineStatisticFlags b)
 	{
 		return a = _CrtEnumBitOr(a, b);
 	}
@@ -2370,21 +2370,21 @@ namespace Pu
 	}
 
 	/* Converts a shader stage flag to string. */
-	_Check_return_ inline const char* to_string(_In_ ShaderStageFlag stage)
+	_Check_return_ inline const char* to_string(_In_ ShaderStageFlags stage)
 	{
 		switch (stage)
 		{
-		case ShaderStageFlag::Vertex:
+		case ShaderStageFlags::Vertex:
 			return "Vertex";
-		case ShaderStageFlag::TessellationControl:
+		case ShaderStageFlags::TessellationControl:
 			return "Tessellation control";
-		case ShaderStageFlag::TessellationEvaluation:
+		case ShaderStageFlags::TessellationEvaluation:
 			return "Tessellation evaluation";
-		case ShaderStageFlag::Geometry:
+		case ShaderStageFlags::Geometry:
 			return "Geometry";
-		case ShaderStageFlag::Fragment:
+		case ShaderStageFlags::Fragment:
 			return "Fragment";
-		case ShaderStageFlag::Compute:
+		case ShaderStageFlags::Compute:
 			return "Compute";
 		default:
 			return "Unknown";
@@ -2809,33 +2809,33 @@ namespace Pu
 	}
 
 	/* Gets a human readable version of the specific pipeline statistics flag. */
-	_Check_return_ inline const char* to_string(_In_ QueryPipelineStatisticFlag flags)
+	_Check_return_ inline const char* to_string(_In_ QueryPipelineStatisticFlags flags)
 	{
 		switch (flags)
 		{
-		case QueryPipelineStatisticFlag::None:
+		case QueryPipelineStatisticFlags::None:
 			return "None";
-		case QueryPipelineStatisticFlag::InputAssemblyVertices:
+		case QueryPipelineStatisticFlags::InputAssemblyVertices:
 			return "Input Assembly Vertices";
-		case QueryPipelineStatisticFlag::InputAssemblyPrimitives:
+		case QueryPipelineStatisticFlags::InputAssemblyPrimitives:
 			return "Input Assembly Primitives";
-		case QueryPipelineStatisticFlag::VertexShaderInvocations:
+		case QueryPipelineStatisticFlags::VertexShaderInvocations:
 			return "Vertex Shader Invocations";
-		case QueryPipelineStatisticFlag::GeometryShaderInvocations:
+		case QueryPipelineStatisticFlags::GeometryShaderInvocations:
 			return "Geometry Shader Invocations";
-		case QueryPipelineStatisticFlag::GeometryShaderPrimitives:
+		case QueryPipelineStatisticFlags::GeometryShaderPrimitives:
 			return "Geometry Shader Primitives";
-		case QueryPipelineStatisticFlag::ClippingInvocations:
+		case QueryPipelineStatisticFlags::ClippingInvocations:
 			return "Clipping Invocations";
-		case QueryPipelineStatisticFlag::ClippingPrimitives:
+		case QueryPipelineStatisticFlags::ClippingPrimitives:
 			return "Clipping Primitives";
-		case QueryPipelineStatisticFlag::FragmentShaderInvocations:
+		case QueryPipelineStatisticFlags::FragmentShaderInvocations:
 			return "Fragment Shader Invocations";
-		case QueryPipelineStatisticFlag::TessellationControlShaderPatches:
+		case QueryPipelineStatisticFlags::TessellationControlShaderPatches:
 			return "Tessellation Control Shader Patches";
-		case QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations:
+		case QueryPipelineStatisticFlags::TessellationEvaluationShaderInvocations:
 			return "Tessellation Evaluation Shader Invocations";
-		case QueryPipelineStatisticFlag::ComputeShaderInvocations:
+		case QueryPipelineStatisticFlags::ComputeShaderInvocations:
 			return "Compute Shader Invocations";
 		default:
 			return "Unknown";

@@ -32,7 +32,7 @@ namespace Pu
 		/* Adds a descriptor set from a specific subpass to the pool. */
 		void AddSet(_In_ uint32 subpass, _In_ uint32 set, _In_ uint32 max);
 		/* Updates the descriptor pool, staging all the descriptors to the GPU. */
-		void Update(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlag dstStage);
+		void Update(_In_ CommandBuffer &cmdBuffer, _In_ PipelineStageFlags dstStage);
 		/* Recycles all the resources from all descriptor sets allocated from the pool back into the pool. */
 		void Reset(void);
 

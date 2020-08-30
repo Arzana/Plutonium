@@ -126,7 +126,7 @@ public:
 		/* Finalize the mesh and create the GPU buffer. */
 		src->EndMemoryTransfer();
 		result.Finalize(loader.GetDevice(), GPU_BUFFER_SIZE * sizeof(Vector3));
-		loader.StageBuffer(*src, result.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"Debug Renderer Meshes");
+		loader.StageBuffer(*src, result.GetBuffer(), PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead, L"Debug Renderer Meshes");
 		return Result::AutoDelete();
 	}
 
@@ -162,7 +162,7 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 #endif
 {
 	/* We need a dynamic buffer because the data will update every frame. */
-	buffer = new DynamicBuffer(window.GetDevice(), sizeof(VertexLayout) * HOST_BUFFER_COUNT, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
+	buffer = new DynamicBuffer(window.GetDevice(), sizeof(VertexLayout) * HOST_BUFFER_COUNT, BufferUsageFlags::TransferDst | BufferUsageFlags::VertexBuffer);
 	buffer->BeginMemoryTransfer();
 
 	query = new QueryChain(window.GetDevice(), QueryType::Timestamp, 1);
@@ -411,13 +411,13 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 
 			/* Begin the renderpass. */
 			cmdBuffer.BeginRenderPass(*renderpass, wnd.GetCurrentFramebuffer(*renderpass), SubpassContents::Inline);
-			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::TopOfPipe);
+			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::TopOfPipe);
 			cmdBuffer.BindGraphicsPipeline(*pipeline);
 			if (dynamicLineWidth) cmdBuffer.SetLineWidth(lineWidth);
 
 			/* Update the descriptors. */
 			const Matrix constants[2] = { camera.GetProjection(), camera.GetView() };
-			cmdBuffer.PushConstants(*pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix) << 1, constants);
+			cmdBuffer.PushConstants(*pipeline, ShaderStageFlags::Vertex, 0, sizeof(Matrix) << 1, constants);
 
 			/* Render the debug lines. */
 			meshes->Bind(cmdBuffer, 0, 1);
@@ -429,7 +429,7 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 			if (cntHemisphere) meshes->GetMesh(4).Draw(cmdBuffer, Hemisphere_START, cntHemisphere);
 
 			/* End the renderpass. */
-			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::BottomOfPipe);
+			query->RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::BottomOfPipe);
 			cmdBuffer.EndRenderPass();
 			cmdBuffer.EndLabel();
 		}

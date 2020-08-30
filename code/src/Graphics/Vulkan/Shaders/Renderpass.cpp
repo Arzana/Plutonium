@@ -80,7 +80,7 @@ void Pu::Renderpass::Initialize(void)
 	if (!(IsLoaded() || ownsShaders)) Create(false);
 }
 
-void Pu::Renderpass::AddDependency(PipelineStageFlag srcStage, PipelineStageFlag dstStage, AccessFlag srcAccess, AccessFlag dstAccess, DependencyFlag flag)
+void Pu::Renderpass::AddDependency(PipelineStageFlags srcStage, PipelineStageFlags dstStage, AccessFlags srcAccess, AccessFlags dstAccess, DependencyFlags flag)
 {
 	usesDependency = true;
 	outputDependency.SrcSubpass = static_cast<uint32>(subpasses.size() - 1);

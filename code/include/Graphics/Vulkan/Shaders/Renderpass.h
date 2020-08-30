@@ -39,7 +39,7 @@ namespace Pu
 		/* Initializes the renderpass, this method is only available for renderpass that aren't initialized yet via either the loader or directly. */
 		void Initialize(void);
 		/* Adds an external dependency to the end of the renderpass. */
-		void AddDependency(_In_ PipelineStageFlag srcStage, _In_ PipelineStageFlag dstStage, _In_ AccessFlag srcAccess, _In_ AccessFlag dstAccess, _In_opt_ DependencyFlag flag = DependencyFlag::None);
+		void AddDependency(_In_ PipelineStageFlags srcStage, _In_ PipelineStageFlags dstStage, _In_ AccessFlags srcAccess, _In_ AccessFlags dstAccess, _In_opt_ DependencyFlags flag = DependencyFlags::None);
 		/* Recreates the renderpass after a attachment change. */
 		void Recreate(void);
 

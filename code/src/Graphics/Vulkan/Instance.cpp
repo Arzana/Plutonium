@@ -378,20 +378,20 @@ void Pu::VulkanInstance::LogAvailableExtensionsAndLayers(void) const
 }
 
 #if defined(_DEBUG) || defined(VULKAN_FORCE_VALIDATION)
-VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData * data, void *)
+VKAPI_ATTR Bool32 VKAPI_CALL Pu::VulkanInstance::DebugCallback(DebugUtilsMessageSeverityFlags severity, DebugUtilsMessageTypeFlags, const DebugUtilsMessengerCallbackData * data, void *)
 {
 	switch (severity)
 	{
-	case DebugUtilsMessageSeverityFlag::Verbose:
+	case DebugUtilsMessageSeverityFlags::Verbose:
 		Log::Verbose(data->Message);
 		break;
-	case DebugUtilsMessageSeverityFlag::Info:
+	case DebugUtilsMessageSeverityFlags::Info:
 		Log::Message(data->Message);
 		break;
-	case DebugUtilsMessageSeverityFlag::Warning:
+	case DebugUtilsMessageSeverityFlags::Warning:
 		Log::Warning(data->Message);
 		break;
-	case DebugUtilsMessageSeverityFlag::Error:
+	case DebugUtilsMessageSeverityFlags::Error:
 		if constexpr (VulkanRaiseOnError) Log::APIFatal("Vulkan", false, data->Message);
 		else Log::Error(data->Message);
 		break;
@@ -406,8 +406,8 @@ void Pu::VulkanInstance::SetUpDebugLayer(void)
 	{
 		/* Only add the verbose and info messages if needed. */
 		DebugUtilsMessengerCreateInfo createInfo(VulkanInstance::DebugCallback);
-		if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Verbose);
-		if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlag::Info);
+		if constexpr (LogVulkanVerboseMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlags::Verbose);
+		if constexpr (LogVulkanInfoMessages) _CrtEnumBitOrSet(createInfo.MessageSeverity, DebugUtilsMessageSeverityFlags::Info);
 
 		VK_VALIDATE(vkCreateDebugUtilsMessengerEXT(hndl, &createInfo, nullptr, &msgHndl), PFN_vkCreateDebugUtilsMessenger);
 	}

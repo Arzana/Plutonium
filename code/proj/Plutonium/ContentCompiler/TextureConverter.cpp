@@ -307,16 +307,16 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	saver->OnAssetSaved += [](const AssetSaver&, const Image&) { imageSaveCnt++; };
 
 	/* Create the shaders needed for the conversion. */
-	vrtxShader = new Shader(*device, VERTEX_SHADER, sizeof(VERTEX_SHADER), ShaderStageFlag::Vertex);
-	fragShader = new Shader(*device, FRAGMENT_SHADER, sizeof(FRAGMENT_SHADER), ShaderStageFlag::Fragment);
+	vrtxShader = new Shader(*device, VERTEX_SHADER, sizeof(VERTEX_SHADER), ShaderStageFlags::Vertex);
+	fragShader = new Shader(*device, FRAGMENT_SHADER, sizeof(FRAGMENT_SHADER), ShaderStageFlags::Fragment);
 
 	/* Create the subpass and renderpass. */
 	Subpass subpass{ *device, { vrtxShader, fragShader } };
-	subpass.SetDependency(PipelineStageFlag::FragmentShader, PipelineStageFlag::ColorAttachmentOutput, AccessFlag::None, AccessFlag::ColorAttachmentWrite, DependencyFlag::ByRegion);
+	subpass.SetDependency(PipelineStageFlags::FragmentShader, PipelineStageFlags::ColorAttachmentOutput, AccessFlags::None, AccessFlags::ColorAttachmentWrite, DependencyFlags::ByRegion);
 
 	/* Add an external dependency so we can skip a memory barrier later on. */
 	renderpass = new Renderpass(*device, std::move(subpass));
-	renderpass->AddDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::Transfer, AccessFlag::ColorAttachmentWrite, AccessFlag::TransferRead, DependencyFlag::ByRegion);
+	renderpass->AddDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::Transfer, AccessFlags::ColorAttachmentWrite, AccessFlags::TransferRead, DependencyFlags::ByRegion);
 
 	/* Both the diffuse and specular/glossiness will transform from color attachments to transfer destinations after the subpass. */
 	renderpass->PreCreate += [](Renderpass &renderpass)
@@ -342,7 +342,7 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 
 	/* Create the basic graphics pipeline. */
 	pipeline = new GraphicsPipeline(*renderpass, 0);
-	pipeline->SetCullMode(CullModeFlag::Front);
+	pipeline->SetCullMode(CullModeFlags::Front);
 	pipeline->SetTopology(PrimitiveTopology::TriangleList);
 	pipeline->AddDynamicState(DynamicState::ViewPort);
 	pipeline->AddDynamicState(DynamicState::Scissor);
@@ -473,12 +473,12 @@ void InitializeFramebuffers(const vector<std::pair<uint32, uint32>> &sources)
 	{
 		/* The 2 output images have the same format and size. */
 		const Extent3D size = textures[albedo != DEFAULT_INDEX ? albedo : metalRough]->GetImage().GetExtent();
-		const ImageCreateInfo createInfo{ ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferSrc };
+		const ImageCreateInfo createInfo{ ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlags::Pixel1Bit, ImageUsageFlags::ColorAttachment | ImageUsageFlags::TransferSrc };
 
 		outputs.emplace_back(new Image(*device, createInfo));
-		attachments.emplace_back(new ImageView(*outputs.back(), ImageViewType::Image2D, ImageAspectFlag::Color));
+		attachments.emplace_back(new ImageView(*outputs.back(), ImageViewType::Image2D, ImageAspectFlags::Color));
 		outputs.emplace_back(new Image(*device, createInfo));
-		attachments.emplace_back(new ImageView(*outputs.back(), ImageViewType::Image2D, ImageAspectFlag::Color));
+		attachments.emplace_back(new ImageView(*outputs.back(), ImageViewType::Image2D, ImageAspectFlags::Color));
 
 		/* The framebuffer just uses the last 2 images. */
 		framebuffers.emplace_back(new Framebuffer(*renderpass, size.To2D(), { attachments[attachments.size() - 2], attachments.back() }));
@@ -594,8 +594,8 @@ void SaveOutputs(PumIntermediate &data, const vector<std::pair<uint32, uint32>> 
 		Image &diffuseImg = *outputs[i++];
 		Image &specGlossImg = *outputs[i++];
 
-		diffuseImg.OverrideState(ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead);
-		specGlossImg.OverrideState(ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead);
+		diffuseImg.OverrideState(ImageLayout::TransferSrcOptimal, AccessFlags::TransferRead);
+		specGlossImg.OverrideState(ImageLayout::TransferSrcOptimal, AccessFlags::TransferRead);
 
 		const wstring diffusePath = CreateOutputPath(wdir, data, albedo, metalRough);
 		const wstring specGlossPath = CreateOutputPath(wdir, data, metalRough, albedo);
@@ -617,7 +617,7 @@ void ConvertTextures(PumIntermediate & data, const wstring &wdir, const ustring 
 
 	/* Get the queue we'll be pushing towards and create some command buffers to hopefully speed up converting. */
 	Queue &queue = device->GetGraphicsQueue(0);
-	CommandPool pool{ *device, device->GetGraphicsQueueFamily(), CommandPoolCreateFlag::Transient };
+	CommandPool pool{ *device, device->GetGraphicsQueueFamily(), CommandPoolCreateFlags::Transient };
 	vector<CommandBuffer> cmdBuffers;
 	cmdBuffers.reserve(framebuffers.size() + 1);
 	for (size_t i = 0; i < cmdBuffers.capacity(); i++) cmdBuffers.emplace_back(std::move(pool.Allocate()));
@@ -636,8 +636,8 @@ void ConvertTextures(PumIntermediate & data, const wstring &wdir, const ustring 
 	/* Make sure all the resources are in the correct positions. */
 	CommandBuffer &memoryCmdBuffer = cmdBuffers.front();
 	memoryCmdBuffer.Begin();
-	memoryCmdBuffer.MemoryBarrier(srcMemoryBarriers, PipelineStageFlag::Transfer, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead);
-	descPool->Update(memoryCmdBuffer, PipelineStageFlag::FragmentShader);
+	memoryCmdBuffer.MemoryBarrier(srcMemoryBarriers, PipelineStageFlags::Transfer, PipelineStageFlags::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlags::ShaderRead);
+	descPool->Update(memoryCmdBuffer, PipelineStageFlags::FragmentShader);
 	memoryCmdBuffer.End();
 	queue.Submit(memoryCmdBuffer);
 

@@ -33,6 +33,12 @@ namespace Pu
 			SetSpecializationData(shader, &data, sizeof(data_t));
 		}
 
+		/* Sets the optional creation flags for this pipeline. */
+		inline void SetCreateFlags(_In_ PipelineCreateFlags flags)
+		{
+			CreateFlags = flags;
+		}
+
 		/* Gets whether this pipeline can be bound. */
 		_Check_return_ inline bool IsUsable(void) const
 		{
@@ -56,9 +62,11 @@ namespace Pu
 		PipelineLayoutHndl LayoutHndl;
 		/* The logical device on which this pipeline was created. */
 		LogicalDevice *Device;
+		/* Specifies the create flags that should be used during pipeline creation. */
+		PipelineCreateFlags CreateFlags;
 
 		/* Initializes a new instance of a Vulkan pipeline. */
-		Pipeline(_In_ LogicalDevice &device, _In_ const Subpass &subpass);
+		Pipeline(_In_ LogicalDevice &device, _In_ const ShaderProgram &program);
 
 		/* Gets the shader stages used by the pipeline. */
 		_Check_return_ inline const vector<PipelineShaderStageCreateInfo>& GetShaderStages(void) const
@@ -67,7 +75,7 @@ namespace Pu
 		}
 
 		/* Sets the specialization map entries for the pipeline shader stages and validates that all constants have been set. */
-		void InitializeSpecializationConstants(_In_ const Subpass &subpass);
+		void InitializeSpecializationConstants(_In_ const ShaderProgram &program);
 		/* Releases the pipeline. */
 		void Destroy(void);
 
@@ -77,7 +85,7 @@ namespace Pu
 		vector<SpecializationInfo> specInfos;
 		vector<PipelineShaderStageCreateInfo> shaderStages;
 
-		void CreatePipelineLayout(const Subpass &subpass);
+		void CreatePipelineLayout(const ShaderProgram &program);
 		void DestroyBuffers(void);
 		void FullDestroy(void);
 	};

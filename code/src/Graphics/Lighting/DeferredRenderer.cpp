@@ -56,7 +56,7 @@ public:
 		Mesh mesh = ShapeCreator::VolumeSphere(*staging, EllipsiodDivs);
 		result.Initialize(fetcher.GetDevice(), *staging, ShapeCreator::GetVolumeSphereVertexSize(EllipsiodDivs), std::move(mesh));
 
-		fetcher.GetLoader().StageBuffer(*staging, result.GetBuffer(), PipelineStageFlag::VertexInput, AccessFlag::VertexAttributeRead, L"Deferred Renderer Light Volumes");
+		fetcher.GetLoader().StageBuffer(*staging, result.GetBuffer(), PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead, L"Deferred Renderer Light Volumes");
 		return Result::AutoDelete();
 	}
 
@@ -128,8 +128,8 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 {
 #ifdef _DEBUG
 	/* Only add the tessellation flag if it's supported. */
-	QueryPipelineStatisticFlag statFlags = QueryPipelineStatisticFlag::VertexShaderInvocations | QueryPipelineStatisticFlag::FragmentShaderInvocations;
-	statFlags |= _CrtInt2Enum<QueryPipelineStatisticFlag>(_CrtEnum2Int(QueryPipelineStatisticFlag::TessellationEvaluationShaderInvocations) & GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader);
+	QueryPipelineStatisticFlags statFlags = QueryPipelineStatisticFlags::VertexShaderInvocations | QueryPipelineStatisticFlags::FragmentShaderInvocations;
+	if (GetDevice().GetPhysicalDevice().GetEnabledFeatures().TessellationShader) statFlags |= QueryPipelineStatisticFlags::TessellationEvaluationShaderInvocations;
 #endif
 
 	/* Used for debugging. */
@@ -255,7 +255,7 @@ void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const 
 		depthBuffer->MakeWritable(cmdBuffer);
 		for (const Texture *attachment : textures)
 		{
-			cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlag::TopOfPipe, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlag::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlag::ByRegion);
+			cmdBuffer.MemoryBarrier(*attachment, PipelineStageFlags::TopOfPipe, PipelineStageFlags::ColorAttachmentOutput, ImageLayout::ColorAttachmentOptimal, AccessFlags::ColorAttachmentWrite, attachment->GetFullRange(), DependencyFlags::ByRegion);
 		}
 	}
 }
@@ -283,7 +283,7 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 	{
 	case SubpassTerrain:
 		label += "Terrain";
-		timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::TopOfPipe);
+		timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlags::TopOfPipe);
 		break;
 	case SubpassBasicStaticGeometry:
 		label += "Basic Static";
@@ -312,13 +312,13 @@ void Pu::DeferredRenderer::Begin(uint32 subpass)
 	/* Start the geometry timer if this is the first geometry pass. */
 	if (is_geometry_subpass(subpass) && !is_geometry_subpass(uActiveSubpass))
 	{
-		timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::TopOfPipe);
+		timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlags::TopOfPipe);
 	}
 
 	/* Start the lighting timer if this is the first ligh pass. */
 	if (is_lighting_subpass(subpass) && !is_lighting_subpass(uActiveSubpass))
 	{
-		timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::TopOfPipe);
+		timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlags::TopOfPipe);
 	}
 
 	/*
@@ -419,7 +419,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform)
 
 	/* Set the model matrix. */
 	const GraphicsPipeline &pipeline = *(activeSubpass == SubpassAdvancedStaticGeometry ? gfxGPassAdv : gfxGPassBasic);
-	curCmd->PushConstants(pipeline, ShaderStageFlag::Vertex, 0, sizeof(Matrix), transform.GetComponents());
+	curCmd->PushConstants(pipeline, ShaderStageFlags::Vertex, 0, sizeof(Matrix), transform.GetComponents());
 
 	const uint32 requiredStride = pipeline.GetVertexStride(0);
 	uint32 oldMatIdx = MeshCollection::DefaultMaterialIdx;
@@ -473,7 +473,7 @@ void Pu::DeferredRenderer::Render(const Model & model, const Matrix & transform,
 	float push[17];
 	memcpy(push, transform.GetComponents(), sizeof(Matrix));
 	push[16] = blending;
-	curCmd->PushConstants(*gfxGPassBasicMorph, ShaderStageFlag::Vertex, 0, sizeof(push), push);
+	curCmd->PushConstants(*gfxGPassBasicMorph, ShaderStageFlags::Vertex, 0, sizeof(push), push);
 
 	/* Query the two meshes from the model. */
 	const auto &[matIdx1, mesh1] = meshes.GetShape(keyFrame1);
@@ -564,19 +564,19 @@ void Pu::DeferredRenderer::EndSubpass(uint32 newSubpass, uint32 uActiveSubpass)
 		/* End the terrain timer if needed. */
 		if (uActiveSubpass == SubpassTerrain)
 		{
-			timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlag::BottomOfPipe);
+			timer->RecordTimestamp(*curCmd, TerrainTimer, PipelineStageFlags::BottomOfPipe);
 		}
 
 		/* End the geometry timer if needed. */
 		if (is_geometry_subpass(uActiveSubpass) && !is_geometry_subpass(newSubpass))
 		{
-			timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlag::BottomOfPipe);
+			timer->RecordTimestamp(*curCmd, GeometryTimer, PipelineStageFlags::BottomOfPipe);
 		}
 
 		/* End the lighting timer if needed. */
 		if (is_lighting_subpass(uActiveSubpass) && !is_lighting_subpass(newSubpass))
 		{
-			timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlag::BottomOfPipe);
+			timer->RecordTimestamp(*curCmd, LightingTimer, PipelineStageFlags::BottomOfPipe);
 		}
 	}
 
@@ -593,13 +593,13 @@ void Pu::DeferredRenderer::DoSkybox(void)
 	if (skybox)
 	{
 		curCmd->AddLabel("Deferred Renderer (Skybox)", Color::Blue());
-		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::TopOfPipe);
+		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlags::TopOfPipe);
 		curCmd->BindGraphicsPipeline(*gfxSkybox);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *curCam);
 		curCmd->BindGraphicsDescriptors(*gfxSkybox, SubpassSkybox, *descSetInput);
 		curCmd->Draw(3, 1, 0, 0);
 		curCmd->EndLabel();
-		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlag::BottomOfPipe);
+		timer->RecordTimestamp(*curCmd, SkyboxTimer, PipelineStageFlags::BottomOfPipe);
 	}
 	else curCmd->NextSubpass(SubpassContents::Inline);
 }
@@ -608,13 +608,13 @@ void Pu::DeferredRenderer::DoTonemap(void)
 {
 	curCmd->AddLabel("Deferred Renderer (Camera Effects)", Color::Blue());
 	curCmd->NextSubpass(SubpassContents::Inline);
-	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::TopOfPipe);
+	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlags::TopOfPipe);
 	curCmd->BindGraphicsPipeline(*gfxTonePass);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *curCam);
 	curCmd->BindGraphicsDescriptors(*gfxTonePass, SubpassPostProcessing, *descSetInput);
 	curCmd->Draw(3, 1, 0, 0);
 	curCmd->EndLabel();
-	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlag::BottomOfPipe);
+	timer->RecordTimestamp(*curCmd, PostTimer, PipelineStageFlags::BottomOfPipe);
 }
 
 void Pu::DeferredRenderer::OnSwapchainRecreated(const GameWindow&, const SwapchainReCreatedEventArgs & args)
@@ -674,7 +674,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the basic static Geometry-Pass. */
 	{
 		Subpass &gpass = renderpass->GetSubpass(SubpassBasicStaticGeometry);
-		gpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+		gpass.SetNoDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, DependencyFlags::ByRegion);
 
 		/* We can just clone the values set by the previous subpass. */
 		gpass.CloneDepthStencil(5);
@@ -689,7 +689,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the advanced static Geometry-Pass. */
 	{
 		Subpass &gpass = renderpass->GetSubpass(SubpassAdvancedStaticGeometry);
-		gpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+		gpass.SetNoDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, DependencyFlags::ByRegion);
 
 		/* We can just clone the values set by the previous subpass. */
 		gpass.CloneDepthStencil(5);
@@ -705,7 +705,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the basic morph Geometry-Pass. */
 	{
 		Subpass &gpass = renderpass->GetSubpass(SubpassBasicMorphGeometry);
-		gpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+		gpass.SetNoDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, DependencyFlags::ByRegion);
 
 		/* We can just clone the values set by the previous subpass. */
 		gpass.CloneDepthStencil(5);
@@ -733,7 +733,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		Subpass &dlpass = renderpass->GetSubpass(SubpassDirectionalLight);
 
 		/* The depth buffer needs to be moved from a Write Attachment to an Input Attachment. */
-		dlpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::InputAttachmentRead, DependencyFlag::ByRegion);
+		dlpass.SetDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, AccessFlags::ColorAttachmentWrite, AccessFlags::InputAttachmentRead, DependencyFlags::ByRegion);
 
 		Output &hdr = dlpass.GetOutput("L0");
 		hdr.SetLayouts(ImageLayout::ColorAttachmentOptimal);
@@ -746,7 +746,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the point light pass. */
 	{
 		Subpass &plpass = renderpass->GetSubpass(SubpassPointLight);
-		plpass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+		plpass.SetNoDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, DependencyFlags::ByRegion);
 
 		plpass.CloneOutput("L0", 4);
 
@@ -765,7 +765,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the skybox pass. */
 	{
 		Subpass &skypass = renderpass->GetSubpass(SubpassSkybox);
-		skypass.SetNoDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, DependencyFlag::ByRegion);
+		skypass.SetNoDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, DependencyFlags::ByRegion);
 
 		skypass.CloneDepthStencil(5);
 
@@ -779,7 +779,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	/* Set all the options for the camera pass. */
 	{
 		Subpass &fpass = renderpass->GetSubpass(SubpassPostProcessing);
-		fpass.SetDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, AccessFlag::ColorAttachmentWrite, AccessFlag::ColorAttachmentRead);
+		fpass.SetDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, AccessFlags::ColorAttachmentWrite, AccessFlags::ColorAttachmentRead);
 
 		Output &screen = fpass.GetOutput("FragColor");
 		screen.SetDescription(wnd->GetSwapchain());
@@ -788,7 +788,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 	}
 
 	/* Make the swapchain image ready for the OS to present it. */
-	renderpass->AddDependency(PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::BottomOfPipe, AccessFlag::ColorAttachmentWrite, AccessFlag::MemoryRead, DependencyFlag::ByRegion);
+	renderpass->AddDependency(PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::BottomOfPipe, AccessFlags::ColorAttachmentWrite, AccessFlags::MemoryRead, DependencyFlags::ByRegion);
 }
 
 void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
@@ -835,7 +835,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 		gfxTerrain->SetPolygonMode(polygonMode);
 		gfxTerrain->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxTerrain->EnableDepthTest(true, CompareOp::LessOrEqual);
-		gfxTerrain->SetCullMode(CullModeFlag::Back);
+		gfxTerrain->SetCullMode(CullModeFlags::Back);
 		gfxTerrain->AddVertexBinding<Patched3D>(0);
 		gfxTerrain->Finalize();
 		gfxTerrain->SetDebugName("Deferred Renderer Terrain");
@@ -888,7 +888,7 @@ void Pu::DeferredRenderer::FinalizeRenderpass(Renderpass &)
 	{
 		gfxPLight->SetViewport(wnd->GetNative().GetClientBounds());
 		gfxPLight->SetTopology(PrimitiveTopology::TriangleList);
-		gfxPLight->SetCullMode(CullModeFlag::Back);
+		gfxPLight->SetCullMode(CullModeFlags::Back);
 		gfxPLight->GetBlendState("L0").SetAllBlendFactors(BlendFactor::One);
 		gfxPLight->AddVertexBinding<Vector3>(0);
 		gfxPLight->AddVertexBinding<PointLight>(1, VertexInputRate::Instance);
@@ -951,15 +951,15 @@ void Pu::DeferredRenderer::CreateSizeDependentResources(void)
 	DestroyWindowDependentResources();
 	LogicalDevice &device = wnd->GetDevice();
 	const Extent3D size{ wnd->GetSize(), 1 };
-	const ImageUsageFlag gbufferUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::InputAttachment | ImageUsageFlag::TransientAttachment;
+	const ImageUsageFlags gbufferUsage = ImageUsageFlags::ColorAttachment | ImageUsageFlags::InputAttachment | ImageUsageFlags::TransientAttachment;
 	markNeeded = true;
 
 	/* Create the new images. */
 	depthBuffer = new DepthBuffer(device, Format::D32_SFLOAT, wnd->GetSize());
-	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::A2R10G10B10_UNORM_PACK32, size, 1, 1, SampleCountFlag::Pixel1Bit, gbufferUsage));
-	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlag::Pixel1Bit, ImageUsageFlag::ColorAttachment | ImageUsageFlag::Sampled));
+	Image *gbuffAttach1 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlags::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach2 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R8G8B8A8_UNORM, size, 1, 1, SampleCountFlags::Pixel1Bit, gbufferUsage));
+	Image *gbuffAttach3 = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::A2R10G10B10_UNORM_PACK32, size, 1, 1, SampleCountFlags::Pixel1Bit, gbufferUsage));
+	Image *tmpHdrAttach = new Image(device, ImageCreateInfo(ImageType::Image2D, Format::R16G16B16A16_SFLOAT, size, 1, 1, SampleCountFlags::Pixel1Bit, ImageUsageFlags::ColorAttachment | ImageUsageFlags::Sampled));
 
 	/* Create the new image views and samplers. */
 	textures.emplace_back(new TextureInput2D(*gbuffAttach1));

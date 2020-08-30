@@ -122,7 +122,7 @@ void Pu::MeshCollection::Bind(CommandBuffer & cmdBuffer, uint32 binding, uint32 
 
 void Pu::MeshCollection::Alloc(LogicalDevice & device, size_t size)
 {
-	memory = new Buffer(device, size, BufferUsageFlag::IndexBuffer | BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst, MemoryPropertyFlag::None);
+	memory = new Buffer(device, size, BufferUsageFlags::IndexBuffer | BufferUsageFlags::VertexBuffer | BufferUsageFlags::TransferDst, MemoryPropertyFlags::None);
 	memory->SetDebugName("MeshCollection");
 }
 

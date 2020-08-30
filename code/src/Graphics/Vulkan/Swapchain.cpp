@@ -151,8 +151,8 @@ void Pu::Swapchain::AquireImages(const SwapchainCreateInfo & createInfo)
 	const Extent3D extent(createInfo.ImageExtent, 0);
 	for (size_t i = 0; i < imageCount; i++)
 	{
-		images.emplace_back(Image(*parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlag::MemoryRead));
-		views.emplace_back(images[i], ImageViewType::Image2D, ImageAspectFlag::Color);
+		images.emplace_back(Image(*parent, handles[i], ImageType::Image2D, createInfo.ImageFormat, extent, 0, createInfo.ImageUsage, attachmentDesc.InitialLayout, AccessFlags::MemoryRead));
+		views.emplace_back(images[i], ImageViewType::Image2D, ImageAspectFlags::Color);
 	}
 }
 

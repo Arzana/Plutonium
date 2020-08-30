@@ -11,7 +11,7 @@ Pu::PushConstant::PushConstant(const FieldInfo & data)
 	: Field(data), maxRange(0)
 {}
 
-Pu::PushConstant::PushConstant(const PhysicalDevice & physicalDevice, const FieldInfo & data, ShaderStageFlag stage)
+Pu::PushConstant::PushConstant(const PhysicalDevice & physicalDevice, const FieldInfo & data, ShaderStageFlags stage)
 	: Field(data), maxRange(physicalDevice.GetLimits().MaxPushConstantsSize)
 {
 	range.StageFlags = stage;

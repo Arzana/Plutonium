@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a Vulkan graphics pipeline from a specific render pass. */
-		GraphicsPipeline(_In_ const Renderpass &renderpass, _In_ uint32 subpass);
+		GraphicsPipeline(_In_ Renderpass &renderpass, _In_ uint32 subpass);
 		GraphicsPipeline(_In_ const GraphicsPipeline&) = delete;
 		/* Move constructor. */
 		GraphicsPipeline(_In_ GraphicsPipeline &&value);
@@ -41,7 +41,7 @@ namespace Pu
 		/* Sets how the rasterizer should handle polygons, returns whether the mode is supported by the hardware. */
 		_Check_return_ bool SetPolygonMode(_In_ PolygonMode mode);
 		/* Sets which faces should be culled. */
-		void SetCullMode(_In_ CullModeFlag mode);
+		void SetCullMode(_In_ CullModeFlags mode);
 		/* Sets how the front face is determined. */
 		void SetFrontFace(_In_ FrontFace front);
 		/* Enables depth bias and sets the scalar values for it, if it's supported by the hardware. */
@@ -49,7 +49,7 @@ namespace Pu
 		/* Sets the line width for this graphics pipeline, if it's supported by the hardware. */
 		_Check_return_ bool SetLineWidth(_In_ float width);
 		/* Sets the amount of samples active in the subpass. */
-		void SetSampleCount(_In_ SampleCountFlag samples);
+		void SetSampleCount(_In_ SampleCountFlags samples);
 		/* Enabled shading per sample instead of per fragment. */
 		void EnableSampleShading(_In_ float min);
 		/* Sets a color mask that's used for static coverage. */
@@ -80,7 +80,7 @@ namespace Pu
 		_Check_return_ SpecializationConstant& GetSpecializationConstant(_In_ uint32 shader, _In_ const string &name);
 
 	private:
-		const Renderpass *renderpass;
+		Renderpass *renderpass;
 		uint32 subpass;
 
 		PipelineVertexInputStateCreateInfo vertexInputState;

@@ -88,7 +88,7 @@ void Pu::DescriptorPool::AddSet(uint32 subpass, uint32 set, uint32 max)
 	maxSets += max;
 }
 
-void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dstStage)
+void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlags dstStage)
 {
 	/* Create the pool if it hasn't been created yet. */
 	if (!hndl) Create();
@@ -107,7 +107,7 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlag dst
 		if (firstUpdate)
 		{
 			firstUpdate = false;
-			cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlag::Transfer, dstStage, AccessFlag::UniformRead);
+			cmdBuffer.MemoryBarrier(*buffer, PipelineStageFlags::Transfer, dstStage, AccessFlags::UniformRead);
 		}
 	}
 }
@@ -193,7 +193,7 @@ void Pu::DescriptorPool::Create(void)
 	{
 		/* We must allign the final set stride to the physical device allignment, otherwise multiple sets will not start at proper allignment. */
 		const DeviceSize size = device->GetPhysicalDevice().GetUniformBufferOffsetAllignment(sets.back().Offset + stride * sets.back().GetMaxSets());
-		buffer = new DynamicBuffer(*device, size, BufferUsageFlag::TransferDst | BufferUsageFlag::UniformBuffer);
+		buffer = new DynamicBuffer(*device, size, BufferUsageFlags::TransferDst | BufferUsageFlags::UniformBuffer);
 		buffer->SetDebugName("Uniform Buffer");
 	}
 }

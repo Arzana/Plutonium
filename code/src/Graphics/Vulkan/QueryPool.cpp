@@ -8,7 +8,7 @@ Pu::QueryPool::QueryPool(LogicalDevice & device, QueryType type, size_t count)
 	VK_VALIDATE(parent->vkCreateQueryPool(parent->hndl, &createInfo, nullptr, &hndl), PFN_vkCreateQueryPool);
 }
 
-Pu::QueryPool::QueryPool(LogicalDevice & device, size_t count, QueryPipelineStatisticFlag statistics)
+Pu::QueryPool::QueryPool(LogicalDevice & device, size_t count, QueryPipelineStatisticFlags statistics)
 	: parent(&device), count(static_cast<uint32>(count))
 {
 	const QueryPoolCreateInfo createInfo(QueryType::PipelineStatistics, static_cast<uint32>(count), statistics);
@@ -45,9 +45,9 @@ Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 resul
 #endif
 
 	/* Define the flags. */
-	QueryResultFlag flags = QueryResultFlag::None;
-	if (wait) flags |= QueryResultFlag::Wait;
-	if (partial) flags |= QueryResultFlag::Partial;
+	QueryResultFlags flags = QueryResultFlags::None;
+	if (wait) flags |= QueryResultFlags::Wait;
+	if (partial) flags |= QueryResultFlags::Partial;
 
 	/* Query the result. */
 	vector<uint32> results(resultCount);
@@ -61,28 +61,28 @@ Pu::vector<Pu::uint32> Pu::QueryPool::GetResults(uint32 firstQuery, uint32 resul
 float Pu::QueryPool::GetTimeDelta(uint32 firstQuery, bool wait) const
 {
 	float result = 0.0f;
-	if (GetTimeDeltaInternal(firstQuery, wait ? QueryResultFlag::Wait : QueryResultFlag::None, result)) return result;
+	if (GetTimeDeltaInternal(firstQuery, wait ? QueryResultFlags::Wait : QueryResultFlags::None, result)) return result;
 	return 0.0f;
 }
 
 bool Pu::QueryPool::TryGetTimeDelta(uint32 firstQuery, float & result) const
 {
-	return GetTimeDeltaInternal(firstQuery, QueryResultFlag::None, result);
+	return GetTimeDeltaInternal(firstQuery, QueryResultFlags::None, result);
 }
 
 Pu::uint32 Pu::QueryPool::GetOcclusion(uint32 queryIndex, bool wait) const
 {
 	uint32 result = 0;
-	if (GetOcclusionInternal(queryIndex, wait ? QueryResultFlag::Wait : QueryResultFlag::None, result)) return result;
+	if (GetOcclusionInternal(queryIndex, wait ? QueryResultFlags::Wait : QueryResultFlags::None, result)) return result;
 	return 0;
 }
 
 bool Pu::QueryPool::TryGetOcclusion(uint32 queryIndex, uint32 & result) const
 {
-	return GetOcclusionInternal(queryIndex, QueryResultFlag::None, result);
+	return GetOcclusionInternal(queryIndex, QueryResultFlags::None, result);
 }
 
-bool Pu::QueryPool::GetOcclusionInternal(uint32 firstQuery, QueryResultFlag flag, uint32 & value) const
+bool Pu::QueryPool::GetOcclusionInternal(uint32 firstQuery, QueryResultFlags flag, uint32 & value) const
 {
 	/* Check for if we're not accessing outsize of pool range on debug. */
 #ifdef _DEBUG
@@ -94,7 +94,7 @@ bool Pu::QueryPool::GetOcclusionInternal(uint32 firstQuery, QueryResultFlag flag
 	return result != VkApiResult::NotReady;
 }
 
-bool Pu::QueryPool::GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlag flag, float & delta) const
+bool Pu::QueryPool::GetTimeDeltaInternal(uint32 firstQuery, QueryResultFlags flag, float & delta) const
 {
 	/* Check for if we're not accessing outsize of pool range on debug. */
 #ifdef _DEBUG

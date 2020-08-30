@@ -11,7 +11,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a memory buffer of a specified size (in bytes). */
-		DynamicBuffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage);
+		DynamicBuffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlags usage);
 		DynamicBuffer(_In_ const DynamicBuffer&) = delete;
 		/* Move constructor. */
 		DynamicBuffer(_In_ DynamicBuffer &&value);

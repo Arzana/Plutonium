@@ -51,7 +51,7 @@ Pu::LightProbeRenderer & Pu::LightProbeRenderer::operator=(LightProbeRenderer &&
 void Pu::LightProbeRenderer::Initialize(CommandBuffer & cmdBuffer)
 {
 	/* We need to initialize the transforms pool at least once. */
-	pool->Update(cmdBuffer, PipelineStageFlag::GeometryShader);
+	pool->Update(cmdBuffer, PipelineStageFlags::GeometryShader);
 	Profiler::Add("Light Probe Update", Color::Blue(), timer->GetProfilerTimeDelta(0));
 	timer->Reset(cmdBuffer);
 }
@@ -65,11 +65,11 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 	/* The image should be in a color attachment write access. */
 	Profiler::Begin("Light Probes", Color::Blue());
 	cmdBuffer.AddLabel("Light Probe Update", Color::Red());
-	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::FragmentShader, PipelineStageFlag::ColorAttachmentOutput, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ColorAttachmentWrite, probe.texture->GetFullRange());
+	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlags::FragmentShader, PipelineStageFlags::ColorAttachmentOutput, ImageLayout::ShaderReadOnlyOptimal, AccessFlags::ColorAttachmentWrite, probe.texture->GetFullRange());
 	probe.depth->MakeWritable(cmdBuffer);
 
 	cmdBuffer.BeginRenderPass(*renderpass, *probe.framebuffer, SubpassContents::Inline);
-	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::TopOfPipe);
+	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::TopOfPipe);
 	cmdBuffer.BindGraphicsPipeline(*gfx);
 	cmdBuffer.BindGraphicsDescriptor(*gfx, *probe.block);
 	cmdBuffer.SetViewportAndScissor(probe.GetViewport());
@@ -77,7 +77,7 @@ void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer
 
 void Pu::LightProbeRenderer::Render(CommandBuffer & cmdBuffer, const Model & model, const Matrix & transform)
 {
-	cmdBuffer.PushConstants(*gfx, ShaderStageFlag::Vertex, 0, sizeof(Matrix), &transform);
+	cmdBuffer.PushConstants(*gfx, ShaderStageFlags::Vertex, 0, sizeof(Matrix), &transform);
 
 	const MeshCollection &meshes = model.GetMeshes();
 	uint32 oldMatIdx = MeshCollection::DefaultMaterialIdx;
@@ -120,9 +120,9 @@ void Pu::LightProbeRenderer::End(LightProbe & probe, CommandBuffer & cmdBuffer) 
 	if (probe.cycleMode == LightProbe::CycleMode::Baked) return;
 
 	/* We need the shader read access to use it as an environment map. */
-	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlag::BottomOfPipe);
+	timer->RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::BottomOfPipe);
 	cmdBuffer.EndRenderPass();
-	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlag::ColorAttachmentOutput, PipelineStageFlag::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlag::ShaderRead, probe.texture->GetFullRange());
+	cmdBuffer.MemoryBarrier(*probe.image, PipelineStageFlags::ColorAttachmentOutput, PipelineStageFlags::FragmentShader, ImageLayout::ShaderReadOnlyOptimal, AccessFlags::ShaderRead, probe.texture->GetFullRange());
 	cmdBuffer.EndLabel();
 	Profiler::End();
 	probe.Unlock();

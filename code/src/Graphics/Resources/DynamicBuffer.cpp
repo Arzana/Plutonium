@@ -1,8 +1,8 @@
 #include "Graphics/Resources/DynamicBuffer.h"
 #include "Graphics/Resources/StagingBuffer.h"
 
-Pu::DynamicBuffer::DynamicBuffer(LogicalDevice & device, size_t size, BufferUsageFlag usage)
-	: Buffer(device, size, usage, MemoryPropertyFlag::None), isDirty(false)
+Pu::DynamicBuffer::DynamicBuffer(LogicalDevice & device, size_t size, BufferUsageFlags usage)
+	: Buffer(device, size, usage, MemoryPropertyFlags::None), isDirty(false)
 {
 	SetDebugName("DynamicBuffer");
 	stagingBuffer = new StagingBuffer(*this);

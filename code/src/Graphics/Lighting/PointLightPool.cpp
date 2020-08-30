@@ -1,7 +1,7 @@
 #include "Graphics/Lighting/PointLightPool.h"
 
 Pu::PointLightPool::PointLightPool(LogicalDevice & device, uint32 maxLights)
-	: DynamicBuffer(device, sizeof(PointLight) * maxLights, BufferUsageFlag::VertexBuffer | BufferUsageFlag::TransferDst), isDirty(false)
+	: DynamicBuffer(device, sizeof(PointLight) * maxLights, BufferUsageFlags::VertexBuffer | BufferUsageFlags::TransferDst), isDirty(false)
 {
 	buffer.reserve(maxLights);
 }

@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
 Pu::DescriptorSetLayout::DescriptorSetLayout(LogicalDevice & device, const vector<const Descriptor*>& descriptors)
-	: descriptors(descriptors), device(&device)
+	: descriptors(descriptors), device(&device), hndl(nullptr)
 {
 	/* Check for invalid usage on debug mode. */
 #ifdef _DEBUG

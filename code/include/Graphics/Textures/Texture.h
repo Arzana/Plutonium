@@ -57,7 +57,7 @@ namespace Pu
 		/* Gets a sub-resource range spaning all sub-resources. */
 		_Check_return_ inline ImageSubresourceRange GetFullRange(void) const 
 		{
-			return Image->GetFullRange(ImageAspectFlag::Color);
+			return Image->GetFullRange(ImageAspectFlags::Color);
 		}
 
 		/* Gets the extent of the image. */

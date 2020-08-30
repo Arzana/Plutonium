@@ -28,7 +28,7 @@ Pu::Texture & Pu::Texture::operator=(Texture && other)
 Pu::Texture::Texture(Pu::Sampler * sampler, Pu::Image & image, ImageViewType type)
 	: Image(&image), Sampler(sampler), refCnt(1)
 {
-	view = type != ImageViewType::None ? new ImageView(*this, type, ImageAspectFlag::Color) : nullptr;
+	view = type != ImageViewType::None ? new ImageView(*this, type, ImageAspectFlags::Color) : nullptr;
 }
 
 void Pu::Texture::Reference(void)

@@ -9,7 +9,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a command pool from a specified queue family. */
-		CommandPool(_In_ LogicalDevice &device, _In_ uint32 queueFamilyIndex, _In_ CommandPoolCreateFlag flags);
+		CommandPool(_In_ LogicalDevice &device, _In_ uint32 queueFamilyIndex, _In_ CommandPoolCreateFlags flags);
 		CommandPool(_In_ const CommandPool&) = delete;
 		/* Move constructor. */
 		CommandPool(_In_ CommandPool &&value);

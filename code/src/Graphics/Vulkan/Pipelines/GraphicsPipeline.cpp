@@ -1,6 +1,6 @@
 #include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 
-Pu::GraphicsPipeline::GraphicsPipeline(const Renderpass & renderpass, uint32 subpass)
+Pu::GraphicsPipeline::GraphicsPipeline(Renderpass & renderpass, uint32 subpass)
 	: Pipeline(*renderpass.device, renderpass.GetSubpass(subpass)), 
 	renderpass(&renderpass), subpass(subpass)
 {
@@ -79,7 +79,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	*/
 	if (Hndl)
 	{
-		renderpass->device->WaitIdle();
+		Device->WaitIdle();
 		Destroy();
 	}
 
@@ -126,7 +126,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	InitializeSpecializationConstants(renderpass->subpasses[subpass]);
 
 	/* Create the graphics pipeline. */
-	GraphicsPipelineCreateInfo createInfo{ GetShaderStages(), LayoutHndl, renderpass->hndl, subpass };
+	GraphicsPipelineCreateInfo createInfo{ GetShaderStages(), CreateFlags, LayoutHndl, renderpass->hndl, subpass };
 	createInfo.VertexInputState = &vertexInputState;
 	createInfo.InputAssemblyState = &inputAssemblyState;
 	createInfo.TessellationState = &tessellationState;
@@ -136,7 +136,7 @@ void Pu::GraphicsPipeline::Finalize(void)
 	createInfo.DepthStencilState = &depthStencilState;
 	createInfo.ColorBlendState = &colorBlendState;
 	createInfo.DynamicState = &dynamicState;
-	VK_VALIDATE(renderpass->device->vkCreateGraphicsPipelines(renderpass->device->hndl, nullptr, 1, &createInfo, nullptr, &Hndl), PFN_vkCreateGraphicsPipelines);
+	VK_VALIDATE(Device->vkCreateGraphicsPipelines(Device->hndl, nullptr, 1, &createInfo, nullptr, &Hndl), PFN_vkCreateGraphicsPipelines);
 }
 
 void Pu::GraphicsPipeline::SetTopology(PrimitiveTopology topology)
@@ -195,7 +195,7 @@ bool Pu::GraphicsPipeline::SetPolygonMode(PolygonMode mode)
 	return false;
 }
 
-void Pu::GraphicsPipeline::SetCullMode(CullModeFlag mode)
+void Pu::GraphicsPipeline::SetCullMode(CullModeFlags mode)
 {
 	rasterizationState.CullMode = mode;
 }
@@ -232,7 +232,7 @@ bool Pu::GraphicsPipeline::SetLineWidth(float width)
 	return false;
 }
 
-void Pu::GraphicsPipeline::SetSampleCount(SampleCountFlag samples)
+void Pu::GraphicsPipeline::SetSampleCount(SampleCountFlags samples)
 {
 	multisampleState.RasterizationSamples = samples;
 }
@@ -364,10 +364,10 @@ Pu::uint32 Pu::GraphicsPipeline::GetVertexStride(uint32 binding) const
 
 Pu::SpecializationConstant & Pu::GraphicsPipeline::GetSpecializationConstant(uint32 shader, const string & name)
 {
-	return renderpass->subpasses[subpass].shaders.at(shader)->GetConstant(name);
+	return renderpass->subpasses[subpass][shader].GetConstant(name);
 }
 
 const Pu::PhysicalDeviceFeatures & Pu::GraphicsPipeline::GetHardwareEnabled(void) const
 {
-	return renderpass->device->GetPhysicalDevice().GetEnabledFeatures();
+	return Device->GetPhysicalDevice().GetEnabledFeatures();
 }

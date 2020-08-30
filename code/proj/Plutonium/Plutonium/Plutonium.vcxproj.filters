@@ -942,6 +942,12 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\SAT.h">
       <Filter>Header Files\Physics\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\ComputePipeline.h">
+      <Filter>Header Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\ShaderProgram.h">
+      <Filter>Header Files\Graphics\Vulkan\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Core\Math\Matrix.cpp">
@@ -1351,6 +1357,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\Physics\Systems\SAT.cpp">
       <Filter>Source Files\Physics\Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\ComputePipeline.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Pipelines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\ShaderProgram.cpp">
+      <Filter>Source Files\Graphics\Vulkan\Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

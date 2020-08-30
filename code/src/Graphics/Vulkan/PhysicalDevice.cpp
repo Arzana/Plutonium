@@ -167,8 +167,8 @@ bool Pu::PhysicalDevice::SupportsPlutonium(const Surface & surface) const
 	uint32 i = 0;
 	for (const QueueFamilyProperties &family : GetQueueFamilies())
 	{
-		if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Graphics) && surface.QueueFamilySupportsPresenting(i++, *this)) graphics = true;
-		if (_CrtEnumCheckFlag(family.Flags, QueueFlag::Transfer)) transfer = true;
+		if (_CrtEnumCheckFlag(family.Flags, QueueFlags::Graphics) && surface.QueueFamilySupportsPresenting(i++, *this)) graphics = true;
+		if (_CrtEnumCheckFlag(family.Flags, QueueFlags::Transfer)) transfer = true;
 	}
 
 	if (!(graphics && transfer)) return false;
@@ -188,12 +188,12 @@ uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamilyInternal(const Surface * su
 	{
 		/* Check if queue supported graphics operations. */
 		const QueueFamilyProperties &cur = families[i];
-		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Graphics))
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlags::Graphics))
 		{
 			/* Check if the queue family supports presenting if a surface is specified. */
 			if ((surface && surface->QueueFamilySupportsPresenting(i, *this)) || !surface)
 			{
-				if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Graphics) score += 1;
+				if ((cur.Flags & QueueFlags::TypeMask) == QueueFlags::Graphics) score += 1;
 			}
 		}
 
@@ -233,9 +233,9 @@ uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
 	{
 		/* Check if queue supports transfer operations. */
 		const QueueFamilyProperties &cur = families[i];
-		if (_CrtEnumCheckFlag(cur.Flags, QueueFlag::Transfer))
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlags::Transfer))
 		{
-			if ((cur.Flags & QueueFlag::TypeMask) == QueueFlag::Transfer) score += 1;
+			if ((cur.Flags & QueueFlags::TypeMask) == QueueFlags::Transfer) score += 1;
 		}
 
 		/* Update choosen graphics queue if needed. */
@@ -259,7 +259,7 @@ DeviceSize Pu::PhysicalDevice::GetDeviceLocalBytes(void) const
 
 	for (const MemoryHeap *cur = memory.MemoryHeaps; cur < memory.MemoryHeaps + memory.MemoryHeapCount; cur++)
 	{
-		if (_CrtEnumCheckFlag(cur->Flags, MemoryHeapFlag::DeviceLocal)) result += cur->Size;
+		if (_CrtEnumCheckFlag(cur->Flags, MemoryHeapFlags::DeviceLocal)) result += cur->Size;
 	}
 
 	return result;
@@ -280,30 +280,30 @@ bool Pu::PhysicalDevice::TryGetUsedDeviceLocalBytes(DeviceSize & result) const
 	for (uint32 i = 0; i < properties2.MemoryProperties.MemoryHeapCount; i++)
 	{
 		const MemoryHeap &cur = properties2.MemoryProperties.MemoryHeaps[i];
-		if (_CrtEnumCheckFlag(cur.Flags, MemoryHeapFlag::DeviceLocal)) result += budget.HeapUsage[i];
+		if (_CrtEnumCheckFlag(cur.Flags, MemoryHeapFlags::DeviceLocal)) result += budget.HeapUsage[i];
 	}
 
 	return true;
 }
 
-bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &memoryProperties, MemoryPropertyFlag optionalProperties, uint32 & index)
+bool Pu::PhysicalDevice::GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlags &memoryProperties, MemoryPropertyFlags optionalProperties, uint32 & index)
 {
 	index = maxv<uint32>();
 	int32 highscore = -1, score = 0;
-	MemoryPropertyFlag checkProperties = memoryProperties;
+	MemoryPropertyFlags checkProperties = memoryProperties;
 
 	/* Loop throug to find all possible memory types. */
 	for (uint32 i = 0; i < memory.MemoryTypeCount; ++i, score = 0)
 	{
-		const MemoryPropertyFlag flags = memory.MemoryTypes[i].PropertyFlags;
+		const MemoryPropertyFlags flags = memory.MemoryTypes[i].PropertyFlags;
 
 		/* Check if type is supported and if the required properties are supported. */
 		if ((memoryTypeBits & (1 << i)) && _CrtEnumCheckFlag(flags, checkProperties))
 		{
 			/* See Scoring document for scoring information. */
-			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlag::DeviceLocal)) score += 3;
-			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostCoherent)) score += 2;
-			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlag::HostVisible)) ++score;
+			if (_CrtEnumCheckFlag(flags, MemoryPropertyFlags::DeviceLocal)) score += 3;
+			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlags::HostCoherent)) score += 2;
+			if (!_CrtEnumCheckFlag(flags, MemoryPropertyFlags::HostVisible)) ++score;
 			if (_CrtEnumCheckFlag(flags, optionalProperties)) ++score;
 
 			if (score > highscore)

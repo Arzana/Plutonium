@@ -9,7 +9,7 @@ constexpr Pu::byte MASK_RESET = 0x7F;
 constexpr Pu::byte MASK_SET = 0x80;
 
 Pu::QueryChain::QueryChain(LogicalDevice & device, QueryType type, size_t chainCount, size_t bufferCount)
-	: QueryPool(device, type, queryCountPerType(type) * bufferCount * chainCount), stats(QueryPipelineStatisticFlag::None)
+	: QueryPool(device, type, queryCountPerType(type) * bufferCount * chainCount), stats(QueryPipelineStatisticFlags::None)
 {
 	/* Check for invalid arguments on debug mode. */
 #ifdef _DEBUG
@@ -23,13 +23,13 @@ Pu::QueryChain::QueryChain(LogicalDevice & device, QueryType type, size_t chainC
 	for (size_t i = 0; i < chainCount; i++) chains.emplace_back(type, bufferCount, i);
 }
 
-Pu::QueryChain::QueryChain(LogicalDevice & device, QueryPipelineStatisticFlag statistics, size_t bufferCount)
+Pu::QueryChain::QueryChain(LogicalDevice & device, QueryPipelineStatisticFlags statistics, size_t bufferCount)
 	: QueryPool(device, bufferCount, statistics), stats(statistics)
 {
 	/* Check for invalid arguments on debug mode. */
 #ifdef _DEBUG
 	logged = false;
-	if (statistics == QueryPipelineStatisticFlag::None) Log::Fatal("No flags were set for pipeline statistics!");
+	if (statistics == QueryPipelineStatisticFlags::None) Log::Fatal("No flags were set for pipeline statistics!");
 	if (bufferCount < 1) Log::Fatal("Buffer count must be greater than 0!");
 #endif
 
@@ -46,7 +46,7 @@ void Pu::QueryChain::Reset(CommandBuffer & cmdBuffer)
 	}
 }
 
-void Pu::QueryChain::RecordTimestamp(CommandBuffer & cmdBuffer, uint32 chain, PipelineStageFlag stage)
+void Pu::QueryChain::RecordTimestamp(CommandBuffer & cmdBuffer, uint32 chain, PipelineStageFlags stage)
 {
 	Chain &ref = chains[chain];
 
@@ -140,7 +140,7 @@ const char * Pu::QueryChain::GetStatisticName(uint32 idx) const
 		const uint32 mask = 1 << i;
 		const bool set = _CrtEnum2Int(stats) & mask;
 
-		if (set && j == idx) return to_string(_CrtInt2Enum<QueryPipelineStatisticFlag>(mask));
+		if (set && j == idx) return to_string(_CrtInt2Enum<QueryPipelineStatisticFlags>(mask));
 		j += set;
 	}
 

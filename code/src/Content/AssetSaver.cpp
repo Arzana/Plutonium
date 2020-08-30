@@ -38,7 +38,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			/* Creat the buffer needed as a result for the image data. */
 			const Extent3D extent = image.GetExtent();
 			const size_t imageSizeBytes = extent.Width * extent.Height * extent.Depth * image.GetElementSize();
-			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlag::TransferDst, MemoryPropertyFlag::HostVisible);
+			destination = new Buffer(parent.device, imageSizeBytes, BufferUsageFlags::TransferDst, MemoryPropertyFlags::HostVisible);
 
 			/*
 			Begin the command buffer and ensure a usable layouts.
@@ -46,8 +46,8 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 			The buffer on the other hand has no access flag set so we can do it at the top of pipe already.
 			*/
 			cmdBuffer.Begin();
-			cmdBuffer.MemoryBarrier(image, PipelineStageFlag::FragmentShader, PipelineStageFlag::Transfer, ImageLayout::TransferSrcOptimal, AccessFlag::TransferRead, image.GetFullRange(ImageAspectFlag::Color));
-			cmdBuffer.MemoryBarrier(*destination, PipelineStageFlag::TopOfPipe, PipelineStageFlag::Transfer, AccessFlag::TransferWrite);
+			cmdBuffer.MemoryBarrier(image, PipelineStageFlags::FragmentShader, PipelineStageFlags::Transfer, ImageLayout::TransferSrcOptimal, AccessFlags::TransferRead, image.GetFullRange(ImageAspectFlags::Color));
+			cmdBuffer.MemoryBarrier(*destination, PipelineStageFlags::TopOfPipe, PipelineStageFlags::Transfer, AccessFlags::TransferWrite);
 
 			/* Copy the actual data and end the buffer. */
 			cmdBuffer.CopyEntireImage(image, *destination);

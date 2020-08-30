@@ -114,7 +114,7 @@ namespace Pu
 		PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
 		DebugUtilsMessengerHndl msgHndl;
 
-		static VKAPI_ATTR Bool32 VKAPI_CALL DebugCallback(DebugUtilsMessageSeverityFlag severity, DebugUtilsMessageTypeFlag, const DebugUtilsMessengerCallbackData *data, void*);
+		static VKAPI_ATTR Bool32 VKAPI_CALL DebugCallback(DebugUtilsMessageSeverityFlags severity, DebugUtilsMessageTypeFlags, const DebugUtilsMessengerCallbackData *data, void*);
 		
 		void SetUpDebugLayer(void);
 #endif

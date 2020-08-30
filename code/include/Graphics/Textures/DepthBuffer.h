@@ -36,7 +36,7 @@ namespace Pu
 
 	private:
 		ImageView *view;
-		ImageAspectFlag aspect;
+		ImageAspectFlags aspect;
 
 		ImageCreateInfo CreateImageInfo(Format depthFormat, Extent2D size, uint32 layers);
 		void SetAspect(Format depthFormat);

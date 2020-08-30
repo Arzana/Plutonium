@@ -37,7 +37,7 @@ Pu::GameWindow::GameWindow(NativeWindow & native, LogicalDevice & device)
 	}
 
 	/* Create new command pool, we're reusing command buffers so we need to enable that via a pool flag. */
-	pool = new CommandPool(device, device.graphicsQueueFamily, CommandPoolCreateFlag::ResetCommandBuffer);
+	pool = new CommandPool(device, device.graphicsQueueFamily, CommandPoolCreateFlags::ResetCommandBuffer);
 
 	/* Allocate a command buffer for each image in the swapchain. */
 	for (uint32 i = 0; i < swapchain->GetImageCount(); i++)
@@ -293,7 +293,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, Presen
 	info.PresentMode = mode;
 	info.ImageColorSpace = format.ColorSpace;
 	info.ImageFormat = format.Format;
-	info.ImageUsage = ImageUsageFlag::ColorAttachment | ImageUsageFlag::TransferDst;
+	info.ImageUsage = ImageUsageFlags::ColorAttachment | ImageUsageFlags::TransferDst;
 	if (swapchain) info.OldSwapChain = swapchain->hndl;
 
 	/* Add the fullscreen information if the extension is supported. */
@@ -319,9 +319,9 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, Presen
 		const SubpassDescription subpass(reference);
 
 		SubpassDependency dependency(SubpassExternal, 0);
-		dependency.SrcStageMask = PipelineStageFlag::ColorAttachmentOutput;
-		dependency.DstStageMask = PipelineStageFlag::ColorAttachmentOutput;
-		dependency.DstAccessMask = AccessFlag::ColorAttachmentWrite;
+		dependency.SrcStageMask = PipelineStageFlags::ColorAttachmentOutput;
+		dependency.DstStageMask = PipelineStageFlags::ColorAttachmentOutput;
+		dependency.DstAccessMask = AccessFlags::ColorAttachmentWrite;
 
 		const RenderPassCreateInfo renderPassInfo(attachment, subpass, dependency);
 		VK_VALIDATE(device.vkCreateRenderPass(device.hndl, &renderPassInfo, nullptr, &imGuiRenderPass), PFN_vkCreateRenderPass);
@@ -392,7 +392,7 @@ void Pu::GameWindow::MakeSwapchainImageWritable(void)
 	static const ImageSubresourceRange range;
 
 	/* Transfer present image to a writable image. */
-	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlag::Transfer, PipelineStageFlag::Transfer, ImageLayout::PresentSrcKhr, AccessFlag::TransferWrite, range);
+	GetCommandBuffer().MemoryBarrier(GetCurrentImage(), PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::PresentSrcKhr, AccessFlags::TransferWrite, range);
 }
 
 void Pu::GameWindow::BeginRender(void)

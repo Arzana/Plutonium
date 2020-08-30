@@ -98,7 +98,7 @@ void Pu::TextBuffer::ReallocBuffer(size_t newSize)
 void Pu::TextBuffer::AllocBuffer(size_t size)
 {
 	/* Currently we're not index rendering the text as it doesn't improve our memory usage by much but it increases complexity. */
-	buffer = new DynamicBuffer(*device, size, BufferUsageFlag::TransferDst | BufferUsageFlag::VertexBuffer);
+	buffer = new DynamicBuffer(*device, size, BufferUsageFlags::TransferDst | BufferUsageFlags::VertexBuffer);
 }
 
 void Pu::TextBuffer::Destroy(void)

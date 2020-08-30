@@ -132,7 +132,7 @@ namespace Pu
 		}
 
 		/* Gets which shader stages support subgroup operations (compute is always supported). */
-		_Check_return_ inline ShaderStageFlag GetSubgroupSupportedStages(void) const
+		_Check_return_ inline ShaderStageFlags GetSubgroupSupportedStages(void) const
 		{
 			return subgroup.SupportedStages;
 		}
@@ -180,7 +180,7 @@ namespace Pu
 		ImageFormatProperties GetImageFormatProperties(const ImageCreateInfo &createInfo);
 		bool SupportsPlutonium(const Surface &surface) const;
 		uint32 GetBestGraphicsQueueFamilyInternal(const Surface *surface) const;
-		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlag &requiredProperties, MemoryPropertyFlag optionalProperties, uint32 &index);
+		bool GetBestMemoryType(uint32 memoryTypeBits, MemoryPropertyFlags &requiredProperties, MemoryPropertyFlags optionalProperties, uint32 &index);
 		void OnParentDestroyed(const VulkanInstance&, EventArgs);
 	};
 }

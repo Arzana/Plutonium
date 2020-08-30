@@ -10,7 +10,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of a memory buffer of a specified size (in bytes). */
-		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlag usage, _In_ MemoryPropertyFlag requiredProperties, _In_opt_ MemoryPropertyFlag optionalProperties = MemoryPropertyFlag::None);
+		Buffer(_In_ LogicalDevice &device, _In_ size_t size, _In_ BufferUsageFlags usage, _In_ MemoryPropertyFlags requiredProperties, _In_opt_ MemoryPropertyFlags optionalProperties = MemoryPropertyFlags::None);
 		Buffer(_In_ const Buffer&) = delete;
 		/* Move constructor. */
 		Buffer(_In_ Buffer &&value);
@@ -27,13 +27,13 @@ namespace Pu
 		/* Gets whether this buffer's data can be set by the CPU. */
 		_Check_return_ inline bool IsHostAccessible(void) const
 		{
-			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostVisible);
+			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlags::HostVisible);
 		}
 
 		/* Gets whether this buffer's data is cached on the host. */
 		_Check_return_ inline bool IsCached(void) const
 		{
-			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCached);
+			return _CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlags::HostCached);
 		}
 
 		/* Gets whether this buffer allows it's data to be altered. */
@@ -90,22 +90,22 @@ namespace Pu
 		friend class DescriptorSetBase;
 
 		LogicalDevice *parent;
-		mutable AccessFlag srcAccess;
+		mutable AccessFlags srcAccess;
 
 		size_t size, gpuSize;
 		DeviceMemoryHndl memoryHndl;
 		BufferHndl bufferHndl;
-		MemoryPropertyFlag memoryProperties;
+		MemoryPropertyFlags memoryProperties;
 		uint32 memoryType;
 		byte *buffer;
 
 		void Map(size_t size, size_t offset);
 		void UnMap(void);
 
-		void Create(const BufferCreateInfo &createInfo, MemoryPropertyFlag optional);
+		void Create(const BufferCreateInfo &createInfo, MemoryPropertyFlags optional);
 		void Destroy(void);
 
-		void Allocate(MemoryPropertyFlag optional);
+		void Allocate(MemoryPropertyFlags optional);
 		void Bind(void);
 		void Free(void);
 	};

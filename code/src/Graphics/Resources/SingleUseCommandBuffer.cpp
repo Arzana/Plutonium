@@ -41,10 +41,10 @@ void Pu::SingleUseCommandBuffer::Initialize(LogicalDevice & device, uint32 queue
 	}
 
 	/* Indicate to the pool that the command buffer will be short lived and will only be submitted once. */
-	pool = new CommandPool(device, queueFamilyIndex, CommandPoolCreateFlag::Transient);
+	pool = new CommandPool(device, queueFamilyIndex, CommandPoolCreateFlags::Transient);
 
 	CommandBuffer::operator=(std::move(pool->Allocate()));
-	Usage = CommandBufferUsageFlag::OneTimeSubmit;
+	Usage = CommandBufferUsageFlags::OneTimeSubmit;
 }
 #pragma warning(pop)
 

@@ -20,7 +20,7 @@ namespace Pu
 		/* Creates a new shader module from a specified file. */
 		Shader(_In_ LogicalDevice &device, _In_ const wstring &path);
 		/* Creates a new shader module from a specified source. */
-		Shader(_In_ LogicalDevice &device, _In_ const void *src, _In_ size_t size, _In_ ShaderStageFlag stage);
+		Shader(_In_ LogicalDevice &device, _In_ const void *src, _In_ size_t size, _In_ ShaderStageFlags stage);
 		Shader(_In_ const Shader&) = delete;
 		/* Move constructor. */
 		Shader(_In_ Shader &&value);
@@ -35,7 +35,7 @@ namespace Pu
 		_Check_return_ Shader& operator =(_In_ Shader &&other);
 
 		/* Gets the type (or stage) of this shader module. */
-		_Check_return_ inline ShaderStageFlag GetType(void) const
+		_Check_return_ inline ShaderStageFlags GetType(void) const
 		{
 			return info.Stage;
 		}
@@ -56,7 +56,7 @@ namespace Pu
 		virtual Asset& Duplicate(_In_ AssetCache&) override;
 
 	private:
-		friend class Subpass;
+		friend class ShaderProgram;
 		friend class Renderpass;
 		friend class Pipeline;
 

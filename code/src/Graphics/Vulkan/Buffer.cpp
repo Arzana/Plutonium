@@ -1,9 +1,9 @@
 #include "Graphics/Vulkan/Buffer.h"
 #include "Graphics/Vulkan/PhysicalDevice.h"
 
-Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlag usage, MemoryPropertyFlag requiredProperties, MemoryPropertyFlag optionalProperties)
+Pu::Buffer::Buffer(LogicalDevice & device, size_t size, BufferUsageFlags usage, MemoryPropertyFlags requiredProperties, MemoryPropertyFlags optionalProperties)
 	: Asset(true), parent(&device), size(size), gpuSize(0), buffer(nullptr),
-	srcAccess(AccessFlag::None), Mutable(true), memoryProperties(requiredProperties)
+	srcAccess(AccessFlags::None), Mutable(true), memoryProperties(requiredProperties)
 {
 	Create(BufferCreateInfo(static_cast<DeviceSize>(size), usage), optionalProperties);
 }
@@ -112,7 +112,7 @@ void Pu::Buffer::Flush(DeviceSize size, DeviceSize offset)
 #endif
 
 	/* We don't have to flush if the buffer is Host Coherent. */
-	if (!_CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlag::HostCoherent))
+	if (!_CrtEnumCheckFlag(memoryProperties, MemoryPropertyFlags::HostCoherent))
 	{
 		/* Flush the section of the buffer indicated by the user. */
 		const MappedMemoryRange range{ memoryHndl, offset, size };
@@ -168,7 +168,7 @@ void Pu::Buffer::UnMap(void)
 	buffer = nullptr;
 }
 
-void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlag optional)
+void Pu::Buffer::Create(const BufferCreateInfo & createInfo, MemoryPropertyFlags optional)
 {
 	VK_VALIDATE(parent->vkCreateBuffer(parent->hndl, &createInfo, nullptr, &bufferHndl), PFN_vkCreateBuffer);
 	Allocate(optional);
@@ -180,7 +180,7 @@ void Pu::Buffer::Destroy(void)
 	if (bufferHndl) parent->vkDestroyBuffer(parent->hndl, bufferHndl, nullptr);
 }
 
-void Pu::Buffer::Allocate(MemoryPropertyFlag optional)
+void Pu::Buffer::Allocate(MemoryPropertyFlags optional)
 {
 	/* Get the requirements for this block of memory. */
 	MemoryRequirements requirements;

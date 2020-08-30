@@ -34,7 +34,7 @@ void Pu::Queue::WaitIdle(void) const
 
 void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 {
-	const PipelineStageFlag mask = PipelineStageFlag::Transfer;
+	const PipelineStageFlags mask = PipelineStageFlags::Transfer;
 	SubmitInfo info;
 	info.WaitDstStageMask = &mask;
 	info.CommandBufferCount = 1;
@@ -51,7 +51,7 @@ void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandBuffer, const Semaphore & signalSemaphore)
 {
 	/* Create submit information. */
-	const PipelineStageFlag mask = PipelineStageFlag::Transfer;
+	const PipelineStageFlags mask = PipelineStageFlags::Transfer;
 	SubmitInfo info;
 	info.WaitSemaphoreCount = 1;
 	info.WaitSemaphores = &waitSemaphore.hndl;
