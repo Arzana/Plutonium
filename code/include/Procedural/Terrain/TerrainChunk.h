@@ -78,9 +78,7 @@ namespace Pu
 		Vector3 pos;
 
 		MeshCollection mesh;
-		Texture2D *albedoMask;
-		Image *displacement;
-		ImageView *view;
+		Texture2D *albedoMask, *displacement;
 		Texture2DArray *textures;
 		Terrain *material;
 

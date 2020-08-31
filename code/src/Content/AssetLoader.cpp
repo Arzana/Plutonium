@@ -743,7 +743,9 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 			timer.Start();
 #endif
 
-			cmdBuffer.Initialize(parent.GetDevice(), parent.graphicsQueue.GetFamilyIndex());
+			/* We can use the faster GPU DMA engine (transfer queue) if this resource is just transfer related. */
+			Queue &queue = dstStage == PipelineStageFlags::Transfer ? parent.transferQueue : parent.graphicsQueue;
+			cmdBuffer.Initialize(parent.GetDevice(), queue.GetFamilyIndex());
 
 			/* We need to copy the entire staging buffer to the destination buffer and move the destination buffer to the correct access. */
 			cmdBuffer.Begin();
@@ -751,8 +753,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 			cmdBuffer.MemoryBarrier(destination, PipelineStageFlags::Transfer, dstStage, access);
 			cmdBuffer.End();
 
-			/* The access might be graphics related, so perform this action on the graphics queue. */
-			parent.graphicsQueue.Submit(cmdBuffer);
+			queue.Submit(cmdBuffer);
 			return Result::CustomWait();
 		}
 
@@ -763,7 +764,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 
 #ifdef _DEBUG
 			timer.End();
-			Log::Verbose("Finished Host to GPU copy for '%ls', took %dms", destination.GetName().c_str(), timer.Milliseconds());
+			if constexpr (LogVulkanVerboseMessages) Log::Verbose("Finished Host to GPU copy for '%ls', took %dms", destination.GetName().c_str(), timer.Milliseconds());
 #endif
 
 			return Result::AutoDelete();

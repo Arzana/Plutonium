@@ -19,8 +19,11 @@ namespace Pu
 		/* Move assignment. */
 		_Check_return_ AssetCache& operator =(_In_ AssetCache &&other);
 
-		/* Creates a random hash that isn't yet used by the asset cache. */
-		_Check_return_ size_t RngHash(void);
+		/* 
+		Creates a random hash that isn't yet used by the asset cache. 
+		Set the base hash if you wish to check for instance hashes.
+		*/
+		_Check_return_ size_t RngHash(_In_opt_ size_t baseHash = 0);
 
 		/* Attempts to reserve the specific asset hash, returns false if it already exists. */
 		_Check_return_ bool Reserve(_In_ size_t hash);
@@ -41,6 +44,7 @@ namespace Pu
 		vector<Asset*> assets;
 		vector<size_t> reserved;
 
-		bool Contains(size_t hash, bool instance, bool asset, bool reserve) const;
+		bool Contains(size_t hash, bool asset, bool reserve) const;
+		bool Contains(size_t base, size_t hash) const;
 	};
 }

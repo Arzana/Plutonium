@@ -9,7 +9,7 @@ layout (binding = 0) uniform Camera
 	vec2 Viewport;
 };
 
-layout (set = 1, binding = 0, r32f) uniform image2D Height;
+layout (set = 1, binding = 0) uniform sampler2D Height;
 layout (set = 1, binding = 3) uniform Terrain
 {
 	mat4 Model;
@@ -31,7 +31,7 @@ layout (location = 3) out float WorldHeight;
 
 void main()
 {
-	WorldHeight = imageLoad(Height, ivec2(TexCoord1)).r;
+	WorldHeight = texture(Height, TexCoord2).r;
 	gl_Position = Projection * View * Model * vec4(Position.x, WorldHeight * Displacement, Position.z, 1.0f);
 	WorldNormal = Normal;
 	Uv1 = TexCoord1;

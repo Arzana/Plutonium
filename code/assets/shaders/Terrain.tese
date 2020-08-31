@@ -11,7 +11,7 @@ layout (binding = 0) uniform Camera
 	vec2 Viewport;
 };
 
-layout (set = 1, binding = 0, r32f) uniform image2D Height;
+layout (set = 1, binding = 0) uniform sampler2D Height;
 layout (set = 1, binding = 3) uniform Terrain
 {
 	mat4 Model;
@@ -48,7 +48,7 @@ void main()
 	Normal = mix(n1, n2, gl_TessCoord.y);
 
 	// Set output height.
-	WorldHeight = imageLoad(Height, ivec2(TexCoord1)).r;
+	WorldHeight = texture(Height, TexCoord2).r;
 
 	// Set the final position.
 	const vec4 pos1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);

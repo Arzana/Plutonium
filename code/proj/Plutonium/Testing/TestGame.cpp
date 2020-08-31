@@ -23,12 +23,6 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 }
 
-bool TestGame::GpuPredicate(const PhysicalDevice & physicalDevice)
-{
-	const PhysicalDeviceFeatures &features = physicalDevice.GetSupportedFeatures();
-	return features.VertexPipelineStoresAndAtomics;
-}
-
 void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
 {
 	enabeled.TessellationShader = supported.TessellationShader;				// Optional for better terrain rendering.
@@ -36,7 +30,6 @@ void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, Physical
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;					// Easy wireframe mode
 	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;				// Textures are loaded with 4 anisotropy by default
 	enabeled.PipelineStatisticsQuery = supported.PipelineStatisticsQuery;	// Nice for performance testing, but optional
-	enabeled.VertexPipelineStoresAndAtomics = true;							// Needed for imageLoad.
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)

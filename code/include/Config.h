@@ -69,4 +69,6 @@ namespace Pu
 	constexpr float PhysicsRollingTolerance = 0.5f;
 	/* Defines the beta factor used to stabalize the position correction. */
 	constexpr float PhysicsBaumgarteFactor = 0.02f;
+	/* Defines whether to log a message when an asset gets added or deleted. */
+	constexpr bool AssetCacheLogging = false;
 }

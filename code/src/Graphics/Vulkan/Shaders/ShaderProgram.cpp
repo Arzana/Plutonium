@@ -115,7 +115,7 @@ Asset & Pu::ShaderProgram::Duplicate(AssetCache & cache)
 
 	/* Create a new shader program and override the hash and give it a new instance hash. */
 	ShaderProgram *result = new ShaderProgram(shaders.front()->GetDevice(), shaders);
-	result->SetHash(GetHash(), cache.RngHash());
+	result->SetHash(GetHash(), cache.RngHash(GetHash()));
 	cache.Store(result);
 
 	return *result;

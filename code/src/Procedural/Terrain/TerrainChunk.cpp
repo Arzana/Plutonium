@@ -25,28 +25,9 @@ namespace Pu
 
 		Result Execute(void) final
 		{
-			/* Allocate the displacement GPU image. */
+			/* Precalculate often used values. */
 			LogicalDevice &device = result->fetcher->GetDevice();
-			result->displacement = new Image(device, ImageCreateInfo{ ImageType::Image2D, Format::R32_SFLOAT, Extent3D(meshSize, meshSize, 1), 1, 1, SampleCountFlags::Pixel1Bit, ImageUsageFlags::Storage | ImageUsageFlags::TransferDst });
-			result->view = new ImageView(*result->displacement, ImageViewType::Image2D, ImageAspectFlags::Color);
-
-			/* Allocate a single staging buffer for both the displacement image and the mesh. */
-			const bool canPatch = RuntimeConfig::QueryBool(L"TessellationEnabled");
-			const size_t meshBufferSize = canPatch ? ShapeCreator::GetPatchPlaneBufferSize(meshSize) : ShapeCreator::GetPlaneBufferSize(meshSize);
-			const uint32 vrtxSize = ShapeCreator::GetPlaneVertexSize(meshSize);
-			const size_t stagingBufferSize = meshBufferSize + sqr(meshSize) * sizeof(float);
-			stagingBuffer = new StagingBuffer(device, stagingBufferSize);
-
-			/* We don't want to map/unmap/flush multiple times so we handle memory ourselves. */
-			stagingBuffer->BeginMemoryTransfer();
-			Patched3D *vertex = reinterpret_cast<Patched3D*>(stagingBuffer->GetHostMemory());
-			float *pixel = reinterpret_cast<float*>(reinterpret_cast<byte*>(stagingBuffer->GetHostMemory()) + meshBufferSize);
-
-			/* Set the position and uv's for the mesh. */
-			Mesh mesh = canPatch ? ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false) : ShapeCreator::LodPlane(*stagingBuffer, meshSize, false);
-			result->mesh.AddMesh(mesh, 0u, vrtxSize, vrtxSize, static_cast<uint32>(meshBufferSize - vrtxSize));
-			result->mesh.Finalize(device, meshBufferSize);
-
+			pixels = reinterpret_cast<float*>(malloc(sqr(meshSize) * sizeof(float)));
 			const float iMaxPerlin = recip(PerlinNoise::Max(octaves, persistance));
 			const float step = recip(meshBound);
 			const float start = step * 0.5f;
@@ -59,8 +40,8 @@ namespace Pu
 				for (float x = 0.0f; x <= 1.0f; x += step)
 				{
 					const float h = noise.NormalizedScale(offset.X + x, offset.Y + y, octaves, persistance, lacunarity);
+					pixels[i++] = h;
 
-					pixel[i++] = h;
 					minH = min(minH, h);
 					maxH = max(maxH, h);
 				}
@@ -69,43 +50,50 @@ namespace Pu
 			/* Normalize the height. */
 			minH *= iMaxPerlin;
 			maxH *= iMaxPerlin;
-			for (i = 0; i < sqr(meshSize); i++)
-			{
-				pixel[i] *= iMaxPerlin;
-			}
+			for (i = 0; i < sqr(meshSize); i++) pixels[i] *= iMaxPerlin;
+			i = 0;
+
+			/* Allocate the staging buffer for the mesh (either tessellated or normal). */
+			const bool shouldPatch = RuntimeConfig::QueryBool(L"TessellationEnabled");
+			const size_t meshBufferSize = shouldPatch ? ShapeCreator::GetPatchPlaneBufferSize(meshSize) : ShapeCreator::GetPlaneBufferSize(meshSize);
+			const uint32 vrtxSize = ShapeCreator::GetPlaneVertexSize(meshSize);
+			stagingBuffer = new StagingBuffer(device, meshBufferSize);
+
+			/* We need to set the normals ourselves so handle mapping the host ourselves. */
+			stagingBuffer->BeginMemoryTransfer();
+			Patched3D *vrtx = reinterpret_cast<Patched3D*>(stagingBuffer->GetHostMemory());
+
+			/* Load the desired mesh into the staging buffer and finalize the mesh collection. */
+			Mesh mesh = shouldPatch ? ShapeCreator::PatchPlane(*stagingBuffer, meshSize, false) : ShapeCreator::LodPlane(*stagingBuffer, meshSize, false);
+			result->mesh.AddMesh(mesh, 0u, vrtxSize, vrtxSize, static_cast<uint32>(meshBufferSize - vrtxSize));
+			result->mesh.Finalize(device, meshBufferSize);
 
 			/* Calculate the normals for the mesh and heightmap. */
-			HeightMap tmpCollider{ meshSize, meshScale, true };
-			i = 0;
+			HeightMap heightMap{ meshSize, meshScale, true };
 			for (int32 y = 0; y < meshSize; y++)
 			{
 				for (int32 x = 0; x < meshSize; x++, i++)
 				{
-					const float h0 = pixel[rectify(y - 1) * meshSize + x] * heightScale;
-					const float h1 = pixel[y * meshSize + rectify(x - 1)] * heightScale;
-					const float h2 = pixel[y * meshSize + min(x + 1, meshBound)] * heightScale;
-					const float h3 = pixel[min(y + 1, meshBound) * meshSize + x] * heightScale;
-					Vector3 n{ h1 - h2, 2.0f, h0 - h3 };
+					/* Sample four heights from the adjacent pixels. */
+					const float h0 = pixels[rectify(y - 1) * meshSize + x] * heightScale;
+					const float h1 = pixels[y * meshSize + rectify(x - 1)] * heightScale;
+					const float h2 = pixels[y * meshSize + min(x + 1, meshBound)] * heightScale;
+					const float h3 = pixels[min(y + 1, meshBound) * meshSize + x] * heightScale;
 
-					vertex[i].Normal = n.Normalize();
-					tmpCollider.SetHeightAndNormal(x, y, pixel[i] * heightScale, n);
+					/* Calculate the normal and pass it to the mesh and collider. */
+					const Vector3 n = normalize(h1 - h2, 2.0f, h0 - h3);
+					vrtx[i].Normal = n;
+					heightMap.SetHeightAndNormal(x, y, pixels[i] * heightScale, n);
 				}
 			}
 
+			/* Stage the mesh to the GPU. */
 			stagingBuffer->EndMemoryTransfer();
-			const ImageSubresourceRange range = result->displacement->GetFullRange(ImageAspectFlags::Color);
+			result->fetcher->GetLoader().StageBuffer(*stagingBuffer, result->mesh.GetBuffer(), PipelineStageFlags::VertexShader, AccessFlags::VertexAttributeRead, L"TerrainChunkPlane");
 
-			/* Stage the mesh and displacement texture to the GPU. */
-			cmd.Initialize(device, device.GetGraphicsQueueFamily());
-			cmd.Begin();
-			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, AccessFlags::TransferWrite);
-			cmd.MemoryBarrier(*result->displacement, PipelineStageFlags::Transfer, PipelineStageFlags::Transfer, ImageLayout::TransferDstOptimal, AccessFlags::TransferWrite, range);
-			cmd.CopyBuffer(*stagingBuffer, result->mesh.GetBuffer(), BufferCopy{ 0, 0, meshBufferSize });
-			cmd.CopyBuffer(*stagingBuffer, *result->displacement, BufferImageCopy{ meshBufferSize, result->displacement->GetExtent() });
-			cmd.MemoryBarrier(result->mesh.GetBuffer(), PipelineStageFlags::Transfer, PipelineStageFlags::VertexInput, AccessFlags::VertexAttributeRead);
-			cmd.MemoryBarrier(*result->displacement, PipelineStageFlags::Transfer, canPatch ? PipelineStageFlags::TessellationControlShader : PipelineStageFlags::VertexShader, ImageLayout::General, AccessFlags::ShaderRead, range);
-			cmd.End();
-			device.GetGraphicsQueue(0).Submit(cmd);
+			/* Stage the displacement texture to the GPU, random name is needed in order not to replace textures. */
+			const SamplerCreateInfo samplerInfo{ Filter::Linear, SamplerMipmapMode::Linear, SamplerAddressMode::ClampToEdge };
+			result->displacement = &result->fetcher->CreateTexture2D("TerrainChunkDisplacement", pixels, meshSize, meshSize, Format::R32_SFLOAT, samplerInfo);
 
 			/* The terrain is rendered fro the center, so we need to add an offset. */
 			result->pos = Vector3(offset.X, 0.0f, offset.Y) * meshScale * meshBound;
@@ -113,7 +101,7 @@ namespace Pu
 
 			/* Initialize the material. */
 			result->material = new Terrain(pool, layout);
-			result->material->SetHeight(*result->view);
+			result->material->SetHeight(*result->displacement);
 			result->material->SetMask(*result->albedoMask);
 			result->material->SetTextures(*result->textures);
 			result->material->SetDisplacement(displacement);
@@ -127,7 +115,7 @@ namespace Pu
 			/* Add the heightmap to the physical world if needed. */
 			if (result->world)
 			{
-				Collider collider{ result->bb, CollisionShapes::HeightMap, &tmpCollider };
+				Collider collider{ result->bb, CollisionShapes::HeightMap, &heightMap };
 				PhysicalObject obj{ result->pos, Quaternion{}, collider };
 				obj.Properties = create_physics_handle(PhysicsType::Material, 1ull);
 				result->hcollider = result->world->AddStatic(obj, *result);
@@ -138,15 +126,21 @@ namespace Pu
 
 		Result Continue(void) final
 		{
-			delete stagingBuffer;
 			result->MarkAsLoaded(false, L"TerrainChunk");
+
+			/* Free all the used resources. */
+			free(pixels);
 			return Result::AutoDelete();
 		}
 
 	protected:
 		bool ShouldContinue(void) const final
 		{
-			return cmd.CanBegin() && result->textures->IsUsable() && result->albedoMask->IsUsable();
+			/* Wait till the mesh and displacement are staged. */
+			return result->mesh.GetBuffer().IsLoaded()
+				&& result->displacement->IsUsable()
+				&& result->textures->IsUsable()
+				&& result->albedoMask->IsUsable();
 		}
 
 	private:
@@ -157,7 +151,7 @@ namespace Pu
 		Vector2 offset;
 
 		StagingBuffer *stagingBuffer;
-		SingleUseCommandBuffer cmd;
+		float *pixels;
 	};
 }
 
@@ -236,11 +230,5 @@ void Pu::TerrainChunk::Destroy(void)
 	if (material) delete material;
 	if (textures) fetcher->Release(*textures);
 	if (albedoMask) fetcher->Release(*albedoMask);
-
-	/* We need to delete all aspects of the texture, because we allocated them ourselves. */
-	if (displacement)
-	{
-		delete view;
-		delete displacement;
-	}
+	if (displacement) fetcher->Release(*displacement);
 }

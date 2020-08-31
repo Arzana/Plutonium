@@ -53,6 +53,10 @@ Pu::Renderpass & Pu::AssetFetcher::FetchRenderpass(Renderpass * old, const vecto
 	{
 		/* We only need to destroy the old shaders and update the hash. */
 		old->MarkAsLoading();
+
+		/* We have to dereference the subpasses ourselves when replacing. */
+		for (Subpass &subpass : old->subpasses) --subpass.refCnt;
+
 		old->Destroy();
 		cache->Update(old, hash);
 	}
@@ -263,35 +267,21 @@ Pu::Texture2D& Pu::AssetFetcher::CreateTexture2D(const string & id, const void *
 	*/
 	Sampler &sampler = FetchSampler(samplerInfo);
 
-	/* Try to fetch the image, otherwise just create a new one. */
-	const size_t hash = std::hash<string>{}(id);
-	if (!cache->Reserve(hash))
-	{
-		Image &image = cache->Get(hash).Duplicate<Image>(*cache);
+	/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
+	const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height);
+	const ImageUsageFlags usage = ImageUsageFlags::TransferSrc | ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled;
 
-		/* Create the final texture and return it. */
-		Texture2D *result = new Texture2D(image, sampler);
-		textures.emplace_back(result);
-		return *result;
-	}
-	else
-	{
-		/* Create a new image and store it in cache, the hash is reset by us to the path for easier lookup. */
-		const uint32 mipMapLevels = Image::GetMaxMipLayers(width, height);
-		const ImageUsageFlags usage = ImageUsageFlags::TransferSrc | ImageUsageFlags::TransferDst | ImageUsageFlags::Sampled;
+	const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlags::Pixel1Bit, usage);
+	Image *image = new Image(loader->GetDevice(), createInfo);
+	image->SetDebugName(id);
+	image->SetHash(cache->RngHash());
+	cache->Store(image);
 
-		const ImageCreateInfo createInfo(ImageType::Image2D, format, Extent3D(width, height, 1), mipMapLevels, 1, SampleCountFlags::Pixel1Bit, usage);
-		Image *image = new Image(loader->GetDevice(), createInfo);
-		image->SetDebugName(id);
-		image->SetHash(hash);
-		cache->Store(image);
-
-		/* Create the final texture and start the load/stage process. */
-		Texture2D *result = new Texture2D(*image, sampler);
-		textures.emplace_back(result);
-		loader->InitializeTexture(*result, reinterpret_cast<const byte*>(data), width * height * format_size(format), std::move(id.toWide()));
-		return *result;
-	}
+	/* Create the final texture and start the load/stage process. */
+	Texture2D *result = new Texture2D(*image, sampler);
+	textures.emplace_back(result);
+	loader->InitializeTexture(*result, reinterpret_cast<const byte*>(data), width * height * format_size(format), std::move(id.toWide()));
+	return *result;
 }
 
 Pu::Model & Pu::AssetFetcher::CreateModel(ShapeType type, const DeferredRenderer & deferredRenderer, const LightProbeRenderer * probeRenderer, const wstring & diffuse)
@@ -338,8 +328,8 @@ void Pu::AssetFetcher::Release(Renderpass & renderpass)
 	/* Make sure to release the subpasses as well. */
 	for (Subpass &subpass : renderpass.subpasses)
 	{
-		/* 
-		The shader program will be marked as loaded via the loader, 
+		/*
+		The shader program will be marked as loaded via the loader,
 		but it's not in the cache because the renderpass owns it.
 		Therefor we just derefernce this program outselves.
 		*/
