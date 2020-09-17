@@ -261,7 +261,7 @@ void Pu::VulkanInstance::LoadInstanceProcs(void)
 	VK_LOAD_INSTANCE_PROC(hndl, vkEnumeratePhysicalDevices);
 	VK_LOAD_INSTANCE_PROC(hndl, vkDestroyInstance);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceProperties2);
-	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures);
+	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFeatures2);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceQueueFamilyProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceMemoryProperties);
 	VK_LOAD_INSTANCE_PROC(hndl, vkGetPhysicalDeviceFormatProperties);

@@ -21,7 +21,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkCreateInstance);
 	EXT_INSTANCE_PROC(vkDestroyInstance);
 	EXT_INSTANCE_PROC(vkGetPhysicalDeviceProperties2);
-	EXT_INSTANCE_PROC(vkGetPhysicalDeviceFeatures);
+	EXT_INSTANCE_PROC(vkGetPhysicalDeviceFeatures2);
 	EXT_INSTANCE_PROC(vkGetPhysicalDeviceQueueFamilyProperties);
 	EXT_INSTANCE_PROC(vkCreateDevice);
 	EXT_INSTANCE_PROC(vkEnumerateDeviceExtensionProperties);
@@ -136,6 +136,9 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
 	EXT_INSTANCE_PROC(vkResetDescriptorPool);
 	EXT_INSTANCE_PROC(vkCmdDispatch);
+	EXT_INSTANCE_PROC(vkGetPipelineExecutableInternalRepresentationsKHR);
+	EXT_INSTANCE_PROC(vkGetPipelineExecutablePropertiesKHR);
+	EXT_INSTANCE_PROC(vkGetPipelineExecutableStatisticsKHR);
 
 #ifdef _WIN32
 	EXT_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

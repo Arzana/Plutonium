@@ -4,6 +4,10 @@ Pu::Pipeline::Pipeline(Pipeline && value)
 	: Hndl(value.Hndl), LayoutHndl(value.LayoutHndl), Device(value.Device),
 	specInfos(std::move(value.specInfos)), shaderStages(std::move(value.shaderStages)),
 	CreateFlags(value.CreateFlags)
+#ifdef _DEBUG
+	, exeProperties(std::move(value.exeProperties)), stats(std::move(value.stats)),
+	internals(std::move(value.internals))
+#endif
 {
 	value.Hndl = nullptr;
 	value.LayoutHndl = nullptr;
@@ -22,6 +26,12 @@ Pu::Pipeline & Pu::Pipeline::operator=(Pipeline && other)
 		specInfos = std::move(other.specInfos);
 		shaderStages = std::move(other.shaderStages);
 
+#ifdef _DEBUG
+		exeProperties = std::move(other.exeProperties);
+		stats = std::move(other.stats);
+		internals = std::move(other.internals);
+#endif
+
 		other.Hndl = nullptr;
 		other.LayoutHndl = nullptr;
 	}
@@ -39,6 +49,97 @@ void Pu::Pipeline::SetSpecializationData(uint32 shader, const void * data, size_
 	SpecializationInfo &specInfo = *const_cast<SpecializationInfo*>(shaderStages[shader].SpecializationInfo);
 	specInfo.DataSize = static_cast<uint32>(size);
 	specInfo.Data = data;
+}
+
+bool Pu::Pipeline::EnableDebugging(void)
+{
+#ifdef _DEBUG
+	if (Hndl) Log::Fatal("Cannot call EnableDebugging after the pipeline is finalized!");
+#else
+	Log::Warning("Pipeline debugging is only available on debug mode!");
+	return false;
+#endif
+
+	if (Device->GetPhysicalDevice().executablePropertiesSupported)
+	{
+		/* Allows the use of GetStatistics and GetInternals. */
+		CreateFlags |= PipelineCreateFlags::CaptureStatistics | PipelineCreateFlags::CaptureInternalRepresentations;
+		return true;
+	}
+
+	return false;
+}
+
+const Pu::vector<Pu::PipelineExecutableProperties>& Pu::Pipeline::GetExecutableProperties(void) const
+{
+#ifdef _DEBUG
+	if (!Hndl) Log::Fatal("Pipeline executable properties can only be queried after the pipeline is finalized!");
+	InitExeProps();
+#else
+	Log::Fatal("Pipeline debugging is only available on debug mode!");
+#endif
+
+	return exeProperties;
+}
+
+const Pu::vector<Pu::PipelineExecutableStatistic>& Pu::Pipeline::GetExecutableStatistics(uint32 executableIndex) const
+{
+#ifdef _DEBUG
+	/* Check for invalid use. */
+	if (!Hndl) Log::Fatal("Pipeline statistics can only be queried after the pipeline is finalized!");
+	if (!_CrtEnumCheckFlag(CreateFlags, PipelineCreateFlags::CaptureStatistics)) Log::Fatal("Debugging must be enabled in order to query pipeline statistics!");
+
+	/* Initialize the global executable properties and check if the user argument is valid. */
+	InitExeProps();
+	if (executableIndex >= exeProperties.size()) Log::Fatal("Pipeline doesn't have an executable at index %u!", executableIndex);
+
+	/* Use the cache if available. */
+	decltype(stats)::const_iterator it = stats.find(executableIndex);
+	if (it != stats.end()) return it->second;
+
+	/* Get the amount of statistics for this executable. */
+	const PipelineExecutableInfo info{ Hndl, executableIndex };
+	uint32 statCount;
+	Device->vkGetPipelineExecutableStatisticsKHR(Device->hndl, &info, &statCount, nullptr);
+
+	/* Query the actual statistics and add it to the cache. */
+	vector<PipelineExecutableStatistic> result{ statCount };
+	Device->vkGetPipelineExecutableStatisticsKHR(Device->hndl, &info, &statCount, result.data());
+	return stats.emplace(executableIndex, std::move(result)).first->second;
+#else
+	Log::Fatal("Pipeline debugging is only available on debug mode!");
+	return stats.at(executableIndex);
+#endif
+}
+
+const Pu::vector<Pu::PipelineExecutableInternalRepresentation> & Pu::Pipeline::GetExecutableInternals(uint32 executableIndex) const
+{
+#ifdef _DEBUG
+	/* Check for invalid use. */
+	if (!Hndl) Log::Fatal("Pipeline executable internals can only be queried after the pipeline is finalized!");
+	if (!_CrtEnumCheckFlag(CreateFlags, PipelineCreateFlags::CaptureInternalRepresentations)) Log::Fatal("Debugging must be enabled in order to query pipeline executable internals!");
+
+	/* Initialize the global executable properties and check if the user argument is valid. */
+	InitExeProps();
+	if (executableIndex >= exeProperties.size()) Log::Fatal("Pipeline doesn't have an executable at index %u!", executableIndex);
+
+	/* Use the cache if available. */
+	decltype(internals)::const_iterator it = internals.find(executableIndex);
+	if (it != internals.end()) return it->second;
+
+	/* Get the amount of internals for this executable. */
+	const PipelineExecutableInfo info{ Hndl, executableIndex };
+	uint32 internalsCount;
+	Device->vkGetPipelineExecutableInternalRepresentationsKHR(Device->hndl, &info, &internalsCount, nullptr);
+
+	/* Query the actual internals and add it to the cache. */
+	vector<PipelineExecutableInternalRepresentation> result{ internalsCount };
+	Device->vkGetPipelineExecutableInternalRepresentationsKHR(Device->hndl, &info, &internalsCount, result.data());
+	return internals.emplace(executableIndex, std::move(result)).first->second;
+#else
+	Log::Fatal("Pipeline debugging is only available on debug mode!");
+	return internals.at(executableIndex);
+#endif
 }
 
 Pu::Pipeline::Pipeline(LogicalDevice & device, const ShaderProgram & program)
@@ -132,6 +233,30 @@ void Pu::Pipeline::InitializeSpecializationConstants(const ShaderProgram & progr
 void Pu::Pipeline::Destroy(void)
 {
 	if (Hndl) Device->vkDestroyPipeline(Device->hndl, Hndl, nullptr);
+
+#ifdef _DEBUG
+	/* Clear the debugging caches on debug mode. */
+	exeProperties.clear();
+	stats.clear();
+	internals.clear();
+#endif
+}
+
+void Pu::Pipeline::InitExeProps(void) const
+{
+	/* We cache the properties, so use that cache if available. */
+	if (exeProperties.empty())
+	{
+		const PipelineInfo info{ Hndl };
+
+		/* Query the amount of executables available for debugging. */
+		uint32 propertiesCount;
+		Device->vkGetPipelineExecutablePropertiesKHR(Device->hndl, &info, &propertiesCount, nullptr);
+
+		/* Query the actual properties. */
+		exeProperties.resize(propertiesCount);
+		Device->vkGetPipelineExecutablePropertiesKHR(Device->hndl, &info, &propertiesCount, exeProperties.data());
+	}
 }
 
 void Pu::Pipeline::CreatePipelineLayout(const ShaderProgram & program)

@@ -210,6 +210,9 @@ namespace Pu
 		PFN_vkMergePipelineCaches vkMergePipelineCaches;
 		PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
 		PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
+		PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+		PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
+		PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo);
 

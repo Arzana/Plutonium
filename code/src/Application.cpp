@@ -122,7 +122,6 @@ void Pu::Application::InitializePlutonium(void)
 
 void Pu::Application::InitializeVulkan(void)
 {
-	constexpr const char *DEVICE_EXTENSIONS[2] = { u8"VK_KHR_swapchain" };
 	constexpr float PRIORITIES[2] = { 1.0f, 1.0f };
 
 	/* 
@@ -172,11 +171,15 @@ void Pu::Application::InitializeVulkan(void)
 		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
 	};
 
+	/* Swapchain is needed for the application to display any graphics. */
+	vector<const char*> deviceExtensions = { u8"VK_KHR_swapchain" };
+	if (physicalDevice.IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) deviceExtensions.emplace_back(u8"VK_KHR_pipeline_executable_properties");
+
 	/* Allow the user to enable specific physical device features. */
-	EnableFeatures(physicalDevice.GetSupportedFeatures(), const_cast<PhysicalDeviceFeatures&>(physicalDevice.enabledFeatures));
+	EnableFeatures(physicalDevice.GetSupportedFeatures(), const_cast<PhysicalDeviceFeatures&>(physicalDevice.enabledFeatures.Features));
 
 	/* Create logical device. */
-	DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos, 1, DEVICE_EXTENSIONS, &physicalDevice.enabledFeatures };
+	DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos, deviceExtensions, physicalDevice.enabledFeatures };
 	device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
 	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
 

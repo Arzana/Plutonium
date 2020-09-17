@@ -137,31 +137,54 @@ namespace Pu
 		MemoryBarrier = 46,
 		LoaderInstanceCreateInfo = 47,
 		LoaderDeviceCreateInfo = 48,
+		/* VK_KHR_swapchain */
 		SwapChainCreateInfoKhr = 1000001000,
 		PresentInfoKhr = 1000001001,
+		/* VK_KHR_display */
 		DisplayModeCreateInfoKhr = 1000002000,
 		DisplaySurfaceCreateInfo = 1000002001,
 		DisplayPresentInfoKhr = 1000003000,
+		/* VK_KHR_xlib_surface */
 		XlibSurfaceCreateInfoKhr = 1000004000,
+		/* VK_KHR_xcb_surface */
 		XCBSurfaceCreateInfoKhr = 1000005000,
+		/* VK_KHR_wayland_surface */
 		WaylandSurfaceCreateInfoKhr = 1000006000,
-		MirSurfaceCreateInfoKhr = 1000007000,
+		/* VK_KHR_android_surface */
 		AndroidSurfaceCreateInfoKhr = 1000008000,
+		/*VK_KHR_win32_surface */
 		Win32SurfaceCreateInfoKhr = 1000009000,
+		/* VK_EXT_debug_report */
 		DebugReportCreateInfoExt = 1000011000,
+		/* VK_KHR_get_physical_device_properties2 */
 		PhysicalDeviceMemoryProperties2 = 1000059006,
+		/* VK_EXT_debug_utils */
 		DebugUtilsObjectNameInfoExt = 1000128000,
 		DebugUtilsLabelExt = 1000128002,
 		DebugUtilsMessangerCallbackDataExt = 1000128003,
 		DebugUtilsMessengerCreateInfoExt = 1000128004,
+		/* VK_EXT_memory_budget */
 		PhysicalDeviceMemoryBudgetPropertiesExt = 1000237000,
+		/* VK_EXT_full_screen_exclusive */
 		SurfaceFullScreenExclusiveInfoExt = 1000255000,
 		SurfaceFullScreenExclusiveWin32InfoExt = 1000255001,
 		SurfaceCapabilitiesFullScreenExclusiveExt = 1000255002,
+		/* VK_KHR_get_surface_capabilities2 */
 		PhysicalDeviceSurfaceInfo2Khr = 1000119000,
+		/* VK_KHR_get_physical_device_properties2 */
 		PhysicalDeviceProperties2 = 1000059001,
+		/* VK_VERSION_1_1 */
 		PhysicalDeviceSubgroupProperties = 1000094000,
-		SurfaceCapabilities2Khr = 1000119001
+		PhysicalDeviceFeatures2 = 1000059000,
+		/* VK_KHR_get_surface_capabilities2 */
+		SurfaceCapabilities2Khr = 1000119001,
+		/*VK_KHR_pipeline_executable_properties */
+		PhysicalDevicePipelineExecutablePropertiesFeatures = 1000269000,
+		PipelineInfo = 1000269001,
+		PipelineExecutableProperties = 1000269002,
+		PipelineExecutableInfo = 1000269003,
+		PipelineExecutableStatistic = 1000269004,
+		PipelineExecutableInternalRepresentation = 1000269005
 	};
 
 	/* Defines the lifetime of a system allocation. */
@@ -1227,7 +1250,11 @@ namespace Pu
 		/* Specifies that any shader input variables decorated as ViewIndex will be assigned values as if they were decorated as DeviceIndex. */
 		ViewIndexFromDeviceIndex = 0x00000008,
 		/* Specifies that a compute pipeline can be used with CmdDispatchBase with a non-zero base workgroup. */
-		DispatchBase = 0x00000010
+		DispatchBase = 0x00000010,
+		/* Specifies that the shader compiler should capture statistics for this pipeline (requires VK_KHR_pipeline_executable_properties). */
+		CaptureStatistics = 0x00000040,
+		/* Specifies that the shader compiler should capture the internal representations for this pipeline (requires VK_KHR_pipeline_executable_properties). */
+		CaptureInternalRepresentations = 0x00000080,
 	};
 
 	/* Defines the shader stages. */
@@ -1650,6 +1677,19 @@ namespace Pu
 		Quad
 	};
 
+	/* Defines a pipeline executable statistic. */
+	enum class PipelineExecutableStatisticFormat
+	{
+		/* Specifies that the statistic is a 32-bit wide boolean value. */
+		Bool32,
+		/* Specifies that the statistic is a 64-bit signed integer value. */
+		Int64,
+		/* Specifies that the statistic is an unsigned integer value. */
+		Uint64,
+		/* Specifies that the statistic is a double precision floating point value.  */
+		Float64
+	};
+
 	/* Appends the flag bits of an image usage flag. */
 	_Check_return_ inline constexpr ImageUsageFlags operator |(_In_ ImageUsageFlags a, _In_ ImageUsageFlags b)
 	{
@@ -1706,6 +1746,18 @@ namespace Pu
 
 	/* Appends the flag bits of an query pipeline statistics flag. */
 	_Check_return_ inline constexpr QueryPipelineStatisticFlags operator |=(_In_ QueryPipelineStatisticFlags &a, _In_ QueryPipelineStatisticFlags b)
+	{
+		return a = _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an query pipeline creations flag. */
+	_Check_return_ inline constexpr PipelineCreateFlags operator |(_In_ PipelineCreateFlags a, _In_ PipelineCreateFlags b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
+	/* Appends the flag bits of an query pipeline creations flag. */
+	_Check_return_ inline constexpr PipelineCreateFlags operator |=(_In_ PipelineCreateFlags &a, _In_ PipelineCreateFlags b)
 	{
 		return a = _CrtEnumBitOr(a, b);
 	}

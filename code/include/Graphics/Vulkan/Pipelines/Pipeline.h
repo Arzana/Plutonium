@@ -25,6 +25,14 @@ namespace Pu
 		virtual void Finalize(void) = 0;
 		/* Sets the data for the specialization constants in the specified shader. */
 		void SetSpecializationData(_In_ uint32 shader, _In_ const void *data, _In_ size_t size);
+		/* Attempts to enable statistics and other debugging information for this pipeline (can slow down pipeline creation). */
+		_Check_return_ bool EnableDebugging(void);
+		/* Gets the properties of all the executables in this pipeline (requires debugging to be enabled). */
+		_Check_return_ const vector<PipelineExecutableProperties>& GetExecutableProperties(void) const;
+		/* Gets the statistic for a single executable in this pipeline (requires debugging to be enabled). */
+		_Check_return_ const vector<PipelineExecutableStatistic>& GetExecutableStatistics(_In_ uint32 executableIndex) const;
+		/* Gets the internal representation of a single executable in this pipeline (requires debugging to be enabled). */
+		_Check_return_ const vector<PipelineExecutableInternalRepresentation>& GetExecutableInternals(_In_ uint32 executableIndex) const;
 
 		/* Sets the specialization constants in the specified shader. */
 		template <typename data_t>
@@ -84,6 +92,14 @@ namespace Pu
 		
 		vector<SpecializationInfo> specInfos;
 		vector<PipelineShaderStageCreateInfo> shaderStages;
+
+#ifdef _DEBUG
+		mutable vector<PipelineExecutableProperties> exeProperties;
+		mutable std::map<uint32, vector<PipelineExecutableStatistic>> stats;
+		mutable std::map<uint32, vector<PipelineExecutableInternalRepresentation>> internals;
+
+		void InitExeProps(void) const;
+#endif
 
 		void CreatePipelineLayout(const ShaderProgram &program);
 		void DestroyBuffers(void);

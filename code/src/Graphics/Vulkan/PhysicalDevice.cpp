@@ -8,7 +8,8 @@ Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
 	: parent(value.parent), hndl(value.hndl), properties(std::move(value.properties)),
 	supportedFeatures(std::move(value.supportedFeatures)), memory(std::move(value.memory)),
 	enabledFeatures(std::move(value.enabledFeatures)), canQueryMemoryUsage(value.canQueryMemoryUsage),
-	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported), 
+	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported),
+	executablePropertiesSupported(value.executablePropertiesSupported),
 	memAllocs(value.memAllocs), samplerAllocs(value.samplerAllocs)
 {
 	value.hndl = nullptr;
@@ -33,6 +34,7 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 		memory = std::move(other.memory);
 		canQueryMemoryUsage = other.canQueryMemoryUsage;
 		exclusiveFullScreenSupported = other.exclusiveFullScreenSupported;
+		executablePropertiesSupported = other.executablePropertiesSupported;
 		memAllocs = other.memAllocs;
 		samplerAllocs = other.samplerAllocs;
 
@@ -137,10 +139,13 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	PhysicalDeviceProperties2 prop2;
 	prop2.Next = &subgroup;
 
+	PhysicalDevicePipelineExecutablePropertiesFeatures executableProperties;
+	if (IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) supportedFeatures.Next = &executableProperties;
+
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 	parent.vkGetPhysicalDeviceProperties2(hndl, &prop2);
-	parent.vkGetPhysicalDeviceFeatures(hndl, &supportedFeatures);
+	parent.vkGetPhysicalDeviceFeatures2(hndl, &supportedFeatures);
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 
 	properties = prop2.Properties;
@@ -148,6 +153,7 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	/* Querying whether the extensions are supported is slow, so just query it on creation. */
 	canQueryMemoryUsage = IsExtensionSupported(u8"VK_EXT_memory_budget");
 	exclusiveFullScreenSupported = IsExtensionSupported(u8"VK_EXT_full_screen_exclusive");
+	executablePropertiesSupported = executableProperties.PipelineExecutableInfo;
 }
 
 ImageFormatProperties Pu::PhysicalDevice::GetImageFormatProperties(const ImageCreateInfo & createInfo)

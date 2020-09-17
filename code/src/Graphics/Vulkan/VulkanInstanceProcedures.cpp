@@ -12,7 +12,7 @@ namespace Pu
 	PFN_vkCreateInstance vkCreateInstance;
 	PFN_vkDestroyInstance vkDestroyInstance;
 	PFN_vkGetPhysicalDeviceProperties2 vkGetPhysicalDeviceProperties2;
-	PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+	PFN_vkGetPhysicalDeviceFeatures2 vkGetPhysicalDeviceFeatures2;
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 	PFN_vkCreateDevice vkCreateDevice;
 	PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
@@ -127,6 +127,9 @@ namespace Pu
 	PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 	PFN_vkResetDescriptorPool vkResetDescriptorPool;
 	PFN_vkCmdDispatch vkCmdDispatch;
+	PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+	PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
+	PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -147,7 +150,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCreateInstance);
 	LOAD_INSTANCE_PROC(vkDestroyInstance);
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceProperties2);
-	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceFeatures);
+	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceFeatures2);
 	LOAD_INSTANCE_PROC(vkGetPhysicalDeviceQueueFamilyProperties);
 	LOAD_INSTANCE_PROC(vkCreateDevice);
 	LOAD_INSTANCE_PROC(vkEnumerateDeviceExtensionProperties);
@@ -277,6 +280,13 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	if (enabledExtensions.contains(u8"VK_KHR_get_physical_device_properties2"))
 	{
 		LOAD_INSTANCE_PROC(vkGetPhysicalDeviceMemoryProperties2);
+	}
+
+	if (enabledExtensions.contains(u8"VK_KHR_pipeline_executable_properties"))
+	{
+		LOAD_INSTANCE_PROC(vkGetPipelineExecutableInternalRepresentationsKHR);
+		LOAD_INSTANCE_PROC(vkGetPipelineExecutablePropertiesKHR);
+		LOAD_INSTANCE_PROC(vkGetPipelineExecutableStatisticsKHR);
 	}
 
 #ifdef _WIN32

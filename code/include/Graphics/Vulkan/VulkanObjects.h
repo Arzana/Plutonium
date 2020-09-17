@@ -242,6 +242,36 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the fine-grained features that can be supported by an implementation. */
+	struct PhysicalDeviceFeatures2
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the fine-grained features of Vulkan 1.0. */
+		PhysicalDeviceFeatures Features;
+
+		/* Initializes an empty instance of a physical device features object. */
+		PhysicalDeviceFeatures2(void)
+			: Type(StructureType::PhysicalDeviceFeatures2), Next(nullptr)
+		{}
+
+		/* Move constructor. */
+		PhysicalDeviceFeatures2(_In_ PhysicalDeviceFeatures2 &&value)
+			: Type(StructureType::PhysicalDeviceFeatures2), Next(value.Next),
+			Features(value.Features)
+		{}
+
+		/* Move assignment. */
+		_Check_return_ inline PhysicalDeviceFeatures2& operator =(_In_ PhysicalDeviceFeatures2 &&other)
+		{
+			Next = other.Next;
+			Features = other.Features;
+			return *this;
+		}
+	};
+
 	/* Defines image format properties. */
 	struct FormatProperties
 	{
@@ -706,13 +736,21 @@ namespace Pu
 		{}
 
 		/* Creates a new instance of the device create information object. */
-		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos,
-			_In_opt_ uint32 enabledExtensionCount = 0, _In_opt_ const char *const *enabledExtensionNames = nullptr,
-			_In_opt_ const PhysicalDeviceFeatures *enabledFeatures = nullptr)
+		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos)
 			: Type(StructureType::DeviceCreatInfo), Next(nullptr), Flags(0),
 			EnabledLayerCount(0), EnabledLayerNames(nullptr),
 			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos),
-			EnabledExtensionCount(enabledExtensionCount), EnabledExtensionNames(enabledExtensionNames), EnabledFeatures(enabledFeatures)
+			EnabledExtensionCount(0), EnabledExtensionNames(nullptr), EnabledFeatures(nullptr)
+		{}
+
+		/* Creates a new instance of the device create information object. */
+		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos,
+			_In_ const vector<const char*> &enabledExtensions, _In_opt_ const PhysicalDeviceFeatures2 &enabledFeatures)
+			: Type(StructureType::DeviceCreatInfo), Next(&enabledFeatures), Flags(0),
+			EnabledLayerCount(0), EnabledLayerNames(nullptr),
+			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos),
+			EnabledExtensionCount(static_cast<uint32>(enabledExtensions.size())), 
+			EnabledExtensionNames(enabledExtensions.data()), EnabledFeatures(nullptr)
 		{}
 	};
 
@@ -3547,6 +3585,151 @@ namespace Pu
 		DrawIndexedIndirectCommand(_In_ uint32 firstIndex, _In_ uint32 indexCount)
 			: IndexCount(indexCount), InstanceCount(1), FirstIndex(firstIndex),
 			VertexOffset(0), FirstInstance(0)
+		{}
+	};
+
+	/* Defines a single pipeline executable statistic's value. */
+	union PipelineExecutableStatisticValue
+	{
+		/* The boolean representation. */
+		Bool32 B32;
+		/* The signed integer representation. */
+		int64 I64;
+		/* The unsigned integer representation. */
+		uint64 U64;
+		/* The floating point representation. */
+		double F64;
+	};
+
+	/* Defines a single query for associated statistics or internal representations. */
+	struct PipelineExecutableInfo
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the pipeline to query. */
+		PipelineHndl Pipeline;
+		/* Specifies the index of the executable query in the executable properties array. */
+		uint32 ExecutableIndex;
+
+		/* Initializes an empty instance of the pipeline executable info object. */
+		PipelineExecutableInfo(void)
+			: PipelineExecutableInfo(nullptr, 0)
+		{}
+
+		/* Initializes a new instance of the pipeline executable info object. */
+		PipelineExecutableInfo(_In_ PipelineHndl pipeline, _In_ uint32 idx)
+			: Type(StructureType::PipelineExecutableInfo), Next(nullptr),
+			Pipeline(pipeline), ExecutableIndex(idx)
+		{}
+	};
+
+	/* Defines the textual form of a pipeline executable internal representation. */
+	struct PipelineExecutableInternalRepresentation
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies a human readable name for this internal representation. */
+		char Name[MaxDescriptionSize];
+		/* Specifies a human readable description for this internal representation. */
+		char Description[MaxDescriptionSize];
+		/* Specifies whether the data is text or opaque data. */
+		Bool32 IsText;
+		/* Specifies the size (in bytes) of the data field. */
+		size_t DataSize;
+		/* Specifies a BLOB of textual data. */
+		void *Data;
+
+		/* Initializes a new instance of a pipeline executable internal representation object. */
+		PipelineExecutableInternalRepresentation(void)
+			: Type(StructureType::PipelineExecutableInternalRepresentation), Next(nullptr),
+			IsText(false), DataSize(0), Data(nullptr)
+		{}
+	};
+
+	/* Defines a single pipeline executable. */
+	struct PipelineExecutableProperties
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies which stages were used as inputs to compile this executable. */
+		ShaderStageFlags Stages;
+		/* Specifies a human readable name for this executable. */
+		char Name[MaxDescriptionSize];
+		/* Specifies a human readable description for this executable. */
+		char Description[MaxDescriptionSize];
+		/* Specifies the subgrup size with which this executable is dispatched. */
+		uint32 SubgroupSize;
+
+		/* Initializes an empty instance of the pipeline executalbe properties object. */
+		PipelineExecutableProperties(void)
+			: Type(StructureType::PipelineExecutableProperties), Next(nullptr),
+			Stages(ShaderStageFlags::Unknown), SubgroupSize(0)
+		{}
+	};
+
+	/* Defines a compile time pipeline executable statistic. */
+	struct PipelineExecutableStatistic
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies a human readable name for this statistic. */
+		char Name[MaxDescriptionSize];
+		/* Specifies a human readable description for this statistic. */
+		char Description[MaxDescriptionSize];
+		/* Specifies the format of the values data. */
+		PipelineExecutableStatisticFormat Format;
+		/* Specifies the value of this statistic. */
+		PipelineExecutableStatisticValue Value;
+
+		/* Initializes a new instance of a pipeline executable statistic. */
+		PipelineExecutableStatistic(void)
+			: Type(StructureType::PipelineExecutableStatistic), Next(nullptr)
+		{}
+	};
+
+	/* Describes a single pipeline. */
+	struct PipelineInfo
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies the pipeline handle. */
+		PipelineHndl Pipeline;
+
+		/* Initializes an empty instance of a pipeline info object. */
+		PipelineInfo(void)
+			: PipelineInfo(nullptr)
+		{}
+
+		/* Initializes a new instance of a pipeline info object. */
+		PipelineInfo(_In_ PipelineHndl pipeline)
+			: Type(StructureType::PipelineInfo), Next(nullptr), Pipeline(pipeline)
+		{}
+	};
+
+	/* Defines whether pipeline executable properties are available. */
+	struct PhysicalDevicePipelineExecutablePropertiesFeatures
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const void *Next;
+		/* Specifies that the implementation supports executable statistics and properties querying. */
+		Bool32 PipelineExecutableInfo;
+
+		/* Initializes an empty instance of a physical device pipeline executable properties features object. */
+		PhysicalDevicePipelineExecutablePropertiesFeatures(void)
+			: Type(StructureType::PhysicalDevicePipelineExecutablePropertiesFeatures),
+			Next(nullptr), PipelineExecutableInfo(false)
 		{}
 	};
 

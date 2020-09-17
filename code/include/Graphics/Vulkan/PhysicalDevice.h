@@ -98,13 +98,13 @@ namespace Pu
 		/* Gets the capabilities of the physical device.  */
 		_Check_return_ inline const PhysicalDeviceFeatures& GetSupportedFeatures(void) const
 		{
-			return supportedFeatures;
+			return supportedFeatures.Features;
 		}
 
 		/* Gets the features that were enabled on the physical device. */
 		_Check_return_ inline const PhysicalDeviceFeatures& GetEnabledFeatures(void) const
 		{
-			return enabledFeatures;
+			return enabledFeatures.Features;
 		}
 
 		/* Gets the capabilities of all memory types supported by this physical device. */
@@ -165,14 +165,15 @@ namespace Pu
 		friend class Application;
 		friend class GameWindow;
 		friend class PipelineCache;
+		friend class Pipeline;
 
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceSubgroupProperties subgroup;
-		PhysicalDeviceFeatures supportedFeatures, enabledFeatures;
+		PhysicalDeviceFeatures2 supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
-		bool canQueryMemoryUsage, exclusiveFullScreenSupported;
+		bool canQueryMemoryUsage, exclusiveFullScreenSupported, executablePropertiesSupported;
 		uint32 memAllocs, samplerAllocs;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);

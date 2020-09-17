@@ -148,6 +148,14 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 		LOAD_DEVICE_PROC(vkReleaseFullScreenExclusiveModeEXT);
 	}
 
+	/* Functions related to the pipeline executable extension. */
+	if (IsExtensionEnabled(u8"VK_KHR_pipeline_executable_properties"))
+	{
+		LOAD_DEVICE_PROC(vkGetPipelineExecutableInternalRepresentationsKHR);
+		LOAD_DEVICE_PROC(vkGetPipelineExecutablePropertiesKHR);
+		LOAD_DEVICE_PROC(vkGetPipelineExecutableStatisticsKHR);
+	}
+
 	/* Semaphore related functions. */
 	LOAD_DEVICE_PROC(vkCreateSemaphore);
 	LOAD_DEVICE_PROC(vkDestroySemaphore);
