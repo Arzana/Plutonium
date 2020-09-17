@@ -80,6 +80,8 @@ namespace Pu
 		static void Error(_In_ const char *format, _In_opt_ ...);
 		/* Logs a fatal error message to the output and raises a std::exception. */
 		static void Fatal(_In_ const char *format, _In_opt_ ...);
+		/* Logs a specific type of error message to the output. */
+		static void Specific(_In_ LogType type, _In_ const char *format, _In_opt_ ...);
 		/* Logs a fatal error message from a specified API to the output and raises a std::exception. */
 		static void APIFatal(_In_ const char *sender, _In_ bool condition, _In_ const char *format, _In_opt_ ...);
 

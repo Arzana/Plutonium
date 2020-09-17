@@ -1,6 +1,8 @@
 #include "Content/AssetCache.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Threading/PuThread.h"
+#include "Core/Diagnostics/Stopwatch.h"
+#include "Core/Diagnostics/Profiler.h"
 #include <imgui/include/imgui.h>
 
 Pu::AssetCache::AssetCache(AssetCache && value)
@@ -125,6 +127,13 @@ bool Pu::AssetCache::Contains(size_t base, size_t hash) const
 	return false;
 }
 
+void Pu::AssetCache::LogAsset(const char * message, const Asset & asset, LogType type) const
+{
+	const char end = type == LogType::Warning || type == LogType::Error ? '!' : '.';
+	if (asset.HasName()) Log::Specific(type, "%s asset '%ls' (0x%X)%c", message, asset.GetName().c_str(), asset.hash, end);
+	else Log::Specific(type, "%s asset 0x%X%c", message, asset.hash, end);
+}
+
 /* Not all codepaths return a value, Log::Fatal will always throw. */
 #pragma warning(push)
 #pragma warning(disable:4715)
@@ -159,8 +168,7 @@ void Pu::AssetCache::Release(Asset & asset)
 				else if constexpr (AssetCacheLogging)
 				{
 					/* Log the display name if it has one set. */
-					if (asset.HasName()) Log::Verbose("Deleting asset '%ls' (0x%X).", asset.GetName().c_str(), asset.hash);
-					else Log::Verbose("Deleting asset 0x%X.", asset.hash);
+					LogAsset("Deleting", asset, LogType::Debug);
 				}
 
 				assets.remove(cur);
@@ -174,8 +182,7 @@ void Pu::AssetCache::Release(Asset & asset)
 	lock.unlock();
 
 	/* Log the display name if it has one set. */
-	if (asset.HasName()) Log::Warning("Attempting to release unknown asset '%ls' (0x%X)!", asset.GetName().c_str(), asset.hash);
-	else Log::Warning("Attempting to release unknown asset 0x%X!", asset.hash);
+	LogAsset("Attempting to release unknown", asset, LogType::Warning);
 }
 
 void Pu::AssetCache::Store(Asset * asset)
@@ -186,7 +193,7 @@ void Pu::AssetCache::Store(Asset * asset)
 	if (asset->hash != 0 && Contains(asset->hash, true, false))
 	{
 		lock.unlock();
-		Log::Error("Attempting to add already added asset %zu!", asset->hash);
+		LogAsset("Attempting to add already added", *asset, LogType::Error);
 		return;
 	}
 
@@ -198,8 +205,7 @@ void Pu::AssetCache::Store(Asset * asset)
 	if constexpr (AssetCacheLogging)
 	{
 		/* Log the display name if it has one set. */
-		if (asset->HasName()) Log::Verbose("Added asset '%ls' (0x%X).", asset->GetName().c_str(), asset->hash);
-		else Log::Verbose("Added asset 0x%X.", asset->hash);
+		LogAsset("Added", *asset, LogType::Debug);
 	}
 
 	assets.emplace_back(asset);
@@ -223,13 +229,48 @@ void Pu::AssetCache::Visualize(void) const
 {
 	if constexpr (ImGuiAvailable)
 	{
+		Profiler::BeginDebug();
 		if (ImGui::Begin("Assets"))
 		{
 			const ImVec4 clr = Color::Astronaut().ToVector4();
 
 			lock.lock();
 			ImGui::Text("Total Assets %zu", assets.size());
+			ImGui::SameLine();
+			if (ImGui::Button("Validate"))
+			{
+				Stopwatch sw = Stopwatch::StartNew();
+				size_t errorCnt = 0;
 
+				for (size_t i = 0; i < assets.size(); i++)
+				{
+					for (size_t j = 0; j < assets.size(); j++)
+					{
+						if (i == j) continue;
+
+						/* Check if the same pointer is saved twice. */
+						const Asset *first = assets[i], *second = assets[j];
+						if (first == second)
+						{
+							++errorCnt;
+							LogAsset("Duplicate found (first):", *first, LogType::Error);
+							LogAsset("Duplicate found (second):", *second, LogType::Error);
+						}
+
+						/* Check for equal hashes. */
+						if (*first == *second)
+						{
+							++errorCnt;
+							LogAsset("Duplicate hash found (first):", *first, LogType::Error);
+							LogAsset("Duplicate hash found (second):", *second, LogType::Error);
+						}
+					}
+				}
+
+				Log::Message("%zu assets validated, %zu error(s) found, took %dms.", assets.size(), errorCnt, sw.Milliseconds());
+			}
+
+			/* First column is the hash of the asset. */
 			ImGui::Columns(3);
 			ImGui::SetColumnWidth(-1, 100.0f);
 			ImGui::TextColored(clr, "Hash");
@@ -238,14 +279,17 @@ void Pu::AssetCache::Visualize(void) const
 				ImGui::Text("0x%X", asset->hash);
 			}
 
+			/* Second column is the display name of the asset. */
 			ImGui::NextColumn();
 			ImGui::SetColumnWidth(-1, 300.0f);
 			ImGui::TextColored(clr, "Name");
 			for (const Asset *asset : assets)
 			{
-				ImGui::Text("%ls", asset->identifier.c_str());
+				if(asset->HasName()) ImGui::Text("%ls", asset->GetName().c_str());
+				else ImGui::Spacing();
 			}
 
+			/* Third column is the reference count. */
 			ImGui::NextColumn();
 			ImGui::SetColumnWidth(-1, 100.0f);
 			ImGui::TextColored(clr, "References");
@@ -257,5 +301,7 @@ void Pu::AssetCache::Visualize(void) const
 			lock.unlock();
 			ImGui::End();
 		}
+
+		Profiler::End();
 	}
 }

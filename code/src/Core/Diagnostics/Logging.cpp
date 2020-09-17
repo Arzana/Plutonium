@@ -71,6 +71,20 @@ void Pu::Log::Fatal(const char * format, ...)
 	va_end(args);
 }
 
+void Pu::Log::Specific(LogType type, const char * format, ...)
+{
+#ifdef _DEBUG
+	if (type == LogType::None) Log::Fatal("LogType cannot be None!");
+#else
+	if (type == LogType::Debug) return;
+#endif
+
+	va_list args;
+	va_start(args, format);
+	GetInstance().LogMsg(type, true, format, args);
+	va_end(args);
+}
+
 void Pu::Log::APIFatal(const char * sender, bool condition, const char * format, ...)
 {
 	if (!condition)

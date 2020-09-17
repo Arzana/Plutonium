@@ -46,5 +46,6 @@ namespace Pu
 
 		bool Contains(size_t hash, bool asset, bool reserve) const;
 		bool Contains(size_t base, size_t hash) const;
+		void LogAsset(const char *message, const Asset &asset, LogType type) const;
 	};
 }
