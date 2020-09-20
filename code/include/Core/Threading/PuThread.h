@@ -25,6 +25,8 @@ namespace Pu
 		Returns false if the thread had to be detached to stop.
 		*/
 		_Check_return_ virtual bool Wait(void) const;
+		/* Locks this thread to a specific CPU core. */
+		void Lock(_In_ uint64 core);
 
 		/* Commands the caller thread to sleep for a specified amount of time. */
 		static void Sleep(_In_ uint64 milliseconds);

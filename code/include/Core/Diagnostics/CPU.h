@@ -20,8 +20,12 @@ namespace Pu
 		_Check_return_ static const char* GetName(void);
 		/* Gets whether AVX instructions are supported. */
 		_Check_return_ static bool SupportsAVX(void);
+		/* Gets whether hyper-threading is supported. */
+		_Check_return_ static bool SupportsHyperThreading(void);
 		/* Gets the CPU usage of the current process. */
 		_Check_return_ static float GetCurrentProcessUsage(void);
+		/* Gets the amount of physical cores of this CPU. */
+		_Check_return_ static uint32 GetPhysicalCoreCount(void);
 
 	private:
 		static float lastUsage;

@@ -1,5 +1,7 @@
 #include "Core/Threading/PuThread.h"
+#include "Core/Platform/Windows/Windows.h"
 #include "Core/Threading/ThreadUtils.h"
+#include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Logging.h"
 #include "Core/Math/Basics.h"
 #include "Config.h"
@@ -54,6 +56,18 @@ bool Pu::PuThread::Wait(void) const
 	}
 
 	return true;
+}
+
+void Pu::PuThread::Lock(uint64 core)
+{
+#ifdef _WIN32
+	if (!SetThreadAffinityMask(thread->native_handle(), (1ull << core)))
+	{
+		Log::Error("Failed to lock thread to CPU core %zu (%ls)!", core, _CrtGetErrorString().c_str());
+	}
+#else
+	Log::Warning("Cannot lock thread to specific CPU core on this platform!");
+#endif
 }
 
 void Pu::PuThread::Sleep(uint64 milliseconds)
