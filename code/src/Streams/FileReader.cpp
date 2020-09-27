@@ -135,22 +135,30 @@ size_t Pu::FileReader::Read(byte * buffer, size_t offset, size_t amount)
 
 string Pu::FileReader::ReadLine(void)
 {
+	constexpr int BUFFER_SIZE = 256;
+	string result;
+
 	/* On debug check if file is open. */
 	FileNotOpen();
 
-	/* Read characters until the end of file is reached or a newline character is reached. */
-	string result;
-	for (int32 c;;)
+	/* We use fgets to read until either a newline or EOF. */
+	char buffer[BUFFER_SIZE];
+	while (fgets(buffer, BUFFER_SIZE, hndlr))
 	{
-		c = fgetc(hndlr);
-
-		if (c == EOF || c == '\n') break;
-
-		/* Handle \r\n by just skipping any carriage return in the result but still reading it. */
-		if (c != '\r') result += static_cast<char>(c);
+		/*
+		If the buffer was too small for the full line,
+		fgets will put a null-terminator at the end of the buffer.
+		*/
+		if (buffer[BUFFER_SIZE - 1] == '\0') result += buffer;
+		else
+		{
+			result = buffer;
+			break;
+		}
 	}
 
-	return result;
+	/* The linefeed is always added at the end, we don't want to return this. */
+	return result.trim_back("\r\n");
 }
 
 string Pu::FileReader::ReadToEnd(void)
