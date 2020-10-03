@@ -81,7 +81,7 @@ void Pu::Application::AddSystem(System * component)
 	if (initialized)
 	{
 		component->DoInitialize();
-		std::sort(systems.begin(), systems.end(), System::SortPredicate);
+		systems.sort(System::SortPredicate);
 	}
 }
 
@@ -307,7 +307,7 @@ void Pu::Application::DoInitialize(void)
 	
 	/* Initialize and sort the systems. */
 	for (System *cur : systems) cur->DoInitialize();
-	std::sort(systems.begin(), systems.end(), System::SortPredicate);
+	systems.sort(System::SortPredicate);
 	initialized = true;
 }
 

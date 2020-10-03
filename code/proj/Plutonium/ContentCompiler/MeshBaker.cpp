@@ -129,7 +129,7 @@ void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 	Index view is also pretty unlikely to change, but a bit more than vertex format, so second priority.
 	Material is quite likely to change, so this is our last priority.
 	*/
-	std::sort(data.Geometry.begin(), data.Geometry.end(), [](const pum_mesh &a, const pum_mesh &b)
+	data.Geometry.sort([](const pum_mesh &a, const pum_mesh &b)
 	{
 		if (a.VertexView != b.VertexView) return a.VertexView < b.VertexView;
 		if (a.IndexMode != b.IndexMode) return a.IndexMode < b.IndexMode;

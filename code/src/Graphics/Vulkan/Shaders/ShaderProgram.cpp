@@ -108,6 +108,33 @@ const PushConstant & Pu::ShaderProgram::GetPushConstant(const string & name) con
 	return defConst;
 }
 
+void Pu::ShaderProgram::GenerateAttributeOffsets(void)
+{
+	/* First step is to sort the attributes based on their shader location. */
+	attributes.sort([](const Attribute &a, const Attribute &b)
+		{
+			return a.description.Location < b.description.Location;
+		});
+
+	/* 
+	Second step is to just loop through them and keep a offset counter for each binding number,
+	increasing it by the size of the input attribute at every step.
+	*/
+	std::map<uint32, uint32> bindings;
+	for (Attribute &attr : attributes)
+	{
+		const uint32 size = attr.GetInfo().Type.GetSize();
+		decltype(bindings)::iterator it = bindings.find(attr.description.Binding);
+
+		if (it != bindings.end())
+		{
+			attr.description.Offset = it->second;
+			it->second += size;
+		}
+		else bindings[attr.description.Binding] = size;
+	}
+}
+
 Asset & Pu::ShaderProgram::Duplicate(AssetCache & cache)
 {
 	/* The underlying shaders are assets, so reference them. */
@@ -148,7 +175,7 @@ void Pu::ShaderProgram::Link(LogicalDevice & device, bool viaLoader)
 #endif
 
 	/* Sort all shaders on their invokation time in the Vulkan pipeline (Vertex -> Tessellation -> Geometry -> Fragment). */
-	std::sort(shaders.begin(), shaders.end(), [](const Shader *a, const Shader *b)
+	shaders.sort([](const Shader *a, const Shader *b)
 		{
 			return _CrtEnum2Int(a->GetType()) < _CrtEnum2Int(b->GetType());
 		});

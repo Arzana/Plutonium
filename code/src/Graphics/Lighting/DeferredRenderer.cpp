@@ -666,9 +666,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		norm.SetStoreOperation(AttachmentStoreOp::DontCare);
 		norm.SetReference(3);
 
-		tpass.GetAttribute("Normal").SetOffset(vkoffsetof(Patched3D, Normal));
-		tpass.GetAttribute("TexCoord1").SetOffset(vkoffsetof(Patched3D, TexCoord1));
-		tpass.GetAttribute("TexCoord2").SetOffset(vkoffsetof(Patched3D, TexCoord2));
+		tpass.GenerateAttributeOffsets();
 	}
 
 	/* Set all the options for the basic static Geometry-Pass. */
@@ -682,8 +680,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		gpass.CloneOutput("GBufferSpecular", 2);
 		gpass.CloneOutput("GBufferNormal", 3);
 
-		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Basic3D, Normal));
-		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Basic3D, TexCoord));
+		gpass.GenerateAttributeOffsets();
 	}
 
 	/* Set all the options for the advanced static Geometry-Pass. */
@@ -697,9 +694,7 @@ void Pu::DeferredRenderer::InitializeRenderpass(Renderpass &)
 		gpass.CloneOutput("GBufferSpecular", 2);
 		gpass.CloneOutput("GBufferNormal", 3);
 
-		gpass.GetAttribute("Normal").SetOffset(vkoffsetof(Advanced3D, Normal));
-		gpass.GetAttribute("Tangent").SetOffset(vkoffsetof(Advanced3D, Tangent));
-		gpass.GetAttribute("TexCoord").SetOffset(vkoffsetof(Advanced3D, TexCoord));
+		gpass.GenerateAttributeOffsets();
 	}
 
 	/* Set all the options for the basic morph Geometry-Pass. */

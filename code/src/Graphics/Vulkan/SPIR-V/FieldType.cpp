@@ -36,9 +36,9 @@ bool Pu::FieldType::operator!=(const FieldType & other) const
 	return other.ComponentType != ComponentType || other.ContainerType != ContainerType;
 }
 
-size_t Pu::FieldType::GetSize(void) const
+Pu::uint32 Pu::FieldType::GetSize(void) const
 {
-	size_t result = 0;
+	uint32 result = 0;
 
 	switch (ComponentType)
 	{
@@ -71,7 +71,6 @@ size_t Pu::FieldType::GetSize(void) const
 		Log::Fatal("Cannot get size of invalid or unknown field type!");
 	}
 
-	/* std140 can't allign 3D vectors or matrices so they're alligned the same as 4D. */
 	switch (ContainerType)
 	{
 	case SizeType::Scalar:
@@ -80,6 +79,8 @@ size_t Pu::FieldType::GetSize(void) const
 		result <<= 1;
 		break;
 	case SizeType::Vector3:
+		result *= 3;
+		break;
 	case SizeType::Vector4:
 	case SizeType::Matrix2:
 		result <<= 2;

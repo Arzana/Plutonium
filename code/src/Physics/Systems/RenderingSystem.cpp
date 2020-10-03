@@ -335,7 +335,7 @@ void Pu::RenderingSystem::UpdateCaches(const BVH & bvh, const Camera & cam)
 	}
 
 	/* Sort the items basic on their rendering order. */
-	std::sort(cacheHandles.begin(), cacheHandles.end(), physics_handle_sort_pair);
+	cacheHandles.sort(physics_handle_sort_pair);
 }
 
 void Pu::RenderingSystem::Destroy(void)

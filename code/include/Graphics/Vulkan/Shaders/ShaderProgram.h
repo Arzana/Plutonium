@@ -74,6 +74,8 @@ namespace Pu
 		_Check_return_ PushConstant& GetPushConstant(_In_ const string &name);
 		/* Gets the specified push constant. */
 		_Check_return_ const PushConstant& GetPushConstant(_In_ const string &name) const;
+		/* Generates the offsets for the attributes based on their shader location and assigned binding. */
+		void GenerateAttributeOffsets(void);
 
 	protected:
 		/* Creates a copy of this shader program. */

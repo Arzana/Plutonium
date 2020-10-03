@@ -221,6 +221,13 @@ namespace Pu
 			std::shuffle(vector_t::begin(), vector_t::end(), std::move(algorithm));
 		}
 
+		/* Sorts the vector based on a specified comparitor. */
+		template <typename comparitor_t>
+		inline void sort(_In_ comparitor_t comparitor)
+		{
+			std::sort(vector_t::begin(), vector_t::end(), comparitor);
+		}
+
 	private:
 		inline void ArgOutOfRange(void) const
 		{

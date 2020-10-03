@@ -90,7 +90,7 @@ namespace Pu
 		_Check_return_ bool operator !=(_In_ const FieldType &other) const;
 
 		/* Gets the size (in bytes) of this field type. */
-		_Check_return_ size_t GetSize(void) const;
+		_Check_return_ uint32 GetSize(void) const;
 		/* Gets a displayable name of this field type. */
 		_Check_return_ string GetName(void) const;
 		/* Gets the Vulkan format that represents this field type. */
