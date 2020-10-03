@@ -43,7 +43,7 @@ bool Pu::Surface::IsExclusiveFullScreenSupported(const PhysicalDevice & physical
 #ifdef _WIN32
 	/* We need to add monitor specific information on Win32. */
 	SurfaceFullScreenExclusiveWin32InfoExt win32{ display.hndl };
-	fullscreen.Next = &win32;
+	fullscreen.Next = VK_NEXT_CAST(&win32);
 #endif
 
 	/* Query the instance if it's supported for this phsyical device. */

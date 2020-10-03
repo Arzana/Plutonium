@@ -23,7 +23,7 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 }
 
-void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled)
+void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled, vector<const char*>&)
 {
 	enabeled.TessellationShader = supported.TessellationShader;				// Optional for better terrain rendering.
 	enabeled.WideLines = supported.WideLines;								// Debug renderer

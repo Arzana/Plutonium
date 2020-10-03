@@ -6,7 +6,7 @@ Pu::Terrain::Terrain(DescriptorPool & pool, const DescriptorSetLayout & layout)
 	height(&GetDescriptor(DeferredRenderer::SubpassTerrain, "Height")),
 	mask(&GetDescriptor(DeferredRenderer::SubpassTerrain, "TextureMask")),
 	textures(&GetDescriptor(DeferredRenderer::SubpassTerrain, "Textures")),
-	factors(0.1f, 1.0f, 20.0f, 1.0f)
+	factors(0.1f, 1.0f, 20.0f, 1.0f), transform(0.0f, 0.0f, 0.0f, 1.0f)
 {}
 
 const Pu::Matrix & Pu::Terrain::GetTransform(void) const

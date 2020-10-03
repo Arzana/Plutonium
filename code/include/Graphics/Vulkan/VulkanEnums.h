@@ -137,6 +137,7 @@ namespace Pu
 		MemoryBarrier = 46,
 		LoaderInstanceCreateInfo = 47,
 		LoaderDeviceCreateInfo = 48,
+		MaxEnumValue = 0x7FFFFFFF,
 		/* VK_KHR_swapchain */
 		SwapChainCreateInfoKhr = 1000001000,
 		PresentInfoKhr = 1000001001,
@@ -178,13 +179,16 @@ namespace Pu
 		PhysicalDeviceFeatures2 = 1000059000,
 		/* VK_KHR_get_surface_capabilities2 */
 		SurfaceCapabilities2Khr = 1000119001,
-		/*VK_KHR_pipeline_executable_properties */
+		/* VK_KHR_pipeline_executable_properties */
 		PhysicalDevicePipelineExecutablePropertiesFeatures = 1000269000,
 		PipelineInfo = 1000269001,
 		PipelineExecutableProperties = 1000269002,
 		PipelineExecutableInfo = 1000269003,
 		PipelineExecutableStatistic = 1000269004,
-		PipelineExecutableInternalRepresentation = 1000269005
+		PipelineExecutableInternalRepresentation = 1000269005,
+		/* VK_EXT_conservative_rasterization */
+		PhysicalDeviceConservativeRasterizationPropertiesExt = 1000101000,
+		PipelineRasterizationConservativeStateCreateInfoExt = 1000101001,
 	};
 
 	/* Defines the lifetime of a system allocation. */
@@ -1688,6 +1692,17 @@ namespace Pu
 		Uint64,
 		/* Specifies that the statistic is a double precision floating point value.  */
 		Float64
+	};
+
+	/* Defines the modes available for conservative rasterization. */
+	enum class ConservativeRasterizationMode
+	{
+		/* Specifies a normal rasterization process. */
+		Disabled,
+		/* Specifies that the conservative rasterizer is in overestimation mode. */
+		Overestimate,
+		/* Specifies that the conservative rasterizer is in underestimation mode. */
+		UnderEstimate
 	};
 
 	/* Appends the flag bits of an image usage flag. */

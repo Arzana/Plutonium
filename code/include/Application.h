@@ -112,7 +112,7 @@ namespace Pu
 		/* Returns whether the specified GPU can be choosen for the application. */
 		virtual bool GpuPredicate(_In_ const PhysicalDevice& /* physicalDevice */) { return true; }
 		/* Enalbes application specific physical device features that the application needs. */
-		virtual void EnableFeatures(_In_ const PhysicalDeviceFeatures& /* supported */, _In_ PhysicalDeviceFeatures& /* enabled */) { }
+		virtual void EnableFeatures(_In_ const PhysicalDeviceFeatures& /* supported */, _Out_ PhysicalDeviceFeatures& /* enabled */, _Out_ vector<const char*> & /* extensions */) { }
 		/* Initializes the global objects needed for the application to run. */
 		virtual void Initialize(void) = 0;
 		/* Initializes the content objects needed for the application to run. */

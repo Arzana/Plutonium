@@ -171,12 +171,18 @@ void Pu::Application::InitializeVulkan(void)
 		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
 	};
 
-	/* Swapchain is needed for the application to display any graphics. */
+	/* 
+	Allow the user to enable specific physical device features or extensions.
+	The Swapchain extension is enabled by default as the GameWindow requires it.
+	All the extensions enabled are later tested to see if the implementation actually supports them.
+	*/
 	vector<const char*> deviceExtensions = { u8"VK_KHR_swapchain" };
-	if (physicalDevice.IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) deviceExtensions.emplace_back(u8"VK_KHR_pipeline_executable_properties");
-
-	/* Allow the user to enable specific physical device features. */
-	EnableFeatures(physicalDevice.GetSupportedFeatures(), const_cast<PhysicalDeviceFeatures&>(physicalDevice.enabledFeatures.Features));
+	EnableFeatures(physicalDevice.GetSupportedFeatures(), const_cast<PhysicalDeviceFeatures&>(physicalDevice.enabledFeatures.Features), deviceExtensions);
+	for (size_t i = 0; i < deviceExtensions.size();)
+	{
+		if (physicalDevice.IsExtensionSupported(deviceExtensions[i])) ++i;
+		else deviceExtensions.removeAt(i);
+	}
 
 	/* Create logical device. */
 	DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos, deviceExtensions, physicalDevice.enabledFeatures };

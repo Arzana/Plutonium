@@ -297,7 +297,7 @@ void Pu::GameWindow::CreateSwapchain(Extent2D size, SurfaceFormat format, Presen
 	if (swapchain) info.OldSwapChain = swapchain->hndl;
 
 	/* Add the fullscreen information if the extension is supported. */
-	if (device.parent->exclusiveFullScreenSupported) info.Next = &fullScreenInfo;
+	if (device.parent->exclusiveFullScreenSupported) VkPushChain(info.Next, &fullScreenInfo);
 
 	/* Create new swapchain or replace the old one. */
 	if (swapchain) *swapchain = Swapchain(device, native.GetSurface(), info);

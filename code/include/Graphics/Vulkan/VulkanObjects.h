@@ -3,15 +3,60 @@
 #include "VulkanFunctions.h"
 #include "Config.h"
 
+/* Defines a helper cast to assign to a Vulkan structure extend chain item. */
+#define VK_NEXT_CAST(obj)	reinterpret_cast<const VulkanStructureExtendChainItem*>(obj)
+
 namespace Pu
 {
+	/* Defines a helper structure to easily add objects to a Vulkan structure extend chain. */
+	struct VulkanStructureExtendChainItem
+	{
+		/* Defines the type of the extending structure. */
+		const StructureType Type;
+		/* Pointer to an extensions-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+
+		VulkanStructureExtendChainItem(void) = delete;
+	};
+
+	/* Pushes a new extension-specific structure to an extension chain. */
+	static inline void VkPushChain(const VulkanStructureExtendChainItem *&chain, const void *next)
+	{
+		if (chain)
+		{
+			const VulkanStructureExtendChainItem *last = chain;
+
+			while (last->Next) last = last->Next;
+			const_cast<VulkanStructureExtendChainItem*>(last)->Next = VK_NEXT_CAST(next);
+		} else chain = VK_NEXT_CAST(next);
+	}
+
+	/* Pushes a new extension-specific structure to an extension chain if the chain doesn't already contain it. */
+	static inline void VkPushChainIfNeeded(const VulkanStructureExtendChainItem *&chain, const void *next)
+	{
+		const VulkanStructureExtendChainItem *item = VK_NEXT_CAST(next);
+
+		if (chain)
+		{
+			const VulkanStructureExtendChainItem *last = chain;
+			while (last->Next)
+			{
+				if (last->Type == item->Type) return;
+				last = last->Next;
+			}
+
+			const_cast<VulkanStructureExtendChainItem*>(last)->Next = item;
+		}
+		else chain = VK_NEXT_CAST(next);
+	}
+
 	/* Defines application info. */
 	struct ApplicationInfo
 	{
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* A null terminated UTF-8 string containing the name of the application or nullptr. */
 		const char *ApplicationName;
 		/* Defines the developer-supplied version number of the application. */
@@ -44,7 +89,7 @@ namespace Pu
 		/* The type of this structure  */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved for future use. */
 		Flags Flags;
 		/* Pointer to information about the application or nullptr. */
@@ -248,7 +293,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the fine-grained features of Vulkan 1.0. */
 		PhysicalDeviceFeatures Features;
 
@@ -575,13 +620,18 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Describes the base properties for all physical devices. */
 		PhysicalDeviceProperties Properties;
 
 		/* Initializes an empty instance of a physical device properties V2 object. */
 		PhysicalDeviceProperties2(void)
 			: Type(StructureType::PhysicalDeviceProperties2), Next(nullptr)
+		{}
+
+		/* Initializes a new instance of a physical device properties V2 project. */
+		PhysicalDeviceProperties2(const void *next)
+			: Type(StructureType::PhysicalDeviceProperties2), Next(VK_NEXT_CAST(next))
 		{}
 	};
 
@@ -591,7 +641,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the default number of invocations in each subgroup. */
 		uint32 SubgroupSize;
 		/* Specifies in which shader stages subgroup operations are supported (compute is always supported). */
@@ -684,7 +734,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies behaviour of the queue. */
 		DeviceQueueCreateFlags Flags;
 		/* Indicates the index of the queu family to create on this device. */
@@ -712,7 +762,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Must be zero. */
 		Flags Flags;
 		/* Specifies the amount to queue create information objects passed. */
@@ -746,7 +796,7 @@ namespace Pu
 		/* Creates a new instance of the device create information object. */
 		DeviceCreateInfo(_In_ uint32 queueCreateInfoCount, _In_ const DeviceQueueCreateInfo *queueCreateInfos,
 			_In_ const vector<const char*> &enabledExtensions, _In_opt_ const PhysicalDeviceFeatures2 &enabledFeatures)
-			: Type(StructureType::DeviceCreatInfo), Next(&enabledFeatures), Flags(0),
+			: Type(StructureType::DeviceCreatInfo), Next(VK_NEXT_CAST(&enabledFeatures)), Flags(0),
 			EnabledLayerCount(0), EnabledLayerNames(nullptr),
 			QueueCreateInfoCount(queueCreateInfoCount), QueueCreateInfos(queueCreateInfos),
 			EnabledExtensionCount(static_cast<uint32>(enabledExtensions.size())), 
@@ -839,7 +889,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* The surface that the swapchain will present to. */
@@ -896,7 +946,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the number of semaphores to wait for before issuing the present request. */
 		uint32 WaitSemaphoreCount;
 		/* Specified the semaphores the wait for before issuing the present request. */
@@ -930,7 +980,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 
@@ -945,7 +995,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the number of semaphores upon which to wait before executing the command buffers. */
 		uint32 WaitSemaphoreCount;
 		/* Specifies the semaphores upon which to wait before executing the command buffers. */
@@ -975,7 +1025,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Indicates usage behaviour for the pool and command buffers allocated from it. */
 		CommandPoolCreateFlags Flags;
 		/* Specifies the designated queue family. */
@@ -999,7 +1049,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* The command pool from which the command buffers are allocated. */
 		CommandPoolHndl CommandPool;
 		/* Specifies the level of the command buffers. */
@@ -1025,7 +1075,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies which renderpass the command buffer will be compatible with. */
 		RenderPassHndl RenderPass;
 		/* Specifies the index of the subpass within the render pass that the command buffer will be executed within. */
@@ -1058,7 +1108,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the usage of the command buffer. */
 		CommandBufferUsageFlags Flags;
 		/* Specifies extra information for secondary command buffers. */
@@ -1108,7 +1158,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the access mask for the source. */
 		AccessFlags SrcAccessMask;
 		/* Specifies the access mask for the destination. */
@@ -1157,7 +1207,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the source access mask. */
 		AccessFlags SrcAccessMask;
 		/* Specifies the destination access mask. */
@@ -1181,7 +1231,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the access mask for the source. */
 		AccessFlags SrcAccessMask;
 		/* Specifies the access mask for the destination. */
@@ -1358,7 +1408,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the amount of attachments used by this render pass. */
@@ -1412,7 +1462,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the size (in bytes) of the code. */
@@ -1461,7 +1511,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the image on which the view will be created. */
@@ -1493,7 +1543,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies what renderpass the framebuffer will be compatible with. */
@@ -1572,7 +1622,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the single pipeline stage. */
@@ -1661,7 +1711,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the amount of vertex binding descriptions provided. */
@@ -1712,7 +1762,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies which primitve topology to use. */
@@ -1758,7 +1808,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* The number of control points per patch. */
@@ -1952,7 +2002,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the number of viewports used by the pipeline. */
@@ -2006,7 +2056,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies whether depth values outside the depth range should be rasterized. */
@@ -2081,7 +2131,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the number of samples to use per pixel. */
@@ -2168,7 +2218,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies whether depth testing is enabled. */
@@ -2275,7 +2325,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies whether logical operations are enabled. */
@@ -2335,7 +2385,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the amount of elements in the DynamicStates field. */
@@ -2403,7 +2453,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the amount of set layouts provided. */
@@ -2435,7 +2485,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies how the pipeline should be generated. */
 		PipelineCreateFlags Flags;
 		/* Specifies the amount of entries in the Stages field. */
@@ -2495,7 +2545,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies how the pipeline should be generated. */
 		PipelineCreateFlags Flags;
 		/* Specifies the compute stage. */
@@ -2569,7 +2619,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* The render pass to start. */
 		RenderPassHndl RenderPass;
 		/* The framebuffer that contains the attachments used in the render pass. */
@@ -2599,7 +2649,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies a null-terminate UTF-8 string that contains the name of the label. */
 		const char *LabelName;
 		/* Specifies an optional RGBA color value associated with the label. */
@@ -2618,7 +2668,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the type of the object to be named. */
 		ObjectType ObjectType;
 		/* Specifies the handle to the object. */
@@ -2644,7 +2694,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the particular message ID. */
@@ -2680,7 +2730,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies which severity of event(s) will cause this callback to be invoked. */
@@ -2711,7 +2761,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the initial state and behavior of the fence. */
 		FenceCreateFlags Flags;
 
@@ -2732,7 +2782,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies additional parameters for the buffer. */
 		BufferCreateFlags Flags;
 		/* Specifies the size (in bytes) of the buffer. */
@@ -2834,7 +2884,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the non-extended memory properties. */
 		PhysicalDeviceMemoryProperties MemoryProperties;
 
@@ -2845,7 +2895,7 @@ namespace Pu
 
 		/* Initializes an instance of the physical device memory properties object. */
 		PhysicalDeviceMemoryProperties2(const void *next)
-			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(next)
+			: Type(StructureType::PhysicalDeviceMemoryProperties2), Next(VK_NEXT_CAST(next))
 		{}
 	};
 
@@ -2855,7 +2905,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the amount (in bytes) of the allocation. */
 		DeviceSize AllocationSize;
 		/* Specifies the index of the memory type (on the physical device) from which to make this allocation. */
@@ -2879,7 +2929,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the memory object of the range. */
 		DeviceMemoryHndl Memory;
 		/* Specifies a zero-based offset (in bytes) from the beginning of the memory offset. */
@@ -2931,7 +2981,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies aditional parameters of the image. */
 		ImageCreateFlags Flags;
 		/* Specifies the basic dimensionality of the image. */
@@ -3033,7 +3083,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the magnification filter to apply to lookups. */
@@ -3108,7 +3158,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies additional parameter for a descriptor pool. */
 		DescriptorPoolCreateFlags Flags;
 		/* Specifies the maximum amount of descriptor sets that can be allocated from the pool. */
@@ -3163,7 +3213,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies additions parameters for the descriptor set layout. */
 		DescriptorSetLayoutCreateFlags Flags;
 		/* Specifies the amount of elements in the Bindings field. */
@@ -3190,7 +3240,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the pool from which to allocate the set(s). */
 		DescriptorPoolHndl DescriptorPool;
 		/* Specifies how many descriptor sets to be allocated from the pool. */
@@ -3259,7 +3309,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the descriptor set to update. */
 		DescriptorSetHndl DstSet;
 		/* Specifies the descriptor bindings within the set to update. */
@@ -3319,7 +3369,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the set used as the source for the copy operation. */
 		DescriptorSetHndl SrcSet;
 		/* Specifies the binding in the source set used as the source for the copy operation. */
@@ -3349,7 +3399,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* The type of queries managed by the pool. */
@@ -3382,7 +3432,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* Specifies the size (in bytes) of the InitialData memory. */
@@ -3408,7 +3458,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies a rough estimate of the maximum memory that can be allocated from each individual memory heap. */
 		DeviceSize HeapBudget[MaxMemoryHeaps];
 		/* Specifies an estimate of the current heap usage by the process. */
@@ -3426,7 +3476,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the preferred full-screen transition behavior. */
 		FullScreenExclusive FullScreenExclusive;
 
@@ -3448,7 +3498,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies whether the surface is able to make use of exclusive full-screen access. */
 		Bool32 FullScreenExclusiveSupported;
 
@@ -3465,7 +3515,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the surface that will be associated with the swapchain. */
 		SurfaceHndl Surface;
 
@@ -3487,7 +3537,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the default surface capabilities. */
 		SurfaceCapabilities SurfaceCapabilities;
 
@@ -3498,7 +3548,7 @@ namespace Pu
 
 		/* Initializes a new instance of a surface capabilities object. */
 		SurfaceCapabilities2Khr(_In_ const void *next)
-			: Type(StructureType::SurfaceCapabilities2Khr), Next(next)
+			: Type(StructureType::SurfaceCapabilities2Khr), Next(VK_NEXT_CAST(next))
 		{}
 	};
 
@@ -3607,7 +3657,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the pipeline to query. */
 		PipelineHndl Pipeline;
 		/* Specifies the index of the executable query in the executable properties array. */
@@ -3631,7 +3681,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies a human readable name for this internal representation. */
 		char Name[MaxDescriptionSize];
 		/* Specifies a human readable description for this internal representation. */
@@ -3656,7 +3706,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies which stages were used as inputs to compile this executable. */
 		ShaderStageFlags Stages;
 		/* Specifies a human readable name for this executable. */
@@ -3679,7 +3729,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies a human readable name for this statistic. */
 		char Name[MaxDescriptionSize];
 		/* Specifies a human readable description for this statistic. */
@@ -3701,7 +3751,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies the pipeline handle. */
 		PipelineHndl Pipeline;
 
@@ -3722,7 +3772,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Specifies that the implementation supports executable statistics and properties querying. */
 		Bool32 PipelineExecutableInfo;
 
@@ -3733,6 +3783,105 @@ namespace Pu
 		{}
 	};
 
+	/* Defines the support for conservative rasterization for a physical device. */
+	struct PhysicalDeviceConservativeRasterizationProperties
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+		/* Specifies the size increase (in pixels) for generated primitives at each of its edges during conservative rasterization. */
+		float PrimitiveOverestimationSize;
+		/* Specifies the maximum size (in pixels) of extra overestimation the implementation supports. */
+		float MaxExtraPrimitiveOverestimationSize;
+		/* Specifies the granularity of extra overestimation that can be specified. */
+		float ExtraPrimitiveOverestimationSizeGranularity;
+		/* Specifies whether underestimation is supported as a conservative rasterization mode. */
+		Bool32 PrimitiveUnderestimation;
+		/* Specifies whether conservative rasterization is supported for point and line primitives. */
+		Bool32 ConservativePointAndLineRasterization;
+		/* Specifies whether generated triangles with size zero will be culled after conservative rasterization. */
+		Bool32 DegenerateTrianglesRasterized;
+		/* Specifies whether generated lines with zero length are quantized to the fixed-point rasterization pixel grid. */
+		Bool32 DegenerateLinesRasterized;
+		/* Specifies whether the implementation supports SPIR-V's FullyCoveredEXT fragment shader input. */
+		Bool32 FullyCoveredFragmentShaderInputVariable;
+		/* Specifies whether the implementation supports conservative rasterization with PostDepthCoverage enbled. */
+		Bool32 ConservativeRasterizationPostDepthCoverage;
+
+		/* Initializes an empty instance of the physical device conservative rasterization properties object. */
+		PhysicalDeviceConservativeRasterizationProperties(void)
+			: Type(StructureType::PhysicalDeviceConservativeRasterizationPropertiesExt), Next(nullptr),
+			PrimitiveOverestimationSize(0.0f), MaxExtraPrimitiveOverestimationSize(0.0f), ExtraPrimitiveOverestimationSizeGranularity(0.0f),
+			PrimitiveUnderestimation(false), ConservativePointAndLineRasterization(false), DegenerateTrianglesRasterized(true),
+			DegenerateLinesRasterized(true), FullyCoveredFragmentShaderInputVariable(false), ConservativeRasterizationPostDepthCoverage(false)
+		{}
+
+		/* Move constructor. */
+		PhysicalDeviceConservativeRasterizationProperties(_In_ PhysicalDeviceConservativeRasterizationProperties &&value)
+			: Type(StructureType::PhysicalDeviceConservativeRasterizationPropertiesExt), Next(value.Next),
+			PrimitiveOverestimationSize(value.PrimitiveOverestimationSize), MaxExtraPrimitiveOverestimationSize(value.MaxExtraPrimitiveOverestimationSize),
+			ExtraPrimitiveOverestimationSizeGranularity(value.ExtraPrimitiveOverestimationSizeGranularity),
+			PrimitiveUnderestimation(value.PrimitiveUnderestimation), ConservativePointAndLineRasterization(value.ConservativePointAndLineRasterization),
+			DegenerateTrianglesRasterized(value.DegenerateTrianglesRasterized), DegenerateLinesRasterized(value.DegenerateLinesRasterized), 
+			FullyCoveredFragmentShaderInputVariable(value.FullyCoveredFragmentShaderInputVariable), ConservativeRasterizationPostDepthCoverage(value.ConservativeRasterizationPostDepthCoverage)
+		{}
+
+		/* Move assignment. */
+		_Check_return_ PhysicalDeviceConservativeRasterizationProperties& operator =(_In_ PhysicalDeviceConservativeRasterizationProperties &&other)
+		{
+			Next = other.Next;
+			PrimitiveOverestimationSize = other.PrimitiveOverestimationSize;
+			MaxExtraPrimitiveOverestimationSize = other.MaxExtraPrimitiveOverestimationSize;
+			ExtraPrimitiveOverestimationSizeGranularity = other.ExtraPrimitiveOverestimationSizeGranularity;
+			PrimitiveUnderestimation = other.PrimitiveUnderestimation;
+			ConservativePointAndLineRasterization = other.ConservativePointAndLineRasterization;
+			DegenerateTrianglesRasterized = other.DegenerateTrianglesRasterized;
+			DegenerateLinesRasterized = other.DegenerateLinesRasterized;
+			FullyCoveredFragmentShaderInputVariable = other.FullyCoveredFragmentShaderInputVariable;
+			ConservativeRasterizationPostDepthCoverage = other.ConservativeRasterizationPostDepthCoverage;
+
+			return *this;
+		}
+	};
+
+	/* Defines the conservative rasterization state. */
+	struct PipelineRasterizationConservativeStateCreateInfo
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+		/* Reserved. */
+		Flags Flags;
+		/* Specifies the conservative rasterization mode to use. */
+		ConservativeRasterizationMode Mode;
+		/* Specifies the size (in pixels) to increase the generating primitive with at each of its edges. */
+		float ExtraPrimitiveOverestimationSize;
+
+		/* Initializes an empty instance of the pipeline rasterization conservative state create info object. */
+		PipelineRasterizationConservativeStateCreateInfo(void)
+			: Type(StructureType::PipelineRasterizationConservativeStateCreateInfoExt), Next(nullptr),
+			Flags(0), Mode(ConservativeRasterizationMode::Disabled), ExtraPrimitiveOverestimationSize(0.0f)
+		{}
+
+		/* Copy constructor. */
+		PipelineRasterizationConservativeStateCreateInfo(_In_ const PipelineRasterizationConservativeStateCreateInfo &value)
+			: Type(StructureType::PipelineRasterizationConservativeStateCreateInfoExt), Next(value.Next),
+			Flags(0), Mode(value.Mode), ExtraPrimitiveOverestimationSize(value.ExtraPrimitiveOverestimationSize)
+		{}
+
+		/* Copy assignment. */
+		_Check_return_ PipelineRasterizationConservativeStateCreateInfo& operator =(_In_ const PipelineRasterizationConservativeStateCreateInfo &other)
+		{
+			Next = other.Next;
+			Mode = other.Mode;
+			ExtraPrimitiveOverestimationSize = other.ExtraPrimitiveOverestimationSize;
+
+			return *this;
+		}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo
@@ -3740,7 +3889,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* Reserved. */
 		Flags Flags;
 		/* The handle to the instance. */
@@ -3766,7 +3915,7 @@ namespace Pu
 		/* The type of this structure. */
 		const StructureType Type;
 		/* Pointer to an extension-specific structure or nullptr. */
-		const void *Next;
+		const VulkanStructureExtendChainItem *Next;
 		/* The handle to the monitor to create the surface with. */
 		HMONITOR Monitor;
 

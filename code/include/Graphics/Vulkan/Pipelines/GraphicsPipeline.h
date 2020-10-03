@@ -72,6 +72,8 @@ namespace Pu
 		void AddDynamicState(_In_ DynamicState state);
 		/* Adds a vertex binding to the graphics pipeline. */
 		void AddVertexBinding(_In_ uint32 binding, _In_ uint32 stride, _In_opt_ VertexInputRate rate = VertexInputRate::Vertex);
+		/* Sets the conservative rasterization state if supported by hardware. */
+		void SetConservativeRasterization(_In_ ConservativeRasterizationMode mode, _In_ float overestimationSize);
 		/* Gets the blend state for a specific output attachent. */
 		_Check_return_ PipelineColorBlendAttachmentState& GetBlendState(_In_ const string &output);
 		/* Gets the stride of the vertex binding at the specified binding. */
@@ -88,6 +90,7 @@ namespace Pu
 		PipelineTessellationStateCreateInfo tessellationState;
 		PipelineViewportStateCreateInfo viewportState;
 		PipelineRasterizationStateCreateInfo rasterizationState;
+		PipelineRasterizationConservativeStateCreateInfo conservativeRasterizationState;
 		PipelineMultisampleStateCreateInfo multisampleState;
 		PipelineDepthStencilStateCreateInfo depthStencilState;
 		PipelineColorBlendStateCreateInfo colorBlendState;

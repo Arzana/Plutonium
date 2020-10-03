@@ -28,7 +28,8 @@ Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
 	rasterizationState(std::move(value.rasterizationState)), depthStencilState(std::move(value.depthStencilState)),
 	colorBlendState(std::move(value.colorBlendState)), dynamicState(std::move(value.dynamicState)),
 	colorBlendAttachments(std::move(value.colorBlendAttachments)), bindingDescriptions(std::move(value.bindingDescriptions)),
-	dynamicStates(std::move(value.dynamicStates)), viewport(value.viewport), scissor(value.scissor), sampleMask(value.sampleMask)
+	dynamicStates(std::move(value.dynamicStates)), viewport(value.viewport), scissor(value.scissor), sampleMask(value.sampleMask),
+	conservativeRasterizationState(std::move(value.conservativeRasterizationState))
 {
 	viewportState.Viewports = &viewport;
 	viewportState.Scissors = &scissor;
@@ -49,6 +50,7 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		tessellationState = std::move(other.tessellationState);
 		viewportState = std::move(other.viewportState);
 		rasterizationState = std::move(other.rasterizationState);
+		conservativeRasterizationState = std::move(other.conservativeRasterizationState);
 		multisampleState = std::move(other.multisampleState);
 		depthStencilState = std::move(other.depthStencilState);
 		colorBlendState = std::move(other.colorBlendState);
@@ -329,6 +331,22 @@ void Pu::GraphicsPipeline::AddVertexBinding(uint32 binding, uint32 stride, Verte
 		it->InputRate = rate;
 	}
 	else bindingDescriptions.emplace_back(binding, stride, rate);
+}
+
+void Pu::GraphicsPipeline::SetConservativeRasterization(ConservativeRasterizationMode mode, float overestimationSize)
+{
+	/* Make sure the extension is actually supported. */
+	const PhysicalDevice &physical = Device->GetPhysicalDevice();
+	if (physical.conservativeRasterizationSupported)
+	{
+		/* Under estimation might not be supported so early out if the user tried. */
+		if (mode == ConservativeRasterizationMode::UnderEstimate && !physical.conservativeRasterization.PrimitiveUnderestimation) return;
+
+		/* Add the conservative rasterization to the rasterizer chain and make sure the overestimation size doesn't exceed the device maximum. */
+		VkPushChainIfNeeded(rasterizationState.Next, &conservativeRasterizationState);
+		conservativeRasterizationState.Mode = mode;
+		conservativeRasterizationState.ExtraPrimitiveOverestimationSize = min(overestimationSize, physical.conservativeRasterization.MaxExtraPrimitiveOverestimationSize);
+	}
 }
 
 Pu::PipelineColorBlendAttachmentState & Pu::GraphicsPipeline::GetBlendState(const string & name)

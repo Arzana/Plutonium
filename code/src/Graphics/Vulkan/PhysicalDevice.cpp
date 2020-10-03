@@ -10,7 +10,9 @@ Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
 	enabledFeatures(std::move(value.enabledFeatures)), canQueryMemoryUsage(value.canQueryMemoryUsage),
 	exclusiveFullScreenSupported(value.exclusiveFullScreenSupported),
 	executablePropertiesSupported(value.executablePropertiesSupported),
-	memAllocs(value.memAllocs), samplerAllocs(value.samplerAllocs)
+	memAllocs(value.memAllocs), samplerAllocs(value.samplerAllocs),
+	conservativeRasterization(std::move(value.conservativeRasterization)),
+	conservativeRasterizationSupported(value.conservativeRasterizationSupported)
 {
 	value.hndl = nullptr;
 }
@@ -31,10 +33,12 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 		properties = std::move(other.properties);
 		supportedFeatures = std::move(other.supportedFeatures);
 		enabledFeatures = std::move(other.enabledFeatures);
+		conservativeRasterization = std::move(other.conservativeRasterization);
 		memory = std::move(other.memory);
 		canQueryMemoryUsage = other.canQueryMemoryUsage;
 		exclusiveFullScreenSupported = other.exclusiveFullScreenSupported;
 		executablePropertiesSupported = other.executablePropertiesSupported;
+		conservativeRasterizationSupported = other.conservativeRasterizationSupported;
 		memAllocs = other.memAllocs;
 		samplerAllocs = other.samplerAllocs;
 
@@ -136,11 +140,11 @@ DeviceSize Pu::PhysicalDevice::GetUniformBufferOffsetAllignment(DeviceSize size)
 Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl hndl)
 	: hndl(hndl), parent(&parent), memAllocs(0), samplerAllocs(0)
 {
-	PhysicalDeviceProperties2 prop2;
-	prop2.Next = &subgroup;
+	PhysicalDeviceProperties2 prop2{ &subgroup };
 
 	PhysicalDevicePipelineExecutablePropertiesFeatures executableProperties;
-	if (IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) supportedFeatures.Next = &executableProperties;
+	if (IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) VkPushChain(supportedFeatures.Next, &executableProperties);
+	if (conservativeRasterizationSupported = IsExtensionSupported(u8"VK_EXT_conservative_rasterization")) VkPushChain(prop2.Next, &conservativeRasterization);
 
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);

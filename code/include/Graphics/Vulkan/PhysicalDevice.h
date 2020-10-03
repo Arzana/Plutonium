@@ -143,6 +143,12 @@ namespace Pu
 			return subgroup.SupportedOperations;
 		}
 
+		/* Gets the device specified properties for conservative rasterization. */
+		_Check_return_ inline const PhysicalDeviceConservativeRasterizationProperties& GetConservativeRasterizationProperties(void) const
+		{
+			return conservativeRasterization;
+		}
+
 		/* Gets the Vulkan instance of this physical device. */
 		_Check_return_ inline const VulkanInstance& GetInstance(void) const
 		{
@@ -166,14 +172,16 @@ namespace Pu
 		friend class GameWindow;
 		friend class PipelineCache;
 		friend class Pipeline;
+		friend class GraphicsPipeline;
 
 		VulkanInstance *parent;
 		PhysicalDeviceHndl hndl;
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceSubgroupProperties subgroup;
+		PhysicalDeviceConservativeRasterizationProperties conservativeRasterization;
 		PhysicalDeviceFeatures2 supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
-		bool canQueryMemoryUsage, exclusiveFullScreenSupported, executablePropertiesSupported;
+		bool canQueryMemoryUsage, exclusiveFullScreenSupported, executablePropertiesSupported, conservativeRasterizationSupported;
 		uint32 memAllocs, samplerAllocs;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
