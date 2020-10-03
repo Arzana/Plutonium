@@ -3882,6 +3882,116 @@ namespace Pu
 		}
 	};
 
+	/* Defines the support for extra line rasterization options for a physical device. */
+	struct PhysicalDeviceLineRasterizationFeatures
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+		/* Specifies whether the implementation supports rectangular line rasterization. */
+		Bool32 RectangularLines;
+		/* Specifies whether the implementation supports bresenham line rasterization. */
+		Bool32 BresenhamLines;
+		/* Specifies whether the implementation supports smooth line rasterization. */
+		Bool32 SmoothLines;
+		/* Specifies whether the implementation supports stippled rectangular line rasterization. */
+		Bool32 StippledRectangularLines;
+		/* Specifies whether the implementation supports stippled bresenham line rasterization. */
+		Bool32 StippledBresenhamLines;
+		/* Specifies whether the implementation supports stippled smooth line rasterization. */
+		Bool32 StippledSmoothLines;
+
+		/* Initializes an empty instance of the physical device line rasterization features object. */
+		PhysicalDeviceLineRasterizationFeatures(void)
+			: Type(StructureType::PhysicalDeviceLineRasterizationFeaturesExt), Next(nullptr),
+			RectangularLines(false), BresenhamLines(false), SmoothLines(false),
+			StippledRectangularLines(false), StippledBresenhamLines(false), StippledSmoothLines(false)
+		{}
+
+		/* Move constructor. */
+		PhysicalDeviceLineRasterizationFeatures(_In_ PhysicalDeviceLineRasterizationFeatures &&value)
+			: Type(StructureType::PhysicalDeviceLineRasterizationFeaturesExt), Next(value.Next),
+			RectangularLines(value.RectangularLines), BresenhamLines(value.BresenhamLines),
+			SmoothLines(value.SmoothLines), StippledRectangularLines(value.StippledRectangularLines),
+			StippledBresenhamLines(value.StippledBresenhamLines), StippledSmoothLines(value.StippledSmoothLines)
+		{}
+
+		/* Move assignment. */
+		_Check_return_ PhysicalDeviceLineRasterizationFeatures& operator =(_In_ PhysicalDeviceLineRasterizationFeatures &&other)
+		{
+			Next = other.Next;
+			RectangularLines = other.RectangularLines;
+			BresenhamLines = other.BresenhamLines;
+			SmoothLines = other.SmoothLines;
+			StippledRectangularLines = other.StippledRectangularLines;
+			StippledBresenhamLines = other.StippledBresenhamLines;
+			StippledSmoothLines = other.StippledSmoothLines;
+
+			return *this;
+		}
+	};
+
+	/* Defines the properties for line rasterization for a physical device. */
+	struct PhysicalDeviceLineRasterizationProperties
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+		/* Specifies the number of subpixel precision bits. */
+		uint32 LineSubPixelPrecisionBits;
+
+		/* Initializes an empty instance of the physical device line rasterization properties object. */
+		PhysicalDeviceLineRasterizationProperties(void)
+			: Type(StructureType::PhysicalDeviceLineRasterizationPropertiesExt),
+			Next(nullptr), LineSubPixelPrecisionBits(0)
+		{}
+	};
+
+	/* Defines the line rasterization state. */
+	struct PipelineRasterizationLineStateCreateInfo
+	{
+		/* The type of this structure. */
+		const StructureType Type;
+		/* Pointer to an extension-specific structure or nullptr. */
+		const VulkanStructureExtendChainItem *Next;
+		/* Specifies the line rasterization mode to use. */
+		LineRasterizationMode Mode;
+		/* Specifies whether lines in this pipeline should be stippled. */
+		Bool32 StippledLineEnable;
+		/* Specifies the repeat factor used in stippled line rasterization. */
+		uint32 LineStippleFactor;
+		/* Specifies the bit pattern used in stipplied line rasterization. */
+		uint16 LineStipplePattern;
+
+		/* Initializes an empty instance of the pipeline rasterization line state create info object. */
+		PipelineRasterizationLineStateCreateInfo(void)
+			: Type(StructureType::PipelineRasterizationLineStateCreateInfoExt), Next(nullptr),
+			Mode(LineRasterizationMode::Default), StippledLineEnable(false), LineStippleFactor(0),
+			LineStipplePattern(0)
+		{}
+
+		/* Move constructor. */
+		PipelineRasterizationLineStateCreateInfo(_In_ PipelineRasterizationLineStateCreateInfo &&value)
+			: Type(StructureType::PipelineRasterizationLineStateCreateInfoExt), Next(value.Next),
+			Mode(value.Mode), StippledLineEnable(value.StippledLineEnable),
+			LineStippleFactor(value.LineStippleFactor), LineStipplePattern(value.LineStipplePattern)
+		{}
+
+		/* Move assignment. */
+		_Check_return_ PipelineRasterizationLineStateCreateInfo& operator =(_In_ PipelineRasterizationLineStateCreateInfo &&other)
+		{
+			Next = other.Next;
+			Mode = other.Mode;
+			StippledLineEnable = other.StippledLineEnable;
+			LineStippleFactor = other.LineStippleFactor;
+			LineStipplePattern = other.LineStipplePattern;
+
+			return *this;
+		}
+	};
+
 #ifdef _WIN32
 	/* Defines the information required to create a surface on the Windows platform. */
 	struct Win32SurfaceCreateInfo

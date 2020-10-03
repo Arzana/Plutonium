@@ -195,6 +195,11 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdDrawIndirect);
 	LOAD_DEVICE_PROC(vkCmdDrawIndexedIndirect);
 	LOAD_DEVICE_PROC(vkCmdDispatch);
+
+	if (IsExtensionEnabled(u8"VK_EXT_line_rasterization"))
+	{
+		LOAD_DEVICE_PROC(vkCmdSetLineStippleEXT);
+	}
 	
 	/* Render pass related functions. */
 	LOAD_DEVICE_PROC(vkCreateRenderPass);

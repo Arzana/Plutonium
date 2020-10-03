@@ -29,7 +29,8 @@ Pu::GraphicsPipeline::GraphicsPipeline(GraphicsPipeline && value)
 	colorBlendState(std::move(value.colorBlendState)), dynamicState(std::move(value.dynamicState)),
 	colorBlendAttachments(std::move(value.colorBlendAttachments)), bindingDescriptions(std::move(value.bindingDescriptions)),
 	dynamicStates(std::move(value.dynamicStates)), viewport(value.viewport), scissor(value.scissor), sampleMask(value.sampleMask),
-	conservativeRasterizationState(std::move(value.conservativeRasterizationState))
+	conservativeRasterizationState(std::move(value.conservativeRasterizationState)), 
+	lineRasterizationState(std::move(value.lineRasterizationState))
 {
 	viewportState.Viewports = &viewport;
 	viewportState.Scissors = &scissor;
@@ -51,6 +52,7 @@ Pu::GraphicsPipeline & Pu::GraphicsPipeline::operator=(GraphicsPipeline && other
 		viewportState = std::move(other.viewportState);
 		rasterizationState = std::move(other.rasterizationState);
 		conservativeRasterizationState = std::move(other.conservativeRasterizationState);
+		lineRasterizationState = std::move(other.lineRasterizationState);
 		multisampleState = std::move(other.multisampleState);
 		depthStencilState = std::move(other.depthStencilState);
 		colorBlendState = std::move(other.colorBlendState);
@@ -346,6 +348,39 @@ void Pu::GraphicsPipeline::SetConservativeRasterization(ConservativeRasterizatio
 		VkPushChainIfNeeded(rasterizationState.Next, &conservativeRasterizationState);
 		conservativeRasterizationState.Mode = mode;
 		conservativeRasterizationState.ExtraPrimitiveOverestimationSize = min(overestimationSize, physical.conservativeRasterization.MaxExtraPrimitiveOverestimationSize);
+	}
+}
+
+void Pu::GraphicsPipeline::SetLineRasterizationMode(LineRasterizationMode mode, bool stippled, uint32 factor, uint16 pattern)
+{
+	/* Only set the rasterization mode if it's supported. */
+	const PhysicalDevice &physical = Device->GetPhysicalDevice();
+	if (physical.fancyLineRasterizationSupported)
+	{
+		const PhysicalDeviceLineRasterizationFeatures &lineFeatures = physical.GetLineRasterizationFeatures();
+
+		/* Make sure the underlying mode is also supported. */
+		if ((mode == LineRasterizationMode::Default || mode == LineRasterizationMode::Rectangular))
+		{
+			if (!stippled && !lineFeatures.RectangularLines) return;
+			if (stippled && !lineFeatures.StippledRectangularLines) return;
+		}
+		else if (mode == LineRasterizationMode::Bresenham)
+		{
+			if (!stippled && !lineFeatures.BresenhamLines) return;
+			if (stippled && !lineFeatures.StippledBresenhamLines) return;
+		}
+		else if (mode == LineRasterizationMode::RectangularSmooth)
+		{
+			if (!stippled && !lineFeatures.SmoothLines) return;
+			if (stippled && !lineFeatures.StippledSmoothLines) return;
+		}
+
+		VkPushChainIfNeeded(rasterizationState.Next, &lineRasterizationState);
+		lineRasterizationState.Mode = mode;
+		lineRasterizationState.StippledLineEnable = stippled;
+		lineRasterizationState.LineStippleFactor = factor;
+		lineRasterizationState.LineStipplePattern = pattern;
 	}
 }
 

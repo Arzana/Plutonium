@@ -189,6 +189,10 @@ namespace Pu
 		/* VK_EXT_conservative_rasterization */
 		PhysicalDeviceConservativeRasterizationPropertiesExt = 1000101000,
 		PipelineRasterizationConservativeStateCreateInfoExt = 1000101001,
+		/* VK_EXT_line_rasterization. */
+		PhysicalDeviceLineRasterizationFeaturesExt = 1000259000,
+		PipelineRasterizationLineStateCreateInfoExt = 1000259001,
+		PhysicalDeviceLineRasterizationPropertiesExt = 1000259002
 	};
 
 	/* Defines the lifetime of a system allocation. */
@@ -747,8 +751,8 @@ namespace Pu
 		ISrc1Alpha = 18
 	};
 
-	/* 
-	Defines the types of color blending operations. 
+	/*
+	Defines the types of color blending operations.
 	src is the source color/alpha.
 	dst is the destination color/alpha.
 	fs is source factor.
@@ -757,27 +761,27 @@ namespace Pu
 	enum class BlendOp
 	{
 		/*
-		Adds the components together. 
+		Adds the components together.
 		Output = src * fs + dst * fd
 		*/
 		Add = 0,
-		/* 
-		Subtracts the destination from the source. 
+		/*
+		Subtracts the destination from the source.
 		Output = src * fs - dst * fd
 		*/
 		Subtract = 1,
-		/* 
-		Subtracts the source from the destination. 
+		/*
+		Subtracts the source from the destination.
 		Output = dst * fd - src * fs
 		*/
 		ReverseSubtract = 2,
-		/* 
+		/*
 		Sets the components to the minimum value.
 		Output = min(src, dst)
 		*/
 		Min = 3,
-		/* 
-		Sets the components to the maximum value. 
+		/*
+		Sets the components to the maximum value.
 		Output = max(src, dst)
 		*/
 		Max = 4
@@ -804,6 +808,8 @@ namespace Pu
 		StencilWriteMask = 7,
 		/* Defines the stencil reference value as dynamic. */
 		StencilReference = 8,
+		/* Defines the line stipple factor and line stipple pattern as dynamic. */
+		LineStipple = 1000259000
 	};
 
 	/* Defines the filters used for texture lookups. */
@@ -1705,6 +1711,19 @@ namespace Pu
 		UnderEstimate
 	};
 
+	/* Defines the different modes for extended line rasterization. */
+	enum class LineRasterizationMode
+	{
+		/* Specifies that lines are drawn with Rectangular mode if strict lines is true, otherwise; they are drawn as parallelograms. */
+		Default,
+		/* Specifies that lines are drawn as if they were rectangles extruded from the line. */
+		Rectangular,
+		/* Specifies that lines are drawn using the bresenham line algorithm. */
+		Bresenham,
+		/* Specifies that lines are drawn as if they were rectangles extruded from the line with alpha falloff. */
+		RectangularSmooth
+	};
+
 	/* Appends the flag bits of an image usage flag. */
 	_Check_return_ inline constexpr ImageUsageFlags operator |(_In_ ImageUsageFlags a, _In_ ImageUsageFlags b)
 	{
@@ -2321,8 +2340,8 @@ namespace Pu
 		}
 	}
 
-	/* 
-	Performs default validation for VkApiResult functions. 
+	/*
+	Performs default validation for VkApiResult functions.
 	Throws errors and warnings when appropriate.
 	*/
 	inline void ValidateVkApiResult(_In_ VkApiResult result, _In_ string procedure)

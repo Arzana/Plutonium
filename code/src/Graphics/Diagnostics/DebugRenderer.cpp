@@ -569,6 +569,7 @@ void Pu::DebugRenderer::CreatePipeline(void)
 	pipeline->SetTopology(PrimitiveTopology::LineList);
 	pipeline->AddVertexBinding<Vector3>(0);
 	pipeline->AddVertexBinding<VertexLayout>(1, VertexInputRate::Instance);
+	pipeline->SetLineRasterizationMode(LineRasterizationMode::Bresenham, false, 0, 0);
 
 	if (depthBuffer) pipeline->EnableDepthTest(false, CompareOp::LessOrEqual);
 

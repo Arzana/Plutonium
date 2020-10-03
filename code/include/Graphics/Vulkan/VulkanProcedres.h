@@ -130,6 +130,7 @@ namespace Pu
 	using PFN_vkGetPipelineExecutableInternalRepresentationsKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineExecutableInfo *executableInfo, _Out_ uint32_t *internalRepresentationCount, _Out_ PipelineExecutableInternalRepresentation *internalRepresentations);
 	using PFN_vkGetPipelineExecutablePropertiesKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineInfo *pipelineInfo, _Out_ uint32 *executableCount, _Out_ PipelineExecutableProperties *properties);
 	using PFN_vkGetPipelineExecutableStatisticsKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ DeviceHndl device, _In_ const PipelineExecutableInfo *executableInfo, _Out_ uint32 *statisticsCount, _Out_ PipelineExecutableStatistic *statistics);
+	using PFN_vkCmdSetLineStippleEXT = void(VKAPI_PTR)(_In_ CommandBufferHndl commandBuffer, _In_ uint32 lineStippleFactor, _In_ uint16 lineStipplePattern);
 
 #ifdef _WIN32
 	using PFN_vkCreateWin32SurfaceKHR = _Check_return_ VkApiResult(VKAPI_PTR)(_In_ InstanceHndl instance, _In_ const Win32SurfaceCreateInfo *createInfo, _In_opt_ const AllocationCallbacks *allocator, _Out_ SurfaceHndl *surface);

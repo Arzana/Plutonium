@@ -23,13 +23,15 @@ TestGame::TestGame(void)
 	GetInput().AnyMouseScrolled.Add(*this, &TestGame::OnAnyMouseScrolled);
 }
 
-void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled, vector<const char*>&)
+void TestGame::EnableFeatures(const PhysicalDeviceFeatures & supported, PhysicalDeviceFeatures & enabeled, vector<const char*> &extensions)
 {
 	enabeled.TessellationShader = supported.TessellationShader;				// Optional for better terrain rendering.
 	enabeled.WideLines = supported.WideLines;								// Debug renderer
 	enabeled.FillModeNonSolid = supported.FillModeNonSolid;					// Easy wireframe mode
 	enabeled.SamplerAnisotropy = supported.SamplerAnisotropy;				// Textures are loaded with 4 anisotropy by default
 	enabeled.PipelineStatisticsQuery = supported.PipelineStatisticsQuery;	// Nice for performance testing, but optional
+
+	extensions.emplace_back("VK_EXT_line_rasterization");					// Smoother debug lines.
 }
 
 void TestGame::LoadContent(AssetFetcher & fetcher)

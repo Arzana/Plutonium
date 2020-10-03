@@ -465,6 +465,12 @@ void Pu::CommandBuffer::SetLineWidth(float width)
 	device->vkCmdSetLineWidth(hndl, width);
 }
 
+void Pu::CommandBuffer::SetLineStipple(uint32 factor, uint16 pattern)
+{
+	DbgCheckIfRecording("set dynamic line stipple");
+	device->vkCmdSetLineStippleEXT(hndl, factor, pattern);
+}
+
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), Usage(CommandBufferUsageFlags::None)
 {

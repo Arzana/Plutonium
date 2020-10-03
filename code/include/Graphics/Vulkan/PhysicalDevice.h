@@ -149,6 +149,18 @@ namespace Pu
 			return conservativeRasterization;
 		}
 
+		/* Gets the number of bits of subpixel precision is supported with extended line rasterization. */
+		_Check_return_ uint32 GetLineSubPixelPrecisionBits(void) const
+		{
+			return lineSubPixelPrecisionBits;
+		}
+
+		/* Gets the supported features for line rasterization. */
+		_Check_return_ const PhysicalDeviceLineRasterizationFeatures& GetLineRasterizationFeatures(void) const
+		{
+			return lineFeatures;
+		}
+
 		/* Gets the Vulkan instance of this physical device. */
 		_Check_return_ inline const VulkanInstance& GetInstance(void) const
 		{
@@ -179,10 +191,12 @@ namespace Pu
 		PhysicalDeviceProperties properties;
 		PhysicalDeviceSubgroupProperties subgroup;
 		PhysicalDeviceConservativeRasterizationProperties conservativeRasterization;
+		PhysicalDeviceLineRasterizationFeatures lineFeatures;
 		PhysicalDeviceFeatures2 supportedFeatures, enabledFeatures;
 		PhysicalDeviceMemoryProperties memory;
 		bool canQueryMemoryUsage, exclusiveFullScreenSupported, executablePropertiesSupported, conservativeRasterizationSupported;
-		uint32 memAllocs, samplerAllocs;
+		bool fancyLineRasterizationSupported;
+		uint32 memAllocs, samplerAllocs, lineSubPixelPrecisionBits;
 
 		PhysicalDevice(VulkanInstance &parent, PhysicalDeviceHndl hndl);
 

@@ -160,6 +160,8 @@ namespace Pu
 		void SetViewportAndScissor(_In_ const Viewport &viewport);
 		/* Sets the dynamic line width state. */
 		void SetLineWidth(_In_ float width);
+		/* Sets the dynamic line stipple state. */
+		void SetLineStipple(_In_ uint32 factor, _In_ uint16 pattern);
 
 	protected:
 		/* Defines how this command buffer will be used. */

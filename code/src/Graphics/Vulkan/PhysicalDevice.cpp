@@ -12,7 +12,9 @@ Pu::PhysicalDevice::PhysicalDevice(PhysicalDevice && value)
 	executablePropertiesSupported(value.executablePropertiesSupported),
 	memAllocs(value.memAllocs), samplerAllocs(value.samplerAllocs),
 	conservativeRasterization(std::move(value.conservativeRasterization)),
-	conservativeRasterizationSupported(value.conservativeRasterizationSupported)
+	conservativeRasterizationSupported(value.conservativeRasterizationSupported),
+	lineFeatures(std::move(value.lineFeatures)), lineSubPixelPrecisionBits(value.lineSubPixelPrecisionBits),
+	fancyLineRasterizationSupported(value.fancyLineRasterizationSupported)
 {
 	value.hndl = nullptr;
 }
@@ -34,13 +36,16 @@ PhysicalDevice & Pu::PhysicalDevice::operator=(PhysicalDevice && other)
 		supportedFeatures = std::move(other.supportedFeatures);
 		enabledFeatures = std::move(other.enabledFeatures);
 		conservativeRasterization = std::move(other.conservativeRasterization);
+		lineFeatures = std::move(other.lineFeatures);
 		memory = std::move(other.memory);
 		canQueryMemoryUsage = other.canQueryMemoryUsage;
 		exclusiveFullScreenSupported = other.exclusiveFullScreenSupported;
 		executablePropertiesSupported = other.executablePropertiesSupported;
 		conservativeRasterizationSupported = other.conservativeRasterizationSupported;
+		fancyLineRasterizationSupported = other.fancyLineRasterizationSupported;
 		memAllocs = other.memAllocs;
 		samplerAllocs = other.samplerAllocs;
+		lineSubPixelPrecisionBits = other.lineSubPixelPrecisionBits;
 
 		parent->OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
 		other.hndl = nullptr;
@@ -143,8 +148,14 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	PhysicalDeviceProperties2 prop2{ &subgroup };
 
 	PhysicalDevicePipelineExecutablePropertiesFeatures executableProperties;
+	PhysicalDeviceLineRasterizationProperties lineProperties;
 	if (IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) VkPushChain(supportedFeatures.Next, &executableProperties);
 	if (conservativeRasterizationSupported = IsExtensionSupported(u8"VK_EXT_conservative_rasterization")) VkPushChain(prop2.Next, &conservativeRasterization);
+	if (fancyLineRasterizationSupported = IsExtensionSupported(u8"VK_EXT_line_rasterization"))
+	{
+		VkPushChain(prop2.Next, &lineProperties);
+		VkPushChain(supportedFeatures.Next, &lineFeatures);
+	}
 
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);
@@ -153,6 +164,7 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 	parent.vkGetPhysicalDeviceMemoryProperties(hndl, &memory);
 
 	properties = prop2.Properties;
+	lineSubPixelPrecisionBits = lineProperties.LineSubPixelPrecisionBits;
 
 	/* Querying whether the extensions are supported is slow, so just query it on creation. */
 	canQueryMemoryUsage = IsExtensionSupported(u8"VK_EXT_memory_budget");
