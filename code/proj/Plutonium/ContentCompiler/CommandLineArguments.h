@@ -11,6 +11,7 @@ struct CLArgs
 {
 	Pu::string Input;							// Last argument (required)
 	Pu::string Output;							// -o (optional)
+	Pu::string Temp;							// -dbg (optional)
 	Pu::string DisplayName;						// -dn (optional)
 	ContentType Type;							// Generated (required)
 	bool CreateTangents;						// -t (optional)

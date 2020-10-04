@@ -3,7 +3,7 @@
 #include <Streams/BinaryReader.h>
 #include <mikktspace/mikktspace.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Core/Threading/Tasks/Scheduler.h>
+#include <Core/Diagnostics/Profiler.h>
 
 using namespace Pu;
 
@@ -240,6 +240,7 @@ void LogMeshConversion(PumIntermediate &data, bool newTangents, bool recalculate
 int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 {
 	Stopwatch sw = Stopwatch::StartNew();
+	Profiler::Begin("Generating tangents");
 
 	/* Set all of the delegates. */
 	SMikkTSpaceInterface interfaces{};
@@ -311,5 +312,6 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	writeLock.unlock();
 
 	Log::Message("Finished generating tangents for model '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());
+	Profiler::End();
 	return result;
 }

@@ -1,5 +1,6 @@
 #include "MeshBaker.h"
 #include <Core/Diagnostics/Stopwatch.h>
+#include <Core/Diagnostics/Profiler.h>
 
 using namespace Pu;
 
@@ -38,6 +39,7 @@ void ProcessIndices(BinaryWriter &writer, const void *raw, size_t size, char typ
 void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 {
 	Stopwatch sw = Stopwatch::StartNew();
+	Profiler::Begin("Mesh optimization");
 
 	std::map<size_t, vector<uint32>> vertexViews;
 	std::map<size_t, vector<uint32>> indexViews;
@@ -137,4 +139,5 @@ void BakeMeshes(PumIntermediate & data, const Pu::string & name)
 	});
 
 	Log::Message("Done optimizing %zu meshes for %s, took %.3f seconds.", data.Geometry.size(), name.c_str(), sw.SecondsAccurate());
+	Profiler::End();
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cstdarg>
 #include <string>
 #include "Core/Math/Basics.h"
 #include "Core/Collections/Vector.h"
@@ -290,6 +291,18 @@ namespace Pu
 		{
 			const size_type len = find_last_of(static_cast<char_t>(U'.'));
 			return len != string_t::npos ? string_t::substr(0, len) : basic_string<char_t>();
+		}
+
+		/* Adds the formatted string to this string. */
+		void format(const char *format, ...)
+		{
+			va_list args;
+			va_start(args, format);
+			const size_type size = static_cast<size_type>(vsnprintf(nullptr, 0, format, args) + 1);
+			const size_type oldSize = string_t::size();
+			string_t::resize(oldSize + size);
+			vsnprintf(string_t::data() + oldSize, size, format, args);
+			va_end(args);
 		}
 #pragma endregion
 #pragma region queries

@@ -153,7 +153,7 @@ namespace Pu
 		WaylandSurfaceCreateInfoKhr = 1000006000,
 		/* VK_KHR_android_surface */
 		AndroidSurfaceCreateInfoKhr = 1000008000,
-		/*VK_KHR_win32_surface */
+		/* VK_KHR_win32_surface */
 		Win32SurfaceCreateInfoKhr = 1000009000,
 		/* VK_EXT_debug_report */
 		DebugReportCreateInfoExt = 1000011000,

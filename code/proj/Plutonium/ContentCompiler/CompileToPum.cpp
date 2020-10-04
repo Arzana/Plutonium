@@ -7,11 +7,13 @@
 #include "MeshBaker.h"
 #include <Streams/FileWriter.h>
 #include <Core/Diagnostics/Stopwatch.h>
+#include <Core/Diagnostics/Profiler.h>
 
 using namespace Pu;
 
 void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 {
+	Profiler::Begin("PuM to file");
 	FileWriter file(args.Output.toWide());
 	const size_t dataSize = data.Data.GetSize();
 
@@ -198,10 +200,13 @@ void SavePumToFile(const CLArgs &args, const PumIntermediate &data)
 	file.Write(reinterpret_cast<const byte*>(&dataSize), 0, sizeof(size_t));
 	file.Write(writer.GetData(), 0, writer.GetSize());
 	file.Write(data.Data.GetData(), 0, data.Data.GetSize());
+	Profiler::End();
 }
 
 int CompileToPum(const CLArgs & args)
 {
+	string modelInfo;
+
 	const string ext = args.Input.fileExtension().toUpper();
 	PumIntermediate data;
 	Stopwatch sw = Stopwatch::StartNew();
@@ -210,7 +215,7 @@ int CompileToPum(const CLArgs & args)
 	{
 		Md2LoaderResult raw;
 
-		LoadMd2(args, raw);
+		LoadMd2(args, raw, modelInfo);
 		Md2ToPum(args, raw, data);
 	}
 	else if (ext == "GLTF" || ext == "GLB")
@@ -224,7 +229,7 @@ int CompileToPum(const CLArgs & args)
 	{
 		ObjLoaderResult raw;
 		LoadObjMtl(args.Input, raw);
-		ObjToPum(raw, data);
+		ObjToPum(raw, modelInfo, data);
 		//TODO: make sure we always generate indices for OBJ models.
 	}
 	else
@@ -243,6 +248,8 @@ int CompileToPum(const CLArgs & args)
 	CopyAndConvertMaterials(data, args);
 	SavePumToFile(args, data);
 
+	/* We don't care much for the porifling log if the anything failed, so only have it if everything went oke. */
 	Log::Message("Finishes converting '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());
+	if (args.Temp.size()) Profiler::Save((args.Temp + args.Input.fileName()).toWide() + L".dlog", modelInfo);
 	return EXIT_SUCCESS;
 }

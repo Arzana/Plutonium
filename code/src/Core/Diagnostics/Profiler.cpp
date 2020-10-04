@@ -19,6 +19,12 @@ static inline Pu::int64 sec_to_ms(float sec)
 	return static_cast<Pu::int64>(sec * 1000000.0f);
 }
 
+void Pu::Profiler::Begin(const string & category)
+{
+	static const Color defaultColor = Color::CodGray();
+	Begin(category, defaultColor);
+}
+
 void Pu::Profiler::Begin(const string & category, Color color)
 {
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
@@ -83,10 +89,10 @@ void Pu::Profiler::Visualize(void)
 	lock.unlock();
 }
 
-void Pu::Profiler::Save(const wstring & path)
+void Pu::Profiler::Save(const wstring & path, const string & extra)
 {
 	lock.lock();
-	GetInstance().SaveInternal(path);
+	GetInstance().SaveInternal(path, extra);
 	lock.unlock();
 }
 
@@ -311,7 +317,7 @@ void Pu::Profiler::SaveSeries(void) const
 	}
 }
 
-void Pu::Profiler::SaveInternal(const wstring & path)
+void Pu::Profiler::SaveInternal(const wstring & path, const string & extra)
 {
 	FileWriter writer{ path };
 
@@ -322,14 +328,18 @@ void Pu::Profiler::SaveInternal(const wstring & path)
 	if ((end = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))))
 	{
 		writer.Write("Profiler log for: ");
-		writer.Write(string::from(ticks));
-		writer.Write(" tick(s), ");
+		if (ticks > 1)
+		{
+			writer.Write(string::from(ticks));
+			writer.Write(" tick(s), ");
+		}
 
 		buffer[end] = '\n';
-		buffer[end + 1] = '\n';
-		buffer[end + 2] = '\0';
+		buffer[end + 1] = '\0';
 		writer.Write(buffer);
 	}
+
+	writer.Write("Time specified in microseconds.\n\n");
 
 	/* Write the CPU section of the profiler if anything was saved. */
 	if (cpuSections.size())
@@ -345,6 +355,8 @@ void Pu::Profiler::SaveInternal(const wstring & path)
 		SaveSections(writer, gpuSections);
 	}
 
+	writer.Write("\n\n");
+	writer.Write(extra);
 	ClearIfNeeded();
 }
 
@@ -389,11 +401,18 @@ void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * 
 
 void Pu::Profiler::SaveSections(FileWriter & writer, const vector<Section>& sections)
 {
+	/* Calculate the amount of indentation needed to make the ms flush. */
+	size_t maxCategoryLength = 0;
+	for (const auto &[category, color, ms] : sections) maxCategoryLength = max(maxCategoryLength, category.length());
+
 	for (const auto &[category, color, ms] : sections)
 	{
+		const size_t indentationNeeded = maxCategoryLength - category.length();
+
 		writer.Write("|- '");
 		writer.Write(category);
 		writer.Write("': ");
+		writer.Write(string(indentationNeeded, ' '));
 		writer.Write(string::from(ms));
 		writer.Write(" ms\n");
 	}

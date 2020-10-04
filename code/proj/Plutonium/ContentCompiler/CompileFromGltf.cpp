@@ -1,6 +1,7 @@
 #include "CompileFromGltf.h"
 #include <Streams/FileReader.h>
 #include <Streams/BinaryReader.h>
+#include <Core/Diagnostics/Profiler.h>
 #include <nlohmann/fifo_map.hpp>
 #include <nlohmann/json.hpp>
 #include "Config.h"
@@ -1109,6 +1110,8 @@ void HandleJsonBuffers(const json &buffers, GLTFLoaderResult &file)
 
 void LoadJsonGLTF(const string &source, GLTFLoaderResult &file)
 {
+	Profiler::Begin("Parse GLTF");
+
 	/* Parse the source string into a parsable format. */
 	const json header = json::parse(source);
 
@@ -1150,6 +1153,8 @@ void LoadJsonGLTF(const string &source, GLTFLoaderResult &file)
 			Log::Warning("Unable to handle element type '%s' in GLTF header at this point!", elementType.c_str());
 		}
 	}
+
+	Profiler::End();
 }
 
 void LoadGLTF(const CLArgs & args, GLTFLoaderResult & file)
@@ -1161,8 +1166,12 @@ void LoadGLTF(const CLArgs & args, GLTFLoaderResult & file)
 	if (ext == "GLTF")
 	{
 		/* Only load the header of the GLTF from Json format. */
+		Profiler::Begin("Load GLTF");
 		FileReader reader(args.Input.toWide());
-		LoadJsonGLTF(reader.ReadToEnd(), file);
+		const string contents = reader.ReadToEnd();
+		Profiler::End();
+
+		LoadJsonGLTF(contents, file);
 	}
 	else if (ext == "GLB")
 	{
@@ -1777,6 +1786,8 @@ void CopyTexturesToPum(const GLTFLoaderResult &input, PumIntermediate &result)
 
 void GltfToPum(const CLArgs & args, const GLTFLoaderResult & input, PumIntermediate & result)
 {
+	Profiler::Begin("Convert GLTF to PuM");
+
 	/* Preload all the buffer data. */
 	vector<string> bufferData;
 	bufferData.reserve(input.Buffers.size());
@@ -1792,6 +1803,8 @@ void GltfToPum(const CLArgs & args, const GLTFLoaderResult & input, PumIntermedi
 	CopySkeletonToPum(input, bufferData, result);
 	CopyTexturesToPum(input, result);
 	CopyMaterialsToPum(input, result);
+
+	Profiler::End();
 }
 
 size_t GLTFAccessor::GetElementSize(void) const

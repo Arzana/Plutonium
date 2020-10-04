@@ -299,4 +299,4 @@ struct ObjLoaderResult
 
 /* Loads an obj file and it's associated mtl file(s) (requires delete!). */
 void LoadObjMtl(_In_ const Pu::string &path, _Out_ ObjLoaderResult &result);
-void ObjToPum(_In_ ObjLoaderResult &input, _Out_ PumIntermediate &result);
+void ObjToPum(_In_ ObjLoaderResult &input, _Out_ Pu::string &modelInfo, _Out_ PumIntermediate &result);

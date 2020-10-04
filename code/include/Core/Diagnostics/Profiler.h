@@ -20,6 +20,8 @@ namespace Pu
 		_Check_return_ Profiler& operator =(_In_ const Profiler&) = delete;
 		_Check_return_ Profiler& operator =(_In_ Profiler&&) = delete;
 
+		/* Starts a new recording in the profiler for the specified CPU category with the default color. */
+		static void Begin(_In_ const string &category);
 		/* Starts a new recording in the profiler for the specified CPU category. */
 		static void Begin(_In_ const string &category, _In_ Color color);
 		/* Ends a recording for the thread specific CPU profiler. */
@@ -38,7 +40,7 @@ namespace Pu
 		/* Renders the current profiler data to ImGUI and clears the list. */
 		static void Visualize(void);
 		/* Logs the current profiler data to disk and clears the list. */
-		static void Save(_In_ const wstring &path);
+		static void Save(_In_ const wstring &path, _In_ const string &extra);
 		/* Sets the target frame time (in seconds). */
 		static void SetTargetFrameTime(_In_ float fps);
 		/* Sets the smoothing interval (in seconds). */
@@ -76,7 +78,7 @@ namespace Pu
 		void EntryInternal(const string &serie, float value, Vector2 size);
 		void VisualizeInternal(void);
 		void SaveSeries(void) const;
-		void SaveInternal(const wstring &path);
+		void SaveInternal(const wstring &path, const string &extra);
 		void ClearIfNeeded(void);
 		void RenderSections(const vector<Section> &sections, const char *type, bool addDummy);
 		void SaveSections(FileWriter &writer, const vector<Section> &sections);

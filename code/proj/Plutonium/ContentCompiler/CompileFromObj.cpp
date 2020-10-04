@@ -1,7 +1,8 @@
 #include "CompileFromObj.h"
-#include "Streams/FileReader.h"
-#include "Core/EnumUtils.h"
-#include "Core/Math/Triangulation.h"
+#include <Streams/FileReader.h>
+#include <Core/EnumUtils.h>
+#include <Core/Math/Triangulation.h>
+#include <Core/Diagnostics/Profiler.h>
 
 /*
 Based on:
@@ -1067,9 +1068,12 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 	uint64 smoothingGroup;
 	vector<string> loadedMaterialLibraries;
 
+	Profiler::Begin("Reserve OBJ buffers");
 	ReserveVectors(reader, result);
+	Profiler::End();
 
 	/* Read untill the end of the file. */
+	Profiler::Begin("Load and parse OBJ");
 	while (reader.Peek() != EOF)
 	{
 		const string line = reader.ReadLine();
@@ -1081,6 +1085,9 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 		}
 	}
 
+	Profiler::End();
+	Profiler::Begin("Cleanup OBJ buffers");
+
 	/* Add last shape to result if needed and return. */
 	if (!shape.Name.empty()) result.Shapes.emplace_back(shape);
 
@@ -1090,6 +1097,7 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 	result.Shapes.shrink_to_fit();
 	result.TexCoords.shrink_to_fit();
 	result.Vertices.shrink_to_fit();
+	Profiler::End();
 }
 #pragma endregion
 
@@ -1196,8 +1204,14 @@ void ParseMaterialsAndTextures(const ObjLoaderResult &input, PumIntermediate &re
 	}
 }
 
-void ObjToPum(ObjLoaderResult & input, PumIntermediate & result)
+void ObjToPum(ObjLoaderResult & input, Pu::string & modelInfo, PumIntermediate & result)
 {
+	/* Add some debugging information. */
+	size_t tris = 0;
+	for (const ObjLoaderMesh &mesh : input.Shapes) tris += mesh.Indices.size();
+	modelInfo.format("-----------------------OBJ-----------------------\nVertices: %zu\nTriangles: %zu\nMeshes: %zu\nMaterials: %zu\n", input.Vertices.size(), tris, input.Shapes.size(), input.Materials.size());
+
+	Profiler::Begin("Convert OBJ to PuM");
 	CopyGeometry(input, result);
 
 	/* All the geometry has been copied at this point so we can clear the vectors to save on memory for larger models. */
@@ -1209,4 +1223,5 @@ void ObjToPum(ObjLoaderResult & input, PumIntermediate & result)
 	/* Simply copy over the materials and texture and then clear this vector as well. */
 	ParseMaterialsAndTextures(input, result);
 	input.Materials.clear();
+	Profiler::End();
 }

@@ -1,6 +1,7 @@
 #include "CompileFromMd2.h"
 #include "CommandLineArguments.h"
 #include <Streams/FileReader.h>
+#include <Core/Diagnostics/Profiler.h>
 #include <regex>
 
 using namespace Pu;
@@ -339,11 +340,12 @@ void readMd2Frames(FileReader &reader, const md2_header_t &header, Md2LoaderResu
 	}
 }
 
-int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
+int LoadMd2(const CLArgs &args, Md2LoaderResult & result, string & modelInfo)
 {
 	/* Check if file is available. */
 	FileReader reader{ args.Input.toWide() };
 	if (!reader.IsOpen()) return EXIT_FAILURE;
+	Profiler::Begin("Load and parse MD2");
 
 	/* Read and parse the file data. */
 	const md2_header_t header = readMd2Header(reader);
@@ -362,12 +364,15 @@ int LoadMd2(const CLArgs &args, Md2LoaderResult & result)
 		else result.textures.emplace_back(cur);
 	}
 
+	Profiler::End();
+	modelInfo.format("-----------------------MD2-----------------------\nVertex Count: %d\nTriangle Count: %d\nFrames: %d\n\n", header.num_vertices, header.num_tris, header.num_frames);
 	return EXIT_SUCCESS;
 }
 
 void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & result)
 {
 	static std::regex regex("([a-zA-Z_]+[0-9]*?)([0-9]{1,2})");
+	Profiler::Begin("Convert MD2 to PuM");
 
 	/* Convert the name to UTF-32 and enable linear for the filters. */
 	for (const string &path : input.textures)
@@ -474,4 +479,6 @@ void Md2ToPum(const CLArgs & args, Md2LoaderResult & input, PumIntermediate & re
 		mesh.VertexViewSize = result.Data.GetSize() - mesh.VertexViewStart;
 		result.Geometry.emplace_back(mesh);
 	}
+
+	Profiler::End();
 }

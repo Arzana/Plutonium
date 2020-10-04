@@ -6,6 +6,7 @@
 #include <Graphics/Vulkan/Instance.h>
 #include <Graphics/Vulkan/Framebuffer.h>
 #include <Graphics/Vulkan/CommandPool.h>
+#include <Core/Diagnostics/Profiler.h>
 
 using namespace Pu;
 
@@ -675,10 +676,12 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 	const ustring ldir = wdir.toUTF32();
 
 	/* Precreate the directory to avoid race conditions. */
+	Profiler::Begin("Copying textures");
 	if (data.Textures.size()) FileWriter::CreateDirectory(wdir);
 
 	/* Copy over all the finalized textures and log the amount of textures that will be parsed. */
 	const size_t parseCnt = DiskCopyTextures(data, wdir, ldir);
+	Profiler::End();
 	if (!parseCnt) return;
 	Log::Message("Converting %zu textures from metal/roughness to specular/glossiness.", parseCnt);
 
@@ -687,6 +690,7 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 	for (pum_material &mat : data.Materials) setCnt += !mat.IsFinalized;
 
 	/* Make sure that we only start the conversion if all the component were properly created. */
+	Profiler::Begin("Converting texture");
 	if (InitializeVulkan(setCnt, *args.Scheduluer))
 	{
 		ConvertTextures(data, wdir, ldir);
@@ -695,4 +699,5 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 
 	/* The instance is always created so always delete that. */
 	delete instance;
+	Profiler::End();
 }

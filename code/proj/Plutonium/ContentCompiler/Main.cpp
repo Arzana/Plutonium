@@ -39,6 +39,15 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 				state = EXIT_FAILURE;
 			}
 		}
+		else if (cur == "-dbg")		// Debug output path.
+		{
+			if (notLast) result.Temp = args[++i];
+			else
+			{
+				Log::Error("Missing path for debug output file after -dbg!");
+				state = EXIT_FAILURE;
+			}
+		}
 		else if (cur == "-dn")		// Display name.
 		{
 			if (notLast) result.Output = args[++i];
