@@ -138,7 +138,7 @@ namespace Pu
 		static int32 CrtErrorHandler(int32 category, char *msg, int32 *retVal);
 
 		void Raise(const char *msg, va_list args);
-		void CreateCrashReport(void);
+		void CreateCrashReport(const char *msg);
 		void LogMsgVa(LogType type, bool addNl, const char *format, ...);
 		void LogMsgInternal(LogType type, bool addNl, size_t len, const char *format, va_list args);
 		void UpdateType(LogType type);

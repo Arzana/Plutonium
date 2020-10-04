@@ -10,6 +10,7 @@ void logHelp(void)
 		"Options:\n"
 		"--help				Displays this message.\n"
 		"-o <path>			Specifies the output file.\n"
+		"-dbg <path>		Specifies an optional profiling output.\n"
 		"-dn <name>			Overrides the default model name.\n"
 		"-t					Calculate vertex tangents (MikkTSpace).\n"
 		"-rt				Recalculate vertex tangents (MikkTSpace).\n"
@@ -41,7 +42,11 @@ int initCmdLineArgs(const vector<string> &args, CLArgs &result)
 		}
 		else if (cur == "-dbg")		// Debug output path.
 		{
-			if (notLast) result.Temp = args[++i];
+			if (notLast)
+			{
+				result.Temp = args[++i];
+				Log::SetRaiseMode(RaiseMode::CrashReport, &result.Temp.toWide());
+			}
 			else
 			{
 				Log::Error("Missing path for debug output file after -dbg!");

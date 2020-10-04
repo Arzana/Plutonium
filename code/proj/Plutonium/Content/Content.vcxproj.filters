@@ -155,5 +155,11 @@
     <PuModel Include="..\..\..\assets\models\book\Book.gltf">
       <Filter>Models</Filter>
     </PuModel>
+    <PuModel Include="..\..\..\assets\models\Barry\Barry.obj">
+      <Filter>Models</Filter>
+    </PuModel>
+    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj">
+      <Filter>Models</Filter>
+    </PuModel>
   </ItemGroup>
 </Project>

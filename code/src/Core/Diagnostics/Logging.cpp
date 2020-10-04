@@ -421,7 +421,7 @@ void Pu::Log::Raise(const char * msg, va_list args)
 		_CrtDbgBreak();
 		break;
 	case RaiseMode::CrashReport:
-		CreateCrashReport();
+		CreateCrashReport(msg);
 		exit(1);
 		break;
 	case RaiseMode::Custom:
@@ -431,7 +431,7 @@ void Pu::Log::Raise(const char * msg, va_list args)
 	}
 }
 
-void Pu::Log::CreateCrashReport(void)
+void Pu::Log::CreateCrashReport(const char * msg)
 {
 	/* We don't want the filewriter to log anything. */
 	suppressLogging = true;
@@ -443,6 +443,8 @@ void Pu::Log::CreateCrashReport(void)
 	FileWriter file(reportDir + L"CrashReport_" + string(buffer).toWide() + L".txt");
 
 	file.Write("Plutonium Crash Report\n");
+	file.Write(msg);
+	file.Write("\n");
 
 #ifdef _WIN32
 	/* Get the handle to the console. */
