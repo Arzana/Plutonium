@@ -229,6 +229,48 @@ int64 Pu::FileReader::GetSize(void) const
 	return size;
 }
 
+size_t Pu::FileReader::GetCharacterCount(char value)
+{
+	constexpr size_t BLOCK_SIZE = 4096;
+	constexpr size_t AVX_BLOCK_SIZE = BLOCK_SIZE / sizeof(int256);
+
+	/* Just early out if the file wasn't open. */
+	if (!open) return 0;
+	const int64 oldPos = GetPosition();
+	SeekInternal(SeekOrigin::Begin, 0);
+
+	/* Preset these values, loading into an AVX registry is slow. */
+#pragma warning (push)
+#pragma warning (disable:4309)
+	const int256 valueMask = _mm256_set1_epi8(value);
+	const int256 one = _mm256_set1_epi8(1);
+	const int256 andMask = _mm256_set1_epi8(0x80);
+#pragma warning (pop)
+
+	/* Force allignment with an AVX buffer, but also make a byte buffer for ease of use. */
+	int256 memory[AVX_BLOCK_SIZE];
+	char *bytes = reinterpret_cast<char*>(memory);
+
+	/* Read in block increments (these should be the size of a memory page). */
+	size_t result = 0;
+	size_t bytesRead;
+	while ((bytesRead = fread(bytes, sizeof(char), BLOCK_SIZE, hndlr) > 0))
+	{
+		/* Set any dangling values to zero, so they won't disturb the count. */
+		memset(bytes + bytesRead, 0, BLOCK_SIZE - bytesRead);
+		for (size_t i = 0; i < AVX_BLOCK_SIZE; i++)
+		{
+			/* Use SWAR to check 32 bytes at once. */
+			int256 data = _mm256_xor_si256(memory[i], valueMask);
+			data = _mm256_and_si256(_mm256_sub_epi8(data, one), _mm256_andnot_si256(data, andMask));
+			result += _mm_popcnt_u32(_mm256_movemask_epi8(data));
+		}
+	}
+
+	SeekInternal(SeekOrigin::Begin, oldPos);
+	return result;
+}
+
 void Pu::FileReader::SeekInternal(SeekOrigin from, int64 amount) const
 {
 	if (fseek(hndlr, static_cast<long>(amount), _CrtEnum2Int(from))) Log::Fatal("Unable to seek to position %zd in file '%ls' (%ls)!", amount, fpath.fileName().c_str(), FileError().c_str());

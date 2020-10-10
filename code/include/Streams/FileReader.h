@@ -64,13 +64,9 @@ namespace Pu
 		Returns the amount of bytes read.
 		*/
 		_Check_return_ virtual size_t Read(_Out_ byte *buffer, _In_ size_t offset, _In_ size_t amount) override;
-		/*
-		Reads untill the end of the current line.
-		*/
+		/* Reads untill the end of the current line. */
 		_Check_return_ string ReadLine(void);
-		/*
-		Reads the remainder of the content of the file.
-		*/
+		/* Reads the remainder of the content of the file. */
 		_Check_return_ string ReadToEnd(void);
 		/*
 		Reads the next byte from the file without increasing the read position.
@@ -82,18 +78,14 @@ namespace Pu
 		Returns the actual amount of bytes peeked.
 		*/
 		_Check_return_ virtual size_t Peek(_Out_ byte *buffer, _In_ size_t offset, _In_ size_t amount) override;
-		/*
-		Seeks the file, increasing it's read position by a sepcified amount.
-		*/
+		/* Seeks the file, increasing it's read position by a sepcified amount. */
 		virtual void Seek(_In_ SeekOrigin from, _In_ int64 amount) override;
-		/*
-		Gets the current read position of the stream.
-		*/
+		/* Gets the current read position of the stream. */
 		_Check_return_ int64 GetPosition(void) const;
-		/*
-		Gets the total size of the file.
-		*/
+		/* Gets the total size of the file. */
 		_Check_return_ int64 GetSize(void) const;
+		/* Counts the occurrence of the specified byte in the file. */
+		_Check_return_ size_t GetCharacterCount(_In_ char value);
 
 	private:
 		wstring fpath;

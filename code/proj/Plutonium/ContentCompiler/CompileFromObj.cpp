@@ -1024,34 +1024,15 @@ void LoadMaterialLibraryFromFile(const string &dir, const char *name, ObjLoaderR
 
 void ReserveVectors(FileReader &reader, ObjLoaderResult &result)
 {
-	size_t posCnt = 0, normCnt = 0, texCoordCnt = 0;
-
-	/* 
-	Read through the entire file to find out how many vertices, normals and texture coordinates are in this file.
-	This makes us read the entire file twice, but it's still faster than resizing big vectors.
+	/*
+	We grosly overestimate the amount of vertices, normals and texture coordinates in the file.
+	Vertices are defined as v, normals as vn and texture coordinates as vt.
+	the buffers can be up to 3x too large, but any further processing just slows us down, and we should have memory to share.
 	*/
-	while (reader.Peek() != EOF)
-	{
-		/* Skip empty lines. */
-		const string line = reader.ReadLine();
-		if (line.size() < 2) continue;
-
-		const char *ptr = line.c_str();
-		SkipUseless(ptr);
-
-		/* Increase the counters based in the indicator. */
-		posCnt += (ptr[0] == 'v' && IS_SPACE(ptr[1]));
-		normCnt += (ptr[0] == 'v' && ptr[1] == 'n' && IS_SPACE(ptr[2]));
-		texCoordCnt += (ptr[0] == 'v' && ptr[1] == 't' && IS_SPACE(ptr[2]));
-	}
-
-	/* Reserve the vectors to eliminate reallocations later. */
-	result.Vertices.reserve(posCnt);
-	result.Normals.reserve(normCnt);
-	result.TexCoords.reserve(texCoordCnt);
-
-	/* Move back to the start before we actually read the data. */
-	reader.Seek(SeekOrigin::Begin, 0);
+	const size_t estimate = reader.GetCharacterCount('v');
+	result.Vertices.reserve(estimate);
+	result.Normals.reserve(estimate);
+	result.TexCoords.reserve(estimate);
 }
 
 void LoadObjMtl(const string & path, ObjLoaderResult & result)
