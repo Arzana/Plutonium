@@ -28,6 +28,8 @@ namespace Pu
 		/* Locks this thread to a specific CPU core. */
 		void Lock(_In_ uint64 core);
 
+		/* Locks the calling thread to a specific CPU core. */
+		static void LockCalling(_In_ uint64 core);
 		/* Commands the caller thread to sleep for a specified amount of time. */
 		static void Sleep(_In_ uint64 milliseconds);
 		/* Gets the maximum amount of concurrent threads supported. */

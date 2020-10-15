@@ -4,10 +4,12 @@
 
 Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 {
+	const size_t maxUsefulThreads = PuThread::GetMaxConcurrent();
+
 	/* Log a warning if the thread count isn't helping anymore. */
-	if (threadCnt > std::thread::hardware_concurrency())
+	if (threadCnt > maxUsefulThreads)
 	{
-		Log::Warning("Attempting to create %zu worker threads, hardware only supports %u!", threadCnt, std::thread::hardware_concurrency());
+		Log::Warning("Attempting to create %zu worker threads, hardware only supports %u!", threadCnt, maxUsefulThreads);
 	}
 
 	threads.reserve(threadCnt);
@@ -23,6 +25,7 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 
 		/* Create worker thread. */
 		TickThread *worker = new TickThread(name, 0, reinterpret_cast<const void*>(i));
+		worker->Lock(min(i + 1, maxUsefulThreads));
 		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
 
 		/* Push threads to buffers. */

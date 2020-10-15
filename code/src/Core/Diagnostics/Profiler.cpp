@@ -28,16 +28,21 @@ void Pu::Profiler::Begin(const string & category)
 void Pu::Profiler::Begin(const string & category, Color color)
 {
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
+	const uint64 thread = _CrtGetCurrentThreadId();
+
 	lock.lock();
-	GetInstance().BeginInternal(category, color, _CrtGetCurrentThreadId());
+	GetInstance().BeginInternal(category, color, thread);
 	lock.unlock();
 }
 
 void Pu::Profiler::End(void)
 {
 	/* We need the thread ID to make sure we end the correct section. */
+	const uint64 thread = _CrtGetCurrentThreadId();
+	const uint64 processor = _CrtGetCurrentProcessorId();
+
 	lock.lock();
-	GetInstance().EndInternal(_CrtGetCurrentThreadId());
+	GetInstance().EndInternal(thread, processor);
 	lock.unlock();
 }
 
@@ -129,21 +134,16 @@ Pu::Profiler & Pu::Profiler::GetInstance(void)
 
 void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 thread)
 {
-	/* Check if the category already exists, if so just start a stopwatch. */
+	/* Get the index of the section. */
 	size_t i = 0;
-	for (const auto &[cat, clr, total] : cpuSections)
+	for (const Section &section : cpuSections)
 	{
-		if (cat == category)
-		{
-			//activeThreads.emplace(thread, std::make_pair(i, Stopwatch::StartNew()));
-			break;
-		}
-
+		if (section.Category == category) break;
 		++i;
 	}
 
 	/* The category was not found, so add it and start a new timer. */
-	if (i >= cpuSections.size()) cpuSections.emplace_back(std::make_tuple(category, color, 0));
+	if (i >= cpuSections.size())cpuSections.emplace_back(category, color);
 
 	/* We must add a new stack if the thread hasn't recorded any data yet. */
 	decltype(activeThreads)::iterator it = activeThreads.find(thread);
@@ -157,7 +157,7 @@ void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 th
 	it->second.push(std::make_pair(i, Stopwatch::StartNew()));
 }
 
-void Pu::Profiler::EndInternal(uint64 thread)
+void Pu::Profiler::EndInternal(uint64 thread, uint64 processor)
 {
 	decltype(activeThreads)::iterator it = activeThreads.find(thread);
 
@@ -177,23 +177,23 @@ void Pu::Profiler::EndInternal(uint64 thread)
 	it->second.pop();
 
 	/* Add the total time to the category list. */
-	std::get<2>(cpuSections[category]) += time;
+	cpuSections[category].Update(time, processor);
 }
 
 void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
 {
 	/* Search if the category already exists. */
-	for (auto &[cat, clr, total] : gpuSections)
+	for (Section &section : gpuSections)
 	{
-		if (cat == category)
+		if (section.Category == category)
 		{
-			total += time;
+			section.Time += time;
 			return;
 		}
 	}
 
 	/* Add the category with the specified time if it doesn't exist yet. */
-	gpuSections.emplace_back(std::make_tuple(category, color, time));
+	gpuSections.emplace_back(category, color, time);
 }
 
 void Pu::Profiler::EntryInternal(const string & serie, float value, Vector2 size)
@@ -224,9 +224,9 @@ void Pu::Profiler::VisualizeInternal(void)
 		if (ImGui::Begin("Profiler", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			/* Render the bar style timers. */
-			RenderSections(cpuSections, "CPU", true);
+			RenderSections(cpuSections, "CPU", true, std::thread::hardware_concurrency());
 			ImGui::Separator();
-			RenderSections(gpuSections, "GPU", false);
+			RenderSections(gpuSections, "GPU", false, 1);
 
 			/* Rendering/compute frame stats. */
 			ImGui::Separator();
@@ -374,7 +374,7 @@ void Pu::Profiler::ClearIfNeeded(void)
 	else ticks++;
 }
 
-void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * type, bool addDummy)
+void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * type, bool addDummy, uint32 laneCnt)
 {
 	if (sections.empty()) return;
 	ImGui::Text(type);
@@ -382,38 +382,43 @@ void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * 
 	ImDrawList *gfx = ImGui::GetWindowDrawList();
 	const ImVec2 start = ImGui::GetCursorScreenPos();
 
-	float x0 = start.x + offset;
-	const float maxStart = x0;
+	const float yAdder = height + spacing;
+	const float maxStart = start.x + offset;
+	vector<float> x0s;
 
-	for (const auto &[category, color, ms] : sections)
+	/* Create a bar for every CPU core. */
+	for (uint32 i = 0; i < laneCnt; i++)
+	{
+		x0s.emplace_back(maxStart);
+		DrawBar(gfx, start.y + yAdder * i, maxStart, target, Color(1.0f, 1.0f, 1.0f, 0.1f));
+	}
+
+	for (const Section &section : sections)
 	{
 		/* Render the text and bar. */
-		x0 = DrawBarAndText(gfx, start.y, x0, ms / ticks, color, category);
+		float &x0 = x0s[section.Processor];
+		x0 = DrawBarAndText(gfx, start.y + yAdder * section.Processor, x0, section.Time / ticks, section.Color, section.Category);
 	}
 
 	/* We need to add some empty space for the white bar if it's not the last bar. */
-	if (addDummy) ImGui::Dummy(ImVec2(0.0f, height));
-
-	/* Render the target framerate. */
-	const float y1 = start.y + (height + spacing) * !sections.empty();
-	DrawBar(gfx, y1, maxStart, target, Color::White());
+	if (addDummy) ImGui::Dummy(ImVec2(0.0f, height * laneCnt + spacing));
 }
 
 void Pu::Profiler::SaveSections(FileWriter & writer, const vector<Section>& sections)
 {
 	/* Calculate the amount of indentation needed to make the ms flush. */
 	size_t maxCategoryLength = 0;
-	for (const auto &[category, color, ms] : sections) maxCategoryLength = max(maxCategoryLength, category.length());
+	for (const Section &section : sections) maxCategoryLength = max(maxCategoryLength, section.Category.length());
 
-	for (const auto &[category, color, ms] : sections)
+	for (const Section &section : sections)
 	{
-		const size_t indentationNeeded = maxCategoryLength - category.length();
+		const size_t indentationNeeded = maxCategoryLength - section.Category.length();
 
 		writer.Write("|- '");
-		writer.Write(category);
+		writer.Write(section.Category);
 		writer.Write("': ");
 		writer.Write(string(indentationNeeded, ' '));
-		writer.Write(string::from(ms));
+		writer.Write(string::from(section.Time));
 		writer.Write(" ms\n");
 	}
 }

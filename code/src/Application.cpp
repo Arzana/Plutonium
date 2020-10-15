@@ -116,8 +116,12 @@ void Pu::Application::InitializePlutonium(void)
 	/* Seed random. */
 	srand(static_cast<uint32>(time(nullptr)));
 
-	/* Set the current threads name to the main thread. */
+	/* 
+	Set the current threads name to the main thread. 
+	Also lock the main thread to the guaranteed core.
+	*/
 	_CrtSetCurrentThreadName(L"PuMain");
+	PuThread::LockCalling(0);
 }
 
 void Pu::Application::InitializeVulkan(void)

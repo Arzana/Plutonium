@@ -70,6 +70,18 @@ void Pu::PuThread::Lock(uint64 core)
 #endif
 }
 
+void Pu::PuThread::LockCalling(uint64 core)
+{
+#ifdef _WIN32
+	if (!SetThreadAffinityMask(GetCurrentThread(), (1ull << core)))
+	{
+		Log::Error("Failed to lock thread to CPU core %zu (%ls)!", core, _CrtGetErrorString().c_str());
+	}
+#else
+	Log::Warning("Cannot lock thread to specific CPU core on this platform!");
+#endif
+}
+
 void Pu::PuThread::Sleep(uint64 milliseconds)
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));

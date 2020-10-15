@@ -10,6 +10,8 @@ namespace Pu
 	_Check_return_ wstring _CrtGetProcessNameFromId(_In_ uint64 id);
 	/* Gets the current thread ID. */
 	_Check_return_ uint64 _CrtGetCurrentThreadId(void);
+	/* Gets the current processor ID. */
+	_Check_return_ uint64 _CrtGetCurrentProcessorId(void);
 	/* Gets the description of the specified thread; if no description is set return the creators module name. */
 	_Check_return_ wstring _CrtGetThreadNameFromId(_In_ uint64 id);
 	/* Gets the description of the current thread; if no description is set return the creators module name. */

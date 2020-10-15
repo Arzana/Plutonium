@@ -13,8 +13,13 @@ namespace Pu
 	class TaskScheduler
 	{
 	public:
-		/* Initializes a new instance of a task scheduler with a specified amount of channels. */
-		TaskScheduler(_In_ size_t threadCnt = PuThread::GetMaxConcurrent() - 1);
+		/*
+		Initializes a new instance of a task scheduler with a specified amount of channels. 
+		Default is all the available threads minus two.
+		One thread is kept for the calling (main) thread and one is kept for OS workloads.
+		The threads will try to lock to a specific core starting at core 1.
+		*/
+		TaskScheduler(_In_ size_t threadCnt = PuThread::GetMaxConcurrent() - 2);
 		TaskScheduler(_In_ const TaskScheduler&) = delete;
 		TaskScheduler(_In_ TaskScheduler&&) = delete;
 		/* Releases the resources allocated by the scheduler. */

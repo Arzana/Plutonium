@@ -54,8 +54,31 @@ namespace Pu
 
 	private:
 		friend class Application;
+
+		struct Section
+		{
+			string Category;
+			Color Color;
+			int64 Time;
+			uint64 Processor;
+
+			Section(string category, Pu::Color clr)
+				:Category(category), Color(clr),
+				Time(0), Processor(0)
+			{}
+
+			Section(string category, Pu::Color clr, int64 time)
+				:Category(category), Color(clr),
+				Time(time), Processor(0)
+			{}
+
+			void Update(int64 time, uint64 processor)
+			{
+				Time += time;
+				Processor = processor;
+			}
+		};
 		
-		using Section = std::tuple<string, Color, int64>;
 		using Serie = std::pair<vector<float>, Vector2>;
 		using Timer = std::pair<size_t, Stopwatch>;
 
@@ -73,14 +96,14 @@ namespace Pu
 		Profiler(void);
 		static Profiler& GetInstance(void);
 		void BeginInternal(const string &category, Color color, uint64 thread);
-		void EndInternal(uint64 thread);
+		void EndInternal(uint64 thread, uint64 processor);
 		void AddInternal(const string &category, Color color, int64 time);
 		void EntryInternal(const string &serie, float value, Vector2 size);
 		void VisualizeInternal(void);
 		void SaveSeries(void) const;
 		void SaveInternal(const wstring &path, const string &extra);
 		void ClearIfNeeded(void);
-		void RenderSections(const vector<Section> &sections, const char *type, bool addDummy);
+		void RenderSections(const vector<Section> &sections, const char *type, bool addDummy, uint32 laneCnt);
 		void SaveSections(FileWriter &writer, const vector<Section> &sections);
 		float DrawBarAndText(ImDrawList *drawList, float y, float x0, int64 time, Color clr, const string &txt);
 		float DrawBar(ImDrawList *drawList, float y, float x0, int64 time, Color clr);

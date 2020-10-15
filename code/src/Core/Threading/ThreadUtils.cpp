@@ -70,6 +70,16 @@ uint64 Pu::_CrtGetCurrentThreadId(void)
 	return static_cast<uint64>(_threadid);
 }
 
+uint64 Pu::_CrtGetCurrentProcessorId(void)
+{
+#ifdef _WIN32
+	return GetCurrentProcessorNumber();
+#else
+	Log::Error("Cannot get processor ID on this platform!");
+	return 0;
+#endif
+}
+
 wstring Pu::_CrtGetThreadNameFromId(uint64 id)
 {
 #if defined(_WIN32)
