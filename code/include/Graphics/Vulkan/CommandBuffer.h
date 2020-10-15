@@ -82,6 +82,10 @@ namespace Pu
 		/* Gets whether the command buffer is in an initial state, optionally waits for the command buffer to be signaled. */
 		_Check_return_ bool CanBegin(_In_opt_ bool wait = false) const;
 
+		/* Appends a fill with fixed value command for the entire buffer to the command buffer. */
+		void FillEntireBuffer(_In_ Buffer &buffer, _In_ uint32 data);
+		/* Appends a fill with fixed value command to the command buffer. */
+		void FillBuffer(_In_ Buffer &buffer, _In_ DeviceSize offset, _In_ DeviceSize size, _In_ uint32 data);
 		/* Appends a copy command for the entire source buffer into the destination buffer to the command buffer. */
 		void CopyEntireBuffer(_In_ const Buffer &srcBuffer, _In_ Buffer &dstBuffer);
 		/* Appends a copy command for the entire source buffer into the destination image to the command buffer. */

@@ -131,6 +131,7 @@ namespace Pu
 	PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 	PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 	PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
+	PFN_vkCmdFillBuffer vkCmdFillBuffer;
 
 #ifdef _WIN32
 	PFN_vkCreateWin32SurfaceKHR vkCreateWin32SurfaceKHR;
@@ -251,6 +252,7 @@ void Pu::vkInit(InstanceHndl instance, const vector<const char*> enabledExtensio
 	LOAD_INSTANCE_PROC(vkCmdDrawIndexedIndirect);
 	LOAD_INSTANCE_PROC(vkResetDescriptorPool);
 	LOAD_INSTANCE_PROC(vkCmdDispatch);
+	LOAD_INSTANCE_PROC(vkCmdFillBuffer);
 
 	if (enabledExtensions.contains(u8"VK_EXT_debug_utils"))
 	{

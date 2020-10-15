@@ -140,6 +140,7 @@ namespace Pu
 	EXT_INSTANCE_PROC(vkGetPipelineExecutablePropertiesKHR);
 	EXT_INSTANCE_PROC(vkGetPipelineExecutableStatisticsKHR);
 	EXT_INSTANCE_PROC(vkCmdSetLineStippleEXT);
+	EXT_INSTANCE_PROC(vkCmdFillBuffer);
 
 #ifdef _WIN32
 	EXT_INSTANCE_PROC(vkCreateWin32SurfaceKHR);

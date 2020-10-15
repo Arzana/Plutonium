@@ -105,6 +105,17 @@ bool Pu::CommandBuffer::CanBegin(bool wait) const
 	return false;
 }
 
+void Pu::CommandBuffer::FillEntireBuffer(Buffer & buffer, uint32 data)
+{
+	FillBuffer(buffer, 0, WholeSize, data);
+}
+
+void Pu::CommandBuffer::FillBuffer(Buffer & buffer, DeviceSize offset, DeviceSize size, uint32 data)
+{
+	DbgCheckIfRecording("fill buffer");
+	device->vkCmdFillBuffer(hndl, buffer.bufferHndl, offset, size, data);
+}
+
 void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Buffer & destination)
 {
 	CopyBuffer(source, destination, BufferCopy{ 0, 0, source.GetSize() });
@@ -117,7 +128,7 @@ void Pu::CommandBuffer::CopyEntireBuffer(const Buffer & source, Image & destinat
 
 void Pu::CommandBuffer::CopyEntireImage(const Image & source, Buffer & destination)
 {
-	DbgCheckIfRecording("copt image to buffer");
+	DbgCheckIfRecording("copy image to buffer");
 	++transferCalls;
 
 	const BufferImageCopy region(source.GetExtent());

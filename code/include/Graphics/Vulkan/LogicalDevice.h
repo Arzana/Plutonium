@@ -159,6 +159,7 @@ namespace Pu
 		PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
 		PFN_vkCmdDispatch vkCmdDispatch;
 		PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
+		PFN_vkCmdFillBuffer vkCmdFillBuffer;
 		PFN_vkCreateRenderPass vkCreateRenderPass;
 		PFN_vkDestroyRenderPass vkDestroyRenderPass;
 		PFN_vkCreateShaderModule vkCreateShaderModule;

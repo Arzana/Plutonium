@@ -195,6 +195,7 @@ void Pu::LogicalDevice::LoadDeviceProcs(void)
 	LOAD_DEVICE_PROC(vkCmdDrawIndirect);
 	LOAD_DEVICE_PROC(vkCmdDrawIndexedIndirect);
 	LOAD_DEVICE_PROC(vkCmdDispatch);
+	LOAD_DEVICE_PROC(vkCmdFillBuffer);
 
 	if (IsExtensionEnabled(u8"VK_EXT_line_rasterization"))
 	{
