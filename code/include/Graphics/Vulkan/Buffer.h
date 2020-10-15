@@ -48,14 +48,10 @@ namespace Pu
 			return size;
 		}
 
-		/* Sets a debuggable name for the buffer (only does something on debug mode). */
+		/* Sets a debuggable name for the buffer. */
 		inline void SetDebugName(_In_ const string &name) const
 		{
-#ifdef _DEBUG
 			parent->SetDebugName(ObjectType::Buffer, bufferHndl, name);
-#else
-			(void)name;
-#endif
 		}
 
 		/* Gets the amount of lazily-allocated bytes that are committed for the buffer. */

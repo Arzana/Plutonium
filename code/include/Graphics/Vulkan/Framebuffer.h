@@ -32,6 +32,12 @@ namespace Pu
 			return area;
 		}
 
+		/* Sets a debuggable name for this framebuffer. */
+		inline void SetDebugName(_In_ const string &name) const
+		{
+			parent->SetDebugName(ObjectType::Framebuffer, hndl, name);
+		}
+
 	private:
 		friend class CommandBuffer;
 		friend class Renderpass;

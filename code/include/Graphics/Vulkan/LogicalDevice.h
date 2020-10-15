@@ -218,8 +218,9 @@ namespace Pu
 
 		LogicalDevice(PhysicalDevice &parent, DeviceHndl hndl, const DeviceCreateInfo &createInfo);
 
-#ifdef _DEBUG
 		void SetDebugName(ObjectType type, const void *handle, const string &name);
+
+#ifdef _DEBUG
 		void BeginQueueLabel(QueueHndl queue, const DebugUtilsLabel &label);
 		void EndQueueLabel(QueueHndl queue);
 		void BeginCommandBufferLabel(CommandBufferHndl commandBuffer, const DebugUtilsLabel &label);

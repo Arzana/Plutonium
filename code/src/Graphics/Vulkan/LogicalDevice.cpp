@@ -68,7 +68,6 @@ Pu::LogicalDevice::LogicalDevice(PhysicalDevice & parent, DeviceHndl hndl, const
 	}
 }
 
-#ifdef _DEBUG
 void Pu::LogicalDevice::SetDebugName(ObjectType type, const void * handle, const string & name)
 {
 	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))
@@ -78,6 +77,7 @@ void Pu::LogicalDevice::SetDebugName(ObjectType type, const void * handle, const
 	}
 }
 
+#ifdef _DEBUG
 void Pu::LogicalDevice::BeginQueueLabel(QueueHndl queue, const DebugUtilsLabel & label)
 {
 	if (parent->parent->IsExtensionEnabled(u8"VK_EXT_debug_utils"))

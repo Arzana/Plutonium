@@ -112,14 +112,10 @@ namespace Pu
 			access = newAccess;
 		}
 
-		/* Sets a debuggable name for the image (only does something on debug mode). */
+		/* Sets a debuggable name for the image. */
 		inline void SetDebugName(_In_ const string &name) const
 		{
-#ifdef _DEBUG
 			parent->SetDebugName(ObjectType::Image, imageHndl, name);
-#else
-			(void)name;
-#endif
 		}
 
 	protected:

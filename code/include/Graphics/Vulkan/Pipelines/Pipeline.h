@@ -53,14 +53,11 @@ namespace Pu
 			return Hndl;
 		}
 
-		/* Sets a debuggable name for the pipeline (only does something on debug mode). */
+		/* Sets a debuggable name for the pipeline. */
 		inline void SetDebugName(_In_ const string &name) const
 		{
-#ifdef _DEBUG
 			Device->SetDebugName(ObjectType::Pipeline, Hndl, name);
-#else
-			(void)name;
-#endif
+			Device->SetDebugName(ObjectType::PipelineLayout, LayoutHndl, name + " (Layout)");
 		}
 
 	protected:
