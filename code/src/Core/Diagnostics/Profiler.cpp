@@ -29,9 +29,10 @@ void Pu::Profiler::Begin(const string & category, Color color)
 {
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
 	const uint64 thread = _CrtGetCurrentThreadId();
+	const uint64 processor = _CrtGetCurrentProcessorId();
 
 	lock.lock();
-	GetInstance().BeginInternal(category, color, thread);
+	GetInstance().BeginInternal(category, color, thread, processor);
 	lock.unlock();
 }
 
@@ -46,11 +47,20 @@ void Pu::Profiler::End(void)
 	lock.unlock();
 }
 
-void Pu::Profiler::Add(const string & category, Color color, int64 time)
+void Pu::Profiler::Add(ProfilerChain & chain, CommandBuffer & cmdBuffer, bool reset)
 {
 	lock.lock();
-	GetInstance().AddInternal(category, color, time);
+	Profiler &profiler = GetInstance();
+
+	uint32 i = 0;
+	for (const auto &[category, clr] : chain.chainInfo)
+	{
+		profiler.AddInternal(category, clr, static_cast<int64>(chain.GetTimeDelta(i++) * 0.001f), cmdBuffer.lastSubmitQueueFamilyID);
+	}
+
 	lock.unlock();
+
+	if (reset) chain.Reset(cmdBuffer);
 }
 
 void Pu::Profiler::Entry(const string & serie, float value, Vector2 size)
@@ -132,18 +142,22 @@ Pu::Profiler & Pu::Profiler::GetInstance(void)
 	return instance;
 }
 
-void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 thread)
+void Pu::Profiler::BeginInternal(const string & category, Color color, uint64 thread, uint64 processor)
 {
 	/* Get the index of the section. */
 	size_t i = 0;
-	for (const Section &section : cpuSections)
+	for (Section &section : cpuSections)
 	{
-		if (section.Category == category) break;
+		if (section.Category == category && section.Processor == processor)
+		{
+			++section.StackCount;
+			break;
+		}
 		++i;
 	}
 
 	/* The category was not found, so add it and start a new timer. */
-	if (i >= cpuSections.size())cpuSections.emplace_back(category, color);
+	if (i >= cpuSections.size()) cpuSections.emplace_back(category, color, processor);
 
 	/* We must add a new stack if the thread hasn't recorded any data yet. */
 	decltype(activeThreads)::iterator it = activeThreads.find(thread);
@@ -180,20 +194,20 @@ void Pu::Profiler::EndInternal(uint64 thread, uint64 processor)
 	cpuSections[category].Update(time, processor);
 }
 
-void Pu::Profiler::AddInternal(const string & category, Color color, int64 time)
+void Pu::Profiler::AddInternal(const string & category, Color color, int64 time, uint64 queue)
 {
 	/* Search if the category already exists. */
 	for (Section &section : gpuSections)
 	{
-		if (section.Category == category)
+		if (section.Category == category && section.Processor == queue)
 		{
-			section.Time += time;
+			section.Update(time, queue);
 			return;
 		}
 	}
 
 	/* Add the category with the specified time if it doesn't exist yet. */
-	gpuSections.emplace_back(category, color, time);
+	gpuSections.emplace_back(category, color, queue).Update(time, queue);
 }
 
 void Pu::Profiler::EntryInternal(const string & serie, float value, Vector2 size)
@@ -226,7 +240,7 @@ void Pu::Profiler::VisualizeInternal(void)
 			/* Render the bar style timers. */
 			RenderSections(cpuSections, "CPU", true, std::thread::hardware_concurrency());
 			ImGui::Separator();
-			RenderSections(gpuSections, "GPU", false, 1);
+			RenderSections(gpuSections, "GPU", false, vkInstance->GetTotalQueueFamilyCount());
 
 			/* Rendering/compute frame stats. */
 			ImGui::Separator();
@@ -367,8 +381,10 @@ void Pu::Profiler::ClearIfNeeded(void)
 		timer.Restart();
 		ticks = 1;
 
+		/* Just clear the times for the CPU sections. */
+		for (Section &section : cpuSections) section.Time = 0;
+
 		/* Always clear all of the sections, to make sure that we don't overload after the window is minimized. */
-		cpuSections.clear();
 		gpuSections.clear();
 	}
 	else ticks++;
@@ -393,11 +409,23 @@ void Pu::Profiler::RenderSections(const vector<Section>& sections, const char * 
 		DrawBar(gfx, start.y + yAdder * i, maxStart, target, Color(1.0f, 1.0f, 1.0f, 0.1f));
 	}
 
+	std::map<string, std::pair<int64, Color>> text;
 	for (const Section &section : sections)
 	{
-		/* Render the text and bar. */
-		float &x0 = x0s[section.Processor];
-		x0 = DrawBarAndText(gfx, start.y + yAdder * section.Processor, x0, section.Time / ticks, section.Color, section.Category);
+		if (section.Time)
+		{
+			float &x0 = x0s[section.Processor];
+			x0 = DrawBar(gfx, start.y + yAdder * section.Processor, x0, section.Time / ticks, section.Color);
+
+			std::pair<int64, Color> &cur = text[section.Category];
+			cur.first += section.Time / ticks;
+			cur.second = section.Color;
+		}
+	}
+
+	for (const auto &[category, info] : text)
+	{
+		ImGui::TextColored(info.second.ToVector4(), "%s - %uus", category.c_str(), info.first);
 	}
 
 	/* We need to add some empty space for the white bar if it's not the last bar. */
@@ -412,6 +440,7 @@ void Pu::Profiler::SaveSections(FileWriter & writer, const vector<Section>& sect
 
 	for (const Section &section : sections)
 	{
+		if (!section.Time) continue;
 		const size_t indentationNeeded = maxCategoryLength - section.Category.length();
 
 		writer.Write("|- '");
@@ -421,12 +450,6 @@ void Pu::Profiler::SaveSections(FileWriter & writer, const vector<Section>& sect
 		writer.Write(string::from(section.Time));
 		writer.Write(" ms\n");
 	}
-}
-
-float Pu::Profiler::DrawBarAndText(ImDrawList * drawList, float y, float x0, int64 time, Color clr, const string & txt)
-{
-	ImGui::TextColored(clr.ToVector4(), "%s - %uus", txt.c_str(), time);
-	return DrawBar(drawList, y, x0, time, clr);
 }
 
 float Pu::Profiler::DrawBar(ImDrawList * drawList, float y, float x0, int64 time, Color clr)

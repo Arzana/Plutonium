@@ -10,6 +10,7 @@ namespace Pu
 {
 	class Framebuffer;
 	class QueryChain;
+	class ProfilerChain;
 	class TextureInput2D;
 
 	/* Defines a deferred renderer that renders models in PBR to an HDR output. */
@@ -150,7 +151,7 @@ namespace Pu
 		PolygonMode polygonMode;
 		bool markNeeded;
 
-		QueryChain *timer;
+		ProfilerChain *timer;
 #ifdef _DEBUG
 		QueryChain *stats;
 #endif

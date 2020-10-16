@@ -4,6 +4,7 @@
 #include "Graphics/Lighting/DeferredRenderer.h"
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Stopwatch.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Streams/FileReader.h"
 
 Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
@@ -734,23 +735,21 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 	{
 	public:
 		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlags dstStage, AccessFlags access, const wstring &name)
-			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name)
+			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name), timer(parent.GetDevice(), "Staging", Color::Gray())
 		{}
 
 		Result Execute(void) final
 		{
-#ifdef _DEBUG
-			timer.Start();
-#endif
-
 			/* We can use the faster GPU DMA engine (transfer queue) if this resource is just transfer related. */
 			Queue &queue = dstStage == PipelineStageFlags::Transfer ? parent.transferQueue : parent.graphicsQueue;
 			cmdBuffer.Initialize(parent.GetDevice(), queue.GetFamilyIndex());
 
 			/* We need to copy the entire staging buffer to the destination buffer and move the destination buffer to the correct access. */
 			cmdBuffer.Begin();
+			timer.RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::Transfer);
 			cmdBuffer.CopyEntireBuffer(*source, destination);
 			cmdBuffer.MemoryBarrier(destination, PipelineStageFlags::Transfer, dstStage, access);
+			timer.RecordTimestamp(cmdBuffer, 0, PipelineStageFlags::Transfer);
 			cmdBuffer.End();
 
 			queue.Submit(cmdBuffer);
@@ -762,11 +761,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 			delete source;
 			destination.MarkAsLoaded(false, std::move(name));
 
-#ifdef _DEBUG
-			timer.End();
-			if constexpr (LogVulkanVerboseMessages) Log::Verbose("Finished Host to GPU copy for '%ls', took %dms", destination.GetName().c_str(), timer.Milliseconds());
-#endif
-
+			Profiler::Add(timer, cmdBuffer, false);
 			return Result::AutoDelete();
 		}
 
@@ -784,10 +779,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 		PipelineStageFlags dstStage;
 		AccessFlags access;
 		wstring name;
-
-#ifdef _DEBUG
-		Stopwatch timer;
-#endif
+		ProfilerChain timer;
 	};
 
 	StageTask *task = new StageTask(*this, source, destination, dstStage, access, name);

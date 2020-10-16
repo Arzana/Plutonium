@@ -267,7 +267,9 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 {
 	/* Create the Vulkan instance. */
 	instance = new VulkanInstance("Plutonium Content Compiler", false);
-	if (!instance->GetPhysicalDeviceCount())
+	const size_t physicalDeviceCnt = instance->GetPhysicalDevices().size();
+
+	if (!physicalDeviceCnt)
 	{
 		Log::Error("Cannot compile textures without a Vulkan compatible physical device!");
 		return false;
@@ -278,7 +280,7 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	for (const PhysicalDevice &physicalDevice : instance->GetPhysicalDevices())
 	{
 		/* Choose either the first discrete GPU or the last Vulkan device available. */
-		if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu || i + 1 == instance->GetPhysicalDeviceCount())
+		if (physicalDevice.GetType() == PhysicalDeviceType::DiscreteGpu || i + 1 == physicalDeviceCnt)
 		{
 			/* Get the graphics and transfer queue families that we'll be using. */
 			const uint32 graphicsQueueFamily = physicalDevice.GetBestGraphicsQueueFamily();

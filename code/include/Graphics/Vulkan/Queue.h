@@ -51,5 +51,7 @@ namespace Pu
 		std::mutex lock;
 
 		Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex);
+
+		void SubmitInternal(CommandBuffer &commandBuffer, SemaphoreHndl wait, SemaphoreHndl signal);
 	};
 }

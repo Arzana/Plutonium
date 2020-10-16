@@ -34,12 +34,6 @@ namespace Pu
 		/* Gets the human readable version of the pipeline statistic at the specified index. */
 		_Check_return_ const char* GetStatisticName(_In_ uint32 idx) const;
 
-		/* Gets the time between two timestamps in milliseconds (used for the profiler). */
-		_Check_return_ inline int64 GetProfilerTimeDelta(_In_ uint32 chain) const
-		{
-			return static_cast<int64>(GetTimeDelta(chain) * 0.001f);
-		}
-
 	private:
 		struct Chain
 		{

@@ -34,39 +34,12 @@ void Pu::Queue::WaitIdle(void) const
 
 void Pu::Queue::Submit(CommandBuffer & commandBuffer)
 {
-	const PipelineStageFlags mask = PipelineStageFlags::Transfer;
-	SubmitInfo info;
-	info.WaitDstStageMask = &mask;
-	info.CommandBufferCount = 1;
-	info.CommandBuffers = &commandBuffer.hndl;
-
-	/* Submit command buffer. */
-	lock.lock();
-	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
-	lock.unlock();
-
-	commandBuffer.state = CommandBuffer::State::Pending;
+	SubmitInternal(commandBuffer, nullptr, nullptr);
 }
 
 void Pu::Queue::Submit(const Semaphore & waitSemaphore, CommandBuffer & commandBuffer, const Semaphore & signalSemaphore)
 {
-	/* Create submit information. */
-	const PipelineStageFlags mask = PipelineStageFlags::Transfer;
-	SubmitInfo info;
-	info.WaitSemaphoreCount = 1;
-	info.WaitSemaphores = &waitSemaphore.hndl;
-	info.WaitDstStageMask = &mask;
-	info.CommandBufferCount = 1;
-	info.CommandBuffers = &commandBuffer.hndl;
-	info.SignalSemaphoreCount = 1;
-	info.SignalSemaphores = &signalSemaphore.hndl;
-
-	/* Submit command buffer. */
-	lock.lock();
-	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
-	lock.unlock();
-
-	commandBuffer.state = CommandBuffer::State::Pending;
+	SubmitInternal(commandBuffer, waitSemaphore.hndl, signalSemaphore.hndl);
 }
 
 bool Pu::Queue::Present(const Semaphore & waitSemaphore, const Swapchain & swapchain, uint32 image)
@@ -115,3 +88,25 @@ void Pu::Queue::EndLabel(void)
 Pu::Queue::Queue(LogicalDevice &device, QueueHndl hndl, uint32 familyIndex)
 	: parent(&device), hndl(hndl), index(familyIndex)
 {}
+
+void Pu::Queue::SubmitInternal(CommandBuffer & commandBuffer, SemaphoreHndl wait, SemaphoreHndl signal)
+{
+	/* Create submit information. */
+	const PipelineStageFlags mask = PipelineStageFlags::Transfer;
+	SubmitInfo info;
+	info.WaitSemaphoreCount = wait != nullptr;
+	info.WaitSemaphores = &wait;
+	info.WaitDstStageMask = &mask;
+	info.CommandBufferCount = 1;
+	info.CommandBuffers = &commandBuffer.hndl;
+	info.SignalSemaphoreCount = signal != nullptr;
+	info.SignalSemaphores = &signal;
+
+	/* Submit command buffer. */
+	lock.lock();
+	VK_VALIDATE(parent->vkQueueSubmit(hndl, 1, &info, commandBuffer.submitFence->hndl), PFN_vkQueueSubmit);
+	lock.unlock();
+
+	commandBuffer.state = CommandBuffer::State::Pending;
+	commandBuffer.lastSubmitQueueFamilyID = index;
+}

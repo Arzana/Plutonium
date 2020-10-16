@@ -175,12 +175,15 @@ namespace Pu
 		friend class CommandPool;
 		friend class Queue;
 		friend class GameWindow;
+		friend class Profiler;
 
 		CommandPool *parent;
 		LogicalDevice *device;
-		Fence *submitFence;
 		CommandBufferHndl hndl;
+
+		Fence *submitFence;
 		mutable State state;
+		mutable uint32 lastSubmitQueueFamilyID;
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 

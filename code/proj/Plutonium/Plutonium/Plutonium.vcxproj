@@ -113,6 +113,7 @@
     <ClInclude Include="..\..\..\include\Core\Math\Vector3_SIMD.h" />
     <ClInclude Include="..\..\..\include\Core\Math\Vector4_SIMD.h" />
     <ClInclude Include="..\..\..\include\Core\Time.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Diagnostics\ProfilerChain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\PointLightPool.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\PointLight.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\ComputePipeline.h" />
@@ -339,6 +340,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\AABB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\OBB.cpp" />
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Diagnostics\ProfilerChain.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\PointLightPool.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\ComputePipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\ShaderProgram.cpp" />

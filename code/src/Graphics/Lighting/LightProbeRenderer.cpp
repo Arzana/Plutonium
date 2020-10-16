@@ -13,7 +13,7 @@ Pu::LightProbeRenderer::LightProbeRenderer(AssetFetcher & loader, uint32 maxProb
 	renderpass->PostCreate.Add(*this, &LightProbeRenderer::InitializePipeline);
 	if (renderpass->IsLoaded()) InitializePipeline(*renderpass);
 
-	timer = new QueryChain(loader.GetDevice(), QueryType::Timestamp, 2);
+	timer = new ProfilerChain(loader.GetDevice(), "Light Probe Update", Color::Blue());
 }
 
 Pu::LightProbeRenderer::LightProbeRenderer(LightProbeRenderer && value)
@@ -52,8 +52,7 @@ void Pu::LightProbeRenderer::Initialize(CommandBuffer & cmdBuffer)
 {
 	/* We need to initialize the transforms pool at least once. */
 	pool->Update(cmdBuffer, PipelineStageFlags::GeometryShader);
-	Profiler::Add("Light Probe Update", Color::Blue(), timer->GetProfilerTimeDelta(0));
-	timer->Reset(cmdBuffer);
+	Profiler::Add(*timer, cmdBuffer, true);
 }
 
 void Pu::LightProbeRenderer::Start(LightProbe & probe, CommandBuffer & cmdBuffer) const

@@ -206,6 +206,20 @@ bool Pu::VulkanInstance::AreLayersSupported(std::initializer_list<const char*> l
 	return found >= layers.size();
 }
 
+uint32 Pu::VulkanInstance::GetTotalQueueFamilyCount(void) const
+{
+	uint32 result = 0;
+
+	for (const PhysicalDevice &device : physicalDevices)
+	{
+		uint32 cnt;
+		vkGetPhysicalDeviceQueueFamilyProperties(device.hndl, &cnt, nullptr);
+		result += cnt;
+	}
+
+	return result;
+}
+
 void Pu::VulkanInstance::QueryPhysicalDevices(void)
 {
 	/* Query the amount of physical devices available. */

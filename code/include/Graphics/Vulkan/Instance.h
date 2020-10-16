@@ -41,17 +41,13 @@ namespace Pu
 		_Check_return_ static bool AreExtensionsSupported(_In_ std::initializer_list<const char*> extensions);
 		/* Checks whether specific layers are supported. */
 		_Check_return_ static bool AreLayersSupported(_In_ std::initializer_list<const char*> layers);
+		/* Gets the total amount of queue families across all physical devices. */
+		_Check_return_ uint32 GetTotalQueueFamilyCount(void) const;
 
 		/* Checks whether a specific extension is enabled. */
 		_Check_return_ inline bool IsExtensionEnabled(_In_ const char *extension) const
 		{
 			return enabledExtensions.contains(extension);
-		}
-
-		/* Gets the amount of physical devices visible to this Vulkan instance. */
-		_Check_return_ inline size_t GetPhysicalDeviceCount(void) const
-		{
-			return physicalDevices.size();
 		}
 
 		/* Gets all the physical devices visible to this Vulkan instance. */

@@ -1,6 +1,6 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
+#include "Graphics/Diagnostics/ProfilerChain.h"
 #include "Graphics/Resources/DynamicBuffer.h"
-#include "Graphics/Diagnostics/QueryChain.h"
 #include "Core/Diagnostics/Profiler.h"
 
 using namespace Pu;
@@ -165,7 +165,8 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 	buffer = new DynamicBuffer(window.GetDevice(), sizeof(VertexLayout) * HOST_BUFFER_COUNT, BufferUsageFlags::TransferDst | BufferUsageFlags::VertexBuffer);
 	buffer->BeginMemoryTransfer();
 
-	query = new QueryChain(window.GetDevice(), QueryType::Timestamp, 1);
+	query = new ProfilerChain(window.GetDevice(), "Debug Renderer", Color::Orange());
+
 	renderpass = &loader.FetchRenderpass(nullptr, { { L"{Shaders}VertexColor.vert.spv", L"{Shaders}VertexColor.frag.spv" } });
 	renderpass->PreCreate.Add(*this, &DebugRenderer::InitializeRenderpass);
 	renderpass->PostCreate.Add(*this, &DebugRenderer::InitializePipeline);
@@ -401,9 +402,8 @@ void Pu::DebugRenderer::Render(CommandBuffer & cmdBuffer, const Camera & camera,
 		{
 			if (!(cntLine | cntArrow | cntBox | cntEllipsoid | cntHemisphere)) return;
 
-			Profiler::Add("Debug Renderer", Color::Orange(), query->GetProfilerTimeDelta(0));
+			Profiler::Add(*query, cmdBuffer, true);
 			cmdBuffer.AddLabel("Debug Renderer", Color::CodGray());
-			query->Reset(cmdBuffer);
 
 			/* Update the dynamic buffer. */
 			buffer->Flush(WholeSize, 0);

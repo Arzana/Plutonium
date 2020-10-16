@@ -5,7 +5,7 @@
 
 namespace Pu
 {
-	class QueryChain;
+	class ProfilerChain;
 
 	/* Defines an object used to render geometry to a light probe. */
 	class LightProbeRenderer
@@ -60,7 +60,7 @@ namespace Pu
 
 		AssetFetcher *loader;
 		uint32 maxSets;
-		QueryChain *timer;
+		ProfilerChain *timer;
 
 		Renderpass *renderpass;
 		GraphicsPipeline *gfx;

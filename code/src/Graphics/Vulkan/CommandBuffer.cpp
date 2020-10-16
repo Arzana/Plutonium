@@ -483,7 +483,8 @@ void Pu::CommandBuffer::SetLineStipple(uint32 factor, uint16 pattern)
 }
 
 Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
-	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), Usage(CommandBufferUsageFlags::None)
+	: parent(&pool), device(pool.parent), hndl(hndl), state(State::Initial), 
+	Usage(CommandBufferUsageFlags::None), lastSubmitQueueFamilyID(0)
 {
 	submitFence = new Fence(*device);
 }

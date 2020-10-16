@@ -2,7 +2,7 @@
 #include "Graphics/VertexLayouts/Advanced3D.h"
 #include "Graphics/VertexLayouts/PointLight.h"
 #include "Graphics/Textures/TextureInput2D.h"
-#include "Graphics/Diagnostics/QueryChain.h"
+#include "Graphics/Diagnostics/ProfilerChain.h"
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
@@ -156,7 +156,13 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
 	CreateSizeDependentResources();
 
-	timer = new QueryChain(wnd.GetDevice(), QueryType::Timestamp, 5);
+	timer = new ProfilerChain(wnd.GetDevice(), 5);
+	timer->SetChainInfo(TerrainTimer, "Rendering (Environment)", Color::Gray());
+	timer->SetChainInfo(GeometryTimer, "Rendering (Geometry)", Color::Red());
+	timer->SetChainInfo(SkyboxTimer, "Rendering (Environment)", Color::Gray());
+	timer->SetChainInfo(LightingTimer, "Rendering (Lighting)", Color::Yellow());
+	timer->SetChainInfo(PostTimer, "Rendering (Post-Processing)", Color::Green());
+
 #ifdef _DEBUG
 	stats = new QueryChain(wnd.GetDevice(), statFlags);
 #endif
@@ -232,12 +238,7 @@ void Pu::DeferredRenderer::UpdateConfigurableProperties(void)
 void Pu::DeferredRenderer::InitializeResources(CommandBuffer & cmdBuffer, const Camera & camera)
 {
 	/* Update the profiler and reset the queries. */
-	Profiler::Add("Rendering (Environment)", Color::Gray(), timer->GetProfilerTimeDelta(TerrainTimer) + timer->GetProfilerTimeDelta(SkyboxTimer));
-	Profiler::Add("Rendering (Geometry)", Color::Red(), timer->GetProfilerTimeDelta(GeometryTimer));
-	Profiler::Add("Rendering (Lighting)", Color::Yellow(), timer->GetProfilerTimeDelta(LightingTimer));
-	Profiler::Add("Rendering (Post-Processing)", Color::Green(), timer->GetProfilerTimeDelta(PostTimer));
-
-	timer->Reset(cmdBuffer);
+	Profiler::Add(*timer, cmdBuffer, true);
 #ifdef _DEBUG
 	stats->Reset(cmdBuffer);
 #endif
