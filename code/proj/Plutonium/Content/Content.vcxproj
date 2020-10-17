@@ -62,17 +62,8 @@
       <RecalcTangentsPum>-t</RecalcTangentsPum>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
-  </ItemGroup>
-  <ItemGroup>
-    <PuModel Include="..\..\..\assets\models\Barry\Barry.obj">
-      <FileType>Document</FileType>
-    </PuModel>
-  </ItemGroup>
-  <ItemGroup>
-    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj">
-      <FileType>Document</FileType>
-      <RecalcTangentsPum Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-rt</RecalcTangentsPum>
-    </PuModel>
+    <PuModel Include="..\..\..\assets\models\Barry\Barry.obj" />
+    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

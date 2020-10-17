@@ -421,7 +421,7 @@ void Pu::Log::Raise(const char * msg, va_list args)
 		_CrtDbgBreak();
 		break;
 	case RaiseMode::CrashReport:
-		CreateCrashReport(msg);
+		CreateCrashReport(string::vnprintf(msg, args));
 		exit(1);
 		break;
 	case RaiseMode::Custom:
@@ -431,7 +431,7 @@ void Pu::Log::Raise(const char * msg, va_list args)
 	}
 }
 
-void Pu::Log::CreateCrashReport(const char * msg)
+void Pu::Log::CreateCrashReport(const string & msg)
 {
 	/* We don't want the filewriter to log anything. */
 	suppressLogging = true;

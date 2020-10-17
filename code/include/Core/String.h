@@ -293,6 +293,29 @@ namespace Pu
 			return len != string_t::npos ? string_t::substr(0, len) : basic_string<char_t>();
 		}
 
+		/* Creates a quick formatted string. */
+		_Check_return_ static basic_string<char> printf(const char *format, ...)
+		{
+			va_list args;
+			va_start(args, format);
+
+			const size_type size = static_cast<size_type>(vsnprintf(nullptr, 0, format, args) + 1);
+			basic_string<char> result{ size };
+			vsnprintf(result.data(), size, format, args);
+
+			va_end(args);
+			return result;
+		}
+
+		/* Creates a quick formatted string. */
+		_Check_return_ static basic_string<char> vnprintf(const char *format, va_list args)
+		{
+			const size_t size = static_cast<size_t>(vsnprintf(nullptr, 0, format, args) + 1);
+			basic_string<char> result(size);
+			vsnprintf(result.data(), size, format, args);
+			return result;
+		}
+
 		/* Adds the formatted string to this string. */
 		void format(const char *format, ...)
 		{

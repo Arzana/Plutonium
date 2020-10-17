@@ -117,7 +117,7 @@ bool ParseOnOff(const char *&line, bool def = true)
 {
 	/* Get begin and final read point. */
 	SkipUseless(line);
-	const char *end = line + strcspn(line, " \t\r");
+	const char *end = line + strcspn(line, " \t");
 
 	/* Parse value. */
 	bool result = def;
@@ -169,7 +169,7 @@ int ParseInt(const char *&line)
 {
 	/* get begin and final read point. */
 	SkipUseless(line);
-	const char *end = line + strcspn(line, " \t\r");
+	const char *end = line + strcspn(line, " \t");
 
 	/* Parse value. */
 	int result = atoi(line);
@@ -183,7 +183,7 @@ float ParseFloat(const char *&line, float def = 0.0f)
 {
 	/* Get begin and final read point. */
 	SkipUseless(line);
-	const char *end = line + strcspn(line, " \t\r");
+	const char *end = line + strcspn(line, " \t");
 
 	/* Parse value. */
 	float result = std::strtof(line, nullptr);
@@ -247,7 +247,7 @@ bool TryParseTriple(const char *&line, size_t vSize, size_t vnSize, size_t vtSiz
 {
 	/* Parse vertex index and move read position. */
 	if (!TryFixIndex(atoi(line), vSize, result.Vertex)) return false;
-	line += strcspn(line, "/ \t\r");
+	line += strcspn(line, "/ \t");
 
 	/* Check if end is reached. */
 	if (line[0] != '/') return true;
@@ -258,13 +258,13 @@ bool TryParseTriple(const char *&line, size_t vSize, size_t vnSize, size_t vtSiz
 		/* Parse normal index and move read position. */
 		++line;
 		if (!TryFixIndex(atoi(line), vnSize, result.Normal)) return false;
-		line += strcspn(line, "/ \t\r");
+		line += strcspn(line, "/ \t");
 		return true;
 	}
 
 	/* Parse texture coordinate index and move read position. */
 	if (!TryFixIndex(atoi(line), vtSize, result.TexCoord)) return false;
-	line += strcspn(line, "/ \t\r");
+	line += strcspn(line, "/ \t");
 
 	/* Check if end is reached. */
 	if (line[0] != '/') return true;
@@ -272,7 +272,7 @@ bool TryParseTriple(const char *&line, size_t vSize, size_t vnSize, size_t vtSiz
 
 	/* Parse normal index and move read position. */
 	if (!TryFixIndex(atoi(line), vnSize, result.Normal)) return false;
-	line += strcspn(line, "/ \t\r");
+	line += strcspn(line, "/ \t");
 
 	return true;
 }
@@ -363,7 +363,7 @@ inline void HandleFaceLine(const char *line, ObjLoaderResult &result, ObjLoaderM
 
 		/* Add face to mesh. */
 		face.emplace_back(vi);
-		line += strspn(line, " \t\r");
+		line += strspn(line, " \t");
 	}
 
 	/* Check if it's an invalid face. */
@@ -1003,6 +1003,7 @@ void LoadMaterialLibraryFromFile(const string &dir, const char *name, ObjLoaderR
 	/* Create reader to the file. */
 	string path = dir;
 	path += name;
+
 	FileReader reader(path.toWide());
 
 	/* Define current material. */
@@ -1055,15 +1056,41 @@ void LoadObjMtl(const string & path, ObjLoaderResult & result)
 
 	/* Read untill the end of the file. */
 	Profiler::Begin("Load and parse OBJ");
-	while (reader.Peek() != EOF)
-	{
-		const string line = reader.ReadLine();
+	constexpr size_t BLOCK_SIZE = 4096;
+	uint64 mem[BLOCK_SIZE / 4];
+	char *buffer = reinterpret_cast<char*>(mem);
+	size_t bytesRead, bytesCarried = 0;
 
-		/* Only handle line if it's not an empty line. */
-		if (!line.empty())
+	/* Read in block of memory page size, this drastically increases reading speeds. */
+	while ((bytesRead = reader.Read(reinterpret_cast<byte*>(buffer), bytesCarried, BLOCK_SIZE)) > 0)
+	{
+		const size_t chunkLength = bytesCarried + bytesRead;
+		size_t lineStart = 0;
+
+		/* Scan for line breaks, 8 bytes at a time. */
+		for (size_t i = 0; i < chunkLength; i += 8)
 		{
-			HandleObjLine(line.c_str(), dir, result, shape, smoothingGroup, loadedMaterialLibraries);
+			/* Check if there is a line break somewhere in the 8 bytes. */
+			const uint64 data = *reinterpret_cast<uint64_t*>(buffer + i) ^ 0x0a0a0a0a0a0a0a0aLL;
+			if ((data - 0x0101010101010101LL) & ~data & 0x8080808080808080LL)
+			{
+				/* We don't need this loop if we would know the endianness. */
+				for (; i < chunkLength; ++i)
+				{
+					if (buffer[i] == '\n')
+					{
+						/* The process line function relies on a valid end to the line, so replace the newline with a null-terminator. */
+						buffer[i - (i > 0 && buffer[i - 1] == '\r')] = '\0';
+						HandleObjLine(buffer + lineStart, dir, result, shape, smoothingGroup, loadedMaterialLibraries);
+						lineStart = i + 1;
+					}
+				}
+			}
 		}
+
+		/* Copy any trailing data tot the start of the next chunk. */
+		bytesCarried = chunkLength - lineStart;
+		memcpy(buffer, buffer + lineStart, bytesCarried);
 	}
 
 	Profiler::End();
