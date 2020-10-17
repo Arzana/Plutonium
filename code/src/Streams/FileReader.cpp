@@ -254,7 +254,7 @@ size_t Pu::FileReader::GetCharacterCount(char value)
 	/* Read in block increments (these should be the size of a memory page). */
 	size_t result = 0;
 	size_t bytesRead;
-	while ((bytesRead = fread(bytes, sizeof(char), BLOCK_SIZE, hndlr) > 0))
+	while ((bytesRead = fread(bytes, sizeof(char), BLOCK_SIZE, hndlr)) > 0)
 	{
 		/* Set any dangling values to zero, so they won't disturb the count. */
 		memset(bytes + bytesRead, 0, BLOCK_SIZE - bytesRead);
