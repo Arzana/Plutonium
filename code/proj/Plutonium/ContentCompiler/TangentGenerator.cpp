@@ -4,6 +4,7 @@
 #include <mikktspace/mikktspace.h>
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Core/Diagnostics/Profiler.h>
+#include <Core/Threading/PuThread.h>
 
 using namespace Pu;
 

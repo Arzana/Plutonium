@@ -1,6 +1,6 @@
 #include "Streams/RuntimeConfig.h"
 #include "Core/Diagnostics/Logging.h"
-#include "Core/Threading/ThreadUtils.h"
+#include "Core/Threading/PuThread.h"
 
 #ifdef _WIN32
 #include "Core/Platform/Windows/RegistryHandler.h"
@@ -33,7 +33,7 @@ static void pu_config_init()
 	if (initialized) return;
 	initialized = true;
 
-	const Pu::wstring &process = Pu::_CrtGetProcessNameFromId(Pu::_CrtGetCurrentProcessId());
+	const Pu::wstring &process = Pu::PuThread::GetProcessName();
 
 #ifdef _WIN32
 	pu_reg_init_win32(process);

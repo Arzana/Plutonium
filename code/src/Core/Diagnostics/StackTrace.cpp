@@ -5,7 +5,6 @@
 
 #include "Core/Diagnostics/StackTrace.h"
 #include "Core/Diagnostics/DbgUtils.h"
-#include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Logging.h"
 
 using namespace Pu;

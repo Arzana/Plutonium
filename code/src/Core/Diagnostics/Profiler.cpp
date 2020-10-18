@@ -1,8 +1,8 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 
 #include "Core/Diagnostics/Profiler.h"
+#include "Core/Threading/PuThread.h"
 #include "Graphics/Vulkan/CommandBuffer.h"
-#include "Core/Threading/ThreadUtils.h"
 #include "Graphics/Vulkan/Instance.h"
 #include "Core/Diagnostics/Memory.h"
 #include "Core/Diagnostics/CPU.h"
@@ -28,8 +28,8 @@ void Pu::Profiler::Begin(const string & category)
 void Pu::Profiler::Begin(const string & category, Color color)
 {
 	/* We need the thread ID to make sure we can end the correct section afterwards. */
-	const uint64 thread = _CrtGetCurrentThreadId();
-	const uint64 processor = _CrtGetCurrentProcessorId();
+	const uint64 thread = _threadid;
+	const uint64 processor = PuThread::GetProcessorID();
 
 	lock.lock();
 	GetInstance().BeginInternal(category, color, thread, processor);
@@ -39,8 +39,8 @@ void Pu::Profiler::Begin(const string & category, Color color)
 void Pu::Profiler::End(void)
 {
 	/* We need the thread ID to make sure we end the correct section. */
-	const uint64 thread = _CrtGetCurrentThreadId();
-	const uint64 processor = _CrtGetCurrentProcessorId();
+	const uint64 thread = _threadid;
+	const uint64 processor = PuThread::GetProcessorID();
 
 	lock.lock();
 	GetInstance().EndInternal(thread, processor);

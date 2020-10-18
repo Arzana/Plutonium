@@ -264,9 +264,6 @@
     <ClInclude Include="..\..\..\include\Core\Diagnostics\Logging.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Threading\ThreadUtils.h">
-      <Filter>Header Files\Core\Threading</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Diagnostics\StackTrace.h">
       <Filter>Header Files\Core\Diagnostics</Filter>
     </ClInclude>
@@ -289,9 +286,6 @@
       <Filter>Header Files\Core\Events</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\Threading\PuThread.h">
-      <Filter>Header Files\Core\Threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\Core\Threading\TickThread.h">
       <Filter>Header Files\Core\Threading</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\Core\EnumUtils.h">
@@ -959,9 +953,6 @@
     <ClCompile Include="..\..\..\src\Core\Math\Quaternion.cpp">
       <Filter>Source Files\Core\Math</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Threading\ThreadUtils.cpp">
-      <Filter>Source Files\Core\Threading</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Diagnostics\DbgUtils.cpp">
       <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
@@ -975,9 +966,6 @@
       <Filter>Source Files\Core\Diagnostics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Core\Threading\PuThread.cpp">
-      <Filter>Source Files\Core\Threading</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\Core\Threading\TickThread.cpp">
       <Filter>Source Files\Core\Threading</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Streams\FileReader.cpp">

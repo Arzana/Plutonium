@@ -1,5 +1,4 @@
 #include "Core/Diagnostics/CPU.h"
-#include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Config.h"
@@ -78,6 +77,16 @@ const char * Pu::CPU::GetName(void)
 	}
 
 	return name.c_str();
+}
+
+bool Pu::CPU::SupportsSSE2(void)
+{
+	/* SSE 2 support is in the 26th-bit of the feature bits ECX (CPUID 1). */
+	constexpr int32 sse2_mask = cpuid_mask(26);
+
+	cpuid_registers registers;
+	__cpuid(registers.param, CPUID_OPCODE_PROCESSOR_INFO);
+	return registers.ECX & sse2_mask;
 }
 
 bool Pu::CPU::SupportsAVX(void)

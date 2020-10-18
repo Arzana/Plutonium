@@ -1,10 +1,12 @@
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "Core/Threading/TickThread.h"
 #include "Core/Diagnostics/Logging.h"
+#include "Core/Threading/PuThread.h"
+#include "Config.h"
 
 Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
+	: stop(false)
 {
-	const size_t maxUsefulThreads = PuThread::GetMaxConcurrent();
+	const size_t maxUsefulThreads = std::thread::hardware_concurrency();
 
 	/* Log a warning if the thread count isn't helping anymore. */
 	if (threadCnt > maxUsefulThreads)
@@ -19,39 +21,15 @@ Pu::TaskScheduler::TaskScheduler(size_t threadCnt)
 	/* Create the amount of threads specified. */
 	for (size_t i = 0; i < threadCnt; i++)
 	{
-		/* Set constant name. */
-		wstring name(L"PuWrkr");
-		name += std::to_wstring(i);
-
-		/* Create worker thread. */
-		TickThread *worker = new TickThread(name, 0, reinterpret_cast<const void*>(i));
-		worker->Lock(min(i + 1, maxUsefulThreads));
-		worker->Tick.Add(*this, &TaskScheduler::ThreadTick);
-
-		/* Push threads to buffers. */
-		threads.emplace_back(worker);
+		threads.emplace_back(std::thread{ TaskScheduler::ThreadMain, this, i });
 	}
 }
 
 Pu::TaskScheduler::~TaskScheduler(void)
 {
-	/* Create buffer so we can wait for all threads to stop in parallel instead of in sequence. */
-	vector<PuThread*> waitList;
-	waitList.reserve(threads.size());
-
-	/* Signal stop command to threads and append them to a wait list. */
-	for (TickThread *cur : threads)
-	{
-		cur->Stop();
-		waitList.emplace_back(cur);
-	}
-
-	/* Wait for all threads to stop excecution. */
-	PuThread::WaitAll(waitList);
-
-	/* Release memory allocated by the threads. */
-	for (TickThread *cur : threads) delete cur;
-	threads.clear();
+	/* Signal the workers to stop and wait for them. */
+	stop.store(true);
+	PuThread::WaitAll(threads);
 }
 
 void Pu::TaskScheduler::Spawn(Task & task)
@@ -66,6 +44,33 @@ void Pu::TaskScheduler::Force(Task & task)
 	/* Set the scheduler and push the task to the front of the lowest queue */
 	task.scheduler = this;
 	tasks[ChooseThread()].push_front(&task);
+}
+
+void Pu::TaskScheduler::ThreadMain(TaskScheduler * scheduler, size_t idx)
+{	
+	PuThread::SetName(L"PuWrkr" + wstring::from(idx));
+	if (idx < std::thread::hardware_concurrency()) PuThread::Lock(idx + 1);
+
+	while (!scheduler->stop.load())
+	{
+		/* Check if any waiting tasks can continue. */
+		if (scheduler->ThreadTryWait(idx)) continue;
+
+		/*
+		No tasks are waiting or no waiting task is done yet,
+		so try to run a new task from our queue.
+		*/
+		if (scheduler->ThreadTryRun(idx)) continue;
+
+		/*
+		We have no more tasks to execute,
+		so try to steal a task from another queue.
+		*/
+		if (scheduler->ThreadTrySteal(idx)) continue;
+
+		/* All queues are empty so just sleep the thread to minimize CPU usage. */
+		PuThread::Pause();
+	}
 }
 
 size_t Pu::TaskScheduler::ChooseThread(void) const
@@ -94,30 +99,6 @@ size_t Pu::TaskScheduler::ChooseThread(void) const
 #endif
 
 	return static_cast<size_t>(lowestIdx);
-}
-
-void Pu::TaskScheduler::ThreadTick(TickThread &, UserEventArgs args)
-{
-	/* Get the index of the queue's associated with this thread. */
-	const size_t idx = reinterpret_cast<size_t>(args.UserParam);
-
-	/* Check if any waiting tasks can continue. */
-	if (ThreadTryWait(idx)) return;
-
-	/*
-	No tasks are waiting or no waiting task is done yet,
-	so try to run a new task from our queue.
-	*/
-	if (ThreadTryRun(idx)) return;
-
-	/*
-	We have no more tasks to execute,
-	so try to steal a task from another queue.
-	*/
-	if (ThreadTrySteal(idx)) return;
-
-	/* All queues are empty so just sleep the thread to minimize CPU usage. */
-	PuThread::Sleep(100);
 }
 
 bool Pu::TaskScheduler::ThreadTryWait(size_t idx)

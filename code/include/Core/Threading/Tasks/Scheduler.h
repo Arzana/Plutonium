@@ -1,14 +1,11 @@
 #pragma once
 #include <map>
+#include <thread>
 #include "Core/Collections/sdeque.h"
 #include "Core/Threading/Tasks/Task.h"
-#include "Core/Threading/PuThread.h"
-#include "Core/Events/UserEventArgs.h"
 
 namespace Pu
 {
-	class TickThread;
-
 	/* Defines an object that can share the load of tasks over a specified number of threads. */
 	class TaskScheduler
 	{
@@ -19,7 +16,7 @@ namespace Pu
 		One thread is kept for the calling (main) thread and one is kept for OS workloads.
 		The threads will try to lock to a specific core starting at core 1.
 		*/
-		TaskScheduler(_In_ size_t threadCnt = PuThread::GetMaxConcurrent() - 2);
+		TaskScheduler(_In_ size_t threadCnt = std::thread::hardware_concurrency() - 2);
 		TaskScheduler(_In_ const TaskScheduler&) = delete;
 		TaskScheduler(_In_ TaskScheduler&&) = delete;
 		/* Releases the resources allocated by the scheduler. */
@@ -34,12 +31,14 @@ namespace Pu
 		void Force(_In_ Task &task);
 
 	private: 
-		vector<TickThread*> threads;
+		vector<std::thread> threads;
 		vector<sdeque<Task*>> tasks;
 		vector<std::map<Task*, Task::Result>> waits;
+		std::atomic_bool stop;
+
+		static void ThreadMain(TaskScheduler *scheduler, size_t idx);
 
 		size_t ChooseThread(void) const;
-		void ThreadTick(TickThread&, UserEventArgs args);
 		bool ThreadTryWait(size_t idx);
 		bool ThreadTryRun(size_t idx);
 		bool ThreadTrySteal(size_t idx);

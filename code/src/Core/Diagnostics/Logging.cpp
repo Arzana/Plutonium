@@ -6,9 +6,9 @@
 #endif
 
 #include "Core/Diagnostics/Logging.h"
-#include "Core/Threading/ThreadUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/StackTrace.h"
+#include "Core/Threading/PuThread.h"
 #include "Streams/FileWriter.h"
 #include "Core/EnumUtils.h"
 #include "Config.h"
@@ -318,9 +318,11 @@ void Pu::Log::LogExcFtr(uint32 framesToSkip)
 			/* Stop stacktrace log after either a thread start has been found or main has been found. */
 			if constexpr (!LoggerExternalsVisible)
 			{
-				if (cur.FunctionName == L"Pu::_CrtPuThreadStart") suppressLog = true;
-				if (cur.FunctionName == L"main") suppressLog = true;
-				if (suppressLog) printf("		[External Code]\n");
+				if (cur.FunctionName == L"main")
+				{
+					suppressLog = true;
+					printf("		[External Code]\n");
+				}
 			}
 		}
 	}
@@ -483,7 +485,7 @@ void Pu::Log::CreateCrashReport(const string & msg)
 
 	/* Append the loaded modules to the crash report. */
 	file.Write("\n\nLoaded Modules:\n");
-	for (const wstring &cur : _CrtGetLoadedModules(_CrtGetCurrentProcessId()))
+	for (const wstring &cur : _CrtGetLoadedModules(PuThread::GetProcessID()))
 	{
 		file.Write(cur.toUTF8() + '\n');
 	}
@@ -585,12 +587,12 @@ void Pu::Log::LogLinePrefix(LogType type)
 		suppressLogging = true;
 
 		/* Get process id. */
-		const uint64 pid = _CrtGetCurrentProcessId();
-		if (processNames.find(pid) == processNames.end()) processNames.emplace(pid, _CrtGetProcessNameFromId(pid));
+		const uint64 pid = PuThread::GetProcessID();
+		if (processNames.find(pid) == processNames.end()) processNames.emplace(pid, PuThread::GetProcessName(pid));
 
 		/* Get thread id. */
-		const uint64 tid = _CrtGetCurrentThreadId();
-		if (threadNames.find(tid) == threadNames.end()) threadNames.emplace(tid, _CrtGetThreadNameFromId(tid));
+		const uint64 tid = _threadid;
+		if (threadNames.find(tid) == threadNames.end()) threadNames.emplace(tid, PuThread::GetThreadName(tid));
 		suppressLogging = false;
 
 		printf("[%ls/%ls]", processNames[pid].c_str(), threadNames[tid].c_str());

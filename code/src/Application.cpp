@@ -1,11 +1,11 @@
 #include "Application.h"
-#include "Core/Threading/ThreadUtils.h"
-#include "Graphics/Vulkan/Instance.h"
-#include "Core/EnumUtils.h"
 #include "Core/Diagnostics/DbgUtils.h"
-#include "Core/Diagnostics/Memory.h"
 #include "Core/Diagnostics/Profiler.h"
+#include "Graphics/Vulkan/Instance.h"
+#include "Core/Diagnostics/Memory.h"
+#include "Core/Threading/PuThread.h"
 #include "Streams/RuntimeConfig.h"
+#include "Core/EnumUtils.h"
 #include <imgui/include/imgui.h>
 
 #ifdef _WIN32
@@ -120,8 +120,8 @@ void Pu::Application::InitializePlutonium(void)
 	Set the current threads name to the main thread. 
 	Also lock the main thread to the guaranteed core.
 	*/
-	_CrtSetCurrentThreadName(L"PuMain");
-	PuThread::LockCalling(0);
+	PuThread::SetName(L"PuMain");
+	PuThread::Lock(0);
 }
 
 void Pu::Application::InitializeVulkan(void)

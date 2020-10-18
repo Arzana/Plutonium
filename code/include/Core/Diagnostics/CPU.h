@@ -18,6 +18,8 @@ namespace Pu
 
 		/* Gets the name of the currently used logical processor. */
 		_Check_return_ static const char* GetName(void);
+		/* Gets whether SSE2 instructions are supported. */
+		_Check_return_ static bool SupportsSSE2(void);
 		/* Gets whether AVX instructions are supported. */
 		_Check_return_ static bool SupportsAVX(void);
 		/* Gets whether hyper-threading is supported. */

@@ -7,6 +7,7 @@
 #include <Graphics/Vulkan/Framebuffer.h>
 #include <Graphics/Vulkan/CommandPool.h>
 #include <Core/Diagnostics/Profiler.h>
+#include <Core/Threading/PuThread.h>
 
 using namespace Pu;
 
@@ -526,7 +527,7 @@ void WaitForLoads()
 			if (texture && !texture->IsUsable())
 			{
 				loading = true;
-				PuThread::Sleep(10);
+				PuThread::Pause();
 			}
 		}
 	} while (loading);
@@ -536,7 +537,7 @@ void WaitForSaves()
 {
 	while (imageSaveCnt.load() < outputs.size())
 	{
-		PuThread::Sleep(10);
+		PuThread::Pause();
 	}
 }
 
