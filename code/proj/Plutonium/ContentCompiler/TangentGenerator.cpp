@@ -5,6 +5,7 @@
 #include <Core/Diagnostics/Stopwatch.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <Core/Threading/PuThread.h>
+#include <Core/Threading/Tasks/Scheduler.h>
 
 using namespace Pu;
 
@@ -290,7 +291,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 			/* Just spwan a tasks that will generate the tangents (and maybe indices) for us. */
 			GenerateTask *task = new GenerateTask(data, mesh, interfaces, writeLock, tasksRunning, writer);
 			tasks.emplace_back(task);
-			args.Scheduluer->Spawn(*task);
+			TaskScheduler::Spawn(*task);
 
 			/* Add the maximum required amount of bytes to the output buffer. */
 			const size_t elementSize = mesh.IndexMode != 2 ? mesh.GetIndexCount() : mesh.GetVrtxCount();
@@ -305,7 +306,7 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	writeLock.unlock();
 
 	/* Wait for all of the tasks to complete. */
-	while (tasksRunning.load()) PuThread::Sleep(100);
+	while (tasksRunning.load()) TaskScheduler::Help();
 
 	/* Override the old data. */
 	writeLock.lock();

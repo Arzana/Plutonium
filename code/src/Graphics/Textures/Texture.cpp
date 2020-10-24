@@ -61,7 +61,7 @@ Pu::Texture::LoadTask::~LoadTask(void)
 Pu::Task::Result Pu::Texture::LoadTask::Execute(void)
 {
 	/* Start loading the image. */
-	scheduler->Spawn(*child);
+	TaskScheduler::Spawn(*child);
 	return Result::Default();
 }
 

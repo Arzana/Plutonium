@@ -1,5 +1,6 @@
 #include "Procedural/Terrain/TerrainChunk.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Profiler.h"
@@ -217,7 +218,7 @@ void Pu::TerrainChunk::Initialize(const wstring & mask, DescriptorPool & pool, c
 
 	/* The task will self delete so we can use spawn it and stop caring about it. */
 	ChunkCreator *task = new ChunkCreator(this, pool, layout, noise, offset);
-	fetcher->GetScheduler().Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 Pu::Asset & Pu::TerrainChunk::Duplicate(AssetCache&)

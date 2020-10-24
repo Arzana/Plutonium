@@ -16,7 +16,7 @@ namespace Pu
 		bool IsFixedTimeStep;
 
 		/* Initializes a new instance of an application object. */
-		Application(_In_ const wstring &name, _In_opt_ size_t threadCount = std::thread::hardware_concurrency() - 2);
+		Application(_In_ const wstring &name);
 		Application(_In_ const Application&) = delete;
 		Application(_In_ Application&&) = delete;
 		/* Releases the resources allocated by the application. */
@@ -74,12 +74,6 @@ namespace Pu
 		_Check_return_ inline InputDeviceHandler& GetInput(void)
 		{
 			return *input;
-		}
-
-		/* Gets the task scheduler. */
-		_Check_return_ inline TaskScheduler& GetScheduler(void)
-		{
-			return *scheduler;
 		}
 
 	protected:
@@ -141,7 +135,6 @@ namespace Pu
 		LogicalDevice *device;
 		NativeWindow *wnd;
 		GameWindow *gameWnd;
-		TaskScheduler *scheduler;
 		AssetFetcher *content;
 		AssetSaver *saver;
 		InputDeviceHandler *input;

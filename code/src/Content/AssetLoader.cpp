@@ -2,13 +2,14 @@
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
 #include "Graphics/Lighting/LightProbeRenderer.h"
 #include "Graphics/Lighting/DeferredRenderer.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Stopwatch.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Streams/FileReader.h"
 
-Pu::AssetLoader::AssetLoader(TaskScheduler & scheduler, LogicalDevice & device, AssetCache & cache)
-	: cache(cache), scheduler(scheduler), device(device),
+Pu::AssetLoader::AssetLoader(LogicalDevice & device, AssetCache & cache)
+	: cache(cache), device(device),
 	transferQueue(device.GetTransferQueue(0)), graphicsQueue(device.GetGraphicsQueue(0))
 {}
 
@@ -54,7 +55,7 @@ void Pu::AssetLoader::PopulateRenderpass(Renderpass & renderpass, const vector<v
 
 	/* The load task is deleted by the scheduler as the continue has an auto delete set. */
 	Renderpass::LoadTask *task = new Renderpass::LoadTask(renderpass, toLoad);
-	scheduler.Force(*task);
+	TaskScheduler::Force(*task);
 }
 
 void Pu::AssetLoader::PopulateComputepass(ShaderProgram & program, const wstring & shader)
@@ -86,7 +87,7 @@ void Pu::AssetLoader::PopulateComputepass(ShaderProgram & program, const wstring
 			result.shaders.emplace_back(shader);
 			child = new Shader::LoadTask(*shader, path);
 			child->SetParent(*this);
-			scheduler->Spawn(*child);
+			TaskScheduler::Spawn(*child);
 
 			return Result::CustomWait();
 		}
@@ -109,7 +110,7 @@ void Pu::AssetLoader::PopulateComputepass(ShaderProgram & program, const wstring
 
 	/* The load task is deleted by the scheduler as the continue has an auto delete set. */
 	LoadTask *task = new LoadTask(device, cache, program, shader);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path, const ImageInformation & info)
@@ -128,7 +129,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 		Result Execute(void) final
 		{
 			/* Just execute the texture load task. */
-			scheduler->Spawn(*child);
+			TaskScheduler::Spawn(*child);
 			return Result::Default();
 		}
 
@@ -181,7 +182,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, info, path);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>& paths, const ImageInformation & info, const wstring &name)
@@ -204,7 +205,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 		Result Execute(void) final
 		{
 			/* Load all the underlying textures. */
-			for (Texture::LoadTask *child : children) scheduler->Spawn(*child);
+			for (Texture::LoadTask *child : children) TaskScheduler::Spawn(*child);
 			return Result::Default();
 		}
 
@@ -268,7 +269,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, info, paths, name);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, size_t size, wstring && id)
@@ -337,7 +338,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 
 	/* Simply create the task and spawn it. */
 	StageTask *task = new StageTask(*this, texture, data, size, std::move(id));
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
@@ -417,7 +418,7 @@ void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
 
 	/* Simply create the task and spawn it. */
 	FinalizeTask *task = new FinalizeTask(*this, texture, std::move(id));
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & continuation)
@@ -498,7 +499,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 
 	/* Simply create the task and spawn it. */
 	LoadTask *task = new LoadTask(*this, font, path, continuation);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
@@ -578,7 +579,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 	};
 
 	LoadTask *task = new LoadTask(*this, model, path, deferred, probes);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const DeferredRenderer & deferred, const LightProbeRenderer * probes)
@@ -725,7 +726,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 	};
 
 	CreateTask *task = new CreateTask(*this, model, shape, deferred, probes);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, PipelineStageFlags dstStage, AccessFlags access, const wstring & name)
@@ -783,5 +784,5 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 	};
 
 	StageTask *task = new StageTask(*this, source, destination, dstStage, access, name);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }

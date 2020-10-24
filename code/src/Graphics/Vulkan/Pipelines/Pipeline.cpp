@@ -75,11 +75,11 @@ const Pu::vector<Pu::PipelineExecutableProperties>& Pu::Pipeline::GetExecutableP
 #ifdef _DEBUG
 	if (!Hndl) Log::Fatal("Pipeline executable properties can only be queried after the pipeline is finalized!");
 	InitExeProps();
+	return exeProperties;
 #else
 	Log::Fatal("Pipeline debugging is only available on debug mode!");
+	return vector<PipelineExecutableProperties>();
 #endif
-
-	return exeProperties;
 }
 
 const Pu::vector<Pu::PipelineExecutableStatistic>& Pu::Pipeline::GetExecutableStatistics(uint32 executableIndex) const
@@ -107,8 +107,9 @@ const Pu::vector<Pu::PipelineExecutableStatistic>& Pu::Pipeline::GetExecutableSt
 	Device->vkGetPipelineExecutableStatisticsKHR(Device->hndl, &info, &statCount, result.data());
 	return stats.emplace(executableIndex, std::move(result)).first->second;
 #else
+	(void)executableIndex;
 	Log::Fatal("Pipeline debugging is only available on debug mode!");
-	return stats.at(executableIndex);
+	return vector<PipelineExecutableStatistic>();
 #endif
 }
 
@@ -137,8 +138,9 @@ const Pu::vector<Pu::PipelineExecutableInternalRepresentation> & Pu::Pipeline::G
 	Device->vkGetPipelineExecutableInternalRepresentationsKHR(Device->hndl, &info, &internalsCount, result.data());
 	return internals.emplace(executableIndex, std::move(result)).first->second;
 #else
+	(void)executableIndex;
 	Log::Fatal("Pipeline debugging is only available on debug mode!");
-	return internals.at(executableIndex);
+	return vector<PipelineExecutableInternalRepresentation>();
 #endif
 }
 
@@ -242,6 +244,7 @@ void Pu::Pipeline::Destroy(void)
 #endif
 }
 
+#ifdef _DEBUG
 void Pu::Pipeline::InitExeProps(void) const
 {
 	/* We cache the properties, so use that cache if available. */
@@ -258,6 +261,7 @@ void Pu::Pipeline::InitExeProps(void) const
 		Device->vkGetPipelineExecutablePropertiesKHR(Device->hndl, &info, &propertiesCount, exeProperties.data());
 	}
 }
+#endif
 
 void Pu::Pipeline::CreatePipelineLayout(const ShaderProgram & program)
 {

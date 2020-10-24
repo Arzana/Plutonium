@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/Events/EventBus.h"
 #include "Graphics/Vulkan/Image.h"
-#include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Textures/ImageSaveFormats.h"
 
 namespace Pu
@@ -16,7 +15,7 @@ namespace Pu
 		EventBus<const AssetSaver, const Image&> OnAssetSaved;
 
 		/* Initializes a new instance of an asset saver. */
-		AssetSaver(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device);
+		AssetSaver(_In_ LogicalDevice &device);
 		AssetSaver(_In_ const AssetSaver&) = delete;
 		AssetSaver(_In_ AssetSaver&&) = delete;
 
@@ -33,7 +32,6 @@ namespace Pu
 		friend class Font;
 #endif
 
-		TaskScheduler &scheduler;
 		LogicalDevice &device;
 		Queue &graphicsQueue;
 

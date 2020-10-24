@@ -2,6 +2,7 @@
 #include "Streams/FileWriter.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBIW_WINDOWS_UTF8
@@ -15,8 +16,8 @@
 
 #include <stb/stb/stb_image_write.h>
 
-Pu::AssetSaver::AssetSaver(TaskScheduler & scheduler, LogicalDevice & device)
-	: scheduler(scheduler), device(device), OnAssetSaved("OnAssetSaved"),
+Pu::AssetSaver::AssetSaver(LogicalDevice & device)
+	: device(device), OnAssetSaved("OnAssetSaved"),
 	graphicsQueue(device.GetGraphicsQueue(0))
 {}
 
@@ -96,7 +97,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 
 	/* Create the save task. */
 	SaveTask *task = new SaveTask(*this, image, path, format);
-	scheduler.Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 void Pu::AssetSaver::SaveImage(const void * data, uint32 width, uint32 height, Format format, const wstring & path, ImageSaveFormats saveFormat)

@@ -12,7 +12,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of an asset fetcher. */
-		AssetFetcher(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device);
+		AssetFetcher(_In_ LogicalDevice &device);
 		AssetFetcher(_In_ const AssetFetcher&) = delete;
 		AssetFetcher(_In_ AssetFetcher&&) = delete;
 		/* Releases the resources allocated by the asset fetcher. */
@@ -68,12 +68,6 @@ namespace Pu
 		_Check_return_ inline LogicalDevice& GetDevice(void)
 		{
 			return loader->GetDevice();
-		}
-
-		/* Gets the task scheduler that this asset fetcher uses. */
-		_Check_return_ inline TaskScheduler& GetScheduler(void)
-		{
-			return loader->GetScheduler();
 		}
 
 		/* Gets the underlying asset loader. */

@@ -7,24 +7,7 @@
     </AvailableItemName>
   </ItemGroup>
 
-  <Target Name="CompilePlutoniumModels" Condition="'@(PuModel)' != '' And '$(Configuration)' != 'DEBUG'" BeforeTargets="FinalizeBuildStatus">
-    <MakeDir Directories="$(OutDir)Models;$(IntDir)$(ProjectName).tlog"/>
-    
-    <ItemGroup>
-      <PuModel>
-        <Outputs>$(OutDir)Models\%(Filename).pum</Outputs>
-        <Command>call "$(SolutionDir)..\..\bin_$(PlatformTarget)_$(Configuration)_ContentCompiler\ContentCompiler" -dn "%(PuModel.DisplayNamePum)" -at "%(PuModel.AdditionalTexturesPum)" %(PuModel.CreateTangentsPum) %(PuModel.RecalcTangentsPum) -o "$(OutDir)Models\%(Filename).pum" "%(FullPath)"</Command>
-      </PuModel>
-    </ItemGroup>
-
-    <CustomBuild
-      Sources="@(PuModel)"
-      MinimalRebuildFromTracking="True"
-      TrackerLogDirectory="$(IntDir)$(ProjectName).tlog\"
-      ErrorListRegex="\[(?'CATEGORY'Error|Warning|Info|Debug)\]\[((?'FILENAME'.+))\]: (?'TEXT'.*)"/>
-  </Target>
-
-  <Target Name="CompilePlutoniumModels" Condition="'@(PuModel)' != '' And '$(Configuration)' == 'DEBUG'" BeforeTargets="FinalizeBuildStatus">
+  <Target Name="CompilePlutoniumModels" Condition="'@(PuModel)' != ''" BeforeTargets="FinalizeBuildStatus">
     <MakeDir Directories="$(OutDir)Models;$(IntDir)$(ProjectName).tlog"/>
 
     <ItemGroup>

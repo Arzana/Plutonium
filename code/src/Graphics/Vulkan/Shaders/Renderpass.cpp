@@ -364,7 +364,7 @@ Pu::Task::Result Pu::Renderpass::LoadTask::Execute(void)
 	for (Shader::LoadTask *task : children)
 	{
 		task->SetParent(*this);
-		scheduler->Force(*task);
+		TaskScheduler::Force(*task);
 	}
 
 	return Result::CustomWait();

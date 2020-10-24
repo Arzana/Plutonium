@@ -1,11 +1,11 @@
 #include "Content/AssetFetcher.h"
 #include "Streams/FileReader.h"
 
-Pu::AssetFetcher::AssetFetcher(TaskScheduler & scheduler, LogicalDevice & device)
+Pu::AssetFetcher::AssetFetcher(LogicalDevice & device)
 	: Patern()
 {
 	cache = new AssetCache();
-	loader = new AssetLoader(scheduler, device, *cache);
+	loader = new AssetLoader(device, *cache);
 
 	/* Add some of the default wildcards. */
 	AddWildcard(L"{Assets}", L"../assets/");

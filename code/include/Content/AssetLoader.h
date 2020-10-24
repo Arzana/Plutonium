@@ -1,6 +1,5 @@
 #pragma once
 #include "AssetCache.h"
-#include "Core/Threading/Tasks/Scheduler.h"
 #include "Graphics/Vulkan/Pipelines/GraphicsPipeline.h"
 #include "Graphics/Text/Font.h"
 #include "Graphics/Models/Model.h"
@@ -15,7 +14,7 @@ namespace Pu
 	{
 	public:
 		/* Initializes a new instance of an asset loader. */
-		AssetLoader(_In_ TaskScheduler &scheduler, _In_ LogicalDevice &device, _In_ AssetCache &cache);
+		AssetLoader(_In_ LogicalDevice &device, _In_ AssetCache &cache);
 		AssetLoader(_In_ const AssetLoader&) = delete;
 		AssetLoader(_In_ AssetLoader&&) = delete;
 
@@ -26,12 +25,6 @@ namespace Pu
 		_Check_return_ inline LogicalDevice& GetDevice(void)
 		{
 			return device;
-		}
-
-		/* Gets the task scheduler used by the loader. */
-		_Check_return_ inline TaskScheduler& GetScheduler(void)
-		{
-			return scheduler;
 		}
 
 		/* Loads the renderpass with the specified subpasses and finalizes the renderpass. */
@@ -57,7 +50,6 @@ namespace Pu
 
 	private:
 		AssetCache &cache;
-		TaskScheduler &scheduler;
 		LogicalDevice &device;
 		Queue &transferQueue, &graphicsQueue;
 	};

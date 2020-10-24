@@ -1,5 +1,6 @@
 #include "CompileToPum.h"
 #include <Core/Diagnostics/Logging.h>
+#include <Core/Threading/Tasks/Scheduler.h>
 
 using namespace Pu;
 
@@ -135,6 +136,7 @@ int run(const vector<string> &args)
 	/* Set the user parameter to the file name, so we can use it in MSBuild. */
 	Log::SetUserInfo(finalArgs.Input.fileName());
 
+	Log::Message(finalArgs.Input.fileName().c_str());
 	if (finalArgs.Type == ContentType::PUM) return CompileToPum(finalArgs);
 	else
 	{
@@ -148,6 +150,7 @@ int main(int argc, char **argv)
 	try
 	{
 		/* We only show the type, this is easy to put into a MSBuild error regex. */
+		TaskScheduler::Start();
 		Log::SetDetails(LogDetails::Type);
 
 		vector<string> args;
@@ -155,7 +158,10 @@ int main(int argc, char **argv)
 
 		/* Skip the exe identity. */
 		for (int i = 1; i < argc; i++) args.emplace_back(argv[i]);
-		return run(args);
+		const int code = run(args);
+
+		TaskScheduler::StopWait();
+		return code;
 	}
 	catch (...)
 	{

@@ -67,8 +67,6 @@ namespace Pu
 	protected:
 		friend class TaskScheduler;
 
-		/* Defines the scheduler that ran the task. */
-		TaskScheduler *scheduler;
 		/* Specifies the parent task. */
 		Task* parent;
 

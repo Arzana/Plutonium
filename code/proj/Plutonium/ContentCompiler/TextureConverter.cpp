@@ -8,6 +8,7 @@
 #include <Graphics/Vulkan/CommandPool.h>
 #include <Core/Diagnostics/Profiler.h>
 #include <Core/Threading/PuThread.h>
+#include <Core/Threading/Tasks/Scheduler.h>
 
 using namespace Pu;
 
@@ -264,7 +265,7 @@ size_t DiskCopyTextures(PumIntermediate &data, const wstring &wdir, const ustrin
 	return result;
 }
 
-bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
+bool InitializeVulkan(uint32 maxSets)
 {
 	/* Create the Vulkan instance. */
 	instance = new VulkanInstance("Plutonium Content Compiler", false);
@@ -306,8 +307,8 @@ bool InitializeVulkan(uint32 maxSets, TaskScheduler &scheduler)
 	}
 
 	/* Create the asset loader for the image load process. */
-	loader = new AssetFetcher(scheduler, *device);
-	saver = new AssetSaver(scheduler, *device);
+	loader = new AssetFetcher(*device);
+	saver = new AssetSaver(*device);
 	saver->OnAssetSaved += [](const AssetSaver&, const Image&) { imageSaveCnt++; };
 
 	/* Create the shaders needed for the conversion. */
@@ -527,7 +528,7 @@ void WaitForLoads()
 			if (texture && !texture->IsUsable())
 			{
 				loading = true;
-				PuThread::Pause();
+				TaskScheduler::Help();
 			}
 		}
 	} while (loading);
@@ -537,7 +538,7 @@ void WaitForSaves()
 {
 	while (imageSaveCnt.load() < outputs.size())
 	{
-		PuThread::Pause();
+		TaskScheduler::Help();
 	}
 }
 
@@ -694,7 +695,7 @@ void CopyAndConvertMaterials(PumIntermediate & data, const CLArgs & args)
 
 	/* Make sure that we only start the conversion if all the component were properly created. */
 	Profiler::Begin("Converting texture");
-	if (InitializeVulkan(setCnt, *args.Scheduluer))
+	if (InitializeVulkan(setCnt))
 	{
 		ConvertTextures(data, wdir, ldir);
 		FinalizeVulkan();

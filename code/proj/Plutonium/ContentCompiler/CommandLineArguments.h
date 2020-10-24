@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/Threading/Tasks/Scheduler.h>
+#include <Core/String.h>
 
 enum class ContentType
 {
@@ -17,18 +17,10 @@ struct CLArgs
 	bool CreateTangents;						// -t (optional)
 	bool RecalcTangents;						// -rt (optional)
 	Pu::vector<Pu::string> AdditionalTextures;	// -at (optional)
-	Pu::TaskScheduler *Scheduluer;				// Just use a globally available scheduler, so we don't allocate it a few times.
 
 	CLArgs(void)
 		: Type(ContentType::Unknown), CreateTangents(false), RecalcTangents(false)
-	{
-		Scheduluer = new Pu::TaskScheduler();
-	}
-
-	~CLArgs(void)
-	{
-		delete Scheduluer;
-	}
+	{}
 
 	CLArgs(const CLArgs&) = delete;
 	CLArgs(CLArgs&&) = delete;

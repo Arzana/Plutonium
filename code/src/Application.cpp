@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 #include "Core/Diagnostics/DbgUtils.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Vulkan/Instance.h"
@@ -12,13 +13,13 @@
 #include "Graphics/Platform/Windows/Win32Window.h"
 #endif
 
-Pu::Application::Application(const wstring & name, size_t threadCount)
+Pu::Application::Application(const wstring & name)
 	: IsFixedTimeStep(true), suppressUpdate(false), name(name),
 	targetElapTimeFocused(ApplicationFocusedTargetTime), targetElapTimeBackground(ApplicationNoFocusTargetTime),
 	maxElapTime(ApplicationMaxLagCompensation), accumElapTime(0.0f), gameTime(), device(nullptr), initialized(false)
 {
 	InitializePlutonium();
-	scheduler = new TaskScheduler(threadCount);
+	TaskScheduler::Start();
 	input = new InputDeviceHandler();
 
 	/* Initialize ImGui if needed. */
@@ -34,8 +35,9 @@ Pu::Application::Application(const wstring & name, size_t threadCount)
 
 Pu::Application::~Application(void)
 {
+	TaskScheduler::StopWait();
+
 	delete input;
-	delete scheduler;
 	delete device;
 	delete instance;
 
@@ -299,8 +301,8 @@ void Pu::Application::DoInitialize(void)
 #endif
 
 	/* The fetcher needs to be created here as it needs the logical device. */
-	content = new AssetFetcher(*scheduler, *device);
-	saver = new AssetSaver(*scheduler, *device);
+	content = new AssetFetcher(*device);
+	saver = new AssetSaver(*device);
 
 	/* Set the default mode for the Window before the swapchain is created, this allows for seamless window transitions. */
 	wnd->SetMode(RuntimeConfig::QueryEnum(L"WindowMode", WindowMode::Borderless));

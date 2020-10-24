@@ -311,8 +311,9 @@ Pu::string Pu::PuThread::GetProcessOutput(uint64 process)
 	destroyProcessWin32(hProcess);
 #else
 	Log::Warning("Cannot get process output on this platform!");
-	return "";
 #endif
+
+	return "";
 }
 
 void Pu::PuThread::LockInternal(std::thread::native_handle_type hndl, uint64 core)

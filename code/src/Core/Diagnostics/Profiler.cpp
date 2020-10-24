@@ -339,7 +339,7 @@ void Pu::Profiler::SaveInternal(const wstring & path, const string & extra)
 	const time_t now = std::time(nullptr);
 	char buffer[100];
 	size_t end;
-	if ((end = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))))
+	if ((end = std::strftime(buffer, sizeof(buffer), "%c", std::localtime(&now))) != 0)
 	{
 		writer.Write("Profiler log for: ");
 		if (ticks > 1)

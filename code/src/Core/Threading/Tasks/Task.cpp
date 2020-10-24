@@ -2,11 +2,11 @@
 #include "Core/Diagnostics/Logging.h"
 
 Pu::Task::Task(void)
-	: scheduler(nullptr), parent(nullptr), childCnt(0)
+	: parent(nullptr), childCnt(0)
 {}
 
 Pu::Task::Task(Task & parent)
-	: scheduler(nullptr), childCnt(0)
+	: childCnt(0)
 {
 	SetParent(parent);
 }

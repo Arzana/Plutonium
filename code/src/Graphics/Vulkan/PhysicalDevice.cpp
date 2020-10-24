@@ -147,6 +147,8 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 {
 	PhysicalDeviceProperties2 prop2{ &subgroup };
 
+#pragma warning (push)
+#pragma warning (disable:4706)
 	PhysicalDevicePipelineExecutablePropertiesFeatures executableProperties;
 	PhysicalDeviceLineRasterizationProperties lineProperties;
 	if (IsExtensionSupported(u8"VK_KHR_pipeline_executable_properties")) VkPushChain(supportedFeatures.Next, &executableProperties);
@@ -156,6 +158,7 @@ Pu::PhysicalDevice::PhysicalDevice(VulkanInstance & parent, PhysicalDeviceHndl h
 		VkPushChain(prop2.Next, &lineProperties);
 		VkPushChain(supportedFeatures.Next, &lineFeatures);
 	}
+#pragma warning (pop)
 
 	/* On destroy check and query the properties for fast access later. */
 	parent.OnDestroy.Add(*this, &PhysicalDevice::OnParentDestroyed);

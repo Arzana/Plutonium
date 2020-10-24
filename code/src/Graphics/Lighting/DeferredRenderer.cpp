@@ -6,6 +6,7 @@
 #include "Graphics/Models/ShapeCreator.h"
 #include "Core/Diagnostics/Profiler.h"
 #include "Graphics/Resources/SingleUseCommandBuffer.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 #include "Streams/RuntimeConfig.h"
 
 using namespace Pu;
@@ -144,17 +145,17 @@ Pu::DeferredRenderer::DeferredRenderer(AssetFetcher & fetcher, GameWindow & wnd)
 		}
 	}
 
+	/* We need to recreate resources if the window resizes, or the color space is changed. */
+	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
+	hdrSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::ClampToEdge });
+	CreateSizeDependentResources();
+
 	/* Load the first iteration of the renderpass (might be updated later) and fetch the sampler for the HDR buffer. */
 	CreateRenderpass(RuntimeConfig::QueryBool(L"TessellationEnabled"));
-	hdrSampler = &fetcher.FetchSampler(SamplerCreateInfo{ Filter::Nearest, SamplerMipmapMode::Nearest, SamplerAddressMode::ClampToEdge });
 
 	/* Create the light volumes. */
 	Task *task = new LightVolumeStageTask(fetcher, *lightVolumes);
-	fetcher.GetScheduler().Spawn(*task);
-
-	/* We need to recreate resources if the window resizes, or the color space is changed. */
-	wnd.SwapchainRecreated.Add(*this, &DeferredRenderer::OnSwapchainRecreated);
-	CreateSizeDependentResources();
+	TaskScheduler::Spawn(*task);
 
 	timer = new ProfilerChain(wnd.GetDevice(), 5);
 	timer->SetChainInfo(TerrainTimer, "Rendering (Environment)", Color::Gray());

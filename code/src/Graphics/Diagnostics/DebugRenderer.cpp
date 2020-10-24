@@ -1,6 +1,7 @@
 #include "Graphics/Diagnostics/DebugRenderer.h"
 #include "Graphics/Diagnostics/ProfilerChain.h"
 #include "Graphics/Resources/DynamicBuffer.h"
+#include "Core/Threading/Tasks/Scheduler.h"
 #include "Core/Diagnostics/Profiler.h"
 
 using namespace Pu;
@@ -177,7 +178,7 @@ Pu::DebugRenderer::DebugRenderer(GameWindow & window, AssetFetcher & loader, con
 
 	/* Create the primitives. */
 	Task *task = new LoadDebugShapesTask(loader.GetLoader(), meshes);
-	loader.GetScheduler().Spawn(*task);
+	TaskScheduler::Spawn(*task);
 }
 
 Pu::DebugRenderer::~DebugRenderer(void)

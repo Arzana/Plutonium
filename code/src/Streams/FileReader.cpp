@@ -141,15 +141,26 @@ string Pu::FileReader::ReadLine(void)
 	/* On debug check if file is open. */
 	FileNotOpen();
 
-	/* We use fgets to read until either a newline or EOF. */
+	/* 
+	We use fgets to read until either a newline or EOF.
+	The last character is used to determine whether the full buffer is used.
+	fgets will add a null terminator in the last slot if it hasn't read the whole line.
+	So if this marker is null then there is more content to read.
+	*/
 	char buffer[BUFFER_SIZE];
+	buffer[BUFFER_SIZE - 1] = ~0;
+
 	while (fgets(buffer, BUFFER_SIZE, hndlr))
 	{
 		/*
 		If the buffer was too small for the full line,
 		fgets will put a null-terminator at the end of the buffer.
 		*/
-		if (buffer[BUFFER_SIZE - 1] == '\0') result += buffer;
+		if (buffer[BUFFER_SIZE - 1] == '\0')
+		{
+			result += buffer;
+			buffer[BUFFER_SIZE - 1] = ~0;
+		}
 		else
 		{
 			result = buffer;
