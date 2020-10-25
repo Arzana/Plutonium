@@ -1,0 +1,49 @@
+#version 460 core
+#extension GL_KHR_vulkan_glsl : enable
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout (binding = 0) readonly buffer PermutationsBuffer
+{
+	uint Permutations[];
+};
+
+layout (set = 1, binding = 0) writeonly buffer Result
+{
+	float Octaves[];
+};
+
+layout (push_constant) uniform PushConstants
+{
+	vec2 Offset;
+};
+
+vec2 fade(in vec2 x)
+{
+	return (x * x * x) * (x * (x * 6.0f - 15.0f) + 10.0f);
+}
+
+float gradient(in uint i, in float x, in float y)
+{
+	const uint h = Permutations[i];
+	return (bool(h & 1) ? -x : x) + (bool(h & 2) ? -y : y);
+}
+
+void main()
+{
+	const uint globalInvocationIndex = gl_GlobalInvocationID.y * (gl_NumWorkGroups.x * gl_WorkGroupSize.x) + gl_GlobalInvocationID.x;
+	const vec2 normalizedID = gl_GlobalInvocationID.xy / vec2(gl_NumWorkGroups.xy * gl_WorkGroupSize.xy);
+	vec2 p = Offset + normalizedID;
+
+	const vec2 f = floor(p);
+	const uvec2 uf = uvec2(f) & 0xFF;
+
+	const uint a = Permutations[Permutations[uf.x + uf.y]];
+	const uint b = Permutations[Permutations[uf.x + 1] + uf.y];
+	const uint ab = Permutations[Permutations[uf.x] + uf.y + 1];
+	const uint ba = Permutations[Permutations[uf.x + 1] + uf.y + 1];
+
+	const vec2 uv = fade(p -= f);
+	const float u = mix(gradient(a, p.x, p.y), gradient(b, p.x - 1.0f, p.y), uv.x);
+	const float v = mix(gradient(ab, p.x, p.y - 1.0f), gradient(ba, p.x - 1.0f, p.y - 1.0f), uv.y);
+	Octaves[globalInvocationIndex] = (mix(u, v, uv.y) + 1.0f) * 0.5f;
+}

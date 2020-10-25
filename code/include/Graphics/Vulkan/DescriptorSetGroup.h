@@ -33,6 +33,8 @@ namespace Pu
 		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Writes a storage image to the specified set. */
 		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const ImageView &image);
+		/* Writes a storage buffer to the specified set. */
+		void Write(_In_ uint32 subpass, _In_ const Descriptor &descriptor, _In_ const Buffer &buffer);
 		/* Frees the descriptor sets from their parent pool. */
 		void Free(void);
 

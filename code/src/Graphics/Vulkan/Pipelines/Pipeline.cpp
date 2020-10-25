@@ -42,6 +42,7 @@ Pu::Pipeline & Pu::Pipeline::operator=(Pipeline && other)
 void Pu::Pipeline::SetSpecializationData(uint32 shader, const void * data, size_t size)
 {
 #ifdef _DEBUG
+	if (specInfos.empty()) Log::Fatal("Pipeline either doesn't have specialization constants or the pipeline has not been finalized yet!");
 	if (shaderStages.size() <= shader) Log::Fatal("Pipeline doesn't contain shader at index %u!", shader);
 #endif
 

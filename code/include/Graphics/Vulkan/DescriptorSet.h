@@ -31,6 +31,8 @@ namespace Pu
 		void Write(_In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Writes a storage image to the set. */
 		void Write(_In_ const Descriptor &descriptor, _In_ const ImageView &image);
+		/* Writes a storage buffer to the set. */
+		void Write(_In_ const Descriptor &descriptor, _In_ const Buffer &buffer);
 		/* Free's the descriptor set from its parent pool. */
 		void Free(void);
 

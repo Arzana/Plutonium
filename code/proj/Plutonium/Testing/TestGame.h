@@ -39,8 +39,14 @@ private:
 	Pu::DirectionalLight *lightMain, *lightFill;
 	Pu::vector<Pu::TerrainChunk*> terrain;
 	Pu::PerlinNoise noise;
-
 	Pu::PhysicalWorld *world;
+
+	Pu::DynamicBuffer *permutations;
+	Pu::Buffer *perlin;
+	Pu::ShaderProgram *compute;
+	Pu::ComputePipeline *computePipe;
+	Pu::DescriptorPool *descPoolPerlin;
+	Pu::DescriptorSetGroup *perlinSet;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

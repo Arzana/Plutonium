@@ -132,6 +132,10 @@ namespace Pu
 		void BindGraphicsDescriptor(_In_ const Pipeline &pipeline, _In_ const DescriptorSet &descriptor);
 		/* Appends multiple graphics descriptor bind commands to the command buffer. */
 		void BindGraphicsDescriptors(_In_ const Pipeline &pipeline, _In_ uint32 subpassIdx, _In_ const DescriptorSetGroup &descriptors);
+		/* Appends a compute descriptor bind command to the command buffer. */
+		void BindComputeDescriptor(_In_ const Pipeline &pipeline, _In_ const DescriptorSet &descriptor);
+		/* Appends multiple compute descriptor bind commands to the command buffer. */
+		void BindComputeDescriptors(_In_ const Pipeline &pipeline, _In_ uint32 subpassIdx, _In_ const DescriptorSetGroup &descriptors);
 		/* Appends a draw command to the command buffer. */
 		void Draw(_In_ uint32 vertexCount, _In_ uint32 instanceCount, _In_ uint32 firstVertex, _In_ uint32 firstInstance);
 		/* Appends an indexed draw command to the command buffer. */
@@ -187,6 +191,8 @@ namespace Pu
 
 		CommandBuffer(CommandPool &pool, CommandBufferHndl hndl);
 
+		void BindDescriptor(const Pipeline &pipeline, PipelineBindPoint bindPoint, const DescriptorSet &descriptor);
+		void BindDescriptors(const Pipeline &pipeline, PipelineBindPoint bindPoint, uint32 subpassIdx, const DescriptorSetGroup &descriptors);
 		void BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue> &clearValues, const Framebuffer &framebuffer, Rect2D renderArea, SubpassContents contents);
 		void Reset(void) const;
 		void Free(void);

@@ -6,6 +6,11 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass)
 	OnStage("DescriptorPoolOnStage", true), buffer(nullptr), maxSets(0)
 {}
 
+Pu::DescriptorPool::DescriptorPool(LogicalDevice & device, const ShaderProgram & computepass)
+	: device(&device), computepass(&computepass), firstUpdate(true), stride(0),
+	OnStage("DescriptorPoolOnStage", true), buffer(nullptr), maxSets(0)
+{}
+
 Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets, uint32 subpass, uint32 set)
 	: DescriptorPool(renderpass)
 {
@@ -50,42 +55,28 @@ void Pu::DescriptorPool::AddSet(uint32 subpass, uint32 set, uint32 max)
 {
 	/* Check for invalid use on debug mode. */
 #ifdef _DEBUG
-	if (hndl) Log::Fatal("Cannot add set to descriptor pool (%x) after it has been initialized!", hndl);
-
 	if (sets.contains([subpass, set](const SetInfo &cur) { return cur.Id == MakeId(subpass, set); }))
 	{
 		Log::Fatal("Set %u from subpass %u has already been added to this descriptor pool!", set, subpass);
 	}
 #endif
 
-	/* Handle uniform buffer sets. */
 	const DescriptorSetLayout &layout = renderpass->GetSubpass(subpass).GetSetLayout(set);
-	if (layout.HasUniformBufferMemory())
+	AddSetInternal(subpass, set, max, layout);
+}
+
+void Pu::DescriptorPool::AddSet(uint32 set, uint32 max)
+{
+	/* Check for invalid use on debug mode. */
+#ifdef _DEBUG
+	if (sets.contains([set](const SetInfo &cur) { return cur.Id == MakeId(0, set); }))
 	{
-		/* Calculate the end of the last set. */
-		const DeviceSize end = sets.empty() ? 0 : sets.back().Offset + sets.back().GetMaxSets() * stride;
-
-		/*
-		Add the current set to the list and set the last stride.
-		stride is always alligned so the end pointer will also be alligned.
-		*/
-		sets.emplace_back(subpass, set, max, end);
-		stride = layout.GetAllignedStride();
+		Log::Fatal("Set %u has already been added to this descriptor pool!", set);
 	}
+#endif
 
-	/* Add all the descriptors to the allocation list. */
-	for (const Descriptor *descriptor : layout.descriptors)
-	{
-		const DescriptorType type = descriptor->GetType();
-
-		/* We either increase the count or add a new descriptor with count 1. */
-		decltype(sizes)::iterator it = sizes.iteratorOf([type](const DescriptorPoolSize &cur) { return cur.Type == type; });
-		if (it != sizes.end()) it->DescriptorCount += max;
-		else sizes.emplace_back(type, max);
-	}
-
-	/* Increase the counter for the maximum number of descriptor set that can be allocated. */
-	maxSets += max;
+	const DescriptorSetLayout &layout = computepass->GetSetLayout(set);
+	AddSetInternal(0, set, max, layout);
 }
 
 void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlags dstStage)
@@ -115,6 +106,40 @@ void Pu::DescriptorPool::Update(CommandBuffer & cmdBuffer, PipelineStageFlags ds
 void Pu::DescriptorPool::Reset(void)
 {
 	VK_VALIDATE(device->vkResetDescriptorPool(device->hndl, hndl, 0), PFN_vkResetDescriptorPool);
+}
+
+void Pu::DescriptorPool::AddSetInternal(uint32 subpass, uint32 set, uint32 max, const DescriptorSetLayout & layout)
+{
+#ifdef _DEBUG
+	if (hndl) Log::Fatal("Cannot add set to descriptor pool (0x%X) after it has been initialized!", hndl);
+#endif
+
+	if (layout.HasUniformBufferMemory())
+	{
+		/* Calculate the end of the last set. */
+		const DeviceSize end = sets.empty() ? 0 : sets.back().Offset + sets.back().GetMaxSets() * stride;
+
+		/*
+		Add the current set to the list and set the last stride.
+		stride is always alligned so the end pointer will also be alligned.
+		*/
+		sets.emplace_back(subpass, set, max, end);
+		stride = layout.GetAllignedStride();
+	}
+
+	/* Add all the descriptors to the allocation list. */
+	for (const Descriptor *descriptor : layout.descriptors)
+	{
+		const DescriptorType type = descriptor->GetType();
+
+		/* We either increase the count or add a new descriptor with count 1. */
+		decltype(sizes)::iterator it = sizes.iteratorOf([type](const DescriptorPoolSize &cur) { return cur.Type == type; });
+		if (it != sizes.end()) it->DescriptorCount += max;
+		else sizes.emplace_back(type, max);
+	}
+
+	/* Increase the counter for the maximum number of descriptor set that can be allocated. */
+	maxSets += max;
 }
 
 Pu::DeviceSize Pu::DescriptorPool::Alloc(uint32 subpass, const DescriptorSetLayout & layout, DescriptorSetHndl * result)

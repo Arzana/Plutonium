@@ -40,7 +40,6 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Desc
 	WriteNonSampled(hndl, set, descriptor, image.hndl, DescriptorType::StorageImage, ImageLayout::General);
 }
 
-
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const Texture & texture)
 {
 #ifdef _DEBUG
@@ -50,6 +49,19 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Desc
 #endif
 
 	const DescriptorImageInfo info{ texture.Sampler->hndl, texture.view->hndl };
+	const WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
+	WriteDescriptors({ write });
+}
+
+void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const Buffer & buffer)
+{
+#ifdef _DEBUG
+	ValidateDescriptor(descriptor, set, DescriptorType::StorageBuffer);
+#else
+	(void)set;
+#endif
+
+	const DescriptorBufferInfo info{ buffer.bufferHndl, 0, buffer.GetSize() };
 	const WriteDescriptorSet write{ hndl, descriptor.layoutBinding.Binding, info };
 	WriteDescriptors({ write });
 }

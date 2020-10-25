@@ -38,6 +38,8 @@ namespace Pu
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const ImageView &image);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
+		/* Writes a storage buffer to the set. */
+		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const Buffer &buffer);
 		/* Gets the aligned offset for descriptors in a set that is present in multiple shader stages. */
 		_Check_return_ DeviceSize GetOffsetAligned(_In_ DeviceSize size) const;
 
@@ -48,10 +50,16 @@ namespace Pu
 			memcpy(destination, value, sizeof(value_t));
 		}
 
-		/* Gets the specific descriptor from the specific subpass. */
+		/* Gets the specific descriptor from the specific subpass (Only valid for renderpass descriptors). */
 		_Check_return_ inline const Descriptor& GetDescriptor(_In_ uint32 subpass, _In_ const string &name) const
 		{
 			return Pool->renderpass->GetSubpass(subpass).GetDescriptor(name);
+		}
+
+		/* Gets the specific descriptor (Only valid for compute pass descriptors). */
+		_Check_return_ inline const Descriptor& GetDescriptor(_In_ const string &name) const
+		{
+			return Pool->computepass->GetDescriptor(name);
 		}
 
 	private:

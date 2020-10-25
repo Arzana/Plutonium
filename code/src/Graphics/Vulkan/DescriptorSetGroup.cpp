@@ -77,6 +77,11 @@ void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor
 	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, image);
 }
 
+void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const Buffer & buffer)
+{
+	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, buffer);
+}
+
 void Pu::DescriptorSetGroup::Free(void)
 {
 	/* Free all the underlying handles. */

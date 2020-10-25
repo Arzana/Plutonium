@@ -37,6 +37,9 @@
     <Filter Include="Shaders\Deferred\Geometry\Advanced">
       <UniqueIdentifier>{5b601958-52f6-4749-82fd-a7e26a7e8358}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Procedural">
+      <UniqueIdentifier>{de6d1b7c-2529-4b4f-be10-b807bbe40d23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <SPIRVShader Include="..\..\..\assets\shaders\VertexColor.frag">
@@ -114,6 +117,9 @@
     <SPIRVShader Include="..\..\..\assets\shaders\WorldLight.vert">
       <Filter>Shaders\Deferred\Lighting</Filter>
     </SPIRVShader>
+    <SPIRVShader Include="..\..\..\assets\shaders\Perlin2D.comp">
+      <Filter>Shaders\Procedural</Filter>
+    </SPIRVShader>
   </ItemGroup>
   <ItemGroup>
     <PuModel Include="..\..\..\assets\models\Knight\knight.md2">
@@ -156,9 +162,6 @@
       <Filter>Models</Filter>
     </PuModel>
     <PuModel Include="..\..\..\assets\models\Barry\Barry.obj">
-      <Filter>Models</Filter>
-    </PuModel>
-    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj">
       <Filter>Models</Filter>
     </PuModel>
   </ItemGroup>

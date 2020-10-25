@@ -113,7 +113,7 @@ namespace Pu
 		void HandleVector(SPIRVReader &reader);
 		void HandleMatrix(SPIRVReader &reader);
 		void HandleStruct(SPIRVReader &reader, size_t memberCnt);
-		void HandleArray(SPIRVReader &reader);
+		void HandleArray(SPIRVReader &reader, bool compileTime);
 		void HandleImage(SPIRVReader &reader);
 		void HandleSampledImage(SPIRVReader &reader);
 		void HandleVariable(SPIRVReader &reader);

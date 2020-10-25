@@ -876,6 +876,7 @@ namespace Pu
 		StorageTexelBuffer = 5,
 		/* Defines a uniform buffer (uniform block in GLSL). */
 		UniformBuffer = 6,
+		/* Defines a storage buffer (buffer in GLSL). */
 		StorageBuffer = 7,
 		UniformBufferDynamic = 8,
 		StorageBufferDynamic = 9,

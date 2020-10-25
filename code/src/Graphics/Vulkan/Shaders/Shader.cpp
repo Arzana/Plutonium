@@ -104,7 +104,7 @@ void Pu::Shader::Load(const wstring & path, bool viaLoader)
 	}
 	else Log::Fatal("'%ls' cannot be loaded as a shader (only SPIR-V shaders are valid)!", ext.c_str());
 
-	/* 
+	/*
 	Set the information of the subpass.
 	The path has the following format <location>/<shader name>.<shader type>.spv
 	We want the name + type for the asset, but only the name for the field checking.
@@ -131,7 +131,7 @@ void Pu::Shader::SetFieldInfo(const wchar_t * name)
 	{
 		HandleVariable(id, typeId, storage);
 	}
-	
+
 	/* Log an error if we exceed the maximum amount of input attachments. */
 	uint32 inputAttachments = 0;
 	for (const auto &[ids, dec] : decorations) inputAttachments += dec.Contains(spv::Decoration::InputAttachmentIndex);
@@ -182,10 +182,12 @@ void Pu::Shader::HandleVariable(spv::Id id, spv::Id typeId, spv::StorageClass st
 			if (!memberName.contains("gl_"))
 			{
 				const DecoratePair globalKey{ id, GlobalMemberIndex };
+				const DecoratePair globalType{ typePointer, GlobalMemberIndex };
 				const DecoratePair memberKey{ typePointer, static_cast<spv::Word>(i) };
 
 				Decoration memberDecoration(offset);
 				memberDecoration.Merge(decorations[globalKey]);
+				memberDecoration.Merge(decorations[globalType]);
 				memberDecoration.Merge(decorations[memberKey]);
 
 				fields.emplace_back(memberTypeId, std::move(memberName), std::move(fieldType), storage, memberDecoration);
@@ -248,7 +250,10 @@ void Pu::Shader::HandleModule(SPIRVReader & reader, spv::Op opCode, size_t wordC
 		HandleStruct(reader, wordCnt - 1);
 		break;
 	case (spv::Op::OpTypeArray):
-		HandleArray(reader);
+		HandleArray(reader, true);
+		break;
+	case (spv::Op::OpTypeRuntimeArray):
+		HandleArray(reader, false);
 		break;
 	case (spv::Op::OpTypeImage):
 		HandleImage(reader);
@@ -326,8 +331,13 @@ void Pu::Shader::HandleDecoration(SPIRVReader & reader, spv::Id target, spv::Wor
 	case (spv::Decoration::Patch):					// Used to indicate that the I/O field uses patches (we don't care about this).
 	case (spv::Decoration::ArrayStride):			// Used to specify the stride of arrays, this is currently only used in geometry shading.
 	case (spv::Decoration::ColMajor):				// Plutonium expects column major matrices.
-	case (spv::Decoration::MatrixStride):			// Matrix stride is determined when a matrix type if found.
+	case (spv::Decoration::MatrixStride):			// Matrix stride is determined when a matrix type if found.		
 		return;
+	case (spv::Decoration::NonWritable):			// Indicates a readonly buffer or image.
+	case (spv::Decoration::NonReadable):			// Indicates a writeonly buffer or image.
+	case (spv::Decoration::BufferBlock):			// Depricated way to specify a storage buffer.
+		result.Flags.emplace_back(decoration);
+		break;
 	case (spv::Decoration::Location):				// Location decoration stores a single literal number.
 	case (spv::Decoration::DescriptorSet):			// Descriptor set decoration stores a single literal number.
 	case (spv::Decoration::Binding):				// Binding decoration stores a single literal number.
@@ -449,11 +459,11 @@ void Pu::Shader::HandleStruct(SPIRVReader & reader, size_t memberCnt)
 	structs.emplace(id, std::move(members));
 }
 
-void Pu::Shader::HandleArray(SPIRVReader & reader)
+void Pu::Shader::HandleArray(SPIRVReader & reader, bool compileTime)
 {
 	const spv::Id id = reader.ReadWord();
 	FieldType elementType = types[reader.ReadWord()];
-	elementType.Length = static_cast<spv::Word>(constants[reader.ReadWord()]);
+	if (compileTime) elementType.Length = static_cast<spv::Word>(constants[reader.ReadWord()]);
 
 	types.emplace(id, elementType);
 }

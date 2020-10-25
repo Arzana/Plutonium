@@ -24,6 +24,7 @@
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.geom" />
     <SPIRVShader Include="..\..\..\assets\shaders\LightProbe.vert" />
+    <SPIRVShader Include="..\..\..\assets\shaders\Perlin2D.comp" />
     <SPIRVShader Include="..\..\..\assets\shaders\PointLight.frag" />
     <SPIRVShader Include="..\..\..\assets\shaders\WorldLight.vert" />
     <SPIRVShader Include="..\..\..\assets\shaders\Skybox.frag" />
@@ -63,7 +64,6 @@
     </PuModel>
     <PuModel Include="..\..\..\assets\models\WaterBottle\specGlossVsMetalRough.gltf" />
     <PuModel Include="..\..\..\assets\models\Barry\Barry.obj" />
-    <PuModel Include="..\..\..\assets\models\SanMiguel\san-miguel-low-poly.obj" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

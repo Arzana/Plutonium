@@ -20,7 +20,6 @@ Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo
 
 	if (data.Decorations.Contains(spv::Decoration::InputAttachmentIndex))
 	{
-		/* The descriptor is an input attachment. */
 		layoutBinding.DescriptorType = DescriptorType::InputAttachment;
 	}
 	else if (data.Type.ComponentType == ComponentType::SampledImage)
@@ -31,6 +30,10 @@ Pu::Descriptor::Descriptor(const PhysicalDevice &physicalDevice, const FieldInfo
 	else if (data.Type.ComponentType == ComponentType::StoreImage)
 	{
 		layoutBinding.DescriptorType = DescriptorType::StorageImage;
+	}
+	else if (data.Decorations.Contains(spv::Decoration::BufferBlock))
+	{
+		layoutBinding.DescriptorType = DescriptorType::StorageBuffer;
 	}
 	else
 	{

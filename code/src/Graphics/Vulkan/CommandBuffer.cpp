@@ -326,35 +326,25 @@ void Pu::CommandBuffer::PushConstants(const Pipeline & pipeline, ShaderStageFlag
 void Pu::CommandBuffer::BindGraphicsDescriptor(const Pipeline & pipeline, const DescriptorSet & descriptor)
 {
 	DbgCheckIfRecording("bind descriptor to graphics bind point");
-	++bindCalls;
-
-	device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
+	BindDescriptor(pipeline, PipelineBindPoint::Graphics, descriptor);
 }
 
 void Pu::CommandBuffer::BindGraphicsDescriptors(const Pipeline & pipeline, uint32 subpassIdx, const DescriptorSetGroup & descriptors)
 {
-	DbgCheckIfRecording("bind descriptors to graphics bind point");
+	DbgCheckIfRecording("bind multiple descriptors to graphics bind point");
+	BindDescriptors(pipeline, PipelineBindPoint::Graphics, subpassIdx, descriptors);
+}
 
-#ifdef _DEBUG
-	const uint32 oldBindCalls = bindCalls;
-#endif
+void Pu::CommandBuffer::BindComputeDescriptor(const Pipeline & pipeline, const DescriptorSet & descriptor)
+{
+	DbgCheckIfRecording("bind descriptor to compute bind point");
+	BindDescriptor(pipeline, PipelineBindPoint::Compute, descriptor);
+}
 
-	/* We need to bind all of the descriptors in the group that match the subpass index. */
-	for (const auto[id, setHndl] : descriptors.hndls)
-	{
-		const uint32 subpass = static_cast<uint32>(id >> 32);
-		if (subpass == subpassIdx)
-		{
-			const uint32 set = static_cast<uint32>(id & 0xFFFFFFFF);
-			device->vkCmdBindDescriptorSets(hndl, PipelineBindPoint::Graphics, pipeline.LayoutHndl, set, 1, &setHndl, 0, nullptr);
-			++bindCalls;
-		}
-	}
-
-#ifdef _DEBUG
-	/* This might occur if the user passes the wrong handle, it will probably crash later. */
-	if (oldBindCalls == bindCalls) Log::Warning("Could not bind any Graphics DescriptorSet from DescriptorSetGroup!");
-#endif
+void Pu::CommandBuffer::BindComputeDescriptors(const Pipeline & pipeline, uint32 subpassIdx, const DescriptorSetGroup & descriptors)
+{
+	DbgCheckIfRecording("bind multiple descriptors to compute bind point");
+	BindDescriptors(pipeline, PipelineBindPoint::Compute, subpassIdx, descriptors);
 }
 
 void Pu::CommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
@@ -487,6 +477,36 @@ Pu::CommandBuffer::CommandBuffer(CommandPool & pool, CommandBufferHndl hndl)
 	Usage(CommandBufferUsageFlags::None), lastSubmitQueueFamilyID(0)
 {
 	submitFence = new Fence(*device);
+}
+
+void Pu::CommandBuffer::BindDescriptor(const Pipeline & pipeline, PipelineBindPoint bindPoint, const DescriptorSet & descriptor)
+{
+	++bindCalls;
+	device->vkCmdBindDescriptorSets(hndl, bindPoint, pipeline.LayoutHndl, descriptor.set, 1, &descriptor.hndl, 0, nullptr);
+}
+
+void Pu::CommandBuffer::BindDescriptors(const Pipeline & pipeline, PipelineBindPoint bindPoint, uint32 subpassIdx, const DescriptorSetGroup & descriptors)
+{
+#ifdef _DEBUG
+	const uint32 oldBindCalls = bindCalls;
+#endif
+
+	/* We need to bind all of the descriptors in the group that match the subpass index. */
+	for (const auto[id, setHndl] : descriptors.hndls)
+	{
+		const uint32 subpass = static_cast<uint32>(id >> 32);
+		if (subpass == subpassIdx)
+		{
+			const uint32 set = static_cast<uint32>(id & 0xFFFFFFFF);
+			device->vkCmdBindDescriptorSets(hndl, bindPoint, pipeline.LayoutHndl, set, 1, &setHndl, 0, nullptr);
+			++bindCalls;
+		}
+	}
+
+#ifdef _DEBUG
+	/* This might occur if the user passes the wrong handle, it will probably crash later. */
+	if (oldBindCalls == bindCalls) Log::Warning("Could not bind any DescriptorSet from DescriptorSetGroup!");
+#endif
 }
 
 void Pu::CommandBuffer::BeginRenderPassInternal(RenderPassHndl renderPass, const vector<ClearValue>& clearValues, const Framebuffer & framebuffer, Rect2D renderArea, SubpassContents contents)
