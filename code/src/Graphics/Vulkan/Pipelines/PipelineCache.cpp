@@ -12,7 +12,7 @@ Pu::PipelineCache::PipelineCache(LogicalDevice & device, TaskScheduler & schedul
 	{
 	public:
 		LoadTask(LogicalDevice *device, PipelineCache *cache)
-			: device(device), cache(cache), good(true)
+			: Task("Load Pipeline Cache"), device(device), cache(cache), good(true)
 		{}
 
 		virtual Result Execute(void)
@@ -94,7 +94,7 @@ void Pu::PipelineCache::Store(void) const
 	{
 	public:
 		StoreTask(LogicalDevice *device, PipelineCacheHndl hndl, const wstring &path)
-			: device(device), hndl(hndl), path(path)
+			: Task("Save Pipeline Cache"), device(device), hndl(hndl), path(path)
 		{}
 
 		virtual Result Execute(void)

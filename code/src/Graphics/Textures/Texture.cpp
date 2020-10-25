@@ -44,7 +44,7 @@ void Pu::Texture::Destroy(void)
 }
 
 Pu::Texture::LoadTask::LoadTask(Texture & result, const ImageInformation & info, const wstring & path)
-	: result(result), info(info), child(nullptr), stagingBuffer(nullptr), path(path)
+	: Task("Load Image"), result(result), info(info), child(nullptr), stagingBuffer(nullptr), path(path)
 {
 	/* Create the child task as either a HDR load or LDR load. */
 	if (info.IsHDR) child = new ImageLoadTask<float>(path);

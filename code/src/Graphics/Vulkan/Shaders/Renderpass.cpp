@@ -349,7 +349,7 @@ void Pu::Renderpass::Destroy(void)
 }
 
 Pu::Renderpass::LoadTask::LoadTask(Renderpass & result, const vector<std::tuple<size_t, size_t, wstring>>& toLoad)
-	: renderpass(result)
+	: Task("Link Shader Program"), renderpass(result)
 {
 	children.reserve(toLoad.size());
 	for (const auto &[subpass, idx, path] : toLoad)

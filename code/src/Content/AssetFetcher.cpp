@@ -194,7 +194,7 @@ Pu::Font & Pu::AssetFetcher::FetchFont(const wstring & path, float size, const C
 	{
 	public:
 		CreateTextureTask(Font &result, AssetFetcher &parent, const wstring &path)
-			: result(result), parent(parent), path(path)
+			: Task("Create Font Atlas"), result(result), parent(parent), path(path)
 		{}
 
 		virtual Result Execute(void) override

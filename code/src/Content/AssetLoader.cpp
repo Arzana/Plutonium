@@ -65,7 +65,7 @@ void Pu::AssetLoader::PopulateComputepass(ShaderProgram & program, const wstring
 	{
 	public:
 		LoadTask(LogicalDevice &device, AssetCache &cache, ShaderProgram &result, const wstring &path)
-			: device(device), cache(cache), result(result), path(path)
+			: Task("Load Compute Program"), device(device), cache(cache), result(result), path(path)
 		{}
 
 		Result Execute(void) final
@@ -120,7 +120,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const wstring & path,
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const wstring &path)
-			: result(texture), parent(parent), staged(false), name(path.fileNameWithoutExtension())
+			: Task("Initialize Texture"), result(texture), parent(parent), staged(false), name(path.fileNameWithoutExtension())
 		{
 			child = new Texture::LoadTask(texture, info, path);
 			child->SetParent(*this);
@@ -192,7 +192,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const vector<wstring>
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const ImageInformation &info, const vector<wstring> &paths, const wstring &name)
-			: result(texture), parent(parent), staged(false), name(name)
+			: Task("Initialize Texture Array"), result(texture), parent(parent), staged(false), name(name)
 		{
 			children.reserve(paths.size());
 			for (const wstring &path : paths)
@@ -279,7 +279,7 @@ void Pu::AssetLoader::InitializeTexture(Texture & texture, const byte * data, si
 	{
 	public:
 		StageTask(AssetLoader &parent, Texture &texture, const byte *data, size_t size, wstring &&id)
-			: result(texture), parent(parent), id(std::move(id))
+			: Task("Load Raw Texture"), result(texture), parent(parent), id(std::move(id))
 		{
 			this->data = (byte*)malloc(size);
 			memcpy(this->data, data, size);
@@ -348,7 +348,7 @@ void Pu::AssetLoader::FinalizeTexture(Texture & texture, wstring && id)
 	{
 	public:
 		FinalizeTask(AssetLoader &parent, Texture &texture, wstring && id)
-			: result(texture.GetImage()), parent(parent), name(std::move(id))
+			: Task("Generate Mipmaps"), result(texture.GetImage()), parent(parent), name(std::move(id))
 		{}
 
 		Result Execute(void) final
@@ -428,7 +428,7 @@ void Pu::AssetLoader::InitializeFont(Font & font, const wstring & path, Task & c
 	{
 	public:
 		LoadTask(AssetLoader &parent, Font &font, const wstring &path, Task &continuation)
-			: result(font), parent(parent), path(path), continuation(continuation)
+			: Task("Stage Font"), result(font), parent(parent), path(path), continuation(continuation)
 		{}
 
 		Result Execute(void) final
@@ -509,7 +509,7 @@ void Pu::AssetLoader::InitializeModel(Model & model, const wstring & path, const
 	{
 	public:
 		LoadTask(AssetLoader &parent, Model &model, const wstring &path, const DeferredRenderer &deferred, const LightProbeRenderer *probes)
-			: result(model), parent(parent), path(path), deferred(deferred), probes(probes)
+			: Task("Load Model"), result(model), parent(parent), path(path), deferred(deferred), probes(probes)
 		{}
 
 		Result Execute(void) final
@@ -595,7 +595,7 @@ void Pu::AssetLoader::CreateModel(Model & model, ShapeType shape, const Deferred
 	{
 	public:
 		CreateTask(AssetLoader &parent, Model &model, ShapeType type, const DeferredRenderer &deferred, const LightProbeRenderer *probes)
-			: result(model), parent(parent), deferred(deferred), probes(probes), meshType(type)
+			: Task("Generate Model"), result(model), parent(parent), deferred(deferred), probes(probes), meshType(type)
 		{}
 
 		Result Execute(void) final
@@ -736,7 +736,7 @@ void Pu::AssetLoader::StageBuffer(StagingBuffer & source, Buffer & destination, 
 	{
 	public:
 		StageTask(AssetLoader &parent, StagingBuffer &src, Buffer &dst, PipelineStageFlags dstStage, AccessFlags access, const wstring &name)
-			: parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name), timer(parent.GetDevice(), "Staging", Color::Gray())
+			: Task("Stage Buffer"), parent(parent), source(&src), destination(dst), dstStage(dstStage), access(access), name(name), timer(parent.GetDevice(), "Staging", Color::Gray())
 		{}
 
 		Result Execute(void) final

@@ -49,7 +49,7 @@ namespace Pu
 	public:
 		/* Initializes a new instance of an image load task. */
 		ImageLoadTask(_In_ const wstring &path)
-			: path(path)
+			: Task("Load Image"), path(path)
 		{}
 
 		ImageLoadTask(_In_ const ImageLoadTask&) = delete;

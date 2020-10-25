@@ -71,9 +71,9 @@ namespace Pu
 		Task* parent;
 
 		/* Initializes an empty instance of a task. */
-		Task(void);
+		Task(_In_ const string &name);
 		/* Initializes a task as a child of another task. */
-		Task(_In_ Task &parent);
+		Task(_In_ const string &name, _In_ Task &parent);
 
 		/* Marks a child task as complete, used mainly by the scheduler. */
 		void MarkChildAsComplete(_In_ Task &child);
@@ -85,6 +85,7 @@ namespace Pu
 		}
 
 	private:
+		string name;
 		std::atomic_size_t childCnt;
 #ifdef _DEBUG
 		std::atomic_bool completed;

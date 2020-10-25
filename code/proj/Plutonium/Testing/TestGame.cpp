@@ -3,17 +3,9 @@
 #include <Streams/RuntimeConfig.h>
 #include <imgui.h>
 
-enum class NPC_t
-{
-	Knight,
-	Sphere,
-	Box
-};
-
 using namespace Pu;
 
 const uint16 terrainSize = 10;
-const NPC_t npc_type = NPC_t::Box;
 
 TestGame::TestGame(void)
 	: Application(L"TestGame"), updateCam(false), firstRun(true), spawnToggle(false),
@@ -48,7 +40,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 	aluminum.Mechanical.CoFs = 1.15f;
 	aluminum.Mechanical.CoFk = 1.4f;
 	aluminum.Mechanical.CoFr = 0.001f;
-	physicsMat = world->AddMaterial(aluminum);
+	world->AddMaterial(aluminum);
 
 	skybox = &fetcher.FetchSkybox(
 		{
@@ -59,25 +51,6 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/front.jpg",
 			L"{Textures}Skybox/back.jpg"
 		});
-
-	if constexpr  (npc_type == NPC_t::Knight)
-	{
-		playerModel = &fetcher.FetchModel(L"{Models}knight.pum", *renderer, nullptr);
-	}
-	else playerModel = &fetcher.CreateModel(npc_type == NPC_t::Sphere ? ShapeType::Sphere : ShapeType::Box, *renderer, nullptr, L"{Textures}uv.png");
-
-	rampModel = &fetcher.CreateModel(ShapeType::Box, *renderer);
-	OBB obb{ Vector3(), Vector3(0.5f), Quaternion() };
-	Collider collider{ obb };
-
-	PhysicalObject obj{ Vector3{}, Quaternion::CreatePitch(PI8), collider };
-	obj.Properties = physicsMat;
-	obj.Scale = Vector3(40.0f, 1.0f, 100.0f);
-	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
-
-	obj.P.Z = 90.0f;
-	obj.Theta = Quaternion::CreatePitch(TAU - PI8);
-	world->AddStatic(obj, *rampModel, DeferredRenderer::SubpassBasicStaticGeometry);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -89,16 +62,12 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (renderer) delete renderer;
 	if (dbgRenderer) delete dbgRenderer;
 
-	fetcher.Release(*playerModel);
-	fetcher.Release(*rampModel);
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
 }
 
 void TestGame::Update(float)
 {
-	if (spawnToggle) SpawnNPC();
-
 	if (desiredFormat)
 	{
 		GetWindow().SetColorSpace(*desiredFormat);
@@ -235,76 +204,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 	if (showAssets) GetContent().Visualize();
 }
 
-void TestGame::SpawnNPC(void)
-{
-#ifdef STRESS_TEST
-	const float x = random(10.0f, 63.0f * terrainSize - 10.0f);
-	const float y = 50.0f;
-	const float z = random(10.0f, 63.0f * terrainSize - 10.0f);
-#else
-	const float x = 0.0f;
-	const float y = 15.0f;
-	const float z = -30.0f;
-#endif
-
-	/* Use the default physical material. */
-	PhysicalObject obj{ Vector3{x, y, z}, Quaternion{} };
-	obj.Properties = physicsMat;
-	obj.State.Mass = 80.0f;
-	obj.CoM = obj.P;
-
-	uint32 subpass;
-	if constexpr (npc_type == NPC_t::Knight)
-	{
-		/* Sphere is the only one that properly works now, but it's not good for the knight. */
-		Sphere sphere{ 25.0f };
-		obj.Collider = Collider{ sphere };
-
-		/* Moment of Inertia is that of a cylinder (using h = 1). */
-		const float nonDomAxis = recip(12.0f) * obj.State.Mass * (3.0f * sqr(1.0f) + sqr(sphere.Radius));
-		const float domAxis = 0.5f * obj.State.Mass * sqr(sphere.Radius);
-		obj.MoI = Matrix3::CreateScalar(nonDomAxis, domAxis, nonDomAxis);
-		obj.State.Cd = 0.82f;
-		obj.Scale = 0.05f;
-
-		subpass = DeferredRenderer::SubpassBasicMorphGeometry;
-	}
-	else if constexpr (npc_type == NPC_t::Sphere)
-	{
-		/* Sphere model is not unit length so scale down collider. */
-		Sphere sphere{ 0.5f };
-		obj.Collider = Collider{ sphere };
-
-		/* Moment of Intertia of a solid sphere. */
-		obj.MoI = Matrix3::CreateScalar((2.0f / 5.0f) * obj.State.Mass * sqr(sphere.Radius));
-		obj.State.Cd = 0.5f;
-		obj.Scale = 3.0f;
-
-		subpass = DeferredRenderer::SubpassBasicStaticGeometry;
-	}
-	else if constexpr (npc_type == NPC_t::Box)
-	{
-		OBB obb{ Vector3{}, Vector3{ 0.5f }, Quaternion{} };
-		obj.Collider = Collider{ obb };
-
-		const float w2 = sqr(obb.GetWidth());
-		const float h2 = sqr(obb.GetHeight());
-		const float d2 = sqr(obb.GetDepth());
-
-		/* Moment of Intertia of a solid box. */
-		const float xTensor = recip(12.0f) * obj.State.Mass * (h2 + d2);
-		const float yTensor = recip(12.0f) * obj.State.Mass * (w2 + d2);
-		const float zTensor = recip(12.0f) * obj.State.Mass * (w2 + h2);
-		obj.MoI = Matrix3::CreateScalar(xTensor, yTensor, zTensor);
-		obj.State.Cd = 2.1f;
-		//obj.Scale = 3.0f;
-
-		subpass = DeferredRenderer::SubpassBasicStaticGeometry;
-	}
-
-	npcs.emplace_back(world->AddKinematic(obj, *playerModel, subpass));
-}
-
 void TestGame::OnAnyMouseScrolled(const Mouse&, int16 value)
 {
 	if (camFree) camFree->MoveSpeed += value;
@@ -339,15 +238,7 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 				}
 			}
 		}
-		else if (args.Key == Keys::P)
-		{
-#ifdef STRESS_TEST
-			spawnToggle = !spawnToggle;
-#else
-			SpawnNPC();
-#endif
 	}
-}
 	else if (sender.Type == InputDeviceType::GamePad)
 	{
 		if (args.Key == Keys::XBoxB) Exit();

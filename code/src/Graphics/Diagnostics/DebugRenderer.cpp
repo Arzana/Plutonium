@@ -24,7 +24,7 @@ class LoadDebugShapesTask
 {
 public:
 	LoadDebugShapesTask(AssetLoader &loader, MeshCollection *result)
-		: loader(loader), result(*result), vrtxIdx(1)
+		: Task("Generate Debug Shapes"), loader(loader), result(*result), vrtxIdx(1)
 	{
 		src = new StagingBuffer(loader.GetDevice(), GPU_BUFFER_SIZE * sizeof(Vector3));
 		result->AddView(0u, GPU_BUFFER_SIZE * sizeof(Vector3));

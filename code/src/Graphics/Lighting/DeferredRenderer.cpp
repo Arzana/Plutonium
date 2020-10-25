@@ -48,7 +48,7 @@ class LightVolumeStageTask
 {
 public:
 	LightVolumeStageTask(AssetFetcher &fetcher, MeshCollection &result)
-		: result(result), fetcher(fetcher)
+		: Task("Generate Light Volumes"), result(result), fetcher(fetcher)
 	{}
 
 	Result Execute(void) final

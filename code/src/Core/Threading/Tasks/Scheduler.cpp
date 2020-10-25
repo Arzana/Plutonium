@@ -1,9 +1,8 @@
 #include "Core/Threading/Tasks/Scheduler.h"
-#include "Core/Diagnostics/Logging.h"
+#include "Core/Diagnostics/Profiler.h"
 #include "Core/Threading/PuThread.h"
 #include "Core/Collections/sdeque.h"
 #include "Config.h"
-#include <thread>
 
 static Pu::vector<std::thread> threads;
 static Pu::vector<Pu::sdeque<Pu::Task*>> tasks;
@@ -81,7 +80,7 @@ void Pu::TaskScheduler::ThreadMain(size_t idx)
 		if (ThreadTrySteal(idx)) continue;
 
 		/* All queues are empty so just sleep the thread to minimize CPU usage. */
-		PuThread::Pause();
+		PuThread::Sleep(1);
 	}
 }
 
@@ -128,6 +127,7 @@ bool Pu::TaskScheduler::ThreadTryWait(size_t idx)
 			list.erase(task);
 
 			/* The current task has no more active childs, so continue. */
+			Profiler::Begin(task->name);
 			HandleTaskResult(idx, task, task->Continue());
 			return true;
 		}
@@ -144,6 +144,7 @@ bool Pu::TaskScheduler::ThreadTryRun(size_t idx)
 	if (tasks[idx].try_pop_back(task))
 	{
 		/* Run task. */
+		Profiler::Begin(task->name);
 		HandleTaskResult(idx, task, task->Execute());
 		return true;
 	}
@@ -165,6 +166,7 @@ bool Pu::TaskScheduler::ThreadTrySteal(size_t idx)
 			if (tasks[i].try_pop_front(task))
 			{
 				/* Run the stolen task and return. */
+				Profiler::Begin(task->name);
 				HandleTaskResult(idx == maxv<size_t>() ? i : idx, task, task->Execute());
 				return true;
 			}
@@ -193,4 +195,6 @@ void Pu::TaskScheduler::HandleTaskResult(size_t idx, Task * task, Task::Result r
 
 	/* Delete the task if the user requested it. */
 	if (result.Delete) delete task;
+
+	Profiler::End();
 }

@@ -34,7 +34,6 @@ private:
 
 	Pu::DeferredRenderer *renderer;
 	Pu::DescriptorPool *descPoolConst;
-	Pu::Model *playerModel, *rampModel;
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
@@ -42,10 +41,7 @@ private:
 	Pu::PerlinNoise noise;
 
 	Pu::PhysicalWorld *world;
-	Pu::vector<Pu::PhysicsHandle> npcs;
-	Pu::PhysicsHandle physicsMat;
 
-	void SpawnNPC(void);
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);
 	void OnSwapchainRecreated(const Pu::GameWindow&, const Pu::SwapchainReCreatedEventArgs&);

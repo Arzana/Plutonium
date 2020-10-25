@@ -1,12 +1,12 @@
 #include "Core/Threading/Tasks/Task.h"
 #include "Core/Diagnostics/Logging.h"
 
-Pu::Task::Task(void)
-	: parent(nullptr), childCnt(0)
+Pu::Task::Task(const string & name)
+	: parent(nullptr), name(name), childCnt(0)
 {}
 
-Pu::Task::Task(Task & parent)
-	: childCnt(0)
+Pu::Task::Task(const string & name, Task & parent)
+	: name(name), childCnt(0)
 {
 	SetParent(parent);
 }

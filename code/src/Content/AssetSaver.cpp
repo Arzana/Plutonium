@@ -28,7 +28,7 @@ void Pu::AssetSaver::SaveImage(const Image & image, const wstring & path, ImageS
 	{
 	public:
 		SaveTask(AssetSaver &parent, const Image &image, const wstring &path, ImageSaveFormats format)
-			: parent(parent), image(image), path(path), format(format)
+			: Task("Save Image"), parent(parent), image(image), path(path), format(format)
 		{}
 
 		virtual Result Execute(void) override

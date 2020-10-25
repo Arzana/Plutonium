@@ -3,7 +3,6 @@
 #include "Core/Threading/Tasks/Scheduler.h"
 #include "Physics/Systems/PhysicalWorld.h"
 #include "Graphics/Models/ShapeCreator.h"
-#include "Core/Diagnostics/Profiler.h"
 #include "Streams/RuntimeConfig.h"
 
 const Pu::uint16 meshSize = 64;
@@ -22,13 +21,11 @@ namespace Pu
 	{
 	public:
 		ChunkCreator(TerrainChunk *result, DescriptorPool &pool, const DescriptorSetLayout &layout, PerlinNoise &noise, Vector2 offset)
-			: result(result), pool(pool), layout(layout), noise(noise), offset(offset)
+			: Task("Generate Chunk"), result(result), pool(pool), layout(layout), noise(noise), offset(offset)
 		{}
 
 		Result Execute(void) final
 		{
-			Profiler::Begin("Chunk Generation", Color::Green());
-
 			/* Precalculate often used values. */
 			LogicalDevice &device = result->fetcher->GetDevice();
 			pixels = reinterpret_cast<float*>(malloc(sqr(meshSize) * sizeof(float)));
@@ -125,7 +122,6 @@ namespace Pu
 				result->hcollider = result->world->AddStatic(obj, *result);
 			}
 
-			Profiler::End();
 			return Result::CustomWait();
 		}
 

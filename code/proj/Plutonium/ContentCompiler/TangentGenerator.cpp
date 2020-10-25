@@ -3,7 +3,6 @@
 #include <Streams/BinaryReader.h>
 #include <mikktspace/mikktspace.h>
 #include <Core/Diagnostics/Stopwatch.h>
-#include <Core/Diagnostics/Profiler.h>
 #include <Core/Threading/PuThread.h>
 #include <Core/Threading/Tasks/Scheduler.h>
 
@@ -151,7 +150,7 @@ class GenerateTask
 {
 public:
 	GenerateTask(const PumIntermediate &data, pum_mesh &mesh, SMikkTSpaceInterface &delegates, std::mutex &lock, std::atomic_uint32_t &counter, BinaryWriter &writer)
-		: data(data), mesh(mesh), delegates(delegates), writeLock(lock), writer(writer), running(counter)
+		: Task("Generate Tangents"), data(data), mesh(mesh), delegates(delegates), writeLock(lock), writer(writer), running(counter)
 	{
 		running++;
 	}
@@ -242,7 +241,6 @@ void LogMeshConversion(PumIntermediate &data, bool newTangents, bool recalculate
 int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 {
 	Stopwatch sw = Stopwatch::StartNew();
-	Profiler::Begin("Generating tangents");
 
 	/* Set all of the delegates. */
 	SMikkTSpaceInterface interfaces{};
@@ -314,6 +312,5 @@ int GenerateTangents(PumIntermediate & data, const CLArgs & args)
 	writeLock.unlock();
 
 	Log::Message("Finished generating tangents for model '%s', took %f seconds.", args.DisplayName.c_str(), sw.SecondsAccurate());
-	Profiler::End();
 	return result;
 }
