@@ -299,7 +299,7 @@ bool InitializeVulkan(uint32 maxSets)
 
 			const DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos };
 			device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
-			device->SetQueues(graphicsQueueFamily, transferQueueFamily);
+			device->SetQueues(graphicsQueueFamily, 0, transferQueueFamily);
 			break;
 		}
 

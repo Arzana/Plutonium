@@ -41,6 +41,12 @@ namespace Pu
 			return format_channels(format);
 		}
 
+		/* Gets whether the image can be used for the specified usecases. */
+		_Check_return_ inline bool Supports(_In_ ImageUsageFlags usages) const
+		{
+			return _CrtEnumCheckFlag(usage, usages);
+		}
+
 		/* Gets the size (in bytes) of a single pixel. */
 		_Check_return_ inline size_t GetElementSize(void) const
 		{

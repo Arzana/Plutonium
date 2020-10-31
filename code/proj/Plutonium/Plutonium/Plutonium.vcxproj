@@ -115,6 +115,8 @@
     <ClInclude Include="..\..\..\include\Core\Time.h" />
     <ClInclude Include="..\..\..\include\Graphics\Diagnostics\ProfilerChain.h" />
     <ClInclude Include="..\..\..\include\Graphics\Lighting\PointLightPool.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureStorage.h" />
+    <ClInclude Include="..\..\..\include\Graphics\Textures\TextureStorage2D.h" />
     <ClInclude Include="..\..\..\include\Graphics\VertexLayouts\PointLight.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Pipelines\ComputePipeline.h" />
     <ClInclude Include="..\..\..\include\Graphics\Vulkan\Shaders\ShaderProgram.h" />
@@ -138,6 +140,7 @@
     <ClInclude Include="..\..\..\include\Physics\Systems\SAT.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ShapeTests.h" />
     <ClInclude Include="..\..\..\include\Physics\Systems\ContactSolverSystem.h" />
+    <ClInclude Include="..\..\..\include\Procedural\Terrain\ChunkGenerator.h" />
     <ClInclude Include="..\..\..\include\Procedural\Terrain\TerrainChunk.h" />
     <ClInclude Include="..\..\..\include\Streams\RuntimeConfig.h" />
     <ClInclude Include="..\..\..\include\System.h" />
@@ -340,6 +343,7 @@
     <ClCompile Include="..\..\..\src\Core\Math\Shapes\Rectangle.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Diagnostics\ProfilerChain.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Lighting\PointLightPool.cpp" />
+    <ClCompile Include="..\..\..\src\Graphics\Textures\TextureStorage.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Pipelines\ComputePipeline.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\ShaderProgram.cpp" />
     <ClCompile Include="..\..\..\src\Graphics\Vulkan\Shaders\SpecializationConstant.cpp" />
@@ -351,6 +355,7 @@
     <ClCompile Include="..\..\..\src\Physics\Systems\ContactSolverSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\RenderingSystem.cpp" />
     <ClCompile Include="..\..\..\src\Physics\Systems\SAT.cpp" />
+    <ClCompile Include="..\..\..\src\Procedural\Terrain\ChunkGenerator.cpp" />
     <ClCompile Include="..\..\..\src\Procedural\Terrain\TerrainChunk.cpp" />
     <ClCompile Include="..\..\..\src\Streams\RuntimeConfig.cpp" />
     <ClCompile Include="..\..\..\src\System.cpp" />

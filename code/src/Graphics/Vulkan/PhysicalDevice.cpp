@@ -247,6 +247,37 @@ uint32 Pu::PhysicalDevice::GetBestGraphicsQueueFamily(void) const
 	return GetBestGraphicsQueueFamilyInternal(nullptr);
 }
 
+uint32 Pu::PhysicalDevice::GetBestComputeQueuFamily(void) const
+{
+	const vector<QueueFamilyProperties> families = GetQueueFamilies();
+	uint32 choosen = maxv<uint32>();
+	int32 highscore = -1, score = 0;
+
+	/* Loop through all families to find best one. */
+	for (uint32 i = 0; i < families.size(); i++, score = 0)
+	{
+		/* Check if queue supports compute operations. */
+		const QueueFamilyProperties &cur = families[i];
+		if (_CrtEnumCheckFlag(cur.Flags, QueueFlags::Compute))
+		{
+			if ((cur.Flags & QueueFlags::TypeMask) == QueueFlags::Compute) score += 1;
+		}
+
+		/* Update choosen graphics queue if needed. */
+		if (score > highscore)
+		{
+			highscore = score;
+			choosen = i;
+		}
+	}
+
+	/* This should never occur. */
+	if (choosen == maxv<uint32>()) Log::Fatal("Unable to find any compute queue!");
+
+	/* Return the choosen transfer queue. */
+	return choosen;
+}
+
 uint32 Pu::PhysicalDevice::GetBestTransferQueueFamily(void) const
 {
 	const vector<QueueFamilyProperties> families = GetQueueFamilies();

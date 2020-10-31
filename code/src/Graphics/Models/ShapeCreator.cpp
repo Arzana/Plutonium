@@ -6,6 +6,12 @@
 #define DBG_CHECK_BUFFER_SIZE(...)
 #endif
 
+template <typename vrtx_t>
+vrtx_t* vertex_cast(void *data, Pu::DeviceSize offset)
+{
+	return reinterpret_cast<vrtx_t*>(reinterpret_cast<Pu::byte*>(data) + offset);
+}
+
 static const Pu::Vector3 origins[6] =
 {
 	Pu::Vector3(-1.0, -1.0, -1.0),
@@ -145,13 +151,13 @@ size_t Pu::ShapeCreator::GetConeBufferSize(uint16 divisions)
 	return GetConeVertexSize(divisions) + 6 * divisions * sizeof(uint16);
 }
 
-Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(PlaneBufferSize);
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	/* Top Left. */
 	vertices->Position = Vector3(-0.5f, 0.0f, 0.5f);
@@ -194,7 +200,7 @@ Pu::Mesh Pu::ShapeCreator::Plane(Buffer & src, bool mapMemory)
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::LodPlane(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::LodPlane(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetPlaneBufferSize(divisions));
 
@@ -205,7 +211,7 @@ Pu::Mesh Pu::ShapeCreator::LodPlane(Buffer & src, uint16 divisions, bool mapMemo
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Patched3D *vertices = reinterpret_cast<Patched3D*>(src.GetHostMemory());
+	Patched3D *vertices = vertex_cast<Patched3D>(src.GetHostMemory(), offset);
 	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
 
 	for (uint16 z = 0, i = 0; z < divisions; z++)
@@ -242,7 +248,7 @@ Pu::Mesh Pu::ShapeCreator::LodPlane(Buffer & src, uint16 divisions, bool mapMemo
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetPatchPlaneBufferSize(divisions));
 
@@ -253,7 +259,7 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMe
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Patched3D *vertices = reinterpret_cast<Patched3D*>(src.GetHostMemory());
+	Patched3D *vertices = vertex_cast<Patched3D>(src.GetHostMemory(), offset);
 	uint16 *indices = reinterpret_cast<uint16*>(vertices + sqr(divisions));
 
 	for (uint16 z = 0, i = 0; z < divisions; z++)
@@ -288,13 +294,13 @@ Pu::Mesh Pu::ShapeCreator::PatchPlane(Buffer & src, uint16 divisions, bool mapMe
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(BoxBufferSize);
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	/* Back face. */
 	vertices->Position = Vector3(-0.5f, 0.5f, -0.5f);
@@ -470,13 +476,13 @@ Pu::Mesh Pu::ShapeCreator::Box(Buffer & src, bool mapMemory)
 }
 
 /* https://github.com/caosdoar/spheres */
-Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetSphereBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	/* Loop through the faces of the box. */
 	const float divs = static_cast<float>(divisions + 1);
@@ -560,13 +566,13 @@ Pu::Mesh Pu::ShapeCreator::Sphere(Buffer & src, uint16 divisions, bool mapMemory
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::VolumeSphere(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::VolumeSphere(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetVolumeSphereBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Vector3 *vertices = reinterpret_cast<Vector3*>(src.GetHostMemory());
+	Vector3 *vertices = vertex_cast<Vector3>(src.GetHostMemory(), offset);
 
 	/* Loop through the faces of the box. */
 	const float divs = static_cast<float>(divisions + 1);
@@ -643,13 +649,13 @@ Pu::Mesh Pu::ShapeCreator::VolumeSphere(Buffer & src, uint16 divisions, bool map
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetDomeBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	const float divs = static_cast<float>(divisions);
 	const float step = recip(divs - 1.0f);
@@ -717,13 +723,13 @@ Pu::Mesh Pu::ShapeCreator::Dome(Buffer & src, uint16 divisions, bool mapMemory)
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetTorusBufferSize(divisions));
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	const float divs = static_cast<float>(divisions);
 	const float step = TAU / divs;
@@ -790,7 +796,7 @@ Pu::Mesh Pu::ShapeCreator::Torus(Buffer & src, uint16 divisions, float ratio, bo
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetCylinderBufferSize(divisions));
 
@@ -800,7 +806,7 @@ Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions, bool mapMemo
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	/* Center of the top face.. */
 	vertices->Position = Vector3(0.0f, 1.0f, 0.0f);
@@ -878,7 +884,7 @@ Pu::Mesh Pu::ShapeCreator::Cylinder(Buffer & src, uint16 divisions, bool mapMemo
 	return result;
 }
 
-Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions, bool mapMemory)
+Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions, bool mapMemory, DeviceSize offset)
 {
 	DBG_CHECK_BUFFER_SIZE(GetConeBufferSize(divisions));
 
@@ -888,7 +894,7 @@ Pu::Mesh Pu::ShapeCreator::Cone(Buffer & src, uint16 divisions, bool mapMemory)
 
 	/* Begin the memory transfer operation. */
 	if (mapMemory) src.BeginMemoryTransfer();
-	Basic3D *vertices = reinterpret_cast<Basic3D*>(src.GetHostMemory());
+	Basic3D *vertices = vertex_cast<Basic3D>(src.GetHostMemory(), offset);
 
 	/* Bottom center. */
 	vertices->Position = Vector3(0.0f);

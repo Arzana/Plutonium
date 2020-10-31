@@ -40,6 +40,8 @@ namespace Pu
 		_Check_return_ uint32 GetBestGraphicsQueueFamily(_In_ const Surface &surface) const;
 		/* Gets the best graphics queue family index, with no presentation taken into account. */
 		_Check_return_ uint32 GetBestGraphicsQueueFamily(void) const;
+		/* Gets the best compute queue family index. */
+		_Check_return_ uint32 GetBestComputeQueuFamily(void) const;
 		/* Gets the best transfer queue family index. */
 		_Check_return_ uint32 GetBestTransferQueueFamily(void) const;
 		/* Gets the amount of device local bytes supported by the device. */

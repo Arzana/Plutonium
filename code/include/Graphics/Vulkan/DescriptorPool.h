@@ -18,6 +18,8 @@ namespace Pu
 		DescriptorPool(_In_ LogicalDevice &device, _In_ const ShaderProgram &computepass);
 		/* Creates a descriptor pool for the specific descriptor set in the specific subpasses. */
 		DescriptorPool(_In_ const Renderpass &renderpass, _In_ uint32 maxSets, _In_ uint32 subpass, _In_ uint32 set);
+		/* Creates a descriptor pool for the specific descriptor set in the compute pass. */
+		DescriptorPool(_In_ LogicalDevice &device, _In_ const ShaderProgram &computepass, _In_ uint32 maxSets, _In_ uint32 set);
 		DescriptorPool(_In_ const DescriptorPool &value) = delete;
 		/* Move constructor. */
 		DescriptorPool(_In_ DescriptorPool &&value);

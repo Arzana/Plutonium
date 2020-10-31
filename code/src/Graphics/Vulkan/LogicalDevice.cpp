@@ -111,13 +111,15 @@ void Pu::LogicalDevice::EndCommandBufferLabel(CommandBufferHndl commandBuffer)
 }
 #endif
 
-void Pu::LogicalDevice::SetQueues(uint32 graphics, uint32 transfer)
+void Pu::LogicalDevice::SetQueues(uint32 graphics, uint32 compute, uint32 transfer)
 {
 	graphicsQueueFamily = graphics;
+	computeQueueFamily = compute;
 	transferQueueFamily = transfer;
 
 #ifdef _DEBUG
 	for (Queue &cur : queues[graphics]) SetDebugName(ObjectType::Queue, cur.hndl, u8"Graphics Queue");
+	for (Queue &cur : queues[compute]) SetDebugName(ObjectType::Queue, cur.hndl, u8"Compute Queue");
 	for (Queue &cur : queues[transfer]) SetDebugName(ObjectType::Queue, cur.hndl, u8"Transfer Queue");
 #endif
 }

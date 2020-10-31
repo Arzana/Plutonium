@@ -31,6 +31,12 @@ namespace Pu
 			return GetQueue(graphicsQueueFamily, queueIndex);
 		}
 
+		/* Gets the specific compute queue created with the logical device. */
+		_Check_return_ inline Queue& GetComputeQueue(_In_ uint32 queueIndex)
+		{
+			return GetQueue(computeQueueFamily, queueIndex);
+		}
+
 		/* Gets the specific transfer queue created with the logical device. */
 		_Check_return_ inline Queue& GetTransferQueue(_In_ uint32 queueIndex)
 		{
@@ -80,7 +86,7 @@ namespace Pu
 		}
 
 		/* Sets the family index of the graphics and transfer queues. */
-		void SetQueues(_In_ uint32 graphics, _In_ uint32 transfer);
+		void SetQueues(_In_ uint32 graphics, _In_ uint32 compute, _In_ uint32 transfer);
 
 	private:
 		friend class Application;
@@ -112,7 +118,7 @@ namespace Pu
 		PhysicalDevice *parent;
 		DeviceHndl hndl;
 		std::map<uint32, vector<Queue>> queues;
-		uint32 graphicsQueueFamily, transferQueueFamily;
+		uint32 graphicsQueueFamily, computeQueueFamily, transferQueueFamily;
 		vector<const char*> enabledExtensions;
 
 		PFN_vkDestroyDevice vkDestroyDevice;

@@ -1797,6 +1797,12 @@ namespace Pu
 		return a = _CrtEnumBitOr(a, b);
 	}
 
+	/* Appends the flag bits of an access flag. */
+	_Check_return_ inline constexpr AccessFlags operator |(_In_ AccessFlags a, _In_ AccessFlags b)
+	{
+		return _CrtEnumBitOr(a, b);
+	}
+
 	/* Gets the number of channels per format. */
 	_Check_return_ inline uint32 format_channels(_In_ Format format)
 	{

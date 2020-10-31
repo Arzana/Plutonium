@@ -54,21 +54,7 @@ void TestGame::LoadContent(AssetFetcher & fetcher)
 			L"{Textures}Skybox/back.jpg"
 		});
 
-	permutations = new DynamicBuffer(GetDevice(), 512 * sizeof(uint32), BufferUsageFlags::TransferDst | BufferUsageFlags::StorageBuffer);
-	permutations->SetDebugName("Perlin Permutations");
-
-	permutations->BeginMemoryTransfer();
-	uint32 *mem = reinterpret_cast<uint32*>(permutations->GetHostMemory());
-	for (uint32 i = 0; i < 256; i++) mem[i] = i;
-	std::shuffle(mem, mem + 256, std::default_random_engine{ static_cast<uint32>(time(nullptr) & maxv<uint32>()) });
-	memcpy(mem + 256, mem, 256 * sizeof(uint32));
-	permutations->EndMemoryTransfer();
-
-	perlin = new Buffer(GetDevice(), 256 * sizeof(float), BufferUsageFlags::StorageBuffer, MemoryPropertyFlags::DeviceLocal);
-	perlin->SetDebugName("Perlin Result");
-
-	compute = &fetcher.FetchComputepass(L"{Shaders}Perlin2D.comp.spv");
-	computePipe = nullptr;
+	chunkGenerator = new ChunkGenerator(fetcher, *world, terrainSize * terrainSize);
 }
 
 void TestGame::UnLoadContent(AssetFetcher & fetcher)
@@ -76,19 +62,12 @@ void TestGame::UnLoadContent(AssetFetcher & fetcher)
 	if (camFree) delete camFree;
 	if (lightMain) delete lightMain;
 	if (lightFill) delete lightFill;
-	for (TerrainChunk *chunk : terrain) delete chunk;
+	if (chunkGenerator) delete chunkGenerator;
 	if (renderer) delete renderer;
 	if (dbgRenderer) delete dbgRenderer;
 
 	fetcher.Release(*skybox);
 	if (descPoolConst) delete descPoolConst;
-
-	if (perlinSet) delete perlinSet;
-	if (descPoolPerlin) delete descPoolPerlin;
-	if (permutations) delete permutations;
-	if (perlin) delete perlin;
-	fetcher.Release(*compute);
-	if (computePipe) delete computePipe;
 }
 
 void TestGame::Update(float)
@@ -155,9 +134,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 			{
 				RuntimeConfig::Set(L"TessellationEnabled", selected);
 				updateRenderer = true;
-
-				for (TerrainChunk *chunk : terrain) delete chunk;
-				terrain.clear();
 			}
 
 			ImGui::MenuItem("Profiler", nullptr, &showProfiler);
@@ -169,35 +145,6 @@ void TestGame::Render(float dt, CommandBuffer &cmd)
 		}
 
 		ImGui::EndMainMenuBar();
-	}
-
-	if (compute->IsLoaded())
-	{
-		if (!computePipe)
-		{
-			descPoolPerlin = new DescriptorPool(GetDevice(), *compute);
-			descPoolPerlin->AddSet(0, 1); // Permutations.
-			descPoolPerlin->AddSet(1, 1); // Result.
-
-			perlinSet = new DescriptorSetGroup(*descPoolPerlin);
-			perlinSet->Add(0, compute->GetSetLayout(0));
-			perlinSet->Add(0, compute->GetSetLayout(1));
-
-			perlinSet->Write(0, compute->GetDescriptor("Permutations"), *permutations);
-			perlinSet->Write(0, compute->GetDescriptor("Octaves"), *perlin);
-
-			computePipe = new ComputePipeline(*compute, true);
-
-			permutations->Update(cmd);
-		}
-
-		cmd.AddLabel("Perlin", Color::Scarlet());
-		cmd.BindComputePipeline(*computePipe);
-		cmd.BindComputeDescriptors(*computePipe, 0, *perlinSet);
-		Vector2 offset;
-		cmd.PushConstants(*computePipe, ShaderStageFlags::Compute, 0, sizeof(Vector2), &offset);
-		cmd.Dispatch(2, 2, 1);
-		cmd.EndLabel();
 	}
 
 	if (renderer->IsUsable())
@@ -273,22 +220,13 @@ void TestGame::OnAnyKeyDown(const InputDevice & sender, const ButtonEventArgs &a
 			if (updateCam = !updateCam) Mouse::HideAndLockCursor(GetWindow().GetNative());
 			else Mouse::ShowAndFreeCursor();
 		}
-		else if (args.Key == Keys::G && descPoolConst && terrain.empty())
+		else if (args.Key == Keys::G)
 		{
 			for (float z = 0; z < terrainSize; z++)
 			{
 				for (float x = 0; x < terrainSize; x++)
 				{
-					TerrainChunk *chunk = new TerrainChunk(GetContent(), world);
-					chunk->Initialize(L"{Textures}uv.png", *descPoolConst, renderer->GetTerrainLayout(), noise, Vector2(x, z),
-						{
-							L"{Textures}Terrain/Water.jpg",
-							L"{Textures}Terrain/Grass.jpg",
-							L"{Textures}Terrain/Dirt.jpg",
-							L"{Textures}Terrain/Snow.jpg"
-						});
-
-					terrain.emplace_back(chunk);
+					chunkGenerator->Create(Vector2(x, z));
 				}
 			}
 		}

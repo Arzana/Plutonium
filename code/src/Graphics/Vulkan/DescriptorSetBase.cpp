@@ -35,9 +35,9 @@ void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Desc
 	WriteNonSampled(hndl, set, descriptor, input.GetView().hndl, DescriptorType::InputAttachment, ImageLayout::ShaderReadOnlyOptimal);
 }
 
-void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const ImageView & image)
+void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const TextureStorage & image)
 {
-	WriteNonSampled(hndl, set, descriptor, image.hndl, DescriptorType::StorageImage, ImageLayout::General);
+	WriteNonSampled(hndl, set, descriptor, image.view->hndl, DescriptorType::StorageImage, ImageLayout::General);
 }
 
 void Pu::DescriptorSetBase::Write(DescriptorSetHndl hndl, uint32 set, const Descriptor & descriptor, const Texture & texture)

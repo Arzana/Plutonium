@@ -17,6 +17,12 @@ Pu::DescriptorPool::DescriptorPool(const Renderpass & renderpass, uint32 maxSets
 	AddSet(subpass, set, maxSets);
 }
 
+Pu::DescriptorPool::DescriptorPool(LogicalDevice & device, const ShaderProgram & computepass, uint32 maxSets, uint32 set)
+	: DescriptorPool(device, computepass)
+{
+	AddSet(set, maxSets);
+}
+
 Pu::DescriptorPool::DescriptorPool(DescriptorPool && value)
 	: hndl(value.hndl), buffer(value.buffer), device(value.device),
 	stride(value.stride), sets(std::move(value.sets)), maxSets(value.maxSets),

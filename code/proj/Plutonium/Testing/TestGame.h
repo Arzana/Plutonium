@@ -3,6 +3,7 @@
 #include <Graphics/Cameras/FreeCamera.h>
 #include <Graphics/Diagnostics/DebugRenderer.h>
 #include <Physics/Systems/PhysicalWorld.h>
+#include <Procedural/Terrain/ChunkGenerator.h>
 
 class TestGame
 	: public Pu::Application
@@ -37,16 +38,8 @@ private:
 
 	Pu::TextureCube *skybox;
 	Pu::DirectionalLight *lightMain, *lightFill;
-	Pu::vector<Pu::TerrainChunk*> terrain;
-	Pu::PerlinNoise noise;
 	Pu::PhysicalWorld *world;
-
-	Pu::DynamicBuffer *permutations;
-	Pu::Buffer *perlin;
-	Pu::ShaderProgram *compute;
-	Pu::ComputePipeline *computePipe;
-	Pu::DescriptorPool *descPoolPerlin;
-	Pu::DescriptorSetGroup *perlinSet;
+	Pu::ChunkGenerator *chunkGenerator;
 
 	void OnAnyMouseScrolled(const Pu::Mouse&, Pu::int16 value);
 	void OnAnyKeyDown(const Pu::InputDevice &sender, const Pu::ButtonEventArgs &args);

@@ -1,6 +1,7 @@
 #pragma once
 #include "DescriptorPool.h"
 #include "Graphics/Textures/TextureInput.h"
+#include "Graphics/Textures/TextureStorage.h"
 #include "Graphics/Textures/DepthBuffer.h"
 
 namespace Pu
@@ -35,7 +36,7 @@ namespace Pu
 		/* Writes a deth buffer attachment to the specified set as an input attachment. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const DepthBuffer &input);
 		/* Writes a storage image to the set. */
-		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const ImageView &image);
+		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const TextureStorage &image);
 		/* Writes an image/sampler combination to the set. */
 		void Write(_In_ DescriptorSetHndl hndl, _In_ uint32 set, _In_ const Descriptor &descriptor, _In_ const Texture &texture);
 		/* Writes a storage buffer to the set. */

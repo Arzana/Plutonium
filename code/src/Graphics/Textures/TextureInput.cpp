@@ -2,7 +2,14 @@
 
 Pu::TextureInput::TextureInput(Pu::Image & image, ImageViewType type)
 	: Texture(nullptr, image, type)
-{}
+{
+#ifdef _DEBUG
+	if (!image.Supports(ImageUsageFlags::InputAttachment))
+	{
+		Log::Fatal("Cannot create input texture wity image that doesn't have the InputAttachment flag!");
+	}
+#endif
+}
 
 Pu::TextureInput & Pu::TextureInput::operator=(TextureInput && other)
 {

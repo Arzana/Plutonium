@@ -72,7 +72,7 @@ void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor
 	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, texture);
 }
 
-void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const ImageView & image)
+void Pu::DescriptorSetGroup::Write(uint32 subpass, const Descriptor & descriptor, const TextureStorage & image)
 {
 	DescriptorSetBase::Write(GetSetHandle(subpass, descriptor), descriptor.GetSet(), descriptor, image);
 }

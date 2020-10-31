@@ -164,17 +164,19 @@ void Pu::Application::InitializeVulkan(void)
 	const PhysicalDevice &physicalDevice = ChoosePhysicalDevice();
 	const uint32 graphicsQueueFamily = physicalDevice.GetBestGraphicsQueueFamily(wnd->GetSurface());
 	const uint32 transferQueueFamily = physicalDevice.GetBestTransferQueueFamily();
-	const uint32 same = graphicsQueueFamily == transferQueueFamily;
+	const uint32 computeQueueFamily = physicalDevice.GetBestComputeQueuFamily();
 
 	/*
 	Specify the amount of queues (adding one if they are the same family):
 	- At least 2 graphics queues, one used for rendering (1) and one for asset loading (0).
+	- At least 1 compute queue.
 	- 1 transfer queue, only used for asset streaming.
 	*/
 	const DeviceQueueCreateInfo queueCreateInfos[] =
 	{
-		DeviceQueueCreateInfo(graphicsQueueFamily, 2 + same, PRIORITIES),
-		DeviceQueueCreateInfo(transferQueueFamily, 1 + same, PRIORITIES)
+		DeviceQueueCreateInfo(graphicsQueueFamily, 2, PRIORITIES),
+		DeviceQueueCreateInfo(computeQueueFamily, 1, PRIORITIES),
+		DeviceQueueCreateInfo(transferQueueFamily, 1, PRIORITIES)
 	};
 
 	/* 
@@ -191,9 +193,9 @@ void Pu::Application::InitializeVulkan(void)
 	}
 
 	/* Create logical device. */
-	DeviceCreateInfo deviceCreateInfo{ 2 - same, queueCreateInfos, deviceExtensions, physicalDevice.enabledFeatures };
+	DeviceCreateInfo deviceCreateInfo{ 3, queueCreateInfos, deviceExtensions, physicalDevice.enabledFeatures };
 	device = physicalDevice.CreateLogicalDevice(deviceCreateInfo);
-	device->SetQueues(graphicsQueueFamily, transferQueueFamily);
+	device->SetQueues(graphicsQueueFamily, computeQueueFamily, transferQueueFamily);
 
 	/* Log the available memory, useful for system debugging. */
 	const uint64 dram = MemoryFrame::GetCPUMemStats().TotalRam;
